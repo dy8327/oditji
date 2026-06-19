@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.tmdb.dao.TmdbDAO">
+
+    <!-- 중복 확인 -->
+    <select id="existsContent" resultType="int">
+
+        SELECT COUNT(*)
+        FROM CONTENT
+        WHERE TMDB_ID = #{tmdbId}
+          AND CONTENT_TYPE = #{contentType}
+
+    </select>
+
+    <!-- 콘텐츠 저장 -->
+    <insert id="insertContent"
+            parameterType="com.project.oditji.tmdb.vo.TmdbVO">
+
+        INSERT INTO CONTENT
+        (
+            CONTENT_NO,
+            TMDB_ID,
+            CONTENT_TYPE,
+            TITLE,
+            ORIGINAL_TITLE,
+            OVERVIEW,
+            POSTER_PATH,
+            BACKDROP_PATH,
+            RELEASE_DATE,
+            GENRE_TEXT,
+            RUNTIME,
+            EPISODE_COUNT,
+            DIRECTOR,
+            CAST_NAMES,
+            AGE_RATING,
+            TMDB_SCORE,
+            VIEW_COUNT,
+            CREATED_AT
+        )
+        VALUES
+        (
+            SEQ_CONTENT_NO.NEXTVAL,
+            #{tmdbId},
+            #{contentType},
+            #{title},
+            #{originalTitle},
+            #{overview},
+            #{posterPath},
+            #{backdropPath},
+            #{releaseDate},
+            #{genreText},
+            #{runtime},
+            #{episodeCount},
+            #{director},
+            #{castNames},
+            #{ageRating},
+            #{tmdbScore},
+            0,
+            SYSDATE
+        )
+
+    </insert>
+
+</mapper>
