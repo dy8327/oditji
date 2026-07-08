@@ -1,0 +1,44 @@
+package com.project.oditji.tmdb.service;
+
+import java.util.List;
+
+import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.search.vo.SearchResultVO;
+
+public interface TmdbService {
+
+    int loadMovieData();
+
+    int loadTvData();
+
+    int updateTvDetailData();
+
+    int loadTvPlatformData();
+
+    int loadTvFullData();
+
+    int loadAllData();
+
+    int updateMovieDetailData();
+
+    int loadMoviePlatformData();
+
+    int loadMovieFullData();
+
+    List<SearchResultVO> searchMulti(
+            String keyword,
+            int page,
+            List<String> platformList,
+            List<String> categoryList,
+            List<String> genreList);
+
+    List<SearchResultVO> getPopularKrOttContent(
+            int page,
+            List<String> platformList,
+            List<String> categoryList,
+            List<String> genreList);
+
+    ContentVO getDetailForSave(Long tmdbId, String contentType);
+
+    void saveContentPlatform(ContentVO content);
+}

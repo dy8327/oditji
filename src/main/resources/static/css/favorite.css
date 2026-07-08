@@ -1,0 +1,92 @@
+
+/* CONTAINER */
+.favorite-container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:40px;
+}
+
+/* HEADER */
+.favorite-header h1{
+    font-size:24px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+/* COUNT BADGE */
+.fav-count-badge{
+    background:red;
+    color:#fff;
+    padding:3px 8px;
+    border-radius:20px;
+    font-size:12px;
+}
+
+/* TAB */
+.favorite-tab{
+    display:flex;
+    gap:10px;
+    margin:20px 0;
+}
+
+.tab-btn{
+    padding:10px 16px;
+    background:#2a2a2a;
+    color:#fff;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.tab-btn.active{
+    background:#fff;
+    color:#000;
+}
+
+/* CONTENT */
+.tab-content{ display:none; }
+.tab-content.active{ display:block; }
+
+/* GRID */
+.favorite-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:20px;
+}
+
+/* CARD */
+.favorite-card{
+    background:#222;
+    border-radius:10px;
+    overflow:hidden;
+    position:relative;
+}
+
+.favorite-card img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+}
+
+/* BUTTON */
+.fav-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background:#000;
+    color:#fff;
+}
+
+.fav-btn.active{
+    color:red;
+}
+
+/* EMPTY */
+.empty-state{
+    text-align:center;
+    padding:60px;
+    color:#aaa;
+}

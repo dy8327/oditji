@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.content.dao.ContentDAO">
+
+    <select id="selectContentByTmdbId"
+            parameterType="com.project.oditji.content.vo.ContentVO"
+            resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT
+            CONTENT_NO AS contentNo,
+            TMDB_ID AS tmdbId,
+            CONTENT_TYPE AS contentType,
+            TITLE AS title,
+            ORIGINAL_TITLE AS originalTitle,
+            OVERVIEW AS overview,
+            POSTER_PATH AS posterPath,
+            BACKDROP_PATH AS backdropPath,
+            RELEASE_DATE AS releaseDate,
+            GENRE_TEXT AS genreText,
+            RUNTIME AS runtime,
+            EPISODE_COUNT AS episodeCount,
+            DIRECTOR AS director,
+            CAST_NAMES AS castNames,
+            AGE_RATING AS ageRating,
+            TMDB_SCORE AS tmdbScore,
+            VIEW_COUNT AS viewCount,
+            CREATED_AT AS createdAt,
+            UPDATED_AT AS updatedAt
+        FROM CONTENT
+        WHERE TMDB_ID = #{tmdbId}
+          AND CONTENT_TYPE = #{contentType}
+
+    </select>
+
+    <select id="selectContentByContentNo"
+            parameterType="int"
+            resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT
+            CONTENT_NO AS contentNo,
+            TMDB_ID AS tmdbId,
+            CONTENT_TYPE AS contentType,
+            TITLE AS title,
+            ORIGINAL_TITLE AS originalTitle,
+            OVERVIEW AS overview,
+            POSTER_PATH AS posterPath,
+            BACKDROP_PATH AS backdropPath,
+            RELEASE_DATE AS releaseDate,
+            GENRE_TEXT AS genreText,
+            RUNTIME AS runtime,
+            EPISODE_COUNT AS episodeCount,
+            DIRECTOR AS director,
+            CAST_NAMES AS castNames,
+            AGE_RATING AS ageRating,
+            TMDB_SCORE AS tmdbScore,
+            VIEW_COUNT AS viewCount,
+            CREATED_AT AS createdAt,
+            UPDATED_AT AS updatedAt
+        FROM CONTENT
+        WHERE CONTENT_NO = #{contentNo}
+
+    </select>
+
+    <insert id="insertContent"
+            parameterType="com.project.oditji.content.vo.ContentVO">
+
+        INSERT INTO CONTENT (
+            CONTENT_NO,
+            TMDB_ID,
+            CONTENT_TYPE,
+            TITLE,
+            ORIGINAL_TITLE,
+            OVERVIEW,
+            POSTER_PATH,
+            BACKDROP_PATH,
+            RELEASE_DATE,
+            GENRE_TEXT,
+            RUNTIME,
+            EPISODE_COUNT,
+            DIRECTOR,
+            CAST_NAMES,
+            AGE_RATING,
+            TMDB_SCORE,
+            VIEW_COUNT,
+            CREATED_AT
+        )
+        VALUES (
+            SEQ_CONTENT_NO.NEXTVAL,
+            #{tmdbId},
+            #{contentType},
+            #{title},
+            #{originalTitle, jdbcType=VARCHAR},
+            #{overview, jdbcType=CLOB},
+            #{posterPath, jdbcType=VARCHAR},
+            #{backdropPath, jdbcType=VARCHAR},
+            #{releaseDate, jdbcType=DATE},
+            #{genreText, jdbcType=VARCHAR},
+            #{runtime, jdbcType=NUMERIC},
+            #{episodeCount, jdbcType=NUMERIC},
+            #{director, jdbcType=VARCHAR},
+            #{castNames, jdbcType=VARCHAR},
+            #{ageRating, jdbcType=VARCHAR},
+            #{tmdbScore, jdbcType=NUMERIC},
+            0,
+            SYSDATE
+        )
+
+    </insert>
+
+    <update id="increaseViewCount"
+            parameterType="int">
+
+        UPDATE CONTENT
+        SET VIEW_COUNT = VIEW_COUNT + 1,
+            UPDATED_AT = SYSDATE
+        WHERE CONTENT_NO = #{contentNo}
+
+    </update>
+    
+    <!-- =========================
+     메인 화면 콘텐츠 리스트 조회
+     - TMDB 평점 + 조회수 기준 정렬
+     - 메인 페이지 콘텐츠 카드 / 슬라이더 데이터용
+     ========================= -->
+    <select id="selectMainContentList"
+        resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT
+            CONTENT_NO AS contentNo,
+            TMDB_ID AS tmdbId,
+            CONTENT_TYPE AS contentType,
+            TITLE AS title,
+            ORIGINAL_TITLE AS originalTitle,
+            OVERVIEW AS overview,
+            POSTER_PATH AS posterPath,
+            BACKDROP_PATH AS backdropPath,
+            RELEASE_DATE AS releaseDate,
+            GENRE_TEXT AS genreText,
+            RUNTIME AS runtime,
+            EPISODE_COUNT AS episodeCount,
+            DIRECTOR AS director,
+            CAST_NAMES AS castNames,
+            AGE_RATING AS ageRating,
+            TMDB_SCORE AS tmdbScore,
+            VIEW_COUNT AS viewCount,
+            CREATED_AT AS createdAt,
+            UPDATED_AT AS updatedAt
+        FROM CONTENT
+        ORDER BY TMDB_SCORE DESC, VIEW_COUNT DESC
+        FETCH FIRST 200 ROWS ONLY
+
+    </select>
+ <select id="selectContentListByType"
+            parameterType="map"
+            resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT *
+        FROM CONTENT
+
+        ORDER BY
+        <choose>
+            <when test="type == 'new'">
+                CREATED_AT DESC
+            </when>
+
+            <when test="type == 'popular'">
+                VIEW_COUNT DESC
+            </when>
+
+            <otherwise>
+                TMDB_SCORE DESC, VIEW_COUNT DESC
+            </otherwise>
+        </choose>
+
+        OFFSET #{offset} ROWS
+        FETCH FIRST #{size} ROWS ONLY
+
+    </select>
+</mapper>

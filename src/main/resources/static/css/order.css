@@ -1,0 +1,75 @@
+.order-list-container,
+.order-complete-container{
+    padding:40px;
+}
+
+/* =========================
+   ORDER CARD
+========================= */
+.order-card{
+    background:#1e1e1e;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+/* HEADER */
+.order-card-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:15px;
+    color:#aaa;
+}
+
+/* ITEMS */
+.order-item{
+    display:flex;
+    gap:15px;
+    margin-bottom:10px;
+}
+
+.order-item img{
+    width:60px;
+    height:60px;
+    object-fit:cover;
+}
+
+/* TOTAL */
+.order-total{
+    text-align:right;
+    font-weight:700;
+    margin-top:10px;
+}
+
+/* =========================
+   COMPLETE PAGE
+========================= */
+.complete-box{
+    text-align:center;
+    background:#1e1e1e;
+    padding:40px;
+    border-radius:12px;
+}
+
+.complete-info{
+    margin-top:20px;
+}
+
+.complete-info div{
+    margin-bottom:10px;
+}
+
+.complete-actions{
+    margin-top:20px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+.complete-actions a{
+    padding:10px 15px;
+    background:#4caf50;
+    color:#fff;
+    border-radius:8px;
+    text-decoration:none;
+}

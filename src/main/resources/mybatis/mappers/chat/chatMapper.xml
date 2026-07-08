@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.chat.dao.ChatDAO">
+
+<!-- 채팅방 쿼리 -->
+<resultMap id="chatRoomMap"
+           type="com.project.oditji.chat.vo.ChatRoomVO">
+
+    <id property="roomId"
+        column="ROOM_ID"/>
+
+    <result property="roomName"
+            column="ROOM_NAME"/>
+
+    <result property="roomType"
+            column="ROOM_TYPE"/>
+
+    <result property="roomDescription"
+        column="ROOM_DESCRIPTION"/>
+
+    <result property="maxMember"
+        column="MAX_MEMBER"/>
+
+    <result property="isDefault"
+        column="IS_DEFAULT"/>
+
+    <result property="createdBy"
+            column="CREATED_BY"/>
+
+    <result property="createdAt"
+            column="CREATED_AT"/>
+
+    <result property="status"
+            column="STATUS"/>
+
+    <result property="creatorName"
+            column="CREATOR_NAME"/>
+
+    <result property="memberCount"
+            column="MEMBER_COUNT"/>
+
+</resultMap>
+<!-- 전체 채팅방 조회 쿼리 -->
+<select id="selectChatRoomList"
+        resultMap="chatRoomMap">
+
+SELECT
+
+    CR.ROOM_ID,
+    CR.ROOM_NAME,
+    CR.ROOM_TYPE,
+    CR.ROOM_DESCRIPTION,
+    CR.CREATED_BY,
+    CR.CREATED_AT,
+    CR.STATUS,
+    CR.MAX_MEMBER,
+    CR.IS_DEFAULT,
+
+
+    B.BUSINESS_NAME AS CREATOR_NAME,
+
+    (
+        SELECT COUNT(*)
+        FROM CHAT_ROOM_MEMBER CRM
+        WHERE CRM.ROOM_ID = CR.ROOM_ID
+    ) MEMBER_COUNT
+
+FROM CHAT_ROOM CR
+
+LEFT JOIN BUSINESS B
+ON CR.CREATED_BY = B.BUSINESS_NO
+
+WHERE CR.STATUS='ACTIVE'
+
+ORDER BY CR.CREATED_AT DESC
+
+</select>
+
+<!-- 내가 참여한 채팅방 조회 쿼리 -->
+<select id="selectMyChatRoomList"
+        parameterType="int"
+        resultMap="chatRoomMap">
+
+SELECT
+
+    CR.ROOM_ID,
+    CR.ROOM_NAME,
+    CR.ROOM_TYPE,
+    CR.ROOM_DESCRIPTION,
+    CR.CREATED_BY,
+    CR.CREATED_AT,
+    CR.STATUS,
+    CR.MAX_MEMBER,
+    CR.IS_DEFAULT,
+
+    B.BUSINESS_NAME AS CREATOR_NAME,
+
+    (
+        SELECT COUNT(*)
+        FROM CHAT_ROOM_MEMBER T
+        WHERE T.ROOM_ID=CR.ROOM_ID
+    ) MEMBER_COUNT
+
+FROM CHAT_ROOM CR
+
+JOIN CHAT_ROOM_MEMBER CRM
+ON CR.ROOM_ID=CRM.ROOM_ID
+
+LEFT JOIN BUSINESS B
+ON CR.CREATED_BY=B.BUSINESS_NO
+
+WHERE CRM.BUSINESS_NO=#{businessNo}
+
+AND CR.STATUS='ACTIVE'
+
+ORDER BY CR.CREATED_AT DESC
+
+</select>
+
+<!-- 채팅방 상세 조회 쿼리 -->
+<select id="selectChatRoom"
+        parameterType="String"
+        resultMap="chatRoomMap">
+
+SELECT
+
+    CR.ROOM_ID,
+    CR.ROOM_NAME,
+    CR.ROOM_TYPE,
+    CR.ROOM_DESCRIPTION,
+    CR.CREATED_BY,
+    CR.CREATED_AT,
+    CR.STATUS,
+    CR.MAX_MEMBER,
+    CR.IS_DEFAULT,
+
+    B.BUSINESS_NAME AS CREATOR_NAME,
+
+    (
+        SELECT COUNT(*)
+        FROM CHAT_ROOM_MEMBER CRM
+        WHERE CRM.ROOM_ID=CR.ROOM_ID
+    ) MEMBER_COUNT
+
+FROM CHAT_ROOM CR
+
+LEFT JOIN BUSINESS B
+ON CR.CREATED_BY=B.BUSINESS_NO
+
+WHERE CR.ROOM_ID=#{roomId}
+
+</select>
+<!-- 채팅방 생성 쿼리 -->
+<insert id="insertChatRoom"
+        parameterType="com.project.oditji.chat.vo.ChatRoomVO">
+
+INSERT INTO CHAT_ROOM(
+
+ROOM_ID,
+
+ROOM_NAME,
+
+ROOM_TYPE,
+
+CREATED_BY,
+
+CREATED_AT,
+
+STATUS,
+
+MAX_MEMBER
+
+)
+
+VALUES(
+
+#{roomId},
+
+#{roomName},
+
+#{roomType},
+
+#{createdBy},
+
+SYSDATE,
+
+'ACTIVE',
+
+#{maxMember}
+
+)
+
+</insert>
+
+<!-- 채팅방 수정 쿼리 -->
+<update id="updateChatRoom"
+        parameterType="com.project.oditji.chat.vo.ChatRoomVO">
+
+UPDATE CHAT_ROOM
+
+SET
+
+ROOM_NAME=#{roomName},
+
+ROOM_TYPE=#{roomType},
+
+ROOM_DESCRIPTION=#{roomDescription},
+MAX_MEMBER=#{maxMember},
+IS_DEFAULT=#{isDefault}
+
+WHERE ROOM_ID=#{roomId}
+
+</update>
+
+<!-- 채팅방 삭제 쿼리 -->
+<update id="deleteChatRoom"
+        parameterType="String">
+
+UPDATE CHAT_ROOM
+
+SET STATUS='INACTIVE'
+
+WHERE ROOM_ID=#{roomId}
+
+</update>
+
+<!-- 채팅방 참가 쿼리 -->
+<insert id="insertChatRoomMember">
+
+INSERT INTO CHAT_ROOM_MEMBER(
+
+ROOM_ID,
+
+BUSINESS_NO,
+
+JOIN_DATE
+
+)
+
+VALUES(
+
+#{roomId},
+
+#{businessNo},
+
+SYSDATE
+
+)
+
+</insert>
+
+<!-- 채팅방 탈퇴 쿼리 -->
+<delete id="deleteChatRoomMember">
+
+DELETE
+
+FROM CHAT_ROOM_MEMBER
+
+WHERE ROOM_ID=#{roomId}
+
+AND BUSINESS_NO=#{businessNo}
+
+</delete>
+
+<!-- 채팅방 참가 여부 확인 -->
+<select id="existsChatRoomMember"
+        resultType="int">
+
+SELECT COUNT(*)
+
+FROM CHAT_ROOM_MEMBER
+
+WHERE ROOM_ID=#{roomId}
+
+AND BUSINESS_NO=#{businessNo}
+
+</select>
+
+<!-- 채팅방 시퀀스 조회 -->
+<select id="getNextRoomSequence"
+        resultType="int">
+
+    SELECT SEQ_CHAT_ROOM.NEXTVAL
+
+    FROM DUAL
+
+</select>
+
+</mapper>

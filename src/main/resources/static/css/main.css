@@ -1,0 +1,156 @@
+body {
+    margin: 0;
+    background: #141414;
+    color: #e5e5e5;
+    font-family: Arial;
+}
+
+.main {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 30px 0;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 50px;
+    gap: 20px;
+}
+
+.hero-left {
+    width: 62%;
+}
+
+.hero-sub {
+    font-size: 13px;
+    color: #999;
+}
+
+.hero-title {
+    font-size: 42px;
+    margin: 10px 0;
+}
+
+.hero-desc {
+    font-size: 14px;
+    color: #bbb;
+    line-height: 1.6;
+}
+
+.hero-right {
+    width: 38%;
+    display: flex;
+    gap: 10px;
+}
+
+.hero-box {
+    flex: 1;
+    background: #1c1c1c;
+    padding: 12px;
+    border-radius: 6px;
+    min-height: 180px;
+}
+
+.box-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* ================= RANKING ================= */
+
+.ranking-filter {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.ranking-filter button {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    color: #aaa;
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.ranking-filter .active {
+    color: #fff;
+}
+
+.ott-select {
+    background: #1c1c1c;
+    color: #ddd;
+    border: 1px solid #333;
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+}
+
+.rank {
+    width: 20px;
+    color: #fff;
+}
+
+.name {
+    flex: 1;
+    color: #bbb;
+}
+
+/* ================= SLIDER ================= */
+
+.slider-section {
+    margin-bottom: 50px;
+}
+
+.slider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.track {
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.btn {
+    background: none;
+    border: none;
+    font-size: 26px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+/* ================= CARD ================= */
+
+.card {
+    width: 160px;
+    height: 220px;
+    background: #1c1c1c;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.thumb {
+    width: 100%;
+    height: 100%;
+    background: #2a2a2a;
+}

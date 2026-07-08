@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.member.dao.MemberPlatformDAO">
+
+    <select id="selectPlatformList" resultType="com.project.oditji.member.vo.PlatformVO">
+        SELECT
+            PLATFORM_NO,
+            PLATFORM_NAME,
+            LOGO_IMAGE
+        FROM OTT_PLATFORM
+        WHERE IS_ACTIVE = 'Y'
+        ORDER BY PLATFORM_NO
+    </select>
+
+    <insert id="insertMemberPlatform">
+        INSERT INTO MEMBER_PLATFORM (
+            MEMBER_PLATFORM_NO,
+            MEMBER_NO,
+            PLATFORM_NO,
+            CREATED_AT
+        ) VALUES (
+            SEQ_MEMBER_PLATFORM.NEXTVAL,
+            #{memberNo},
+            #{platformNo},
+            SYSDATE
+        )
+    </insert>
+
+    <select id="countMemberPlatform" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER_PLATFORM
+        WHERE MEMBER_NO = #{memberNo}
+    </select>
+
+</mapper>

@@ -1,0 +1,743 @@
+/* =========================================================
+   MyPage
+========================================================= */
+
+.mypage-container{
+
+    width:1200px;
+
+    margin:60px auto 80px;
+
+    color:#F5F5F5;
+
+}
+
+/* =========================================================
+   Common
+========================================================= */
+
+.mypage-section-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-end;
+
+    margin-bottom:25px;
+
+}
+
+.mypage-section-header h2{
+
+    font-size:28px;
+
+    color:#FFFFFF;
+
+    margin-bottom:8px;
+
+}
+
+.mypage-section-header p{
+
+    color:#9CA3AF;
+
+    font-size:15px;
+
+}
+
+.mypage-more{
+
+    color:#4F8CFF;
+
+    font-size:14px;
+
+    transition:.2s;
+
+}
+
+.mypage-more:hover{
+
+    color:#7DB2FF;
+
+}
+
+/* =========================================================
+   Welcome
+========================================================= */
+
+.mypage-welcome{
+
+    margin-bottom:50px;
+
+}
+
+.mypage-greeting{
+
+    color:#9CA3AF;
+
+    font-size:18px;
+
+    margin-bottom:10px;
+
+}
+
+.mypage-welcome h1{
+
+    font-size:42px;
+
+    font-weight:700;
+
+    margin-bottom:15px;
+
+    color:#FFFFFF;
+
+}
+
+.mypage-message{
+
+    color:#CFCFCF;
+
+    font-size:17px;
+
+}
+
+/* =========================================================
+   Profile
+========================================================= */
+
+.mypage-profile{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:#232323;
+
+    border:1px solid #343434;
+
+    border-radius:18px;
+
+    padding:35px 40px;
+
+    margin-bottom:35px;
+
+}
+
+.mypage-profile-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:25px;
+
+}
+
+.mypage-profile-image img{
+
+    width:110px;
+
+    height:110px;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    border:4px solid #4F8CFF;
+
+}
+
+.mypage-profile-info h2{
+
+    font-size:30px;
+
+    color:#FFFFFF;
+
+    margin-bottom:10px;
+
+}
+
+.mypage-profile-info p{
+
+    color:#A5A5A5;
+
+    margin-bottom:15px;
+
+}
+
+.mypage-member-type{
+
+    display:inline-block;
+
+    padding:8px 18px;
+
+    border-radius:30px;
+
+    background:#2D3E5F;
+
+    color:#7EB1FF;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.mypage-profile-right button{
+
+    width:170px;
+
+    height:48px;
+
+    border-radius:10px;
+
+    background:#4F8CFF;
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.mypage-profile-right button:hover{
+
+    background:#3D79F4;
+
+}
+
+/* =========================================================
+   OTT
+========================================================= */
+
+.mypage-ott{
+
+    background:#232323;
+
+    border:1px solid #343434;
+
+    border-radius:18px;
+
+    padding:35px 40px;
+
+    margin-bottom:50px;
+
+}
+
+.mypage-ott button{
+
+    width:160px;
+
+    height:45px;
+
+    border-radius:10px;
+
+    background:#4F8CFF;
+
+    color:white;
+
+    font-weight:600;
+
+}
+
+.mypage-ott-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:15px;
+
+}
+
+.mypage-ott-chip{
+
+    padding:11px 22px;
+
+    border-radius:30px;
+
+    background:#313131;
+
+    border:1px solid #454545;
+
+    color:#F5F5F5;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.2s;
+
+}
+
+.mypage-ott-chip:hover{
+
+    background:#4F8CFF;
+
+    border-color:#4F8CFF;
+
+}
+
+.mypage-empty{
+
+    color:#8A8A8A;
+
+}
+
+/* =========================================================
+   Activity
+========================================================= */
+
+.mypage-activity{
+
+    margin-bottom:60px;
+
+}
+
+.mypage-activity-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:20px;
+
+}
+
+.mypage-activity-card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-align:center;
+
+    padding:35px 20px;
+
+    background:#232323;
+
+    border:1px solid #343434;
+
+    border-radius:18px;
+
+    transition:.25s;
+
+}
+
+.mypage-activity-card:hover{
+
+    background:#2B2B2B;
+
+    border-color:#4F8CFF;
+
+    transform:translateY(-6px);
+
+}
+
+.mypage-activity-icon{
+
+    font-size:34px;
+
+    margin-bottom:18px;
+
+}
+
+.mypage-activity-count{
+
+    font-size:36px;
+
+    font-weight:700;
+
+    color:#FFFFFF;
+
+    margin-bottom:12px;
+
+}
+
+.mypage-activity-title{
+
+    font-size:15px;
+
+    color:#AFAFAF;
+
+}
+
+/* =========================================================
+   Review
+========================================================= */
+
+.mypage-review{
+
+    margin-bottom:60px;
+
+}
+
+.mypage-review-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.mypage-review-card{
+
+    background:#232323;
+
+    border:1px solid #343434;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    transition:.25s;
+
+}
+
+.mypage-review-card:hover{
+
+    border-color:#4F8CFF;
+
+    background:#2B2B2B;
+
+}
+
+.mypage-review-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    margin-bottom:16px;
+
+}
+
+.mypage-review-top h3{
+
+    font-size:20px;
+
+    color:#FFFFFF;
+
+    margin-bottom:6px;
+
+}
+
+.mypage-review-top span{
+
+    color:#8C8C8C;
+
+    font-size:13px;
+
+}
+
+.mypage-review-score{
+
+    color:#FFD54A;
+
+    font-weight:700;
+
+}
+
+.mypage-review-content{
+
+    color:#D3D3D3;
+
+    line-height:1.8;
+
+}
+
+.mypage-empty-box{
+
+    background:#232323;
+
+    border:2px dashed #404040;
+
+    border-radius:18px;
+
+    padding:60px;
+
+    text-align:center;
+
+}
+
+.mypage-empty-icon{
+
+    font-size:48px;
+
+    margin-bottom:20px;
+
+}
+
+.mypage-empty-box h3{
+
+    color:#FFFFFF;
+
+    margin-bottom:15px;
+
+}
+
+.mypage-empty-box p{
+
+    color:#A5A5A5;
+
+    margin-bottom:30px;
+
+}
+
+.mypage-empty-box button{
+
+    width:180px;
+
+    height:48px;
+
+    background:#4F8CFF;
+
+    color:white;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+}
+
+.mypage-empty-box button:hover{
+
+    background:#3D79F4;
+
+}
+
+/* =========================================================
+   Business
+========================================================= */
+
+.mypage-business{
+
+    margin-bottom:60px;
+
+}
+
+.mypage-business-banner{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:35px 40px;
+
+    border-radius:18px;
+
+    background:linear-gradient(135deg,#262626,#1F1F1F);
+
+    border:1px solid #3A3A3A;
+
+}
+
+.mypage-business-info{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:25px;
+
+}
+
+.mypage-business-icon{
+
+    font-size:54px;
+
+}
+
+.mypage-business-info h3{
+
+    color:#FFFFFF;
+
+    margin-bottom:10px;
+
+}
+
+.mypage-business-info p{
+
+    color:#B0B0B0;
+
+    line-height:1.7;
+
+}
+
+.mypage-business-btn{
+
+    width:190px;
+
+    height:50px;
+
+    border-radius:12px;
+
+    background:#F59E0B;
+
+    color:#222;
+
+    font-weight:700;
+
+    transition:.25s;
+
+}
+
+.mypage-business-btn:hover{
+
+    background:#FFB020;
+
+    transform:translateY(-3px);
+
+}
+
+/* =========================================================
+   Account
+========================================================= */
+
+.mypage-account{
+
+    margin-bottom:80px;
+
+}
+
+.mypage-account-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:20px;
+
+}
+
+.mypage-account-card{
+
+    background:#232323;
+
+    border:1px solid #343434;
+
+    border-radius:18px;
+
+    padding:28px;
+
+    text-align:center;
+
+}
+
+.mypage-account-card h4{
+
+    color:#A0A0A0;
+
+    font-size:14px;
+
+    margin-bottom:15px;
+
+}
+
+.mypage-account-card p{
+
+    color:#FFFFFF;
+
+    font-size:20px;
+
+    font-weight:600;
+
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media(max-width:1024px){
+
+    .mypage-container{
+
+        width:95%;
+
+    }
+
+    .mypage-activity-grid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+    .mypage-account-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .mypage-profile{
+
+        flex-direction:column;
+
+        gap:25px;
+
+        align-items:flex-start;
+
+    }
+
+    .mypage-profile-left{
+
+        flex-direction:column;
+
+        text-align:center;
+
+        width:100%;
+
+    }
+
+    .mypage-business-banner{
+
+        flex-direction:column;
+
+        gap:25px;
+
+        align-items:flex-start;
+
+    }
+
+    .mypage-business-info{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .mypage-activity-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .mypage-review-top{
+
+        flex-direction:column;
+
+        gap:10px;
+
+    }
+
+}

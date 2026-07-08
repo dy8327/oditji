@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.member.dao.MemberDAO">
+
+    <insert id="insertMember" parameterType="com.project.oditji.member.vo.MemberVO">
+
+        <selectKey keyProperty="memberNo" resultType="long" order="BEFORE">
+            SELECT SEQ_MEMBER_NO.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO MEMBER (
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_PW,
+            MEMBER_NAME,
+            NICKNAME,
+            EMAIL,
+            PHONE,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            ADULT_VERIFIED,
+            CREATED_AT
+        ) VALUES (
+            #{memberNo},
+            #{memberId, jdbcType=VARCHAR},
+            #{memberPw, jdbcType=VARCHAR},
+            #{memberName, jdbcType=VARCHAR},
+            #{nickname, jdbcType=VARCHAR},
+            #{email, jdbcType=VARCHAR},
+            #{phone, jdbcType=VARCHAR},
+            #{profileImage, jdbcType=VARCHAR},
+            #{role, jdbcType=VARCHAR},
+            #{status, jdbcType=VARCHAR},
+            #{adultVerified, jdbcType=VARCHAR},
+            SYSDATE
+        )
+    </insert>
+
+    <insert id="insertMemberPlatform">
+        INSERT INTO MEMBER_PLATFORM (
+            MEMBER_PLATFORM_NO,
+            MEMBER_NO,
+            PLATFORM_NO,
+            CREATED_AT
+        ) VALUES (
+            SEQ_MEMBER_PLATFORM_NO.NEXTVAL,
+            #{memberNo},
+            #{platformNo},
+            SYSDATE
+        )
+    </insert>
+
+    <resultMap id="memberResultMap" type="com.project.oditji.member.vo.MemberVO">
+        <id property="memberNo" column="MEMBER_NO"/>
+        <result property="memberId" column="MEMBER_ID"/>
+        <result property="memberPw" column="MEMBER_PW"/>
+        <result property="memberName" column="MEMBER_NAME"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="email" column="EMAIL"/>
+        <result property="phone" column="PHONE"/>
+        <result property="profileImage" column="PROFILE_IMAGE"/>
+        <result property="role" column="ROLE"/>
+        <result property="status" column="STATUS"/>
+        <result property="adultVerified" column="ADULT_VERIFIED"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
+
+    <select id="loginMember"
+        parameterType="com.project.oditji.member.vo.MemberVO"
+        resultMap="memberResultMap">
+        SELECT
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_PW,
+            MEMBER_NAME,
+            NICKNAME,
+            EMAIL,
+            PHONE,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            ADULT_VERIFIED,
+            CREATED_AT,
+            UPDATED_AT
+        FROM MEMBER
+        WHERE MEMBER_ID = #{memberId}
+        AND MEMBER_PW = #{memberPw}
+        AND STATUS = 'ACTIVE'
+    </select>
+
+    <select id="countByMemberId" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="countByEmail" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE EMAIL = #{email}
+    </select>
+
+    <select id="countByNickname" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE NICKNAME = #{nickname}
+    </select>
+
+    <select id="selectPlatformNoByCode" parameterType="string" resultType="long">
+        SELECT PLATFORM_NO
+        FROM OTT_PLATFORM
+        WHERE UPPER(TRIM(PLATFORM_NAME)) = UPPER(TRIM(#{platformCode}))
+    </select>
+
+    <insert id="insertKakaoMember" parameterType="com.project.oditji.member.vo.MemberVO">
+
+        <selectKey keyProperty="memberNo" resultType="long" order="BEFORE">
+            SELECT SEQ_MEMBER_NO.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO MEMBER (
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_PW,
+            MEMBER_NAME,
+            NICKNAME,
+            EMAIL,
+            PHONE,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            ADULT_VERIFIED,
+            CREATED_AT
+        ) VALUES (
+            #{memberNo},
+            #{memberId, jdbcType=VARCHAR},
+            #{memberPw, jdbcType=VARCHAR},
+            #{memberName, jdbcType=VARCHAR},
+            #{nickname, jdbcType=VARCHAR},
+            #{email, jdbcType=VARCHAR},
+            #{phone, jdbcType=VARCHAR},
+            #{profileImage, jdbcType=VARCHAR},
+            'USER',
+            'ACTIVE',
+            'N',
+            SYSDATE
+        )
+    </insert>
+
+</mapper>

@@ -1,0 +1,844 @@
+/* =========================================================
+   ODITJI Header
+========================================================= */
+
+:root{
+
+    --color-bg:#1F1F23;
+    --color-bg2:#26282C;
+    --color-bg3:#30333A;
+
+    --color-border:#3D4148;
+
+    --color-white:#FFFFFF;
+    --color-gray:#C5C8CE;
+    --color-gray2:#8C919B;
+
+    --color-point:#5EA3FF;
+
+    --header-height:80px;
+
+    --radius:14px;
+
+    --transition:.3s ease;
+
+}
+
+
+
+/* =========================================================
+   Header
+========================================================= */
+
+.header{
+
+    position:sticky;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    height:var(--header-height);
+
+    background:rgba(31,31,35,.95);
+
+    backdrop-filter:blur(18px);
+
+    border-bottom:1px solid var(--color-border);
+
+    z-index:9999;
+
+    transition:var(--transition);
+
+}
+
+
+.header.scrolled{
+
+    box-shadow:
+
+        0 10px 35px rgba(0,0,0,.35);
+
+}
+
+
+/* =========================================================
+   Container
+========================================================= */
+
+.header-container{
+
+    width:min(1600px,95%);
+
+    height:100%;
+
+    margin:auto;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+}
+
+
+/* =========================================================
+   Left
+========================================================= */
+
+.header-left{
+
+    display:flex;
+
+    align-items:center;
+
+}
+
+
+/* =========================================================
+   Logo
+========================================================= */
+
+.logo{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+
+}
+
+.logo-main{
+
+    font-size:28px;
+
+    font-weight:800;
+
+    color:var(--color-white);
+
+    letter-spacing:1px;
+
+}
+
+.logo:hover .logo-main{
+
+    color:var(--color-point);
+
+}
+
+
+/* =========================================================
+   Navigation
+========================================================= */
+
+.header-nav{
+
+    margin-left:55px;
+
+}
+
+.header-nav ul{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:35px;
+
+}
+
+.header-nav li{
+
+    position:relative;
+
+}
+
+.header-nav a{
+
+    color:var(--color-gray);
+
+    font-size:16px;
+
+    font-weight:500;
+
+    transition:var(--transition);
+
+}
+
+/* =========================================================
+   Search
+========================================================= */
+
+.header-search{
+
+    flex:1;
+
+    display:flex;
+
+    justify-content:center;
+
+}
+
+
+.header-search form{
+
+    width:430px;
+
+    height:46px;
+
+    display:flex;
+
+    align-items:center;
+
+    background:var(--color-bg3);
+
+    border:1px solid transparent;
+
+    border-radius:999px;
+
+    overflow:hidden;
+
+    transition:var(--transition);
+
+}
+
+
+.header-search form:hover{
+
+    border-color:var(--color-border);
+
+}
+
+
+.header-search form:focus-within{
+
+    border-color:var(--color-point);
+
+    box-shadow:
+
+        0 0 18px rgba(94,163,255,.25);
+
+}
+
+
+.header-search input{
+
+    flex:1;
+
+    height:100%;
+
+    padding:0 20px;
+
+    background:none;
+
+    border:none;
+
+    color:var(--color-white);
+
+    font-size:15px;
+
+}
+
+
+.header-search input::placeholder{
+
+    color:var(--color-gray2);
+
+}
+
+
+.header-search button{
+
+    width:54px;
+
+    height:46px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:var(--color-gray);
+
+    transition:var(--transition);
+
+}
+
+
+.header-search button:hover{
+
+    color:var(--color-point);
+
+}
+
+/* =========================================================
+   Right Area
+========================================================= */
+
+.header-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    margin-left:35px;
+
+}
+
+/* =========================================================
+   Login / Join Button
+========================================================= */
+
+.join-btn{
+
+    color:var(--color-gray);
+
+    font-size:15px;
+
+    font-weight:500;
+
+    transition:var(--transition);
+
+}
+
+.join-btn:hover{
+
+    color:var(--color-white);
+
+}
+
+.login-btn{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    width:92px;
+
+    height:40px;
+
+    border-radius:999px;
+
+    background:var(--color-point);
+
+    color:#FFF;
+
+    font-weight:700;
+
+    transition:var(--transition);
+
+}
+
+.login-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+
+        0 10px 25px rgba(94,163,255,.35);
+
+}
+
+/* =========================================================
+   Icon Button
+========================================================= */
+
+.icon-btn{
+
+    width:42px;
+
+    height:42px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border-radius:50%;
+
+    background:transparent;
+
+    color:var(--color-gray);
+
+    font-size:20px;
+
+    transition:var(--transition);
+
+}
+
+.icon-btn:hover{
+
+    background:var(--color-bg3);
+
+    color:var(--color-white);
+
+    transform:translateY(-2px);
+
+}
+
+/* =========================================================
+   Profile
+========================================================= */
+
+.profile-menu{
+
+    position:relative;
+
+}
+
+.profile-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:8px 15px;
+
+    border-radius:999px;
+
+    background:var(--color-bg3);
+
+    color:var(--color-white);
+
+    transition:var(--transition);
+
+}
+
+.profile-btn:hover{
+
+    background:#3A3E46;
+
+}
+
+.profile-btn span{
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+/* =========================================================
+   Dropdown
+========================================================= */
+
+.profile-dropdown{
+
+    position:absolute;
+
+    top:62px;
+
+    right:0;
+
+    width:220px;
+
+    background:#2A2D32;
+
+    border:1px solid var(--color-border);
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transform:translateY(10px);
+
+    transition:var(--transition);
+
+    box-shadow:
+
+        0 20px 45px rgba(0,0,0,.35);
+
+    z-index:999;
+
+}
+
+/* JS에서 open 클래스 추가 */
+
+.profile-dropdown.open{
+
+    opacity:1;
+
+    visibility:visible;
+
+    transform:translateY(0);
+
+}
+
+.profile-dropdown a{
+
+    display:block;
+
+    padding:14px 20px;
+
+    color:var(--color-gray);
+
+    font-size:15px;
+
+    transition:var(--transition);
+
+}
+
+.profile-dropdown a:hover{
+
+    background:#383C42;
+
+    color:#FFF;
+
+}
+
+.profile-dropdown hr{
+
+    border:none;
+
+    border-top:1px solid var(--color-border);
+
+}
+
+.logout-link{
+
+    color:#FF7C7C !important;
+
+}
+
+.logout-link:hover{
+
+    background:#4A2D2D !important;
+
+    color:#FFB3B3 !important;
+
+}
+
+/* =========================================================
+   Scroll Effect
+========================================================= */
+
+.header.hide{
+
+    transform:translateY(-100%);
+
+}
+
+.header.show{
+
+    transform:translateY(0);
+
+}
+
+
+/* =========================================================
+   Active Menu
+========================================================= */
+
+.header-nav a.active{
+
+    color:var(--color-white);
+
+    font-weight:700;
+
+}
+
+.header-nav li:has(a.active)::after{
+
+    width:100%;
+
+}
+
+
+/* =========================================================
+   Focus
+========================================================= */
+
+.header-nav a:focus-visible,
+.join-btn:focus-visible,
+.login-btn:focus-visible,
+.icon-btn:focus-visible,
+.profile-btn:focus-visible{
+
+    outline:2px solid var(--color-point);
+
+    outline-offset:3px;
+
+}
+
+.header-search input:focus-visible{
+
+    outline:none;
+
+}
+
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (max-width:1400px){
+
+    .header-nav{
+
+        margin-left:30px;
+
+    }
+
+    .header-nav ul{
+
+        gap:24px;
+
+    }
+
+    .header-search form{
+
+        width:360px;
+
+    }
+
+}
+
+
+@media (max-width:1200px){
+
+    .header-container{
+
+        width:96%;
+
+    }
+
+    .header-search{
+
+        margin:0 20px;
+
+    }
+
+    .header-search form{
+
+        width:300px;
+
+    }
+
+}
+
+
+@media (max-width:992px){
+
+    .header-nav{
+
+        display:none;
+
+    }
+
+    .header-search{
+
+        flex:1;
+
+        margin-left:20px;
+
+    }
+
+    .header-search form{
+
+        width:100%;
+
+        max-width:380px;
+
+    }
+
+}
+
+
+@media (max-width:768px){
+
+    .header{
+
+        height:70px;
+
+    }
+
+    .header-container{
+
+        gap:15px;
+
+    }
+
+    .header-search{
+
+        display:none;
+
+    }
+
+    .profile-btn span{
+
+        display:none;
+
+    }
+
+    .join-btn{
+
+        display:none;
+
+    }
+
+    .login-btn{
+
+        width:76px;
+
+        height:36px;
+
+        font-size:14px;
+
+    }
+
+}
+
+
+@media (max-width:576px){
+
+    .icon-btn{
+
+        width:38px;
+
+        height:38px;
+
+        font-size:18px;
+
+    }
+
+    .logo-main{
+
+        font-size:22px;
+
+    }
+
+}
+
+
+/* =========================================================
+   Animation
+========================================================= */
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+.profile-dropdown.open{
+
+    animation:fadeUp .25s ease;
+
+}
+
+
+/* =========================================================
+   Scrollbar
+========================================================= */
+
+.profile-dropdown::-webkit-scrollbar{
+
+    width:6px;
+
+}
+
+.profile-dropdown::-webkit-scrollbar-thumb{
+
+    background:#50545B;
+
+    border-radius:20px;
+
+}
+
+
+/* =========================================================
+   Selection
+========================================================= */
+
+::selection{
+
+    background:rgba(94,163,255,.35);
+
+    color:#FFF;
+
+}
+
+
+/* =========================================================
+   Smooth
+========================================================= */
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+/* =========================================================
+   Footer
+========================================================= */
+
+.footer {
+    width: 100%;
+    background-color: rgba(28, 28, 28, 1);
+    border-top: 1px solid #2a2a2a;
+    padding: 16px 0;
+    font-size: 13px;
+    color: #b5b5b5;
+}
+
+.footer-container {
+    width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-left {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+    color: #d0d0d0;
+}
+
+.footer-center {
+    flex: 2;
+    text-align: center;
+    color: #9a9a9a;
+    line-height: 1.4;
+}
+
+.footer-right {
+    flex: 1;
+    text-align: right;
+    color: #7f7f7f;
+}

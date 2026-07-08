@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.search.dao.SearchDAO">
+
+    <!-- 검색 결과 조회 -->
+    <select id="searchContent"
+            parameterType="com.project.oditji.common.vo.SearchVO"
+            resultType="com.project.oditji.search.vo.SearchResultVO">
+
+        SELECT *
+        FROM
+        (
+            SELECT
+                ROW_NUMBER() OVER(
+
+                    <choose>
+                        <when test="sort == 'score'">
+                            ORDER BY TMDB_SCORE DESC
+                        </when>
+
+                        <when test="sort == 'view'">
+                            ORDER BY VIEW_COUNT DESC
+                        </when>
+
+                        <when test="sort == 'latest'">
+                            ORDER BY RELEASE_DATE DESC
+                        </when>
+
+                        <otherwise>
+                            ORDER BY CONTENT_NO DESC
+                        </otherwise>
+
+                    </choose>
+
+                ) RN,
+
+                CONTENT_NO,
+                TMDB_ID,
+                CONTENT_TYPE,
+                TITLE,
+                ORIGINAL_TITLE,
+                POSTER_PATH,
+                RELEASE_DATE,
+                GENRE_TEXT,
+                TMDB_SCORE,
+                VIEW_COUNT
+
+            FROM CONTENT
+
+            WHERE 1=1
+
+            <if test="keyword != null and keyword != ''">
+
+                AND (
+                    LOWER(TITLE)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+
+                    OR
+
+                    LOWER(ORIGINAL_TITLE)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+                )
+
+            </if>
+
+            <if test="contentType != null and contentType != ''">
+
+                AND CONTENT_TYPE = #{contentType}
+
+            </if>
+
+            <if test="genre != null and genre != ''">
+
+                AND GENRE_TEXT LIKE '%' || #{genre} || '%'
+
+            </if>
+
+        )
+
+        WHERE RN BETWEEN
+            ((#{page} - 1) * #{size}) + 1
+        AND
+            (#{page} * #{size})
+
+    </select>
+
+    <!-- 검색 결과 총 개수 -->
+    <select id="getSearchCount"
+            parameterType="com.project.oditji.common.vo.SearchVO"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM CONTENT
+
+        WHERE 1=1
+
+        <if test="keyword != null and keyword != ''">
+
+            AND (
+                LOWER(TITLE)
+                LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR
+
+                LOWER(ORIGINAL_TITLE)
+                LIKE '%' || LOWER(#{keyword}) || '%'
+            )
+
+        </if>
+
+        <if test="contentType != null and contentType != ''">
+
+            AND CONTENT_TYPE = #{contentType}
+
+        </if>
+
+        <if test="genre != null and genre != ''">
+
+            AND GENRE_TEXT LIKE '%' || #{genre} || '%'
+
+        </if>
+
+    </select>
+
+</mapper>

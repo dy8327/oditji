@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.member.dao.MemberSocialDAO">
+
+    <insert id="insertMemberSocial" parameterType="com.project.oditji.member.vo.MemberSocialVO">
+        INSERT INTO MEMBER_SOCIAL (
+            SOCIAL_NO,
+            MEMBER_NO,
+            PROVIDER,
+            PROVIDER_USER_ID,
+            CREATED_AT
+        ) VALUES (
+            SEQ_MEMBER_SOCIAL_NO.NEXTVAL,
+            #{memberNo},
+            #{provider},
+            #{providerUserId},
+            SYSDATE
+        )
+    </insert>
+
+    <select id="selectMemberBySocial" resultType="com.project.oditji.member.vo.MemberSocialJoinVO">
+        SELECT
+            M.MEMBER_NO              AS memberNo,
+            M.MEMBER_ID              AS memberId,
+            M.MEMBER_NAME            AS memberName,
+            M.NICKNAME               AS nickname,
+            M.EMAIL                  AS email,
+            M.PHONE                  AS phone,
+            M.PROFILE_IMAGE          AS profileImage,
+            M.ROLE                   AS role,
+            M.STATUS                 AS status,
+            MS.SOCIAL_NO             AS socialNo,
+            MS.PROVIDER              AS provider,
+            MS.PROVIDER_USER_ID      AS providerUserId,
+            MS.CREATED_AT            AS socialCreatedAt
+        FROM MEMBER_SOCIAL MS
+        JOIN MEMBER M
+          ON MS.MEMBER_NO = M.MEMBER_NO
+        WHERE MS.PROVIDER = #{provider}
+          AND MS.PROVIDER_USER_ID = #{providerUserId}
+    </select>
+
+</mapper>
