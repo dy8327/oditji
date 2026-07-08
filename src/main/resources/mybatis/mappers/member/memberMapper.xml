@@ -121,8 +121,7 @@
     <insert id="insertKakaoMember" parameterType="com.project.oditji.member.vo.MemberVO">
 
         <selectKey keyProperty="memberNo" resultType="long" order="BEFORE">
-            SELECT SEQ_MEMBER_NO.NEXTVAL
-            FROM DUAL
+            SELECT SEQ_MEMBER_NO.NEXTVAL FROM DUAL
         </selectKey>
 
         INSERT INTO MEMBER (
@@ -153,5 +152,69 @@
             SYSDATE
         )
     </insert>
+
+    <delete id="deleteMember" parameterType="long">
+        DELETE FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <delete id="deleteMemberPlatform" parameterType="long">
+        DELETE FROM MEMBER_PLATFORM
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <select id="checkPassword" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+        AND TRIM(MEMBER_PW) = TRIM(#{password})
+    </select>
+
+    <select id="getMemberByNo"
+            parameterType="long"
+            resultType="com.project.oditji.member.vo.MemberVO">
+
+        SELECT
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_PW,
+            MEMBER_NAME,
+            NICKNAME,
+            EMAIL,
+            PHONE,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            ADULT_VERIFIED,
+            CREATED_AT,
+            UPDATED_AT
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+    <select id="countByNicknameExceptMe" resultType="int">
+
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE NICKNAME = #{nickname}
+        AND MEMBER_NO != #{memberNo}
+
+    </select>
+
+    <update id="updateMember"
+            parameterType="com.project.oditji.member.vo.MemberVO">
+
+        UPDATE MEMBER
+        SET
+            NICKNAME = #{nickname},
+            EMAIL = #{email},
+            PHONE = #{phone},
+            MEMBER_PW = NVL(#{memberPw, jdbcType=VARCHAR}, MEMBER_PW),
+            PROFILE_IMAGE = NVL(#{profileImage, jdbcType=VARCHAR}, PROFILE_IMAGE),
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+
+    </update>
 
 </mapper>

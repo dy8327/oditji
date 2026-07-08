@@ -19,12 +19,23 @@ public class MemberPlatformServiceImpl implements MemberPlatformService {
 
     @Override
     public List<PlatformVO> findPlatformList() {
-        return memberPlatformDAO.selectPlatformList();
+        return memberPlatformDAO.findPlatformList();
     }
 
     @Override
     @Transactional
-    public void saveMemberPlatforms(Long memberNo, List<Long> platformNoList) {
+     public void saveMemberPlatforms(Long memberNo, List<Long> platformNoList) {
+
+        if (memberNo == null) {
+            throw new IllegalArgumentException("로그인 정보가 없습니다.");
+        }
+
+        if (platformNoList == null || platformNoList.isEmpty()) {
+            throw new IllegalArgumentException("이용 중인 OTT를 하나 이상 선택해주세요.");
+        }
+
+        memberPlatformDAO.deleteMemberPlatforms(memberNo);
+
         for (Long platformNo : platformNoList) {
             if (platformNo != null) {
                 memberPlatformDAO.insertMemberPlatform(memberNo, platformNo);
@@ -34,6 +45,11 @@ public class MemberPlatformServiceImpl implements MemberPlatformService {
 
     @Override
     public int countMemberPlatform(Long memberNo) {
+
+        if (memberNo == null) {
+            return 0;
+        }
+
         return memberPlatformDAO.countMemberPlatform(memberNo);
     }
 }

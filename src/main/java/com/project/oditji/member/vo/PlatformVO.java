@@ -1,13 +1,16 @@
 package com.project.oditji.member.vo;
 
+import java.util.Date;
+
 public class PlatformVO {
 
     private Long platformNo;
     private String platformName;
     private String logoImage;
-
-    public PlatformVO() {
-    }
+    private String siteUrl;
+    private String isActive;
+    private Date createdAt;
+    private Date updatedAt;
 
     public Long getPlatformNo() {
         return platformNo;
@@ -31,5 +34,37 @@ public class PlatformVO {
 
     public void setLogoImage(String logoImage) {
         this.logoImage = logoImage;
+    }
+
+    public String getSiteUrl() {
+        return siteUrl;
+    }
+
+    public void setSiteUrl(String siteUrl) {
+        this.siteUrl = siteUrl;
+    }
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

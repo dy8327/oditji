@@ -1,100 +1,156 @@
 package com.project.oditji.business.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/business")
 public class BusinessController {
 
+
+    // 사업자 메인
     @GetMapping("/main")
-    public String businessMain() {
-        return "business/businessMain";
+    public String main(Model model) {
+
+        model.addAttribute("activeMenu", "main");
+
+        return "business/main/businessMain";
     }
 
-     @GetMapping("/product/list")
-    public String businessProductList() {
-        return "business/businessProductList";
+
+    // 상품 목록
+    @GetMapping("/product/list")
+    public String productList(Model model) {
+
+        model.addAttribute("activeMenu", "product");
+
+        return "business/goods/productList";
     }
 
+
+    // 상품 등록
     @GetMapping("/product/register")
-    public String businessProductRegisterRequest() {
-        return "business/businessProductRegisterRequest";
+    public String productRegister(Model model) {
+
+        model.addAttribute("activeMenu", "productRegister");
+
+        return "business/goods/productRegister";
     }
 
+
+    // 상품 수정
     @GetMapping("/product/update")
-    public String businessProductUpdateRequest() {
-        return "business/businessProductUpdateRequest";
+    public String productUpdate(Model model) {
+
+        model.addAttribute("activeMenu", "productUpdate");
+
+        return "business/goods/productUpdate";
     }
 
-    @GetMapping("/sales")
-    public String businessSalesStatus() {
-        return "business/businessSalesStatus";
-    }
 
-    @GetMapping("/settlement/main")
-    public String businessSettlementMain() {
-        return "business/businessSettlementMain";
-    }
-
-    @GetMapping("/settlement/expected")
-    public String businessSettlementExpected() {
-        return "business/businessSettlementExpected";
-    }
-
-    @GetMapping("/settlement/account")
-    public String businessSettlementAccount() {
-        return "business/businessSettlementAccount";
-    }
-
-    @GetMapping("/settlement/account/update")
-    public String businessSettlementAccountUpdate() {
-        return "business/businessSettlementAccountUpdate";
-    }
-
+    // 이벤트 목록
     @GetMapping("/event/list")
-    public String businessEventList() {
-        return "business/businessEventList";
+    public String eventList(Model model) {
+
+        model.addAttribute("activeMenu", "event");
+
+        return "business/event/eventList";
     }
 
+
+    // 이벤트 등록
     @GetMapping("/event/register")
-    public String businessEventRegisterRequest() {
-        return "business/businessEventRegisterRequest";
+    public String eventRegister(Model model) {
+
+        model.addAttribute("activeMenu", "eventRegister");
+
+        return "business/event/eventRegister";
     }
 
+
+    // 이벤트 수정
     @GetMapping("/event/update")
-    public String businessEventUpdateRequest() {
-        return "business/businessEventUpdateRequest";
+    public String eventUpdate(Model model) {
+
+        model.addAttribute("activeMenu", "eventUpdate");
+
+        return "business/event/eventUpdate";
     }
 
-    @GetMapping("/approval/product")
-    public String businessApprovalProductList() {
-        return "business/businessApprovalProductList";
+
+    // 승인 관리
+    @GetMapping("/approval")
+    public String approvalList(
+            @RequestParam(defaultValue = "product") String type,
+            Model model) {
+
+        model.addAttribute("currentType", type);
+        model.addAttribute("activeMenu", "approval");
+
+        return "business/approval/approvalList";
     }
 
-    @GetMapping("/approval/event")
-    public String businessApprovalEventList() {
-        return "business/businessApprovalEventList";
+
+    // 정산 관리
+    @GetMapping("/settlement/main")
+    public String settlement(Model model) {
+
+        model.addAttribute("activeMenu", "settlement");
+
+        return "business/settlement/settlementMain";
     }
 
-    @GetMapping("/approval/product/detail")
-    public String businessApprovalProductDetail() {
-        return "business/businessApprovalProductDetail";
+
+    // 판매 현황
+    @GetMapping("/settlement/sales")
+    public String sales(Model model) {
+
+        model.addAttribute("activeMenu", "sales");
+
+        return "business/settlement/salesStatus";
     }
 
-    @GetMapping("/approval/event/detail")
-    public String businessApprovalEventDetail() {
-        return "business/businessApprovalEventDetail";
+
+    // 채팅
+    @GetMapping("/chat")
+    public String chat(Model model) {
+
+        model.addAttribute("activeMenu", "chat");
+
+        return "business/community/businessChat";
     }
 
-    @GetMapping("/chat/list")
-    public String businessChatList() {
-        return "business/businessChatList";
+
+    // 주문 현황
+    @GetMapping("/order/list")
+    public String orderList(Model model) {
+
+        model.addAttribute("activeMenu", "order");
+
+        return "business/order/orderList";
     }
 
-    @GetMapping("/chat/message")
-    public String businessMessageDetail() {
-        return "business/businessMessageDetail";
+
+    // 배송 관리
+    @GetMapping("/order/detail")
+    public String orderDetail(Model model) {
+
+        model.addAttribute("activeMenu", "delivery");
+
+        return "business/order/orderDetail";
     }
+
+
+    // 취소/환불 관리
+    @GetMapping("/cancel/list")
+    public String cancelList(Model model) {
+
+        model.addAttribute("activeMenu", "cancel");
+
+        return "business/order/cancelList";
+    }
+
 }

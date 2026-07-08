@@ -24,4 +24,20 @@ public interface MemberDAO {
     MemberVO loginMember(MemberVO memberVO);
 
     int insertKakaoMember(MemberVO memberVO);
+
+    int updateMember(MemberVO memberVO);
+
+    int deleteMember(@Param("memberNo") Long memberNo);
+
+    int deleteMemberPlatform(@Param("memberNo") Long memberNo);
+
+    int checkPassword(@Param("memberNo") Long memberNo,
+                    @Param("password") String password);
+
+    MemberVO getMemberByNo(@Param("memberNo") Long memberNo);
+
+    int countByNicknameExceptMe(
+            @Param("nickname") String nickname,
+            @Param("memberNo") Long memberNo
+    );
 }

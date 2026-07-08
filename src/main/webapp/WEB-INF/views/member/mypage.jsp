@@ -15,11 +15,27 @@
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/mypage.css">
 
+<script defer src="${pageContext.request.contextPath}/js/mypage.js"></script>
 </head>
 
-<body>
+<body
+    data-context-path="${pageContext.request.contextPath}"
+    data-open-member-modal="${openMemberModal}"
+    data-open-delete-modal="${openDeleteModal}">
 
 	<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+	<c:if test="${not empty errorMessage}">
+		<script>
+			alert("${errorMessage}");
+		</script>
+	</c:if>
+
+	<c:if test="${not empty message}">
+		<script>
+			alert("${message}");
+		</script>
+	</c:if>
 
 	<main class="mypage-container">
 
@@ -35,7 +51,7 @@
 
 			<h1>
 
-				${loginMember.memberNickname}님 👋
+				${loginMember.nickname}님 👋
 
 			</h1>
 
@@ -81,13 +97,13 @@
 
 					<h2>
 
-						${loginMember.memberNickname}
+						${loginMember.nickname}
 
 					</h2>
 
 					<p>
 
-						${loginMember.memberEmail}
+						${loginMember.email}
 
 					</p>
 
@@ -117,11 +133,8 @@
 
 			<div class="mypage-profile-right">
 
-				<button type="button"
-					onclick="location.href='${pageContext.request.contextPath}/member/updateMember'">
-
+				<button type="button" id="updateMemberBtn">
 					회원정보 수정
-
 				</button>
 
 			</div>
@@ -150,11 +163,8 @@
 
 				</div>
 
-				<button type="button"
-					onclick="location.href='${pageContext.request.contextPath}/member/updateMember'">
-
+				<button type="button" id="updateOttBtn">
 					OTT 정보 수정
-
 				</button>
 
 			</div>
@@ -536,19 +546,7 @@
 
 					<p>
 
-						${loginMember.memberEnrollDate}
-
-					</p>
-
-				</div>
-
-				<div class="mypage-account-card">
-
-					<h4>최근 로그인</h4>
-
-					<p>
-
-						${loginMember.lastLoginDate}
+						${loginMember.createdAt}
 
 					</p>
 
@@ -556,9 +554,255 @@
 
 			</div>
 
+			<div class="mypage-account-danger">
+
+				<button type="button" id="deleteBtn" class="btn-danger">
+					회원탈퇴
+				</button>
+
+			</div>
+
 		</section>
 
 	</main>
+
+	<!-- ================= MEMBER MODAL ================= -->
+	<div id="memberModal" class="modal-overlay hidden">
+
+		<div class="modal-box">
+
+			<h2>회원정보 수정</h2>
+
+			<form id="memberUpdateForm"
+				action="${pageContext.request.contextPath}/member/update"
+				method="post"
+				enctype="multipart/form-data">
+
+				<!-- 회원번호 -->
+				<input type="hidden"
+					id="memberNo"
+					name="memberNo"
+					value="${loginMember.memberNo}">
+
+				<!-- 기존 닉네임 -->
+				<input type="hidden"
+					id="originalNickname"
+					value="${loginMember.nickname}">
+
+				<!-- 닉네임 -->
+				<div class="form-group">
+
+					<label for="updateNickname">닉네임</label>
+
+					<div class="row">
+
+						<input type="text"
+							id="updateNickname"
+							name="nickname"
+							value="${loginMember.nickname}"
+							placeholder="한글/영문/숫자 2~10자"
+							required>
+
+						<button type="button"
+								id="checkUpdateNicknameBtn">
+							중복확인
+						</button>
+
+					</div>
+
+					<small id="nicknameMessage" class="input-message"></small>
+
+				</div>
+
+				<!-- 이메일 -->
+				<div class="form-group">
+
+					<label for="updateEmail">이메일</label>
+
+					<input type="email"
+						id="updateEmail"
+						name="email"
+						value="${loginMember.email}"
+						placeholder="example@email.com"
+						required>
+
+				</div>
+
+				<!-- 전화번호 -->
+				<div class="form-group">
+
+					<label for="updatePhone">전화번호</label>
+
+					<input type="text"
+						id="updatePhone"
+						name="phone"
+						value="${loginMember.phone}"
+						placeholder="010-1234-5678"
+						maxlength="13">
+
+				</div>
+
+				<!-- 현재 비밀번호 -->
+				<div class="form-group">
+
+					<label for="currentPw">현재 비밀번호</label>
+
+					<input type="password"
+						id="currentPw"
+						name="currentPw"
+						autocomplete="current-password">
+
+				</div>
+
+				<!-- 새 비밀번호 -->
+				<div class="form-group">
+
+					<label for="newPw">새 비밀번호</label>
+
+					<input type="password"
+						id="newPw"
+						name="newPw"
+						placeholder="영문, 숫자, 특수문자 포함 8~20자"
+						autocomplete="new-password">
+
+				</div>
+
+				<!-- 새 비밀번호 확인 -->
+				<div class="form-group">
+
+					<label for="newPwCheck">새 비밀번호 확인</label>
+
+					<input type="password"
+						id="newPwCheck"
+						name="newPwCheck"
+						placeholder="새 비밀번호를 다시 입력하세요."
+						autocomplete="new-password">
+
+				</div>
+
+				<!-- 프로필 이미지 -->
+				<div class="form-group">
+
+					<label for="profileImageFile">프로필 이미지</label>
+
+					<div class="file-box">
+
+						<input type="file"
+							id="profileImageFile"
+							name="profileImageFile"
+							accept="image/*">
+
+						<label for="profileImageFile"
+							class="file-label">
+
+							파일 선택
+
+						</label>
+
+						<span class="file-name">
+
+							선택된 파일 없음
+
+						</span>
+
+					</div>
+
+				</div>
+
+				<div class="modal-btns">
+
+					<button type="submit"
+							id="memberUpdateBtn">
+
+						저장
+
+					</button>
+
+					<button type="button"
+							id="closeMemberModal">
+
+						취소
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+
+	<!-- ================= OTT MODAL ================= -->
+	<div id="ottModal" class="modal-overlay hidden">
+
+		<div class="modal-box">
+
+			<h2>OTT 정보 수정</h2>
+
+			<form action="${pageContext.request.contextPath}/member/updateOtt"
+				method="post">
+
+				<input type="hidden"
+					name="memberNo"
+					value="${loginMember.memberNo}">
+
+				<label><input type="checkbox" name="ottList" value="Netflix"> 넷플릭스</label>
+				<label><input type="checkbox" name="ottList" value="Disney Plus"> 디즈니+</label>
+				<label><input type="checkbox" name="ottList" value="Tving"> 티빙</label>
+				<label><input type="checkbox" name="ottList" value="Wavve"> 웨이브</label>
+				<label><input type="checkbox" name="ottList" value="Watcha"> 왓챠</label>
+				<label><input type="checkbox" name="ottList" value="Coupangplay"> 쿠팡플레이</label>
+
+				<div class="modal-btns">
+					<button type="submit">저장</button>
+					<button type="button" id="closeOttModal">취소</button>
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+
+	<!-- ================= 회원탈퇴 ================= -->
+	<div id="deleteModal" class="modal-overlay hidden">
+
+		<div class="modal-box">
+
+			<h2>회원 탈퇴</h2>
+
+			<form action="${pageContext.request.contextPath}/member/delete"
+				method="post">
+
+				<input type="hidden"
+					name="memberNo"
+					value="${loginMember.memberNo}">
+
+				<p class="danger-text">
+					탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
+				</p>
+
+				<div class="form-group">
+					<label>비밀번호 확인</label>
+					<input type="password"
+						name="password"
+						required
+						autocomplete="off">
+				</div>
+
+				<div class="modal-btns">
+					<button type="submit" class="btn-danger">탈퇴하기</button>
+					<button type="button" id="closeDeleteModal">취소</button>
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
 
 	<jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
