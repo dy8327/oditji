@@ -112,4 +112,69 @@ public class MemberServiceImpl implements MemberService {
     public MemberVO loginMember(MemberVO memberVO) {
         return memberDAO.loginMember(memberVO);
     }
+
+    @Override
+    @Transactional
+    public void updateMember(MemberVO memberVO) {
+        memberDAO.updateMember(memberVO);
+    }
+
+    @Override
+    @Transactional
+    public void updateMemberOtt(Long memberNo, List<String> ottList) {
+
+        // 기존 OTT 삭제
+        memberDAO.deleteMemberPlatform(memberNo);
+
+        // OTT 없으면 종료
+        if (ottList == null || ottList.isEmpty()) {
+            return;
+        }
+
+        for (String platformCode : ottList) {
+
+            if (platformCode == null || platformCode.isBlank()) {
+                continue;
+            }
+
+            Long platformNo = memberDAO.selectPlatformNoByCode(platformCode);
+
+            if (platformNo == null) {
+                throw new IllegalArgumentException("존재하지 않는 OTT: " + platformCode);
+            }
+
+            memberDAO.insertMemberPlatform(memberNo, platformNo);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteMember(Long memberNo) {
+
+        // 1. 연관 데이터 먼저 삭제 (FK 대비)
+        memberDAO.deleteMemberPlatform(memberNo);
+
+        // 2. 회원 삭제
+        memberDAO.deleteMember(memberNo);
+    }
+
+    @Override
+    public boolean checkPassword(Long memberNo, String password) {
+        return memberDAO.checkPassword(memberNo, password) > 0;
+    }
+
+    @Override
+    public MemberVO getMemberByNo(Long memberNo) {
+        return memberDAO.getMemberByNo(memberNo);
+    }
+
+    @Override
+    public boolean checkUpdateNickname(Long memberNo, String nickname) {
+
+        return memberDAO.countByNicknameExceptMe(
+                nickname,
+                memberNo
+        ) == 0;
+
+    }
 }

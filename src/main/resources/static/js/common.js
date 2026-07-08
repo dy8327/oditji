@@ -5,10 +5,13 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  initProfileDropdown();
-  initHeaderScroll();
-  initActiveMenu();
+
+    initProfileDropdown();
+    initHeaderScroll();
+    initActiveMenu();
+
 });
+
 
 /**
  * ===========================================
@@ -17,31 +20,44 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 
 function initProfileDropdown() {
-  const profileBtn = document.getElementById("profileBtn");
-  const dropdown = document.querySelector(".profile-dropdown");
 
-  if (!profileBtn || !dropdown) return;
+    const profileBtn = document.getElementById("profileBtn");
+    const dropdown = document.querySelector(".profile-dropdown");
 
-  profileBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
+    if (!profileBtn || !dropdown) return;
 
-    dropdown.classList.toggle("open");
-  });
+    profileBtn.addEventListener("click", (e) => {
 
-  document.addEventListener("click", () => {
-    dropdown.classList.remove("open");
-  });
+        e.stopPropagation();
 
-  dropdown.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
+        dropdown.classList.toggle("open");
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      dropdown.classList.remove("open");
-    }
-  });
+    });
+
+    document.addEventListener("click", () => {
+
+        dropdown.classList.remove("open");
+
+    });
+
+    dropdown.addEventListener("click", (e) => {
+
+        e.stopPropagation();
+
+    });
+
+    document.addEventListener("keydown", (e) => {
+
+        if (e.key === "Escape") {
+
+            dropdown.classList.remove("open");
+
+        }
+
+    });
+
 }
+
 
 /**
  * ===========================================
@@ -50,40 +66,53 @@ function initProfileDropdown() {
  */
 
 function initHeaderScroll() {
-  const header = document.querySelector(".header");
 
-  if (!header) return;
+    const header = document.querySelector(".header");
 
-  let lastScroll = 0;
+    if (!header) return;
 
-  window.addEventListener("scroll", () => {
-    const currentScroll = window.pageYOffset;
+    let lastScroll = 0;
 
-    /**
-     * 그림자
-     */
+    window.addEventListener("scroll", () => {
 
-    if (currentScroll > 10) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
-    }
+        const currentScroll = window.pageYOffset;
 
-    /**
-     * 스크롤 방향
-     */
+        /**
+         * 그림자
+         */
 
-    if (currentScroll > lastScroll && currentScroll > 150) {
-      header.classList.add("hide");
-      header.classList.remove("show");
-    } else {
-      header.classList.remove("hide");
-      header.classList.add("show");
-    }
+        if (currentScroll > 10) {
 
-    lastScroll = currentScroll;
-  });
+            header.classList.add("scrolled");
+
+        } else {
+
+            header.classList.remove("scrolled");
+
+        }
+
+        /**
+         * 스크롤 방향
+         */
+
+        if (currentScroll > lastScroll && currentScroll > 150) {
+
+            header.classList.add("hide");
+            header.classList.remove("show");
+
+        } else {
+
+            header.classList.remove("hide");
+            header.classList.add("show");
+
+        }
+
+        lastScroll = currentScroll;
+
+    });
+
 }
+
 
 /**
  * ===========================================
@@ -92,18 +121,25 @@ function initHeaderScroll() {
  */
 
 function initActiveMenu() {
-  const currentPath = window.location.pathname;
 
-  document.querySelectorAll(".header-nav a").forEach((menu) => {
-    const href = menu.getAttribute("href");
+    const currentPath = window.location.pathname;
 
-    if (!href) return;
+    document.querySelectorAll(".header-nav a").forEach(menu => {
 
-    if (currentPath === href || currentPath.startsWith(href)) {
-      menu.classList.add("active");
-    }
-  });
+        const href = menu.getAttribute("href");
+
+        if (!href) return;
+
+        if (currentPath === href || currentPath.startsWith(href)) {
+
+            menu.classList.add("active");
+
+        }
+
+    });
+
 }
+
 
 /**
  * ===========================================
@@ -114,12 +150,19 @@ function initActiveMenu() {
 const searchInput = document.querySelector(".header-search input");
 
 if (searchInput) {
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.target.closest("form").submit();
-    }
-  });
+
+    searchInput.addEventListener("keydown", (e) => {
+
+        if (e.key === "Enter") {
+
+            e.target.closest("form").submit();
+
+        }
+
+    });
+
 }
+
 
 /**
  * ===========================================
@@ -128,11 +171,17 @@ if (searchInput) {
  */
 
 if (searchInput) {
-  searchInput.addEventListener("focus", () => {
-    searchInput.parentElement.classList.add("focus");
-  });
 
-  searchInput.addEventListener("blur", () => {
-    searchInput.parentElement.classList.remove("focus");
-  });
+    searchInput.addEventListener("focus", () => {
+
+        searchInput.parentElement.classList.add("focus");
+
+    });
+
+    searchInput.addEventListener("blur", () => {
+
+        searchInput.parentElement.classList.remove("focus");
+
+    });
+
 }
