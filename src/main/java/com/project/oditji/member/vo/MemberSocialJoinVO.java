@@ -17,7 +17,7 @@ public class MemberSocialJoinVO {
     private int socialNo;
     private String provider;
     private String providerUserId;
-    private Date socialCreatedAt;
+    private Date createdAt;
 
     public MemberSocialJoinVO() {
     }
@@ -118,11 +118,11 @@ public class MemberSocialJoinVO {
         this.providerUserId = providerUserId;
     }
 
-    public Date getSocialCreatedAt() {
-        return socialCreatedAt;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setSocialCreatedAt(Date socialCreatedAt) {
-        this.socialCreatedAt = socialCreatedAt;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

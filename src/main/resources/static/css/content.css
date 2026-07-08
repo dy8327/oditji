@@ -23,6 +23,18 @@
 
 }
 
+.list-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:20px;
+}
+
+.list-title{
+    font-size:22px;
+    font-weight:700;
+}
+
 .result-count{
 
     font-size:14px;
@@ -384,23 +396,22 @@
 ========================================================= */
 
 .pagination{
-
     display:flex;
     justify-content:center;
     gap:10px;
-
-    margin-top:40px;
-
+    margin-top:30px;
 }
 
 .page-btn{
-
-    padding:6px 10px;
+    padding:6px 12px;
     background:#222;
     border-radius:6px;
-
     color:#fff;
+}
 
+.page-now{
+    padding:6px 12px;
+    font-weight:600;
 }
 
 /* =========================================================
@@ -408,11 +419,10 @@
 ========================================================= */
 
 .empty-state{
-
+    padding:80px 0;
     text-align:center;
-    padding:80px;
     color:#777;
-
+    font-size:14px;
 }
 
 /* =========================================================

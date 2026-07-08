@@ -15,4 +15,16 @@ public interface MemberService {
     boolean isDuplicateNickname(String nickname);
 
     MemberVO loginMember(MemberVO memberVO);
+
+    void updateMember(MemberVO memberVO);
+
+    void updateMemberOtt(Long memberNo, List<String> ottList);
+
+    void deleteMember(Long memberNo);
+
+    boolean checkPassword(Long memberNo, String password);
+
+    MemberVO getMemberByNo(Long memberNo);
+
+    boolean checkUpdateNickname(Long memberNo, String nickname);
 }

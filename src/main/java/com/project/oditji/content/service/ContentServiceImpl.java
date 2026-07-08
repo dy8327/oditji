@@ -1,6 +1,8 @@
 package com.project.oditji.content.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,5 +73,19 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<ContentVO> getMainContentList() {
         return contentDAO.selectMainContentList();
+    }
+
+    @Override
+    public List<ContentVO> getContentListByType(String type, int page) {
+
+        int pageSize = 20;
+        int offset = (page - 1) * pageSize;
+
+        Map<String, Object> param = new HashMap<>();
+        param.put("type", type);
+        param.put("offset", offset);
+        param.put("size", pageSize);
+
+        return contentDAO.selectContentListByType(param);
     }
 }

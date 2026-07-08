@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.oditji.member.dao.MemberPlatformDAO">
 
-    <select id="selectPlatformList" resultType="com.project.oditji.member.vo.PlatformVO">
+    <resultMap id="platformResultMap" type="com.project.oditji.member.vo.PlatformVO">
+        <id property="platformNo" column="PLATFORM_NO"/>
+        <result property="platformName" column="PLATFORM_NAME"/>
+        <result property="logoImage" column="LOGO_IMAGE"/>
+        <result property="siteUrl" column="SITE_URL"/>
+        <result property="isActive" column="IS_ACTIVE"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
+
+    <select id="findPlatformList" resultMap="platformResultMap">
         SELECT
             PLATFORM_NO,
             PLATFORM_NAME,
-            LOGO_IMAGE
+            LOGO_IMAGE,
+            SITE_URL,
+            IS_ACTIVE,
+            CREATED_AT,
+            UPDATED_AT
         FROM OTT_PLATFORM
         WHERE IS_ACTIVE = 'Y'
-        ORDER BY PLATFORM_NO
+        ORDER BY PLATFORM_NO ASC
+    </select>
+
+    <select id="countMemberPlatform" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER_PLATFORM
+        WHERE MEMBER_NO = #{memberNo}
     </select>
 
     <insert id="insertMemberPlatform">
@@ -22,17 +42,15 @@
             PLATFORM_NO,
             CREATED_AT
         ) VALUES (
-            SEQ_MEMBER_PLATFORM.NEXTVAL,
-            #{memberNo},
+            SEQ_MEMBER_PLATFORM_NO.NEXTVAL, #{memberNo},
             #{platformNo},
             SYSDATE
         )
     </insert>
 
-    <select id="countMemberPlatform" resultType="int">
-        SELECT COUNT(*)
-        FROM MEMBER_PLATFORM
+    <delete id="deleteMemberPlatforms">
+        DELETE FROM MEMBER_PLATFORM
         WHERE MEMBER_NO = #{memberNo}
-    </select>
+    </delete>
 
 </mapper>

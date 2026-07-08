@@ -1,0 +1,81 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ODITJI | 관리자</title>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+</head>
+
+<body>
+
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+<div class="admin-wrap">
+
+    <jsp:include page="/WEB-INF/views/common/adminSidebar.jsp"/>
+
+    <main class="main-content">
+
+        <a href="${pageContext.request.contextPath}/main" class="back-link">
+            ← 뒤로가기
+        </a>
+
+        <section class="admin-hero">
+
+            <h1>관리자 대시보드</h1>
+
+            <p>ODITJI 서비스 전반의 회원, 콘텐츠, 사업자 현황을 한눈에 확인하세요.</p>
+
+            <div class="stat-grid">
+
+                <a href="${pageContext.request.contextPath}/admin/member/list"
+                   class="stat-card">
+                    <span>전체 회원 수</span>
+                    <strong>${adminMain.memberCount}명</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/content/list"
+                   class="stat-card">
+                    <span>콘텐츠 수</span>
+                    <strong>${adminMain.contentCount}개</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/review/list"
+                   class="stat-card">
+                    <span>리뷰 수</span>
+                    <strong>${adminMain.reviewCount}개</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/review/list?tab=report"
+                   class="stat-card">
+                    <span>신고 수</span>
+                    <strong>${adminMain.reportCount}건</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/business/list?tab=approval"
+                   class="stat-card">
+                    <span>사업자 요청 수</span>
+                    <strong>${adminMain.businessRequestCount}건</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/monitoring"
+                   class="stat-card">
+                    <span>방문자 수</span>
+                    <strong>${adminMain.visitorCount}명</strong>
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+
+</body>
+</html>

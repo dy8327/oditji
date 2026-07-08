@@ -1,6 +1,7 @@
 package com.project.oditji.content.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
@@ -48,6 +49,14 @@ public class ContentDAOImpl implements ContentDAO {
     public List<ContentVO> selectMainContentList() {
         return sqlSession.selectList(
             NAMESPACE + "selectMainContentList"
+        );
+    }
+
+    @Override
+    public List<ContentVO> selectContentListByType(Map<String, Object> param) {
+        return sqlSession.selectList(
+            NAMESPACE + "selectContentListByType",
+            param
         );
     }
 }
