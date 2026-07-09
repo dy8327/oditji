@@ -29,12 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let checkedNickname = "";
 
   /* =========================================================
-       DELETE
-    ========================================================= */
-
-  const deleteForm = document.querySelector("#deleteModal form");
-
-  /* =========================================================
        OPEN
     ========================================================= */
 
@@ -92,54 +86,90 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("checkUpdateNicknameBtn")?.addEventListener("click", checkUpdateNickname);
 
-  /* =========================================================
+ /* =========================================================
     MEMBER UPDATE VALIDATION
     ========================================================= */
 
-  memberForm?.addEventListener("submit", (e) => {
-    const nickname = memberForm.nickname.value.trim();
-    const email = memberForm.email.value.trim();
+memberForm?.addEventListener("submit", (e) => {
 
-    const currentPw = memberForm.currentPw.value.trim();
-    const newPw = memberForm.newPw.value.trim();
-    const newPwCheck = memberForm.newPwCheck.value.trim();
+  const nickname = memberForm.nickname.value.trim();
+  const email = memberForm.email.value.trim();
 
-    // 닉네임
-    if (nickname === "") {
-      alert("닉네임을 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
+  const socialMember =
+    memberForm.socialMember.value === "true";
 
-    // 닉네임 중복확인
-    if (!nicknameChecked) {
-      alert("닉네임 중복확인을 해주세요.");
-      e.preventDefault();
-      return;
-    }
 
-    // 이메일
-    if (email === "") {
-      alert("이메일을 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
+  // 닉네임
+  if (nickname === "") {
 
-    // 비밀번호 변경 검사
+    alert("닉네임을 입력해주세요.");
+    e.preventDefault();
+    return;
+
+  }
+
+
+  // 닉네임 중복확인
+  if (!nicknameChecked) {
+
+    alert("닉네임 중복확인을 해주세요.");
+    e.preventDefault();
+    return;
+
+  }
+
+
+  // 이메일
+  if (email === "") {
+
+    alert("이메일을 입력해주세요.");
+    e.preventDefault();
+    return;
+
+  }
+
+
+
+  // 일반 회원만 비밀번호 변경 검증
+  if (!socialMember) {
+
+    const currentPw =
+      memberForm.currentPw?.value.trim() ?? "";
+
+    const newPw =
+      memberForm.newPw?.value.trim() ?? "";
+
+    const newPwCheck =
+      memberForm.newPwCheck?.value.trim() ?? "";
+
+
+
+    // 비밀번호 변경 시
     if (newPw !== "" || newPwCheck !== "") {
+
+
       if (currentPw === "") {
+
         alert("현재 비밀번호를 입력해주세요.");
         e.preventDefault();
         return;
+
       }
 
+
       if (newPw !== newPwCheck) {
+
         alert("새 비밀번호가 일치하지 않습니다.");
         e.preventDefault();
         return;
+
       }
+
     }
-  });
+
+  }
+
+});
 
   /* =========================================================
        DELETE VALIDATION
