@@ -14,6 +14,16 @@
             <!-- 가운데 -->
             <div class="footer-center">
                 대전광역시 서구 대덕구로 182 오라클 빌딩 3층, 10층
+
+                <br><br>
+
+                This product uses the TMDB API but is not endorsed or certified by TMDB.
+                
+                <br>
+                
+                시청 가능 정보는 TMDB 및 JustWatch 데이터를 기반으로 제공되며,
+                실제 제공 여부는 각 OTT 플랫폼에서 확인해주세요.
+                <br>
             </div>
 
             <!-- 오른쪽 -->

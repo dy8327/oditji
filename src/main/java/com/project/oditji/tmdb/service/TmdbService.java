@@ -9,6 +9,12 @@ public interface TmdbService {
 
     int loadMovieData();
 
+    int updateMovieDetailData();
+
+    int loadMoviePlatformData();
+
+    int loadMovieFullData();
+
     int loadTvData();
 
     int updateTvDetailData();
@@ -19,11 +25,7 @@ public interface TmdbService {
 
     int loadAllData();
 
-    int updateMovieDetailData();
-
-    int loadMoviePlatformData();
-
-    int loadMovieFullData();
+    List<SearchResultVO> searchMulti(String keyword, int page);
 
     List<SearchResultVO> searchMulti(
             String keyword,
@@ -47,4 +49,6 @@ public interface TmdbService {
     ContentVO getDetailForSave(Long tmdbId, String contentType);
 
     void saveContentPlatform(ContentVO content);
+
+    void saveContentPeople(ContentVO content);
 }
