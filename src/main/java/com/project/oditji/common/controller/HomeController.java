@@ -6,17 +6,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.project.oditji.content.service.ContentService;
-import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.service.TmdbService;
 
-// 메인 페이지 진입 (콘텐츠 리스트 모델 전달)
+// 메인 페이지 진입
 @Controller
 public class HomeController {
 
-    private final ContentService contentService;
+    private final TmdbService tmdbService;
 
-    public HomeController(ContentService contentService) {
-        this.contentService = contentService;
+    public HomeController(TmdbService tmdbService) {
+        this.tmdbService = tmdbService;
     }
 
     /**
@@ -27,10 +27,29 @@ public class HomeController {
     @GetMapping("/")
     public String main(Model model) {
 
-        // 1. 메인 콘텐츠 리스트 (200개 or 인기순)
-       List<ContentVO> contentList = contentService.getMainContentList();
+        List<SearchResultVO> popularContentList =
+                tmdbService.getMainPopularContent();
 
-      model.addAttribute("contentList", contentList);
+        List<SearchResultVO> todayContentList =
+                tmdbService.getMainTodayContent();
+
+        List<SearchResultVO> recommendedContentList =
+                tmdbService.getMainRecommendedContent();
+
+        model.addAttribute(
+                "popularContentList",
+                popularContentList
+        );
+
+        model.addAttribute(
+                "todayContentList",
+                todayContentList
+        );
+
+        model.addAttribute(
+                "recommendedContentList",
+                recommendedContentList
+        );
 
         return "index";
     }

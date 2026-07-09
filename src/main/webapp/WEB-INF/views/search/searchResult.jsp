@@ -1,4 +1,7 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
@@ -21,12 +24,8 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<!-- ================================
-     SEARCH RESULT WRAP
-================================ -->
 <main class="content-container">
 
-    <!-- HEADER -->
     <section class="content-header">
 
         <h1>
@@ -38,67 +37,138 @@
 
     </section>
 
-    <!-- EMPTY STATE -->
     <c:if test="${empty resultList}">
         <section class="empty-state">
             <p>검색 결과가 없습니다.</p>
         </section>
     </c:if>
 
-    <!-- RESULT GRID -->
-    <section class="content-grid">
+    <c:if test="${not empty resultList}">
 
-        <c:forEach var="c" items="${resultList}">
+        <section class="content-grid">
 
-            <article class="content-card">
+            <c:forEach var="content"
+                       items="${resultList}">
 
-                <!-- CARD LINK -->
-                <a class="content-card__link"
-                   href="${pageContext.request.contextPath}/content/detail?contentNo=${c.contentNo}">
+                <article class="content-card">
 
-                    <!-- POSTER -->
-                    <div class="content-card__poster">
+                    <c:url var="detailUrl"
+                           value="/content/prepare">
 
-                        <img src="${c.thumbnail}"
-                             alt="${c.title}"/>
+                        <c:param name="tmdbId"
+                                 value="${content.tmdbId}"/>
 
-                    </div>
+                        <c:param name="contentType"
+                                 value="${content.contentType}"/>
 
-                    <!-- INFO -->
-                    <div class="content-card__info">
+                    </c:url>
 
-                        <h3 class="content-card__title">
-                            ${c.title}
-                        </h3>
+                    <a class="content-card__link"
+                       href="${detailUrl}">
 
-                        <div class="content-card__meta">
+                        <div class="content-card__poster">
 
-                            <span class="content-type">
-                                ${c.contentType}
-                            </span>
+                            <c:choose>
 
-                            <span class="content-rating">
-                                ⭐ ${c.rating}
-                            </span>
+                                <c:when test="${not empty content.posterPath}">
+
+                                    <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                         alt="${content.title}"
+                                         loading="lazy"/>
+
+                                </c:when>
+
+                                <c:otherwise>
+
+                                    <div class="no-img">
+                                        NO IMAGE
+                                    </div>
+
+                                </c:otherwise>
+
+                            </c:choose>
 
                         </div>
 
-                    </div>
+                        <div class="content-card__info">
 
-                </a>
+                            <h3 class="content-card__title">
+                                ${content.title}
+                            </h3>
 
-                <!-- FAVORITE BUTTON -->
-                <button type="button"
-                        class="content-card__fav-btn"
-                        data-content-no="${c.contentNo}">
-                    ♡
-                </button>
+                            <div class="content-card__meta">
 
-            </article>
+                                <span class="content-type">
 
-        </c:forEach>
+                                    <c:choose>
 
-    </section>
+                                        <c:when test="${content.contentType eq 'MOVIE'}">
+                                            영화
+                                        </c:when>
+
+                                        <c:when test="${content.contentType eq 'TV'}">
+                                            TV
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            콘텐츠
+                                        </c:otherwise>
+
+                                    </c:choose>
+
+                                </span>
+
+                                <c:if test="${not empty content.tmdbScore}">
+
+                                    <span class="content-rating">
+                                        ⭐ ${content.tmdbScore}
+                                    </span>
+
+                                </c:if>
+
+                            </div>
+
+                            <div class="content-card__sub">
+
+                                <c:choose>
+
+                                    <c:when test="${not empty content.genreText}">
+                                        ${content.genreText}
+                                    </c:when>
+
+                                    <c:when test="${not empty content.releaseDate}">
+                                        ${content.releaseDate}
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        콘텐츠 정보 없음
+                                    </c:otherwise>
+
+                                </c:choose>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                    <c:if test="${not empty content.contentNo}">
+
+                        <button type="button"
+                                class="content-card__fav-btn"
+                                data-content-no="${content.contentNo}">
+                            ♡
+                        </button>
+
+                    </c:if>
+
+                </article>
+
+            </c:forEach>
+
+        </section>
+
+    </c:if>
 
 </main>
 
