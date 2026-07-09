@@ -29,6 +29,26 @@ public class SearchServiceImpl implements SearchService {
     private static final String CONTENT_TYPE_MOVIE = "MOVIE";
     private static final String CONTENT_TYPE_TV = "TV";
 
+    /*
+     * TMDB의 adult=false만으로 걸러지지 않는 오분류 콘텐츠를 위한
+     * ODITJI 자체 차단 키워드입니다.
+     *
+     * 일반 작품까지 과도하게 제외하지 않도록
+     * 단일 단어보다 명확한 성인 콘텐츠 표현 위주로 등록합니다.
+     */
+    private static final String[] BLOCKED_ADULT_KEYWORDS = {
+            "성인영화",
+            "에로영화",
+            "포르노",
+            "porn",
+            "porno",
+            "adultmovie",
+            "섹스무비",
+            "19금에로",
+            "바람난형수님",
+            "형수님참교육"
+    };
+
     @Value("${tmdb.api.base-url}")
     private String baseUrl;
 
@@ -286,7 +306,7 @@ public class SearchServiceImpl implements SearchService {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject item = results.optJSONObject(i);
 
-                if (item == null) {
+                if (item == null || shouldExcludeContent(item)) {
                     continue;
                 }
 
@@ -335,7 +355,7 @@ public class SearchServiceImpl implements SearchService {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject item = results.optJSONObject(i);
 
-                if (item == null) {
+                if (item == null || shouldExcludeContent(item)) {
                     continue;
                 }
 
@@ -571,7 +591,7 @@ public class SearchServiceImpl implements SearchService {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject item = results.optJSONObject(i);
 
-                if (item != null) {
+                if (item != null && !shouldExcludeContent(item)) {
                     resultList.add(convertMovie(item));
                 }
             }
@@ -597,7 +617,7 @@ public class SearchServiceImpl implements SearchService {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject item = results.optJSONObject(i);
 
-                if (item != null) {
+                if (item != null && !shouldExcludeContent(item)) {
                     resultList.add(convertTv(item));
                 }
             }
@@ -1111,6 +1131,89 @@ public class SearchServiceImpl implements SearchService {
         map.put("HORROR", 9648);
 
         return map;
+    }
+
+    /**
+     * TMDB 성인 플래그와 ODITJI 자체 차단 키워드를 함께 검사합니다.
+     */
+    private boolean shouldExcludeContent(JSONObject item) {
+
+        if (item == null) {
+            return true;
+        }
+
+        if (item.optBoolean("adult", false)) {
+            return true;
+        }
+
+        String title = firstNonBlank(
+                getNullableString(item, "title"),
+                getNullableString(item, "name")
+        );
+
+        String originalTitle = firstNonBlank(
+                getNullableString(item, "original_title"),
+                getNullableString(item, "original_name")
+        );
+
+        String overview = getNullableString(item, "overview");
+
+        String normalizedTarget = normalizeAdultFilterText(
+                safeText(title)
+                        + " "
+                        + safeText(originalTitle)
+                        + " "
+                        + safeText(overview)
+        );
+
+        for (String blockedKeyword : BLOCKED_ADULT_KEYWORDS) {
+
+            String normalizedKeyword =
+                    normalizeAdultFilterText(blockedKeyword);
+
+            if (!normalizedKeyword.isEmpty()
+                    && normalizedTarget.contains(
+                            normalizedKeyword
+                    )) {
+
+                System.out.println(
+                        "[ODITJI 성인 콘텐츠 제외] "
+                                + safeText(title)
+                                + " / keyword="
+                                + blockedKeyword
+                );
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 공백, 특수문자, 대소문자 차이를 제거해 비교합니다.
+     */
+    private String normalizeAdultFilterText(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value.toLowerCase()
+                .replaceAll("[^\\p{L}\\p{N}]", "");
+    }
+
+    private String safeText(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String firstNonBlank(String first, String second) {
+
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+
+        return second;
     }
 
     private String getNullableString(

@@ -107,7 +107,7 @@ public class TmdbServiceImpl implements TmdbService {
 
             for (JsonNode item : results) {
 
-                if (isAdultContent(item)) {
+                if (shouldExcludeContent(item)) {
                     continue;
                 }
 
@@ -327,7 +327,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode item : results) {
 
-            if (isAdultContent(item)) {
+            if (shouldExcludeContent(item)) {
                 continue;
             }
 
@@ -454,7 +454,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode item : results) {
 
-            if (isAdultContent(item)
+            if (shouldExcludeContent(item)
                     || !matchesCategory(
                             contentType,
                             item.path("genre_ids"),
@@ -500,7 +500,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode item : results) {
 
-            if (isAdultContent(item)) {
+            if (shouldExcludeContent(item)) {
                 continue;
             }
 
@@ -594,7 +594,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode item : results) {
 
-            if (isAdultContent(item)) {
+            if (shouldExcludeContent(item)) {
                 continue;
             }
 
@@ -1451,9 +1451,65 @@ public class TmdbServiceImpl implements TmdbService {
         return false;
     }
 
-    private boolean isAdultContent(JsonNode item) {
-        return item != null
-                && item.path("adult").asBoolean(false);
+    private boolean shouldExcludeContent(JsonNode item) {
+
+        if (item == null || item.isNull()) {
+            return true;
+        }
+
+        if (item.path("adult").asBoolean(false)) {
+            return true;
+        }
+
+        String title = firstNonBlank(
+                item.path("title").asText(null),
+                item.path("name").asText(null));
+
+        String originalTitle = firstNonBlank(
+                item.path("original_title").asText(null),
+                item.path("original_name").asText(null));
+
+        String overview = item.path("overview").asText("");
+
+        String checkText = normalizeBlockedText(
+                (title == null ? "" : title)
+                + " "
+                + (originalTitle == null ? "" : originalTitle)
+                + " "
+                + overview);
+
+        String[] blockedKeywords = {
+                "성인영화",
+                "에로영화",
+                "에로틱",
+                "포르노",
+                "porn",
+                "porno",
+                "adultmovie",
+                "섹스무비",
+                "무삭제판",
+                "19금에로",
+                "바람난형수님",
+                "형수님참교육"
+        };
+
+        for (String keyword : blockedKeywords) {
+            if (checkText.contains(normalizeBlockedText(keyword))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String normalizeBlockedText(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]", "");
     }
 
     private String convertGenreIdsToText(
