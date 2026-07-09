@@ -606,6 +606,18 @@
 
 }
 
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.btn-danger:hover {
+    background: #e60000;
+}
+
 /* =========================================================
    Account
 ========================================================= */
@@ -740,4 +752,178 @@
 
     }
 
+}
+
+
+/* =========================
+   MODAL OVERLAY (공통)
+========================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.7);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+
+    padding: 20px;
+}
+
+/* =========================
+   MODAL BOX (공통)
+========================= */
+.modal-box {
+    width: 440px;
+    max-width: 100%;
+
+    background: #1f1f1f;
+    color: #f5f5f5;
+
+    border-radius: 14px;
+
+    padding: 24px;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+
+    animation: modalPop 0.18s ease-out;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes modalPop {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* =========================
+   HIDDEN (JS 토글용)
+========================= */
+.hidden {
+    display: none !important;
+}
+
+/* =========================
+   TITLE
+========================= */
+.modal-box h2 {
+    font-size: 20px;
+    margin-bottom: 18px;
+}
+
+/* =========================
+   FORM GROUP
+========================= */
+.modal-box .form-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.modal-box label {
+    font-size: 13px;
+    color: #bbb;
+}
+
+/* =========================
+   INPUT STYLE
+========================= */
+.modal-box input[type="text"],
+.modal-box input[type="password"],
+.modal-box input[type="email"],
+.modal-box input[type="file"] {
+    padding: 10px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #333;
+
+    background: #111;
+    color: #fff;
+}
+
+/* =========================
+   OTT CHECKBOX
+========================= */
+.modal-box label input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+.modal-box .ott-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+/* =========================
+   DANGER TEXT (탈퇴용)
+========================= */
+.danger-text {
+    color: #ff6b6b;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* =========================
+   BUTTON AREA
+========================= */
+.modal-btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+/* 기본 버튼 */
+.modal-btns button {
+    padding: 8px 14px;
+
+    border-radius: 8px;
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+/* 저장 버튼 */
+.modal-btns button[type="submit"] {
+    background: #4caf50;
+    color: white;
+}
+
+/* 취소 버튼 */
+.modal-btns button[type="button"] {
+    background: #444;
+    color: white;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 480px) {
+
+    .modal-box {
+        width: 92%;
+        padding: 18px;
+    }
+
+}
+
+.modal-overlay.hidden {
+    display: none !important;
 }

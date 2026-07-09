@@ -179,4 +179,177 @@ public class MemberController {
 
         return "Y"; // 사용 가능
     }
+
+    // 마이페이지 모달 DB저장
+    @GetMapping("/mypage")
+    public String mypage() {
+        return "member/mypage";
+    }
+
+    @PostMapping("/update")
+    public String updateMember(
+            MemberVO memberVO,
+            @RequestParam(value = "currentPw", required = false) String currentPw,
+            @RequestParam(value = "newPw", required = false) String newPw,
+            @RequestParam(value = "newPwCheck", required = false) String newPwCheck,
+            @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        memberVO.setMemberNo(loginMember.getMemberNo());
+
+        /* =========================
+        비밀번호 변경
+        ========================= */
+
+        if (newPw != null && !newPw.isBlank()) {
+
+            if (currentPw == null || currentPw.isBlank()) {
+                return redirectWithError(redirectAttributes, "현재 비밀번호를 입력해주세요.");
+            }
+
+            if (!newPw.equals(newPwCheck)) {
+                return redirectWithError(redirectAttributes, "새 비밀번호가 일치하지 않습니다.");
+            }
+
+            if (!memberService.checkPassword(loginMember.getMemberNo(), currentPw)) {
+                return redirectWithError(redirectAttributes, "현재 비밀번호가 일치하지 않습니다.");
+            }
+
+            memberVO.setMemberPw(newPw);
+        }
+
+        /* =========================
+        프로필 이미지
+        ========================= */
+
+        if (profileImageFile != null && !profileImageFile.isEmpty()) {
+
+            try {
+
+                String uploadDir = "C:/oditji/upload/profile/";
+
+                File dir = new File(uploadDir);
+
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                String original = profileImageFile.getOriginalFilename();
+                String ext = original.substring(original.lastIndexOf("."));
+                String saveName = UUID.randomUUID() + ext;
+
+                profileImageFile.transferTo(new File(uploadDir + saveName));
+
+                memberVO.setProfileImage(saveName);
+
+            } catch (Exception e) {
+
+                return redirectWithError(redirectAttributes, "이미지 업로드에 실패했습니다.");
+
+            }
+
+        }
+
+        /* =========================
+        회원정보 수정
+        ========================= */
+
+        memberService.updateMember(memberVO);
+
+        MemberVO updated = memberService.getMemberByNo(memberVO.getMemberNo());
+
+        session.setAttribute("loginMember", updated);
+
+        redirectAttributes.addFlashAttribute("message", "회원정보가 수정되었습니다.");
+
+        return "redirect:/member/mypage";
+    }
+
+    @GetMapping("/checkUpdateNickname")
+    @ResponseBody
+    public String checkUpdateNickname(
+            @RequestParam String nickname,
+            @RequestParam Long memberNo) {
+
+        boolean result =
+                memberService.checkUpdateNickname(
+                        memberNo,
+                        nickname
+                );
+
+        return result ? "Y" : "N";
+    }
+
+    @GetMapping("/checkPassword")
+    @ResponseBody
+    public String checkPassword(
+            @RequestParam String password,
+            HttpSession session) {
+
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
+
+        boolean result =
+                memberService.checkPassword(
+                        loginMember.getMemberNo(),
+                        password
+                );
+
+        return result ? "Y" : "N";
+    }
+
+    @PostMapping("/updateOtt")
+    public String updateOtt(
+            @RequestParam(value = "ottList", required = false) List<String> ottList,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        memberService.updateMemberOtt(loginMember.getMemberNo(), ottList);
+
+        redirectAttributes.addFlashAttribute("message", "OTT 정보가 수정되었습니다.");
+
+        return "redirect:/member/mypage";
+    }
+
+    @PostMapping("/delete")
+    public String deleteMember(
+            @RequestParam("password") String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (!memberService.checkPassword(loginMember.getMemberNo(), password)) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "비밀번호가 일치하지 않습니다."
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "openDeleteModal",
+                    true
+            );
+
+            return "redirect:/member/mypage";
+        }
+
+        memberService.deleteMember(loginMember.getMemberNo());
+
+        session.invalidate();
+
+        return "redirect:/";
+    }
+
+    private String redirectWithError(RedirectAttributes redirectAttributes, String message) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", message);
+        redirectAttributes.addFlashAttribute("openMemberModal", true);
+
+        return "redirect:/member/mypage";
+    }
 }
