@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html>
@@ -42,11 +43,35 @@
             <div class="box-list">
 
                 <c:choose>
-                    <c:when test="${not empty contentList}">
-                        <c:forEach var="content" items="${contentList}" begin="0" end="3">
-                            <div class="box-item">
-                                ${content.title}
-                            </div>
+                    <c:when test="${not empty popularContentList}">
+                        <c:forEach var="content"
+                                   items="${popularContentList}"
+                                   begin="0"
+                                   end="3">
+
+                            <c:url var="popularDetailUrl" value="/content/prepare">
+                                <c:param name="tmdbId" value="${content.tmdbId}"/>
+                                <c:param name="contentType" value="${content.contentType}"/>
+                            </c:url>
+
+                            <a href="${popularDetailUrl}"
+                               class="box-item"
+                               style="display:block; color:inherit; text-decoration:none; margin-bottom:10px;">
+
+                                <strong>${content.title}</strong><br/>
+
+                                <span style="font-size:11px; color:#999;">
+                                    ${content.contentType}
+                                    · 평점
+                                    <fmt:formatNumber value="${content.tmdbScore}"
+                                                      pattern="0.0"/>
+                                    · 인기도
+                                    <fmt:formatNumber value="${content.popularity}"
+                                                      pattern="0.0"/>
+                                    · ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
+                                </span>
+
+                            </a>
                         </c:forEach>
                     </c:when>
 
@@ -74,31 +99,61 @@
         <div class="track" id="todaySlider">
 
             <c:choose>
-                <c:when test="${not empty contentList}">
-                    <c:forEach var="content" items="${contentList}">
+                <c:when test="${not empty todayContentList}">
+                    <c:forEach var="content" items="${todayContentList}">
 
-                        <c:if test="${not empty content.contentNo}">
+                        <c:url var="todayDetailUrl" value="/content/prepare">
+                            <c:param name="tmdbId" value="${content.tmdbId}"/>
+                            <c:param name="contentType" value="${content.contentType}"/>
+                        </c:url>
 
-                            <a href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}"
-                               class="card">
+                        <a href="${todayDetailUrl}"
+                           class="card"
+                           style="height:auto; color:inherit; text-decoration:none;">
 
-                                <div class="thumb">
+                            <div class="thumb" style="height:220px;">
 
-                                    <c:choose>
-                                        <c:when test="${not empty content.posterPath}">
-                                            <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                                 alt="${content.title}">
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="no-img"></div>
-                                        </c:otherwise>
-                                    </c:choose>
+                                <c:choose>
+                                    <c:when test="${not empty content.posterPath}">
+                                        <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                             alt="${content.title}"
+                                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="no-img"></div>
+                                    </c:otherwise>
+                                </c:choose>
 
-                                </div>
+                            </div>
 
-                            </a>
+                            <div style="padding:8px; font-size:11px; line-height:1.5;">
+                                <strong style="display:block; font-size:12px;">
+                                    ${content.title}
+                                </strong>
 
-                        </c:if>
+                                <span>
+                                    ${content.contentType}
+                                    · 평점
+                                    <fmt:formatNumber value="${content.tmdbScore}"
+                                                      pattern="0.0"/>
+                                </span><br/>
+
+                                <span>
+                                    인기도
+                                    <fmt:formatNumber value="${content.popularity}"
+                                                      pattern="0.0"/>
+                                </span><br/>
+
+                                <span>
+                                    ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
+                                </span>
+
+                                <span style="display:none;">
+                                    TMDB ID: ${content.tmdbId}
+                                </span>
+                            </div>
+
+                        </a>
 
                     </c:forEach>
                 </c:when>
@@ -127,31 +182,61 @@
         <div class="track" id="recSlider">
 
             <c:choose>
-                <c:when test="${not empty contentList}">
-                    <c:forEach var="content" items="${contentList}">
+                <c:when test="${not empty recommendedContentList}">
+                    <c:forEach var="content" items="${recommendedContentList}">
 
-                        <c:if test="${not empty content.contentNo}">
+                        <c:url var="recommendedDetailUrl" value="/content/prepare">
+                            <c:param name="tmdbId" value="${content.tmdbId}"/>
+                            <c:param name="contentType" value="${content.contentType}"/>
+                        </c:url>
 
-                            <a href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}"
-                               class="card">
+                        <a href="${recommendedDetailUrl}"
+                           class="card"
+                           style="height:auto; color:inherit; text-decoration:none;">
 
-                                <div class="thumb">
+                            <div class="thumb" style="height:220px;">
 
-                                    <c:choose>
-                                        <c:when test="${not empty content.posterPath}">
-                                            <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                                 alt="${content.title}">
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="no-img"></div>
-                                        </c:otherwise>
-                                    </c:choose>
+                                <c:choose>
+                                    <c:when test="${not empty content.posterPath}">
+                                        <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                             alt="${content.title}"
+                                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="no-img"></div>
+                                    </c:otherwise>
+                                </c:choose>
 
-                                </div>
+                            </div>
 
-                            </a>
+                            <div style="padding:8px; font-size:11px; line-height:1.5;">
+                                <strong style="display:block; font-size:12px;">
+                                    ${content.title}
+                                </strong>
 
-                        </c:if>
+                                <span>
+                                    ${content.contentType}
+                                    · 평점
+                                    <fmt:formatNumber value="${content.tmdbScore}"
+                                                      pattern="0.0"/>
+                                </span><br/>
+
+                                <span>
+                                    인기도
+                                    <fmt:formatNumber value="${content.popularity}"
+                                                      pattern="0.0"/>
+                                </span><br/>
+
+                                <span>
+                                    ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
+                                </span>
+
+                                <span style="display:none;">
+                                    TMDB ID: ${content.tmdbId}
+                                </span>
+                            </div>
+
+                        </a>
 
                     </c:forEach>
                 </c:when>
