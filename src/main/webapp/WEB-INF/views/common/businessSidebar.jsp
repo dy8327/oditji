@@ -50,6 +50,11 @@
                 상품 수정
             </a>
 
+                <a href="${pageContext.request.contextPath}/business/product/delete"
+               class="${activeMenu == 'productDelete' ? 'active' : ''}">
+                상품 삭제
+            </a>
+
         </div>
 
 
@@ -74,6 +79,11 @@
             <a href="${pageContext.request.contextPath}/business/event/update"
                class="${activeMenu == 'eventUpdate' ? 'active' : ''}">
                 이벤트 수정
+            </a>
+
+            <a href="${pageContext.request.contextPath}/business/event/extend"
+               class="${activeMenu == 'eventExtend' ? 'active' : ''}">
+                이벤트 연장
             </a>
 
         </div>

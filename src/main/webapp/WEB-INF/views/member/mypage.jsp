@@ -785,17 +785,34 @@
 					탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
 				</p>
 
+
 				<div class="form-group">
-					<label>비밀번호 확인</label>
-					<input type="password"
-						name="password"
+
+					<label>
+						아래 문구를 입력해주세요.
+					</label>
+
+					<input type="text"
+						name="deleteConfirm"
+						placeholder="탈퇴하겠습니다"
 						required
 						autocomplete="off">
+
 				</div>
 
+
 				<div class="modal-btns">
-					<button type="submit" class="btn-danger">탈퇴하기</button>
-					<button type="button" id="closeDeleteModal">취소</button>
+
+					<button type="submit"
+							class="btn-danger">
+						탈퇴하기
+					</button>
+
+					<button type="button"
+							id="closeDeleteModal">
+						취소
+					</button>
+
 				</div>
 
 			</form>

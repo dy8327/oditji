@@ -31,7 +31,7 @@
             <h1 class="admin-page-title">사업자 관리</h1>
 
             <p class="admin-page-desc">
-                입점 사업자 정보와 등급을 관리하고, 사업자가 요청한 승인 내역을 처리할 수 있습니다.
+                사업자 정보와 등급을 관리하고, 사업자의 승인 요청을 처리할 수 있습니다.
             </p>
 
         </div>
@@ -39,8 +39,8 @@
         <section class="admin-content-box">
 
             <nav class="tab-menu">
-                <a href="?tab=info" class="${currentTab == 'info' ? 'active' : ''}">사업자 정보</a>
-                <a href="?tab=approval" class="${currentTab == 'approval' ? 'active' : ''}">사업자 승인</a>
+                <a href="?tab=info" class="${currentTab == 'info' ? 'active' : ''}">사업자 목록</a>
+                <a href="?tab=approval" class="${currentTab == 'approval' ? 'active' : ''}">사업자 승인 관리</a>
             </nav>
 
             <div class="toolbar">
@@ -51,24 +51,12 @@
                            value="${param.keyword}" placeholder="이름, 아이디, 이메일 검색">
                 </form>
 
-                <c:if test="${currentTab == 'approval'}">
-                    <div class="filter-chip-row">
-                        <a class="filter-chip ${empty param.reqType ? 'active' : ''}"
-                           href="?tab=approval">전체</a>
-                        <a class="filter-chip ${param.reqType == 'PRODUCT' ? 'active' : ''}"
-                           href="?tab=approval&reqType=PRODUCT">상품</a>
-                        <a class="filter-chip ${param.reqType == 'EVENT' ? 'active' : ''}"
-                           href="?tab=approval&reqType=EVENT">이벤트</a>
-                        <a class="filter-chip ${param.reqType == 'SETTLEMENT' ? 'active' : ''}"
-                           href="?tab=approval&reqType=SETTLEMENT">정산</a>
-                    </div>
-                </c:if>
-
             </div>
+
+            <%-- 상품/이벤트/정산 요청 승인은 각각 상품 관리, 이벤트 관리, 정산 관리 메뉴에서 처리합니다. --%>
 
             <c:choose>
 
-                <%-- 사업자 정보 탭 --%>
                 <c:when test="${currentTab == 'info'}">
 
                     <table class="data-table">
@@ -142,17 +130,17 @@
 
                 </c:when>
 
-                <%-- 사업자 승인 탭 --%>
                 <c:otherwise>
 
                     <table class="data-table">
 
                         <thead>
                             <tr>
-                                <th>이름</th>
+                                <th>사업자명</th>
                                 <th>아이디</th>
                                 <th>이메일</th>
-                                <th>요청 유형</th>
+                                <th>사업자등록번호</th>
+                                <th>정산 계좌</th>
                                 <th>관리</th>
                             </tr>
                         </thead>
@@ -169,16 +157,16 @@
                                             <td>${req.businessName}</td>
                                             <td>${req.memberId}</td>
                                             <td>${req.email}</td>
-                                            <td>${req.requestType}</td>
+                                            <td>${req.businessNumber}</td>
+                                            <td>${req.bankName} ${req.accountNumber} (${req.accountHolder})</td>
                                             <td>
                                                 <button type="button" class="btn btn-dark"
                                                         onclick="openApprovalModal(
-                                                            '${req.requestNo}',
+                                                            '${req.businessNo}',
                                                             '${req.businessName}',
-                                                            '${req.requestType}',
-                                                            '${req.targetName}',
-                                                            '${req.settlementAmount}',
-                                                            '${req.content}'
+                                                            '${req.memberId}',
+                                                            '${req.email}',
+                                                            '${req.businessNumber}'
                                                         )">
                                                     상세보기
                                                 </button>
@@ -190,7 +178,7 @@
                                 </c:when>
 
                                 <c:otherwise>
-                                    <tr><td colspan="5">승인 요청 내역이 없습니다.</td></tr>
+                                    <tr><td colspan="6">승인 요청 내역이 없습니다.</td></tr>
                                 </c:otherwise>
 
                             </c:choose>
@@ -268,35 +256,31 @@
 
 </div>
 
-<%-- 사업자 승인 요청 팝업 --%>
 <div class="modal-overlay" id="approvalModal">
 
     <div class="modal-box">
 
         <div class="modal-header">
-            <h3>사업자 승인 요청</h3>
+            <h3>사업자 승인</h3>
             <span class="modal-close" onclick="closeModal('approvalModal')">&times;</span>
         </div>
 
         <div class="target-info-box">
             <p><span>사업자명</span><strong id="approvalBusinessName"></strong></p>
-            <p id="approvalTargetRow"><span id="approvalTargetLabel">상품(이벤트) 명</span><strong id="approvalTargetName"></strong></p>
-            <p id="approvalAmountRow" style="display:none;"><span>정산 금액</span><strong id="approvalAmount"></strong></p>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">내용</label>
-            <textarea class="form-textarea" id="approvalContent" readonly></textarea>
+            <p><span>아이디</span><strong id="approvalMemberId"></strong></p>
+            <p><span>이메일</span><strong id="approvalEmail"></strong></p>
+            <p><span>사업자등록번호</span><strong id="approvalBusinessNumber"></strong></p>
         </div>
 
         <form id="approvalForm" action="${pageContext.request.contextPath}/admin/business/approve" method="post">
 
-            <input type="hidden" name="requestNo" id="approvalRequestNo">
+            <input type="hidden" name="businessNo" id="approvalBusinessNo">
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-success">승인</button>
                 <button type="submit" formaction="${pageContext.request.contextPath}/admin/business/reject"
                         class="btn btn-danger">반려</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('approvalModal')">닫기</button>
             </div>
 
         </form>
@@ -327,24 +311,12 @@ function openGradeModal(businessNo, name, memberId, email, currentGrade) {
     document.getElementById('gradeModal').classList.add('open');
 }
 
-function openApprovalModal(requestNo, businessName, requestType, targetName, settlementAmount, content) {
-    document.getElementById('approvalRequestNo').value = requestNo;
+function openApprovalModal(businessNo, businessName, memberId, email, businessNumber) {
+    document.getElementById('approvalBusinessNo').value = businessNo;
     document.getElementById('approvalBusinessName').textContent = businessName;
-    document.getElementById('approvalContent').value = content;
-
-    var amountRow = document.getElementById('approvalAmountRow');
-    var targetRow = document.getElementById('approvalTargetRow');
-
-    if (requestType === 'SETTLEMENT') {
-        targetRow.style.display = 'none';
-        amountRow.style.display = 'flex';
-        document.getElementById('approvalAmount').textContent = settlementAmount + '원';
-    } else {
-        targetRow.style.display = 'flex';
-        amountRow.style.display = 'none';
-        document.getElementById('approvalTargetName').textContent = targetName;
-    }
-
+    document.getElementById('approvalMemberId').textContent = memberId;
+    document.getElementById('approvalEmail').textContent = email;
+    document.getElementById('approvalBusinessNumber').textContent = businessNumber;
     document.getElementById('approvalModal').classList.add('open');
 }
 </script>

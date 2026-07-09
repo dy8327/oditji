@@ -163,7 +163,7 @@
         ORDER BY
         <choose>
             <when test="type == 'new'">
-                CREATED_AT DESC
+                RELEASE_DATE DESC
             </when>
 
             <when test="type == 'popular'">
