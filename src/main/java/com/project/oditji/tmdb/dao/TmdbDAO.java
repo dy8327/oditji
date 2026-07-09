@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 import com.project.oditji.tmdb.vo.TmdbVO;
 
 @Mapper
@@ -28,6 +29,8 @@ public interface TmdbDAO {
 
     Integer findPlatformNo(
             @Param("platformName") String platformName);
+
+    List<OttPlatformVO> selectActivePlatformList();
 
     int existsContentPlatform(
             @Param("contentNo") Integer contentNo,

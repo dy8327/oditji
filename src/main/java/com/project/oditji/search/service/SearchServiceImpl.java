@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.dao.TmdbDAO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -61,12 +63,14 @@ public class SearchServiceImpl implements SearchService {
     @Value("${tmdb.api.region:KR}")
     private String region;
 
+    private final TmdbDAO tmdbDAO;
     private final HttpClient httpClient;
 
     private final Map<String, Integer> movieGenreMap;
     private final Map<String, Integer> tvGenreMap;
 
-    public SearchServiceImpl() {
+    public SearchServiceImpl(TmdbDAO tmdbDAO) {
+        this.tmdbDAO = tmdbDAO;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -112,15 +116,19 @@ public class SearchServiceImpl implements SearchService {
                 && !hasProviderFilter
                 && !hasContentTypeFilter) {
 
-            return callTrendingApi(currentPage);
+            return attachPlatformLogos(
+                    callTrendingApi(currentPage)
+            );
         }
 
-        return callDiscoverApis(
-                null,
-                currentPage,
-                normalizedContentTypes,
-                normalizedGenreCodes,
-                normalizedProviderIds
+        return attachPlatformLogos(
+                callDiscoverApis(
+                        null,
+                        currentPage,
+                        normalizedContentTypes,
+                        normalizedGenreCodes,
+                        normalizedProviderIds
+                )
         );
     }
 
@@ -169,12 +177,14 @@ public class SearchServiceImpl implements SearchService {
         boolean hasProviderFilter = !normalizedProviderIds.isEmpty();
 
         if (hasGenreFilter || hasProviderFilter) {
-            return callDiscoverApis(
-                    normalizedKeyword,
-                    currentPage,
-                    normalizedContentTypes,
-                    normalizedGenreCodes,
-                    normalizedProviderIds
+            return attachPlatformLogos(
+                    callDiscoverApis(
+                            normalizedKeyword,
+                            currentPage,
+                            normalizedContentTypes,
+                            normalizedGenreCodes,
+                            normalizedProviderIds
+                    )
             );
         }
 
@@ -182,23 +192,29 @@ public class SearchServiceImpl implements SearchService {
             String contentType = normalizedContentTypes.get(0);
 
             if (CONTENT_TYPE_MOVIE.equals(contentType)) {
-                return callMovieSearchApi(
-                        normalizedKeyword,
-                        currentPage
+                return attachPlatformLogos(
+                        callMovieSearchApi(
+                                normalizedKeyword,
+                                currentPage
+                        )
                 );
             }
 
             if (CONTENT_TYPE_TV.equals(contentType)) {
-                return callTvSearchApi(
-                        normalizedKeyword,
-                        currentPage
+                return attachPlatformLogos(
+                        callTvSearchApi(
+                                normalizedKeyword,
+                                currentPage
+                        )
                 );
             }
         }
 
-        return callMultiSearchApi(
-                normalizedKeyword,
-                currentPage
+        return attachPlatformLogos(
+                callMultiSearchApi(
+                        normalizedKeyword,
+                        currentPage
+                )
         );
     }
 
@@ -777,6 +793,228 @@ public class SearchServiceImpl implements SearchService {
         );
 
         return resultVO;
+    }
+
+    /**
+     * TMDB 검색 결과에 한국 기준 OTT 제공처를 조회한 뒤,
+     * DB의 OTT_PLATFORM.LOGO_IMAGE 정보를 연결합니다.
+     */
+    private SearchResultPageVO attachPlatformLogos(
+        SearchResultPageVO pageVO) {
+
+    if (pageVO == null
+            || pageVO.getResultList() == null
+            || pageVO.getResultList().isEmpty()) {
+
+        return pageVO;
+    }
+
+    List<OttPlatformVO> activePlatformList =
+            tmdbDAO.selectActivePlatformList();
+
+    Map<String, OttPlatformVO> platformMap =
+            createPlatformMap(activePlatformList);
+
+    for (SearchResultVO resultVO
+            : pageVO.getResultList()) {
+
+        if (resultVO == null
+                || resultVO.getTmdbId() == null
+                || resultVO.getContentType() == null) {
+
+            continue;
+        }
+
+        List<OttPlatformVO> resultPlatformList =
+                findPlatformList(
+                        resultVO.getTmdbId(),
+                        resultVO.getContentType(),
+                        platformMap
+                );
+
+        resultVO.setPlatformList(
+                resultPlatformList
+        );
+    }
+
+    return pageVO;
+}
+
+    private Map<String, OttPlatformVO> createPlatformMap(
+            List<OttPlatformVO> activePlatformList) {
+
+        Map<String, OttPlatformVO> platformMap =
+                new HashMap<String, OttPlatformVO>();
+
+        if (activePlatformList == null) {
+            return platformMap;
+        }
+
+        for (OttPlatformVO platformVO : activePlatformList) {
+            if (platformVO == null
+                    || platformVO.getPlatformName() == null) {
+                continue;
+            }
+
+            String key = normalizePlatformName(
+                    platformVO.getPlatformName()
+            );
+
+            if (!key.isEmpty()) {
+                platformMap.put(key, platformVO);
+            }
+        }
+
+        return platformMap;
+    }
+
+    private List<OttPlatformVO> findPlatformList(
+                Long tmdbId,
+                String contentType,
+                Map<String, OttPlatformVO> platformMap) {
+
+        List<OttPlatformVO> resultList =
+                new ArrayList<OttPlatformVO>();
+
+        String mediaType =
+                CONTENT_TYPE_MOVIE.equalsIgnoreCase(contentType)
+                        ? "movie"
+                        : "tv";
+
+        String apiUrl = baseUrl
+                + "/" + mediaType
+                + "/" + tmdbId
+                + "/watch/providers";
+
+        JSONObject root = callTmdbApi(apiUrl);
+        JSONObject results =
+                root.optJSONObject("results");
+
+        if (results == null) {
+                return resultList;
+        }
+
+        JSONObject korea =
+                results.optJSONObject(region);
+
+        if (korea == null) {
+                return resultList;
+        }
+
+        Set<Integer> duplicateCheck =
+                new HashSet<Integer>();
+
+        addPlatformsFromProviderArray(
+                korea.optJSONArray("flatrate"),
+                platformMap,
+                duplicateCheck,
+                resultList
+        );
+
+        addPlatformsFromProviderArray(
+                korea.optJSONArray("ads"),
+                platformMap,
+                duplicateCheck,
+                resultList
+        );
+
+        addPlatformsFromProviderArray(
+                korea.optJSONArray("free"),
+                platformMap,
+                duplicateCheck,
+                resultList
+        );
+
+        return resultList;
+        }
+
+        private void addPlatformsFromProviderArray(
+                JSONArray providerArray,
+                Map<String, OttPlatformVO> platformMap,
+                Set<Integer> duplicateCheck,
+                List<OttPlatformVO> resultList) {
+
+        if (providerArray == null) {
+                return;
+        }
+
+        for (int i = 0;
+                i < providerArray.length();
+                i++) {
+
+                JSONObject provider =
+                        providerArray.optJSONObject(i);
+
+                if (provider == null) {
+                continue;
+                }
+
+                String providerName =
+                        provider.optString(
+                                "provider_name",
+                                ""
+                        );
+
+                String key =
+                        normalizePlatformName(providerName);
+
+                OttPlatformVO platformVO =
+                        platformMap.get(key);
+
+                if (platformVO == null) {
+                continue;
+                }
+
+                Integer platformNo =
+                        platformVO.getPlatformNo();
+
+                if (platformNo == null
+                        || duplicateCheck.add(platformNo)) {
+
+                resultList.add(platformVO);
+                }
+        }
+        }
+
+    private String normalizePlatformName(String platformName) {
+
+        if (platformName == null) {
+            return "";
+        }
+
+        String normalized = platformName
+                .trim()
+                .toLowerCase()
+                .replace(" ", "")
+                .replace("_", "")
+                .replace("-", "")
+                .replace("+", "");
+
+        if (normalized.contains("netflix")) {
+            return "netflix";
+        }
+
+        if (normalized.contains("tving")) {
+            return "tving";
+        }
+
+        if (normalized.contains("wavve")) {
+            return "wavve";
+        }
+
+        if (normalized.contains("disney")) {
+            return "disney";
+        }
+
+        if (normalized.contains("watcha")) {
+            return "watcha";
+        }
+
+        if (normalized.contains("coupang")) {
+            return "coupang";
+        }
+
+        return normalized;
     }
 
     /**

@@ -1,5 +1,10 @@
 package com.project.oditji.search.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.project.oditji.tmdb.vo.OttPlatformVO;
+
 public class SearchResultVO {
 
     // DB 콘텐츠 번호
@@ -27,6 +32,10 @@ public class SearchResultVO {
     // TMDB 인기 점수
     // RankingServiceImpl, TmdbServiceImpl에서 사용
     private Double popularity;
+
+    // TMDB 제공처와 DB OTT_PLATFORM을 매칭한 플랫폼 정보
+    private List<OttPlatformVO> platformList =
+            new ArrayList<OttPlatformVO>();
 
     public SearchResultVO() {
     }
@@ -137,5 +146,18 @@ public class SearchResultVO {
 
     public void setPopularity(Double popularity) {
         this.popularity = popularity;
+    }
+
+    public List<OttPlatformVO> getPlatformList() {
+        return platformList;
+    }
+
+    public void setPlatformList(List<OttPlatformVO> platformList) {
+        if (platformList == null) {
+            this.platformList = new ArrayList<OttPlatformVO>();
+            return;
+        }
+
+        this.platformList = platformList;
     }
 }

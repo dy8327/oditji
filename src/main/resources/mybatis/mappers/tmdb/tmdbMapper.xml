@@ -100,6 +100,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT PLATFORM_NO
         FROM OTT_PLATFORM
         WHERE PLATFORM_NAME = #{platformName}
+          AND IS_ACTIVE = 'Y'
+
+    </select>
+
+
+    <!-- 검색 결과에 표시할 활성 OTT 플랫폼 목록 -->
+    <select id="selectActivePlatformList"
+            resultType="com.project.oditji.tmdb.vo.OttPlatformVO">
+
+        SELECT
+            PLATFORM_NO AS "platformNo",
+            PLATFORM_NAME AS "platformName",
+            LOGO_IMAGE AS "logoImage",
+            SITE_URL AS "siteUrl",
+            IS_ACTIVE AS "isActive"
+        FROM OTT_PLATFORM
+        WHERE IS_ACTIVE = 'Y'
+        ORDER BY PLATFORM_NO
 
     </select>
 

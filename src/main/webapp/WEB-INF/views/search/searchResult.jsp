@@ -184,8 +184,7 @@
 
                                     <div class="search-content-meta">
 
-                                        <span>
-
+                                        <span class="search-content-type">
                                             <c:choose>
 
                                                 <c:when test="${content.contentType eq 'MOVIE'}">
@@ -201,20 +200,39 @@
                                                 </c:otherwise>
 
                                             </c:choose>
-
                                         </span>
 
                                         <c:if test="${not empty content.releaseDate}">
 
-                                            <span>
+                                            <span class="search-content-release-date">
                                                 <c:out value="${content.releaseDate}"/>
+                                            </span>
+
+                                        </c:if>
+
+                                        <c:if test="${not empty content.platformList}">
+
+                                            <span class="search-content-platform-list">
+
+                                                <c:forEach var="platform"
+                                                        items="${content.platformList}">
+
+                                                    <img
+                                                        class="search-content-platform-logo"
+                                                        src="<c:out value='${platform.logoImage}'/>"
+                                                        alt="<c:out value='${platform.platformName}'/>"
+                                                        title="<c:out value='${platform.platformName}'/>"
+                                                        loading="lazy"/>
+
+                                                </c:forEach>
+
                                             </span>
 
                                         </c:if>
 
                                         <c:if test="${not empty content.genreText}">
 
-                                            <span>
+                                            <span class="search-content-genre">
                                                 <c:out value="${content.genreText}"/>
                                             </span>
 
