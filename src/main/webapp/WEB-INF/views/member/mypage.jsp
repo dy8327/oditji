@@ -578,21 +578,32 @@
 				method="post"
 				enctype="multipart/form-data">
 
+
 				<!-- 회원번호 -->
 				<input type="hidden"
-					id="memberNo"
 					name="memberNo"
 					value="${loginMember.memberNo}">
+
+
+				<!-- SNS 로그인 여부 -->
+				<input type="hidden"
+					id="socialMember"
+					name="socialMember"
+					value="${socialMember}">
+
 
 				<!-- 기존 닉네임 -->
 				<input type="hidden"
 					id="originalNickname"
 					value="${loginMember.nickname}">
 
+
 				<!-- 닉네임 -->
 				<div class="form-group">
 
-					<label for="updateNickname">닉네임</label>
+					<label for="updateNickname">
+						닉네임
+					</label>
 
 					<div class="row">
 
@@ -603,35 +614,48 @@
 							placeholder="한글/영문/숫자 2~10자"
 							required>
 
+
 						<button type="button"
-								id="checkUpdateNicknameBtn">
+							id="checkUpdateNicknameBtn">
 							중복확인
 						</button>
 
 					</div>
 
-					<small id="nicknameMessage" class="input-message"></small>
+					<small id="nicknameMessage"
+						class="input-message">
+					</small>
 
 				</div>
+
+
 
 				<!-- 이메일 -->
 				<div class="form-group">
 
-					<label for="updateEmail">이메일</label>
+					<label for="updateEmail">
+						이메일
+					</label>
+
 
 					<input type="email"
 						id="updateEmail"
 						name="email"
 						value="${loginMember.email}"
-						placeholder="example@email.com"
-						required>
+						readonly>
+
 
 				</div>
+
+
 
 				<!-- 전화번호 -->
 				<div class="form-group">
 
-					<label for="updatePhone">전화번호</label>
+					<label for="updatePhone">
+						전화번호
+					</label>
+
 
 					<input type="text"
 						id="updatePhone"
@@ -642,55 +666,98 @@
 
 				</div>
 
-				<!-- 현재 비밀번호 -->
-				<div class="form-group">
 
-					<label for="currentPw">현재 비밀번호</label>
 
-					<input type="password"
-						id="currentPw"
-						name="currentPw"
-						autocomplete="current-password">
+				<!-- 일반 회원 비밀번호 변경 -->
+				<c:if test="${!socialMember}">
 
-				</div>
 
-				<!-- 새 비밀번호 -->
-				<div class="form-group">
+					<!-- 현재 비밀번호 -->
+					<div class="form-group">
 
-					<label for="newPw">새 비밀번호</label>
+						<label for="currentPw">
+							현재 비밀번호
+						</label>
 
-					<input type="password"
-						id="newPw"
-						name="newPw"
-						placeholder="영문, 숫자, 특수문자 포함 8~20자"
-						autocomplete="new-password">
 
-				</div>
+						<input type="password"
+							id="currentPw"
+							name="currentPw"
+							autocomplete="current-password">
 
-				<!-- 새 비밀번호 확인 -->
-				<div class="form-group">
+					</div>
 
-					<label for="newPwCheck">새 비밀번호 확인</label>
 
-					<input type="password"
-						id="newPwCheck"
-						name="newPwCheck"
-						placeholder="새 비밀번호를 다시 입력하세요."
-						autocomplete="new-password">
 
-				</div>
+					<!-- 새 비밀번호 -->
+					<div class="form-group">
+
+						<label for="newPw">
+							새 비밀번호
+						</label>
+
+
+						<input type="password"
+							id="newPw"
+							name="newPw"
+							placeholder="영문, 숫자, 특수문자 포함 8~20자"
+							autocomplete="new-password">
+
+					</div>
+
+
+
+					<!-- 새 비밀번호 확인 -->
+					<div class="form-group">
+
+						<label for="newPwCheck">
+							새 비밀번호 확인
+						</label>
+
+
+						<input type="password"
+							id="newPwCheck"
+							name="newPwCheck"
+							placeholder="새 비밀번호를 다시 입력하세요."
+							autocomplete="new-password">
+
+					</div>
+
+
+				</c:if>
+
+
+
+				<!-- SNS 회원 안내 -->
+				<c:if test="${socialMember}">
+
+					<div class="info-box">
+
+						카카오 로그인 회원은
+						카카오 계정에서 비밀번호를 관리합니다.
+
+					</div>
+
+				</c:if>
+
+
 
 				<!-- 프로필 이미지 -->
 				<div class="form-group">
 
-					<label for="profileImageFile">프로필 이미지</label>
+					<label for="profileImageFile">
+						프로필 이미지
+					</label>
+
 
 					<div class="file-box">
+
 
 						<input type="file"
 							id="profileImageFile"
 							name="profileImageFile"
 							accept="image/*">
+
 
 						<label for="profileImageFile"
 							class="file-label">
@@ -699,33 +766,42 @@
 
 						</label>
 
+
 						<span class="file-name">
 
 							선택된 파일 없음
 
 						</span>
 
+
 					</div>
 
 				</div>
 
+
+
+				<!-- 버튼 -->
 				<div class="modal-btns">
 
+
 					<button type="submit"
-							id="memberUpdateBtn">
+						id="memberUpdateBtn">
 
 						저장
 
 					</button>
 
+
 					<button type="button"
-							id="closeMemberModal">
+						id="closeMemberModal">
 
 						취소
 
 					</button>
 
+
 				</div>
+
 
 			</form>
 
@@ -774,7 +850,8 @@
 
 			<h2>회원 탈퇴</h2>
 
-			<form action="${pageContext.request.contextPath}/member/delete"
+			<form id="deleteForm"
+				action="${pageContext.request.contextPath}/member/delete"
 				method="post">
 
 				<input type="hidden"
@@ -785,21 +862,20 @@
 					탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
 				</p>
 
-
 				<div class="form-group">
 
 					<label>
-						아래 문구를 입력해주세요.
+						탈퇴를 진행하려면 아래 문구를 입력해주세요.
 					</label>
 
 					<input type="text"
+						id="deleteConfirmInput"
 						name="deleteConfirm"
 						placeholder="탈퇴하겠습니다"
 						required
 						autocomplete="off">
 
 				</div>
-
 
 				<div class="modal-btns">
 

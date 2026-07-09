@@ -64,7 +64,23 @@
 
         <div class="score-box">
 
-            <span>⭐ ${content.tmdbScore}</span>
+            <span class="score-tmdb">
+                글로벌 평점 ⭐ ${content.tmdbScore}
+            </span>
+
+            <span class="score-divider">|</span>
+
+            <span class="score-user">
+                <c:choose>
+                    <c:when test="${not empty avgRating}">
+                        오딧지 평점 ⭐ ${avgRating} (${reviewCount}건)
+                    </c:when>
+                    <c:otherwise>
+                        오딧지 평점 ⭐ 평점 없음
+                    </c:otherwise>
+                </c:choose>
+            </span>
+
             <span>👁 ${content.viewCount}</span>
 
         </div>
@@ -268,6 +284,22 @@ ${myReview.reviewText}
                                     ${r.createdAt}
                                 </span>
 
+                                <c:choose>
+                                    <c:when test="${reportedReviewSet.contains(r.reviewNo)}">
+                                        <span class="report-btn reported" aria-disabled="true">
+                                            신고완료
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <button type="button"
+                                                class="report-btn"
+                                                data-review-type="CONTENT"
+                                                data-review-no="${r.reviewNo}">
+                                            신고
+                                        </button>
+                                    </c:otherwise>
+                                </c:choose>
+
                             </div>
 
                             <p class="review-content">
@@ -295,6 +327,45 @@ ${myReview.reviewText}
     </div>
 
 </section>
+
+<!-- ======================
+     리뷰 신고 모달
+====================== -->
+<div id="reportModal" class="modal-overlay" hidden>
+
+    <div class="modal-box">
+
+        <h3>리뷰 신고</h3>
+
+        <input type="hidden" id="reportReviewType" value="">
+        <input type="hidden" id="reportReviewNo" value="">
+
+        <div class="modal-field">
+            <label for="reportReason">신고 사유</label>
+            <select id="reportReason">
+                <option value="욕설/비방">욕설/비방</option>
+                <option value="스팸/광고">스팸/광고</option>
+                <option value="도배">도배</option>
+                <option value="음란물/불법정보">음란물/불법정보</option>
+                <option value="기타">기타</option>
+            </select>
+        </div>
+
+        <div class="modal-field">
+            <label for="reportDetail">상세 내용</label>
+            <textarea id="reportDetail"
+                      maxlength="1000"
+                      placeholder="신고 사유를 자세히 적어주세요"></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" id="reportCancelBtn" class="btn">취소</button>
+            <button type="button" id="reportSubmitBtn" class="btn btn-danger">신고하기</button>
+        </div>
+
+    </div>
+
+</div>
 
 </main>
 
