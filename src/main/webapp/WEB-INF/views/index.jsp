@@ -1,16 +1,25 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+```jsp
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
+
 <head>
 <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
 <title>ODITJI MAIN</title>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
-<script src="${pageContext.request.contextPath}/js/main.js" defer></script>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/main.css">
 
+<script defer
+        src="${pageContext.request.contextPath}/js/main.js"></script>
 </head>
 
 <body>
@@ -19,240 +28,352 @@
 
 <main class="main">
 
-<section class="hero">
+    <section class="hero">
 
-    <div class="hero-left">
-        <div class="hero-sub">OTT 통합 검색 서비스</div>
+        <div class="hero-left">
 
-        <h1 class="hero-title">
-            세상 모든 OTT<br/>
-            오딧지?!
-        </h1>
+            <div class="hero-sub">
+                OTT 통합 검색 서비스
+            </div>
 
-        <p class="hero-desc">
-            영화, 드라마, 예능, 그리고 관련 굿즈까지<br/>
-            OTT 정보를 한 번에 확인하세요.
-        </p>
-    </div>
+            <h1 class="hero-title">
+                세상 모든 OTT<br>
+                오딧지?!
+            </h1>
 
-    <div class="hero-right">
+            <p class="hero-desc">
+                영화, 드라마, 예능, 그리고 관련 굿즈까지<br>
+                OTT 정보를 한 번에 확인하세요.
+            </p>
 
-        <div class="hero-box">
-            <div class="box-title">인기 콘텐츠</div>
+        </div>
 
-            <div class="box-list">
+        <div class="hero-right">
 
-                <c:choose>
-                    <c:when test="${not empty popularContentList}">
-                        <c:forEach var="content"
-                                   items="${popularContentList}"
-                                   begin="0"
-                                   end="3">
+            <div class="hero-box">
 
-                            <c:url var="popularDetailUrl" value="/content/prepare">
-                                <c:param name="tmdbId" value="${content.tmdbId}"/>
-                                <c:param name="contentType" value="${content.contentType}"/>
-                            </c:url>
+                <div class="box-title">
+                    인기 콘텐츠
+                </div>
 
-                            <a href="${popularDetailUrl}"
-                               class="box-item"
-                               style="display:block; color:inherit; text-decoration:none; margin-bottom:10px;">
+                <div class="box-list">
 
-                                <strong>${content.title}</strong><br/>
+                    <c:choose>
 
-                                <span style="font-size:11px; color:#999;">
-                                    ${content.contentType}
-                                    · 평점
-                                    <fmt:formatNumber value="${content.tmdbScore}"
-                                                      pattern="0.0"/>
-                                    · 인기도
-                                    <fmt:formatNumber value="${content.popularity}"
-                                                      pattern="0.0"/>
-                                    · ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
-                                </span>
+                        <c:when test="${not empty popularContentList}">
 
-                            </a>
-                        </c:forEach>
-                    </c:when>
+                            <c:forEach var="content"
+                                       items="${popularContentList}"
+                                       begin="0"
+                                       end="4"
+                                       varStatus="status">
 
-                    <c:otherwise>
-                        <div class="box-item">데이터 없음</div>
-                    </c:otherwise>
-                </c:choose>
+                                <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
+                                   class="box-item">
+
+                                    <span class="box-rank">
+                                        ${status.count}
+                                    </span>
+
+                                    <span class="box-name">
+                                        ${content.title}
+                                    </span>
+
+                                    <c:if test="${not empty content.tmdbScore}">
+                                        <span class="box-score">
+                                            ⭐ ${content.tmdbScore}
+                                        </span>
+                                    </c:if>
+
+                                </a>
+
+                            </c:forEach>
+
+                        </c:when>
+
+                        <c:otherwise>
+
+                            <div class="box-empty">
+                                인기 콘텐츠를 불러오지 못했습니다.
+                            </div>
+
+                        </c:otherwise>
+
+                    </c:choose>
+
+                </div>
 
             </div>
 
         </div>
 
-    </div>
+    </section>
 
-</section>
+    <section class="slider-section">
 
-<section class="slider-section">
+        <div class="section-header">
 
-    <h2 class="section-title">오늘의 콘텐츠</h2>
+            <div>
+                <h2 class="section-title">
+                    오늘의 콘텐츠
+                </h2>
 
-    <div class="slider">
+                <p class="section-description">
+                    현재 인기 있는 영화와 TV 콘텐츠
+                </p>
+            </div>
 
-        <button class="btn" type="button" onclick="moveSlider('today','left')">‹</button>
-
-        <div class="track" id="todaySlider">
-
-            <c:choose>
-                <c:when test="${not empty todayContentList}">
-                    <c:forEach var="content" items="${todayContentList}">
-
-                        <c:url var="todayDetailUrl" value="/content/prepare">
-                            <c:param name="tmdbId" value="${content.tmdbId}"/>
-                            <c:param name="contentType" value="${content.contentType}"/>
-                        </c:url>
-
-                        <a href="${todayDetailUrl}"
-                           class="card"
-                           style="height:auto; color:inherit; text-decoration:none;">
-
-                            <div class="thumb" style="height:220px;">
-
-                                <c:choose>
-                                    <c:when test="${not empty content.posterPath}">
-                                        <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                             alt="${content.title}"
-                                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="no-img"></div>
-                                    </c:otherwise>
-                                </c:choose>
-
-                            </div>
-
-                            <div style="padding:8px; font-size:11px; line-height:1.5;">
-                                <strong style="display:block; font-size:12px;">
-                                    ${content.title}
-                                </strong>
-
-                                <span>
-                                    ${content.contentType}
-                                    · 평점
-                                    <fmt:formatNumber value="${content.tmdbScore}"
-                                                      pattern="0.0"/>
-                                </span><br/>
-
-                                <span>
-                                    인기도
-                                    <fmt:formatNumber value="${content.popularity}"
-                                                      pattern="0.0"/>
-                                </span><br/>
-
-                                <span>
-                                    ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
-                                </span>
-
-                                <span style="display:none;">
-                                    TMDB ID: ${content.tmdbId}
-                                </span>
-                            </div>
-
-                        </a>
-
-                    </c:forEach>
-                </c:when>
-
-                <c:otherwise>
-                    <div class="card">데이터 없음</div>
-                </c:otherwise>
-            </c:choose>
+            <a href="${pageContext.request.contextPath}/search"
+               class="section-more">
+                더보기
+            </a>
 
         </div>
 
-        <button class="btn" type="button" onclick="moveSlider('today','right')">›</button>
+        <div class="slider">
 
-    </div>
+            <button class="slider-btn"
+                    type="button"
+                    onclick="moveSlider('today','left')">
+                ‹
+            </button>
 
-</section>
+            <div class="track"
+                 id="todaySlider">
 
-<section class="slider-section">
+                <c:choose>
 
-    <h2 class="section-title">추천 콘텐츠</h2>
+                    <c:when test="${not empty todayContentList}">
 
-    <div class="slider">
+                        <c:forEach var="content"
+                                   items="${todayContentList}">
 
-        <button class="btn" type="button" onclick="moveSlider('rec','left')">‹</button>
+                            <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
+                               class="card">
 
-        <div class="track" id="recSlider">
+                                <div class="thumb">
 
-            <c:choose>
-                <c:when test="${not empty recommendedContentList}">
-                    <c:forEach var="content" items="${recommendedContentList}">
+                                    <c:choose>
 
-                        <c:url var="recommendedDetailUrl" value="/content/prepare">
-                            <c:param name="tmdbId" value="${content.tmdbId}"/>
-                            <c:param name="contentType" value="${content.contentType}"/>
-                        </c:url>
+                                        <c:when test="${not empty content.posterPath}">
+                                            <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                                 alt="${content.title}">
+                                        </c:when>
 
-                        <a href="${recommendedDetailUrl}"
-                           class="card"
-                           style="height:auto; color:inherit; text-decoration:none;">
+                                        <c:otherwise>
+                                            <div class="no-img">
+                                                NO IMAGE
+                                            </div>
+                                        </c:otherwise>
 
-                            <div class="thumb" style="height:220px;">
+                                    </c:choose>
 
-                                <c:choose>
-                                    <c:when test="${not empty content.posterPath}">
-                                        <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                             alt="${content.title}"
-                                             style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="no-img"></div>
-                                    </c:otherwise>
-                                </c:choose>
+                                    <span class="content-type-badge">
 
-                            </div>
+                                        <c:choose>
+                                            <c:when test="${content.contentType eq 'MOVIE'}">
+                                                영화
+                                            </c:when>
 
-                            <div style="padding:8px; font-size:11px; line-height:1.5;">
-                                <strong style="display:block; font-size:12px;">
-                                    ${content.title}
-                                </strong>
+                                            <c:otherwise>
+                                                TV
+                                            </c:otherwise>
+                                        </c:choose>
 
-                                <span>
-                                    ${content.contentType}
-                                    · 평점
-                                    <fmt:formatNumber value="${content.tmdbScore}"
-                                                      pattern="0.0"/>
-                                </span><br/>
+                                    </span>
 
-                                <span>
-                                    인기도
-                                    <fmt:formatNumber value="${content.popularity}"
-                                                      pattern="0.0"/>
-                                </span><br/>
+                                </div>
 
-                                <span>
-                                    ${empty content.releaseDate ? '공개일 미정' : content.releaseDate}
-                                </span>
+                                <div class="card-info">
 
-                                <span style="display:none;">
-                                    TMDB ID: ${content.tmdbId}
-                                </span>
-                            </div>
+                                    <h3 class="card-title">
+                                        ${content.title}
+                                    </h3>
 
-                        </a>
+                                    <div class="card-meta">
 
-                    </c:forEach>
-                </c:when>
+                                        <span>
+                                            <c:choose>
+                                                <c:when test="${not empty content.releaseDate}">
+                                                    ${content.releaseDate}
+                                                </c:when>
 
-                <c:otherwise>
-                    <div class="card">데이터 없음</div>
-                </c:otherwise>
-            </c:choose>
+                                                <c:otherwise>
+                                                    공개일 미정
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+
+                                        <c:if test="${not empty content.tmdbScore}">
+                                            <span class="card-score">
+                                                ⭐ ${content.tmdbScore}
+                                            </span>
+                                        </c:if>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+                        </c:forEach>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <div class="slider-empty">
+                            오늘의 콘텐츠가 없습니다.
+                        </div>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    onclick="moveSlider('today','right')">
+                ›
+            </button>
 
         </div>
 
-        <button class="btn" type="button" onclick="moveSlider('rec','right')">›</button>
+    </section>
 
-    </div>
+    <section class="slider-section">
 
-</section>
+        <div class="section-header">
+
+            <div>
+                <h2 class="section-title">
+                    추천 콘텐츠
+                </h2>
+
+                <p class="section-description">
+                    평점과 인기가 검증된 콘텐츠
+                </p>
+            </div>
+
+            <a href="${pageContext.request.contextPath}/search"
+               class="section-more">
+                더보기
+            </a>
+
+        </div>
+
+        <div class="slider">
+
+            <button class="slider-btn"
+                    type="button"
+                    onclick="moveSlider('rec','left')">
+                ‹
+            </button>
+
+            <div class="track"
+                 id="recSlider">
+
+                <c:choose>
+
+                    <c:when test="${not empty recommendedContentList}">
+
+                        <c:forEach var="content"
+                                   items="${recommendedContentList}">
+
+                            <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
+                               class="card">
+
+                                <div class="thumb">
+
+                                    <c:choose>
+
+                                        <c:when test="${not empty content.posterPath}">
+                                            <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                                 alt="${content.title}">
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            <div class="no-img">
+                                                NO IMAGE
+                                            </div>
+                                        </c:otherwise>
+
+                                    </c:choose>
+
+                                    <span class="content-type-badge">
+
+                                        <c:choose>
+                                            <c:when test="${content.contentType eq 'MOVIE'}">
+                                                영화
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                TV
+                                            </c:otherwise>
+                                        </c:choose>
+
+                                    </span>
+
+                                </div>
+
+                                <div class="card-info">
+
+                                    <h3 class="card-title">
+                                        ${content.title}
+                                    </h3>
+
+                                    <div class="card-meta">
+
+                                        <span>
+                                            <c:choose>
+                                                <c:when test="${not empty content.releaseDate}">
+                                                    ${content.releaseDate}
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    공개일 미정
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+
+                                        <c:if test="${not empty content.tmdbScore}">
+                                            <span class="card-score">
+                                                ⭐ ${content.tmdbScore}
+                                            </span>
+                                        </c:if>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+                        </c:forEach>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <div class="slider-empty">
+                            추천 콘텐츠가 없습니다.
+                        </div>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    onclick="moveSlider('rec','right')">
+                ›
+            </button>
+
+        </div>
+
+    </section>
 
 </main>
 
@@ -260,3 +381,4 @@
 
 </body>
 </html>
+```
