@@ -50,6 +50,15 @@ public class BusinessController {
         return "business/goods/productUpdate";
     }
 
+    // 상품 삭제 요청
+    @GetMapping("/product/delete")
+    public String productDelete(Model model) {
+
+        model.addAttribute("activeMenu", "productDelete");
+
+        return "business/goods/productDelete";
+    }
+
 
     // 이벤트 목록
     @GetMapping("/event/list")
@@ -78,6 +87,15 @@ public class BusinessController {
         model.addAttribute("activeMenu", "eventUpdate");
 
         return "business/event/eventUpdate";
+    }
+
+    // 이벤트 연장 요청
+    @GetMapping("/event/extend")
+    public String eventExtend(Model model) {
+
+        model.addAttribute("activeMenu", "eventExtend");
+
+        return "business/event/eventExtend";
     }
 
 
