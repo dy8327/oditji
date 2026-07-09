@@ -57,7 +57,7 @@ public class VerifyServiceImpl implements VerifyService {
      */
     @Override
     public AdultVerifyReadyVO prepareVerification(long memberNo) {
-        String verifyId = makeVerifyId(memberNo);
+        String verifyId = makeVerifyId(String.valueOf(memberNo));
         return new AdultVerifyReadyVO(storeId, easyChannelKey, smsChannelKey, verifyId);
     }
 
@@ -151,7 +151,7 @@ public class VerifyServiceImpl implements VerifyService {
      * 3. 성인인증 이력 조회 여부
      */
     @Override
-    public boolean isAdultVerified(long memberNo) {
+    public boolean isAdultVerified(Long memberNo) {
         String adultVerified = verifyDAO.selectMemberAdultVerified(memberNo);
         return "Y".equals(adultVerified);
     }
@@ -170,7 +170,7 @@ public class VerifyServiceImpl implements VerifyService {
                 .body(JsonNode.class);
     }
 
-    private IdentityVerifyLogVO createBaseLog(long memberNo, String verifyId, String rawStatus) {
+    private IdentityVerifyLogVO createBaseLog(Long memberNo, String verifyId, String rawStatus) {
         IdentityVerifyLogVO log = new IdentityVerifyLogVO();
         log.setMemberNo(memberNo);
         log.setVerifyId(verifyId);
@@ -229,10 +229,10 @@ public class VerifyServiceImpl implements VerifyService {
         return value.asText(); 
     }
 
-    private String makeVerifyId(long memberNo) {
+    private String makeVerifyId(String memberId) {
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         int randomNumber = RANDOM.nextInt(900000) + 100000;
-        return "oditji" + memberNo + time + randomNumber;
+        return "oditji" + memberId + time + randomNumber;
     }
 
     private String sanitizeReturnUrl(String returnUrl) {
