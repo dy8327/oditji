@@ -352,4 +352,24 @@ public class MemberController {
 
         return "redirect:/member/mypage";
     }
+
+    @GetMapping("/findId")
+    public String findId() {
+        return "member/findId";
+    }
+
+    @PostMapping("/findId")
+    public String findIdPost() {
+        return "member/findId";
+    }
+
+    @GetMapping("/findPw")
+    public String findPw() {
+        return "member/findPw";
+    }
+
+    @PostMapping("/findPw")
+    public String findPwPost() {
+        return "member/findPw";
+    }
 }
