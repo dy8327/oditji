@@ -53,18 +53,16 @@ public class VerifyController {
             HttpSession session,
             Model model
     ) {
-        Number loginMemberNoValue = (Number) session.getAttribute("loginMemberNo");
+        Long memberNo = (Long) session.getAttribute("memberNo");
 
-        // 1) 로그인 검증
-        if (loginMemberNoValue == null) {
+        // 1) 로그인 검증 (아이디가 비어있다면 로그인 창으로 이동)
+        if (memberNo == null || memberNo == 0) {
             session.setAttribute("afterLoginRedirectUrl", "/verify/adult?returnUrl=" + sanitizeReturnUrl(returnUrl));
             return "redirect:/member/login";
         }
 
-        long loginMemberNo = loginMemberNoValue.longValue();
-
         // 2) 이미 성인인증을 완료한 유저인지 검증
-        if (verifyService.isAdultVerified(loginMemberNo)) {
+        if (memberNo != 0 && verifyService.isAdultVerified(memberNo)) {
             session.setAttribute("ADULT_VERIFIED", "Y");
             return "redirect:" + sanitizeReturnUrl(returnUrl);
         }
@@ -84,14 +82,14 @@ public class VerifyController {
     @PostMapping("/adult/ready")
     @ResponseBody
     public AdultVerifyReadyVO prepareVerification(HttpSession session) {
-        Number loginMemberNoValue = (Number) session.getAttribute("loginMemberNo");
+        Long memberNo = (Long) session.getAttribute("memberNo");
 
-        if (loginMemberNoValue == null) {
+        if (memberNo == null) {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
 
-        long loginMemberNo = loginMemberNoValue.longValue();
-        return verifyService.prepareVerification(loginMemberNo);
+        
+        return verifyService.prepareVerification(memberNo);
     }
 
     /**
@@ -106,9 +104,9 @@ public class VerifyController {
     ) {
         try {
             System.out.println("===== 성인인증 complete 진입 =====");
-            Number loginMemberNoValue = (Number) session.getAttribute("loginMemberNo");
+            Long memberNo = (Long) session.getAttribute("memberNo");
 
-            if (loginMemberNoValue == null) {
+            if (memberNo == null) {
                 return AdultVerifyCompleteVO.fail("로그인이 필요합니다.");
             }
 
@@ -117,10 +115,8 @@ public class VerifyController {
                 return AdultVerifyCompleteVO.fail("본인인증 요청 ID가 없습니다.");
             }
 
-            long loginMemberNo = loginMemberNoValue.longValue();
-
             return verifyService.completeVerification(
-                    loginMemberNo,
+                    memberNo,
                     verifyId,
                     returnUrl,
                     session
