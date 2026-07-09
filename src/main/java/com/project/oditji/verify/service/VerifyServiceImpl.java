@@ -151,7 +151,7 @@ public class VerifyServiceImpl implements VerifyService {
      * 3. 성인인증 이력 조회 여부
      */
     @Override
-    public boolean isAdultVerified(Long memberNo) {
+    public boolean isAdultVerified(long memberNo) {
         String adultVerified = verifyDAO.selectMemberAdultVerified(memberNo);
         return "Y".equals(adultVerified);
     }
