@@ -57,8 +57,26 @@
 
                 <a href="${pageContext.request.contextPath}/admin/business/list?tab=approval"
                    class="stat-card">
-                    <span>사업자 요청 수</span>
+                    <span>사업자 입점 승인 대기</span>
                     <strong>${adminMain.businessRequestCount}건</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/product/list?tab=register"
+                   class="stat-card">
+                    <span>상품 등록 요청</span>
+                    <strong>${adminMain.productRequestCount}건</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/event/list?tab=register"
+                   class="stat-card">
+                    <span>이벤트 요청</span>
+                    <strong>${adminMain.eventRequestCount}건</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/settlement/main"
+                   class="stat-card">
+                    <span>입금 확인 대기</span>
+                    <strong>${adminMain.settlementWaitingCount}건</strong>
                 </a>
 
                 <a href="${pageContext.request.contextPath}/admin/monitoring"
