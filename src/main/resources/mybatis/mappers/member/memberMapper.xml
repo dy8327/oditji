@@ -217,4 +217,23 @@
 
     </update>
 
+    <select id="findId" resultType="com.project.oditji.member.vo.MemberVO">
+
+        SELECT MEMBER_ID
+        FROM MEMBER
+        WHERE MEMBER_NAME = #{memberName}
+        AND EMAIL = #{email}
+
+    </select>
+
+    <select id="findPw" resultType="com.project.oditji.member.vo.MemberVO">
+
+        SELECT MEMBER_PW
+        FROM MEMBER
+        WHERE MEMBER_ID = #{memberId}
+        AND MEMBER_NAME = #{memberName}
+        AND EMAIL = #{email}
+
+    </select>
+
 </mapper>

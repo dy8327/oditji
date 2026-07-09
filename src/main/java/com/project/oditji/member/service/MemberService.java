@@ -27,4 +27,8 @@ public interface MemberService {
     MemberVO getMemberByNo(Long memberNo);
 
     boolean checkUpdateNickname(Long memberNo, String nickname);
+
+    MemberVO findId(MemberVO memberVO);
+
+    MemberVO findPw(MemberVO memberVO);
 }

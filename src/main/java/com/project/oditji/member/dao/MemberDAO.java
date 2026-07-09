@@ -40,4 +40,8 @@ public interface MemberDAO {
             @Param("nickname") String nickname,
             @Param("memberNo") Long memberNo
     );
+
+    MemberVO findId(MemberVO memberVO);
+
+    MemberVO findPw(MemberVO memberVO);
 }
