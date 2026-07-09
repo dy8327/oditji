@@ -8,7 +8,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>ODITJI | 리뷰 관리</title>
+<title>ODITJI | 콘텐츠 리뷰 관리</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 
@@ -28,10 +28,10 @@
                 ← 뒤로가기
             </a>
 
-            <h1 class="admin-page-title">리뷰 관리</h1>
+            <h1 class="admin-page-title">콘텐츠 리뷰 관리</h1>
 
             <p class="admin-page-desc">
-                등록된 전체 리뷰를 조회하고, 신고 접수된 리뷰를 확인하여 삭제 처리할 수 있습니다.
+                작품(콘텐츠)에 등록된 전체 리뷰를 조회하고, 신고 접수된 리뷰를 확인하여 삭제 처리할 수 있습니다.
             </p>
 
         </div>
