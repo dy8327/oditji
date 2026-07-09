@@ -38,6 +38,12 @@ public interface TmdbService {
             List<String> categoryList,
             List<String> genreList);
 
+    List<SearchResultVO> getMainPopularContent();
+
+    List<SearchResultVO> getMainTodayContent();
+
+    List<SearchResultVO> getMainRecommendedContent();
+
     ContentVO getDetailForSave(Long tmdbId, String contentType);
 
     void saveContentPlatform(ContentVO content);
