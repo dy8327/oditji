@@ -129,6 +129,15 @@
 
                                         <c:choose>
 
+                                            <c:when test="${event.status == 'ACTIVE'}">
+
+                                                <a class="btn btn-dark"
+                                                href="${pageContext.request.contextPath}/business/event/extend?eventNo=${event.eventNo}">
+                                                    연장 요청
+                                                </a>
+
+                                            </c:when>
+
                                             <c:when test="${event.status == 'WAITING'}">
 
                                                 <a class="btn btn-dark"
