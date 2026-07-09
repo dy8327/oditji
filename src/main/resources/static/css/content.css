@@ -1030,8 +1030,6 @@
 
     object-fit: cover !important;
     object-position: center;
-
-    vertical-align: middle;
 }
 
 .search-content-score {
