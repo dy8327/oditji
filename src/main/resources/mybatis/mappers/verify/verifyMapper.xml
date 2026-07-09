@@ -5,11 +5,10 @@
 
 <mapper namespace="com.project.oditji.verify.dao.VerifyDAO">
 
-    <insert id="insertVerifyLog"
-            parameterType="com.project.oditji.verify.vo.IdentityVerifyLogVO">
-
+    <insert id="insertVerifyLog" parameterType="com.project.oditji.verify.vo.IdentityVerifyLogVO">
         INSERT INTO IDENTITY_VERIFY_LOG (
             VERIFY_NO,
+            MEMBER_NO,
             VERIFY_ID,
             VERIFY_STATUS,
             NAME,
@@ -18,9 +17,11 @@
             GENDER,
             ADULT_YN,
             RAW_STATUS,
-            CREATED_AT
+            CREATED_AT,
+            VERIFIED_AT
         ) VALUES (
             SEQ_IDENTITY_VERIFY_LOG.NEXTVAL,
+            #{memberId, jdbcType=NUMERIC},
             #{verifyId, jdbcType=VARCHAR},
             #{verifyStatus, jdbcType=VARCHAR},
             #{name, jdbcType=VARCHAR},
@@ -29,9 +30,32 @@
             #{gender, jdbcType=VARCHAR},
             #{adultYn, jdbcType=CHAR},
             #{rawStatus, jdbcType=VARCHAR},
-            SYSDATE
+            SYSDATE,
+            CASE
+                WHEN #{verifyStatus} = 'VERIFIED' THEN SYSDATE
+                ELSE NULL
+            END
         )
-
     </insert>
+
+    <update id="updateMemberAdultVerified">
+        UPDATE MEMBER
+        SET
+            ADULT_VERIFIED = 'Y',
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <select id="selectMemberAdultVerified" resultType="string">
+        SELECT ADULT_VERIFIED
+        FROM MEMBER
+        WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="countVerifyId" resultType="int">
+        SELECT COUNT(*)
+        FROM IDENTITY_VERIFY_LOG
+        WHERE VERIFY_ID = #{verifyId}
+    </select>
 
 </mapper>
