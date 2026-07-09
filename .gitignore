@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Local config / secret files
+src/main/resources/static/js/firebase-config.js
+src/main/resources/application.properties
+
 ### STS ###
 .apt_generated
 .classpath
