@@ -145,19 +145,25 @@ document.addEventListener("DOMContentLoaded", () => {
        DELETE VALIDATION
     ========================================================= */
 
-  deleteForm?.addEventListener("submit", (e) => {
-    const password = deleteForm.password.value.trim();
+    const deleteForm = document.getElementById("deleteForm");
+    const deleteConfirmInput = document.getElementById("deleteConfirmInput");
 
-    if (password === "") {
-      alert("비밀번호를 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
+    deleteForm?.addEventListener("submit", (e) => {
+        const confirmText = deleteConfirmInput.value.trim();
 
-    if (!confirm("정말 회원을 탈퇴하시겠습니까?\n탈퇴 후에는 복구할 수 없습니다.")) {
-      e.preventDefault();
-    }
-  });
+        // 1. 탈퇴 문구 일치 체크
+        if (confirmText !== "탈퇴하겠습니다") {
+            alert("탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요.");
+            deleteConfirmInput.focus();
+            e.preventDefault(); // 폼 전송 중단
+            return;
+        }
+
+        // 2. 최종 확인
+        if (!confirm("정말 회원을 탈퇴하시겠습니까?\n탈퇴 후에는 모든 데이터가 삭제되며 복구할 수 없습니다.")) {
+            e.preventDefault(); // 취소 시 폼 전송 중단
+        }
+    });
 
   /* =========================================================
        닉네임 중복확인
