@@ -1210,48 +1210,80 @@ public class TmdbServiceImpl implements TmdbService {
 
         vo.setTmdbId(tmdbId);
 
+        String contentType;
+
         if ("movie".equals(mediaType)) {
 
-            vo.setContentType("MOVIE");
+            contentType = "MOVIE";
+            vo.setContentType(contentType);
 
             String title = item.path("title").asText(null);
-            String originalTitle = item.path("original_title").asText(null);
+            String originalTitle =
+                    item.path("original_title").asText(null);
 
             if (title == null || title.isBlank()) {
                 title = originalTitle;
             }
 
             vo.setTitle(title);
-            vo.setReleaseDate(item.path("release_date").asText(null));
+            vo.setOriginalTitle(originalTitle);
+            vo.setReleaseDate(
+                    item.path("release_date").asText(null)
+            );
 
         } else {
 
-            vo.setContentType("TV");
+            contentType = "TV";
+            vo.setContentType(contentType);
 
             String title = item.path("name").asText(null);
-            String originalTitle = item.path("original_name").asText(null);
+            String originalTitle =
+                    item.path("original_name").asText(null);
 
             if (title == null || title.isBlank()) {
                 title = originalTitle;
             }
 
             vo.setTitle(title);
-            vo.setReleaseDate(item.path("first_air_date").asText(null));
+            vo.setOriginalTitle(originalTitle);
+            vo.setReleaseDate(
+                    item.path("first_air_date").asText(null)
+            );
         }
 
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
+        vo.setOverview(
+                item.path("overview").asText(null)
+        );
+
+        vo.setPosterPath(
+                item.path("poster_path").asText(null)
+        );
+
+        vo.setBackdropPath(
+                item.path("backdrop_path").asText(null)
+        );
+
+        vo.setGenreText(
+                convertGenreIdsToText(
+                        item.path("genre_ids"),
+                        contentType
+                )
+        );
 
         if (!item.path("vote_average").isMissingNode()
                 && !item.path("vote_average").isNull()) {
 
-            vo.setTmdbScore(item.path("vote_average").asDouble());
+            vo.setTmdbScore(
+                    item.path("vote_average").asDouble()
+            );
         }
 
         if (!item.path("popularity").isMissingNode()
                 && !item.path("popularity").isNull()) {
 
-            vo.setPopularity(item.path("popularity").asDouble());
+            vo.setPopularity(
+                    item.path("popularity").asDouble()
+            );
         }
 
         return vo;
@@ -1269,47 +1301,250 @@ public class TmdbServiceImpl implements TmdbService {
 
         if ("MOVIE".equals(contentType)) {
 
-            String title = item.path("title").asText(null);
-            String originalTitle = item.path("original_title").asText(null);
+            String title =
+                    item.path("title").asText(null);
+
+            String originalTitle =
+                    item.path("original_title").asText(null);
 
             if (title == null || title.isBlank()) {
                 title = originalTitle;
             }
 
             vo.setTitle(title);
-            vo.setReleaseDate(item.path("release_date").asText(null));
+            vo.setOriginalTitle(originalTitle);
+            vo.setReleaseDate(
+                    item.path("release_date").asText(null)
+            );
 
         } else {
 
-            String title = item.path("name").asText(null);
-            String originalTitle = item.path("original_name").asText(null);
+            String title =
+                    item.path("name").asText(null);
+
+            String originalTitle =
+                    item.path("original_name").asText(null);
 
             if (title == null || title.isBlank()) {
                 title = originalTitle;
             }
 
             vo.setTitle(title);
-            vo.setReleaseDate(item.path("first_air_date").asText(null));
+            vo.setOriginalTitle(originalTitle);
+            vo.setReleaseDate(
+                    item.path("first_air_date").asText(null)
+            );
         }
 
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
+        vo.setOverview(
+                item.path("overview").asText(null)
+        );
+
+        vo.setPosterPath(
+                item.path("poster_path").asText(null)
+        );
+
+        vo.setBackdropPath(
+                item.path("backdrop_path").asText(null)
+        );
+
+        vo.setGenreText(
+                convertGenreIdsToText(
+                        item.path("genre_ids"),
+                        contentType
+                )
+        );
 
         if (!item.path("vote_average").isMissingNode()
                 && !item.path("vote_average").isNull()) {
 
-            vo.setTmdbScore(item.path("vote_average").asDouble());
+            vo.setTmdbScore(
+                    item.path("vote_average").asDouble()
+            );
         }
 
         if (!item.path("popularity").isMissingNode()
                 && !item.path("popularity").isNull()) {
 
-            vo.setPopularity(item.path("popularity").asDouble());
+            vo.setPopularity(
+                    item.path("popularity").asDouble()
+            );
         }
 
         return vo;
     }
 
+    private String convertGenreIdsToText(
+            JsonNode genreIdsNode,
+            String contentType) {
+
+        if (genreIdsNode == null
+                || !genreIdsNode.isArray()
+                || genreIdsNode.isEmpty()) {
+
+            return null;
+        }
+
+        List<String> genreNameList =
+                new ArrayList<String>();
+
+        for (JsonNode genreIdNode : genreIdsNode) {
+
+            int genreId = genreIdNode.asInt();
+
+            String genreName =
+                    resolveGenreName(
+                            genreId,
+                            contentType
+                    );
+
+            if (genreName == null
+                    || genreName.isBlank()) {
+
+                continue;
+            }
+
+            if (!genreNameList.contains(genreName)) {
+                genreNameList.add(genreName);
+            }
+        }
+
+        if (genreNameList.isEmpty()) {
+            return null;
+        }
+
+        return String.join(", ", genreNameList);
+    }
+
+    private String resolveGenreName(
+            int genreId,
+            String contentType) {
+
+        if ("MOVIE".equals(contentType)) {
+
+            switch (genreId) {
+
+                case 28:
+                    return "액션";
+
+                case 12:
+                    return "모험";
+
+                case 16:
+                    return "애니메이션";
+
+                case 35:
+                    return "코미디";
+
+                case 80:
+                    return "범죄";
+
+                case 99:
+                    return "다큐멘터리";
+
+                case 18:
+                    return "드라마";
+
+                case 10751:
+                    return "가족";
+
+                case 14:
+                    return "판타지";
+
+                case 36:
+                    return "역사";
+
+                case 27:
+                    return "공포";
+
+                case 10402:
+                    return "음악";
+
+                case 9648:
+                    return "미스터리";
+
+                case 10749:
+                    return "로맨스";
+
+                case 878:
+                    return "SF";
+
+                case 10770:
+                    return "TV 영화";
+
+                case 53:
+                    return "스릴러";
+
+                case 10752:
+                    return "전쟁";
+
+                case 37:
+                    return "서부";
+
+                default:
+                    return null;
+            }
+        }
+
+        if ("TV".equals(contentType)) {
+
+            switch (genreId) {
+
+                case 10759:
+                    return "액션·모험";
+
+                case 16:
+                    return "애니메이션";
+
+                case 35:
+                    return "코미디";
+
+                case 80:
+                    return "범죄";
+
+                case 99:
+                    return "다큐멘터리";
+
+                case 18:
+                    return "드라마";
+
+                case 10751:
+                    return "가족";
+
+                case 10762:
+                    return "키즈";
+
+                case 9648:
+                    return "미스터리";
+
+                case 10763:
+                    return "뉴스";
+
+                case 10764:
+                    return "리얼리티";
+
+                case 10765:
+                    return "SF·판타지";
+
+                case 10766:
+                    return "연속극";
+
+                case 10767:
+                    return "토크";
+
+                case 10768:
+                    return "전쟁·정치";
+
+                case 37:
+                    return "서부";
+
+                default:
+                    return null;
+            }
+        }
+
+        return null;
+    }
     private boolean hasMatchedPlatform(
             List<String> supportedPlatformNameList,
             List<String> selectedPlatformList) {
