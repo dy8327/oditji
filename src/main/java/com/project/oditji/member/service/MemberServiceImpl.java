@@ -151,10 +151,13 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public void deleteMember(Long memberNo) {
 
-        // 1. 연관 데이터 먼저 삭제 (FK 대비)
+        // 1. MEMBER_PLATFORM 삭제
         memberDAO.deleteMemberPlatform(memberNo);
 
-        // 2. 회원 삭제
+        // 2. MEMBER_SOCIAL 삭제
+        memberDAO.deleteMemberSocial(memberNo);
+
+        // 3. MEMBER 삭제
         memberDAO.deleteMember(memberNo);
     }
 

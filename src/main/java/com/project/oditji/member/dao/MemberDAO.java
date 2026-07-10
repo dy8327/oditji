@@ -31,6 +31,8 @@ public interface MemberDAO {
 
     int deleteMemberPlatform(@Param("memberNo") Long memberNo);
 
+    void deleteMemberSocial(Long memberNo);
+
     int checkPassword(@Param("memberNo") Long memberNo,
                     @Param("password") String password);
 
