@@ -153,6 +153,11 @@
         )
     </insert>
 
+    <delete id="deleteMemberSocial" parameterType="long">
+        DELETE FROM MEMBER_SOCIAL
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
     <delete id="deleteMember" parameterType="long">
         DELETE FROM MEMBER
         WHERE MEMBER_NO = #{memberNo}
@@ -208,7 +213,7 @@
         UPDATE MEMBER
         SET
             NICKNAME = #{nickname},
-            EMAIL = #{email},
+            EMAIL = NVL(#{email, jdbcType=VARCHAR}, EMAIL),
             PHONE = #{phone},
             MEMBER_PW = NVL(#{memberPw, jdbcType=VARCHAR}, MEMBER_PW),
             PROFILE_IMAGE = NVL(#{profileImage, jdbcType=VARCHAR}, PROFILE_IMAGE),

@@ -581,6 +581,7 @@
 
 				<!-- 회원번호 -->
 				<input type="hidden"
+					id="memberNo"
 					name="memberNo"
 					value="${loginMember.memberNo}">
 
@@ -631,21 +632,23 @@
 
 
 				<!-- 이메일 -->
-				<div class="form-group">
+				<c:if test="${!socialMember}">
 
-					<label for="updateEmail">
-						이메일
-					</label>
+					<div class="form-group">
 
+						<label for="updateEmail">
+							이메일
+						</label>
 
-					<input type="email"
-						id="updateEmail"
-						name="email"
-						value="${loginMember.email}"
-						readonly>
+						<input type="email"
+							id="updateEmail"
+							name="email"
+							value="${loginMember.email}"
+							readonly>
 
+					</div>
 
-				</div>
+				</c:if>
 
 
 
@@ -821,6 +824,7 @@
 				method="post">
 
 				<input type="hidden"
+					id="memberNo"
 					name="memberNo"
 					value="${loginMember.memberNo}">
 
@@ -855,6 +859,7 @@
 				method="post">
 
 				<input type="hidden"
+					id="memberNo"
 					name="memberNo"
 					value="${loginMember.memberNo}">
 

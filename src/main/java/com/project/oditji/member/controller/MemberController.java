@@ -182,7 +182,13 @@ public class MemberController {
 
     // 마이페이지 모달 DB저장
     @GetMapping("/mypage")
-    public String mypage() {
+    public String mypage(HttpSession session, Model model) {
+
+        boolean socialMember =
+                session.getAttribute("loginProvider") != null;
+
+        model.addAttribute("socialMember", socialMember);
+
         return "member/mypage";
     }
 
@@ -316,26 +322,13 @@ public class MemberController {
     }
 
     @PostMapping("/delete")
-    public String deleteMember(
-            @RequestParam("password") String password,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+    public String deleteMember(HttpSession session) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
 
-        if (!memberService.checkPassword(loginMember.getMemberNo(), password)) {
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    "비밀번호가 일치하지 않습니다."
-            );
-
-            redirectAttributes.addFlashAttribute(
-                    "openDeleteModal",
-                    true
-            );
-
-            return "redirect:/member/mypage";
+        if (loginMember == null) {
+            return "redirect:/member/login";
         }
 
         memberService.deleteMember(loginMember.getMemberNo());

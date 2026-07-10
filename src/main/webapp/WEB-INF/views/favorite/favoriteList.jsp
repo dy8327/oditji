@@ -34,12 +34,16 @@
     <!-- TAB -->
     <section class="favorite-tab">
 
-        <button class="tab-btn active" data-tab="content">
-            콘텐츠 (${contentCount})
+        <button class="tab-btn active"
+                data-tab="content"
+                data-count-target="contentTabCount">
+            콘텐츠 (<span id="contentTabCount">${contentCount}</span>)
         </button>
 
-        <button class="tab-btn" data-tab="goods">
-            상품 (${goodsCount})
+        <button class="tab-btn"
+                data-tab="goods"
+                data-count-target="goodsTabCount">
+            상품 (<span id="goodsTabCount">${goodsCount}</span>)
         </button>
 
     </section>
@@ -54,19 +58,44 @@
         <div class="favorite-grid">
 
             <c:forEach var="c" items="${contentFavoriteList}">
+
                 <article class="favorite-card">
 
-                    <a href="/content/detail?contentNo=${c.contentNo}">
-                        <img src="${c.thumbnail}">
-                        <h3>${c.title}</h3>
+                    <a class="favorite-card-link"
+                       href="${pageContext.request.contextPath}/content/contentDetail/${c.contentNo}">
+
+                        <div class="favorite-poster">
+                            <c:choose>
+                                <c:when test="${not empty c.posterPath}">
+                                    <img src="https://image.tmdb.org/t/p/w500${c.posterPath}"
+                                         alt="${c.title}"
+                                         loading="lazy">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="no-img">NO IMAGE</div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+                        <div class="favorite-info">
+                            <h3 class="favorite-title">${c.title}</h3>
+                            <div class="favorite-meta">
+                                <span>${c.contentType}</span>
+                                <span>⭐ ${c.tmdbScore}</span>
+                            </div>
+                        </div>
+
                     </a>
 
-                    <button class="fav-btn active"
+                    <button type="button"
+                            class="fav-btn active"
+                            data-type="content"
                             data-content-no="${c.contentNo}">
                         ♥
                     </button>
 
                 </article>
+
             </c:forEach>
 
         </div>
@@ -83,19 +112,62 @@
         <div class="favorite-grid">
 
             <c:forEach var="g" items="${goodsFavoriteList}">
+
                 <article class="favorite-card">
 
-                    <a href="/goods/detail?goodsNo=${g.goodsNo}">
-                        <img src="${g.image}">
-                        <h3>${g.name}</h3>
+                    <a class="favorite-card-link"
+                       href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}">
+
+                        <div class="favorite-poster">
+                            <c:choose>
+                                <c:when test="${not empty g.mainImage}">
+                                    <img src="${g.mainImage}"
+                                         alt="${g.productName}"
+                                         loading="lazy">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="no-img">NO IMAGE</div>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <c:if test="${g.discountRate > 0}">
+                                <span class="discount-badge">${g.discountRate}%</span>
+                            </c:if>
+                        </div>
+
+                        <div class="favorite-info">
+
+                            <p class="favorite-brand">${g.businessName}</p>
+
+                            <h3 class="favorite-title">${g.productName}</h3>
+
+                            <div class="favorite-meta">
+                                <c:choose>
+                                    <c:when test="${g.discountRate > 0}">
+                                        <span class="price-original">₩ ${g.price}</span>
+                                        <span class="price-final">
+                                            ₩ ${g.price - (g.price * g.discountRate / 100)}
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="price-final">₩ ${g.price}</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                        </div>
+
                     </a>
 
-                    <button class="fav-btn active"
-                            data-goods-no="${g.goodsNo}">
+                    <button type="button"
+                            class="fav-btn active"
+                            data-type="goods"
+                            data-product-no="${g.productNo}">
                         ♥
                     </button>
 
                 </article>
+
             </c:forEach>
 
         </div>

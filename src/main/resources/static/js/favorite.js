@@ -23,7 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // ================= FAVORITE TOGGLE =================
+    // ================= FAVORITE / WISH TOGGLE =================
+    // 콘텐츠 찜(FAVORITE 테이블)과 상품 찜(PRODUCT_WISH 테이블)은
+    // 별도 테이블 / 엔드포인트이므로 data-type으로 분기한다.
     const buttons = document.querySelectorAll(".fav-btn");
 
     buttons.forEach(btn => {
@@ -35,29 +37,61 @@ document.addEventListener("DOMContentLoaded", () => {
             if (loading) return;
             loading = true;
 
-            const contentNo = btn.dataset.contentNo;
+            const type = btn.dataset.type; // "content" | "goods"
+
+            const endpoint =
+                type === "goods"
+                    ? "/wish/toggle"
+                    : "/favorite/toggle";
+
+            const body =
+                type === "goods"
+                    ? { productNo: btn.dataset.productNo }
+                    : { contentNo: btn.dataset.contentNo };
 
             try {
 
-                const res = await fetch("/favorite/toggle", {
+                const res = await fetch(endpoint, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ contentNo })
+                    body: JSON.stringify(body)
                 });
 
                 const data = await res.json();
 
                 if (data.result === "added") {
+
                     btn.classList.add("active");
                     btn.innerText = "♥";
-                    updateCount(+1);
+                    updateCount(type, +1);
+
                 } else {
+
                     btn.classList.remove("active");
                     btn.innerText = "♡";
-                    updateCount(-1);
-                    btn.closest(".favorite-card").remove();
+                    updateCount(type, -1);
+
+                    const card = btn.closest(".favorite-card");
+                    const grid = card ? card.closest(".favorite-grid") : null;
+
+                    if (card) card.remove();
+
+                    // 탭이 비면 empty-state 노출
+                    if (grid && grid.children.length === 0) {
+
+                        const emptyMessage =
+                            type === "goods"
+                                ? "찜한 상품이 없습니다."
+                                : "찜한 콘텐츠가 없습니다.";
+
+                        const empty = document.createElement("div");
+                        empty.className = "empty-state";
+                        empty.innerText = emptyMessage;
+
+                        grid.parentElement.insertBefore(empty, grid);
+                    }
                 }
 
             } catch (err) {
@@ -72,19 +106,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // ================= COUNT UPDATE =================
-    function updateCount(diff) {
+    function updateCount(type, diff) {
 
-        const badge = document.getElementById("favCount");
+        const tabCountId =
+            type === "goods" ? "goodsTabCount" : "contentTabCount";
 
-        if (!badge) return;
+        const tabCountEl = document.getElementById(tabCountId);
+        const totalCountEl = document.getElementById("favCount");
 
-        let count = parseInt(badge.innerText || "0");
+        [tabCountEl, totalCountEl].forEach(el => {
 
-        count += diff;
+            if (!el) return;
 
-        if (count < 0) count = 0;
+            let count = parseInt(el.innerText || "0", 10);
+            count += diff;
 
-        badge.innerText = count;
+            if (count < 0) count = 0;
+
+            el.innerText = count;
+        });
     }
 
 });
