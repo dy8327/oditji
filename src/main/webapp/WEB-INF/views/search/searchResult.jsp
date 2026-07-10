@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -18,13 +19,11 @@
     <title>ODITJI | 검색 결과</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content.css">
+          href="${pageContext.request.contextPath}/css/search.css">
 
     <script defer
-            src="${pageContext.request.contextPath}/js/content.js"></script>
-
-    <script defer
-            src="${pageContext.request.contextPath}/js/search.js"></script>
+            src="${pageContext.request.contextPath}/js/search.js?v=6">
+    </script>
 
 </head>
 
@@ -32,291 +31,670 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="content-container search-page-container">
+<main class="search-page-container">
 
     <div class="search-layout">
 
-        <!-- =====================================
-             LEFT SIDEBAR
-        ====================================== -->
+        <%-- =================================================
+             왼쪽 검색 필터
+        ================================================= --%>
         <aside class="search-left-sidebar">
 
             <jsp:include page="/WEB-INF/views/common/leftSidebar.jsp"/>
 
         </aside>
 
-        <!-- =====================================
-             SEARCH RESULT AREA
-        ====================================== -->
-        <section class="search-result-area">
 
-            <!-- =====================================
-                 SEARCH RESULT HEADER
-            ====================================== -->
-            <section class="content-header search-result-header">
+        <%-- =================================================
+             검색 결과 영역
+        ================================================= --%>
+        <section class="search-result-area"
+                 data-search-root
+                 data-initial-tab="${empty searchTab ? 'ALL' : searchTab}">
+
+
+            <%-- =================================================
+                 검색 결과 헤더
+            ================================================= --%>
+            <section class="search-result-header">
 
                 <div>
 
-                    <c:choose>
-
-                        <c:when test="${not empty searchTitle}">
-
-                            <h1>
-                                <c:out value="${searchTitle}"/>
-                            </h1>
-
-                        </c:when>
-
-                        <c:when test="${not empty keyword}">
-
-                            <h1>
-                                "<c:out value="${keyword}"/>" 검색 결과
-                            </h1>
-
-                        </c:when>
-
-                        <c:otherwise>
-
-                            <h1>
-                                지금 인기 있는 콘텐츠
-                            </h1>
-
-                        </c:otherwise>
-
-                    </c:choose>
+                    <h1>
+                        <c:out value="${searchTitle}"/>
+                    </h1>
 
                 </div>
 
                 <div class="search-result-count">
 
-                    <c:choose>
-
-                        <c:when test="${not empty pageVO}">
-                            전체
-                            <c:out value="${pageVO.totalResults}"/>
-                            건
-                        </c:when>
-
-                        <c:otherwise>
-                            전체
-                            <c:out value="${fn:length(resultList)}"/>
-                            건
-                        </c:otherwise>
-
-                    </c:choose>
+                    전체
+                    <c:out value="${combinedTotalCount}"/>건
 
                 </div>
 
             </section>
 
-            <!-- =====================================
-                 EMPTY RESULT
-            ====================================== -->
-            <c:if test="${empty resultList}">
 
-                <section class="empty-state">
+            <%-- =================================================
+                 검색 결과 탭
+            ================================================= --%>
+            <nav class="search-result-tabs"
+                 aria-label="검색 결과 유형">
 
-                    <p>
-                        검색 결과가 없습니다.
-                    </p>
+                <button type="button"
+                        class="search-result-tab"
+                        data-search-tab="ALL"
+                        aria-selected="false">
+
+                    전체
+
+                    <span>
+                        <c:out value="${combinedTotalCount}"/>
+                    </span>
+
+                </button>
+
+                <button type="button"
+                        class="search-result-tab"
+                        data-search-tab="CONTENT"
+                        aria-selected="false">
+
+                    콘텐츠
+
+                    <span>
+                        <c:out value="${contentTotalCount}"/>
+                    </span>
+
+                </button>
+
+                <button type="button"
+                        class="search-result-tab"
+                        data-search-tab="GOODS"
+                        aria-selected="false">
+
+                    상품
+
+                    <span>
+                        <c:out value="${goodsTotalCount}"/>
+                    </span>
+
+                </button>
+
+            </nav>
+
+
+            <%-- =================================================
+                 전체 탭
+            ================================================= --%>
+            <section class="search-tab-panel"
+                     data-search-panel="ALL">
+
+
+                <%-- =================================================
+                     전체 탭: 항상 1페이지 콘텐츠 상위 5개
+                ================================================= --%>
+                <section class="search-all-section">
+
+                    <div class="search-section-heading">
+
+                        <h2>콘텐츠</h2>
+
+                        <button type="button"
+                                class="search-more-button"
+                                data-search-move-tab="CONTENT">
+
+                            더보기
+
+                        </button>
+
+                    </div>
+
+
+                    <c:choose>
+
+                        <c:when test="${empty allContentResults}">
+
+                            <section class="empty-state search-all-empty">
+
+                                <p>검색된 콘텐츠가 없습니다.</p>
+
+                            </section>
+
+                        </c:when>
+
+                        <c:otherwise>
+
+                            <section class="search-content-list">
+
+                                <c:forEach var="content"
+                                           items="${allContentResults}">
+
+                                    <article class="search-content-item">
+
+                                        <c:url var="allContentDetailUrl"
+                                               value="/content/prepare">
+
+                                            <c:param name="tmdbId"
+                                                     value="${content.tmdbId}"/>
+
+                                            <c:param name="contentType"
+                                                     value="${content.contentType}"/>
+
+                                        </c:url>
+
+
+                                        <a class="search-content-link"
+                                           href="${allContentDetailUrl}">
+
+                                            <div class="search-content-poster">
+
+                                                <c:choose>
+
+                                                    <c:when test="${not empty content.posterPath}">
+
+                                                        <img src="https://image.tmdb.org/t/p/w300${content.posterPath}"
+                                                             alt="<c:out value='${content.title}'/>"
+                                                             loading="lazy">
+
+                                                    </c:when>
+
+                                                    <c:otherwise>
+
+                                                        <div class="search-content-no-image">
+                                                            NO IMAGE
+                                                        </div>
+
+                                                    </c:otherwise>
+
+                                                </c:choose>
+
+                                            </div>
+
+
+                                            <div class="search-content-info">
+
+                                                <h3 class="search-content-title">
+
+                                                    <c:out value="${content.title}"/>
+
+                                                </h3>
+
+
+                                                <c:if test="${content.matchType eq 'PERSON'}">
+
+                                                    <p class="search-person-match">
+
+                                                        <c:out value="${content.matchedPersonRole}"/>
+                                                        검색 결과 ·
+
+                                                        <c:out value="${content.matchedPersonName}"/>
+
+                                                        <c:choose>
+
+                                                            <c:when test="${content.matchedPersonRole eq '감독'}">
+                                                                연출
+                                                            </c:when>
+
+                                                            <c:otherwise>
+                                                                출연
+                                                            </c:otherwise>
+
+                                                        </c:choose>
+
+                                                    </p>
+
+                                                </c:if>
+
+
+                                                <div class="search-content-meta">
+
+                                                    <span class="search-content-type">
+
+                                                        <c:choose>
+
+                                                            <c:when test="${content.contentType eq 'MOVIE'}">
+                                                                영화
+                                                            </c:when>
+
+                                                            <c:otherwise>
+                                                                TV
+                                                            </c:otherwise>
+
+                                                        </c:choose>
+
+                                                    </span>
+
+
+                                                    <c:if test="${not empty content.releaseDate}">
+
+                                                        <span>
+                                                            <c:out value="${content.releaseDate}"/>
+                                                        </span>
+
+                                                    </c:if>
+
+
+                                                    <c:if test="${not empty content.genreText}">
+
+                                                        <span>
+                                                            <c:out value="${content.genreText}"/>
+                                                        </span>
+
+                                                    </c:if>
+
+                                                </div>
+
+
+                                                <c:if test="${not empty content.platformList}">
+
+                                                    <div class="search-content-platform-list">
+
+                                                        <c:forEach var="platform"
+                                                                   items="${content.platformList}">
+
+                                                            <img class="search-content-platform-logo"
+                                                                 src="${platform.logoImage}"
+                                                                 alt="<c:out value='${platform.platformName}'/>"
+                                                                 title="<c:out value='${platform.platformName}'/>">
+
+                                                        </c:forEach>
+
+                                                    </div>
+
+                                                </c:if>
+
+                                            </div>
+
+
+                                            <c:if test="${not empty content.tmdbScore}">
+
+                                                <div class="search-content-score">
+
+                                                    ★
+
+                                                    <fmt:formatNumber value="${content.tmdbScore}"
+                                                                      pattern="0.0"/>
+
+                                                </div>
+
+                                            </c:if>
+
+                                        </a>
+
+                                    </article>
+
+                                </c:forEach>
+
+                            </section>
+
+                        </c:otherwise>
+
+                    </c:choose>
 
                 </section>
 
-            </c:if>
 
-            <!-- =====================================
-                 RESULT LIST
-            ====================================== -->
-            <c:if test="${not empty resultList}">
+                <%-- =================================================
+                     전체 탭: 상품 상위 5개
+                ================================================= --%>
+                <section class="search-all-section">
 
-                <section class="search-content-list">
+                    <div class="search-section-heading">
 
-                    <c:forEach var="content"
-                            items="${resultList}">
+                        <h2>상품</h2>
 
-                        <article class="search-content-item">
+                        <button type="button"
+                                class="search-more-button"
+                                data-search-move-tab="GOODS">
 
-                            <c:url var="detailUrl"
-                                value="/content/prepare">
+                            더보기
 
-                                <c:param name="tmdbId"
-                                        value="${content.tmdbId}"/>
+                        </button>
 
-                                <c:param name="contentType"
-                                        value="${content.contentType}"/>
+                    </div>
 
-                            </c:url>
 
-                            <a class="search-content-link"
-                            href="${detailUrl}">
+                    <c:choose>
 
-                                <!-- 포스터 -->
-                                <div class="search-content-poster">
+                        <c:when test="${empty allGoodsResults}">
 
-                                    <c:choose>
+                            <section class="empty-state search-all-empty">
 
-                                        <c:when test="${not empty content.posterPath}">
+                                <p>검색된 상품이 없습니다.</p>
 
-                                            <img src="https://image.tmdb.org/t/p/w300${content.posterPath}"
-                                                alt="<c:out value='${content.title}'/>"
-                                                loading="lazy"/>
+                            </section>
 
-                                        </c:when>
+                        </c:when>
 
-                                        <c:otherwise>
+                        <c:otherwise>
 
-                                            <div class="search-content-no-image">
-                                                NO IMAGE
+                            <section class="search-goods-grid search-all-goods-grid">
+
+                                <c:forEach var="goods"
+                                           items="${allGoodsResults}">
+
+                                    <article class="search-goods-card
+                                            ${goods.stock <= 0 ? 'is-soldout' : ''}">
+
+                                        <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
+
+                                            <div class="search-goods-image">
+
+                                                <c:choose>
+
+                                                    <c:when test="${not empty goods.mainImage}">
+
+                                                        <img src="${goods.mainImage}"
+                                                             alt="<c:out value='${goods.productName}'/>"
+                                                             loading="lazy">
+
+                                                    </c:when>
+
+                                                    <c:otherwise>
+
+                                                        <div class="search-goods-no-image">
+                                                            NO IMAGE
+                                                        </div>
+
+                                                    </c:otherwise>
+
+                                                </c:choose>
+
+
+                                                <c:if test="${goods.stock <= 0}">
+
+                                                    <span class="search-goods-soldout">
+                                                        SOLD OUT
+                                                    </span>
+
+                                                </c:if>
+
                                             </div>
 
-                                        </c:otherwise>
 
-                                    </c:choose>
+                                            <div class="search-goods-info">
 
-                                </div>
+                                                <p class="search-goods-business">
 
-                                <!-- 작품 정보 -->
-                                <div class="search-content-info">
+                                                    <c:out value="${goods.businessName}"/>
 
-                                    <h3 class="search-content-title">
-                                        <c:out value="${content.title}"/>
-                                    </h3>
+                                                </p>
 
-                                    <div class="search-content-meta">
+                                                <h3>
 
-                                        <span class="search-content-type">
+                                                    <c:out value="${goods.productName}"/>
+
+                                                </h3>
+
+
+                                                <c:choose>
+
+                                                    <c:when test="${goods.discountRate > 0}">
+
+                                                        <p class="search-goods-price">
+
+                                                            <span class="search-goods-rate">
+
+                                                                <c:out value="${goods.discountRate}"/>%
+
+                                                            </span>
+
+                                                            ₩
+
+                                                            <fmt:formatNumber value="${goods.discountPrice}"
+                                                                              pattern="#,###"/>
+
+                                                        </p>
+
+                                                        <p class="search-goods-original">
+
+                                                            ₩
+
+                                                            <fmt:formatNumber value="${goods.price}"
+                                                                              pattern="#,###"/>
+
+                                                        </p>
+
+                                                    </c:when>
+
+                                                    <c:otherwise>
+
+                                                        <p class="search-goods-price">
+
+                                                            ₩
+
+                                                            <fmt:formatNumber value="${goods.price}"
+                                                                              pattern="#,###"/>
+
+                                                        </p>
+
+                                                    </c:otherwise>
+
+                                                </c:choose>
+
+                                            </div>
+
+                                        </a>
+
+                                    </article>
+
+                                </c:forEach>
+
+                            </section>
+
+                        </c:otherwise>
+
+                    </c:choose>
+
+                </section>
+
+            </section>
+
+
+            <%-- =================================================
+                 콘텐츠 탭
+            ================================================= --%>
+            <section class="search-tab-panel"
+                     data-search-panel="CONTENT"
+                     hidden>
+
+                <div class="search-section-heading">
+
+                    <h2>콘텐츠</h2>
+
+                    <span>
+                        <c:out value="${contentTotalCount}"/>건
+                    </span>
+
+                </div>
+
+
+                <c:choose>
+
+                    <c:when test="${empty contentResults}">
+
+                        <section class="empty-state">
+
+                            <p>검색된 콘텐츠가 없습니다.</p>
+
+                        </section>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <section class="search-content-list">
+
+                            <c:forEach var="content"
+                                       items="${contentResults}">
+
+                                <article class="search-content-item">
+
+                                    <c:url var="contentDetailUrl"
+                                           value="/content/prepare">
+
+                                        <c:param name="tmdbId"
+                                                 value="${content.tmdbId}"/>
+
+                                        <c:param name="contentType"
+                                                 value="${content.contentType}"/>
+
+                                    </c:url>
+
+
+                                    <a class="search-content-link"
+                                       href="${contentDetailUrl}">
+
+                                        <div class="search-content-poster">
+
                                             <c:choose>
 
-                                                <c:when test="${content.contentType eq 'MOVIE'}">
-                                                    영화
-                                                </c:when>
+                                                <c:when test="${not empty content.posterPath}">
 
-                                                <c:when test="${content.contentType eq 'TV'}">
-                                                    TV
+                                                    <img src="https://image.tmdb.org/t/p/w300${content.posterPath}"
+                                                         alt="<c:out value='${content.title}'/>"
+                                                         loading="lazy">
+
                                                 </c:when>
 
                                                 <c:otherwise>
-                                                    콘텐츠
+
+                                                    <div class="search-content-no-image">
+                                                        NO IMAGE
+                                                    </div>
+
                                                 </c:otherwise>
 
                                             </c:choose>
-                                        </span>
 
-                                        <c:if test="${not empty content.releaseDate}">
+                                        </div>
 
-                                            <span class="search-content-release-date">
-                                                <c:out value="${content.releaseDate}"/>
-                                            </span>
+
+                                        <div class="search-content-info">
+
+                                            <h3 class="search-content-title">
+
+                                                <c:out value="${content.title}"/>
+
+                                            </h3>
+
+
+                                            <c:if test="${content.matchType eq 'PERSON'}">
+
+                                                <p class="search-person-match">
+
+                                                    <c:out value="${content.matchedPersonRole}"/>
+                                                    검색 결과 ·
+
+                                                    <c:out value="${content.matchedPersonName}"/>
+
+                                                    <c:choose>
+
+                                                        <c:when test="${content.matchedPersonRole eq '감독'}">
+                                                            연출
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            출연
+                                                        </c:otherwise>
+
+                                                    </c:choose>
+
+                                                </p>
+
+                                            </c:if>
+
+
+                                            <div class="search-content-meta">
+
+                                                <span class="search-content-type">
+
+                                                    <c:choose>
+
+                                                        <c:when test="${content.contentType eq 'MOVIE'}">
+                                                            영화
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            TV
+                                                        </c:otherwise>
+
+                                                    </c:choose>
+
+                                                </span>
+
+
+                                                <c:if test="${not empty content.releaseDate}">
+
+                                                    <span>
+                                                        <c:out value="${content.releaseDate}"/>
+                                                    </span>
+
+                                                </c:if>
+
+
+                                                <c:if test="${not empty content.genreText}">
+
+                                                    <span>
+                                                        <c:out value="${content.genreText}"/>
+                                                    </span>
+
+                                                </c:if>
+
+                                            </div>
+
+
+                                            <c:if test="${not empty content.platformList}">
+
+                                                <div class="search-content-platform-list">
+
+                                                    <c:forEach var="platform"
+                                                               items="${content.platformList}">
+
+                                                        <img class="search-content-platform-logo"
+                                                             src="${platform.logoImage}"
+                                                             alt="<c:out value='${platform.platformName}'/>"
+                                                             title="<c:out value='${platform.platformName}'/>">
+
+                                                    </c:forEach>
+
+                                                </div>
+
+                                            </c:if>
+
+                                        </div>
+
+
+                                        <c:if test="${not empty content.tmdbScore}">
+
+                                            <div class="search-content-score">
+
+                                                ★
+
+                                                <fmt:formatNumber value="${content.tmdbScore}"
+                                                                  pattern="0.0"/>
+
+                                            </div>
 
                                         </c:if>
 
-                                        <c:if test="${not empty content.platformList}">
+                                    </a>
 
-                                            <span class="search-content-platform-list">
+                                </article>
 
-                                                <c:forEach var="platform"
-                                                        items="${content.platformList}">
+                            </c:forEach>
 
-                                                    <img
-                                                        class="search-content-platform-logo"
-                                                        src="<c:out value='${platform.logoImage}'/>"
-                                                        alt="<c:out value='${platform.platformName}'/>"
-                                                        title="<c:out value='${platform.platformName}'/>"
-                                                        loading="lazy"/>
+                        </section>
 
-                                                </c:forEach>
 
-                                            </span>
+                        <%-- =================================================
+                             페이지 범위 계산
 
-                                        </c:if>
-
-                                        <c:if test="${not empty content.genreText}">
-
-                                            <span class="search-content-genre">
-                                                <c:out value="${content.genreText}"/>
-                                            </span>
-
-                                        </c:if>
-
-                                    </div>
-
-                                </div>
-
-                                <!-- 평점 -->
-                                <c:if test="${not empty content.tmdbScore}">
-
-                                    <div class="search-content-score">
-                                        ★
-                                        <c:out value="${content.tmdbScore}"/>
-                                    </div>
-
-                                </c:if>
-
-                            </a>
-
-                            <!-- 찜 버튼 -->
-                            <c:if test="${not empty content.contentNo}">
-
-                                <button type="button"
-                                        class="search-content-favorite"
-                                        data-content-no="${content.contentNo}"
-                                        aria-label="<c:out value='${content.title}'/> 찜하기">
-                                    ♡
-                                </button>
-
-                            </c:if>
-
-                        </article>
-
-                    </c:forEach>
-
-                </section>
-
-                <!-- =====================================
-                     PAGINATION
-                ====================================== -->
-                <c:if test="${not empty pageVO
-                              and pageVO.totalPages > 1}">
-
-                    <!--
-                        TMDB 검색 API는 일반적으로 최대 500페이지까지만
-                        정상 접근하도록 제한하는 것이 안전하다.
-                    -->
-                    <c:set var="availableTotalPages"
-                           value="${pageVO.totalPages > 500
-                                    ? 500
-                                    : pageVO.totalPages}"/>
-
-                    <!-- 현재 페이지 기준 앞쪽 2개 -->
-                    <c:set var="startPage"
-                           value="${pageVO.page - 2}"/>
-
-                    <!-- 현재 페이지 기준 뒤쪽 2개 -->
-                    <c:set var="endPage"
-                           value="${pageVO.page + 2}"/>
-
-                    <!-- 시작 페이지가 1보다 작으면 1로 보정 -->
-                    <c:if test="${startPage < 1}">
-
+                             현재 페이지 -2 ~ 현재 페이지 +2
+                        ================================================= --%>
                         <c:set var="startPage"
-                               value="1"/>
-
-                    </c:if>
-
-                    <!-- 끝 페이지가 전체 페이지보다 크면 보정 -->
-                    <c:if test="${endPage > availableTotalPages}">
-
-                        <c:set var="endPage"
-                               value="${availableTotalPages}"/>
-
-                    </c:if>
-
-                    <!-- 마지막 부분에서도 최대 5개가 보이도록 시작 위치 보정 -->
-                    <c:if test="${endPage - startPage < 4
-                                  and endPage == availableTotalPages}">
-
-                        <c:set var="startPage"
-                               value="${endPage - 4}"/>
+                               value="${currentPage - 2}"/>
 
                         <c:if test="${startPage < 1}">
 
@@ -325,303 +703,483 @@
 
                         </c:if>
 
-                    </c:if>
-
-                    <!-- 첫 부분에서도 최대 5개가 보이도록 끝 위치 보정 -->
-                    <c:if test="${endPage - startPage < 4
-                                  and startPage == 1}">
 
                         <c:set var="endPage"
-                               value="${startPage + 4}"/>
+                               value="${currentPage + 2}"/>
 
-                        <c:if test="${endPage > availableTotalPages}">
+                        <c:if test="${endPage > pageVO.totalPages}">
 
                             <c:set var="endPage"
-                                   value="${availableTotalPages}"/>
+                                   value="${pageVO.totalPages}"/>
 
                         </c:if>
 
-                    </c:if>
 
-                    <nav class="pagination"
-                         aria-label="검색 결과 페이지">
+                        <c:if test="${pageVO.totalPages > 1}">
 
-                        <!-- 이전 페이지 -->
-                        <c:if test="${pageVO.page > 1}">
+                            <section class="pagination search-pagination">
 
-                            <c:url var="previousPageUrl"
-                                   value="/search">
 
-                                <c:param name="keyword"
-                                         value="${keyword}"/>
+                                <%-- 이전 페이지 --%>
+                                <c:if test="${currentPage > 1}">
 
-                                <c:param name="page"
-                                         value="${pageVO.page - 1}"/>
-
-                                <c:forEach var="type"
-                                           items="${contentTypes}">
-
-                                    <c:param name="contentTypes"
-                                             value="${type}"/>
-
-                                </c:forEach>
-
-                                <c:forEach var="genre"
-                                           items="${genreCodes}">
-
-                                    <c:param name="genreCodes"
-                                             value="${genre}"/>
-
-                                </c:forEach>
-
-                                <c:forEach var="provider"
-                                           items="${providerIds}">
-
-                                    <c:param name="providerIds"
-                                             value="${provider}"/>
-
-                                </c:forEach>
-
-                            </c:url>
-
-                            <a class="page-btn page-btn--previous"
-                               href="${previousPageUrl}">
-                                이전
-                            </a>
-
-                        </c:if>
-
-                        <!-- 첫 페이지 바로가기 -->
-                        <c:if test="${startPage > 1}">
-
-                            <c:url var="firstPageUrl"
-                                   value="/search">
-
-                                <c:param name="keyword"
-                                         value="${keyword}"/>
-
-                                <c:param name="page"
-                                         value="1"/>
-
-                                <c:forEach var="type"
-                                           items="${contentTypes}">
-
-                                    <c:param name="contentTypes"
-                                             value="${type}"/>
-
-                                </c:forEach>
-
-                                <c:forEach var="genre"
-                                           items="${genreCodes}">
-
-                                    <c:param name="genreCodes"
-                                             value="${genre}"/>
-
-                                </c:forEach>
-
-                                <c:forEach var="provider"
-                                           items="${providerIds}">
-
-                                    <c:param name="providerIds"
-                                             value="${provider}"/>
-
-                                </c:forEach>
-
-                            </c:url>
-
-                            <a class="page-btn"
-                               href="${firstPageUrl}">
-                                1
-                            </a>
-
-                            <c:if test="${startPage > 2}">
-
-                                <span class="page-ellipsis">
-                                    ...
-                                </span>
-
-                            </c:if>
-
-                        </c:if>
-
-                        <!-- 현재 페이지 주변 번호 -->
-                        <c:forEach var="pageNumber"
-                                   begin="${startPage}"
-                                   end="${endPage}">
-
-                            <c:choose>
-
-                                <c:when test="${pageNumber eq pageVO.page}">
-
-                                    <span class="page-now"
-                                          aria-current="page">
-                                        ${pageNumber}
-                                    </span>
-
-                                </c:when>
-
-                                <c:otherwise>
-
-                                    <c:url var="pageUrl"
+                                    <c:url var="prevUrl"
                                            value="/search">
 
                                         <c:param name="keyword"
                                                  value="${keyword}"/>
 
                                         <c:param name="page"
-                                                 value="${pageNumber}"/>
+                                                 value="${currentPage - 1}"/>
 
-                                        <c:forEach var="type"
+                                        <c:param name="searchTab"
+                                                 value="CONTENT"/>
+
+                                        <c:forEach var="contentType"
                                                    items="${contentTypes}">
 
                                             <c:param name="contentTypes"
-                                                     value="${type}"/>
+                                                     value="${contentType}"/>
 
                                         </c:forEach>
 
-                                        <c:forEach var="genre"
+                                        <c:forEach var="genreCode"
                                                    items="${genreCodes}">
 
                                             <c:param name="genreCodes"
-                                                     value="${genre}"/>
+                                                     value="${genreCode}"/>
 
                                         </c:forEach>
 
-                                        <c:forEach var="provider"
+                                        <c:forEach var="providerId"
                                                    items="${providerIds}">
 
                                             <c:param name="providerIds"
-                                                     value="${provider}"/>
+                                                     value="${providerId}"/>
+
+                                        </c:forEach>
+
+                                    </c:url>
+
+                                    <a class="page-btn page-arrow"
+                                       href="${prevUrl}"
+                                       aria-label="이전 페이지">
+
+                                        ‹
+
+                                    </a>
+
+                                </c:if>
+
+
+                                <%-- 첫 페이지 --%>
+                                <c:if test="${startPage > 1}">
+
+                                    <c:url var="firstPageUrl"
+                                           value="/search">
+
+                                        <c:param name="keyword"
+                                                 value="${keyword}"/>
+
+                                        <c:param name="page"
+                                                 value="1"/>
+
+                                        <c:param name="searchTab"
+                                                 value="CONTENT"/>
+
+                                        <c:forEach var="contentType"
+                                                   items="${contentTypes}">
+
+                                            <c:param name="contentTypes"
+                                                     value="${contentType}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="genreCode"
+                                                   items="${genreCodes}">
+
+                                            <c:param name="genreCodes"
+                                                     value="${genreCode}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="providerId"
+                                                   items="${providerIds}">
+
+                                            <c:param name="providerIds"
+                                                     value="${providerId}"/>
 
                                         </c:forEach>
 
                                     </c:url>
 
                                     <a class="page-btn"
-                                       href="${pageUrl}">
-                                        ${pageNumber}
+                                       href="${firstPageUrl}">
+
+                                        1
+
                                     </a>
 
-                                </c:otherwise>
+                                </c:if>
 
-                            </c:choose>
 
-                        </c:forEach>
+                                <%-- 첫 페이지와 범위 사이 생략 --%>
+                                <c:if test="${startPage > 2}">
 
-                        <!-- 마지막 페이지 바로가기 -->
-                        <c:if test="${endPage < availableTotalPages}">
+                                    <span class="page-ellipsis">
+                                        ...
+                                    </span>
 
-                            <c:if test="${endPage < availableTotalPages - 1}">
+                                </c:if>
 
-                                <span class="page-ellipsis">
-                                    ...
-                                </span>
 
-                            </c:if>
+                                <%-- 현재 페이지 기준 -2 ~ +2 --%>
+                                <c:forEach var="pageNumber"
+                                           begin="${startPage}"
+                                           end="${endPage}">
 
-                            <c:url var="lastPageUrl"
-                                   value="/search">
+                                    <c:choose>
 
-                                <c:param name="keyword"
-                                         value="${keyword}"/>
+                                        <c:when test="${pageNumber == currentPage}">
 
-                                <c:param name="page"
-                                         value="${availableTotalPages}"/>
+                                            <span class="page-now">
 
-                                <c:forEach var="type"
-                                           items="${contentTypes}">
+                                                <c:out value="${pageNumber}"/>
 
-                                    <c:param name="contentTypes"
-                                             value="${type}"/>
+                                            </span>
+
+                                        </c:when>
+
+                                        <c:otherwise>
+
+                                            <c:url var="pageUrl"
+                                                   value="/search">
+
+                                                <c:param name="keyword"
+                                                         value="${keyword}"/>
+
+                                                <c:param name="page"
+                                                         value="${pageNumber}"/>
+
+                                                <c:param name="searchTab"
+                                                         value="CONTENT"/>
+
+                                                <c:forEach var="contentType"
+                                                           items="${contentTypes}">
+
+                                                    <c:param name="contentTypes"
+                                                             value="${contentType}"/>
+
+                                                </c:forEach>
+
+                                                <c:forEach var="genreCode"
+                                                           items="${genreCodes}">
+
+                                                    <c:param name="genreCodes"
+                                                             value="${genreCode}"/>
+
+                                                </c:forEach>
+
+                                                <c:forEach var="providerId"
+                                                           items="${providerIds}">
+
+                                                    <c:param name="providerIds"
+                                                             value="${providerId}"/>
+
+                                                </c:forEach>
+
+                                            </c:url>
+
+                                            <a class="page-btn"
+                                               href="${pageUrl}">
+
+                                                <c:out value="${pageNumber}"/>
+
+                                            </a>
+
+                                        </c:otherwise>
+
+                                    </c:choose>
 
                                 </c:forEach>
 
-                                <c:forEach var="genre"
-                                           items="${genreCodes}">
 
-                                    <c:param name="genreCodes"
-                                             value="${genre}"/>
+                                <%-- 범위와 마지막 페이지 사이 생략 --%>
+                                <c:if test="${endPage < pageVO.totalPages - 1}">
 
-                                </c:forEach>
+                                    <span class="page-ellipsis">
+                                        ...
+                                    </span>
 
-                                <c:forEach var="provider"
-                                           items="${providerIds}">
+                                </c:if>
 
-                                    <c:param name="providerIds"
-                                             value="${provider}"/>
 
-                                </c:forEach>
+                                <%-- 마지막 페이지 --%>
+                                <c:if test="${endPage < pageVO.totalPages}">
 
-                            </c:url>
+                                    <c:url var="lastPageUrl"
+                                           value="/search">
 
-                            <a class="page-btn"
-                               href="${lastPageUrl}">
-                                ${availableTotalPages}
-                            </a>
+                                        <c:param name="keyword"
+                                                 value="${keyword}"/>
+
+                                        <c:param name="page"
+                                                 value="${pageVO.totalPages}"/>
+
+                                        <c:param name="searchTab"
+                                                 value="CONTENT"/>
+
+                                        <c:forEach var="contentType"
+                                                   items="${contentTypes}">
+
+                                            <c:param name="contentTypes"
+                                                     value="${contentType}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="genreCode"
+                                                   items="${genreCodes}">
+
+                                            <c:param name="genreCodes"
+                                                     value="${genreCode}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="providerId"
+                                                   items="${providerIds}">
+
+                                            <c:param name="providerIds"
+                                                     value="${providerId}"/>
+
+                                        </c:forEach>
+
+                                    </c:url>
+
+                                    <a class="page-btn"
+                                       href="${lastPageUrl}">
+
+                                        <c:out value="${pageVO.totalPages}"/>
+
+                                    </a>
+
+                                </c:if>
+
+
+                                <%-- 다음 페이지 --%>
+                                <c:if test="${currentPage < pageVO.totalPages}">
+
+                                    <c:url var="nextUrl"
+                                           value="/search">
+
+                                        <c:param name="keyword"
+                                                 value="${keyword}"/>
+
+                                        <c:param name="page"
+                                                 value="${currentPage + 1}"/>
+
+                                        <c:param name="searchTab"
+                                                 value="CONTENT"/>
+
+                                        <c:forEach var="contentType"
+                                                   items="${contentTypes}">
+
+                                            <c:param name="contentTypes"
+                                                     value="${contentType}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="genreCode"
+                                                   items="${genreCodes}">
+
+                                            <c:param name="genreCodes"
+                                                     value="${genreCode}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="providerId"
+                                                   items="${providerIds}">
+
+                                            <c:param name="providerIds"
+                                                     value="${providerId}"/>
+
+                                        </c:forEach>
+
+                                    </c:url>
+
+                                    <a class="page-btn page-arrow"
+                                       href="${nextUrl}"
+                                       aria-label="다음 페이지">
+
+                                        ›
+
+                                    </a>
+
+                                </c:if>
+
+                            </section>
 
                         </c:if>
 
-                        <!-- 다음 페이지 -->
-                        <c:if test="${pageVO.page < availableTotalPages}">
+                    </c:otherwise>
 
-                            <c:url var="nextPageUrl"
-                                   value="/search">
+                </c:choose>
 
-                                <c:param name="keyword"
-                                         value="${keyword}"/>
+            </section>
 
-                                <c:param name="page"
-                                         value="${pageVO.page + 1}"/>
 
-                                <c:forEach var="type"
-                                           items="${contentTypes}">
+            <%-- =================================================
+                 상품 탭
+            ================================================= --%>
+            <section class="search-tab-panel"
+                     data-search-panel="GOODS"
+                     hidden>
 
-                                    <c:param name="contentTypes"
-                                             value="${type}"/>
+                <div class="search-section-heading">
 
-                                </c:forEach>
+                    <h2>상품</h2>
 
-                                <c:forEach var="genre"
-                                           items="${genreCodes}">
+                    <span>
+                        <c:out value="${goodsTotalCount}"/>건
+                    </span>
 
-                                    <c:param name="genreCodes"
-                                             value="${genre}"/>
+                </div>
 
-                                </c:forEach>
 
-                                <c:forEach var="provider"
-                                           items="${providerIds}">
+                <c:choose>
 
-                                    <c:param name="providerIds"
-                                             value="${provider}"/>
+                    <c:when test="${empty goodsResults}">
 
-                                </c:forEach>
+                        <section class="empty-state">
 
-                            </c:url>
+                            <p>검색된 상품이 없습니다.</p>
 
-                            <a class="page-btn page-btn--next"
-                               href="${nextPageUrl}">
-                                다음
-                            </a>
+                        </section>
 
-                        </c:if>
+                    </c:when>
 
-                    </nav>
+                    <c:otherwise>
 
-                </c:if>
+                        <section class="search-goods-grid">
 
-            </c:if>
+                            <c:forEach var="goods"
+                                       items="${goodsResults}">
+
+                                <article class="search-goods-card
+                                        ${goods.stock <= 0 ? 'is-soldout' : ''}">
+
+                                    <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
+
+                                        <div class="search-goods-image">
+
+                                            <c:choose>
+
+                                                <c:when test="${not empty goods.mainImage}">
+
+                                                    <img src="${goods.mainImage}"
+                                                         alt="<c:out value='${goods.productName}'/>"
+                                                         loading="lazy">
+
+                                                </c:when>
+
+                                                <c:otherwise>
+
+                                                    <div class="search-goods-no-image">
+                                                        NO IMAGE
+                                                    </div>
+
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+
+                                            <c:if test="${goods.stock <= 0}">
+
+                                                <span class="search-goods-soldout">
+                                                    SOLD OUT
+                                                </span>
+
+                                            </c:if>
+
+                                        </div>
+
+
+                                        <div class="search-goods-info">
+
+                                            <p class="search-goods-business">
+
+                                                <c:out value="${goods.businessName}"/>
+
+                                            </p>
+
+                                            <h3>
+
+                                                <c:out value="${goods.productName}"/>
+
+                                            </h3>
+
+
+                                            <c:choose>
+
+                                                <c:when test="${goods.discountRate > 0}">
+
+                                                    <p class="search-goods-price">
+
+                                                        <span class="search-goods-rate">
+
+                                                            <c:out value="${goods.discountRate}"/>%
+
+                                                        </span>
+
+                                                        ₩
+
+                                                        <fmt:formatNumber value="${goods.discountPrice}"
+                                                                          pattern="#,###"/>
+
+                                                    </p>
+
+                                                    <p class="search-goods-original">
+
+                                                        ₩
+
+                                                        <fmt:formatNumber value="${goods.price}"
+                                                                          pattern="#,###"/>
+
+                                                    </p>
+
+                                                </c:when>
+
+                                                <c:otherwise>
+
+                                                    <p class="search-goods-price">
+
+                                                        ₩
+
+                                                        <fmt:formatNumber value="${goods.price}"
+                                                                          pattern="#,###"/>
+
+                                                    </p>
+
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </div>
+
+                                    </a>
+
+                                </article>
+
+                            </c:forEach>
+
+                        </section>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </section>
 
         </section>
-
-        <!-- =====================================
-             RIGHT SIDEBAR
-        ====================================== -->
-        <aside class="search-right-sidebar">
-
-            <jsp:include page="/WEB-INF/views/common/rightSidebar.jsp"/>
-
-        </aside>
 
     </div>
 
@@ -630,5 +1188,4 @@
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
 </body>
-
 </html>

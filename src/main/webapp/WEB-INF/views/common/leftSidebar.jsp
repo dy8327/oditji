@@ -164,6 +164,10 @@
            name="page"
            value="1">
 
+    <input type="hidden"
+           name="searchTab"
+           value="${searchTab}">
+
     <!-- =====================================
          CONTENT TYPE
     ====================================== -->
