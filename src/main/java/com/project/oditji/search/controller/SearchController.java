@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
-import com.project.oditji.search.service.SearchService;
+import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
@@ -38,23 +38,24 @@ public class SearchController {
      */
     private static final int ALL_GOODS_PREVIEW_SIZE = 5;
 
-    /*
-     * TMDB 최대 접근 페이지
-     */
-    private static final int MAX_TMDB_PAGE = 500;
+    private final SearchContentPageCacheService
+            searchContentPageCacheService;
 
-    private final SearchService searchService;
     private final GoodsService goodsService;
 
     @Value("${tmdb.api.image-base-url}")
     private String imageBaseUrl;
 
     public SearchController(
-            SearchService searchService,
+            SearchContentPageCacheService
+                    searchContentPageCacheService,
             GoodsService goodsService) {
 
-        this.searchService = searchService;
-        this.goodsService = goodsService;
+        this.searchContentPageCacheService =
+                searchContentPageCacheService;
+
+        this.goodsService =
+                goodsService;
     }
 
     @GetMapping("/search")
@@ -63,7 +64,9 @@ public class SearchController {
             Model model) {
 
         if (searchVO == null) {
-            searchVO = new SearchVO();
+
+            searchVO =
+                    new SearchVO();
         }
 
         String keyword =
@@ -125,34 +128,60 @@ public class SearchController {
             if (goodsTotalPages > 0
                     && goodsPage > goodsTotalPages) {
 
-                goodsPage = goodsTotalPages;
+                goodsPage =
+                        goodsTotalPages;
             }
         }
 
         /*
-         * 정규화된 검색 조건을 SearchVO에 다시 설정한다.
+         * 정규화한 검색 조건을 다시 저장한다.
          */
-        searchVO.setKeyword(keyword);
-        searchVO.setContentPage(contentPage);
-        searchVO.setGoodsPage(goodsPage);
-        searchVO.setContentTypes(contentTypes);
-        searchVO.setGenreCodes(genreCodes);
-        searchVO.setProviderIds(providerIds);
-        searchVO.setSearchTab(searchTab);
+        searchVO.setKeyword(
+                keyword
+        );
+
+        searchVO.setContentPage(
+                contentPage
+        );
+
+        searchVO.setGoodsPage(
+                goodsPage
+        );
+
+        searchVO.setContentTypes(
+                contentTypes
+        );
+
+        searchVO.setGenreCodes(
+                genreCodes
+        );
+
+        searchVO.setProviderIds(
+                providerIds
+        );
+
+        searchVO.setSearchTab(
+                searchTab
+        );
 
         /*
          * =====================================================
-         * 콘텐츠 탭 현재 페이지
+         * 콘텐츠 현재 페이지
+         *
+         * 동일 검색 조건이면 기존 누적 결과를 사용하고
+         * 필요한 경우 마지막 TMDB 페이지 다음부터 이어서 수집한다.
          * =====================================================
          */
         SearchResultPageVO contentPageVO =
-                collectContentPage(
-                        keyword,
-                        contentPage,
-                        contentTypes,
-                        genreCodes,
-                        providerIds
-                );
+                searchContentPageCacheService
+                        .getContentPage(
+                                keyword,
+                                contentPage,
+                                CONTENT_PAGE_SIZE,
+                                contentTypes,
+                                genreCodes,
+                                providerIds
+                        );
 
         List<SearchResultVO> contentResults =
                 createSafeContentList(
@@ -163,37 +192,24 @@ public class SearchController {
          * =====================================================
          * 전체 탭 콘텐츠
          *
-         * 콘텐츠 탭이 몇 페이지이든 항상 1페이지 상위 5개
+         * 항상 검색 결과 1페이지 상위 5개를 사용한다.
+         * 별도 TMDB 재검색 없이 동일 누적 캐시를 사용한다.
          * =====================================================
          */
-        SearchResultPageVO firstContentPageVO;
-
-        if (contentPage == 1) {
-
-            firstContentPageVO =
-                    contentPageVO;
-
-        } else {
-
-            firstContentPageVO =
-                    collectContentPage(
-                            keyword,
-                            1,
-                            contentTypes,
-                            genreCodes,
-                            providerIds
-                    );
-        }
-
         List<SearchResultVO> allContentResults =
-                limitContentList(
-                        firstContentPageVO.getResultList(),
-                        ALL_CONTENT_PREVIEW_SIZE
-                );
+                searchContentPageCacheService
+                        .getFirstPagePreview(
+                                keyword,
+                                ALL_CONTENT_PREVIEW_SIZE,
+                                CONTENT_PAGE_SIZE,
+                                contentTypes,
+                                genreCodes,
+                                providerIds
+                        );
 
         /*
          * =====================================================
-         * 상품 탭 현재 페이지
+         * 상품 현재 페이지
          * =====================================================
          */
         List<GoodsVO> goodsResults =
@@ -211,6 +227,7 @@ public class SearchController {
         }
 
         if (goodsResults == null) {
+
             goodsResults =
                     new ArrayList<GoodsVO>();
         }
@@ -219,7 +236,7 @@ public class SearchController {
          * =====================================================
          * 전체 탭 상품
          *
-         * 상품 탭이 몇 페이지이든 항상 1페이지 상위 5개
+         * 항상 상품 1페이지 상위 5개
          * =====================================================
          */
         List<GoodsVO> allGoodsResults =
@@ -237,6 +254,7 @@ public class SearchController {
         }
 
         if (allGoodsResults == null) {
+
             allGoodsResults =
                     new ArrayList<GoodsVO>();
         }
@@ -250,7 +268,7 @@ public class SearchController {
 
         /*
          * =====================================================
-         * 모델 데이터
+         * 화면 모델 데이터
          * =====================================================
          */
         model.addAttribute(
@@ -378,7 +396,9 @@ public class SearchController {
 
         model.addAttribute(
                 "searchTitle",
-                makeSearchTitle(searchVO)
+                makeSearchTitle(
+                        searchVO
+                )
         );
 
         model.addAttribute(
@@ -389,282 +409,15 @@ public class SearchController {
         return "search/searchResult";
     }
 
-    /**
-     * 콘텐츠 페이지에 필요한 결과를 수집한다.
-     */
-    private SearchResultPageVO collectContentPage(
-            String keyword,
-            int displayPage,
-            List<String> contentTypes,
-            List<String> genreCodes,
-            List<String> providerIds) {
-
-        int requiredResultCount =
-                displayPage
-                        * CONTENT_PAGE_SIZE;
-
-        int collectionTarget =
-                requiredResultCount + 1;
-
-        List<SearchResultVO> collectedResultList =
-                new ArrayList<SearchResultVO>();
-
-        int tmdbPage = 1;
-        int sourceTotalPages = 0;
-        int sourceTotalResults = 0;
-
-        while (tmdbPage <= MAX_TMDB_PAGE
-                && collectedResultList.size()
-                        < collectionTarget) {
-
-            SearchResultPageVO partialPage =
-                    requestSearchPage(
-                            keyword,
-                            tmdbPage,
-                            contentTypes,
-                            genreCodes,
-                            providerIds
-                    );
-
-            if (partialPage == null) {
-                break;
-            }
-
-            if (tmdbPage == 1) {
-
-                sourceTotalPages =
-                        Math.min(
-                                partialPage.getTotalPages(),
-                                MAX_TMDB_PAGE
-                        );
-
-                sourceTotalResults =
-                        partialPage.getTotalResults();
-            }
-
-            addUniqueResults(
-                    collectedResultList,
-                    partialPage.getResultList()
-            );
-
-            if (partialPage.getTotalPages()
-                    <= tmdbPage) {
-
-                break;
-            }
-
-            tmdbPage++;
-        }
-
-        int startIndex =
-                (displayPage - 1)
-                        * CONTENT_PAGE_SIZE;
-
-        int endIndex =
-                Math.min(
-                        startIndex
-                                + CONTENT_PAGE_SIZE,
-                        collectedResultList.size()
-                );
-
-        List<SearchResultVO> displayResultList =
-                new ArrayList<SearchResultVO>();
-
-        if (startIndex
-                < collectedResultList.size()) {
-
-            displayResultList.addAll(
-                    collectedResultList.subList(
-                            startIndex,
-                            endIndex
-                    )
-            );
-        }
-
-        int totalPages =
-                sourceTotalPages;
-
-        if (displayPage == 1
-                && displayResultList.isEmpty()) {
-
-            totalPages = 0;
-        }
-
-        SearchResultPageVO pageVO =
-                new SearchResultPageVO();
-
-        pageVO.setResultList(
-                displayResultList
-        );
-
-        pageVO.setPage(
-                displayPage
-        );
-
-        pageVO.setTotalPages(
-                totalPages
-        );
-
-        pageVO.setTotalResults(
-                sourceTotalResults
-        );
-
-        return pageVO;
-    }
-
-    private SearchResultPageVO requestSearchPage(
-            String keyword,
-            int tmdbPage,
-            List<String> contentTypes,
-            List<String> genreCodes,
-            List<String> providerIds) {
-
-        if (keyword == null
-                || keyword.isEmpty()) {
-
-            return searchService.getPopularContent(
-                    tmdbPage,
-                    contentTypes,
-                    genreCodes,
-                    providerIds
-            );
-        }
-
-        return searchService.searchByTmdb(
-                keyword,
-                tmdbPage,
-                contentTypes,
-                genreCodes,
-                providerIds
-        );
-    }
-
-    private void addUniqueResults(
-            List<SearchResultVO> targetList,
-            List<SearchResultVO> sourceList) {
-
-        if (sourceList == null) {
-            return;
-        }
-
-        for (SearchResultVO sourceVO
-                : sourceList) {
-
-            if (sourceVO == null
-                    || sourceVO.getTmdbId() == null
-                    || sourceVO.getContentType() == null) {
-
-                continue;
-            }
-
-            SearchResultVO duplicatedVO =
-                    findDuplicatedResult(
-                            targetList,
-                            sourceVO
-                    );
-
-            if (duplicatedVO == null) {
-
-                targetList.add(sourceVO);
-                continue;
-            }
-
-            /*
-             * 동일 콘텐츠가 제목 검색과 인물 검색에 함께 포함되면
-             * 배우/감독 검색 정보를 보존한다.
-             */
-            if ("PERSON".equals(
-                    sourceVO.getMatchType()
-            )) {
-
-                duplicatedVO.setMatchType(
-                        sourceVO.getMatchType()
-                );
-
-                duplicatedVO.setMatchedPersonName(
-                        sourceVO.getMatchedPersonName()
-                );
-
-                duplicatedVO.setMatchedPersonRole(
-                        sourceVO.getMatchedPersonRole()
-                );
-            }
-        }
-    }
-
-    private SearchResultVO findDuplicatedResult(
-            List<SearchResultVO> targetList,
-            SearchResultVO sourceVO) {
-
-        for (SearchResultVO targetVO
-                : targetList) {
-
-            if (targetVO == null
-                    || targetVO.getTmdbId() == null
-                    || targetVO.getContentType() == null) {
-
-                continue;
-            }
-
-            boolean sameTmdbId =
-                    sourceVO.getTmdbId().equals(
-                            targetVO.getTmdbId()
-                    );
-
-            boolean sameContentType =
-                    sourceVO.getContentType()
-                            .equalsIgnoreCase(
-                                    targetVO.getContentType()
-                            );
-
-            if (sameTmdbId
-                    && sameContentType) {
-
-                return targetVO;
-            }
-        }
-
-        return null;
-    }
-
     private List<SearchResultVO> createSafeContentList(
             List<SearchResultVO> sourceList) {
 
         if (sourceList == null) {
+
             return new ArrayList<SearchResultVO>();
         }
 
         return sourceList;
-    }
-
-    private List<SearchResultVO> limitContentList(
-            List<SearchResultVO> sourceList,
-            int limit) {
-
-        List<SearchResultVO> resultList =
-                new ArrayList<SearchResultVO>();
-
-        if (sourceList == null
-                || sourceList.isEmpty()
-                || limit <= 0) {
-
-            return resultList;
-        }
-
-        int endIndex =
-                Math.min(
-                        sourceList.size(),
-                        limit
-                );
-
-        resultList.addAll(
-                sourceList.subList(
-                        0,
-                        endIndex
-                )
-        );
-
-        return resultList;
     }
 
     private int calculateTotalPages(
@@ -693,6 +446,7 @@ public class SearchController {
             String keyword) {
 
         if (keyword == null) {
+
             return "";
         }
 
@@ -703,6 +457,7 @@ public class SearchController {
             String searchTab) {
 
         if (searchTab == null) {
+
             return "ALL";
         }
 
@@ -710,11 +465,17 @@ public class SearchController {
                 searchTab.trim()
                         .toUpperCase();
 
-        if ("CONTENT".equals(normalizedTab)) {
+        if ("CONTENT".equals(
+                normalizedTab
+        )) {
+
             return "CONTENT";
         }
 
-        if ("GOODS".equals(normalizedTab)) {
+        if ("GOODS".equals(
+                normalizedTab
+        )) {
+
             return "GOODS";
         }
 
@@ -728,6 +489,7 @@ public class SearchController {
                 new ArrayList<String>();
 
         if (sourceList == null) {
+
             return safeList;
         }
 
@@ -784,6 +546,7 @@ public class SearchController {
         }
 
         if (hasFilter) {
+
             return "선택 조건 검색 결과";
         }
 
