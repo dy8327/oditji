@@ -7,8 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
- * 왼쪽 사이드바 필터의 전체/개별 체크박스 동작과
- * 검색 제출 시 페이지 초기화를 처리한다.
+ * 왼쪽 검색 필터 동작을 초기화한다.
  */
 function initializeSearchFilter() {
 
@@ -30,8 +29,8 @@ function initializeSearchFilter() {
         );
 
     /*
-     * 개별 항목을 선택하면 같은 그룹의 '전체'를 해제한다.
-     * 개별 항목을 모두 해제하면 '전체'를 다시 선택한다.
+     * 개별 항목을 선택하면 같은 그룹의 전체 체크를 해제한다.
+     * 개별 항목이 하나도 없으면 전체를 다시 선택한다.
      */
     filterCheckboxes.forEach(function (checkbox) {
 
@@ -66,7 +65,7 @@ function initializeSearchFilter() {
     });
 
     /*
-     * '전체'를 선택하면 같은 그룹의 개별 항목을 모두 해제한다.
+     * 전체를 선택하면 같은 그룹의 개별 항목을 해제한다.
      */
     allCheckboxes.forEach(function (allCheckbox) {
 
@@ -107,19 +106,83 @@ function initializeSearchFilter() {
     });
 
     /*
-     * 필터를 적용하면 첫 페이지부터 다시 검색한다.
+     * 필터 조건을 새로 적용할 때는
+     * 콘텐츠와 상품 페이지를 모두 1페이지로 초기화한다.
      */
     filterForm.addEventListener("submit", function () {
 
-        const pageInput =
-            filterForm.querySelector(
-                "input[name='page']"
-            );
+        setFormPageValue(
+            filterForm,
+            "contentPage",
+            "1"
+        );
 
-        if (pageInput) {
-            pageInput.value = "1";
-        }
+        setFormPageValue(
+            filterForm,
+            "goodsPage",
+            "1"
+        );
+
+        /*
+         * 기존 page 파라미터가 남아 있다면
+         * 호환을 위해 같이 1로 초기화한다.
+         */
+        setExistingFormValue(
+            filterForm,
+            "page",
+            "1"
+        );
     });
+}
+
+/**
+ * form에 입력값이 없으면 hidden input을 추가하고,
+ * 이미 있으면 값을 변경한다.
+ */
+function setFormPageValue(
+        form,
+        name,
+        value) {
+
+    let input =
+        form.querySelector(
+            "input[name='"
+            + name
+            + "']"
+        );
+
+    if (!input) {
+
+        input =
+            document.createElement("input");
+
+        input.type = "hidden";
+        input.name = name;
+
+        form.appendChild(input);
+    }
+
+    input.value = value;
+}
+
+/**
+ * 기존 input이 존재할 때만 값을 변경한다.
+ */
+function setExistingFormValue(
+        form,
+        name,
+        value) {
+
+    const input =
+        form.querySelector(
+            "input[name='"
+            + name
+            + "']"
+        );
+
+    if (input) {
+        input.value = value;
+    }
 }
 
 /**
@@ -169,10 +232,6 @@ function initializeSearchTabs() {
         });
     });
 
-    /*
-     * 서버에서 전달한 초기 탭 값을 적용한다.
-     * 값이 없거나 올바르지 않으면 ALL 탭으로 이동한다.
-     */
     const initialTab =
         normalizeSearchTab(
             searchRoot.dataset.initialTab
@@ -186,8 +245,7 @@ function initializeSearchTabs() {
 }
 
 /**
- * 전체 탭의 더보기 버튼을 누르면
- * 콘텐츠 또는 상품 탭으로 이동한다.
+ * 전체 탭의 더보기 버튼을 처리한다.
  */
 function initializeSearchMoreButtons() {
 
@@ -220,16 +278,13 @@ function initializeSearchMoreButtons() {
                 true
             );
 
-            /*
-             * 더보기 버튼으로 탭 이동 시
-             * 탭 영역이 보이도록 부드럽게 스크롤한다.
-             */
             const tabs =
                 searchRoot.querySelector(
                     ".search-result-tabs"
                 );
 
             if (tabs) {
+
                 tabs.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
@@ -240,8 +295,7 @@ function initializeSearchMoreButtons() {
 }
 
 /**
- * 전달된 탭을 활성화하고
- * 나머지 탭 패널은 숨긴다.
+ * 선택한 탭만 표시한다.
  */
 function activateSearchTab(
         searchRoot,
@@ -261,9 +315,6 @@ function activateSearchTab(
             "[data-search-panel]"
         );
 
-    /*
-     * 탭 버튼 활성 상태 변경
-     */
     tabButtons.forEach(function (button) {
 
         const buttonTab =
@@ -285,9 +336,6 @@ function activateSearchTab(
         );
     });
 
-    /*
-     * 선택한 탭의 패널만 표시
-     */
     tabPanels.forEach(function (panel) {
 
         const panelTab =
@@ -306,17 +354,11 @@ function activateSearchTab(
         );
     });
 
-    /*
-     * 현재 활성 탭을 루트 요소에도 저장한다.
-     */
     searchRoot.dataset.initialTab =
         normalizedTarget;
 
-    /*
-     * 사용자가 직접 탭을 이동한 경우에만
-     * URL의 searchTab 파라미터를 변경한다.
-     */
     if (updateUrl) {
+
         updateSearchTabQuery(
             normalizedTarget
         );
@@ -324,10 +366,10 @@ function activateSearchTab(
 }
 
 /**
- * 허용되지 않은 탭 값은
- * 전체 탭으로 처리한다.
+ * 허용되지 않은 탭 값은 ALL로 처리한다.
  */
-function normalizeSearchTab(tabValue) {
+function normalizeSearchTab(
+        tabValue) {
 
     const normalized =
         String(tabValue || "ALL")
@@ -344,10 +386,13 @@ function normalizeSearchTab(tabValue) {
 }
 
 /**
- * 새로고침 후에도 현재 탭이 유지되도록
- * 현재 주소의 searchTab 파라미터를 갱신한다.
+ * 새로고침 후에도 현재 탭을 유지하도록
+ * URL의 searchTab만 갱신한다.
+ *
+ * 콘텐츠 페이지와 상품 페이지 파라미터는 그대로 유지된다.
  */
-function updateSearchTabQuery(searchTab) {
+function updateSearchTabQuery(
+        searchTab) {
 
     if (!window.history
             || !window.history.replaceState) {

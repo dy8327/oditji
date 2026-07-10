@@ -19,27 +19,27 @@ import com.project.oditji.search.vo.SearchVO;
 public class SearchController {
 
     /*
-     * 콘텐츠 탭에서 한 페이지에 표시할 콘텐츠 수
+     * 콘텐츠 탭 페이지당 개수
      */
     private static final int CONTENT_PAGE_SIZE = 10;
 
     /*
-     * 전체 탭에서 미리 보여줄 콘텐츠 수
+     * 상품 탭 페이지당 개수
+     */
+    private static final int GOODS_PAGE_SIZE = 12;
+
+    /*
+     * 전체 탭 콘텐츠 미리보기 개수
      */
     private static final int ALL_CONTENT_PREVIEW_SIZE = 5;
 
     /*
-     * 전체 탭에서 미리 보여줄 상품 수
+     * 전체 탭 상품 미리보기 개수
      */
     private static final int ALL_GOODS_PREVIEW_SIZE = 5;
 
     /*
-     * 상품 검색 시 조회할 최대 상품 수
-     */
-    private static final int GOODS_SEARCH_SIZE = 20;
-
-    /*
-     * TMDB API 최대 접근 페이지
+     * TMDB 최대 접근 페이지
      */
     private static final int MAX_TMDB_PAGE = 500;
 
@@ -71,9 +71,14 @@ public class SearchController {
                         searchVO.getKeyword()
                 );
 
-        int displayPage =
+        int contentPage =
                 normalizePage(
-                        searchVO.getPage()
+                        searchVO.getContentPage()
+                );
+
+        int goodsPage =
+                normalizePage(
+                        searchVO.getGoodsPage()
                 );
 
         List<String> contentTypes =
@@ -96,8 +101,40 @@ public class SearchController {
                         searchVO.getSearchTab()
                 );
 
+        /*
+         * =====================================================
+         * 상품 전체 개수 및 상품 페이지 보정
+         * =====================================================
+         */
+        int goodsTotalCount = 0;
+        int goodsTotalPages = 0;
+
+        if (!keyword.isEmpty()) {
+
+            goodsTotalCount =
+                    goodsService.countSearchGoods(
+                            keyword
+                    );
+
+            goodsTotalPages =
+                    calculateTotalPages(
+                            goodsTotalCount,
+                            GOODS_PAGE_SIZE
+                    );
+
+            if (goodsTotalPages > 0
+                    && goodsPage > goodsTotalPages) {
+
+                goodsPage = goodsTotalPages;
+            }
+        }
+
+        /*
+         * 정규화된 검색 조건을 SearchVO에 다시 설정한다.
+         */
         searchVO.setKeyword(keyword);
-        searchVO.setPage(displayPage);
+        searchVO.setContentPage(contentPage);
+        searchVO.setGoodsPage(goodsPage);
         searchVO.setContentTypes(contentTypes);
         searchVO.setGenreCodes(genreCodes);
         searchVO.setProviderIds(providerIds);
@@ -105,39 +142,39 @@ public class SearchController {
 
         /*
          * =====================================================
-         * 콘텐츠 탭용 현재 페이지 결과
+         * 콘텐츠 탭 현재 페이지
          * =====================================================
          */
         SearchResultPageVO contentPageVO =
                 collectContentPage(
                         keyword,
-                        displayPage,
+                        contentPage,
                         contentTypes,
                         genreCodes,
                         providerIds
                 );
 
         List<SearchResultVO> contentResults =
-                contentPageVO.getResultList();
-
-        if (contentResults == null) {
-            contentResults =
-                    new ArrayList<SearchResultVO>();
-        }
+                createSafeContentList(
+                        contentPageVO.getResultList()
+                );
 
         /*
          * =====================================================
-         * 전체 탭용 콘텐츠 미리보기
+         * 전체 탭 콘텐츠
          *
-         * 현재 콘텐츠 탭 페이지와 상관없이
-         * 항상 1페이지 상위 5개를 사용한다.
+         * 콘텐츠 탭이 몇 페이지이든 항상 1페이지 상위 5개
          * =====================================================
          */
         SearchResultPageVO firstContentPageVO;
 
-        if (displayPage == 1) {
-            firstContentPageVO = contentPageVO;
+        if (contentPage == 1) {
+
+            firstContentPageVO =
+                    contentPageVO;
+
         } else {
+
             firstContentPageVO =
                     collectContentPage(
                             keyword,
@@ -148,55 +185,61 @@ public class SearchController {
                     );
         }
 
-        List<SearchResultVO> firstContentResultList =
-                firstContentPageVO.getResultList();
-
         List<SearchResultVO> allContentResults =
-                createContentPreviewList(
-                        firstContentResultList,
+                limitContentList(
+                        firstContentPageVO.getResultList(),
                         ALL_CONTENT_PREVIEW_SIZE
                 );
 
         /*
          * =====================================================
-         * 상품 검색
+         * 상품 탭 현재 페이지
          * =====================================================
          */
         List<GoodsVO> goodsResults =
                 new ArrayList<GoodsVO>();
 
-        int goodsTotalCount = 0;
+        if (!keyword.isEmpty()
+                && goodsTotalCount > 0) {
 
-        if (keyword != null
-                && !keyword.isEmpty()) {
-
-            List<GoodsVO> searchedGoodsList =
+            goodsResults =
                     goodsService.searchGoods(
                             keyword,
-                            1,
-                            GOODS_SEARCH_SIZE
-                    );
-
-            if (searchedGoodsList != null) {
-                goodsResults.addAll(
-                        searchedGoodsList
-                );
-            }
-
-            goodsTotalCount =
-                    goodsService.countSearchGoods(
-                            keyword
+                            goodsPage,
+                            GOODS_PAGE_SIZE
                     );
         }
 
+        if (goodsResults == null) {
+            goodsResults =
+                    new ArrayList<GoodsVO>();
+        }
+
         /*
-         * 전체 탭용 상품 상위 5개
+         * =====================================================
+         * 전체 탭 상품
+         *
+         * 상품 탭이 몇 페이지이든 항상 1페이지 상위 5개
+         * =====================================================
          */
         List<GoodsVO> allGoodsResults =
-                createGoodsPreviewList(
-                        goodsResults,
-                        ALL_GOODS_PREVIEW_SIZE
-                );
+                new ArrayList<GoodsVO>();
+
+        if (!keyword.isEmpty()
+                && goodsTotalCount > 0) {
+
+            allGoodsResults =
+                    goodsService.searchGoods(
+                            keyword,
+                            1,
+                            ALL_GOODS_PREVIEW_SIZE
+                    );
+        }
+
+        if (allGoodsResults == null) {
+            allGoodsResults =
+                    new ArrayList<GoodsVO>();
+        }
 
         int contentTotalCount =
                 contentPageVO.getTotalResults();
@@ -207,9 +250,14 @@ public class SearchController {
 
         /*
          * =====================================================
-         * 기존 화면 호환 모델
+         * 모델 데이터
          * =====================================================
          */
+        model.addAttribute(
+                "searchVO",
+                searchVO
+        );
+
         model.addAttribute(
                 "searchResults",
                 contentResults
@@ -221,16 +269,6 @@ public class SearchController {
         );
 
         model.addAttribute(
-                "totalResults",
-                contentTotalCount
-        );
-
-        /*
-         * =====================================================
-         * 통합검색 결과 모델
-         * =====================================================
-         */
-        model.addAttribute(
                 "contentResults",
                 contentResults
         );
@@ -240,9 +278,6 @@ public class SearchController {
                 goodsResults
         );
 
-        /*
-         * 전체 탭 전용 결과
-         */
         model.addAttribute(
                 "allContentResults",
                 allContentResults
@@ -251,6 +286,49 @@ public class SearchController {
         model.addAttribute(
                 "allGoodsResults",
                 allGoodsResults
+        );
+
+        model.addAttribute(
+                "contentPageVO",
+                contentPageVO
+        );
+
+        /*
+         * 기존 JSP 호환용
+         */
+        model.addAttribute(
+                "pageVO",
+                contentPageVO
+        );
+
+        model.addAttribute(
+                "contentCurrentPage",
+                contentPage
+        );
+
+        model.addAttribute(
+                "goodsCurrentPage",
+                goodsPage
+        );
+
+        model.addAttribute(
+                "currentPage",
+                contentPage
+        );
+
+        model.addAttribute(
+                "contentTotalPages",
+                contentPageVO.getTotalPages()
+        );
+
+        model.addAttribute(
+                "goodsTotalPages",
+                goodsTotalPages
+        );
+
+        model.addAttribute(
+                "totalPages",
+                contentPageVO.getTotalPages()
         );
 
         model.addAttribute(
@@ -268,34 +346,9 @@ public class SearchController {
                 combinedTotalCount
         );
 
-        /*
-         * =====================================================
-         * 페이지 정보
-         * =====================================================
-         */
         model.addAttribute(
-                "pageVO",
-                contentPageVO
-        );
-
-        model.addAttribute(
-                "currentPage",
-                displayPage
-        );
-
-        model.addAttribute(
-                "totalPages",
-                contentPageVO.getTotalPages()
-        );
-
-        /*
-         * =====================================================
-         * 검색 조건
-         * =====================================================
-         */
-        model.addAttribute(
-                "searchVO",
-                searchVO
+                "totalResults",
+                contentTotalCount
         );
 
         model.addAttribute(
@@ -337,10 +390,7 @@ public class SearchController {
     }
 
     /**
-     * 현재 화면 페이지에 필요한 콘텐츠를 수집한다.
-     *
-     * 지원 OTT 콘텐츠만 남기기 때문에
-     * 화면에 필요한 개수가 모일 때까지 TMDB 페이지를 순차 조회한다.
+     * 콘텐츠 페이지에 필요한 결과를 수집한다.
      */
     private SearchResultPageVO collectContentPage(
             String keyword,
@@ -353,10 +403,6 @@ public class SearchController {
                 displayPage
                         * CONTENT_PAGE_SIZE;
 
-        /*
-         * 다음 페이지 존재 여부를 확인하기 위해
-         * 한 개를 추가로 수집한다.
-         */
         int collectionTarget =
                 requiredResultCount + 1;
 
@@ -364,7 +410,6 @@ public class SearchController {
                 new ArrayList<SearchResultVO>();
 
         int tmdbPage = 1;
-
         int sourceTotalPages = 0;
         int sourceTotalResults = 0;
 
@@ -385,9 +430,6 @@ public class SearchController {
                 break;
             }
 
-            /*
-             * 첫 번째 응답의 전체 페이지와 전체 결과 수를 보관한다.
-             */
             if (tmdbPage == 1) {
 
                 sourceTotalPages =
@@ -439,13 +481,6 @@ public class SearchController {
             );
         }
 
-        /*
-         * TMDB가 제공한 전체 페이지 수를
-         * 페이지네이션의 마지막 페이지로 사용한다.
-         *
-         * 지원 OTT 필터 전 전체 페이지이므로
-         * 뒤쪽 페이지에서 결과가 적거나 없을 수 있다.
-         */
         int totalPages =
                 sourceTotalPages;
 
@@ -477,9 +512,6 @@ public class SearchController {
         return pageVO;
     }
 
-    /**
-     * 검색어 유무에 따라 콘텐츠 검색 메서드를 호출한다.
-     */
     private SearchResultPageVO requestSearchPage(
             String keyword,
             int tmdbPage,
@@ -507,75 +539,6 @@ public class SearchController {
         );
     }
 
-    /**
-     * 전체 탭에서 사용할 콘텐츠 상위 결과를 만든다.
-     */
-    private List<SearchResultVO> createContentPreviewList(
-            List<SearchResultVO> sourceList,
-            int limit) {
-
-        List<SearchResultVO> previewList =
-                new ArrayList<SearchResultVO>();
-
-        if (sourceList == null
-                || sourceList.isEmpty()
-                || limit <= 0) {
-
-            return previewList;
-        }
-
-        int endIndex =
-                Math.min(
-                        limit,
-                        sourceList.size()
-                );
-
-        previewList.addAll(
-                sourceList.subList(
-                        0,
-                        endIndex
-                )
-        );
-
-        return previewList;
-    }
-
-    /**
-     * 전체 탭에서 사용할 상품 상위 결과를 만든다.
-     */
-    private List<GoodsVO> createGoodsPreviewList(
-            List<GoodsVO> sourceList,
-            int limit) {
-
-        List<GoodsVO> previewList =
-                new ArrayList<GoodsVO>();
-
-        if (sourceList == null
-                || sourceList.isEmpty()
-                || limit <= 0) {
-
-            return previewList;
-        }
-
-        int endIndex =
-                Math.min(
-                        limit,
-                        sourceList.size()
-                );
-
-        previewList.addAll(
-                sourceList.subList(
-                        0,
-                        endIndex
-                )
-        );
-
-        return previewList;
-    }
-
-    /**
-     * TMDB ID와 콘텐츠 타입이 같은 결과는 중복으로 추가하지 않는다.
-     */
     private void addUniqueResults(
             List<SearchResultVO> targetList,
             List<SearchResultVO> sourceList) {
@@ -594,63 +557,128 @@ public class SearchController {
                 continue;
             }
 
-            boolean duplicated = false;
+            SearchResultVO duplicatedVO =
+                    findDuplicatedResult(
+                            targetList,
+                            sourceVO
+                    );
 
-            for (SearchResultVO targetVO
-                    : targetList) {
+            if (duplicatedVO == null) {
 
-                if (targetVO == null
-                        || targetVO.getTmdbId() == null
-                        || targetVO.getContentType() == null) {
-
-                    continue;
-                }
-
-                boolean sameTmdbId =
-                        sourceVO.getTmdbId().equals(
-                                targetVO.getTmdbId()
-                        );
-
-                boolean sameContentType =
-                        sourceVO.getContentType()
-                                .equalsIgnoreCase(
-                                        targetVO.getContentType()
-                                );
-
-                if (sameTmdbId
-                        && sameContentType) {
-
-                    duplicated = true;
-
-                    /*
-                     * 같은 콘텐츠가 제목 검색과 인물 검색에
-                     * 모두 포함된 경우 인물 검색 정보를 유지한다.
-                     */
-                    if ("PERSON".equals(
-                            sourceVO.getMatchType()
-                    )) {
-
-                        targetVO.setMatchType(
-                                sourceVO.getMatchType()
-                        );
-
-                        targetVO.setMatchedPersonName(
-                                sourceVO.getMatchedPersonName()
-                        );
-
-                        targetVO.setMatchedPersonRole(
-                                sourceVO.getMatchedPersonRole()
-                        );
-                    }
-
-                    break;
-                }
+                targetList.add(sourceVO);
+                continue;
             }
 
-            if (!duplicated) {
-                targetList.add(sourceVO);
+            /*
+             * 동일 콘텐츠가 제목 검색과 인물 검색에 함께 포함되면
+             * 배우/감독 검색 정보를 보존한다.
+             */
+            if ("PERSON".equals(
+                    sourceVO.getMatchType()
+            )) {
+
+                duplicatedVO.setMatchType(
+                        sourceVO.getMatchType()
+                );
+
+                duplicatedVO.setMatchedPersonName(
+                        sourceVO.getMatchedPersonName()
+                );
+
+                duplicatedVO.setMatchedPersonRole(
+                        sourceVO.getMatchedPersonRole()
+                );
             }
         }
+    }
+
+    private SearchResultVO findDuplicatedResult(
+            List<SearchResultVO> targetList,
+            SearchResultVO sourceVO) {
+
+        for (SearchResultVO targetVO
+                : targetList) {
+
+            if (targetVO == null
+                    || targetVO.getTmdbId() == null
+                    || targetVO.getContentType() == null) {
+
+                continue;
+            }
+
+            boolean sameTmdbId =
+                    sourceVO.getTmdbId().equals(
+                            targetVO.getTmdbId()
+                    );
+
+            boolean sameContentType =
+                    sourceVO.getContentType()
+                            .equalsIgnoreCase(
+                                    targetVO.getContentType()
+                            );
+
+            if (sameTmdbId
+                    && sameContentType) {
+
+                return targetVO;
+            }
+        }
+
+        return null;
+    }
+
+    private List<SearchResultVO> createSafeContentList(
+            List<SearchResultVO> sourceList) {
+
+        if (sourceList == null) {
+            return new ArrayList<SearchResultVO>();
+        }
+
+        return sourceList;
+    }
+
+    private List<SearchResultVO> limitContentList(
+            List<SearchResultVO> sourceList,
+            int limit) {
+
+        List<SearchResultVO> resultList =
+                new ArrayList<SearchResultVO>();
+
+        if (sourceList == null
+                || sourceList.isEmpty()
+                || limit <= 0) {
+
+            return resultList;
+        }
+
+        int endIndex =
+                Math.min(
+                        sourceList.size(),
+                        limit
+                );
+
+        resultList.addAll(
+                sourceList.subList(
+                        0,
+                        endIndex
+                )
+        );
+
+        return resultList;
+    }
+
+    private int calculateTotalPages(
+            int totalCount,
+            int pageSize) {
+
+        if (totalCount <= 0
+                || pageSize <= 0) {
+
+            return 0;
+        }
+
+        return (totalCount + pageSize - 1)
+                / pageSize;
     }
 
     private int normalizePage(

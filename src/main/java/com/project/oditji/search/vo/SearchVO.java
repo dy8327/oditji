@@ -19,7 +19,11 @@ public class SearchVO {
     // ALL, CONTENT, GOODS
     private String searchTab;
 
-    private int page;
+    // 콘텐츠 탭 페이지
+    private int contentPage;
+
+    // 상품 탭 페이지
+    private int goodsPage;
 
     public SearchVO() {
 
@@ -33,7 +37,8 @@ public class SearchVO {
                 new ArrayList<String>();
 
         this.searchTab = "ALL";
-        this.page = 1;
+        this.contentPage = 1;
+        this.goodsPage = 1;
     }
 
     public String getKeyword() {
@@ -107,19 +112,50 @@ public class SearchVO {
         this.searchTab = searchTab;
     }
 
-    public int getPage() {
+    public int getContentPage() {
 
-        if (page <= 0) {
+        if (contentPage <= 0) {
             return 1;
         }
 
-        return page;
+        return contentPage;
+    }
+
+    public void setContentPage(
+            int contentPage) {
+
+        this.contentPage = contentPage;
+    }
+
+    public int getGoodsPage() {
+
+        if (goodsPage <= 0) {
+            return 1;
+        }
+
+        return goodsPage;
+    }
+
+    public void setGoodsPage(
+            int goodsPage) {
+
+        this.goodsPage = goodsPage;
+    }
+
+    /*
+     * 기존 page 파라미터 호환용.
+     *
+     * 기존 leftSidebar.jsp 또는 이전 링크에서
+     * page=2가 넘어오면 콘텐츠 페이지로 처리한다.
+     */
+    public int getPage() {
+        return getContentPage();
     }
 
     public void setPage(
             int page) {
 
-        this.page = page;
+        this.contentPage = page;
     }
 
     public boolean hasKeyword() {

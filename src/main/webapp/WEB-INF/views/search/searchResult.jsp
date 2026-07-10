@@ -3,7 +3,6 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
@@ -22,7 +21,7 @@
           href="${pageContext.request.contextPath}/css/search.css">
 
     <script defer
-            src="${pageContext.request.contextPath}/js/search.js?v=6">
+            src="${pageContext.request.contextPath}/js/search.js?v=7">
     </script>
 
 </head>
@@ -35,9 +34,6 @@
 
     <div class="search-layout">
 
-        <%-- =================================================
-             왼쪽 검색 필터
-        ================================================= --%>
         <aside class="search-left-sidebar">
 
             <jsp:include page="/WEB-INF/views/common/leftSidebar.jsp"/>
@@ -45,26 +41,16 @@
         </aside>
 
 
-        <%-- =================================================
-             검색 결과 영역
-        ================================================= --%>
         <section class="search-result-area"
                  data-search-root
                  data-initial-tab="${empty searchTab ? 'ALL' : searchTab}">
 
 
-            <%-- =================================================
-                 검색 결과 헤더
-            ================================================= --%>
             <section class="search-result-header">
 
-                <div>
-
-                    <h1>
-                        <c:out value="${searchTitle}"/>
-                    </h1>
-
-                </div>
+                <h1>
+                    <c:out value="${searchTitle}"/>
+                </h1>
 
                 <div class="search-result-count">
 
@@ -76,16 +62,12 @@
             </section>
 
 
-            <%-- =================================================
-                 검색 결과 탭
-            ================================================= --%>
             <nav class="search-result-tabs"
                  aria-label="검색 결과 유형">
 
                 <button type="button"
                         class="search-result-tab"
-                        data-search-tab="ALL"
-                        aria-selected="false">
+                        data-search-tab="ALL">
 
                     전체
 
@@ -97,8 +79,7 @@
 
                 <button type="button"
                         class="search-result-tab"
-                        data-search-tab="CONTENT"
-                        aria-selected="false">
+                        data-search-tab="CONTENT">
 
                     콘텐츠
 
@@ -110,8 +91,7 @@
 
                 <button type="button"
                         class="search-result-tab"
-                        data-search-tab="GOODS"
-                        aria-selected="false">
+                        data-search-tab="GOODS">
 
                     상품
 
@@ -131,9 +111,6 @@
                      data-search-panel="ALL">
 
 
-                <%-- =================================================
-                     전체 탭: 항상 1페이지 콘텐츠 상위 5개
-                ================================================= --%>
                 <section class="search-all-section">
 
                     <div class="search-section-heading">
@@ -183,7 +160,6 @@
 
                                         </c:url>
 
-
                                         <a class="search-content-link"
                                            href="${allContentDetailUrl}">
 
@@ -227,7 +203,6 @@
 
                                                         <c:out value="${content.matchedPersonRole}"/>
                                                         검색 결과 ·
-
                                                         <c:out value="${content.matchedPersonName}"/>
 
                                                         <c:choose>
@@ -249,7 +224,7 @@
 
                                                 <div class="search-content-meta">
 
-                                                    <span class="search-content-type">
+                                                    <span>
 
                                                         <c:choose>
 
@@ -265,7 +240,6 @@
 
                                                     </span>
 
-
                                                     <c:if test="${not empty content.releaseDate}">
 
                                                         <span>
@@ -273,7 +247,6 @@
                                                         </span>
 
                                                     </c:if>
-
 
                                                     <c:if test="${not empty content.genreText}">
 
@@ -335,9 +308,6 @@
                 </section>
 
 
-                <%-- =================================================
-                     전체 탭: 상품 상위 5개
-                ================================================= --%>
                 <section class="search-all-section">
 
                     <div class="search-section-heading">
@@ -374,8 +344,7 @@
                                 <c:forEach var="goods"
                                            items="${allGoodsResults}">
 
-                                    <article class="search-goods-card
-                                            ${goods.stock <= 0 ? 'is-soldout' : ''}">
+                                    <article class="search-goods-card">
 
                                         <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
 
@@ -422,9 +391,7 @@
                                                 </p>
 
                                                 <h3>
-
                                                     <c:out value="${goods.productName}"/>
-
                                                 </h3>
 
 
@@ -542,7 +509,6 @@
 
                                     </c:url>
 
-
                                     <a class="search-content-link"
                                        href="${contentDetailUrl}">
 
@@ -586,7 +552,6 @@
 
                                                     <c:out value="${content.matchedPersonRole}"/>
                                                     검색 결과 ·
-
                                                     <c:out value="${content.matchedPersonName}"/>
 
                                                     <c:choose>
@@ -608,7 +573,7 @@
 
                                             <div class="search-content-meta">
 
-                                                <span class="search-content-type">
+                                                <span>
 
                                                     <c:choose>
 
@@ -624,7 +589,6 @@
 
                                                 </span>
 
-
                                                 <c:if test="${not empty content.releaseDate}">
 
                                                     <span>
@@ -632,7 +596,6 @@
                                                     </span>
 
                                                 </c:if>
-
 
                                                 <c:if test="${not empty content.genreText}">
 
@@ -687,342 +650,342 @@
 
                         </section>
 
-
-                        <%-- =================================================
-                             페이지 범위 계산
-
-                             현재 페이지 -2 ~ 현재 페이지 +2
-                        ================================================= --%>
-                        <c:set var="startPage"
-                               value="${currentPage - 2}"/>
-
-                        <c:if test="${startPage < 1}">
-
-                            <c:set var="startPage"
-                                   value="1"/>
-
-                        </c:if>
-
-
-                        <c:set var="endPage"
-                               value="${currentPage + 2}"/>
-
-                        <c:if test="${endPage > pageVO.totalPages}">
-
-                            <c:set var="endPage"
-                                   value="${pageVO.totalPages}"/>
-
-                        </c:if>
-
-
-                        <c:if test="${pageVO.totalPages > 1}">
-
-                            <section class="pagination search-pagination">
-
-
-                                <%-- 이전 페이지 --%>
-                                <c:if test="${currentPage > 1}">
-
-                                    <c:url var="prevUrl"
-                                           value="/search">
-
-                                        <c:param name="keyword"
-                                                 value="${keyword}"/>
-
-                                        <c:param name="page"
-                                                 value="${currentPage - 1}"/>
-
-                                        <c:param name="searchTab"
-                                                 value="CONTENT"/>
-
-                                        <c:forEach var="contentType"
-                                                   items="${contentTypes}">
-
-                                            <c:param name="contentTypes"
-                                                     value="${contentType}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="genreCode"
-                                                   items="${genreCodes}">
-
-                                            <c:param name="genreCodes"
-                                                     value="${genreCode}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="providerId"
-                                                   items="${providerIds}">
-
-                                            <c:param name="providerIds"
-                                                     value="${providerId}"/>
-
-                                        </c:forEach>
-
-                                    </c:url>
-
-                                    <a class="page-btn page-arrow"
-                                       href="${prevUrl}"
-                                       aria-label="이전 페이지">
-
-                                        ‹
-
-                                    </a>
-
-                                </c:if>
-
-
-                                <%-- 첫 페이지 --%>
-                                <c:if test="${startPage > 1}">
-
-                                    <c:url var="firstPageUrl"
-                                           value="/search">
-
-                                        <c:param name="keyword"
-                                                 value="${keyword}"/>
-
-                                        <c:param name="page"
-                                                 value="1"/>
-
-                                        <c:param name="searchTab"
-                                                 value="CONTENT"/>
-
-                                        <c:forEach var="contentType"
-                                                   items="${contentTypes}">
-
-                                            <c:param name="contentTypes"
-                                                     value="${contentType}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="genreCode"
-                                                   items="${genreCodes}">
-
-                                            <c:param name="genreCodes"
-                                                     value="${genreCode}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="providerId"
-                                                   items="${providerIds}">
-
-                                            <c:param name="providerIds"
-                                                     value="${providerId}"/>
-
-                                        </c:forEach>
-
-                                    </c:url>
-
-                                    <a class="page-btn"
-                                       href="${firstPageUrl}">
-
-                                        1
-
-                                    </a>
-
-                                </c:if>
-
-
-                                <%-- 첫 페이지와 범위 사이 생략 --%>
-                                <c:if test="${startPage > 2}">
-
-                                    <span class="page-ellipsis">
-                                        ...
-                                    </span>
-
-                                </c:if>
-
-
-                                <%-- 현재 페이지 기준 -2 ~ +2 --%>
-                                <c:forEach var="pageNumber"
-                                           begin="${startPage}"
-                                           end="${endPage}">
-
-                                    <c:choose>
-
-                                        <c:when test="${pageNumber == currentPage}">
-
-                                            <span class="page-now">
-
-                                                <c:out value="${pageNumber}"/>
-
-                                            </span>
-
-                                        </c:when>
-
-                                        <c:otherwise>
-
-                                            <c:url var="pageUrl"
-                                                   value="/search">
-
-                                                <c:param name="keyword"
-                                                         value="${keyword}"/>
-
-                                                <c:param name="page"
-                                                         value="${pageNumber}"/>
-
-                                                <c:param name="searchTab"
-                                                         value="CONTENT"/>
-
-                                                <c:forEach var="contentType"
-                                                           items="${contentTypes}">
-
-                                                    <c:param name="contentTypes"
-                                                             value="${contentType}"/>
-
-                                                </c:forEach>
-
-                                                <c:forEach var="genreCode"
-                                                           items="${genreCodes}">
-
-                                                    <c:param name="genreCodes"
-                                                             value="${genreCode}"/>
-
-                                                </c:forEach>
-
-                                                <c:forEach var="providerId"
-                                                           items="${providerIds}">
-
-                                                    <c:param name="providerIds"
-                                                             value="${providerId}"/>
-
-                                                </c:forEach>
-
-                                            </c:url>
-
-                                            <a class="page-btn"
-                                               href="${pageUrl}">
-
-                                                <c:out value="${pageNumber}"/>
-
-                                            </a>
-
-                                        </c:otherwise>
-
-                                    </c:choose>
-
-                                </c:forEach>
-
-
-                                <%-- 범위와 마지막 페이지 사이 생략 --%>
-                                <c:if test="${endPage < pageVO.totalPages - 1}">
-
-                                    <span class="page-ellipsis">
-                                        ...
-                                    </span>
-
-                                </c:if>
-
-
-                                <%-- 마지막 페이지 --%>
-                                <c:if test="${endPage < pageVO.totalPages}">
-
-                                    <c:url var="lastPageUrl"
-                                           value="/search">
-
-                                        <c:param name="keyword"
-                                                 value="${keyword}"/>
-
-                                        <c:param name="page"
-                                                 value="${pageVO.totalPages}"/>
-
-                                        <c:param name="searchTab"
-                                                 value="CONTENT"/>
-
-                                        <c:forEach var="contentType"
-                                                   items="${contentTypes}">
-
-                                            <c:param name="contentTypes"
-                                                     value="${contentType}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="genreCode"
-                                                   items="${genreCodes}">
-
-                                            <c:param name="genreCodes"
-                                                     value="${genreCode}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="providerId"
-                                                   items="${providerIds}">
-
-                                            <c:param name="providerIds"
-                                                     value="${providerId}"/>
-
-                                        </c:forEach>
-
-                                    </c:url>
-
-                                    <a class="page-btn"
-                                       href="${lastPageUrl}">
-
-                                        <c:out value="${pageVO.totalPages}"/>
-
-                                    </a>
-
-                                </c:if>
-
-
-                                <%-- 다음 페이지 --%>
-                                <c:if test="${currentPage < pageVO.totalPages}">
-
-                                    <c:url var="nextUrl"
-                                           value="/search">
-
-                                        <c:param name="keyword"
-                                                 value="${keyword}"/>
-
-                                        <c:param name="page"
-                                                 value="${currentPage + 1}"/>
-
-                                        <c:param name="searchTab"
-                                                 value="CONTENT"/>
-
-                                        <c:forEach var="contentType"
-                                                   items="${contentTypes}">
-
-                                            <c:param name="contentTypes"
-                                                     value="${contentType}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="genreCode"
-                                                   items="${genreCodes}">
-
-                                            <c:param name="genreCodes"
-                                                     value="${genreCode}"/>
-
-                                        </c:forEach>
-
-                                        <c:forEach var="providerId"
-                                                   items="${providerIds}">
-
-                                            <c:param name="providerIds"
-                                                     value="${providerId}"/>
-
-                                        </c:forEach>
-
-                                    </c:url>
-
-                                    <a class="page-btn page-arrow"
-                                       href="${nextUrl}"
-                                       aria-label="다음 페이지">
-
-                                        ›
-
-                                    </a>
-
-                                </c:if>
-
-                            </section>
-
-                        </c:if>
-
                     </c:otherwise>
 
                 </c:choose>
+
+
+                <c:if test="${contentTotalPages > 1}">
+
+                    <c:set var="contentStartPage"
+                           value="${contentCurrentPage - 2}"/>
+
+                    <c:if test="${contentStartPage < 1}">
+
+                        <c:set var="contentStartPage"
+                               value="1"/>
+
+                    </c:if>
+
+                    <c:set var="contentEndPage"
+                           value="${contentCurrentPage + 2}"/>
+
+                    <c:if test="${contentEndPage > contentTotalPages}">
+
+                        <c:set var="contentEndPage"
+                               value="${contentTotalPages}"/>
+
+                    </c:if>
+
+
+                    <section class="pagination search-pagination">
+
+
+                        <c:if test="${contentCurrentPage > 1}">
+
+                            <c:url var="contentPrevUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage - 1}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage}"/>
+
+                                <c:param name="searchTab"
+                                         value="CONTENT"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn page-arrow"
+                               href="${contentPrevUrl}">
+
+                                ‹
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${contentStartPage > 1}">
+
+                            <c:url var="contentFirstUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="1"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage}"/>
+
+                                <c:param name="searchTab"
+                                         value="CONTENT"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn"
+                               href="${contentFirstUrl}">
+
+                                1
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${contentStartPage > 2}">
+
+                            <span class="page-ellipsis">
+                                ...
+                            </span>
+
+                        </c:if>
+
+
+                        <c:forEach var="pageNumber"
+                                   begin="${contentStartPage}"
+                                   end="${contentEndPage}">
+
+                            <c:choose>
+
+                                <c:when test="${pageNumber == contentCurrentPage}">
+
+                                    <span class="page-now">
+
+                                        <c:out value="${pageNumber}"/>
+
+                                    </span>
+
+                                </c:when>
+
+                                <c:otherwise>
+
+                                    <c:url var="contentPageUrl"
+                                           value="/search">
+
+                                        <c:param name="keyword"
+                                                 value="${keyword}"/>
+
+                                        <c:param name="contentPage"
+                                                 value="${pageNumber}"/>
+
+                                        <c:param name="goodsPage"
+                                                 value="${goodsCurrentPage}"/>
+
+                                        <c:param name="searchTab"
+                                                 value="CONTENT"/>
+
+                                        <c:forEach var="v"
+                                                   items="${contentTypes}">
+
+                                            <c:param name="contentTypes"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="v"
+                                                   items="${genreCodes}">
+
+                                            <c:param name="genreCodes"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="v"
+                                                   items="${providerIds}">
+
+                                            <c:param name="providerIds"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                    </c:url>
+
+                                    <a class="page-btn"
+                                       href="${contentPageUrl}">
+
+                                        <c:out value="${pageNumber}"/>
+
+                                    </a>
+
+                                </c:otherwise>
+
+                            </c:choose>
+
+                        </c:forEach>
+
+
+                        <c:if test="${contentEndPage < contentTotalPages - 1}">
+
+                            <span class="page-ellipsis">
+                                ...
+                            </span>
+
+                        </c:if>
+
+
+                        <c:if test="${contentEndPage < contentTotalPages}">
+
+                            <c:url var="contentLastUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentTotalPages}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage}"/>
+
+                                <c:param name="searchTab"
+                                         value="CONTENT"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn"
+                               href="${contentLastUrl}">
+
+                                <c:out value="${contentTotalPages}"/>
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${contentCurrentPage < contentTotalPages}">
+
+                            <c:url var="contentNextUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage + 1}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage}"/>
+
+                                <c:param name="searchTab"
+                                         value="CONTENT"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn page-arrow"
+                               href="${contentNextUrl}">
+
+                                ›
+
+                            </a>
+
+                        </c:if>
+
+                    </section>
+
+                </c:if>
 
             </section>
 
@@ -1064,8 +1027,7 @@
                             <c:forEach var="goods"
                                        items="${goodsResults}">
 
-                                <article class="search-goods-card
-                                        ${goods.stock <= 0 ? 'is-soldout' : ''}">
+                                <article class="search-goods-card">
 
                                     <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
 
@@ -1112,9 +1074,7 @@
                                             </p>
 
                                             <h3>
-
                                                 <c:out value="${goods.productName}"/>
-
                                             </h3>
 
 
@@ -1176,6 +1136,339 @@
                     </c:otherwise>
 
                 </c:choose>
+
+
+                <c:if test="${goodsTotalPages > 1}">
+
+                    <c:set var="goodsStartPage"
+                           value="${goodsCurrentPage - 2}"/>
+
+                    <c:if test="${goodsStartPage < 1}">
+
+                        <c:set var="goodsStartPage"
+                               value="1"/>
+
+                    </c:if>
+
+                    <c:set var="goodsEndPage"
+                           value="${goodsCurrentPage + 2}"/>
+
+                    <c:if test="${goodsEndPage > goodsTotalPages}">
+
+                        <c:set var="goodsEndPage"
+                               value="${goodsTotalPages}"/>
+
+                    </c:if>
+
+
+                    <section class="pagination search-pagination">
+
+
+                        <c:if test="${goodsCurrentPage > 1}">
+
+                            <c:url var="goodsPrevUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage - 1}"/>
+
+                                <c:param name="searchTab"
+                                         value="GOODS"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn page-arrow"
+                               href="${goodsPrevUrl}">
+
+                                ‹
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${goodsStartPage > 1}">
+
+                            <c:url var="goodsFirstUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage}"/>
+
+                                <c:param name="goodsPage"
+                                         value="1"/>
+
+                                <c:param name="searchTab"
+                                         value="GOODS"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn"
+                               href="${goodsFirstUrl}">
+
+                                1
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${goodsStartPage > 2}">
+
+                            <span class="page-ellipsis">
+                                ...
+                            </span>
+
+                        </c:if>
+
+
+                        <c:forEach var="pageNumber"
+                                   begin="${goodsStartPage}"
+                                   end="${goodsEndPage}">
+
+                            <c:choose>
+
+                                <c:when test="${pageNumber == goodsCurrentPage}">
+
+                                    <span class="page-now">
+
+                                        <c:out value="${pageNumber}"/>
+
+                                    </span>
+
+                                </c:when>
+
+                                <c:otherwise>
+
+                                    <c:url var="goodsPageUrl"
+                                           value="/search">
+
+                                        <c:param name="keyword"
+                                                 value="${keyword}"/>
+
+                                        <c:param name="contentPage"
+                                                 value="${contentCurrentPage}"/>
+
+                                        <c:param name="goodsPage"
+                                                 value="${pageNumber}"/>
+
+                                        <c:param name="searchTab"
+                                                 value="GOODS"/>
+
+                                        <c:forEach var="v"
+                                                   items="${contentTypes}">
+
+                                            <c:param name="contentTypes"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="v"
+                                                   items="${genreCodes}">
+
+                                            <c:param name="genreCodes"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                        <c:forEach var="v"
+                                                   items="${providerIds}">
+
+                                            <c:param name="providerIds"
+                                                     value="${v}"/>
+
+                                        </c:forEach>
+
+                                    </c:url>
+
+                                    <a class="page-btn"
+                                       href="${goodsPageUrl}">
+
+                                        <c:out value="${pageNumber}"/>
+
+                                    </a>
+
+                                </c:otherwise>
+
+                            </c:choose>
+
+                        </c:forEach>
+
+
+                        <c:if test="${goodsEndPage < goodsTotalPages - 1}">
+
+                            <span class="page-ellipsis">
+                                ...
+                            </span>
+
+                        </c:if>
+
+
+                        <c:if test="${goodsEndPage < goodsTotalPages}">
+
+                            <c:url var="goodsLastUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsTotalPages}"/>
+
+                                <c:param name="searchTab"
+                                         value="GOODS"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn"
+                               href="${goodsLastUrl}">
+
+                                <c:out value="${goodsTotalPages}"/>
+
+                            </a>
+
+                        </c:if>
+
+
+                        <c:if test="${goodsCurrentPage < goodsTotalPages}">
+
+                            <c:url var="goodsNextUrl"
+                                   value="/search">
+
+                                <c:param name="keyword"
+                                         value="${keyword}"/>
+
+                                <c:param name="contentPage"
+                                         value="${contentCurrentPage}"/>
+
+                                <c:param name="goodsPage"
+                                         value="${goodsCurrentPage + 1}"/>
+
+                                <c:param name="searchTab"
+                                         value="GOODS"/>
+
+                                <c:forEach var="v"
+                                           items="${contentTypes}">
+
+                                    <c:param name="contentTypes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${genreCodes}">
+
+                                    <c:param name="genreCodes"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                                <c:forEach var="v"
+                                           items="${providerIds}">
+
+                                    <c:param name="providerIds"
+                                             value="${v}"/>
+
+                                </c:forEach>
+
+                            </c:url>
+
+                            <a class="page-btn page-arrow"
+                               href="${goodsNextUrl}">
+
+                                ›
+
+                            </a>
+
+                        </c:if>
+
+                    </section>
+
+                </c:if>
 
             </section>
 
