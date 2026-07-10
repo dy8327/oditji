@@ -18,12 +18,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import com.project.oditji.search.vo.SearchResultVO;
 
 @Service
 public class RankingServiceImpl implements RankingService {
+
+    private final JsonMapper jsonMapper;
+
+    public RankingServiceImpl(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
+    }
 
     private static final String CONTENT_TYPE_MOVIE = "MOVIE";
     private static final String CONTENT_TYPE_TV = "TV";
@@ -339,10 +345,10 @@ public class RankingServiceImpl implements RankingService {
         vo.setContentType(CONTENT_TYPE_MOVIE);
 
         String title =
-                movie.path("title").asText(null);
+                movie.path("title").asString(null);
 
         String originalTitle =
-                movie.path("original_title").asText(null);
+                movie.path("original_title").asString(null);
 
         if (title == null || title.isBlank()) {
             title = originalTitle;
@@ -354,11 +360,11 @@ public class RankingServiceImpl implements RankingService {
 
         vo.setTitle(title);
         vo.setOverview(
-                movie.path("overview").asText(null));
+                movie.path("overview").asString(null));
         vo.setPosterPath(
-                movie.path("poster_path").asText(null));
+                movie.path("poster_path").asString(null));
         vo.setReleaseDate(
-                movie.path("release_date").asText(null));
+                movie.path("release_date").asString(null));
 
         if (!movie.path("vote_average").isMissingNode()
                 && !movie.path("vote_average").isNull()) {
@@ -392,10 +398,10 @@ public class RankingServiceImpl implements RankingService {
         vo.setContentType(CONTENT_TYPE_TV);
 
         String title =
-                tv.path("name").asText(null);
+                tv.path("name").asString(null);
 
         String originalTitle =
-                tv.path("original_name").asText(null);
+                tv.path("original_name").asString(null);
 
         if (title == null || title.isBlank()) {
             title = originalTitle;
@@ -407,11 +413,11 @@ public class RankingServiceImpl implements RankingService {
 
         vo.setTitle(title);
         vo.setOverview(
-                tv.path("overview").asText(null));
+                tv.path("overview").asString(null));
         vo.setPosterPath(
-                tv.path("poster_path").asText(null));
+                tv.path("poster_path").asString(null));
         vo.setReleaseDate(
-                tv.path("first_air_date").asText(null));
+                tv.path("first_air_date").asString(null));
 
         if (!tv.path("vote_average").isMissingNode()
                 && !tv.path("vote_average").isNull()) {
@@ -497,7 +503,7 @@ public class RankingServiceImpl implements RankingService {
 
                 String tmdbProviderName =
                         provider.path("provider_name")
-                                .asText(null);
+                                .asString(null);
 
                 int providerId =
                         provider.path("provider_id")
@@ -653,9 +659,6 @@ public class RankingServiceImpl implements RankingService {
             RestTemplate restTemplate =
                     new RestTemplate();
 
-            ObjectMapper objectMapper =
-                    new ObjectMapper();
-
             HttpHeaders headers =
                     new HttpHeaders();
 
@@ -678,7 +681,7 @@ public class RankingServiceImpl implements RankingService {
                         "TMDB API 응답 본문이 없습니다.");
             }
 
-            return objectMapper.readTree(
+            return jsonMapper.readTree(
                     response.getBody());
 
         } catch (Exception e) {

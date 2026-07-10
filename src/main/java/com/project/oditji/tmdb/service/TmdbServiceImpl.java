@@ -21,8 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.FilmographyVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
@@ -48,7 +48,7 @@ public class TmdbServiceImpl implements TmdbService {
 
     private final TmdbDAO tmdbDAO;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Value("${tmdb.api.token}")
     private String token;
@@ -62,10 +62,12 @@ public class TmdbServiceImpl implements TmdbService {
     @Value("${tmdb.api.region:KR}")
     private String tmdbApiRegion;
 
-    public TmdbServiceImpl(TmdbDAO tmdbDAO) {
+    public TmdbServiceImpl(
+            TmdbDAO tmdbDAO,
+            JsonMapper jsonMapper) {
         this.tmdbDAO = tmdbDAO;
         this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -137,23 +139,23 @@ public class TmdbServiceImpl implements TmdbService {
 
         if ("MOVIE".equals(contentType)) {
             vo.setTitle(firstNonBlank(
-                    item.path("title").asText(null),
-                    item.path("original_title").asText(null)));
-            vo.setOriginalTitle(item.path("original_title").asText(null));
+                    item.path("title").asString(null),
+                    item.path("original_title").asString(null)));
+            vo.setOriginalTitle(item.path("original_title").asString(null));
             vo.setReleaseDate(parseDate(
-                    item.path("release_date").asText(null)));
+                    item.path("release_date").asString(null)));
         } else {
             vo.setTitle(firstNonBlank(
-                    item.path("name").asText(null),
-                    item.path("original_name").asText(null)));
-            vo.setOriginalTitle(item.path("original_name").asText(null));
+                    item.path("name").asString(null),
+                    item.path("original_name").asString(null)));
+            vo.setOriginalTitle(item.path("original_name").asString(null));
             vo.setReleaseDate(parseDate(
-                    item.path("first_air_date").asText(null)));
+                    item.path("first_air_date").asString(null)));
         }
 
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
-        vo.setBackdropPath(item.path("backdrop_path").asText(null));
+        vo.setOverview(item.path("overview").asString(null));
+        vo.setPosterPath(item.path("poster_path").asString(null));
+        vo.setBackdropPath(item.path("backdrop_path").asString(null));
         vo.setGenreText(convertGenreIdsToText(
                 item.path("genre_ids"), contentType));
         vo.setTmdbScore(nullableDouble(item.path("vote_average")));
@@ -333,7 +335,7 @@ public class TmdbServiceImpl implements TmdbService {
                 continue;
             }
 
-            String mediaType = item.path("media_type").asText();
+            String mediaType = item.path("media_type").asString();
 
             if (!"movie".equals(mediaType)
                     && !"tv".equals(mediaType)) {
@@ -506,7 +508,7 @@ public class TmdbServiceImpl implements TmdbService {
                 continue;
             }
 
-            String mediaType = item.path("media_type").asText();
+            String mediaType = item.path("media_type").asString();
 
             if (!"movie".equals(mediaType)
                     && !"tv".equals(mediaType)) {
@@ -615,25 +617,25 @@ public class TmdbServiceImpl implements TmdbService {
 
         if ("MOVIE".equals(contentType)) {
             vo.setTitle(firstNonBlank(
-                    item.path("title").asText(null),
-                    item.path("original_title").asText(null)));
+                    item.path("title").asString(null),
+                    item.path("original_title").asString(null)));
             vo.setOriginalTitle(
-                    item.path("original_title").asText(null));
+                    item.path("original_title").asString(null));
             vo.setReleaseDate(
-                    item.path("release_date").asText(null));
+                    item.path("release_date").asString(null));
         } else {
             vo.setTitle(firstNonBlank(
-                    item.path("name").asText(null),
-                    item.path("original_name").asText(null)));
+                    item.path("name").asString(null),
+                    item.path("original_name").asString(null)));
             vo.setOriginalTitle(
-                    item.path("original_name").asText(null));
+                    item.path("original_name").asString(null));
             vo.setReleaseDate(
-                    item.path("first_air_date").asText(null));
+                    item.path("first_air_date").asString(null));
         }
 
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
-        vo.setBackdropPath(item.path("backdrop_path").asText(null));
+        vo.setOverview(item.path("overview").asString(null));
+        vo.setPosterPath(item.path("poster_path").asString(null));
+        vo.setBackdropPath(item.path("backdrop_path").asString(null));
         vo.setGenreText(convertGenreIdsToText(
                 item.path("genre_ids"), contentType));
         vo.setTmdbScore(nullableDouble(
@@ -713,7 +715,7 @@ public class TmdbServiceImpl implements TmdbService {
         for (JsonNode provider : flatrate) {
 
             String platformName = convertTmdbProviderName(
-                    provider.path("provider_name").asText(null));
+                    provider.path("provider_name").asString(null));
 
             if (platformName == null) {
                 continue;
@@ -795,15 +797,15 @@ public class TmdbServiceImpl implements TmdbService {
         vo.setTmdbId(root.path("id").asLong());
         vo.setContentType("MOVIE");
         vo.setTitle(firstNonBlank(
-                root.path("title").asText(null),
-                root.path("original_title").asText(null)));
+                root.path("title").asString(null),
+                root.path("original_title").asString(null)));
         vo.setOriginalTitle(
-                root.path("original_title").asText(null));
-        vo.setOverview(root.path("overview").asText(null));
-        vo.setPosterPath(root.path("poster_path").asText(null));
-        vo.setBackdropPath(root.path("backdrop_path").asText(null));
+                root.path("original_title").asString(null));
+        vo.setOverview(root.path("overview").asString(null));
+        vo.setPosterPath(root.path("poster_path").asString(null));
+        vo.setBackdropPath(root.path("backdrop_path").asString(null));
         vo.setReleaseDate(parseDate(
-                root.path("release_date").asText(null)));
+                root.path("release_date").asString(null)));
         vo.setGenreText(parseGenreText(root.path("genres")));
         vo.setRuntime(nullableInt(root.path("runtime")));
         vo.setEpisodeCount(null);
@@ -829,15 +831,15 @@ public class TmdbServiceImpl implements TmdbService {
         vo.setTmdbId(root.path("id").asLong());
         vo.setContentType("TV");
         vo.setTitle(firstNonBlank(
-                root.path("name").asText(null),
-                root.path("original_name").asText(null)));
+                root.path("name").asString(null),
+                root.path("original_name").asString(null)));
         vo.setOriginalTitle(
-                root.path("original_name").asText(null));
-        vo.setOverview(root.path("overview").asText(null));
-        vo.setPosterPath(root.path("poster_path").asText(null));
-        vo.setBackdropPath(root.path("backdrop_path").asText(null));
+                root.path("original_name").asString(null));
+        vo.setOverview(root.path("overview").asString(null));
+        vo.setPosterPath(root.path("poster_path").asString(null));
+        vo.setBackdropPath(root.path("backdrop_path").asString(null));
         vo.setReleaseDate(parseDate(
-                root.path("first_air_date").asText(null)));
+                root.path("first_air_date").asString(null)));
         vo.setGenreText(parseGenreText(root.path("genres")));
         vo.setRuntime(parseTvRuntime(
                 root.path("episode_run_time")));
@@ -897,7 +899,7 @@ public class TmdbServiceImpl implements TmdbService {
             }
 
             long tmdbActorId = cast.path("id").asLong();
-            String actorName = cast.path("name").asText(null);
+            String actorName = cast.path("name").asString(null);
 
             if (tmdbActorId <= 0
                     || actorName == null
@@ -914,7 +916,7 @@ public class TmdbServiceImpl implements TmdbService {
                 actor.setActorName(
                         limitLength(actorName, 100));
                 actor.setProfilePath(
-                        cast.path("profile_path").asText(null));
+                        cast.path("profile_path").asString(null));
                 tmdbDAO.insertActor(actor);
                 actorNo =
                         tmdbDAO.findActorNoByTmdbId(tmdbActorId);
@@ -927,7 +929,7 @@ public class TmdbServiceImpl implements TmdbService {
                         contentNo,
                         actorNo,
                         limitLength(
-                                cast.path("character").asText(null),
+                                cast.path("character").asString(null),
                                 100),
                         displayOrder);
             }
@@ -949,7 +951,7 @@ public class TmdbServiceImpl implements TmdbService {
         for (JsonNode crew : crewNode) {
 
             if (!"Director".equals(
-                    crew.path("job").asText(null))) {
+                    crew.path("job").asString(null))) {
                 continue;
             }
 
@@ -991,7 +993,7 @@ public class TmdbServiceImpl implements TmdbService {
                 personNode.path("id").asLong();
 
         String directorName =
-                personNode.path("name").asText(null);
+                personNode.path("name").asString(null);
 
         if (tmdbDirectorId <= 0
                 || directorName == null
@@ -1010,7 +1012,7 @@ public class TmdbServiceImpl implements TmdbService {
                     limitLength(directorName, 100));
             director.setProfilePath(
                     personNode.path("profile_path")
-                            .asText(null));
+                            .asString(null));
             tmdbDAO.insertDirector(director);
 
             directorNo =
@@ -1054,7 +1056,7 @@ public class TmdbServiceImpl implements TmdbService {
             String platformName =
                     convertTmdbProviderName(
                             provider.path("provider_name")
-                                    .asText(null));
+                                    .asString(null));
 
             if (platformName != null
                     && !result.contains(platformName)) {
@@ -1087,7 +1089,7 @@ public class TmdbServiceImpl implements TmdbService {
             String platformName =
                     convertTmdbProviderName(
                             provider.path("provider_name")
-                                    .asText(null));
+                                    .asString(null));
 
             int providerId =
                     provider.path("provider_id").asInt();
@@ -1464,14 +1466,14 @@ public class TmdbServiceImpl implements TmdbService {
         }
 
         String title = firstNonBlank(
-                item.path("title").asText(null),
-                item.path("name").asText(null));
+                item.path("title").asString(null),
+                item.path("name").asString(null));
 
         String originalTitle = firstNonBlank(
-                item.path("original_title").asText(null),
-                item.path("original_name").asText(null));
+                item.path("original_title").asString(null),
+                item.path("original_name").asString(null));
 
-        String overview = item.path("overview").asText("");
+        String overview = item.path("overview").asString("");
 
         String checkText = normalizeBlockedText(
                 (title == null ? "" : title)
@@ -1617,7 +1619,7 @@ public class TmdbServiceImpl implements TmdbService {
                             entity,
                             String.class);
 
-            return objectMapper.readTree(
+            return jsonMapper.readTree(
                     response.getBody());
 
         } catch (Exception e) {
@@ -1648,7 +1650,7 @@ public class TmdbServiceImpl implements TmdbService {
         List<String> names = new ArrayList<String>();
 
         for (JsonNode genre : genresNode) {
-            String name = genre.path("name").asText(null);
+            String name = genre.path("name").asString(null);
 
             if (name != null && !name.isBlank()) {
                 names.add(name);
@@ -1671,11 +1673,11 @@ public class TmdbServiceImpl implements TmdbService {
         for (JsonNode crew : crewNode) {
 
             if (!"Director".equals(
-                    crew.path("job").asText(null))) {
+                    crew.path("job").asString(null))) {
                 continue;
             }
 
-            String name = crew.path("name").asText(null);
+            String name = crew.path("name").asString(null);
 
             if (name != null
                     && !name.isBlank()
@@ -1700,7 +1702,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode creator : createdByNode) {
             String name =
-                    creator.path("name").asText(null);
+                    creator.path("name").asString(null);
 
             if (name != null
                     && !name.isBlank()
@@ -1728,7 +1730,7 @@ public class TmdbServiceImpl implements TmdbService {
                 break;
             }
 
-            String name = cast.path("name").asText(null);
+            String name = cast.path("name").asString(null);
 
             if (name != null
                     && !name.isBlank()
@@ -1767,7 +1769,7 @@ public class TmdbServiceImpl implements TmdbService {
         for (JsonNode country : results) {
 
             String countryCode =
-                    country.path("iso_3166_1").asText(null);
+                    country.path("iso_3166_1").asString(null);
 
             if (!"KR".equals(countryCode)
                     && !"US".equals(countryCode)) {
@@ -1786,7 +1788,7 @@ public class TmdbServiceImpl implements TmdbService {
                 String converted = convertAgeRating(
                         countryCode,
                         item.path("certification")
-                                .asText(null),
+                                .asString(null),
                         false);
 
                 if (converted == null) {
@@ -1822,7 +1824,7 @@ public class TmdbServiceImpl implements TmdbService {
         for (JsonNode country : results) {
 
             String countryCode =
-                    country.path("iso_3166_1").asText(null);
+                    country.path("iso_3166_1").asString(null);
 
             if (!"KR".equals(countryCode)
                     && !"US".equals(countryCode)) {
@@ -1831,7 +1833,7 @@ public class TmdbServiceImpl implements TmdbService {
 
             String converted = convertAgeRating(
                     countryCode,
-                    country.path("rating").asText(null),
+                    country.path("rating").asString(null),
                     true);
 
             if (converted == null) {
@@ -2005,11 +2007,11 @@ public class TmdbServiceImpl implements TmdbService {
 
         PersonFilmographyVO person = new PersonFilmographyVO();
         person.setTmdbPersonId(tmdbPersonId);
-        person.setPersonName(root.path("name").asText(null));
-        person.setProfilePath(root.path("profile_path").asText(null));
-        person.setBiography(root.path("biography").asText(null));
-        person.setBirthday(root.path("birthday").asText(null));
-        person.setPlaceOfBirth(root.path("place_of_birth").asText(null));
+        person.setPersonName(root.path("name").asString(null));
+        person.setProfilePath(root.path("profile_path").asString(null));
+        person.setBiography(root.path("biography").asString(null));
+        person.setBirthday(root.path("birthday").asString(null));
+        person.setPlaceOfBirth(root.path("place_of_birth").asString(null));
         person.setRole(normalizedRole);
 
         JsonNode credits = root.path("combined_credits");
@@ -2049,11 +2051,11 @@ public class TmdbServiceImpl implements TmdbService {
 
             filmography.setParticipationCategory("CAST");
             filmography.setParticipationName(
-                    item.path("character").asText(null));
+                    item.path("character").asString(null));
 
             putFilmographyWithPriority(
                     uniqueMap,
-                    item.path("media_type").asText(),
+                    item.path("media_type").asString(),
                     filmography);
         }
 
@@ -2073,9 +2075,9 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode item : crewItems) {
 
-            String job = item.path("job").asText("");
+            String job = item.path("job").asString("");
             String department =
-                    item.path("department").asText("");
+                    item.path("department").asString("");
 
             boolean matches;
 
@@ -2103,7 +2105,7 @@ public class TmdbServiceImpl implements TmdbService {
 
             putFilmographyWithPriority(
                     uniqueMap,
-                    item.path("media_type").asText(),
+                    item.path("media_type").asString(),
                     filmography);
         }
 
@@ -2119,7 +2121,7 @@ public class TmdbServiceImpl implements TmdbService {
         }
 
         String mediaType =
-                item.path("media_type").asText(null);
+                item.path("media_type").asString(null);
 
         if (!"movie".equals(mediaType)
                 && !"tv".equals(mediaType)) {
@@ -2142,19 +2144,19 @@ public class TmdbServiceImpl implements TmdbService {
                         : "TV");
 
         filmography.setTitle(firstNonBlank(
-                item.path("title").asText(null),
-                item.path("name").asText(null)));
+                item.path("title").asString(null),
+                item.path("name").asString(null)));
 
         filmography.setOriginalTitle(firstNonBlank(
-                item.path("original_title").asText(null),
-                item.path("original_name").asText(null)));
+                item.path("original_title").asString(null),
+                item.path("original_name").asString(null)));
 
         filmography.setPosterPath(
-                item.path("poster_path").asText(null));
+                item.path("poster_path").asString(null));
 
         filmography.setReleaseDate(firstNonBlank(
-                item.path("release_date").asText(null),
-                item.path("first_air_date").asText(null)));
+                item.path("release_date").asString(null),
+                item.path("first_air_date").asString(null)));
 
         filmography.setTmdbScore(
                 nullableDouble(item.path("vote_average")));
