@@ -359,7 +359,29 @@ public class MemberController {
     }
 
     @PostMapping("/findId")
-    public String findIdPost() {
+    public String findIdPost(
+            @RequestParam String memberName,
+            @RequestParam String email,
+            Model model) {
+
+        MemberVO memberVO = new MemberVO();
+        memberVO.setMemberName(memberName);
+        memberVO.setEmail(email);
+
+        MemberVO result = memberService.findId(memberVO);
+
+        if (result != null) {
+            model.addAttribute(
+                    "findIdResult",
+                    result.getMemberId()
+            );
+        } else {
+            model.addAttribute(
+                    "errorMessage",
+                    "일치하는 회원 정보가 없습니다."
+            );
+        }
+
         return "member/findId";
     }
 
@@ -369,7 +391,32 @@ public class MemberController {
     }
 
     @PostMapping("/findPw")
-    public String findPwPost() {
+    public String findPwPost(
+            @RequestParam String memberId,
+            @RequestParam String memberName,
+            @RequestParam String email,
+            Model model) {
+
+        MemberVO memberVO = new MemberVO();
+
+        memberVO.setMemberId(memberId);
+        memberVO.setMemberName(memberName);
+        memberVO.setEmail(email);
+
+        MemberVO result = memberService.findPw(memberVO);
+
+        if (result != null) {
+            model.addAttribute(
+                    "findPwResult",
+                    result.getMemberPw()
+            );
+        } else {
+            model.addAttribute(
+                    "errorMessage",
+                    "일치하는 회원 정보가 없습니다."
+            );
+        }
+
         return "member/findPw";
     }
 }

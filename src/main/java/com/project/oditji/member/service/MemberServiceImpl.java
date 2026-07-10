@@ -177,4 +177,14 @@ public class MemberServiceImpl implements MemberService {
         ) == 0;
 
     }
+
+    @Override
+    public MemberVO findId(MemberVO memberVO) {
+        return memberDAO.findId(memberVO);
+    }
+
+    @Override
+    public MemberVO findPw(MemberVO memberVO) {
+        return memberDAO.findPw(memberVO);
+    }
 }
