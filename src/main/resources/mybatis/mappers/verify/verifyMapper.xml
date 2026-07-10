@@ -6,6 +6,7 @@
 <mapper namespace="com.project.oditji.verify.dao.VerifyDAO">
 
     <insert id="insertVerifyLog" parameterType="com.project.oditji.verify.vo.IdentityVerifyLogVO">
+
         INSERT INTO IDENTITY_VERIFY_LOG (
             VERIFY_NO,
             MEMBER_NO,
@@ -21,21 +22,22 @@
             VERIFIED_AT
         ) VALUES (
             SEQ_IDENTITY_VERIFY_LOG.NEXTVAL,
-            #{memberId, jdbcType=NUMERIC},
-            #{verifyId, jdbcType=VARCHAR},
-            #{verifyStatus, jdbcType=VARCHAR},
-            #{name, jdbcType=VARCHAR},
-            #{birthDate, jdbcType=VARCHAR},
-            #{phoneNumber, jdbcType=VARCHAR},
-            #{gender, jdbcType=VARCHAR},
-            #{adultYn, jdbcType=CHAR},
-            #{rawStatus, jdbcType=VARCHAR},
+            #{memberNo},
+            #{verifyId},
+            #{verifyStatus},
+            #{name},
+            #{birthDate},
+            #{phoneNumber},
+            #{gender},
+            #{adultYn},
+            #{rawStatus},
             SYSDATE,
             CASE
                 WHEN #{verifyStatus} = 'VERIFIED' THEN SYSDATE
                 ELSE NULL
             END
         )
+
     </insert>
 
     <update id="updateMemberAdultVerified">
@@ -43,13 +45,13 @@
         SET
             ADULT_VERIFIED = 'Y',
             UPDATED_AT = SYSDATE
-        WHERE MEMBER_ID = #{memberId}
+        WHERE MEMBER_NO = #{memberNo}
     </update>
 
     <select id="selectMemberAdultVerified" resultType="string">
         SELECT ADULT_VERIFIED
         FROM MEMBER
-        WHERE MEMBER_ID = #{memberId}
+        WHERE MEMBER_NO = #{memberNo}
     </select>
 
     <select id="countVerifyId" resultType="int">
