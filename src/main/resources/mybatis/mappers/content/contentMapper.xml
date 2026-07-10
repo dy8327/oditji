@@ -179,4 +179,38 @@
         FETCH FIRST #{size} ROWS ONLY
 
     </select>
+
+
+    <select id="selectActorListByContentNo"
+            parameterType="int"
+            resultType="com.project.oditji.tmdb.vo.ActorVO">
+        SELECT
+            A.ACTOR_NO AS actorNo,
+            A.TMDB_ACTOR_ID AS tmdbActorId,
+            A.ACTOR_NAME AS actorName,
+            A.PROFILE_PATH AS profilePath,
+            CA.CHARACTER_NAME AS characterName,
+            CA.DISPLAY_ORDER AS displayOrder
+        FROM CONTENT_ACTOR CA
+        JOIN ACTOR A ON A.ACTOR_NO = CA.ACTOR_NO
+        WHERE CA.CONTENT_NO = #{contentNo}
+        ORDER BY CA.DISPLAY_ORDER, A.ACTOR_NO
+    </select>
+
+    <select id="selectDirectorListByContentNo"
+            parameterType="int"
+            resultType="com.project.oditji.tmdb.vo.DirectorVO">
+        SELECT
+            D.DIRECTOR_NO AS directorNo,
+            D.TMDB_DIRECTOR_ID AS tmdbDirectorId,
+            D.DIRECTOR_NAME AS directorName,
+            D.PROFILE_PATH AS profilePath,
+            CD.DIRECTOR_TYPE AS directorType,
+            CD.DISPLAY_ORDER AS displayOrder
+        FROM CONTENT_DIRECTOR CD
+        JOIN DIRECTOR D ON D.DIRECTOR_NO = CD.DIRECTOR_NO
+        WHERE CD.CONTENT_NO = #{contentNo}
+        ORDER BY CD.DISPLAY_ORDER, D.DIRECTOR_NO
+    </select>
+
 </mapper>

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.tmdb.vo.DirectorVO;
 
 public interface ContentDAO {
 
@@ -15,7 +17,10 @@ public interface ContentDAO {
 
     int increaseViewCount(int contentNo);
 
-    // 메인 페이지 콘텐츠 리스트 조회 (홈 화면 노출용)
+    List<ActorVO> selectActorListByContentNo(int contentNo);
+
+    List<DirectorVO> selectDirectorListByContentNo(int contentNo);
+
     List<ContentVO> selectMainContentList();
 
     List<ContentVO> selectContentListByType(Map<String, Object> param);

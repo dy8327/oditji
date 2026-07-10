@@ -3,6 +3,7 @@ package com.project.oditji.tmdb.service;
 import java.util.List;
 
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.search.vo.SearchResultVO;
 
 public interface TmdbService {
@@ -51,4 +52,6 @@ public interface TmdbService {
     void saveContentPlatform(ContentVO content);
 
     void saveContentPeople(ContentVO content);
+
+    PersonFilmographyVO getPersonFilmography(Long tmdbPersonId, String role);
 }

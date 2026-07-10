@@ -24,6 +24,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.FilmographyVO;
+import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.tmdb.vo.ActorVO;
@@ -1972,4 +1974,421 @@ public class TmdbServiceImpl implements TmdbService {
                 ? trimmed
                 : trimmed.substring(0, maxLength);
     }
+
+    @Override
+    public PersonFilmographyVO getPersonFilmography(
+            Long tmdbPersonId,
+            String role) {
+
+        if (tmdbPersonId == null || tmdbPersonId <= 0) {
+            throw new IllegalArgumentException(
+                    "유효한 TMDB 인물 ID가 필요합니다.");
+        }
+
+        String normalizedRole = role == null
+                ? "ACTOR"
+                : role.trim().toUpperCase(Locale.ROOT);
+
+        if (!"ACTOR".equals(normalizedRole)
+                && !"DIRECTOR".equals(normalizedRole)
+                && !"CREATOR".equals(normalizedRole)) {
+            throw new IllegalArgumentException(
+                    "지원하지 않는 인물 역할입니다: " + role);
+        }
+
+        String url = tmdbApiBaseUrl
+                + "/person/" + tmdbPersonId
+                + "?language=" + tmdbApiLanguage
+                + "&append_to_response=combined_credits";
+
+        JsonNode root = callTmdbApi(url);
+
+        PersonFilmographyVO person = new PersonFilmographyVO();
+        person.setTmdbPersonId(tmdbPersonId);
+        person.setPersonName(root.path("name").asText(null));
+        person.setProfilePath(root.path("profile_path").asText(null));
+        person.setBiography(root.path("biography").asText(null));
+        person.setBirthday(root.path("birthday").asText(null));
+        person.setPlaceOfBirth(root.path("place_of_birth").asText(null));
+        person.setRole(normalizedRole);
+
+        JsonNode credits = root.path("combined_credits");
+
+        person.setCastList(createCastFilmographyList(
+                credits.path("cast")));
+
+        person.setDirectorList(createCrewFilmographyList(
+                credits.path("crew"),
+                "DIRECTOR"));
+
+        person.setProductionList(createCrewFilmographyList(
+                credits.path("crew"),
+                "PRODUCTION"));
+
+        return person;
+    }
+
+    private List<FilmographyVO> createCastFilmographyList(
+            JsonNode castItems) {
+
+        Map<String, FilmographyVO> uniqueMap =
+                new LinkedHashMap<String, FilmographyVO>();
+
+        if (castItems == null || !castItems.isArray()) {
+            return new ArrayList<FilmographyVO>();
+        }
+
+        for (JsonNode item : castItems) {
+
+            FilmographyVO filmography =
+                    createFilmographyVO(item);
+
+            if (filmography == null) {
+                continue;
+            }
+
+            filmography.setParticipationCategory("CAST");
+            filmography.setParticipationName(
+                    item.path("character").asText(null));
+
+            putFilmographyWithPriority(
+                    uniqueMap,
+                    item.path("media_type").asText(),
+                    filmography);
+        }
+
+        return sortFilmographyList(uniqueMap);
+    }
+
+    private List<FilmographyVO> createCrewFilmographyList(
+            JsonNode crewItems,
+            String category) {
+
+        Map<String, FilmographyVO> uniqueMap =
+                new LinkedHashMap<String, FilmographyVO>();
+
+        if (crewItems == null || !crewItems.isArray()) {
+            return new ArrayList<FilmographyVO>();
+        }
+
+        for (JsonNode item : crewItems) {
+
+            String job = item.path("job").asText("");
+            String department =
+                    item.path("department").asText("");
+
+            boolean matches;
+
+            if ("DIRECTOR".equals(category)) {
+                matches = "Director".equalsIgnoreCase(job);
+            } else {
+                matches = isProductionParticipation(
+                        job, department);
+            }
+
+            if (!matches) {
+                continue;
+            }
+
+            FilmographyVO filmography =
+                    createFilmographyVO(item);
+
+            if (filmography == null) {
+                continue;
+            }
+
+            filmography.setParticipationCategory(category);
+            filmography.setParticipationName(
+                    convertParticipationName(job, department));
+
+            putFilmographyWithPriority(
+                    uniqueMap,
+                    item.path("media_type").asText(),
+                    filmography);
+        }
+
+        return sortFilmographyList(uniqueMap);
+    }
+
+    private FilmographyVO createFilmographyVO(
+            JsonNode item) {
+
+        if (item == null || item.isNull()
+                || shouldExcludeContent(item)) {
+            return null;
+        }
+
+        String mediaType =
+                item.path("media_type").asText(null);
+
+        if (!"movie".equals(mediaType)
+                && !"tv".equals(mediaType)) {
+            return null;
+        }
+
+        long tmdbId = item.path("id").asLong();
+
+        if (tmdbId <= 0) {
+            return null;
+        }
+
+        FilmographyVO filmography =
+                new FilmographyVO();
+
+        filmography.setTmdbId(tmdbId);
+        filmography.setContentType(
+                "movie".equals(mediaType)
+                        ? "MOVIE"
+                        : "TV");
+
+        filmography.setTitle(firstNonBlank(
+                item.path("title").asText(null),
+                item.path("name").asText(null)));
+
+        filmography.setOriginalTitle(firstNonBlank(
+                item.path("original_title").asText(null),
+                item.path("original_name").asText(null)));
+
+        filmography.setPosterPath(
+                item.path("poster_path").asText(null));
+
+        filmography.setReleaseDate(firstNonBlank(
+                item.path("release_date").asText(null),
+                item.path("first_air_date").asText(null)));
+
+        filmography.setTmdbScore(
+                nullableDouble(item.path("vote_average")));
+
+        filmography.setPopularity(
+                nullableDouble(item.path("popularity")));
+
+        return filmography;
+    }
+
+    private void putFilmographyWithPriority(
+            Map<String, FilmographyVO> uniqueMap,
+            String mediaType,
+            FilmographyVO filmography) {
+
+        String key = mediaType + "-"
+                + filmography.getTmdbId();
+
+        FilmographyVO existing = uniqueMap.get(key);
+
+        if (existing == null) {
+            uniqueMap.put(key, filmography);
+            return;
+        }
+
+        String mergedParticipation =
+                mergeParticipationNames(
+                        existing.getParticipationName(),
+                        filmography.getParticipationName());
+
+        if (compareFilmographyPriority(
+                filmography, existing) < 0) {
+
+            filmography.setParticipationName(
+                    mergedParticipation);
+
+            uniqueMap.put(key, filmography);
+
+        } else {
+
+            existing.setParticipationName(
+                    mergedParticipation);
+        }
+    }
+
+    private List<FilmographyVO> sortFilmographyList(
+            Map<String, FilmographyVO> uniqueMap) {
+
+        List<FilmographyVO> list =
+                new ArrayList<FilmographyVO>(
+                        uniqueMap.values());
+
+        list.sort((first, second) -> {
+
+            String firstDate = first.getReleaseDate();
+            String secondDate = second.getReleaseDate();
+
+            boolean firstDateEmpty =
+                    firstDate == null || firstDate.isBlank();
+
+            boolean secondDateEmpty =
+                    secondDate == null || secondDate.isBlank();
+
+            if (firstDateEmpty && secondDateEmpty) {
+                return compareNullableDoubleDescending(
+                        first.getPopularity(),
+                        second.getPopularity());
+            }
+
+            if (firstDateEmpty) {
+                return 1;
+            }
+
+            if (secondDateEmpty) {
+                return -1;
+            }
+
+            int dateCompare =
+                    secondDate.compareTo(firstDate);
+
+            if (dateCompare != 0) {
+                return dateCompare;
+            }
+
+            return compareNullableDoubleDescending(
+                    first.getPopularity(),
+                    second.getPopularity());
+        });
+
+        return list;
+    }
+
+    private boolean isProductionParticipation(
+            String job,
+            String department) {
+
+        if ("Director".equalsIgnoreCase(job)) {
+            return false;
+        }
+
+        return "Creator".equalsIgnoreCase(job)
+                || "Executive Producer".equalsIgnoreCase(job)
+                || "Producer".equalsIgnoreCase(job)
+                || "Co-Producer".equalsIgnoreCase(job)
+                || "Associate Producer".equalsIgnoreCase(job)
+                || "Writer".equalsIgnoreCase(job)
+                || "Screenplay".equalsIgnoreCase(job)
+                || "Story".equalsIgnoreCase(job)
+                || "Novel".equalsIgnoreCase(job)
+                || "Original Story".equalsIgnoreCase(job)
+                || "Original Music Composer".equalsIgnoreCase(job)
+                || "Writing".equalsIgnoreCase(department)
+                || "Production".equalsIgnoreCase(department);
+    }
+
+    private String convertParticipationName(
+            String job,
+            String department) {
+
+        if (job == null || job.isBlank()) {
+            return department;
+        }
+
+        if ("Director".equalsIgnoreCase(job)) {
+            return "감독";
+        }
+        if ("Creator".equalsIgnoreCase(job)) {
+            return "크리에이터";
+        }
+        if ("Executive Producer".equalsIgnoreCase(job)) {
+            return "책임 프로듀서";
+        }
+        if ("Producer".equalsIgnoreCase(job)) {
+            return "프로듀서";
+        }
+        if ("Co-Producer".equalsIgnoreCase(job)) {
+            return "공동 프로듀서";
+        }
+        if ("Associate Producer".equalsIgnoreCase(job)) {
+            return "협력 프로듀서";
+        }
+        if ("Writer".equalsIgnoreCase(job)) {
+            return "각본";
+        }
+        if ("Screenplay".equalsIgnoreCase(job)) {
+            return "각색";
+        }
+        if ("Story".equalsIgnoreCase(job)
+                || "Original Story".equalsIgnoreCase(job)) {
+            return "원안";
+        }
+        if ("Novel".equalsIgnoreCase(job)) {
+            return "원작";
+        }
+        if ("Original Music Composer".equalsIgnoreCase(job)) {
+            return "음악";
+        }
+
+        return job;
+    }
+
+    private String mergeParticipationNames(
+            String first,
+            String second) {
+
+        Set<String> values =
+                new LinkedHashSet<String>();
+
+        addParticipationValues(values, first);
+        addParticipationValues(values, second);
+
+        return values.isEmpty()
+                ? null
+                : String.join(", ", values);
+    }
+
+    private void addParticipationValues(
+            Set<String> values,
+            String text) {
+
+        if (text == null || text.isBlank()) {
+            return;
+        }
+
+        String[] tokens = text.split(",");
+
+        for (String token : tokens) {
+
+            String value = token.trim();
+
+            if (!value.isEmpty()) {
+                values.add(value);
+            }
+        }
+    }
+
+    private int compareFilmographyPriority(
+            FilmographyVO first,
+            FilmographyVO second) {
+
+        boolean firstHasPoster =
+                first.getPosterPath() != null
+                && !first.getPosterPath().isBlank();
+
+        boolean secondHasPoster =
+                second.getPosterPath() != null
+                && !second.getPosterPath().isBlank();
+
+        if (firstHasPoster != secondHasPoster) {
+            return firstHasPoster ? -1 : 1;
+        }
+
+        return compareNullableDoubleDescending(
+                first.getPopularity(),
+                second.getPopularity());
+    }
+
+    private int compareNullableDoubleDescending(
+            Double first,
+            Double second) {
+
+        if (first == null && second == null) {
+            return 0;
+        }
+
+        if (first == null) {
+            return 1;
+        }
+
+        if (second == null) {
+            return -1;
+        }
+
+        return Double.compare(second, first);
+    }
+
 }

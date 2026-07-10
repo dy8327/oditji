@@ -16,8 +16,14 @@ import com.project.oditji.search.vo.SearchVO;
 @Controller
 public class SearchController {
 
+    /*
+     * 화면에 표시할 콘텐츠 개수
+     */
     private static final int DISPLAY_PAGE_SIZE = 10;
-    private static final int TMDB_PAGE_SIZE = 20;
+
+    /*
+     * TMDB API 최대 접근 페이지
+     */
     private static final int MAX_TMDB_PAGE = 500;
 
     private final SearchService searchService;
@@ -25,7 +31,9 @@ public class SearchController {
     @Value("${tmdb.api.image-base-url}")
     private String imageBaseUrl;
 
-    public SearchController(SearchService searchService) {
+    public SearchController(
+            SearchService searchService) {
+
         this.searchService = searchService;
     }
 
@@ -38,15 +46,15 @@ public class SearchController {
             searchVO = new SearchVO();
         }
 
-        String keyword = normalizeKeyword(
-                searchVO.getKeyword()
-        );
+        String keyword =
+                normalizeKeyword(
+                        searchVO.getKeyword()
+                );
 
-        searchVO.setKeyword(keyword);
-
-        int displayPage = normalizePage(
-                searchVO.getPage()
-        );
+        int displayPage =
+                normalizePage(
+                        searchVO.getPage()
+                );
 
         List<String> contentTypes =
                 createSafeList(
@@ -63,71 +71,144 @@ public class SearchController {
                         searchVO.getProviderIds()
                 );
 
+        searchVO.setKeyword(keyword);
+        searchVO.setPage(displayPage);
         searchVO.setContentTypes(contentTypes);
         searchVO.setGenreCodes(genreCodes);
         searchVO.setProviderIds(providerIds);
-        searchVO.setPage(displayPage);
 
         /*
-         * 화면은 10개 단위이고 TMDB는 20개 단위이므로
-         * 화면 페이지를 TMDB 페이지로 변환한다.
+         * 현재 화면 페이지까지 필요한 결과 개수.
          *
-         * 화면 1, 2페이지 -> TMDB 1페이지
-         * 화면 3, 4페이지 -> TMDB 2페이지
+         * 1페이지: 10개 필요
+         * 2페이지: 20개 필요
+         * 3페이지: 30개 필요
          */
-        int tmdbPage =
-                ((displayPage - 1) / 2) + 1;
+        int requiredResultCount =
+                displayPage * DISPLAY_PAGE_SIZE;
 
-        if (tmdbPage > MAX_TMDB_PAGE) {
-            tmdbPage = MAX_TMDB_PAGE;
-        }
+        /*
+         * 다음 페이지 존재 여부 확인을 위해
+         * 한 개를 추가로 수집한다.
+         */
+        int collectionTarget =
+                requiredResultCount + 1;
 
-        SearchResultPageVO tmdbResultPage;
+        List<SearchResultVO> collectedResultList =
+                new ArrayList<SearchResultVO>();
 
-        if (keyword.isEmpty()) {
+        int tmdbPage = 1;
 
-            tmdbResultPage =
-                    searchService.getPopularContent(
-                            tmdbPage,
-                            contentTypes,
-                            genreCodes,
-                            providerIds
-                    );
+        int tmdbTotalPages = 0;
+        int tmdbTotalResults = 0;
 
-        } else {
+        /*
+         * 지원 OTT가 있는 콘텐츠가 화면 페이지에 필요한 만큼
+         * 모일 때까지 TMDB 페이지를 순서대로 조회한다.
+         */
+        while (tmdbPage <= MAX_TMDB_PAGE
+                && collectedResultList.size()
+                        < collectionTarget) {
 
-            tmdbResultPage =
-                    searchService.searchByTmdb(
+            SearchResultPageVO partialPage =
+                    requestSearchPage(
                             keyword,
                             tmdbPage,
                             contentTypes,
                             genreCodes,
                             providerIds
                     );
+
+            if (partialPage == null) {
+                break;
+            }
+
+            if (tmdbPage == 1) {
+                tmdbTotalPages =
+                        Math.min(
+                                partialPage.getTotalPages(),
+                                MAX_TMDB_PAGE
+                        );
+
+                tmdbTotalResults =
+                        partialPage.getTotalResults();
+            }
+
+            List<SearchResultVO> partialResultList =
+                    partialPage.getResultList();
+
+            if (partialResultList != null
+                    && !partialResultList.isEmpty()) {
+
+                addUniqueResults(
+                        collectedResultList,
+                        partialResultList
+                );
+            }
+
+            /*
+             * TMDB가 알려준 마지막 페이지까지 도달하면 종료
+             */
+            if (partialPage.getTotalPages() <= tmdbPage) {
+                break;
+            }
+
+            tmdbPage++;
         }
 
-        List<SearchResultVO> displayResultList =
-                createDisplayResultList(
-                        tmdbResultPage.getResultList(),
-                        displayPage
+        int startIndex =
+                (displayPage - 1)
+                        * DISPLAY_PAGE_SIZE;
+
+        int endIndex =
+                Math.min(
+                        startIndex + DISPLAY_PAGE_SIZE,
+                        collectedResultList.size()
                 );
 
-        int totalResults =
-                tmdbResultPage.getTotalResults();
+        List<SearchResultVO> displayResultList =
+                new ArrayList<SearchResultVO>();
 
-        /*
-         * TMDB는 최대 500페이지까지 접근하도록 제한한다.
-         * 20개 × 500페이지 = 최대 10,000개
-         */
-        int maximumAccessibleResults =
-                TMDB_PAGE_SIZE * MAX_TMDB_PAGE;
+        if (startIndex
+                < collectedResultList.size()) {
 
-        if (totalResults > maximumAccessibleResults) {
-            totalResults = maximumAccessibleResults;
+            displayResultList.addAll(
+                    collectedResultList.subList(
+                            startIndex,
+                            endIndex
+                    )
+            );
         }
 
-        int totalPages =
-                calculateTotalPages(totalResults);
+        boolean hasNextPage =
+                collectedResultList.size()
+                        > endIndex;
+
+        /*
+         * 지원 OTT 필터 적용 후의 실제 전체 개수는
+         * 모든 TMDB 페이지를 검사해야 알 수 있다.
+         *
+         * 현재 페이지 기준으로 다음 페이지가 있으면
+         * 최소 현재 페이지 + 1까지 표시한다.
+         */
+        int filteredTotalPages;
+
+        if (hasNextPage) {
+            filteredTotalPages =
+                    displayPage + 1;
+        } else {
+            filteredTotalPages =
+                    displayPage;
+        }
+
+        /*
+         * 첫 페이지인데 결과가 없으면 페이지도 0으로 처리
+         */
+        if (displayPage == 1
+                && displayResultList.isEmpty()) {
+
+            filteredTotalPages = 0;
+        }
 
         SearchResultPageVO displayPageVO =
                 new SearchResultPageVO();
@@ -141,11 +222,15 @@ public class SearchController {
         );
 
         displayPageVO.setTotalPages(
-                totalPages
+                filteredTotalPages
         );
 
+        /*
+         * 전체 TMDB 결과 수는 OTT 필터링 전 개수이므로
+         * 참고값으로만 사용한다.
+         */
         displayPageVO.setTotalResults(
-                totalResults
+                tmdbTotalResults
         );
 
         model.addAttribute(
@@ -175,12 +260,12 @@ public class SearchController {
 
         model.addAttribute(
                 "totalPages",
-                totalPages
+                filteredTotalPages
         );
 
         model.addAttribute(
                 "totalResults",
-                totalResults
+                tmdbTotalResults
         );
 
         model.addAttribute(
@@ -213,71 +298,104 @@ public class SearchController {
                 imageBaseUrl
         );
 
+        /*
+         * 필요하다면 화면에서 안내용으로 사용 가능
+         */
+        model.addAttribute(
+                "tmdbTotalPages",
+                tmdbTotalPages
+        );
+
         return "search/searchResult";
     }
 
-    private List<SearchResultVO> createDisplayResultList(
-            List<SearchResultVO> sourceList,
-            int displayPage) {
+    /**
+     * 검색어 유무에 따라 SearchService를 호출한다.
+     */
+    private SearchResultPageVO requestSearchPage(
+            String keyword,
+            int tmdbPage,
+            List<String> contentTypes,
+            List<String> genreCodes,
+            List<String> providerIds) {
 
-        List<SearchResultVO> displayList =
-                new ArrayList<SearchResultVO>();
+        if (keyword == null
+                || keyword.isEmpty()) {
 
-        if (sourceList == null
-                || sourceList.isEmpty()) {
-
-            return displayList;
+            return searchService.getPopularContent(
+                    tmdbPage,
+                    contentTypes,
+                    genreCodes,
+                    providerIds
+            );
         }
 
-        /*
-         * 홀수 화면 페이지:
-         * TMDB 결과의 0~9번째
-         *
-         * 짝수 화면 페이지:
-         * TMDB 결과의 10~19번째
-         */
-        int startIndex =
-                displayPage % 2 == 1
-                        ? 0
-                        : DISPLAY_PAGE_SIZE;
-
-        if (startIndex >= sourceList.size()) {
-            return displayList;
-        }
-
-        int endIndex =
-                Math.min(
-                        startIndex + DISPLAY_PAGE_SIZE,
-                        sourceList.size()
-                );
-
-        displayList.addAll(
-                sourceList.subList(
-                        startIndex,
-                        endIndex
-                )
+        return searchService.searchByTmdb(
+                keyword,
+                tmdbPage,
+                contentTypes,
+                genreCodes,
+                providerIds
         );
-
-        return displayList;
     }
 
-    private int calculateTotalPages(
-            int totalResults) {
+    /**
+     * 콘텐츠 타입과 TMDB ID가 같은 결과는 중복으로 추가하지 않는다.
+     */
+    private void addUniqueResults(
+            List<SearchResultVO> targetList,
+            List<SearchResultVO> sourceList) {
 
-        if (totalResults <= 0) {
-            return 0;
+        for (SearchResultVO sourceVO : sourceList) {
+
+            if (sourceVO == null
+                    || sourceVO.getTmdbId() == null
+                    || sourceVO.getContentType() == null) {
+
+                continue;
+            }
+
+            boolean duplicated = false;
+
+            for (SearchResultVO targetVO : targetList) {
+
+                if (targetVO == null
+                        || targetVO.getTmdbId() == null
+                        || targetVO.getContentType() == null) {
+
+                    continue;
+                }
+
+                boolean sameTmdbId =
+                        sourceVO.getTmdbId().equals(
+                                targetVO.getTmdbId()
+                        );
+
+                boolean sameContentType =
+                        sourceVO.getContentType().equalsIgnoreCase(
+                                targetVO.getContentType()
+                        );
+
+                if (sameTmdbId
+                        && sameContentType) {
+
+                    duplicated = true;
+                    break;
+                }
+            }
+
+            if (!duplicated) {
+                targetList.add(sourceVO);
+            }
         }
-
-        return (int) Math.ceil(
-                (double) totalResults
-                        / DISPLAY_PAGE_SIZE
-        );
     }
 
     private int normalizePage(
             int page) {
 
-        return page <= 0 ? 1 : page;
+        return page <= 0
+                ? 1
+                : page;
     }
 
     private String normalizeKeyword(
@@ -345,13 +463,16 @@ public class SearchController {
                         || hasProviderFilter
                         || hasContentTypeFilter;
 
-        if (hasKeyword && hasAnyFilter) {
+        if (hasKeyword
+                && hasAnyFilter) {
+
             return "'"
                     + searchVO.getKeyword()
                     + "' 조건 검색 결과";
         }
 
         if (hasKeyword) {
+
             return "'"
                     + searchVO.getKeyword()
                     + "' 검색 결과";

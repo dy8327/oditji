@@ -954,19 +954,82 @@
     white-space: nowrap;
 }
 
+/* =========================================================
+   SEARCH RESULT META
+========================================================= */
+
 .search-content-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 7px;
+
     color: #929292;
     font-size: 11px;
+    line-height: 1;
 }
 
-.search-content-meta span:not(:last-child)::after {
+.search-content-meta > span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* 각 정보 사이 구분점 */
+.search-content-meta > span:not(:last-child)::after {
     margin-left: 7px;
     color: #555555;
     content: "·";
+}
+
+/* =========================================================
+   SEARCH RESULT OTT PLATFORM LOGO
+========================================================= */
+
+.search-content-meta > .search-content-platform-list {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    min-width: 0;
+    min-height: 18px;
+    margin: 0;
+    padding: 0;
+
+    line-height: 1;
+}
+
+/*
+ * 플랫폼 목록 뒤에는 구분점이 필요할 수 있으므로
+ * ::after는 유지한다.
+ *
+ * 내부 img에는 적용되지 않는다.
+ */
+.search-content-meta
+> .search-content-platform-list
+> .search-content-platform-logo {
+    display: block !important;
+
+    width: 18px !important;
+    height: 18px !important;
+
+    min-width: 18px !important;
+    max-width: 18px !important;
+
+    min-height: 18px !important;
+    max-height: 18px !important;
+
+    flex: 0 0 18px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+
+    background-color: #ffffff;
+
+    object-fit: cover !important;
+    object-position: center;
 }
 
 .search-content-score {
@@ -1018,10 +1081,591 @@
     .search-content-meta {
         align-items: flex-start;
         flex-direction: column;
-        gap: 3px;
+        gap: 5px;
     }
 
-    .search-content-meta span:not(:last-child)::after {
+    .search-content-meta > span:not(:last-child)::after {
         content: "";
+    }
+
+    .search-content-meta
+    > .search-content-platform-list {
+        gap: 4px;
+    }
+
+    .search-content-meta
+    > .search-content-platform-list
+    > .search-content-platform-logo {
+        width: 18px !important;
+        height: 18px !important;
+
+        min-width: 18px !important;
+        max-width: 18px !important;
+
+        min-height: 18px !important;
+        max-height: 18px !important;
+
+        flex-basis: 18px !important;
+    }
+}
+/* =========================================================
+   PEOPLE / FILMOGRAPHY
+========================================================= */
+
+.people-section {
+    margin-top: 40px;
+}
+
+.people-group + .people-group {
+    margin-top: 32px;
+}
+
+.people-group h3 {
+    margin: 0 0 16px;
+    color: #d7d7d7;
+    font-size: 15px;
+}
+
+.people-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.person-card {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    background: #1b1b1b;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.person-card:hover {
+    background: #242424;
+    transform: translateY(-2px);
+}
+
+.person-profile {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #101010;
+}
+
+.person-profile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.person-no-image,
+.person-hero-no-image,
+.filmography-no-image {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    background: #101010;
+    font-size: 10px;
+}
+
+.person-info {
+    min-width: 0;
+}
+
+.person-info strong,
+.person-info span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.person-info strong {
+    color: #fff;
+    font-size: 13px;
+}
+
+.person-info span {
+    margin-top: 5px;
+    color: #888;
+    font-size: 11px;
+}
+
+.people-empty {
+    color: #777;
+    font-size: 13px;
+}
+
+.filmography-container {
+    padding: 40px 60px 80px;
+}
+
+.person-hero {
+    display: flex;
+    gap: 36px;
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    background: #181818;
+}
+
+.person-hero-profile {
+    width: 220px;
+    height: 300px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #101010;
+}
+
+.person-hero-profile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.person-hero-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.person-role-badge {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.person-hero-info h1 {
+    margin: 14px 0 12px;
+    color: #fff;
+    font-size: 32px;
+}
+
+.person-basic-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #999;
+    font-size: 13px;
+}
+
+.person-biography {
+    max-width: 900px;
+    margin-top: 24px;
+    color: #ccc;
+    line-height: 1.75;
+    white-space: pre-line;
+}
+
+.filmography-section {
+    margin-top: 42px;
+}
+
+.filmography-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.filmography-header h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 24px;
+}
+
+.filmography-header span {
+    color: #888;
+    font-size: 13px;
+}
+
+.filmography-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.filmography-card {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    background: #1a1a1a;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.filmography-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.filmography-poster {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: #101010;
+}
+
+.filmography-poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.filmography-type {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.filmography-info {
+    padding: 13px;
+}
+
+.filmography-info h3 {
+    overflow: hidden;
+    margin: 0;
+    color: #fff;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filmography-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    color: #888;
+    font-size: 11px;
+}
+
+.filmography-participation {
+    overflow: hidden;
+    margin: 8px 0 0;
+    color: #aaa;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.back-btn {
+    border: 0;
+    background: transparent;
+    color: #ddd;
+    cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+    .people-list,
+    .filmography-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .people-list,
+    .filmography-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .person-hero {
+        align-items: center;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 650px) {
+    .filmography-container {
+        padding: 24px 20px 60px;
+    }
+
+    .people-list,
+    .filmography-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .person-hero-profile {
+        width: 180px;
+        height: 246px;
+    }
+}
+
+/* =========================================================
+   FILMOGRAPHY TAB
+========================================================= */
+
+.filmography-summary {
+    margin: 8px 0 0;
+    color: #858585;
+    font-size: 13px;
+}
+
+.filmography-total-count {
+    flex-shrink: 0;
+}
+
+.filmography-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.filmography-tab-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    background: #1c1c1c;
+    color: #a8a8a8;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.filmography-tab-button span {
+    display: inline-flex;
+    min-width: 23px;
+    height: 23px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 7px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #c8c8c8;
+    font-size: 11px;
+}
+
+.filmography-tab-button:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.filmography-tab-button:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.filmography-tab-button.is-active {
+    border-color: #ffffff;
+    background: #ffffff;
+    color: #111111;
+}
+
+.filmography-tab-button.is-active span {
+    background: #202020;
+    color: #ffffff;
+}
+
+.filmography-tab-panel[hidden] {
+    display: none;
+}
+
+.filmography-tab-panel.is-active {
+    animation: filmographyPanelFadeIn 0.2s ease;
+}
+
+.filmography-role {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    margin-top: 11px;
+}
+
+.filmography-role-label {
+    flex-shrink: 0;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.filmography-role-value {
+    overflow: hidden;
+    color: #b5b5b5;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.person-biography-empty {
+    color: #777777;
+}
+
+@keyframes filmographyPanelFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 650px) {
+
+    .filmography-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filmography-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .filmography-tab-button {
+        min-width: 0;
+        min-height: 40px;
+        gap: 5px;
+        padding: 0 8px;
+        font-size: 11px;
+    }
+
+    .filmography-tab-button span {
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        font-size: 10px;
+    }
+}
+
+/* =========================================================
+   FILMOGRAPHY CARD SIZE OVERRIDE
+========================================================= */
+
+.filmography-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(170px, 1fr)
+    );
+    gap: 16px;
+}
+
+.filmography-card {
+    min-width: 0;
+    border-radius: 12px;
+}
+
+.filmography-poster {
+    aspect-ratio: 2 / 3;
+}
+
+.filmography-info {
+    padding: 11px 12px 12px;
+}
+
+.filmography-info h3 {
+    font-size: 13px;
+}
+
+.filmography-meta {
+    margin-top: 7px;
+    font-size: 10px;
+}
+
+.filmography-participation {
+    margin-top: 7px;
+    font-size: 10px;
+}
+
+.filmography-type {
+    top: 8px;
+    left: 8px;
+    padding: 4px 7px;
+    font-size: 9px;
+}
+
+/* 큰 화면 */
+@media (min-width: 1600px) {
+
+    .filmography-grid {
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(165px, 1fr)
+        );
+    }
+}
+
+/* 노트북 화면 */
+@media (max-width: 1200px) {
+
+    .filmography-grid {
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(160px, 1fr)
+        );
+        gap: 14px;
+    }
+}
+
+/* 태블릿 */
+@media (max-width: 768px) {
+
+    .filmography-grid {
+        grid-template-columns: repeat(
+            3,
+            minmax(0, 1fr)
+        );
+    }
+}
+
+/* 모바일 */
+@media (max-width: 520px) {
+
+    .filmography-grid {
+        grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+        );
+        gap: 12px;
     }
 }
