@@ -64,13 +64,18 @@ public class SearchServiceImpl implements SearchService {
     private String region;
 
     private final TmdbDAO tmdbDAO;
+    private final TmdbProviderCacheService tmdbProviderCacheService;
     private final HttpClient httpClient;
 
     private final Map<String, Integer> movieGenreMap;
     private final Map<String, Integer> tvGenreMap;
 
-    public SearchServiceImpl(TmdbDAO tmdbDAO) {
+    public SearchServiceImpl(
+            TmdbDAO tmdbDAO,
+            TmdbProviderCacheService tmdbProviderCacheService) {
+
         this.tmdbDAO = tmdbDAO;
+        this.tmdbProviderCacheService = tmdbProviderCacheService;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -800,45 +805,71 @@ public class SearchServiceImpl implements SearchService {
      * DB의 OTT_PLATFORM.LOGO_IMAGE 정보를 연결합니다.
      */
     private SearchResultPageVO attachPlatformLogos(
-        SearchResultPageVO pageVO) {
+            SearchResultPageVO pageVO) {
 
-    if (pageVO == null
-            || pageVO.getResultList() == null
-            || pageVO.getResultList().isEmpty()) {
+        if (pageVO == null
+                || pageVO.getResultList() == null
+                || pageVO.getResultList().isEmpty()) {
+
+            return pageVO;
+        }
+
+        List<OttPlatformVO> activePlatformList =
+                tmdbDAO.selectActivePlatformList();
+
+        Map<String, OttPlatformVO> platformMap =
+                createPlatformMap(activePlatformList);
+
+        System.out.println(
+                "[검색 OTT DB 플랫폼 키] "
+                        + platformMap.keySet()
+        );
+
+        List<SearchResultVO> filteredResultList =
+                new ArrayList<SearchResultVO>();
+
+        for (SearchResultVO resultVO
+                : pageVO.getResultList()) {
+
+            if (resultVO == null
+                    || resultVO.getTmdbId() == null
+                    || resultVO.getContentType() == null) {
+
+                continue;
+            }
+
+            List<OttPlatformVO> resultPlatformList =
+                    findPlatformList(
+                            resultVO.getTmdbId(),
+                            resultVO.getContentType(),
+                            platformMap
+                    );
+
+            /*
+             * DB에 등록된 활성 OTT 6개 중 하나와도 매칭되지 않으면
+             * 검색 결과 자체에서 제외합니다.
+             *
+             * Apple TV, Crunchyroll처럼 TMDB 응답에는 존재하지만
+             * ODITJI 지원 플랫폼이 아닌 제공처만 있는 콘텐츠는
+             * 이 지점에서 제거됩니다.
+             */
+            if (resultPlatformList == null
+                    || resultPlatformList.isEmpty()) {
+
+                continue;
+            }
+
+            resultVO.setPlatformList(
+                    resultPlatformList
+            );
+
+            filteredResultList.add(resultVO);
+        }
+
+        pageVO.setResultList(filteredResultList);
 
         return pageVO;
     }
-
-    List<OttPlatformVO> activePlatformList =
-            tmdbDAO.selectActivePlatformList();
-
-    Map<String, OttPlatformVO> platformMap =
-            createPlatformMap(activePlatformList);
-
-    for (SearchResultVO resultVO
-            : pageVO.getResultList()) {
-
-        if (resultVO == null
-                || resultVO.getTmdbId() == null
-                || resultVO.getContentType() == null) {
-
-            continue;
-        }
-
-        List<OttPlatformVO> resultPlatformList =
-                findPlatformList(
-                        resultVO.getTmdbId(),
-                        resultVO.getContentType(),
-                        platformMap
-                );
-
-        resultVO.setPlatformList(
-                resultPlatformList
-        );
-    }
-
-    return pageVO;
-}
 
     private Map<String, OttPlatformVO> createPlatformMap(
             List<OttPlatformVO> activePlatformList) {
@@ -851,8 +882,10 @@ public class SearchServiceImpl implements SearchService {
         }
 
         for (OttPlatformVO platformVO : activePlatformList) {
+
             if (platformVO == null
                     || platformVO.getPlatformName() == null) {
+
                 continue;
             }
 
@@ -869,56 +902,67 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<OttPlatformVO> findPlatformList(
-                Long tmdbId,
-                String contentType,
-                Map<String, OttPlatformVO> platformMap) {
+            Long tmdbId,
+            String contentType,
+            Map<String, OttPlatformVO> platformMap) {
 
         List<OttPlatformVO> resultList =
                 new ArrayList<OttPlatformVO>();
 
-        String mediaType =
-                CONTENT_TYPE_MOVIE.equalsIgnoreCase(contentType)
-                        ? "movie"
-                        : "tv";
+        JSONObject root =
+                tmdbProviderCacheService
+                        .getWatchProviderResult(
+                                tmdbId,
+                                contentType
+                        );
 
-        String apiUrl = baseUrl
-                + "/" + mediaType
-                + "/" + tmdbId
-                + "/watch/providers";
-
-        JSONObject root = callTmdbApi(apiUrl);
         JSONObject results =
                 root.optJSONObject("results");
 
         if (results == null) {
-                return resultList;
+            return resultList;
         }
 
         JSONObject korea =
                 results.optJSONObject(region);
 
         if (korea == null) {
-                return resultList;
+            return resultList;
         }
+
+        System.out.println(
+                "[검색 OTT 한국 응답] tmdbId="
+                        + tmdbId
+                        + ", type="
+                        + contentType
+                        + ", data="
+                        + korea
+        );
 
         Set<Integer> duplicateCheck =
                 new HashSet<Integer>();
 
+        /* 정액제 구독 */
         addPlatformsFromProviderArray(
+                "flatrate",
                 korea.optJSONArray("flatrate"),
                 platformMap,
                 duplicateCheck,
                 resultList
         );
 
+        /* 광고 포함 무료 시청 */
         addPlatformsFromProviderArray(
+                "ads",
                 korea.optJSONArray("ads"),
                 platformMap,
                 duplicateCheck,
                 resultList
         );
 
+        /* 무료 시청 */
         addPlatformsFromProviderArray(
+                "free",
                 korea.optJSONArray("free"),
                 platformMap,
                 duplicateCheck,
@@ -926,57 +970,77 @@ public class SearchServiceImpl implements SearchService {
         );
 
         return resultList;
-        }
+    }
 
-        private void addPlatformsFromProviderArray(
-                JSONArray providerArray,
-                Map<String, OttPlatformVO> platformMap,
-                Set<Integer> duplicateCheck,
-                List<OttPlatformVO> resultList) {
+    private void addPlatformsFromProviderArray(
+            String providerType,
+            JSONArray providerArray,
+            Map<String, OttPlatformVO> platformMap,
+            Set<Integer> duplicateCheck,
+            List<OttPlatformVO> resultList) {
 
         if (providerArray == null) {
-                return;
+            return;
         }
 
         for (int i = 0;
                 i < providerArray.length();
                 i++) {
 
-                JSONObject provider =
-                        providerArray.optJSONObject(i);
+            JSONObject provider =
+                    providerArray.optJSONObject(i);
 
-                if (provider == null) {
+            if (provider == null) {
                 continue;
-                }
+            }
 
-                String providerName =
-                        provider.optString(
-                                "provider_name",
-                                ""
-                        );
+            int providerId =
+                    provider.optInt("provider_id", 0);
 
-                String key =
-                        normalizePlatformName(providerName);
+            String providerName =
+                    provider.optString(
+                            "provider_name",
+                            ""
+                    );
 
-                OttPlatformVO platformVO =
-                        platformMap.get(key);
+            String key =
+                    normalizePlatformName(providerName);
 
-                if (platformVO == null) {
+            OttPlatformVO platformVO =
+                    platformMap.get(key);
+
+            System.out.println(
+                    "[검색 OTT 매칭] type="
+                            + providerType
+                            + ", providerId="
+                            + providerId
+                            + ", TMDB 이름="
+                            + providerName
+                            + ", 정규화="
+                            + key
+                            + ", DB 매칭="
+                            + (platformVO == null
+                                    ? "실패"
+                                    : platformVO.getPlatformName())
+            );
+
+            if (platformVO == null) {
                 continue;
-                }
+            }
 
-                Integer platformNo =
-                        platformVO.getPlatformNo();
+            Integer platformNo =
+                    platformVO.getPlatformNo();
 
-                if (platformNo == null
-                        || duplicateCheck.add(platformNo)) {
+            if (platformNo == null
+                    || duplicateCheck.add(platformNo)) {
 
                 resultList.add(platformVO);
-                }
+            }
         }
-        }
+    }
 
-    private String normalizePlatformName(String platformName) {
+    private String normalizePlatformName(
+            String platformName) {
 
         if (platformName == null) {
             return "";
@@ -985,10 +1049,7 @@ public class SearchServiceImpl implements SearchService {
         String normalized = platformName
                 .trim()
                 .toLowerCase()
-                .replace(" ", "")
-                .replace("_", "")
-                .replace("-", "")
-                .replace("+", "");
+                .replaceAll("[^a-z0-9]", "");
 
         if (normalized.contains("netflix")) {
             return "netflix";
