@@ -7,6 +7,8 @@ import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.tmdb.vo.DirectorVO;
 
 @Repository
 public class ContentDAOImpl implements ContentDAO {
@@ -44,19 +46,29 @@ public class ContentDAOImpl implements ContentDAO {
         return sqlSession.update(NAMESPACE + "increaseViewCount", contentNo);
     }
 
-    // MyBatis를 통한 메인 콘텐츠 리스트 조회 (200개 제한, 정렬 포함)
+    @Override
+    public List<ActorVO> selectActorListByContentNo(int contentNo) {
+        return sqlSession.selectList(
+                NAMESPACE + "selectActorListByContentNo",
+                contentNo);
+    }
+
+    @Override
+    public List<DirectorVO> selectDirectorListByContentNo(int contentNo) {
+        return sqlSession.selectList(
+                NAMESPACE + "selectDirectorListByContentNo",
+                contentNo);
+    }
+
     @Override
     public List<ContentVO> selectMainContentList() {
-        return sqlSession.selectList(
-            NAMESPACE + "selectMainContentList"
-        );
+        return sqlSession.selectList(NAMESPACE + "selectMainContentList");
     }
 
     @Override
     public List<ContentVO> selectContentListByType(Map<String, Object> param) {
         return sqlSession.selectList(
-            NAMESPACE + "selectContentListByType",
-            param
-        );
+                NAMESPACE + "selectContentListByType",
+                param);
     }
 }

@@ -1,5 +1,6 @@
 package com.project.oditji.content.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.content.dao.ContentDAO;
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.tmdb.service.TmdbService;
+import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.tmdb.vo.DirectorVO;
 
 @Service
 public class ContentServiceImpl implements ContentService {
@@ -41,6 +45,7 @@ public class ContentServiceImpl implements ContentService {
         if (existingContent != null) {
 
             tmdbService.saveContentPlatform(existingContent);
+            tmdbService.saveContentPeople(existingContent);
 
             contentDAO.increaseViewCount(existingContent.getContentNo());
 
@@ -58,6 +63,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         tmdbService.saveContentPlatform(savedContent);
+        tmdbService.saveContentPeople(savedContent);
 
         contentDAO.increaseViewCount(savedContent.getContentNo());
 
@@ -69,6 +75,36 @@ public class ContentServiceImpl implements ContentService {
         return contentDAO.selectContentByContentNo(contentNo);
     }
 
+    @Override
+    public List<ActorVO> getActorListByContentNo(int contentNo) {
+
+        List<ActorVO> actorList =
+                contentDAO.selectActorListByContentNo(contentNo);
+
+        return actorList == null
+                ? Collections.emptyList()
+                : actorList;
+    }
+
+    @Override
+    public List<DirectorVO> getDirectorListByContentNo(int contentNo) {
+
+        List<DirectorVO> directorList =
+                contentDAO.selectDirectorListByContentNo(contentNo);
+
+        return directorList == null
+                ? Collections.emptyList()
+                : directorList;
+    }
+
+    @Override
+    public PersonFilmographyVO getPersonFilmography(
+            Long tmdbPersonId,
+            String role) {
+
+        return tmdbService.getPersonFilmography(tmdbPersonId, role);
+    }
+
     // 메인 페이지 콘텐츠 리스트 조회 처리 (DAO 호출 및 정렬 기준 적용)
     @Override
     public List<ContentVO> getMainContentList() {
@@ -78,8 +114,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<ContentVO> getContentListByType(String type, int page) {
 
+        int safePage = page <= 0 ? 1 : page;
         int pageSize = 20;
-        int offset = (page - 1) * pageSize;
+        int offset = (safePage - 1) * pageSize;
 
         Map<String, Object> param = new HashMap<>();
         param.put("type", type);

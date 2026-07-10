@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.tmdb.vo.DirectorVO;
 
 @Controller
 @RequestMapping("/content")
@@ -50,8 +53,34 @@ public class ContentController {
 
         ContentVO content = contentService.getContentDetail(contentNo);
 
+        if (content == null) {
+            throw new IllegalArgumentException("존재하지 않는 콘텐츠입니다.");
+        }
+
+        List<ActorVO> actorList =
+                contentService.getActorListByContentNo(contentNo);
+
+        List<DirectorVO> directorList =
+                contentService.getDirectorListByContentNo(contentNo);
+
         model.addAttribute("content", content);
+        model.addAttribute("actorList", actorList);
+        model.addAttribute("directorList", directorList);
 
         return "content/contentDetail";
+    }
+
+    @GetMapping("/person/{tmdbPersonId}")
+    public String personFilmography(
+            @PathVariable Long tmdbPersonId,
+            @RequestParam(defaultValue = "ACTOR") String role,
+            Model model) {
+
+        PersonFilmographyVO person =
+                contentService.getPersonFilmography(tmdbPersonId, role);
+
+        model.addAttribute("person", person);
+
+        return "content/personFilmography";
     }
 }

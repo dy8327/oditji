@@ -119,22 +119,101 @@
 
 </section>
 
-<section class="detail-section">
+<section class="detail-section people-section">
 
     <h2>감독 / 출연</h2>
 
-    <div class="cast-box">
+    <div class="people-group">
+        <h3>감독 및 제작진</h3>
 
-        <div>
-            <strong>감독</strong>
-            <p>${content.director}</p>
-        </div>
+        <c:choose>
+            <c:when test="${not empty directorList}">
+                <div class="people-list">
+                    <c:forEach var="director" items="${directorList}">
+                        <c:url var="directorFilmographyUrl"
+                               value="/content/person/${director.tmdbDirectorId}">
+                            <c:param name="role"
+                                     value="${director.directorType eq 'CREATOR' ? 'CREATOR' : 'DIRECTOR'}"/>
+                        </c:url>
 
-        <div>
-            <strong>출연</strong>
-            <p>${content.castNames}</p>
-        </div>
+                        <a href="${directorFilmographyUrl}"
+                           class="person-card">
+                            <div class="person-profile">
+                                <c:choose>
+                                    <c:when test="${not empty director.profilePath}">
+                                        <img src="https://image.tmdb.org/t/p/w185${director.profilePath}"
+                                             alt="${director.directorName}">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="person-no-image">NO IMAGE</div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
 
+                            <div class="person-info">
+                                <strong>${director.directorName}</strong>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${director.directorType eq 'CREATOR'}">크리에이터</c:when>
+                                        <c:otherwise>감독</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                        </a>
+                    </c:forEach>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <p class="people-empty">등록된 감독 정보가 없습니다.</p>
+            </c:otherwise>
+        </c:choose>
+    </div>
+
+    <div class="people-group">
+        <h3>출연진</h3>
+
+        <c:choose>
+            <c:when test="${not empty actorList}">
+                <div class="people-list">
+                    <c:forEach var="actor" items="${actorList}">
+                        <c:url var="actorFilmographyUrl"
+                               value="/content/person/${actor.tmdbActorId}">
+                            <c:param name="role" value="ACTOR"/>
+                        </c:url>
+
+                        <a href="${actorFilmographyUrl}"
+                           class="person-card">
+                            <div class="person-profile">
+                                <c:choose>
+                                    <c:when test="${not empty actor.profilePath}">
+                                        <img src="https://image.tmdb.org/t/p/w185${actor.profilePath}"
+                                             alt="${actor.actorName}">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="person-no-image">NO IMAGE</div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                            <div class="person-info">
+                                <strong>${actor.actorName}</strong>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${not empty actor.characterName}">
+                                            ${actor.characterName} 역
+                                        </c:when>
+                                        <c:otherwise>출연</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                        </a>
+                    </c:forEach>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <p class="people-empty">등록된 출연진 정보가 없습니다.</p>
+            </c:otherwise>
+        </c:choose>
     </div>
 
 </section>
