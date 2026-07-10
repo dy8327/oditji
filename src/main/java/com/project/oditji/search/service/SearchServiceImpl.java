@@ -28,6 +28,12 @@ public class SearchServiceImpl implements SearchService {
 
     private static final String MOVIE = "MOVIE";
     private static final String TV = "TV";
+
+    private static final String CATEGORY_MOVIE = "MOVIE";
+    private static final String CATEGORY_DRAMA = "DRAMA";
+    private static final String CATEGORY_ANIMATION = "ANIMATION";
+    private static final String CATEGORY_VARIETY = "VARIETY";
+    private static final String CATEGORY_DOCUMENTARY = "DOCUMENTARY";
     private static final int PERSON_LIMIT = 5;
     private static final int PERSON_CREDIT_LIMIT = 40;
 
@@ -54,74 +60,119 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public SearchResultPageVO getPopularContent(int page,
-                                                List<String> contentTypes,
-                                                List<String> genreCodes,
-                                                List<String> providerIds) {
+    public SearchResultPageVO getPopularContent(
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds) {
+
         int currentPage = normalizePage(page);
-        List<String> types = normalizeContentTypes(contentTypes);
+        List<String> categories = normalizeContentCategories(contentCategories);
         List<String> genres = normalizeStringList(genreCodes);
         List<String> providers = normalizeStringList(providerIds);
 
-        if (genres.isEmpty() && providers.isEmpty()
-                && (contentTypes == null || contentTypes.isEmpty())) {
-            return attachAndFilterPlatforms(callTrendingApi(currentPage), providers);
+        boolean hasCategoryFilter =
+                contentCategories != null && !contentCategories.isEmpty();
+
+        if (!hasCategoryFilter
+                && genres.isEmpty()
+                && providers.isEmpty()) {
+
+            return attachAndFilterPlatforms(
+                    callTrendingApi(currentPage),
+                    providers
+            );
         }
 
-        SearchResultPageVO pageVO = callDiscoverApis(
-                currentPage, types, genres, providers);
+        SearchResultPageVO pageVO = callCategoryDiscoverApis(
+                currentPage,
+                categories,
+                genres,
+                providers
+        );
+
         return attachAndFilterPlatforms(pageVO, providers);
     }
 
     @Override
-    public SearchResultPageVO searchByTmdb(String keyword,
-                                           int page,
-                                           List<String> contentTypes,
-                                           List<String> genreCodes,
-                                           List<String> providerIds) {
+    public SearchResultPageVO searchByTmdb(
+            String keyword,
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds) {
+
         int currentPage = normalizePage(page);
         String query = keyword == null ? "" : keyword.trim();
-        List<String> types = normalizeContentTypes(contentTypes);
-        List<String> genres = normalizeStringList(genreCodes);
-        List<String> providers = normalizeStringList(providerIds);
+
+        List<String> categories =
+                normalizeContentCategories(contentCategories);
+
+        List<String> genres =
+                normalizeStringList(genreCodes);
+
+        List<String> providers =
+                normalizeStringList(providerIds);
 
         if (query.isEmpty()) {
-            return getPopularContent(currentPage, types, genres, providers);
+            return getPopularContent(
+                    currentPage,
+                    categories,
+                    genres,
+                    providers
+            );
         }
 
-        SearchResultPageVO titlePage = callTitleSearch(query, currentPage, types);
-        List<SearchResultVO> merged = new ArrayList<SearchResultVO>();
-        merged.addAll(titlePage.getResultList());
+        SearchResultPageVO titlePage =
+                callTitleSearch(query, currentPage, categories);
+
+        List<SearchResultVO> merged =
+                new ArrayList<SearchResultVO>();
+
+        if (titlePage.getResultList() != null) {
+            merged.addAll(titlePage.getResultList());
+        }
 
         if (currentPage == 1) {
             merged.addAll(searchPersonCredits(query));
         }
 
         merged = removeDuplicateResults(merged);
-        merged = filterByContentTypes(merged, types);
+        merged = filterByContentCategories(merged, categories);
         merged = filterByGenreCodes(merged, genres);
         sortByPopularity(merged);
 
-        SearchResultPageVO mergedPage = new SearchResultPageVO();
+        SearchResultPageVO mergedPage =
+                new SearchResultPageVO();
+
         mergedPage.setResultList(merged);
         mergedPage.setPage(currentPage);
         mergedPage.setTotalPages(titlePage.getTotalPages());
-        mergedPage.setTotalResults(Math.max(titlePage.getTotalResults(), merged.size()));
+        mergedPage.setTotalResults(
+                Math.max(titlePage.getTotalResults(), merged.size())
+        );
 
         return attachAndFilterPlatforms(mergedPage, providers);
     }
 
-    private SearchResultPageVO callTitleSearch(String keyword,
-                                               int page,
-                                               List<String> contentTypes) {
-        if (contentTypes.size() == 1) {
-            if (MOVIE.equals(contentTypes.get(0))) {
+    private SearchResultPageVO callTitleSearch(
+            String keyword,
+            int page,
+            List<String> contentCategories) {
+
+        if (contentCategories.size() == 1) {
+            String category = contentCategories.get(0);
+
+            if (CATEGORY_MOVIE.equals(category)) {
                 return callMovieSearchApi(keyword, page);
             }
-            if (TV.equals(contentTypes.get(0))) {
+
+            if (CATEGORY_DRAMA.equals(category)
+                    || CATEGORY_VARIETY.equals(category)) {
                 return callTvSearchApi(keyword, page);
             }
         }
+
         return callMultiSearchApi(keyword, page);
     }
 
@@ -256,57 +307,184 @@ public class SearchServiceImpl implements SearchService {
         return convertTvPage(callTmdbApi(url));
     }
 
-    private SearchResultPageVO callDiscoverApis(int page,
-                                                List<String> contentTypes,
-                                                List<String> genreCodes,
-                                                List<String> providerIds) {
-        List<SearchResultVO> merged = new ArrayList<SearchResultVO>();
+    private SearchResultPageVO callCategoryDiscoverApis(
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds) {
+
+        List<SearchResultVO> merged =
+                new ArrayList<SearchResultVO>();
+
         int totalPages = 0;
         int totalResults = 0;
-        for (String type : contentTypes) {
-            SearchResultPageVO partial;
-            if (MOVIE.equals(type)) {
-                partial = callDiscover("movie", page, genreCodes, providerIds, movieGenreMap);
-            } else {
-                partial = callDiscover("tv", page, genreCodes, providerIds, tvGenreMap);
+
+        if (contentCategories.isEmpty()) {
+            SearchResultPageVO moviePage = callDiscover(
+                    "movie",
+                    page,
+                    buildGenreQuery(genreCodes, movieGenreMap),
+                    providerIds
+            );
+
+            SearchResultPageVO tvPage = callDiscover(
+                    "tv",
+                    page,
+                    buildGenreQuery(genreCodes, tvGenreMap),
+                    providerIds
+            );
+
+            merged.addAll(moviePage.getResultList());
+            merged.addAll(tvPage.getResultList());
+
+            totalPages = Math.max(
+                    moviePage.getTotalPages(),
+                    tvPage.getTotalPages()
+            );
+
+            totalResults =
+                    moviePage.getTotalResults()
+                    + tvPage.getTotalResults();
+        } else {
+            for (String category : contentCategories) {
+                List<SearchResultPageVO> partialPages =
+                        callCategoryDiscover(category, page, providerIds);
+
+                for (SearchResultPageVO partialPage : partialPages) {
+                    if (partialPage == null) {
+                        continue;
+                    }
+
+                    if (partialPage.getResultList() != null) {
+                        merged.addAll(partialPage.getResultList());
+                    }
+
+                    totalPages = Math.max(
+                            totalPages,
+                            partialPage.getTotalPages()
+                    );
+
+                    totalResults += partialPage.getTotalResults();
+                }
             }
-            merged.addAll(partial.getResultList());
-            totalPages = Math.max(totalPages, partial.getTotalPages());
-            totalResults += partial.getTotalResults();
+
+            merged = filterByContentCategories(
+                    merged,
+                    contentCategories
+            );
+
+            merged = filterByGenreCodes(
+                    merged,
+                    genreCodes
+            );
         }
+
         merged = removeDuplicateResults(merged);
         sortByPopularity(merged);
-        SearchResultPageVO pageVO = new SearchResultPageVO();
+
+        SearchResultPageVO pageVO =
+                new SearchResultPageVO();
+
         pageVO.setResultList(merged);
         pageVO.setPage(page);
         pageVO.setTotalPages(totalPages);
         pageVO.setTotalResults(totalResults);
+
         return pageVO;
     }
 
-    private SearchResultPageVO callDiscover(String media,
-                                            int page,
-                                            List<String> genreCodes,
-                                            List<String> providerIds,
-                                            Map<String, Integer> genreMap) {
+    private List<SearchResultPageVO> callCategoryDiscover(
+            String category,
+            int page,
+            List<String> providerIds) {
+
+        List<SearchResultPageVO> result =
+                new ArrayList<SearchResultPageVO>();
+
+        if (CATEGORY_MOVIE.equals(category)) {
+            result.add(
+                    callDiscover("movie", page, "", providerIds)
+            );
+            return result;
+        }
+
+        if (CATEGORY_DRAMA.equals(category)) {
+            result.add(
+                    callDiscover("tv", page, "18", providerIds)
+            );
+            return result;
+        }
+
+        if (CATEGORY_ANIMATION.equals(category)) {
+            result.add(
+                    callDiscover("movie", page, "16", providerIds)
+            );
+            result.add(
+                    callDiscover("tv", page, "16", providerIds)
+            );
+            return result;
+        }
+
+        if (CATEGORY_VARIETY.equals(category)) {
+            result.add(
+                    callDiscover("tv", page, "10764|10767", providerIds)
+            );
+            return result;
+        }
+
+        if (CATEGORY_DOCUMENTARY.equals(category)) {
+            result.add(
+                    callDiscover("movie", page, "99", providerIds)
+            );
+            result.add(
+                    callDiscover("tv", page, "99", providerIds)
+            );
+        }
+
+        return result;
+    }
+
+    private SearchResultPageVO callDiscover(
+            String media,
+            int page,
+            String genreQuery,
+            List<String> providerIds) {
+
         StringBuilder url = new StringBuilder(baseUrl)
-                .append("/discover/").append(media)
-                .append("?language=").append(encode(language))
-                .append("&watch_region=").append(encode(region))
+                .append("/discover/")
+                .append(media)
+                .append("?language=")
+                .append(encode(language))
+                .append("&watch_region=")
+                .append(encode(region))
                 .append("&sort_by=popularity.desc")
-                .append("&include_adult=false&page=").append(page);
+                .append("&include_adult=false")
+                .append("&page=")
+                .append(page);
+
         if ("movie".equals(media)) {
             url.append("&region=").append(encode(region));
         }
-        String genres = buildGenreQuery(genreCodes, genreMap);
+
         String providers = buildProviderQuery(providerIds);
-        if (!genres.isEmpty()) url.append("&with_genres=").append(encode(genres));
+
+        if (genreQuery != null && !genreQuery.isEmpty()) {
+            url.append("&with_genres=")
+                    .append(encode(genreQuery));
+        }
+
         if (!providers.isEmpty()) {
-            url.append("&with_watch_providers=").append(encode(providers));
+            url.append("&with_watch_providers=")
+                    .append(encode(providers));
+
             url.append("&with_watch_monetization_types=flatrate");
         }
+
         JSONObject root = callTmdbApi(url.toString());
-        return "movie".equals(media) ? convertMoviePage(root) : convertTvPage(root);
+
+        return "movie".equals(media)
+                ? convertMoviePage(root)
+                : convertTvPage(root);
     }
 
     private SearchResultPageVO attachAndFilterPlatforms(SearchResultPageVO pageVO,
@@ -479,13 +657,86 @@ public class SearchServiceImpl implements SearchService {
         return vo;
     }
 
-    private List<SearchResultVO> filterByContentTypes(List<SearchResultVO> list,
-                                                      List<String> types) {
-        List<SearchResultVO> result = new ArrayList<SearchResultVO>();
-        for (SearchResultVO vo : list) {
-            if (vo != null && types.contains(vo.getContentType())) result.add(vo);
+    private List<SearchResultVO> filterByContentCategories(
+            List<SearchResultVO> list,
+            List<String> contentCategories) {
+
+        if (contentCategories == null
+                || contentCategories.isEmpty()) {
+            return list;
         }
+
+        List<SearchResultVO> result =
+                new ArrayList<SearchResultVO>();
+
+        for (SearchResultVO vo : list) {
+            if (vo == null) {
+                continue;
+            }
+
+            for (String category : contentCategories) {
+                if (matchesContentCategory(vo, category)) {
+                    result.add(vo);
+                    break;
+                }
+            }
+        }
+
         return result;
+    }
+
+    private boolean matchesContentCategory(
+            SearchResultVO vo,
+            String category) {
+
+        String contentType =
+                vo.getContentType() == null
+                        ? ""
+                        : vo.getContentType().toUpperCase();
+
+        String genreText =
+                vo.getGenreText() == null
+                        ? ""
+                        : vo.getGenreText();
+
+        boolean animation =
+                genreText.contains("애니메이션");
+
+        boolean documentary =
+                genreText.contains("다큐멘터리");
+
+        boolean variety =
+                genreText.contains("리얼리티")
+                || genreText.contains("토크");
+
+        if (CATEGORY_MOVIE.equals(category)) {
+            return MOVIE.equals(contentType)
+                    && !animation
+                    && !documentary;
+        }
+
+        if (CATEGORY_DRAMA.equals(category)) {
+            return TV.equals(contentType)
+                    && genreText.contains("드라마")
+                    && !animation
+                    && !documentary
+                    && !variety;
+        }
+
+        if (CATEGORY_ANIMATION.equals(category)) {
+            return animation;
+        }
+
+        if (CATEGORY_VARIETY.equals(category)) {
+            return TV.equals(contentType)
+                    && variety;
+        }
+
+        if (CATEGORY_DOCUMENTARY.equals(category)) {
+            return documentary;
+        }
+
+        return false;
     }
 
     private List<SearchResultVO> filterByGenreCodes(List<SearchResultVO> list,
@@ -573,16 +824,35 @@ public class SearchServiceImpl implements SearchService {
         return String.join("|", result);
     }
 
-    private List<String> normalizeContentTypes(List<String> types) {
-        List<String> result = new ArrayList<String>();
-        if (types != null) {
-            for (String type : types) {
-                if (type == null) continue;
-                String normalized = type.trim().toUpperCase();
-                if ((MOVIE.equals(normalized) || TV.equals(normalized)) && !result.contains(normalized)) result.add(normalized);
+    private List<String> normalizeContentCategories(
+            List<String> categories) {
+
+        List<String> result =
+                new ArrayList<String>();
+
+        if (categories == null) {
+            return result;
+        }
+
+        for (String category : categories) {
+            if (category == null) {
+                continue;
+            }
+
+            String normalized =
+                    category.trim().toUpperCase();
+
+            if ((CATEGORY_MOVIE.equals(normalized)
+                    || CATEGORY_DRAMA.equals(normalized)
+                    || CATEGORY_ANIMATION.equals(normalized)
+                    || CATEGORY_VARIETY.equals(normalized)
+                    || CATEGORY_DOCUMENTARY.equals(normalized))
+                    && !result.contains(normalized)) {
+
+                result.add(normalized);
             }
         }
-        if (result.isEmpty()) { result.add(MOVIE); result.add(TV); }
+
         return result;
     }
 

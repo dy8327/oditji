@@ -21,6 +21,9 @@
 ========================================================= */
 
 .search-page-container .search-layout {
+    position: relative;
+    z-index: 1;
+
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr) 260px;
     gap: 24px;
@@ -31,9 +34,12 @@
 .search-page-container .search-right-sidebar {
     position: sticky;
     top: 90px;
+    z-index: 10;
 }
 
 .search-page-container .search-result-area {
+    position: relative;
+    z-index: 1;
     min-width: 0;
 }
 
@@ -103,6 +109,64 @@
     cursor: pointer;
 }
 
+.search-page-container .genre-extra-options[hidden] {
+    display: none !important;
+}
+
+.search-page-container .filter-secondary-action-box {
+    padding: 12px 16px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.search-page-container .filter-secondary-action-btn,
+.search-page-container .filter-provider-select-btn {
+    display: flex;
+    width: 100%;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: #222222;
+    color: #dddddd;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.search-page-container .filter-secondary-action-btn:hover,
+.search-page-container .filter-provider-select-btn:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+    background: #2b2b2b;
+    color: #ffffff;
+}
+
+.search-page-container .filter-secondary-action-btn:focus-visible,
+.search-page-container .filter-provider-select-btn:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.search-page-container .filter-provider-group {
+    padding-bottom: 16px;
+}
+
+.search-page-container .filter-provider-summary {
+    overflow: hidden;
+    margin: 10px 0 0;
+    color: #999999;
+    font-size: 11px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .search-page-container .filter-action-box {
     display: flex;
     flex-direction: column;
@@ -113,11 +177,13 @@
 .search-page-container .filter-submit-btn,
 .search-page-container .filter-reset-btn {
     display: flex;
+    width: 100%;
     min-height: 38px;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
     border-radius: 8px;
+    font-family: inherit;
     font-size: 12px;
     text-decoration: none;
     cursor: pointer;
@@ -134,6 +200,229 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: #222222;
     color: #dddddd;
+}
+
+/* =========================================================
+   OTT PLATFORM MODAL
+========================================================= */
+
+body.search-modal-open {
+    overflow: hidden;
+}
+
+/*
+ * 모달이 열리면 사이드바의 stacking context를
+ * 검색 결과 영역보다 위로 올린다.
+ */
+body.search-modal-open .search-page-container .search-left-sidebar {
+    z-index: 2147483646;
+}
+
+/*
+ * 기존 filter form의 overflow:hidden 때문에
+ * 모달이 잘리지 않도록 열려 있는 동안만 해제한다.
+ */
+body.search-modal-open .search-page-container .search-filter-form {
+    overflow: visible;
+}
+
+.search-page-container .ott-modal[hidden] {
+    display: none !important;
+}
+
+.search-page-container .ott-modal {
+    position: fixed;
+    z-index: 2147483647;
+    inset: 0;
+
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    isolation: isolate;
+}
+
+.search-page-container .ott-modal-backdrop {
+    position: fixed;
+    z-index: 1;
+    inset: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(4px);
+    cursor: default;
+}
+
+.search-page-container .ott-modal-dialog {
+    position: relative;
+    z-index: 2;
+
+    width: min(440px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+
+    background: #1d1d1d;
+
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+
+    animation: ottModalOpen 0.18s ease;
+}
+
+@keyframes ottModalOpen {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.search-page-container .ott-modal-header {
+    display: flex;
+    min-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-page-container .ott-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.search-page-container .ott-modal-close-btn {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #aaaaaa;
+    font-family: inherit;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.search-page-container .ott-modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.search-page-container .ott-modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.search-page-container .ott-modal-all-option {
+    margin-bottom: 14px;
+    border-color: rgba(255, 255, 255, 0.15);
+    background: #252525;
+}
+
+.search-page-container .ott-modal-option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.search-page-container .ott-modal-option {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    background: #202020;
+    color: #cccccc;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.search-page-container .ott-modal-option:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: #282828;
+    color: #ffffff;
+}
+
+.search-page-container .ott-modal-option:has(input:checked) {
+    border-color: rgba(255, 255, 255, 0.44);
+    background: #303030;
+    color: #ffffff;
+}
+
+.search-page-container .ott-modal-option input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: #ffffff;
+    cursor: pointer;
+}
+
+.search-page-container .ott-modal-option-text {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.search-page-container .ott-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-page-container .ott-modal-cancel-btn,
+.search-page-container .ott-modal-confirm-btn {
+    min-width: 96px;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.search-page-container .ott-modal-cancel-btn {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: #292929;
+    color: #dddddd;
+}
+
+.search-page-container .ott-modal-confirm-btn {
+    border: 0;
+    background: #ffffff;
+    color: #111111;
 }
 
 /* =========================================================
@@ -420,7 +709,6 @@
 
 /* =========================================================
    SEARCH RESULT OTT LOGOS
-   content.css의 .ott-box img 규칙과 완전히 분리
 ========================================================= */
 
 .search-page-container .search-content-platform-list {
@@ -583,8 +871,23 @@
 }
 
 .search-page-container .page-now {
-    color: #ffffff;
-    font-weight: 600;
+    background: #ffffff;
+    color: #111111;
+    font-weight: 700;
+}
+
+.search-page-container .page-btn:hover {
+    background: #333333;
+}
+
+.search-page-container .page-ellipsis {
+    display: inline-flex;
+    min-width: 28px;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    color: #777777;
+    font-size: 12px;
 }
 
 .search-page-container .empty-state {
@@ -592,136 +895,6 @@
     color: #777777;
     font-size: 14px;
     text-align: center;
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1350px) {
-    .search-page-container .search-layout {
-        grid-template-columns: 210px minmax(0, 1fr);
-    }
-
-    .search-page-container .search-right-sidebar {
-        display: none;
-    }
-}
-
-@media (max-width: 1100px) {
-    .search-page-container .search-goods-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 850px) {
-    .search-page-container {
-        padding: 30px 24px;
-    }
-
-    .search-page-container .search-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .search-page-container .search-left-sidebar,
-    .search-page-container .search-right-sidebar {
-        position: static;
-    }
-
-    .search-page-container .search-right-sidebar {
-        display: none;
-    }
-
-    .search-page-container .search-filter-form {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .search-page-container .filter-group {
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
-        border-bottom: 0;
-    }
-
-    .search-page-container .filter-action-box {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .search-page-container .filter-submit-btn,
-    .search-page-container .filter-reset-btn {
-        flex: 1;
-    }
-}
-
-@media (max-width: 760px) {
-    .search-page-container .search-goods-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .search-page-container .search-result-tabs {
-        overflow-x: auto;
-    }
-}
-
-@media (max-width: 700px) {
-    .search-page-container .search-content-link {
-        align-items: flex-start;
-        padding-right: 16px;
-    }
-
-    .search-page-container .search-content-score {
-        position: static;
-        flex-shrink: 0;
-        margin-left: auto;
-        transform: none;
-    }
-
-    .search-page-container .search-content-poster {
-        width: 68px;
-        height: 96px;
-    }
-
-    .search-page-container .search-content-meta {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .search-page-container .search-content-meta > span:not(:last-child)::after {
-        content: "";
-    }
-
-    .search-page-container .search-content-platform-list img,
-    .search-page-container img.search-content-platform-logo {
-        width: 18px !important;
-        height: 18px !important;
-        min-width: 18px !important;
-        max-width: 18px !important;
-        min-height: 18px !important;
-        max-height: 18px !important;
-        flex-basis: 18px !important;
-    }
-}
-
-@media (max-width: 600px) {
-    .search-page-container {
-        padding: 24px 16px 50px;
-    }
-
-    .search-page-container .search-filter-form {
-        grid-template-columns: 1fr;
-    }
-
-    .search-page-container .filter-group {
-        border-right: 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .search-page-container .search-result-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
 }
 
 /* =========================================================
@@ -792,7 +965,19 @@
     }
 }
 
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
 @media (max-width: 1350px) {
+
+    .search-page-container .search-layout {
+        grid-template-columns: 210px minmax(0, 1fr);
+    }
+
+    .search-page-container .search-right-sidebar {
+        display: none;
+    }
 
     .search-page-container .search-all-goods-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -801,19 +986,133 @@
 
 @media (max-width: 1100px) {
 
+    .search-page-container .search-goods-grid,
     .search-page-container .search-all-goods-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
+@media (max-width: 850px) {
+
+    .search-page-container {
+        padding: 30px 24px;
+    }
+
+    .search-page-container .search-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .search-page-container .search-left-sidebar,
+    .search-page-container .search-right-sidebar {
+        position: static;
+    }
+
+    .search-page-container .search-right-sidebar {
+        display: none;
+    }
+
+    .search-page-container .search-filter-form {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .search-page-container .filter-group {
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 0;
+    }
+
+    .search-page-container .filter-secondary-action-box {
+        display: flex;
+        align-items: flex-end;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 0;
+    }
+
+    .search-page-container .filter-action-box {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .search-page-container .filter-submit-btn,
+    .search-page-container .filter-reset-btn {
+        flex: 1;
+    }
+}
+
 @media (max-width: 760px) {
 
+    .search-page-container .search-goods-grid,
     .search-page-container .search-all-goods-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .search-page-container .search-result-tabs {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .search-page-container .search-content-link {
+        align-items: flex-start;
+        padding-right: 16px;
+    }
+
+    .search-page-container .search-content-score {
+        position: static;
+        flex-shrink: 0;
+        margin-left: auto;
+        transform: none;
+    }
+
+    .search-page-container .search-content-poster {
+        width: 68px;
+        height: 96px;
+    }
+
+    .search-page-container .search-content-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .search-page-container .search-content-meta > span:not(:last-child)::after {
+        content: "";
+    }
+
+    .search-page-container .search-content-platform-list img,
+    .search-page-container img.search-content-platform-logo {
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        max-width: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        flex-basis: 18px !important;
     }
 }
 
 @media (max-width: 600px) {
+
+    .search-page-container {
+        padding: 24px 16px 50px;
+    }
+
+    .search-page-container .search-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .search-page-container .filter-group,
+    .search-page-container .filter-secondary-action-box {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .search-page-container .search-result-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 
     .search-page-container .search-section-heading {
         align-items: flex-start;
@@ -824,24 +1123,21 @@
         padding: 7px 10px;
         font-size: 11px;
     }
-}
 
-.search-page-container .page-ellipsis {
-    display: inline-flex;
-    min-width: 28px;
-    min-height: 32px;
-    align-items: center;
-    justify-content: center;
-    color: #777777;
-    font-size: 12px;
-}
+    .search-page-container .ott-modal {
+        padding: 14px;
+    }
 
-.search-page-container .page-now {
-    background: #ffffff;
-    color: #111111;
-    font-weight: 700;
-}
+    .search-page-container .ott-modal-option-grid {
+        grid-template-columns: 1fr;
+    }
 
-.search-page-container .page-btn:hover {
-    background: #333333;
+    .search-page-container .ott-modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .search-page-container .ott-modal-cancel-btn,
+    .search-page-container .ott-modal-confirm-btn {
+        width: 100%;
+    }
 }
