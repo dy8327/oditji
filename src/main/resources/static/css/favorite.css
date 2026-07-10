@@ -1,92 +1,338 @@
 
-/* CONTAINER */
+/* =========================================================
+   CONTAINER
+========================================================= */
+
 .favorite-container{
+
     max-width:1200px;
     margin:0 auto;
     padding:40px;
+
 }
 
-/* HEADER */
+/* =========================================================
+   HEADER
+========================================================= */
+
 .favorite-header h1{
+
     font-size:24px;
+    font-weight:700;
+
     display:flex;
     align-items:center;
     gap:10px;
+
 }
 
 /* COUNT BADGE */
 .fav-count-badge{
-    background:red;
+
+    background:#E63946;
     color:#fff;
-    padding:3px 8px;
+
+    padding:3px 10px;
     border-radius:20px;
+
     font-size:12px;
+    font-weight:700;
+
 }
 
-/* TAB */
+/* =========================================================
+   TAB
+========================================================= */
+
 .favorite-tab{
+
     display:flex;
     gap:10px;
-    margin:20px 0;
+    margin:20px 0 30px;
+
 }
 
 .tab-btn{
+
     padding:10px 16px;
-    background:#2a2a2a;
-    color:#fff;
     border-radius:8px;
+
+    background:#2A2A2A;
+    color:#fff;
+
+    font-size:14px;
     cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.tab-btn:hover{
+
+    background:#3A3A3A;
+
 }
 
 .tab-btn.active{
+
     background:#fff;
-    color:#000;
+    color:#111;
+    font-weight:700;
+
 }
 
-/* CONTENT */
+/* =========================================================
+   TAB CONTENT
+========================================================= */
+
 .tab-content{ display:none; }
 .tab-content.active{ display:block; }
 
-/* GRID */
+/* =========================================================
+   GRID (content.css / goods.css의 card-list와 동일 규격 유지)
+========================================================= */
+
 .favorite-grid{
+
     display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:20px;
+    grid-template-columns:repeat(5, 1fr);
+    gap:22px;
+
 }
 
-/* CARD */
+/* =========================================================
+   CARD
+========================================================= */
+
 .favorite-card{
-    background:#222;
-    border-radius:10px;
-    overflow:hidden;
+
     position:relative;
+    background:#1E1E1E;
+    border-radius:14px;
+    overflow:hidden;
+
+    transition:transform .25s ease, box-shadow .25s ease;
+
 }
 
-.favorite-card img{
+.favorite-card:hover{
+
+    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);
+
+}
+
+.favorite-card-link{
+
+    display:block;
+    color:inherit;
+
+}
+
+/* =========================================================
+   POSTER AREA
+========================================================= */
+
+.favorite-poster{
+
+    position:relative;
     width:100%;
-    height:200px;
-    object-fit:cover;
+    height:240px;
+    background:#111;
+
+    overflow:hidden;
+
 }
 
-/* BUTTON */
+.favorite-poster img{
+
+    width:100%;
+    height:100%;
+    object-fit:cover;
+
+    transition:transform .35s ease;
+
+}
+
+.favorite-card:hover .favorite-poster img{
+
+    transform:scale(1.08);
+
+}
+
+/* fallback */
+.no-img{
+
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:12px;
+    color:#666;
+    background:#0F0F0F;
+
+}
+
+/* 할인율 뱃지 (상품 탭) */
+.discount-badge{
+
+    position:absolute;
+    top:10px;
+    left:10px;
+
+    padding:4px 8px;
+    border-radius:6px;
+
+    background:#E63946;
+    color:#fff;
+
+    font-size:12px;
+    font-weight:700;
+
+}
+
+/* =========================================================
+   INFO AREA
+========================================================= */
+
+.favorite-info{
+
+    padding:12px 14px;
+
+}
+
+.favorite-brand{
+
+    font-size:11px;
+    color:#8A8A8A;
+    margin-bottom:4px;
+
+}
+
+.favorite-title{
+
+    font-size:15px;
+    font-weight:600;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+}
+
+.favorite-meta{
+
+    margin-top:8px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+
+    font-size:12px;
+    color:#9A9A9A;
+
+}
+
+.price-original{
+
+    color:#777;
+    font-size:12px;
+    text-decoration:line-through;
+
+}
+
+.price-final{
+
+    color:#fff;
+    font-weight:700;
+    font-size:14px;
+
+}
+
+/* =========================================================
+   FAVORITE BUTTON (content.css / goods.css의 fav-btn과 동일 체계)
+========================================================= */
+
 .fav-btn{
+
     position:absolute;
     top:10px;
     right:10px;
-    width:30px;
-    height:30px;
+
+    width:36px;
+    height:36px;
+
     border-radius:50%;
-    background:#000;
+    background:rgba(0,0,0,0.55);
     color:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    transition:all .2s ease;
+
+}
+
+.fav-btn:hover{
+
+    background:rgba(255,255,255,0.15);
+    transform:scale(1.05);
+
 }
 
 .fav-btn.active{
-    color:red;
+
+    color:#E63946;
+
 }
 
-/* EMPTY */
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
 .empty-state{
+
+    padding:80px 0;
     text-align:center;
-    padding:60px;
-    color:#aaa;
+    color:#777;
+    font-size:14px;
+
+}
+
+/* =========================================================
+   RESPONSIVE (content.css / goods.css와 동일 breakpoint 유지)
+========================================================= */
+
+@media (max-width:1400px){
+
+    .favorite-grid{
+        grid-template-columns:repeat(4,1fr);
+    }
+
+}
+
+@media (max-width:1100px){
+
+    .favorite-grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+}
+
+@media (max-width:768px){
+
+    .favorite-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media (max-width:480px){
+
+    .favorite-grid{
+        grid-template-columns:1fr;
+    }
+
 }
