@@ -3,6 +3,12 @@ package com.project.oditji.member.vo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * 카카오 사용자 정보 조회 응답 VO
+ *
+ * 카카오 API 응답에는 프로젝트에서 사용하지 않는 필드도 포함되므로
+ * 알 수 없는 JSON 필드는 무시하도록 설정한다.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoUserInfoVO {
 
@@ -86,12 +92,20 @@ public class KakaoUserInfoVO {
         this.kakaoAccount = kakaoAccount;
     }
 
+    /**
+     * 카카오 닉네임 반환
+     *
+     * 카카오 계정이나 프로필 또는 닉네임이 없으면
+     * 기본 닉네임을 반환한다.
+     */
     public String getNickname() {
-        if (kakaoAccount == null || kakaoAccount.getProfile() == null) {
+        Profile profile = getProfile();
+
+        if (profile == null) {
             return "카카오회원";
         }
 
-        String nickname = kakaoAccount.getProfile().getNickname();
+        String nickname = profile.getNickname();
 
         if (nickname == null || nickname.isBlank()) {
             return "카카오회원";
@@ -100,11 +114,40 @@ public class KakaoUserInfoVO {
         return nickname;
     }
 
+    /**
+     * 카카오 프로필 원본 이미지 URL 반환
+     */
     public String getProfileImageUrl() {
-        if (kakaoAccount == null || kakaoAccount.getProfile() == null) {
+        Profile profile = getProfile();
+
+        if (profile == null) {
             return null;
         }
 
-        return kakaoAccount.getProfile().getProfileImageUrl();
+        return profile.getProfileImageUrl();
+    }
+
+    /**
+     * 카카오 프로필 썸네일 이미지 URL 반환
+     */
+    public String getThumbnailImageUrl() {
+        Profile profile = getProfile();
+
+        if (profile == null) {
+            return null;
+        }
+
+        return profile.getThumbnailImageUrl();
+    }
+
+    /**
+     * 중첩된 카카오 프로필 객체를 안전하게 반환한다.
+     */
+    private Profile getProfile() {
+        if (kakaoAccount == null) {
+            return null;
+        }
+
+        return kakaoAccount.getProfile();
     }
 }
