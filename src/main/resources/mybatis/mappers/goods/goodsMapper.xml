@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.goods.dao.GoodsDAO">
+
+    <resultMap id="goodsResultMap" type="com.project.oditji.goods.vo.GoodsVO">
+        <id property="productNo" column="PRODUCT_NO"/>
+        <result property="productName" column="PRODUCT_NAME"/>
+        <result property="productType" column="PRODUCT_TYPE"/>
+        <result property="price" column="PRICE"/>
+        <result property="discountRate" column="DISCOUNT_RATE"/>
+        <result property="stock" column="STOCK"/>
+        <result property="description" column="DESCRIPTION" jdbcType="CLOB"/>
+        <result property="status" column="STATUS"/>
+        <result property="businessName" column="BUSINESS_NAME"/>
+        <result property="mainImage" column="MAIN_IMAGE"/>
+    </resultMap>
+
+    <select id="searchGoods" resultMap="goodsResultMap">
+        SELECT
+            P.PRODUCT_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            P.DISCOUNT_RATE,
+            P.STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            (
+                SELECT IMAGE_PATH
+                FROM PRODUCT_IMAGE PI
+                WHERE PI.PRODUCT_NO = P.PRODUCT_NO
+                  AND PI.IS_MAIN = 'Y'
+                  AND ROWNUM = 1
+            ) AS MAIN_IMAGE
+        FROM PRODUCT P
+        JOIN BUSINESS B ON B.BUSINESS_NO = P.BUSINESS_NO
+        WHERE P.STATUS = 'ON_SALE'
+          AND LOWER(P.PRODUCT_NAME) LIKE '%' || LOWER(#{keyword}) || '%'
+        ORDER BY P.CREATED_AT DESC, P.PRODUCT_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="countSearchGoods" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT P
+        WHERE P.STATUS = 'ON_SALE'
+          AND LOWER(P.PRODUCT_NAME) LIKE '%' || LOWER(#{keyword}) || '%'
+    </select>
+
+</mapper>
