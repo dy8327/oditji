@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.business.dao.BusinessDAO">
+
+    <!-- 로그인 회원과 연결된 사업자 정보 -->
+    <select id="selectBusinessByMemberNo"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.BusinessVO">
+
+        SELECT
+            BUSINESS_NO,
+            MEMBER_NO,
+            BUSINESS_NAME,
+            BUSINESS_NUMBER,
+            BANK_NAME,
+            ACCOUNT_NUMBER,
+            ACCOUNT_HOLDER,
+            GRADE_NAME,
+            CUSTOM_RATE,
+            STATUS,
+            CREATED_AT
+        FROM BUSINESS
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+
+    <!-- 상품 등록 -->
+    <insert id="insertProduct"
+            parameterType="com.project.oditji.business.vo.GoodsManageVO">
+
+        <selectKey keyProperty="productNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_PRODUCT_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO PRODUCT (
+            PRODUCT_NO,
+            BUSINESS_NO,
+            CONTENT_NO,
+            ACTOR_NO,
+            PRODUCT_NAME,
+            PRODUCT_TYPE,
+            PRICE,
+            DISCOUNT_RATE,
+            STOCK,
+            DESCRIPTION,
+            STATUS,
+            CREATED_AT
+        )
+        VALUES (
+            #{productNo},
+            #{businessNo},
+            #{contentNo},
+            #{actorNo, jdbcType=NUMERIC},
+            #{productName},
+            #{productType},
+            #{price},
+            #{discountRate},
+            #{stock},
+            #{description, jdbcType=CLOB},
+            #{status},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- 상품 대표 이미지 등록 -->
+    <insert id="insertProductImage"
+            parameterType="com.project.oditji.business.vo.GoodsManageVO">
+
+        <selectKey keyProperty="imageNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_PRODUCT_IMAGE_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO PRODUCT_IMAGE (
+            IMAGE_NO,
+            PRODUCT_NO,
+            IMAGE_PATH,
+            IS_MAIN
+        )
+        VALUES (
+            #{imageNo},
+            #{productNo},
+            #{imagePath},
+            #{isMain}
+        )
+
+    </insert>
+
+
+    <!-- 콘텐츠 검색 -->
+    <select id="selectContentList"
+            resultType="com.project.oditji.business.vo.ContentSearchVO">
+
+        SELECT
+            CONTENT_NO,
+            TMDB_ID,
+            CONTENT_TYPE,
+            TITLE,
+            ORIGINAL_TITLE,
+            POSTER_PATH,
+            RELEASE_DATE,
+            GENRE_TEXT,
+            AGE_RATING
+        FROM CONTENT
+        WHERE 1 = 1
+
+        <if test="keyword != null and keyword != ''">
+
+            AND (
+                UPPER(TITLE)
+                    LIKE '%' || UPPER(#{keyword}) || '%'
+
+                OR UPPER(ORIGINAL_TITLE)
+                    LIKE '%' || UPPER(#{keyword}) || '%'
+            )
+
+        </if>
+
+        ORDER BY CONTENT_NO DESC
+
+    </select>
+
+
+    <!-- 콘텐츠 단건 조회 -->
+    <select id="selectContentByNo"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.ContentSearchVO">
+
+        SELECT
+            CONTENT_NO,
+            TMDB_ID,
+            CONTENT_TYPE,
+            TITLE,
+            ORIGINAL_TITLE,
+            POSTER_PATH,
+            RELEASE_DATE,
+            GENRE_TEXT,
+            AGE_RATING
+        FROM CONTENT
+        WHERE CONTENT_NO = #{contentNo}
+
+    </select>
+
+
+    <!-- 배우 목록 -->
+    <select id="selectActorList"
+            resultType="com.project.oditji.business.vo.ActorSearchVO">
+
+        SELECT
+            ACTOR_NO,
+            TMDB_ACTOR_ID,
+            ACTOR_NAME,
+            PROFILE_PATH
+        FROM ACTOR
+        ORDER BY ACTOR_NAME ASC
+
+    </select>
+
+
+    <!-- 배우 단건 조회 -->
+    <select id="selectActorByNo"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.ActorSearchVO">
+
+        SELECT
+            ACTOR_NO,
+            TMDB_ACTOR_ID,
+            ACTOR_NAME,
+            PROFILE_PATH
+        FROM ACTOR
+        WHERE ACTOR_NO = #{actorNo}
+
+    </select>
+
+
+    <!-- 사업자가 등록한 상품 목록 -->
+    <select id="selectProductListByBusinessNo"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.GoodsManageVO">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            P.DISCOUNT_RATE,
+            P.STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            P.CREATED_AT,
+
+            C.TITLE AS CONTENT_TITLE,
+            A.ACTOR_NAME,
+            B.BUSINESS_NAME,
+
+            (
+                SELECT PI.IMAGE_PATH
+                FROM PRODUCT_IMAGE PI
+                WHERE PI.PRODUCT_NO = P.PRODUCT_NO
+                  AND PI.IS_MAIN = 'Y'
+                  AND ROWNUM = 1
+            ) AS IMAGE_PATH
+
+        FROM PRODUCT P
+
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        JOIN CONTENT C
+          ON C.CONTENT_NO = P.CONTENT_NO
+
+        LEFT JOIN ACTOR A
+          ON A.ACTOR_NO = P.ACTOR_NO
+
+        WHERE P.BUSINESS_NO = #{businessNo}
+
+        ORDER BY P.PRODUCT_NO DESC
+
+    </select>
+
+</mapper>
