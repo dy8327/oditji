@@ -96,6 +96,10 @@ public class PlatformSelectController {
 
                 session.setAttribute("loginMember", loginMember);
                 session.setAttribute("loginMemberNo", loginMember.getMemberNo());
+
+                // 성인인증 등 공통 기능에서 사용할 회원 번호
+                session.setAttribute("memberNo", loginMember.getMemberNo());
+
                 session.setAttribute("loginMemberId", loginMember.getMemberId());
                 session.setAttribute("loginMemberName", loginMember.getMemberName());
                 session.setAttribute("loginNickname", loginMember.getNickname());
