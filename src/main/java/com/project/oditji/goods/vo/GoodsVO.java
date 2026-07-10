@@ -92,4 +92,8 @@ public class GoodsVO {
     public void setMainImage(String mainImage) {
         this.mainImage = mainImage;
     }
+
+    public int getDiscountPrice() {
+        return price - (price * discountRate / 100);
+    }
 }

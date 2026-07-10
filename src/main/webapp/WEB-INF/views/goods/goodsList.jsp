@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -110,9 +111,7 @@
 
                                     <span class="price-final">
                                         <span class="rate">${g.discountRate}%</span>
-                                        ₩ <fmt:formatNumber
-                                                value="${g.price - (g.price * g.discountRate / 100)}"
-                                                maxFractionDigits="0"/>
+                                        ₩ <fmt:formatNumber value="${g.discountPrice}" pattern="#,###"/>
                                     </span>
 
                                 </c:when>
