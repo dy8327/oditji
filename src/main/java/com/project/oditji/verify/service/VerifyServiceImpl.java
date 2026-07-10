@@ -20,33 +20,29 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 @Service
 public class VerifyServiceImpl implements VerifyService {
 
-    private static final String PORTONE_BASE_URL =
-            "https://api.portone.io";
+    private static final String PORTONE_BASE_URL = "https://api.portone.io";
 
-    private static final String VERIFIED_STATUS =
-            "VERIFIED";
+    private static final String VERIFIED_STATUS = "VERIFIED";
 
-    private static final String FAILED_STATUS =
-            "FAILED";
+    private static final String FAILED_STATUS = "FAILED";
 
-    private static final String SERVER_ERROR_STATUS =
-            "SERVER_ERROR";
+    private static final String SERVER_ERROR_STATUS = "SERVER_ERROR";
 
-    private static final String ADULT_Y =
-            "Y";
+    private static final String ADULT_Y = "Y";
 
-    private static final String ADULT_N =
-            "N";
+    private static final String ADULT_N = "N";
 
-    private static final DateTimeFormatter VERIFY_ID_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final String DEFAULT_RETURN_URL = "/";
 
-    private static final SecureRandom RANDOM =
-            new SecureRandom();
+    private static final DateTimeFormatter VERIFY_ID_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final VerifyDAO verifyDAO;
     private final RestClient restClient;
@@ -58,7 +54,6 @@ public class VerifyServiceImpl implements VerifyService {
 
     public VerifyServiceImpl(
             VerifyDAO verifyDAO,
-            RestClient.Builder restClientBuilder,
             @Value("${portone.store-id}")
             String storeId,
             @Value("${portone.identity1.channel-key}")
@@ -72,10 +67,9 @@ public class VerifyServiceImpl implements VerifyService {
         this.storeId = storeId;
         this.easyChannelKey = easyChannelKey;
         this.smsChannelKey = smsChannelKey;
-
         this.clock = Clock.systemDefaultZone();
 
-        this.restClient = restClientBuilder
+        this.restClient = RestClient.builder()
                 .baseUrl(PORTONE_BASE_URL)
                 .defaultHeader(
                         HttpHeaders.AUTHORIZATION,
@@ -139,15 +133,18 @@ public class VerifyServiceImpl implements VerifyService {
                     getString(identityVerification, "status");
 
             if (!VERIFIED_STATUS.equalsIgnoreCase(status)) {
+                String failStatus =
+                        defaultString(status, "UNKNOWN");
+
                 insertFailedLog(
                         memberNo,
                         verifyId,
-                        defaultString(status, "UNKNOWN")
+                        failStatus
                 );
 
                 return AdultVerifyCompleteVO.fail(
                         "본인인증이 완료되지 않았습니다. 현재 상태: "
-                                + defaultString(status, "UNKNOWN")
+                                + failStatus
                 );
             }
 
@@ -371,12 +368,16 @@ public class VerifyServiceImpl implements VerifyService {
             LocalDate today =
                     LocalDate.now(clock);
 
+            if (birth.isAfter(today)) {
+                return false;
+            }
+
             return Period.between(
                     birth,
                     today
             ).getYears() >= 19;
 
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             return false;
         }
     }
@@ -398,21 +399,24 @@ public class VerifyServiceImpl implements VerifyService {
             return null;
         }
 
-        if (birthDate.matches(
+        String trimmedBirthDate =
+                birthDate.trim();
+
+        if (trimmedBirthDate.matches(
                 "\\d{4}-\\d{2}-\\d{2}"
         )) {
-            return birthDate;
+            return trimmedBirthDate;
         }
 
-        if (birthDate.matches("\\d{8}")) {
-            return birthDate.substring(0, 4)
+        if (trimmedBirthDate.matches("\\d{8}")) {
+            return trimmedBirthDate.substring(0, 4)
                     + "-"
-                    + birthDate.substring(4, 6)
+                    + trimmedBirthDate.substring(4, 6)
                     + "-"
-                    + birthDate.substring(6, 8);
+                    + trimmedBirthDate.substring(6, 8);
         }
 
-        return birthDate;
+        return trimmedBirthDate;
     }
 
     /**
@@ -424,7 +428,8 @@ public class VerifyServiceImpl implements VerifyService {
         }
 
         String normalizedGender =
-                gender.trim().toUpperCase();
+                gender.trim()
+                        .toUpperCase(Locale.ROOT);
 
         if ("MALE".equals(normalizedGender)
                 || "M".equals(normalizedGender)) {
@@ -460,7 +465,14 @@ public class VerifyServiceImpl implements VerifyService {
             return null;
         }
 
-        return value.asString();
+        String text =
+                value.asString();
+
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+
+        return text;
     }
 
     /**
@@ -481,29 +493,31 @@ public class VerifyServiceImpl implements VerifyService {
     }
 
     /**
-     * 외부 사이트 리다이렉트를 막고
-     * 프로젝트 내부 경로만 허용한다.
+     * 외부 사이트 리다이렉트를 막고 프로젝트 내부 경로만 허용한다.
      */
     private String sanitizeReturnUrl(String returnUrl) {
         if (returnUrl == null || returnUrl.isBlank()) {
-            return "/";
+            return DEFAULT_RETURN_URL;
         }
 
         String trimmedUrl =
                 returnUrl.trim();
 
         if (!trimmedUrl.startsWith("/")) {
-            return "/";
+            return DEFAULT_RETURN_URL;
         }
 
         if (trimmedUrl.startsWith("//")) {
-            return "/";
+            return DEFAULT_RETURN_URL;
         }
 
-        if (trimmedUrl.startsWith("/\\")
-                || trimmedUrl.contains("\r")
+        if (trimmedUrl.startsWith("/\\")) {
+            return DEFAULT_RETURN_URL;
+        }
+
+        if (trimmedUrl.contains("\r")
                 || trimmedUrl.contains("\n")) {
-            return "/";
+            return DEFAULT_RETURN_URL;
         }
 
         return trimmedUrl;
