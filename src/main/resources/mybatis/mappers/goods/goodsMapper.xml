@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.goods.dao.GoodsDAO">
+
+    <resultMap id="goodsResultMap"
+               type="com.project.oditji.goods.vo.GoodsVO">
+
+        <id property="productNo"
+            column="PRODUCT_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="description"
+                column="DESCRIPTION"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+    </resultMap>
+
+
+    <!--
+        상품명 검색 페이지 조회
+
+        - 판매 중인 상품만 검색
+        - 상품명 기준 검색
+        - 대표 이미지 IS_MAIN = 'Y' 우선
+        - 대표 이미지가 여러 개면 IMAGE_NO가 가장 작은 이미지 사용
+    -->
+    <select id="selectSearchGoods"
+            resultMap="goodsResultMap">
+
+        SELECT
+            PAGED.PRODUCT_NO,
+            PAGED.PRODUCT_NAME,
+            PAGED.PRODUCT_TYPE,
+            PAGED.PRICE,
+            PAGED.DISCOUNT_RATE,
+            PAGED.STOCK,
+            PAGED.DESCRIPTION,
+            PAGED.STATUS,
+            PAGED.BUSINESS_NAME,
+            PAGED.MAIN_IMAGE
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                P.DISCOUNT_RATE,
+                P.STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+
+                B.BUSINESS_NAME,
+
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            LEFT JOIN (
+                SELECT
+                    PRODUCT_NO,
+
+                    MAX(IMAGE_PATH)
+                        KEEP (
+                            DENSE_RANK FIRST
+                            ORDER BY
+                                CASE
+                                    WHEN IS_MAIN = 'Y'
+                                    THEN 0
+                                    ELSE 1
+                                END,
+                                IMAGE_NO
+                        ) AS MAIN_IMAGE
+
+                FROM PRODUCT_IMAGE
+
+                GROUP BY PRODUCT_NO
+            ) PI
+                ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+            WHERE P.STATUS = 'ON_SALE'
+
+              AND LOWER(P.PRODUCT_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+        ) PAGED
+
+        WHERE PAGED.RN BETWEEN #{startRow}
+                           AND #{endRow}
+
+        ORDER BY PAGED.RN
+
+    </select>
+
+
+    <!-- 상품명 검색 전체 개수 -->
+    <select id="countSearchGoods"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM PRODUCT P
+
+        WHERE P.STATUS = 'ON_SALE'
+
+          AND LOWER(P.PRODUCT_NAME)
+                LIKE '%' || LOWER(#{keyword}) || '%'
+
+    </select>
+
+</mapper>

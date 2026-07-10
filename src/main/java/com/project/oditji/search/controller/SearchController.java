@@ -8,7 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.project.oditji.search.service.SearchService;
+import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.goods.vo.GoodsVO;
+import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
@@ -16,422 +18,198 @@ import com.project.oditji.search.vo.SearchVO;
 @Controller
 public class SearchController {
 
-    /*
-     * 화면에 표시할 콘텐츠 개수
-     */
-    private static final int DISPLAY_PAGE_SIZE = 10;
+    private static final int CONTENT_PAGE_SIZE = 10;
+    private static final int GOODS_PAGE_SIZE = 12;
+    private static final int ALL_CONTENT_PREVIEW_SIZE = 5;
+    private static final int ALL_GOODS_PREVIEW_SIZE = 5;
 
-    /*
-     * TMDB API 최대 접근 페이지
-     */
-    private static final int MAX_TMDB_PAGE = 500;
-
-    private final SearchService searchService;
+    private final SearchContentPageCacheService searchContentPageCacheService;
+    private final GoodsService goodsService;
 
     @Value("${tmdb.api.image-base-url}")
     private String imageBaseUrl;
 
     public SearchController(
-            SearchService searchService) {
+            SearchContentPageCacheService searchContentPageCacheService,
+            GoodsService goodsService) {
 
-        this.searchService = searchService;
+        this.searchContentPageCacheService = searchContentPageCacheService;
+        this.goodsService = goodsService;
     }
 
     @GetMapping("/search")
-    public String searchResult(
-            SearchVO searchVO,
-            Model model) {
+    public String searchResult(SearchVO searchVO, Model model) {
 
         if (searchVO == null) {
             searchVO = new SearchVO();
         }
 
-        String keyword =
-                normalizeKeyword(
-                        searchVO.getKeyword()
-                );
+        String keyword = normalizeKeyword(searchVO.getKeyword());
+        int contentPage = normalizePage(searchVO.getContentPage());
+        int goodsPage = normalizePage(searchVO.getGoodsPage());
 
-        int displayPage =
-                normalizePage(
-                        searchVO.getPage()
-                );
+        List<String> contentCategories =
+                normalizeContentCategories(searchVO.getContentCategories());
 
-        List<String> contentTypes =
-                createSafeList(
-                        searchVO.getContentTypes()
-                );
+        List<String> genreCodes = createSafeList(searchVO.getGenreCodes());
+        List<String> providerIds = createSafeList(searchVO.getProviderIds());
+        String searchTab = normalizeSearchTab(searchVO.getSearchTab());
 
-        List<String> genreCodes =
-                createSafeList(
-                        searchVO.getGenreCodes()
-                );
+        int goodsTotalCount = 0;
+        int goodsTotalPages = 0;
 
-        List<String> providerIds =
-                createSafeList(
-                        searchVO.getProviderIds()
-                );
+        if (!keyword.isEmpty()) {
+            goodsTotalCount = goodsService.countSearchGoods(keyword);
+            goodsTotalPages = calculateTotalPages(
+                    goodsTotalCount,
+                    GOODS_PAGE_SIZE
+            );
 
-        searchVO.setKeyword(keyword);
-        searchVO.setPage(displayPage);
-        searchVO.setContentTypes(contentTypes);
-        searchVO.setGenreCodes(genreCodes);
-        searchVO.setProviderIds(providerIds);
-
-        /*
-         * 현재 화면 페이지까지 필요한 결과 개수.
-         *
-         * 1페이지: 10개 필요
-         * 2페이지: 20개 필요
-         * 3페이지: 30개 필요
-         */
-        int requiredResultCount =
-                displayPage * DISPLAY_PAGE_SIZE;
-
-        /*
-         * 다음 페이지 존재 여부 확인을 위해
-         * 한 개를 추가로 수집한다.
-         */
-        int collectionTarget =
-                requiredResultCount + 1;
-
-        List<SearchResultVO> collectedResultList =
-                new ArrayList<SearchResultVO>();
-
-        int tmdbPage = 1;
-
-        int tmdbTotalPages = 0;
-        int tmdbTotalResults = 0;
-
-        /*
-         * 지원 OTT가 있는 콘텐츠가 화면 페이지에 필요한 만큼
-         * 모일 때까지 TMDB 페이지를 순서대로 조회한다.
-         */
-        while (tmdbPage <= MAX_TMDB_PAGE
-                && collectedResultList.size()
-                        < collectionTarget) {
-
-            SearchResultPageVO partialPage =
-                    requestSearchPage(
-                            keyword,
-                            tmdbPage,
-                            contentTypes,
-                            genreCodes,
-                            providerIds
-                    );
-
-            if (partialPage == null) {
-                break;
+            if (goodsTotalPages > 0 && goodsPage > goodsTotalPages) {
+                goodsPage = goodsTotalPages;
             }
-
-            if (tmdbPage == 1) {
-                tmdbTotalPages =
-                        Math.min(
-                                partialPage.getTotalPages(),
-                                MAX_TMDB_PAGE
-                        );
-
-                tmdbTotalResults =
-                        partialPage.getTotalResults();
-            }
-
-            List<SearchResultVO> partialResultList =
-                    partialPage.getResultList();
-
-            if (partialResultList != null
-                    && !partialResultList.isEmpty()) {
-
-                addUniqueResults(
-                        collectedResultList,
-                        partialResultList
-                );
-            }
-
-            /*
-             * TMDB가 알려준 마지막 페이지까지 도달하면 종료
-             */
-            if (partialPage.getTotalPages() <= tmdbPage) {
-                break;
-            }
-
-            tmdbPage++;
         }
 
-        int startIndex =
-                (displayPage - 1)
-                        * DISPLAY_PAGE_SIZE;
+        searchVO.setKeyword(keyword);
+        searchVO.setContentPage(contentPage);
+        searchVO.setGoodsPage(goodsPage);
+        searchVO.setContentCategories(contentCategories);
+        searchVO.setGenreCodes(genreCodes);
+        searchVO.setProviderIds(providerIds);
+        searchVO.setSearchTab(searchTab);
 
-        int endIndex =
-                Math.min(
-                        startIndex + DISPLAY_PAGE_SIZE,
-                        collectedResultList.size()
+        SearchResultPageVO contentPageVO =
+                searchContentPageCacheService.getContentPage(
+                        keyword,
+                        contentPage,
+                        CONTENT_PAGE_SIZE,
+                        contentCategories,
+                        genreCodes,
+                        providerIds
                 );
 
-        List<SearchResultVO> displayResultList =
-                new ArrayList<SearchResultVO>();
+        List<SearchResultVO> contentResults =
+                contentPageVO.getResultList() == null
+                        ? new ArrayList<SearchResultVO>()
+                        : contentPageVO.getResultList();
 
-        if (startIndex
-                < collectedResultList.size()) {
+        List<SearchResultVO> allContentResults =
+                searchContentPageCacheService.getFirstPagePreview(
+                        keyword,
+                        ALL_CONTENT_PREVIEW_SIZE,
+                        CONTENT_PAGE_SIZE,
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
 
-            displayResultList.addAll(
-                    collectedResultList.subList(
-                            startIndex,
-                            endIndex
-                    )
+        List<GoodsVO> goodsResults = new ArrayList<GoodsVO>();
+
+        if (!keyword.isEmpty() && goodsTotalCount > 0) {
+            goodsResults = goodsService.searchGoods(
+                    keyword,
+                    goodsPage,
+                    GOODS_PAGE_SIZE
             );
         }
 
-        boolean hasNextPage =
-                collectedResultList.size()
-                        > endIndex;
-
-        /*
-         * 지원 OTT 필터 적용 후의 실제 전체 개수는
-         * 모든 TMDB 페이지를 검사해야 알 수 있다.
-         *
-         * 현재 페이지 기준으로 다음 페이지가 있으면
-         * 최소 현재 페이지 + 1까지 표시한다.
-         */
-        int filteredTotalPages;
-
-        if (hasNextPage) {
-            filteredTotalPages =
-                    displayPage + 1;
-        } else {
-            filteredTotalPages =
-                    displayPage;
+        if (goodsResults == null) {
+            goodsResults = new ArrayList<GoodsVO>();
         }
 
-        /*
-         * 첫 페이지인데 결과가 없으면 페이지도 0으로 처리
-         */
-        if (displayPage == 1
-                && displayResultList.isEmpty()) {
+        List<GoodsVO> allGoodsResults = new ArrayList<GoodsVO>();
 
-            filteredTotalPages = 0;
+        if (!keyword.isEmpty() && goodsTotalCount > 0) {
+            allGoodsResults = goodsService.searchGoods(
+                    keyword,
+                    1,
+                    ALL_GOODS_PREVIEW_SIZE
+            );
         }
 
-        SearchResultPageVO displayPageVO =
-                new SearchResultPageVO();
+        if (allGoodsResults == null) {
+            allGoodsResults = new ArrayList<GoodsVO>();
+        }
 
-        displayPageVO.setResultList(
-                displayResultList
-        );
+        int contentTotalCount = contentPageVO.getTotalResults();
+        int combinedTotalCount = contentTotalCount + goodsTotalCount;
 
-        displayPageVO.setPage(
-                displayPage
-        );
+        model.addAttribute("searchVO", searchVO);
+        model.addAttribute("searchResults", contentResults);
+        model.addAttribute("resultList", contentResults);
+        model.addAttribute("contentResults", contentResults);
+        model.addAttribute("goodsResults", goodsResults);
+        model.addAttribute("allContentResults", allContentResults);
+        model.addAttribute("allGoodsResults", allGoodsResults);
+        model.addAttribute("contentPageVO", contentPageVO);
+        model.addAttribute("pageVO", contentPageVO);
 
-        displayPageVO.setTotalPages(
-                filteredTotalPages
-        );
+        model.addAttribute("contentCurrentPage", contentPage);
+        model.addAttribute("goodsCurrentPage", goodsPage);
+        model.addAttribute("currentPage", contentPage);
+        model.addAttribute("contentTotalPages", contentPageVO.getTotalPages());
+        model.addAttribute("goodsTotalPages", goodsTotalPages);
+        model.addAttribute("totalPages", contentPageVO.getTotalPages());
 
-        /*
-         * 전체 TMDB 결과 수는 OTT 필터링 전 개수이므로
-         * 참고값으로만 사용한다.
-         */
-        displayPageVO.setTotalResults(
-                tmdbTotalResults
-        );
+        model.addAttribute("contentTotalCount", contentTotalCount);
+        model.addAttribute("goodsTotalCount", goodsTotalCount);
+        model.addAttribute("combinedTotalCount", combinedTotalCount);
+        model.addAttribute("totalResults", contentTotalCount);
 
-        model.addAttribute(
-                "searchVO",
-                searchVO
-        );
-
-        model.addAttribute(
-                "searchResults",
-                displayResultList
-        );
-
-        model.addAttribute(
-                "resultList",
-                displayResultList
-        );
-
-        model.addAttribute(
-                "pageVO",
-                displayPageVO
-        );
-
-        model.addAttribute(
-                "currentPage",
-                displayPage
-        );
-
-        model.addAttribute(
-                "totalPages",
-                filteredTotalPages
-        );
-
-        model.addAttribute(
-                "totalResults",
-                tmdbTotalResults
-        );
-
-        model.addAttribute(
-                "keyword",
-                keyword
-        );
-
-        model.addAttribute(
-                "contentTypes",
-                contentTypes
-        );
-
-        model.addAttribute(
-                "genreCodes",
-                genreCodes
-        );
-
-        model.addAttribute(
-                "providerIds",
-                providerIds
-        );
-
-        model.addAttribute(
-                "searchTitle",
-                makeSearchTitle(searchVO)
-        );
-
-        model.addAttribute(
-                "imageBaseUrl",
-                imageBaseUrl
-        );
-
-        /*
-         * 필요하다면 화면에서 안내용으로 사용 가능
-         */
-        model.addAttribute(
-                "tmdbTotalPages",
-                tmdbTotalPages
-        );
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("contentCategories", contentCategories);
+        model.addAttribute("genreCodes", genreCodes);
+        model.addAttribute("providerIds", providerIds);
+        model.addAttribute("searchTab", searchTab);
+        model.addAttribute("searchTitle", makeSearchTitle(searchVO));
+        model.addAttribute("imageBaseUrl", imageBaseUrl);
 
         return "search/searchResult";
     }
 
-    /**
-     * 검색어 유무에 따라 SearchService를 호출한다.
-     */
-    private SearchResultPageVO requestSearchPage(
-            String keyword,
-            int tmdbPage,
-            List<String> contentTypes,
-            List<String> genreCodes,
-            List<String> providerIds) {
-
-        if (keyword == null
-                || keyword.isEmpty()) {
-
-            return searchService.getPopularContent(
-                    tmdbPage,
-                    contentTypes,
-                    genreCodes,
-                    providerIds
-            );
-        }
-
-        return searchService.searchByTmdb(
-                keyword,
-                tmdbPage,
-                contentTypes,
-                genreCodes,
-                providerIds
-        );
-    }
-
-    /**
-     * 콘텐츠 타입과 TMDB ID가 같은 결과는 중복으로 추가하지 않는다.
-     */
-    private void addUniqueResults(
-            List<SearchResultVO> targetList,
-            List<SearchResultVO> sourceList) {
-
-        for (SearchResultVO sourceVO : sourceList) {
-
-            if (sourceVO == null
-                    || sourceVO.getTmdbId() == null
-                    || sourceVO.getContentType() == null) {
-
-                continue;
-            }
-
-            boolean duplicated = false;
-
-            for (SearchResultVO targetVO : targetList) {
-
-                if (targetVO == null
-                        || targetVO.getTmdbId() == null
-                        || targetVO.getContentType() == null) {
-
-                    continue;
-                }
-
-                boolean sameTmdbId =
-                        sourceVO.getTmdbId().equals(
-                                targetVO.getTmdbId()
-                        );
-
-                boolean sameContentType =
-                        sourceVO.getContentType().equalsIgnoreCase(
-                                targetVO.getContentType()
-                        );
-
-                if (sameTmdbId
-                        && sameContentType) {
-
-                    duplicated = true;
-                    break;
-                }
-            }
-
-            if (!duplicated) {
-                targetList.add(sourceVO);
-            }
-        }
-    }
-
-    private int normalizePage(
-            int page) {
-
-        return page <= 0
-                ? 1
-                : page;
-    }
-
-    private String normalizeKeyword(
-            String keyword) {
-
-        if (keyword == null) {
-            return "";
-        }
-
-        return keyword.trim();
-    }
-
-    private List<String> createSafeList(
-            List<String> sourceList) {
-
-        List<String> safeList =
-                new ArrayList<String>();
+    private List<String> normalizeContentCategories(List<String> sourceList) {
+        List<String> safeList = new ArrayList<String>();
 
         if (sourceList == null) {
             return safeList;
         }
 
         for (String value : sourceList) {
-
             if (value == null) {
                 continue;
             }
 
-            String normalizedValue =
-                    value.trim();
+            String normalized = value.trim().toUpperCase();
 
-            if (normalizedValue.isEmpty()) {
+            if (("MOVIE".equals(normalized)
+                    || "DRAMA".equals(normalized)
+                    || "ANIMATION".equals(normalized)
+                    || "VARIETY".equals(normalized)
+                    || "DOCUMENTARY".equals(normalized))
+                    && !safeList.contains(normalized)) {
+                safeList.add(normalized);
+            }
+        }
+
+        return safeList;
+    }
+
+    private List<String> createSafeList(List<String> sourceList) {
+        List<String> safeList = new ArrayList<String>();
+
+        if (sourceList == null) {
+            return safeList;
+        }
+
+        for (String value : sourceList) {
+            if (value == null) {
                 continue;
             }
 
-            if (!safeList.contains(normalizedValue)) {
+            String normalizedValue = value.trim();
+
+            if (!normalizedValue.isEmpty()
+                    && !safeList.contains(normalizedValue)) {
                 safeList.add(normalizedValue);
             }
         }
@@ -439,46 +217,53 @@ public class SearchController {
         return safeList;
     }
 
-    private String makeSearchTitle(
-            SearchVO searchVO) {
+    private int calculateTotalPages(int totalCount, int pageSize) {
+        if (totalCount <= 0 || pageSize <= 0) {
+            return 0;
+        }
 
-        boolean hasKeyword =
-                searchVO != null
-                        && searchVO.hasKeyword();
+        return (totalCount + pageSize - 1) / pageSize;
+    }
 
-        boolean hasGenreFilter =
-                searchVO != null
-                        && searchVO.hasGenreCodes();
+    private int normalizePage(int page) {
+        return page <= 0 ? 1 : page;
+    }
 
-        boolean hasProviderFilter =
-                searchVO != null
-                        && searchVO.hasProviderIds();
+    private String normalizeKeyword(String keyword) {
+        return keyword == null ? "" : keyword.trim();
+    }
 
-        boolean hasContentTypeFilter =
-                searchVO != null
-                        && searchVO.hasContentTypes();
+    private String normalizeSearchTab(String searchTab) {
+        if (searchTab == null) {
+            return "ALL";
+        }
 
-        boolean hasAnyFilter =
-                hasGenreFilter
-                        || hasProviderFilter
-                        || hasContentTypeFilter;
+        String normalized = searchTab.trim().toUpperCase();
 
-        if (hasKeyword
-                && hasAnyFilter) {
+        if ("CONTENT".equals(normalized)) {
+            return "CONTENT";
+        }
 
-            return "'"
-                    + searchVO.getKeyword()
-                    + "' 조건 검색 결과";
+        if ("GOODS".equals(normalized)) {
+            return "GOODS";
+        }
+
+        return "ALL";
+    }
+
+    private String makeSearchTitle(SearchVO searchVO) {
+        boolean hasKeyword = searchVO != null && searchVO.hasKeyword();
+        boolean hasFilter = searchVO != null && searchVO.hasFilter();
+
+        if (hasKeyword && hasFilter) {
+            return "'" + searchVO.getKeyword() + "' 조건 검색 결과";
         }
 
         if (hasKeyword) {
-
-            return "'"
-                    + searchVO.getKeyword()
-                    + "' 검색 결과";
+            return "'" + searchVO.getKeyword() + "' 검색 결과";
         }
 
-        if (hasAnyFilter) {
+        if (hasFilter) {
             return "선택 조건 검색 결과";
         }
 
