@@ -13,12 +13,19 @@ public interface MemberPlatformDAO {
 
     List<PlatformVO> findPlatformList();
 
-    int countMemberPlatform(Long memberNo);
+    int countMemberPlatform(
+            @Param("memberNo") Long memberNo);
 
-    List<MemberPlatformVO> selectMemberPlatformList(Long memberNo);
+    List<MemberPlatformVO> selectMemberPlatformList(
+            @Param("memberNo") Long memberNo);
 
-    int insertMemberPlatform(@Param("memberNo") Long memberNo,
-                             @Param("platformNo") Long platformNo);
+    List<PlatformVO> selectMemberSelectedPlatformList(
+            @Param("memberNo") Long memberNo);
 
-    int deleteMemberPlatforms(@Param("memberNo") Long memberNo);
+    int insertMemberPlatform(
+            @Param("memberNo") Long memberNo,
+            @Param("platformNo") Long platformNo);
+
+    int deleteMemberPlatforms(
+            @Param("memberNo") Long memberNo);
 }

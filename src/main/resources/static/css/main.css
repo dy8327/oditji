@@ -248,7 +248,6 @@ a {
     display: none;
 }
 
-/* 현재 JSP에서 사용하는 버튼 클래스 */
 .slider-btn {
     width: 38px;
     height: 54px;
@@ -269,7 +268,7 @@ a {
     color: #ffffff;
 }
 
-/* 예전 JSP에서 사용하는 버튼 클래스도 지원 */
+/* 이전 JSP 버튼 클래스 호환 */
 .btn {
     width: 38px;
     height: 54px;
@@ -353,6 +352,7 @@ a {
 }
 
 .card-info {
+    min-height: 91px;
     padding: 11px 12px 13px;
 }
 
@@ -380,6 +380,58 @@ a {
 .card-score {
     flex-shrink: 0;
     color: #f4cf58;
+}
+
+/* ================= CARD OTT PLATFORM ================= */
+
+.card-platform-list {
+    display: flex;
+    min-height: 19px;
+    align-items: center;
+    gap: 4px;
+    margin-top: 9px;
+}
+
+.card-platform-logo {
+    display: block !important;
+
+    width: 18px !important;
+    height: 18px !important;
+
+    min-width: 18px !important;
+    max-width: 18px !important;
+
+    min-height: 18px !important;
+    max-height: 18px !important;
+
+    flex: 0 0 18px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+
+    background: #ffffff;
+
+    object-fit: cover !important;
+    object-position: center;
+}
+
+.card-platform-more {
+    display: inline-flex;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    background: #282828;
+    color: #bdbdbd;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .slider-empty {
@@ -447,5 +499,23 @@ a {
     .slider-btn,
     .btn {
         width: 32px;
+    }
+
+    .card-platform-logo {
+        width: 17px !important;
+        height: 17px !important;
+
+        min-width: 17px !important;
+        max-width: 17px !important;
+
+        min-height: 17px !important;
+        max-height: 17px !important;
+
+        flex-basis: 17px !important;
+    }
+
+    .card-platform-more {
+        height: 17px;
+        font-size: 8px;
     }
 }

@@ -47,6 +47,9 @@ public interface TmdbService {
 
     List<SearchResultVO> getMainRecommendedContent();
 
+    List<SearchResultVO> getMainRecommendedContent(
+            List<String> platformList);
+
     ContentVO getDetailForSave(Long tmdbId, String contentType);
 
     void saveContentPlatform(ContentVO content);

@@ -531,11 +531,118 @@ public class TmdbServiceImpl implements TmdbService {
 
     @Override
     public List<SearchResultVO> getMainRecommendedContent() {
-        return getCombinedMainContent(
-                "/movie/top_rated",
-                "/tv/top_rated",
-                false,
-                MAIN_SLIDER_LIMIT);
+        return getMainRecommendedContent(
+                Collections.emptyList()
+        );
+    }
+
+    @Override
+    public List<SearchResultVO> getMainRecommendedContent(
+            List<String> platformList) {
+
+        List<String> normalizedPlatforms =
+                normalizePlatformList(platformList);
+
+        List<SearchResultVO> resultList =
+                new ArrayList<SearchResultVO>();
+
+        resultList.addAll(
+                discoverRecommendedContent(
+                        "movie",
+                        "MOVIE",
+                        normalizedPlatforms
+                )
+        );
+
+        resultList.addAll(
+                discoverRecommendedContent(
+                        "tv",
+                        "TV",
+                        normalizedPlatforms
+                )
+        );
+
+        resultList.sort(
+                Comparator
+                        .comparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+        );
+
+        return resultList.size() <= MAIN_SLIDER_LIMIT
+                ? resultList
+                : new ArrayList<SearchResultVO>(
+                        resultList.subList(
+                                0,
+                                MAIN_SLIDER_LIMIT
+                        )
+                );
+    }
+
+    private List<SearchResultVO> discoverRecommendedContent(
+            String apiType,
+            String contentType,
+            List<String> platformList) {
+
+        List<SearchResultVO> resultList =
+                new ArrayList<SearchResultVO>();
+
+        String providerIds =
+                getSupportedProviderIdText(
+                        apiType,
+                        platformList
+                );
+
+        if (providerIds.isBlank()) {
+            return resultList;
+        }
+
+        String url = tmdbApiBaseUrl
+                + "/discover/" + apiType
+                + "?language=" + tmdbApiLanguage
+                + "&region=" + tmdbApiRegion
+                + "&watch_region=" + tmdbApiRegion
+                + "&include_adult=false"
+                + ("movie".equals(apiType)
+                        ? "&include_video=false"
+                        : "")
+                + "&with_watch_monetization_types=flatrate"
+                + "&with_watch_providers=" + providerIds
+                + "&sort_by=vote_average.desc"
+                + "&vote_count.gte=100"
+                + "&page=1";
+
+        JsonNode results =
+                callTmdbApi(url).path("results");
+
+        if (!results.isArray()) {
+            return resultList;
+        }
+
+        for (JsonNode item : results) {
+
+            if (shouldExcludeContent(item)) {
+                continue;
+            }
+
+            resultList.add(
+                    createSearchResultVO(
+                            item,
+                            contentType
+                    )
+            );
+        }
+
+        return resultList;
     }
 
     private List<SearchResultVO> getCombinedMainContent(

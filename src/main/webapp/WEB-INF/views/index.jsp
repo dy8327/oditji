@@ -27,6 +27,9 @@
 
 <main class="main">
 
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
     <section class="hero">
 
         <div class="hero-left">
@@ -79,9 +82,11 @@
                                     </span>
 
                                     <c:if test="${not empty content.tmdbScore}">
+
                                         <span class="box-score">
                                             ⭐ ${content.tmdbScore}
                                         </span>
+
                                     </c:if>
 
                                 </a>
@@ -108,18 +113,24 @@
 
     </section>
 
+
+    <!-- =====================================================
+         오늘의 콘텐츠
+    ====================================================== -->
     <section class="slider-section">
 
         <div class="section-header">
 
             <div>
+
                 <h2 class="section-title">
                     오늘의 콘텐츠
                 </h2>
 
                 <p class="section-description">
-                    현재 인기 있는 영화와 TV 콘텐츠
+                    오늘 주목받는 영화와 TV 콘텐츠
                 </p>
+
             </div>
 
             <a href="${pageContext.request.contextPath}/search"
@@ -133,6 +144,7 @@
 
             <button class="slider-btn"
                     type="button"
+                    aria-label="오늘의 콘텐츠 이전 목록"
                     onclick="moveSlider('today','left')">
                 ‹
             </button>
@@ -155,14 +167,19 @@
                                     <c:choose>
 
                                         <c:when test="${not empty content.posterPath}">
+
                                             <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                                 alt="${content.title}">
+                                                 alt="${content.title}"
+                                                 loading="lazy">
+
                                         </c:when>
 
                                         <c:otherwise>
+
                                             <div class="no-img">
                                                 NO IMAGE
                                             </div>
+
                                         </c:otherwise>
 
                                     </c:choose>
@@ -170,6 +187,7 @@
                                     <span class="content-type-badge">
 
                                         <c:choose>
+
                                             <c:when test="${content.contentType eq 'MOVIE'}">
                                                 영화
                                             </c:when>
@@ -177,6 +195,7 @@
                                             <c:otherwise>
                                                 TV
                                             </c:otherwise>
+
                                         </c:choose>
 
                                     </span>
@@ -192,7 +211,9 @@
                                     <div class="card-meta">
 
                                         <span>
+
                                             <c:choose>
+
                                                 <c:when test="${not empty content.releaseDate}">
                                                     ${content.releaseDate}
                                                 </c:when>
@@ -200,16 +221,53 @@
                                                 <c:otherwise>
                                                     공개일 미정
                                                 </c:otherwise>
+
                                             </c:choose>
+
                                         </span>
 
                                         <c:if test="${not empty content.tmdbScore}">
+
                                             <span class="card-score">
                                                 ⭐ ${content.tmdbScore}
                                             </span>
+
                                         </c:if>
 
                                     </div>
+
+                                    <!-- 시청 가능한 OTT 로고 -->
+                                    <c:if test="${not empty content.platformList}">
+
+                                        <div class="card-platform-list"
+                                             aria-label="시청 가능한 OTT">
+
+                                            <!-- 최대 3개만 표시 -->
+                                            <c:forEach var="platform"
+                                                       items="${content.platformList}"
+                                                       begin="0"
+                                                       end="2">
+
+                                                <img class="card-platform-logo"
+                                                     src="${platform.logoImage}"
+                                                     alt="${platform.platformName}"
+                                                     title="${platform.platformName}"
+                                                     loading="lazy">
+
+                                            </c:forEach>
+
+                                            <!-- 3개 초과 시 +N 표시 -->
+                                            <c:if test="${content.platformList.size() > 3}">
+
+                                                <span class="card-platform-more">
+                                                    +${content.platformList.size() - 3}
+                                                </span>
+
+                                            </c:if>
+
+                                        </div>
+
+                                    </c:if>
 
                                 </div>
 
@@ -233,6 +291,7 @@
 
             <button class="slider-btn"
                     type="button"
+                    aria-label="오늘의 콘텐츠 다음 목록"
                     onclick="moveSlider('today','right')">
                 ›
             </button>
@@ -241,18 +300,36 @@
 
     </section>
 
+
+    <!-- =====================================================
+         추천 콘텐츠
+    ====================================================== -->
     <section class="slider-section">
 
         <div class="section-header">
 
             <div>
+
                 <h2 class="section-title">
                     추천 콘텐츠
                 </h2>
 
                 <p class="section-description">
-                    평점과 인기가 검증된 콘텐츠
+
+                    <c:choose>
+
+                        <c:when test="${personalizedRecommendation}">
+                            회원님이 이용하는 OTT에서 시청 가능한 콘텐츠
+                        </c:when>
+
+                        <c:otherwise>
+                            전체 OTT에서 시청 가능한 인기·평점 기반 콘텐츠
+                        </c:otherwise>
+
+                    </c:choose>
+
                 </p>
+
             </div>
 
             <a href="${pageContext.request.contextPath}/search"
@@ -266,6 +343,7 @@
 
             <button class="slider-btn"
                     type="button"
+                    aria-label="추천 콘텐츠 이전 목록"
                     onclick="moveSlider('rec','left')">
                 ‹
             </button>
@@ -288,14 +366,19 @@
                                     <c:choose>
 
                                         <c:when test="${not empty content.posterPath}">
+
                                             <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                                 alt="${content.title}">
+                                                 alt="${content.title}"
+                                                 loading="lazy">
+
                                         </c:when>
 
                                         <c:otherwise>
+
                                             <div class="no-img">
                                                 NO IMAGE
                                             </div>
+
                                         </c:otherwise>
 
                                     </c:choose>
@@ -303,6 +386,7 @@
                                     <span class="content-type-badge">
 
                                         <c:choose>
+
                                             <c:when test="${content.contentType eq 'MOVIE'}">
                                                 영화
                                             </c:when>
@@ -310,6 +394,7 @@
                                             <c:otherwise>
                                                 TV
                                             </c:otherwise>
+
                                         </c:choose>
 
                                     </span>
@@ -325,7 +410,9 @@
                                     <div class="card-meta">
 
                                         <span>
+
                                             <c:choose>
+
                                                 <c:when test="${not empty content.releaseDate}">
                                                     ${content.releaseDate}
                                                 </c:when>
@@ -333,16 +420,53 @@
                                                 <c:otherwise>
                                                     공개일 미정
                                                 </c:otherwise>
+
                                             </c:choose>
+
                                         </span>
 
                                         <c:if test="${not empty content.tmdbScore}">
+
                                             <span class="card-score">
                                                 ⭐ ${content.tmdbScore}
                                             </span>
+
                                         </c:if>
 
                                     </div>
+
+                                    <!-- 회원 선택 OTT 중 실제 제공되는 OTT 로고 -->
+                                    <c:if test="${not empty content.platformList}">
+
+                                        <div class="card-platform-list"
+                                             aria-label="시청 가능한 OTT">
+
+                                            <!-- 최대 3개만 표시 -->
+                                            <c:forEach var="platform"
+                                                       items="${content.platformList}"
+                                                       begin="0"
+                                                       end="2">
+
+                                                <img class="card-platform-logo"
+                                                     src="${platform.logoImage}"
+                                                     alt="${platform.platformName}"
+                                                     title="${platform.platformName}"
+                                                     loading="lazy">
+
+                                            </c:forEach>
+
+                                            <!-- 3개 초과 시 +N 표시 -->
+                                            <c:if test="${content.platformList.size() > 3}">
+
+                                                <span class="card-platform-more">
+                                                    +${content.platformList.size() - 3}
+                                                </span>
+
+                                            </c:if>
+
+                                        </div>
+
+                                    </c:if>
 
                                 </div>
 
@@ -355,7 +479,19 @@
                     <c:otherwise>
 
                         <div class="slider-empty">
-                            추천 콘텐츠가 없습니다.
+
+                            <c:choose>
+
+                                <c:when test="${personalizedRecommendation}">
+                                    선택한 OTT에서 추천할 콘텐츠를 찾지 못했습니다.
+                                </c:when>
+
+                                <c:otherwise>
+                                    추천 콘텐츠가 없습니다.
+                                </c:otherwise>
+
+                            </c:choose>
+
                         </div>
 
                     </c:otherwise>
@@ -366,6 +502,7 @@
 
             <button class="slider-btn"
                     type="button"
+                    aria-label="추천 콘텐츠 다음 목록"
                     onclick="moveSlider('rec','right')">
                 ›
             </button>
