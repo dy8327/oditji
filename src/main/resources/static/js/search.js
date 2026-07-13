@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     initializeSearchFilter();
+    initializeHeaderSearchFilterPreservation();
     initializeGenreToggle();
     initializeOttPlatformModal();
     initializeSearchTabs();
@@ -82,6 +83,135 @@ function initializeSearchFilter() {
         setFormValue(filterForm, "contentPage", "1");
         setFormValue(filterForm, "goodsPage", "1");
         setExistingFormValue(filterForm, "page", "1");
+    });
+}
+
+/**
+ * 헤더 검색창에서 검색할 때도 현재 사이드바 필터를 함께 전송한다.
+ *
+ * headerSearchForm과 searchFilterForm은 서로 다른 form이므로,
+ * 헤더 검색 form을 제출하기 직전에 선택된 필터 값을 hidden input으로 복사한다.
+ */
+function initializeHeaderSearchFilterPreservation() {
+
+    const headerSearchForm =
+        document.getElementById("headerSearchForm");
+
+    const filterForm =
+        document.getElementById("searchFilterForm");
+
+    if (!headerSearchForm || !filterForm) {
+        return;
+    }
+
+    headerSearchForm.addEventListener("submit", function () {
+
+        removeGeneratedHeaderFilterInputs(
+            headerSearchForm
+        );
+
+        copyCheckedFilterValuesToHeaderForm(
+            filterForm,
+            headerSearchForm,
+            "contentCategories"
+        );
+
+        copyCheckedFilterValuesToHeaderForm(
+            filterForm,
+            headerSearchForm,
+            "genreCodes"
+        );
+
+        copyCheckedFilterValuesToHeaderForm(
+            filterForm,
+            headerSearchForm,
+            "providerIds"
+        );
+
+        appendGeneratedHiddenInput(
+            headerSearchForm,
+            "contentPage",
+            "1"
+        );
+
+        appendGeneratedHiddenInput(
+            headerSearchForm,
+            "goodsPage",
+            "1"
+        );
+
+        appendGeneratedHiddenInput(
+            headerSearchForm,
+            "searchTab",
+            "ALL"
+        );
+    });
+}
+
+
+/**
+ * 사이드바에서 체크된 특정 필터 값을
+ * 헤더 검색 form의 hidden input으로 복사한다.
+ */
+function copyCheckedFilterValuesToHeaderForm(
+        filterForm,
+        headerSearchForm,
+        inputName) {
+
+    const checkedInputs =
+        filterForm.querySelectorAll(
+            "input[name='"
+            + inputName
+            + "']:checked"
+        );
+
+    checkedInputs.forEach(function (input) {
+
+        appendGeneratedHiddenInput(
+            headerSearchForm,
+            inputName,
+            input.value
+        );
+    });
+}
+
+
+/**
+ * 헤더 검색 form에 필터 전달용 hidden input을 추가한다.
+ */
+function appendGeneratedHiddenInput(
+        form,
+        name,
+        value) {
+
+    const hiddenInput =
+        document.createElement("input");
+
+    hiddenInput.type = "hidden";
+    hiddenInput.name = name;
+    hiddenInput.value = value;
+    hiddenInput.dataset.generatedSearchFilter = "true";
+
+    form.appendChild(hiddenInput);
+}
+
+
+/**
+ * 헤더 검색을 여러 번 실행하더라도
+ * 이전에 생성한 필터 hidden input이 중복되지 않게 제거한다.
+ */
+function removeGeneratedHeaderFilterInputs(
+        headerSearchForm) {
+
+    const generatedInputs =
+        headerSearchForm.querySelectorAll(
+            "input[data-generated-search-filter='true']"
+        );
+
+    generatedInputs.forEach(function (input) {
+
+        input.remove();
+
     });
 }
 
