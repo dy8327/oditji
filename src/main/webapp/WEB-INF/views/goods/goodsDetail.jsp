@@ -116,11 +116,6 @@
 
         <div class="action-box">
 
-            <a href="${pageContext.request.contextPath}/goods/list"
-               class="btn">
-                목록
-            </a>
-
             <button type="button"
                     class="btn cart-btn"
                     data-product-no="${goods.productNo}"
