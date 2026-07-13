@@ -1,5 +1,119 @@
 package com.project.oditji.review.controller;
 
+import java.util.List;
+
+import jakarta.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.review.vo.MyReviewVO;
+
+@Controller
+@RequestMapping("/review")
 public class ReviewController {
-    
+
+    private final ReviewService reviewService;
+
+    public ReviewController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
+
+    /**
+     * 마이페이지 "내가 작성한 리뷰" 클릭 시 진입.
+     * 콘텐츠 리뷰 + 상품 리뷰를 합쳐서 보여준다.
+     */
+    @GetMapping("/contentReviewList")
+    public String myReviewList(HttpSession session, Model model) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        List<MyReviewVO> reviewList =
+                reviewService.getMyReviewList(loginMember.getMemberNo());
+
+        model.addAttribute("reviewList", reviewList);
+
+        return "review/myReviewList";
+    }
+
+    /**
+     * 콘텐츠 리뷰 작성 처리.
+     * 작성 후 해당 콘텐츠 상세 페이지로 이동한다.
+     */
+    @PostMapping("/write")
+    public String writeContentReview(
+            HttpSession session,
+            @RequestParam int contentNo,
+            @RequestParam double rating,
+            @RequestParam String reviewText) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        reviewService.writeContentReview(
+                loginMember.getMemberNo(), contentNo, rating, reviewText);
+
+        return "redirect:/content/contentDetail/" + contentNo;
+    }
+
+    /**
+     * 콘텐츠 리뷰 수정 처리.
+     * 작성 후 해당 콘텐츠 상세 페이지로 이동한다.
+     */
+    @PostMapping("/update")
+    public String updateContentReview(
+            HttpSession session,
+            @RequestParam int reviewNo,
+            @RequestParam int contentNo,
+            @RequestParam double rating,
+            @RequestParam String reviewText) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        reviewService.updateContentReview(
+                loginMember.getMemberNo(), reviewNo, rating, reviewText);
+
+        return "redirect:/content/contentDetail/" + contentNo;
+    }
+
+    /**
+     * 상품 리뷰 작성 처리.
+     * 작성 후 주문내역 페이지로 이동한다.
+     */
+    @PostMapping("/writeProductReview")
+    public String writeProductReview(
+            HttpSession session,
+            @RequestParam int productNo,
+            @RequestParam int orderItemNo,
+            @RequestParam double rating,
+            @RequestParam String content) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        reviewService.writeProductReview(
+                loginMember.getMemberNo(), productNo, orderItemNo, rating, content);
+
+        return "redirect:/order/list";
+    }
 }

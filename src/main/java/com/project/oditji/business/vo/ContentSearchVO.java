@@ -88,4 +88,19 @@ public class ContentSearchVO {
     public void setAgeRating(String ageRating) {
         this.ageRating = ageRating;
     }
+
+    @Override
+    public String toString() {
+        return "ContentSearchVO{" +
+                "contentNo=" + contentNo +
+                ", tmdbId=" + tmdbId +
+                ", contentType='" + contentType + '\'' +
+                ", title='" + title + '\'' +
+                ", originalTitle='" + originalTitle + '\'' +
+                ", posterPath='" + posterPath + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", genreText='" + genreText + '\'' +
+                ", ageRating='" + ageRating + '\'' +
+                '}';
+    }
 }
