@@ -388,6 +388,24 @@ body.search-modal-open .search-page-container .search-filter-form {
     cursor: pointer;
 }
 
+.search-page-container .ott-modal-option-logo {
+    display: block;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    flex: 0 0 24px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    background: #ffffff;
+    object-fit: cover;
+    object-position: center;
+}
+
 .search-page-container .ott-modal-option-text {
     font-size: 13px;
     font-weight: 600;
