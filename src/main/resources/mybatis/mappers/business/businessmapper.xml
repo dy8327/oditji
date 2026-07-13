@@ -6,7 +6,9 @@
 
 <mapper namespace="com.project.oditji.business.dao.BusinessDAO">
 
-    <!-- 로그인 회원과 연결된 사업자 정보 -->
+    <!-- =====================================================
+         로그인 회원과 연결된 사업자 정보
+    ====================================================== -->
     <select id="selectBusinessByMemberNo"
             parameterType="long"
             resultType="com.project.oditji.business.vo.BusinessVO">
@@ -29,7 +31,9 @@
     </select>
 
 
-    <!-- 상품 등록 -->
+    <!-- =====================================================
+         상품 등록
+    ====================================================== -->
     <insert id="insertProduct"
             parameterType="com.project.oditji.business.vo.GoodsManageVO">
 
@@ -74,7 +78,9 @@
     </insert>
 
 
-    <!-- 상품 대표 이미지 등록 -->
+    <!-- =====================================================
+         상품 대표 이미지 등록
+    ====================================================== -->
     <insert id="insertProductImage"
             parameterType="com.project.oditji.business.vo.GoodsManageVO">
 
@@ -103,7 +109,9 @@
     </insert>
 
 
-    <!-- 콘텐츠 검색 -->
+    <!-- =====================================================
+         콘텐츠 검색
+    ====================================================== -->
     <select id="selectContentList"
             resultType="com.project.oditji.business.vo.ContentSearchVO">
 
@@ -137,7 +145,9 @@
     </select>
 
 
-    <!-- 콘텐츠 단건 조회 -->
+    <!-- =====================================================
+         콘텐츠 단건 조회
+    ====================================================== -->
     <select id="selectContentByNo"
             parameterType="long"
             resultType="com.project.oditji.business.vo.ContentSearchVO">
@@ -158,7 +168,9 @@
     </select>
 
 
-    <!-- 배우 목록 -->
+    <!-- =====================================================
+         전체 배우 목록
+    ====================================================== -->
     <select id="selectActorList"
             resultType="com.project.oditji.business.vo.ActorSearchVO">
 
@@ -172,24 +184,46 @@
 
     </select>
 
-
-    <!-- 배우 단건 조회 -->
-    <select id="selectActorByNo"
+   <!-- 선택한 콘텐츠에 연결된 배우 목록 -->
+    <select id="selectActorListByContentNo"
             parameterType="long"
             resultType="com.project.oditji.business.vo.ActorSearchVO">
 
         SELECT
-            ACTOR_NO,
-            TMDB_ACTOR_ID,
-            ACTOR_NAME,
-            PROFILE_PATH
-        FROM ACTOR
-        WHERE ACTOR_NO = #{actorNo}
+            A.ACTOR_NO,
+            A.TMDB_ACTOR_ID,
+            A.ACTOR_NAME,
+            A.PROFILE_PATH,
+            CA.CHARACTER_NAME,
+            CA.DISPLAY_ORDER
+        FROM CONTENT_ACTOR CA
+
+        JOIN ACTOR A
+        ON A.ACTOR_NO = CA.ACTOR_NO
+
+        WHERE CA.CONTENT_NO = #{contentNo}
+
+        ORDER BY
+            CA.DISPLAY_ORDER ASC NULLS LAST,
+            A.ACTOR_NAME ASC
 
     </select>
 
 
-    <!-- 사업자가 등록한 상품 목록 -->
+    <!-- 선택한 콘텐츠와 배우의 연결 여부 검증 -->
+    <select id="countContentActor"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM CONTENT_ACTOR
+        WHERE CONTENT_NO = #{contentNo}
+        AND ACTOR_NO = #{actorNo}
+
+    </select>
+
+    <!-- =====================================================
+         사업자가 등록한 상품 목록
+    ====================================================== -->
     <select id="selectProductListByBusinessNo"
             parameterType="long"
             resultType="com.project.oditji.business.vo.GoodsManageVO">

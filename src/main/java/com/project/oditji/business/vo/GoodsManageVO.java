@@ -4,44 +4,32 @@ import java.util.Date;
 
 public class GoodsManageVO {
 
-    /* =========================
-       PRODUCT 테이블
-    ========================= */
-
+    // PRODUCT
     private long productNo;
     private long businessNo;
     private long contentNo;
 
-    // 배우는 선택 사항이므로 Long
+    // PRODUCT.ACTOR_NO는 NULL 허용
     private Long actorNo;
 
     private String productName;
     private String productType;
-
-    // 입력값이 비어 있을 수 있으므로 래퍼 타입 사용
-    private Long price;
-    private Integer discountRate;
-    private Integer stock;
-
+    private long price;
+    private int discountRate;
+    private int stock;
     private String description;
     private String status;
     private Date createdAt;
 
-    /* =========================
-       PRODUCT_IMAGE 테이블
-    ========================= */
+    // 조회용
+    private String contentTitle;
+    private String actorName;
+    private String businessName;
 
+    // PRODUCT_IMAGE
     private long imageNo;
     private String imagePath;
     private String isMain;
-
-    /* =========================
-       JOIN 및 화면 출력용
-    ========================= */
-
-    private String businessName;
-    private String contentTitle;
-    private String actorName;
 
     public GoodsManageVO() {
     }
@@ -94,27 +82,27 @@ public class GoodsManageVO {
         this.productType = productType;
     }
 
-    public Long getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(Long price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 
-    public Integer getDiscountRate() {
+    public int getDiscountRate() {
         return discountRate;
     }
 
-    public void setDiscountRate(Integer discountRate) {
+    public void setDiscountRate(int discountRate) {
         this.discountRate = discountRate;
     }
 
-    public Integer getStock() {
+    public int getStock() {
         return stock;
     }
 
-    public void setStock(Integer stock) {
+    public void setStock(int stock) {
         this.stock = stock;
     }
 
@@ -142,6 +130,30 @@ public class GoodsManageVO {
         this.createdAt = createdAt;
     }
 
+    public String getContentTitle() {
+        return contentTitle;
+    }
+
+    public void setContentTitle(String contentTitle) {
+        this.contentTitle = contentTitle;
+    }
+
+    public String getActorName() {
+        return actorName;
+    }
+
+    public void setActorName(String actorName) {
+        this.actorName = actorName;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
     public long getImageNo() {
         return imageNo;
     }
@@ -166,27 +178,27 @@ public class GoodsManageVO {
         this.isMain = isMain;
     }
 
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getContentTitle() {
-        return contentTitle;
-    }
-
-    public void setContentTitle(String contentTitle) {
-        this.contentTitle = contentTitle;
-    }
-
-    public String getActorName() {
-        return actorName;
-    }
-
-    public void setActorName(String actorName) {
-        this.actorName = actorName;
+    @Override
+    public String toString() {
+        return "GoodsManageVO{" +
+                "productNo=" + productNo +
+                ", businessNo=" + businessNo +
+                ", contentNo=" + contentNo +
+                ", actorNo=" + actorNo +
+                ", productName='" + productName + '\'' +
+                ", productType='" + productType + '\'' +
+                ", price=" + price +
+                ", discountRate=" + discountRate +
+                ", stock=" + stock +
+                ", description='" + description + '\'' +
+                ", status='" + status + '\'' +
+                ", createdAt=" + createdAt +
+                ", contentTitle='" + contentTitle + '\'' +
+                ", actorName='" + actorName + '\'' +
+                ", businessName='" + businessName + '\'' +
+                ", imageNo=" + imageNo +
+                ", imagePath='" + imagePath + '\'' +
+                ", isMain='" + isMain + '\'' +
+                '}';
     }
 }
