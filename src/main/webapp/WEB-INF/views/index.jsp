@@ -27,9 +27,6 @@
 
 <main class="main">
 
-    <!-- =====================================================
-         HERO
-    ====================================================== -->
     <section class="hero">
 
         <div class="hero-left">
@@ -82,11 +79,9 @@
                                     </span>
 
                                     <c:if test="${not empty content.tmdbScore}">
-
                                         <span class="box-score">
                                             ⭐ ${content.tmdbScore}
                                         </span>
-
                                     </c:if>
 
                                 </a>
@@ -113,10 +108,6 @@
 
     </section>
 
-
-    <!-- =====================================================
-         오늘의 콘텐츠
-    ====================================================== -->
     <section class="slider-section">
 
         <div class="section-header">
@@ -133,7 +124,7 @@
 
             </div>
 
-            <a href="${pageContext.request.contextPath}/search"
+            <a href="${pageContext.request.contextPath}/content/today"
                class="section-more">
                 더보기
             </a>
@@ -236,13 +227,11 @@
 
                                     </div>
 
-                                    <!-- 시청 가능한 OTT 로고 -->
                                     <c:if test="${not empty content.platformList}">
 
                                         <div class="card-platform-list"
                                              aria-label="시청 가능한 OTT">
 
-                                            <!-- 최대 3개만 표시 -->
                                             <c:forEach var="platform"
                                                        items="${content.platformList}"
                                                        begin="0"
@@ -256,7 +245,6 @@
 
                                             </c:forEach>
 
-                                            <!-- 3개 초과 시 +N 표시 -->
                                             <c:if test="${content.platformList.size() > 3}">
 
                                                 <span class="card-platform-more">
@@ -300,10 +288,6 @@
 
     </section>
 
-
-    <!-- =====================================================
-         추천 콘텐츠
-    ====================================================== -->
     <section class="slider-section">
 
         <div class="section-header">
@@ -332,7 +316,7 @@
 
             </div>
 
-            <a href="${pageContext.request.contextPath}/search"
+            <a href="${pageContext.request.contextPath}/recommend"
                class="section-more">
                 더보기
             </a>
@@ -435,13 +419,11 @@
 
                                     </div>
 
-                                    <!-- 회원 선택 OTT 중 실제 제공되는 OTT 로고 -->
                                     <c:if test="${not empty content.platformList}">
 
                                         <div class="card-platform-list"
                                              aria-label="시청 가능한 OTT">
 
-                                            <!-- 최대 3개만 표시 -->
                                             <c:forEach var="platform"
                                                        items="${content.platformList}"
                                                        begin="0"
@@ -455,7 +437,6 @@
 
                                             </c:forEach>
 
-                                            <!-- 3개 초과 시 +N 표시 -->
                                             <c:if test="${content.platformList.size() > 3}">
 
                                                 <span class="card-platform-more">
