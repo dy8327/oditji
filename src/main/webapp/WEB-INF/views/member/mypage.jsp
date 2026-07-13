@@ -2,6 +2,7 @@
 	pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 
 <!DOCTYPE html>
 <html>
@@ -343,15 +344,29 @@
 
 									<div>
 
+										<span class="mypage-member-type">
+
+											<c:choose>
+												<c:when test="${review.reviewType == 'PRODUCT'}">
+													상품 리뷰
+												</c:when>
+												<c:otherwise>
+													콘텐츠 리뷰
+												</c:otherwise>
+											</c:choose>
+
+										</span>
+
 										<h3>
 
-											${review.contentTitle}
+											${review.title}
 
 										</h3>
 
 										<span>
 
-											${review.reviewCreateDate}
+											<fmt:formatDate value="${review.createdAt}"
+															pattern="yyyy.MM.dd"/>
 
 										</span>
 
@@ -359,7 +374,7 @@
 
 									<div class="mypage-review-score">
 
-										⭐ ${review.reviewRating}
+										⭐ ${review.rating}
 
 									</div>
 
@@ -367,7 +382,7 @@
 
 								<p class="mypage-review-content">
 
-									${review.reviewContent}
+									${review.content}
 
 								</p>
 

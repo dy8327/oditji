@@ -11,6 +11,10 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/favorite.css">
 
+    <script>
+        const contextPath = "${pageContext.request.contextPath}";
+    </script>
+
     <script defer
             src="${pageContext.request.contextPath}/js/favorite.js"></script>
 </head>

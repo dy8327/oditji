@@ -18,6 +18,15 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/content.css?v=21">
 
+<script>
+    const contextPath = "${pageContext.request.contextPath}";
+</script>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/content.js"></script>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/favorite.js"></script>
     <script defer
             src="${pageContext.request.contextPath}/js/contentList.js?v=2">
     </script>
@@ -338,6 +347,13 @@
                                          value="${genre}"/>
                             </c:forEach>
 
+            <button
+                type="button"
+                class="fav-btn"
+                data-type="content"
+                data-content-no="${c.contentNo}">
+                ♡
+            </button>
                             <c:forEach var="provider"
                                        items="${providerIds}">
                                 <c:param name="providerIds"
