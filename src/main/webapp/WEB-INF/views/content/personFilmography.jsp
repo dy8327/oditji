@@ -9,7 +9,7 @@
 <title>ODITJI | ${person.personName} 필모그래피</title>
 
 <c:url var="contentCssUrl" value="/css/content.css"/>
-<c:url var="filmographyJsUrl" value="/js/content/personFilmography.js"/>
+<c:url var="filmographyJsUrl" value="/js/personFilmography.js"/>
 
 <link rel="stylesheet" href="${contentCssUrl}">
 </head>

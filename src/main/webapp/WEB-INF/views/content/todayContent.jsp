@@ -1,0 +1,184 @@
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>오늘의 콘텐츠 | ODITJI</title>
+
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/content-more.css">
+</head>
+
+<body>
+
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+<main class="content-more-page">
+
+    <section class="content-more-hero">
+
+        <div>
+
+            <p class="content-more-kicker">
+                TODAY
+            </p>
+
+            <h1>
+                오늘의 콘텐츠
+            </h1>
+
+            <p class="content-more-description">
+                오늘 주목받는 영화와 TV 콘텐츠를 한 번에 확인해보세요.
+            </p>
+
+        </div>
+
+        <div class="content-more-count">
+            총 ${contentCount}개
+        </div>
+
+    </section>
+
+    <section class="content-more-grid-section">
+
+        <c:choose>
+
+            <c:when test="${not empty todayContentList}">
+
+                <div class="content-more-grid">
+
+                    <c:forEach var="content"
+                               items="${todayContentList}">
+
+                        <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
+                           class="content-more-card">
+
+                            <div class="content-more-thumb">
+
+                                <c:choose>
+
+                                    <c:when test="${not empty content.posterPath}">
+                                        <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                             alt="${content.title}"
+                                             loading="lazy">
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <div class="content-more-no-image">
+                                            NO IMAGE
+                                        </div>
+                                    </c:otherwise>
+
+                                </c:choose>
+
+                                <span class="content-more-type">
+
+                                    <c:choose>
+
+                                        <c:when test="${content.contentType eq 'MOVIE'}">
+                                            영화
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            TV
+                                        </c:otherwise>
+
+                                    </c:choose>
+
+                                </span>
+
+                            </div>
+
+                            <div class="content-more-info">
+
+                                <h2>
+                                    ${content.title}
+                                </h2>
+
+                                <div class="content-more-meta">
+
+                                    <span>
+                                        <c:choose>
+
+                                            <c:when test="${not empty content.releaseDate}">
+                                                ${content.releaseDate}
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                공개일 미정
+                                            </c:otherwise>
+
+                                        </c:choose>
+                                    </span>
+
+                                    <c:if test="${not empty content.tmdbScore}">
+                                        <span class="content-more-score">
+                                            ⭐ ${content.tmdbScore}
+                                        </span>
+                                    </c:if>
+
+                                </div>
+
+                                <c:if test="${not empty content.platformList}">
+
+                                    <div class="content-more-platforms">
+
+                                        <c:forEach var="platform"
+                                                   items="${content.platformList}"
+                                                   begin="0"
+                                                   end="3">
+
+                                            <img src="${platform.logoImage}"
+                                                 alt="${platform.platformName}"
+                                                 title="${platform.platformName}"
+                                                 loading="lazy">
+
+                                        </c:forEach>
+
+                                        <c:if test="${content.platformList.size() > 4}">
+                                            <span class="content-more-platform-more">
+                                                +${content.platformList.size() - 4}
+                                            </span>
+                                        </c:if>
+
+                                    </div>
+
+                                </c:if>
+
+                            </div>
+
+                        </a>
+
+                    </c:forEach>
+
+                </div>
+
+            </c:when>
+
+            <c:otherwise>
+
+                <div class="content-more-empty">
+                    오늘의 콘텐츠를 불러오지 못했습니다.
+                </div>
+
+            </c:otherwise>
+
+        </c:choose>
+
+    </section>
+
+</main>
+
+<jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+
+</body>
+</html>

@@ -2,8 +2,10 @@ package com.project.oditji.content.service;
 
 import java.util.List;
 
+import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
 
@@ -17,10 +19,19 @@ public interface ContentService {
 
     List<DirectorVO> getDirectorListByContentNo(int contentNo);
 
-    PersonFilmographyVO getPersonFilmography(Long tmdbPersonId, String role);
+    PersonFilmographyVO getPersonFilmography(
+            Long tmdbPersonId,
+            String role);
 
-    // 메인 화면 콘텐츠 리스트 조회 (홈 화면 데이터 제공용)
     List<ContentVO> getMainContentList();
 
-    List<ContentVO> getContentListByType(String type, int page);
+    ContentListPageVO getContentListByType(
+            String type,
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds);
+
+    List<SearchResultVO> getContentRecommendedList(
+            List<String> providerIds);
 }

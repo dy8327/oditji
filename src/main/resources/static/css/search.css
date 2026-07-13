@@ -388,6 +388,24 @@ body.search-modal-open .search-page-container .search-filter-form {
     cursor: pointer;
 }
 
+.search-page-container .ott-modal-option-logo {
+    display: block;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    flex: 0 0 24px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    background: #ffffff;
+    object-fit: cover;
+    object-position: center;
+}
+
 .search-page-container .ott-modal-option-text {
     font-size: 13px;
     font-weight: 600;
@@ -1139,5 +1157,115 @@ body.search-modal-open .search-page-container .search-filter-form {
     .search-page-container .ott-modal-cancel-btn,
     .search-page-container .ott-modal-confirm-btn {
         width: 100%;
+    }
+}
+/* =========================================================
+   LEFT SIDEBAR CONTENT / GOODS TABS
+========================================================= */
+
+.search-page-container .sidebar-filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: #151515;
+}
+
+.search-page-container .sidebar-filter-tab {
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #777777;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.search-page-container .sidebar-filter-tab:hover {
+    color: #ffffff;
+}
+
+.search-page-container .sidebar-filter-tab.is-active {
+    background: #ffffff;
+    color: #111111;
+}
+
+.search-page-container .sidebar-filter-panel[hidden] {
+    display: none !important;
+}
+
+.search-page-container .filter-empty-message {
+    margin: 0;
+    color: #777777;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.search-page-container .goods-price-filter {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.search-page-container .goods-price-field {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 7px;
+    color: #999999;
+    font-size: 11px;
+}
+
+.search-page-container .goods-price-field input {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    padding: 0 9px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 7px;
+    outline: none;
+    background: #222222;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 11px;
+}
+
+.search-page-container .goods-price-field input:focus {
+    border-color: rgba(255, 255, 255, 0.42);
+}
+
+.search-page-container .goods-price-divider {
+    flex-shrink: 0;
+    padding-bottom: 10px;
+    color: #777777;
+    font-size: 12px;
+}
+
+@media (max-width: 850px) {
+    .search-page-container .sidebar-filter-tabs {
+        grid-column: 1 / -1;
+    }
+
+    .search-page-container .sidebar-filter-panel:not([hidden]) {
+        display: contents;
+    }
+}
+
+@media (max-width: 600px) {
+    .search-page-container .sidebar-filter-panel:not([hidden]) {
+        display: block;
+    }
+
+    .search-page-container .goods-price-filter {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search-page-container .goods-price-divider {
+        display: none;
     }
 }

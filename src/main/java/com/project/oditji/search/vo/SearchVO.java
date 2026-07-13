@@ -9,6 +9,13 @@ public class SearchVO {
     private List<String> contentCategories;
     private List<String> genreCodes;
     private List<String> providerIds;
+
+    private List<String> productTypes;
+    private Integer minPrice;
+    private Integer maxPrice;
+    private boolean discountOnly;
+    private boolean inStockOnly;
+
     private String searchTab;
     private int contentPage;
     private int goodsPage;
@@ -17,6 +24,7 @@ public class SearchVO {
         this.contentCategories = new ArrayList<String>();
         this.genreCodes = new ArrayList<String>();
         this.providerIds = new ArrayList<String>();
+        this.productTypes = new ArrayList<String>();
         this.searchTab = "ALL";
         this.contentPage = 1;
         this.goodsPage = 1;
@@ -58,6 +66,48 @@ public class SearchVO {
         this.providerIds = providerIds == null
                 ? new ArrayList<String>()
                 : providerIds;
+    }
+
+    public List<String> getProductTypes() {
+        return productTypes;
+    }
+
+    public void setProductTypes(List<String> productTypes) {
+        this.productTypes = productTypes == null
+                ? new ArrayList<String>()
+                : productTypes;
+    }
+
+    public Integer getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(Integer minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public Integer getMaxPrice() {
+        return maxPrice;
+    }
+
+    public void setMaxPrice(Integer maxPrice) {
+        this.maxPrice = maxPrice;
+    }
+
+    public boolean isDiscountOnly() {
+        return discountOnly;
+    }
+
+    public void setDiscountOnly(boolean discountOnly) {
+        this.discountOnly = discountOnly;
+    }
+
+    public boolean isInStockOnly() {
+        return inStockOnly;
+    }
+
+    public void setInStockOnly(boolean inStockOnly) {
+        this.inStockOnly = inStockOnly;
     }
 
     public String getSearchTab() {
@@ -109,9 +159,22 @@ public class SearchVO {
         return providerIds != null && !providerIds.isEmpty();
     }
 
+    public boolean hasProductTypes() {
+        return productTypes != null && !productTypes.isEmpty();
+    }
+
+    public boolean hasGoodsFilter() {
+        return hasProductTypes()
+                || minPrice != null
+                || maxPrice != null
+                || discountOnly
+                || inStockOnly;
+    }
+
     public boolean hasFilter() {
         return hasContentCategories()
                 || hasGenreCodes()
-                || hasProviderIds();
+                || hasProviderIds()
+                || hasGoodsFilter();
     }
 }
