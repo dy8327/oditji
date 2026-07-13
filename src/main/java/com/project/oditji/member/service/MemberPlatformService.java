@@ -8,6 +8,8 @@ public interface MemberPlatformService {
 
     List<PlatformVO> findPlatformList();
 
+    List<PlatformVO> findMemberPlatformList(Long memberNo);
+
     void saveMemberPlatforms(Long memberNo, List<Long> platformNoList);
 
     int countMemberPlatform(Long memberNo);

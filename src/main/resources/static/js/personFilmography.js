@@ -4,141 +4,225 @@
     function initFilmographyTabs() {
 
         const tabContainer =
-                document.querySelector("[data-filmography-tabs]");
+            document.querySelector(
+                "[data-filmography-tabs]"
+            );
 
-        if (!tabContainer
-                || tabContainer.dataset.tabsInitialized === "true") {
+        if (!tabContainer) {
             return;
         }
 
-        const tabButtons = Array.from(
-                tabContainer.querySelectorAll("[data-tab-target]")
-        );
+        if (tabContainer.dataset.tabsInitialized === "true") {
+            return;
+        }
 
-        const tabPanels = Array.from(
-                tabContainer.querySelectorAll("[data-tab-panel]")
-        );
+        const tabButtons =
+            Array.from(
+                tabContainer.querySelectorAll(
+                    "[data-tab-target]"
+                )
+            );
 
-        if (tabButtons.length === 0 || tabPanels.length === 0) {
+        const tabPanels =
+            Array.from(
+                tabContainer.querySelectorAll(
+                    "[data-tab-panel]"
+                )
+            );
+
+        if (tabButtons.length === 0
+                || tabPanels.length === 0) {
+
             return;
         }
 
         tabContainer.dataset.tabsInitialized = "true";
 
-        function activateTab(tabName, moveFocus) {
 
-            const targetButton = tabButtons.find(function (button) {
-                return button.dataset.tabTarget === tabName;
-            });
+        /**
+         * 선택한 필모그래피 탭을 활성화한다.
+         */
+        function activateTab(
+                tabName,
+                moveFocus) {
 
-            const targetPanel = tabPanels.find(function (panel) {
-                return panel.dataset.tabPanel === tabName;
-            });
+            const targetButton =
+                tabButtons.find(
+                    function (button) {
+
+                        return button.dataset.tabTarget
+                            === tabName;
+                    }
+                );
+
+            const targetPanel =
+                tabPanels.find(
+                    function (panel) {
+
+                        return panel.dataset.tabPanel
+                            === tabName;
+                    }
+                );
 
             if (!targetButton || !targetPanel) {
                 return;
             }
 
-            tabButtons.forEach(function (button) {
 
-                const isActive = button === targetButton;
+            tabButtons.forEach(
+                function (button) {
 
-                button.classList.toggle("is-active", isActive);
+                    const isActive =
+                        button === targetButton;
 
-                button.setAttribute(
+                    button.classList.toggle(
+                        "is-active",
+                        isActive
+                    );
+
+                    button.setAttribute(
                         "aria-selected",
-                        String(isActive)
-                );
+                        isActive ? "true" : "false"
+                    );
 
-                button.tabIndex = isActive ? 0 : -1;
-            });
+                    button.tabIndex =
+                        isActive ? 0 : -1;
+                }
+            );
 
-            tabPanels.forEach(function (panel) {
 
-                const isActive = panel === targetPanel;
+            tabPanels.forEach(
+                function (panel) {
 
-                panel.hidden = !isActive;
-                panel.classList.toggle("is-active", isActive);
-            });
+                    const isActive =
+                        panel === targetPanel;
+
+                    panel.hidden =
+                        !isActive;
+
+                    panel.classList.toggle(
+                        "is-active",
+                        isActive
+                    );
+
+                    panel.setAttribute(
+                        "aria-hidden",
+                        isActive ? "false" : "true"
+                    );
+                }
+            );
+
 
             if (moveFocus) {
                 targetButton.focus();
             }
         }
 
-        tabButtons.forEach(function (button, index) {
 
-            button.addEventListener("click", function () {
+        /**
+         * 탭 클릭 및 키보드 이동 처리
+         */
+        tabButtons.forEach(
+            function (button, index) {
 
-                activateTab(
-                        button.dataset.tabTarget,
-                        false
+                button.addEventListener(
+                    "click",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        activateTab(
+                            button.dataset.tabTarget,
+                            false
+                        );
+                    }
                 );
-            });
 
-            button.addEventListener("keydown", function (event) {
 
-                let nextIndex = index;
+                button.addEventListener(
+                    "keydown",
+                    function (event) {
 
-                if (event.key === "ArrowRight") {
+                        let nextIndex = index;
 
-                    nextIndex =
-                            (index + 1) % tabButtons.length;
+                        if (event.key === "ArrowRight") {
 
-                } else if (event.key === "ArrowLeft") {
+                            nextIndex =
+                                (index + 1)
+                                % tabButtons.length;
 
-                    nextIndex =
-                            (index - 1 + tabButtons.length)
-                            % tabButtons.length;
+                        } else if (event.key === "ArrowLeft") {
 
-                } else if (event.key === "Home") {
+                            nextIndex =
+                                (
+                                    index
+                                    - 1
+                                    + tabButtons.length
+                                )
+                                % tabButtons.length;
 
-                    nextIndex = 0;
+                        } else if (event.key === "Home") {
 
-                } else if (event.key === "End") {
+                            nextIndex = 0;
 
-                    nextIndex = tabButtons.length - 1;
+                        } else if (event.key === "End") {
 
-                } else {
+                            nextIndex =
+                                tabButtons.length - 1;
 
-                    return;
-                }
+                        } else {
 
-                event.preventDefault();
+                            return;
+                        }
 
-                activateTab(
-                        tabButtons[nextIndex].dataset.tabTarget,
-                        true
+                        event.preventDefault();
+
+                        activateTab(
+                            tabButtons[nextIndex]
+                                .dataset.tabTarget,
+                            true
+                        );
+                    }
                 );
-            });
-        });
+            }
+        );
 
-        const initiallyActive = tabButtons.find(
+
+        /**
+         * JSP에서 기본 활성화된 탭을 적용한다.
+         */
+        const initiallyActive =
+            tabButtons.find(
                 function (button) {
 
                     return button.classList.contains(
-                            "is-active"
+                        "is-active"
                     );
                 }
-        );
+            );
 
-        const initialTabName = initiallyActive
+        const initialTabName =
+            initiallyActive
                 ? initiallyActive.dataset.tabTarget
                 : tabButtons[0].dataset.tabTarget;
 
-        activateTab(initialTabName, false);
+        activateTab(
+            initialTabName,
+            false
+        );
     }
+
 
     if (document.readyState === "loading") {
 
         document.addEventListener(
-                "DOMContentLoaded",
-                initFilmographyTabs
+            "DOMContentLoaded",
+            initFilmographyTabs
         );
 
     } else {
 
         initFilmographyTabs();
-    }
 
+    }
 })();

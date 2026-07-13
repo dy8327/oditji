@@ -21,7 +21,7 @@
           href="${pageContext.request.contextPath}/css/search.css">
 
     <script defer
-            src="${pageContext.request.contextPath}/js/search.js?v=7">
+            src="${pageContext.request.contextPath}/js/search.js?v=12">
     </script>
 
 </head>

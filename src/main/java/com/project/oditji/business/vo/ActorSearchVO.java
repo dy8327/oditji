@@ -7,6 +7,10 @@ public class ActorSearchVO {
     private String actorName;
     private String profilePath;
 
+    // CONTENT_ACTOR 테이블
+    private String characterName;
+    private Integer displayOrder;
+
     public ActorSearchVO() {
     }
 
@@ -40,5 +44,33 @@ public class ActorSearchVO {
 
     public void setProfilePath(String profilePath) {
         this.profilePath = profilePath;
+    }
+
+    public String getCharacterName() {
+        return characterName;
+    }
+
+    public void setCharacterName(String characterName) {
+        this.characterName = characterName;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
+
+    @Override
+    public String toString() {
+        return "ActorSearchVO{" +
+                "actorNo=" + actorNo +
+                ", tmdbActorId=" + tmdbActorId +
+                ", actorName='" + actorName + '\'' +
+                ", profilePath='" + profilePath + '\'' +
+                ", characterName='" + characterName + '\'' +
+                ", displayOrder=" + displayOrder +
+                '}';
     }
 }
