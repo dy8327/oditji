@@ -8,19 +8,25 @@ import com.project.oditji.goods.vo.GoodsVO;
 
 public interface GoodsDAO {
 
-    /**
-     * 상품명 검색 결과를 페이지 단위로 조회한다.
-     */
     List<GoodsVO> selectSearchGoods(
             @Param("keyword") String keyword,
+            @Param("productTypes") List<String> productTypes,
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("discountOnly") boolean discountOnly,
+            @Param("inStockOnly") boolean inStockOnly,
             @Param("startRow") int startRow,
             @Param("endRow") int endRow
     );
 
-    /**
-     * 상품명 검색 결과 전체 개수를 조회한다.
-     */
     int countSearchGoods(
-            @Param("keyword") String keyword
+            @Param("keyword") String keyword,
+            @Param("productTypes") List<String> productTypes,
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("discountOnly") boolean discountOnly,
+            @Param("inStockOnly") boolean inStockOnly
     );
+
+    List<String> selectSearchProductTypes();
 }

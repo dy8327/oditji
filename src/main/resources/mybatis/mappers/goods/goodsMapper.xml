@@ -9,47 +9,61 @@
     <resultMap id="goodsResultMap"
                type="com.project.oditji.goods.vo.GoodsVO">
 
-        <id property="productNo"
-            column="PRODUCT_NO"/>
-
-        <result property="productName"
-                column="PRODUCT_NAME"/>
-
-        <result property="productType"
-                column="PRODUCT_TYPE"/>
-
-        <result property="price"
-                column="PRICE"/>
-
-        <result property="discountRate"
-                column="DISCOUNT_RATE"/>
-
-        <result property="stock"
-                column="STOCK"/>
-
-        <result property="description"
-                column="DESCRIPTION"/>
-
-        <result property="status"
-                column="STATUS"/>
-
-        <result property="businessName"
-                column="BUSINESS_NAME"/>
-
-        <result property="mainImage"
-                column="MAIN_IMAGE"/>
+        <id property="productNo" column="PRODUCT_NO"/>
+        <result property="productName" column="PRODUCT_NAME"/>
+        <result property="productType" column="PRODUCT_TYPE"/>
+        <result property="price" column="PRICE"/>
+        <result property="discountRate" column="DISCOUNT_RATE"/>
+        <result property="stock" column="STOCK"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="status" column="STATUS"/>
+        <result property="businessName" column="BUSINESS_NAME"/>
+        <result property="mainImage" column="MAIN_IMAGE"/>
 
     </resultMap>
 
+    <sql id="searchGoodsFilterCondition">
+        WHERE P.STATUS = 'ON_SALE'
 
-    <!--
-        상품명 검색 페이지 조회
+          AND LOWER(P.PRODUCT_NAME)
+                LIKE '%' || LOWER(#{keyword}) || '%'
 
-        - 판매 중인 상품만 검색
-        - 상품명 기준 검색
-        - 대표 이미지 IS_MAIN = 'Y' 우선
-        - 대표 이미지가 여러 개면 IMAGE_NO가 가장 작은 이미지 사용
-    -->
+        <if test="productTypes != null and productTypes.size() > 0">
+            AND P.PRODUCT_TYPE IN
+            <foreach collection="productTypes"
+                     item="productType"
+                     open="("
+                     separator=","
+                     close=")">
+                #{productType}
+            </foreach>
+        </if>
+
+        <if test="minPrice != null">
+            AND FLOOR(
+                    P.PRICE
+                    * (100 - NVL(P.DISCOUNT_RATE, 0))
+                    / 100
+                ) <![CDATA[ >= ]]> #{minPrice}
+        </if>
+
+        <if test="maxPrice != null">
+            AND FLOOR(
+                    P.PRICE
+                    * (100 - NVL(P.DISCOUNT_RATE, 0))
+                    / 100
+                ) <![CDATA[ <= ]]> #{maxPrice}
+        </if>
+
+        <if test="discountOnly">
+            AND NVL(P.DISCOUNT_RATE, 0) > 0
+        </if>
+
+        <if test="inStockOnly">
+            AND NVL(P.STOCK, 0) > 0
+        </if>
+    </sql>
+
     <select id="selectSearchGoods"
             resultMap="goodsResultMap">
 
@@ -80,9 +94,7 @@
                 P.STOCK,
                 P.DESCRIPTION,
                 P.STATUS,
-
                 B.BUSINESS_NAME,
-
                 PI.MAIN_IMAGE
 
             FROM PRODUCT P
@@ -93,51 +105,48 @@
             LEFT JOIN (
                 SELECT
                     PRODUCT_NO,
-
                     MAX(IMAGE_PATH)
                         KEEP (
                             DENSE_RANK FIRST
                             ORDER BY
                                 CASE
-                                    WHEN IS_MAIN = 'Y'
-                                    THEN 0
+                                    WHEN IS_MAIN = 'Y' THEN 0
                                     ELSE 1
                                 END,
                                 IMAGE_NO
                         ) AS MAIN_IMAGE
-
                 FROM PRODUCT_IMAGE
-
                 GROUP BY PRODUCT_NO
             ) PI
                 ON PI.PRODUCT_NO = P.PRODUCT_NO
 
-            WHERE P.STATUS = 'ON_SALE'
-
-              AND LOWER(P.PRODUCT_NAME)
-                    LIKE '%' || LOWER(#{keyword}) || '%'
+            <include refid="searchGoodsFilterCondition"/>
         ) PAGED
 
-        WHERE PAGED.RN BETWEEN #{startRow}
-                           AND #{endRow}
+        WHERE PAGED.RN BETWEEN #{startRow} AND #{endRow}
 
         ORDER BY PAGED.RN
 
     </select>
 
-
-    <!-- 상품명 검색 전체 개수 -->
     <select id="countSearchGoods"
             resultType="int">
 
         SELECT COUNT(*)
-
         FROM PRODUCT P
 
-        WHERE P.STATUS = 'ON_SALE'
+        <include refid="searchGoodsFilterCondition"/>
 
-          AND LOWER(P.PRODUCT_NAME)
-                LIKE '%' || LOWER(#{keyword}) || '%'
+    </select>
+
+    <select id="selectSearchProductTypes"
+            resultType="string">
+
+        SELECT DISTINCT P.PRODUCT_TYPE
+        FROM PRODUCT P
+        WHERE P.STATUS = 'ON_SALE'
+          AND P.PRODUCT_TYPE IS NOT NULL
+        ORDER BY P.PRODUCT_TYPE
 
     </select>
 

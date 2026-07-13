@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     initializeSearchFilter();
+    initializeSidebarFilterTabs();
     initializeHeaderSearchFilterPreservation();
     initializeGenreToggle();
     initializeOttPlatformModal();
@@ -92,6 +93,98 @@ function initializeSearchFilter() {
  * headerSearchForm과 searchFilterForm은 서로 다른 form이므로,
  * 헤더 검색 form을 제출하기 직전에 선택된 필터 값을 hidden input으로 복사한다.
  */
+
+function copyNamedValueToHeaderForm(filterForm, headerSearchForm, inputName) {
+
+    const input = filterForm.querySelector("[name='" + inputName + "']");
+
+    if (!input) {
+        return;
+    }
+
+    if ((input.type === "checkbox" || input.type === "radio")
+            && !input.checked) {
+        return;
+    }
+
+    if (String(input.value || "").trim() === "") {
+        return;
+    }
+
+    appendGeneratedHiddenInput(
+        headerSearchForm,
+        inputName,
+        input.value
+    );
+}
+
+function initializeSidebarFilterTabs() {
+
+    const filterForm = document.getElementById("searchFilterForm");
+    const searchRoot = document.querySelector("[data-search-root]");
+
+    if (!filterForm) {
+        return;
+    }
+
+    const tabButtons = filterForm.querySelectorAll("[data-sidebar-filter-tab]");
+
+    tabButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const targetTab = normalizeSidebarFilterTab(
+                button.dataset.sidebarFilterTab
+            );
+
+            activateSidebarFilterTab(filterForm, targetTab);
+
+            if (searchRoot) {
+                activateSearchTab(searchRoot, targetTab, true);
+            } else {
+                setFormValue(filterForm, "searchTab", targetTab);
+            }
+        });
+    });
+
+    const initialTab = normalizeSidebarFilterTab(
+        filterForm.dataset.initialSidebarTab
+    );
+
+    activateSidebarFilterTab(filterForm, initialTab);
+}
+
+function normalizeSidebarFilterTab(tabValue) {
+    return String(tabValue || "CONTENT").toUpperCase() === "GOODS"
+        ? "GOODS"
+        : "CONTENT";
+}
+
+function activateSidebarFilterTab(filterForm, targetTab) {
+
+    const normalizedTarget = normalizeSidebarFilterTab(targetTab);
+    const tabButtons = filterForm.querySelectorAll("[data-sidebar-filter-tab]");
+    const tabPanels = filterForm.querySelectorAll("[data-sidebar-filter-panel]");
+
+    tabButtons.forEach(function (button) {
+        const active = normalizeSidebarFilterTab(
+            button.dataset.sidebarFilterTab
+        ) === normalizedTarget;
+
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    tabPanels.forEach(function (panel) {
+        const active = normalizeSidebarFilterTab(
+            panel.dataset.sidebarFilterPanel
+        ) === normalizedTarget;
+
+        panel.hidden = !active;
+    });
+
+    filterForm.dataset.initialSidebarTab = normalizedTarget;
+    setFormValue(filterForm, "searchTab", normalizedTarget);
+}
+
 function initializeHeaderSearchFilterPreservation() {
 
     const headerSearchForm =
@@ -128,6 +221,17 @@ function initializeHeaderSearchFilterPreservation() {
             "providerIds"
         );
 
+        copyCheckedFilterValuesToHeaderForm(
+            filterForm,
+            headerSearchForm,
+            "productTypes"
+        );
+
+        copyNamedValueToHeaderForm(filterForm, headerSearchForm, "minPrice");
+        copyNamedValueToHeaderForm(filterForm, headerSearchForm, "maxPrice");
+        copyNamedValueToHeaderForm(filterForm, headerSearchForm, "discountOnly");
+        copyNamedValueToHeaderForm(filterForm, headerSearchForm, "inStockOnly");
+
         appendGeneratedHiddenInput(
             headerSearchForm,
             "contentPage",
@@ -140,10 +244,12 @@ function initializeHeaderSearchFilterPreservation() {
             "1"
         );
 
+        const searchTabInput = filterForm.querySelector("input[name='searchTab']");
+
         appendGeneratedHiddenInput(
             headerSearchForm,
             "searchTab",
-            "ALL"
+            searchTabInput ? searchTabInput.value : "ALL"
         );
     });
 }
@@ -554,6 +660,12 @@ function activateSearchTab(searchRoot, targetTab, updateUrl) {
 
     searchRoot.dataset.initialTab = normalizedTarget;
 
+    const filterForm = document.getElementById("searchFilterForm");
+
+    if (filterForm && (normalizedTarget === "CONTENT" || normalizedTarget === "GOODS")) {
+        activateSidebarFilterTab(filterForm, normalizedTarget);
+    }
+
     if (updateUrl) {
         updateSearchTabQuery(normalizedTarget);
     }
@@ -616,17 +728,32 @@ function initializePaginationFilterPreservation() {
                 window.location.origin
             );
 
-            targetUrl.searchParams.delete("contentCategories");
+            [
+                "contentCategories",
+                "genreCodes",
+                "providerIds",
+                "productTypes",
+                "minPrice",
+                "maxPrice",
+                "discountOnly",
+                "inStockOnly"
+            ].forEach(function (name) {
+                targetUrl.searchParams.delete(name);
+            });
 
-            const checkedCategories = filterForm.querySelectorAll(
-                "input[name='contentCategories']:checked"
-            );
+            const filterData = new FormData(filterForm);
 
-            checkedCategories.forEach(function (checkbox) {
-                targetUrl.searchParams.append(
-                    "contentCategories",
-                    checkbox.value
-                );
+            filterData.forEach(function (value, name) {
+                if (name === "keyword"
+                        || name === "contentPage"
+                        || name === "goodsPage"
+                        || name === "searchTab") {
+                    return;
+                }
+
+                if (String(value).trim() !== "") {
+                    targetUrl.searchParams.append(name, value);
+                }
             });
 
             window.location.href = targetUrl.toString();

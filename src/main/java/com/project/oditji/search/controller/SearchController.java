@@ -53,13 +53,34 @@ public class SearchController {
 
         List<String> genreCodes = createSafeList(searchVO.getGenreCodes());
         List<String> providerIds = createSafeList(searchVO.getProviderIds());
+        List<String> productTypes = createSafeList(searchVO.getProductTypes());
+
+        Integer minPrice = normalizePrice(searchVO.getMinPrice());
+        Integer maxPrice = normalizePrice(searchVO.getMaxPrice());
+
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            int temporaryPrice = minPrice;
+            minPrice = maxPrice;
+            maxPrice = temporaryPrice;
+        }
+
+        boolean discountOnly = searchVO.isDiscountOnly();
+        boolean inStockOnly = searchVO.isInStockOnly();
         String searchTab = normalizeSearchTab(searchVO.getSearchTab());
 
         int goodsTotalCount = 0;
         int goodsTotalPages = 0;
 
         if (!keyword.isEmpty()) {
-            goodsTotalCount = goodsService.countSearchGoods(keyword);
+            goodsTotalCount = goodsService.countSearchGoods(
+                    keyword,
+                    productTypes,
+                    minPrice,
+                    maxPrice,
+                    discountOnly,
+                    inStockOnly
+            );
+
             goodsTotalPages = calculateTotalPages(
                     goodsTotalCount,
                     GOODS_PAGE_SIZE
@@ -76,6 +97,11 @@ public class SearchController {
         searchVO.setContentCategories(contentCategories);
         searchVO.setGenreCodes(genreCodes);
         searchVO.setProviderIds(providerIds);
+        searchVO.setProductTypes(productTypes);
+        searchVO.setMinPrice(minPrice);
+        searchVO.setMaxPrice(maxPrice);
+        searchVO.setDiscountOnly(discountOnly);
+        searchVO.setInStockOnly(inStockOnly);
         searchVO.setSearchTab(searchTab);
 
         SearchResultPageVO contentPageVO =
@@ -108,6 +134,11 @@ public class SearchController {
         if (!keyword.isEmpty() && goodsTotalCount > 0) {
             goodsResults = goodsService.searchGoods(
                     keyword,
+                    productTypes,
+                    minPrice,
+                    maxPrice,
+                    discountOnly,
+                    inStockOnly,
                     goodsPage,
                     GOODS_PAGE_SIZE
             );
@@ -122,6 +153,11 @@ public class SearchController {
         if (!keyword.isEmpty() && goodsTotalCount > 0) {
             allGoodsResults = goodsService.searchGoods(
                     keyword,
+                    productTypes,
+                    minPrice,
+                    maxPrice,
+                    discountOnly,
+                    inStockOnly,
                     1,
                     ALL_GOODS_PREVIEW_SIZE
             );
@@ -130,6 +166,8 @@ public class SearchController {
         if (allGoodsResults == null) {
             allGoodsResults = new ArrayList<GoodsVO>();
         }
+
+        List<String> availableProductTypes = goodsService.getSearchProductTypes();
 
         int contentTotalCount = contentPageVO.getTotalResults();
         int combinedTotalCount = contentTotalCount + goodsTotalCount;
@@ -160,6 +198,12 @@ public class SearchController {
         model.addAttribute("contentCategories", contentCategories);
         model.addAttribute("genreCodes", genreCodes);
         model.addAttribute("providerIds", providerIds);
+        model.addAttribute("productTypes", productTypes);
+        model.addAttribute("availableProductTypes", availableProductTypes);
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("discountOnly", discountOnly);
+        model.addAttribute("inStockOnly", inStockOnly);
         model.addAttribute("searchTab", searchTab);
         model.addAttribute("searchTitle", makeSearchTitle(searchVO));
         model.addAttribute("imageBaseUrl", imageBaseUrl);
@@ -215,6 +259,14 @@ public class SearchController {
         }
 
         return safeList;
+    }
+
+    private Integer normalizePrice(Integer price) {
+        if (price == null) {
+            return null;
+        }
+
+        return Math.max(price, 0);
     }
 
     private int calculateTotalPages(int totalCount, int pageSize) {
