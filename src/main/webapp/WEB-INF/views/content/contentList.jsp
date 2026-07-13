@@ -1,116 +1,369 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="ko">
 
 <head>
-<meta charset="UTF-8">
-<title>ODITJI | 콘텐츠</title>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/content.css">
+    <title>ODITJI | ${pageTitle}</title>
 
-<script defer
-        src="${pageContext.request.contextPath}/js/content.js"></script>
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/content.css?v=21">
+
+    <script defer
+            src="${pageContext.request.contextPath}/js/contentList.js?v=2">
+    </script>
 </head>
 
 <body>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="content-list-container">
+<main class="content-list-page">
 
-<section class="list-header">
+    <nav class="content-list-tabs"
+         aria-label="콘텐츠 목록 분류">
 
-    <h1 class="list-title">
-        <c:choose>
-            <c:when test="${type eq 'new'}">신규 콘텐츠</c:when>
-            <c:when test="${type eq 'popular'}">인기 콘텐츠</c:when>
-            <c:otherwise>콘텐츠 리스트</c:otherwise>
-        </c:choose>
-    </h1>
+        <c:url var="allListUrl"
+               value="/content/list">
+            <c:param name="type"
+                     value="all"/>
+        </c:url>
 
-    <p class="result-count">
-        총 <strong>${totalCount}</strong>개
-    </p>
+        <c:url var="popularListUrl"
+               value="/content/list">
+            <c:param name="type"
+                     value="popular"/>
+        </c:url>
 
-</section>
+        <c:url var="newListUrl"
+               value="/content/list">
+            <c:param name="type"
+                     value="new"/>
+        </c:url>
 
-<c:if test="${empty contentList}">
-    <section class="empty-state">
-        <p>등록된 콘텐츠가 없습니다.</p>
-    </section>
-</c:if>
+        <a class="content-list-tab ${type eq 'all' ? 'is-active' : ''}"
+           href="${allListUrl}">
+            영화·시리즈
+        </a>
 
-<section class="card-list">
+        <a class="content-list-tab ${type eq 'popular' ? 'is-active' : ''}"
+           href="${popularListUrl}">
+            인기
+        </a>
 
-    <c:forEach var="c" items="${contentList}">
+        <a class="content-list-tab ${type eq 'new' ? 'is-active' : ''}"
+           href="${newListUrl}">
+            신규
+        </a>
 
-        <article class="card-item">
+        <a class="content-list-tab"
+           href="${pageContext.request.contextPath}/goods/list">
+            상품
+        </a>
 
-            <a class="card-link"
-               href="${pageContext.request.contextPath}/content/contentDetail/${c.contentNo}">
+    </nav>
 
-                <div class="card-poster">
+    <div class="content-list-layout">
 
-                    <c:choose>
-                        <c:when test="${not empty c.posterPath}">
-                            <img src="https://image.tmdb.org/t/p/w500${c.posterPath}"
-                                 alt="${c.title}"
-                                 loading="lazy"/>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="no-img">NO IMAGE</div>
-                        </c:otherwise>
-                    </c:choose>
+        <aside class="content-list-left-sidebar">
+            <jsp:include page="/WEB-INF/views/common/contentLeftSidebar.jsp"/>
+        </aside>
 
+        <section class="content-list-main">
+
+            <header class="content-list-header">
+
+                <div>
+                    <h1>${pageTitle}</h1>
+
+                    <p>
+                        한국에서 정액제로 시청 가능한 콘텐츠만 표시합니다.
+                    </p>
                 </div>
 
-                <div class="card-info">
+                <span class="content-list-result-count">
+                    약 ${totalCount}건
+                </span>
 
-                    <h3 class="card-title">${c.title}</h3>
+            </header>
 
-                    <div class="card-meta">
-                        <span>${c.contentType}</span>
-                        <span>⭐ ${c.tmdbScore}</span>
-                    </div>
+            <c:choose>
 
-                    <div class="card-sub">
-                        ${c.genreText}
-                    </div>
+                <c:when test="${empty contentList}">
 
-                </div>
+                    <section class="empty-state">
+                        <p>조건에 맞는 콘텐츠가 없습니다.</p>
+                    </section>
 
-            </a>
+                </c:when>
 
-            <button type="button"
-                    class="fav-btn"
-                    data-content-no="${c.contentNo}">
-                ♡
-            </button>
+                <c:otherwise>
 
-        </article>
+                    <section class="content-list-card-grid">
 
-    </c:forEach>
+                        <c:forEach var="content"
+                                   items="${contentList}">
 
-</section>
+                            <article class="content-list-card">
 
-<section class="pagination">
+                                <c:url var="detailUrl"
+                                       value="/content/prepare">
 
-    <c:if test="${page > 1}">
-        <a class="page-btn"
-           href="?type=${type}&page=${page - 1}">‹</a>
-    </c:if>
+                                    <c:param name="tmdbId"
+                                             value="${content.tmdbId}"/>
 
-    <span class="page-now">${page}</span>
+                                    <c:param name="contentType"
+                                             value="${content.contentType}"/>
 
-    <c:if test="${page < totalPage}">
-        <a class="page-btn"
-           href="?type=${type}&page=${page + 1}">›</a>
-    </c:if>
+                                </c:url>
 
-</section>
+                                <a class="content-list-card-link"
+                                   href="${detailUrl}">
+
+                                    <div class="content-list-card-poster">
+
+                                        <c:choose>
+
+                                            <c:when test="${not empty content.posterPath}">
+
+                                                <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                                     alt="<c:out value='${content.title}'/>"
+                                                     loading="lazy">
+
+                                            </c:when>
+
+                                            <c:otherwise>
+
+                                                <div class="no-img">
+                                                    NO IMAGE
+                                                </div>
+
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                        <span class="content-list-type-badge">
+
+                                            <c:choose>
+
+                                                <c:when test="${content.contentType eq 'MOVIE'}">
+                                                    영화
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    시리즈
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="content-list-card-info">
+
+                                        <h2>
+                                            <c:out value="${content.title}"/>
+                                        </h2>
+
+                                        <div class="content-list-card-meta">
+
+                                            <span>
+                                                <c:choose>
+                                                    <c:when test="${not empty content.releaseDate}">
+                                                        ${fn:substring(content.releaseDate, 0, 4)}
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        공개일 미정
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
+
+                                            <c:if test="${not empty content.tmdbScore}">
+                                                <span>⭐ ${content.tmdbScore}</span>
+                                            </c:if>
+
+                                        </div>
+
+                                        <c:if test="${not empty content.genreText}">
+                                            <p class="content-list-card-genre">
+                                                <c:out value="${content.genreText}"/>
+                                            </p>
+                                        </c:if>
+
+                                    </div>
+
+                                </a>
+
+                            </article>
+
+                        </c:forEach>
+
+                    </section>
+
+                </c:otherwise>
+
+            </c:choose>
+
+            <c:if test="${totalPage > 1}">
+
+                <nav class="content-list-pagination"
+                     aria-label="콘텐츠 목록 페이지">
+
+                    <c:set var="startPage"
+                           value="${page - 2 > 1 ? page - 2 : 1}"/>
+
+                    <c:set var="endPage"
+                           value="${page + 2 < totalPage ? page + 2 : totalPage}"/>
+
+                    <c:if test="${page > 1}">
+
+                        <c:url var="previousPageUrl"
+                               value="/content/list">
+
+                            <c:param name="type"
+                                     value="${type}"/>
+
+                            <c:param name="page"
+                                     value="${page - 1}"/>
+
+                            <c:forEach var="category"
+                                       items="${contentCategories}">
+                                <c:param name="contentCategories"
+                                         value="${category}"/>
+                            </c:forEach>
+
+                            <c:forEach var="genre"
+                                       items="${genreCodes}">
+                                <c:param name="genreCodes"
+                                         value="${genre}"/>
+                            </c:forEach>
+
+                            <c:forEach var="provider"
+                                       items="${providerIds}">
+                                <c:param name="providerIds"
+                                         value="${provider}"/>
+                            </c:forEach>
+
+                        </c:url>
+
+                        <a class="page-btn"
+                           href="${previousPageUrl}">
+                            ‹
+                        </a>
+
+                    </c:if>
+
+                    <c:forEach var="pageNumber"
+                               begin="${startPage}"
+                               end="${endPage}">
+
+                        <c:url var="pageUrl"
+                               value="/content/list">
+
+                            <c:param name="type"
+                                     value="${type}"/>
+
+                            <c:param name="page"
+                                     value="${pageNumber}"/>
+
+                            <c:forEach var="category"
+                                       items="${contentCategories}">
+                                <c:param name="contentCategories"
+                                         value="${category}"/>
+                            </c:forEach>
+
+                            <c:forEach var="genre"
+                                       items="${genreCodes}">
+                                <c:param name="genreCodes"
+                                         value="${genre}"/>
+                            </c:forEach>
+
+                            <c:forEach var="provider"
+                                       items="${providerIds}">
+                                <c:param name="providerIds"
+                                         value="${provider}"/>
+                            </c:forEach>
+
+                        </c:url>
+
+                        <c:choose>
+
+                            <c:when test="${pageNumber == page}">
+                                <span class="page-now">
+                                    ${pageNumber}
+                                </span>
+                            </c:when>
+
+                            <c:otherwise>
+                                <a class="page-btn"
+                                   href="${pageUrl}">
+                                    ${pageNumber}
+                                </a>
+                            </c:otherwise>
+
+                        </c:choose>
+
+                    </c:forEach>
+
+                    <c:if test="${page < totalPage}">
+
+                        <c:url var="nextPageUrl"
+                               value="/content/list">
+
+                            <c:param name="type"
+                                     value="${type}"/>
+
+                            <c:param name="page"
+                                     value="${page + 1}"/>
+
+                            <c:forEach var="category"
+                                       items="${contentCategories}">
+                                <c:param name="contentCategories"
+                                         value="${category}"/>
+                            </c:forEach>
+
+                            <c:forEach var="genre"
+                                       items="${genreCodes}">
+                                <c:param name="genreCodes"
+                                         value="${genre}"/>
+                            </c:forEach>
+
+                            <c:forEach var="provider"
+                                       items="${providerIds}">
+                                <c:param name="providerIds"
+                                         value="${provider}"/>
+                            </c:forEach>
+
+                        </c:url>
+
+                        <a class="page-btn"
+                           href="${nextPageUrl}">
+                            ›
+                        </a>
+
+                    </c:if>
+
+                </nav>
+
+            </c:if>
+
+        </section>
+
+        <aside class="content-list-right-sidebar">
+            <jsp:include page="/WEB-INF/views/common/contentRightSidebar.jsp"/>
+        </aside>
+
+    </div>
 
 </main>
 
