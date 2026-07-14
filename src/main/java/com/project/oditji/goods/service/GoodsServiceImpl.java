@@ -34,37 +34,48 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizeKeyword(keyword);
 
         List<String> normalizedProductTypes =
-                normalizeProductTypes(productTypes);
+                normalizeProductTypes(
+                        productTypes
+                );
 
         Integer normalizedMinPrice =
-                normalizePrice(minPrice);
+                normalizePrice(
+                        minPrice
+                );
 
         Integer normalizedMaxPrice =
-                normalizePrice(maxPrice);
+                normalizePrice(
+                        maxPrice
+                );
 
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
                 && normalizedMinPrice > normalizedMaxPrice) {
 
-            int temporaryPrice = normalizedMinPrice;
+            int temporaryPrice =
+                    normalizedMinPrice;
 
-            normalizedMinPrice = normalizedMaxPrice;
-            normalizedMaxPrice = temporaryPrice;
+            normalizedMinPrice =
+                    normalizedMaxPrice;
+
+            normalizedMaxPrice =
+                    temporaryPrice;
         }
 
-        int normalizedPage = normalizePage(page);
+        int normalizedPage =
+                normalizePage(page);
 
         int normalizedPageSize =
                 normalizePageSize(pageSize);
 
         int startRow =
                 (normalizedPage - 1)
-                * normalizedPageSize
-                + 1;
+                        * normalizedPageSize
+                        + 1;
 
         int endRow =
                 normalizedPage
-                * normalizedPageSize;
+                        * normalizedPageSize;
 
         List<GoodsVO> resultList =
                 goodsDAO.selectSearchGoods(
@@ -98,22 +109,32 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizeKeyword(keyword);
 
         List<String> normalizedProductTypes =
-                normalizeProductTypes(productTypes);
+                normalizeProductTypes(
+                        productTypes
+                );
 
         Integer normalizedMinPrice =
-                normalizePrice(minPrice);
+                normalizePrice(
+                        minPrice
+                );
 
         Integer normalizedMaxPrice =
-                normalizePrice(maxPrice);
+                normalizePrice(
+                        maxPrice
+                );
 
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
                 && normalizedMinPrice > normalizedMaxPrice) {
 
-            int temporaryPrice = normalizedMinPrice;
+            int temporaryPrice =
+                    normalizedMinPrice;
 
-            normalizedMinPrice = normalizedMaxPrice;
-            normalizedMaxPrice = temporaryPrice;
+            normalizedMinPrice =
+                    normalizedMaxPrice;
+
+            normalizedMaxPrice =
+                    temporaryPrice;
         }
 
         return goodsDAO.countSearchGoods(
@@ -127,7 +148,8 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     @Override
-    public List<GoodsVO> getRecommendedGoods(int limit) {
+    public List<GoodsVO> getRecommendedGoods(
+            int limit) {
 
         int normalizedLimit = limit;
 
@@ -135,10 +157,11 @@ public class GoodsServiceImpl implements GoodsService {
             normalizedLimit = 5;
         }
 
-        normalizedLimit = Math.min(
-                normalizedLimit,
-                20
-        );
+        normalizedLimit =
+                Math.min(
+                        normalizedLimit,
+                        20
+                );
 
         List<GoodsVO> recommendedGoodsList =
                 goodsDAO.selectRecommendedGoods(
@@ -165,7 +188,8 @@ public class GoodsServiceImpl implements GoodsService {
         return productTypes;
     }
 
-    private String normalizeKeyword(String keyword) {
+    private String normalizeKeyword(
+            String keyword) {
 
         if (keyword == null) {
             return "";
@@ -194,9 +218,7 @@ public class GoodsServiceImpl implements GoodsService {
                     productType.trim();
 
             if (!normalized.isEmpty()
-                    && !normalizedList.contains(
-                            normalized
-                    )) {
+                    && !normalizedList.contains(normalized)) {
 
                 normalizedList.add(normalized);
             }
@@ -205,7 +227,8 @@ public class GoodsServiceImpl implements GoodsService {
         return normalizedList;
     }
 
-    private Integer normalizePrice(Integer price) {
+    private Integer normalizePrice(
+            Integer price) {
 
         if (price == null) {
             return null;
@@ -214,7 +237,8 @@ public class GoodsServiceImpl implements GoodsService {
         return Math.max(price, 0);
     }
 
-    private int normalizePage(int page) {
+    private int normalizePage(
+            int page) {
 
         if (page <= 0) {
             return 1;
@@ -223,10 +247,11 @@ public class GoodsServiceImpl implements GoodsService {
         return page;
     }
 
-    private int normalizePageSize(int pageSize) {
+    private int normalizePageSize(
+            int pageSize) {
 
         if (pageSize <= 0) {
-            return 10;
+            return 12;
         }
 
         return Math.min(pageSize, 100);
