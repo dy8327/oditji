@@ -1,15 +1,19 @@
 package com.project.oditji.review.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.review.dao.ReviewDAO;
+import com.project.oditji.review.vo.ContentReviewVO;
 import com.project.oditji.review.vo.MyReviewVO;
 import com.project.oditji.review.vo.ProductReviewVO;
 import com.project.oditji.review.vo.ReviewVO;
@@ -42,7 +46,6 @@ public class ReviewServiceImpl implements ReviewService {
             myReviewList.addAll(productReviewList);
         }
 
-        // 콘텐츠 리뷰 / 상품 리뷰를 합친 뒤 작성일 기준 최신순 정렬
         myReviewList.sort(
                 Comparator.comparing(MyReviewVO::getCreatedAt).reversed());
 
@@ -75,16 +78,29 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalArgumentException("리뷰 내용을 입력해주세요.");
         }
 
-        // UQ_REVIEW(MEMBER_NO, CONTENT_NO) 제약조건 대응 - 중복 작성 방지
         Map<String, Object> checkParam = new HashMap<>();
         checkParam.put("memberNo", memberNo);
         checkParam.put("contentNo", contentNo);
 
+        // 상태(ACTIVE/DELETED) 무관하고 조회 - 삭제했던 리뷰도 잡아냄
         ReviewVO existingReview =
-                reviewDAO.selectContentReviewByMemberAndContent(checkParam);
+                reviewDAO.selectContentReviewByMemberAndContentAnyStatus(checkParam);
 
         if (existingReview != null) {
-            throw new IllegalStateException("이미 작성한 리뷰가 있습니다.");
+
+            if (!"DELETED".equals(existingReview.getStatus())) {
+                // ACTIVE 리뷰가 이미 있으면 차단
+                throw new IllegalStateException("이미 작성한 리뷰가 있습니다.");
+            }
+
+            // 삭제했던 리뷰라면 새로 INSERT 하지 않고 기존 row를 재활용
+            ReviewVO reactivated = new ReviewVO();
+            reactivated.setReviewNo(existingReview.getReviewNo());
+            reactivated.setRating(rating);
+            reactivated.setReviewText(reviewText);
+
+            reviewDAO.reactivateContentReview(reactivated);
+            return;
         }
 
         ReviewVO review = new ReviewVO();
@@ -95,7 +111,6 @@ public class ReviewServiceImpl implements ReviewService {
 
         reviewDAO.insertContentReview(review);
     }
-
     @Override
     @Transactional
     public void updateContentReview(
@@ -149,7 +164,6 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalArgumentException("리뷰 내용을 입력해주세요.");
         }
 
-        // 같은 주문상품(ORDER_ITEM_NO)에는 리뷰를 중복으로 작성할 수 없도록 확인
         ProductReviewVO existingReview =
                 reviewDAO.selectProductReviewByOrderItem(orderItemNo);
 
@@ -165,5 +179,99 @@ public class ReviewServiceImpl implements ReviewService {
         productReview.setContent(content);
 
         reviewDAO.insertProductReview(productReview);
+    }
+
+    @Override
+    public List<ContentReviewVO> getContentReviewList(int contentNo) {
+
+        List<ContentReviewVO> reviewList =
+                reviewDAO.selectContentReviewListByContentNo(contentNo);
+
+        return reviewList == null
+                ? Collections.emptyList()
+                : reviewList;
+    }
+
+    @Override
+    public Double getAvgRating(int contentNo) {
+        return reviewDAO.selectAvgRatingByContentNo(contentNo);
+    }
+
+    @Override
+    public int getReviewCount(int contentNo) {
+        return reviewDAO.selectReviewCountByContentNo(contentNo);
+    }
+
+    @Override
+    public ReviewVO getMyReview(Long memberNo, int contentNo) {
+
+        if (memberNo == null) {
+            return null;
+        }
+
+        Map<String, Object> param = new HashMap<>();
+        param.put("memberNo", memberNo);
+        param.put("contentNo", contentNo);
+
+        return reviewDAO.selectContentReviewByMemberAndContent(param);
+    }
+
+    @Override
+    public Set<Integer> getReportedReviewSet(Long memberNo) {
+
+        if (memberNo == null) {
+            return Collections.emptySet();
+        }
+
+        List<Integer> reportedList =
+                reviewDAO.selectReportedContentReviewNoList(memberNo);
+
+        return reportedList == null
+                ? Collections.emptySet()
+                : new HashSet<>(reportedList);
+    }
+
+    @Override
+    @Transactional
+    public void deleteContentReview(Long memberNo, int reviewNo) {
+
+        if (memberNo == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+
+        ReviewVO existingReview =
+                reviewDAO.selectContentReviewByReviewNo(reviewNo);
+
+        if (existingReview == null) {
+            throw new IllegalArgumentException("존재하지 않는 리뷰입니다.");
+        }
+
+        if (!memberNo.equals(existingReview.getMemberNo())) {
+            throw new IllegalStateException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+        }
+
+        reviewDAO.deleteContentReview(reviewNo);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProductReview(Long memberNo, int reviewNo) {
+
+        if (memberNo == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+
+        ProductReviewVO existingReview =
+                reviewDAO.selectProductReviewByReviewNo(reviewNo);
+
+        if (existingReview == null) {
+            throw new IllegalArgumentException("존재하지 않는 리뷰입니다.");
+        }
+
+        if (!memberNo.equals(existingReview.getMemberNo())) {
+            throw new IllegalStateException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+        }
+
+        reviewDAO.deleteProductReview(reviewNo);
     }
 }

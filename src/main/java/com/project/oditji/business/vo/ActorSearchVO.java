@@ -7,7 +7,6 @@ public class ActorSearchVO {
     private String actorName;
     private String profilePath;
 
-    // CONTENT_ACTOR 테이블
     private String characterName;
     private Integer displayOrder;
 
@@ -50,7 +49,9 @@ public class ActorSearchVO {
         return characterName;
     }
 
-    public void setCharacterName(String characterName) {
+    public void setCharacterName(
+            String characterName) {
+
         this.characterName = characterName;
     }
 
@@ -58,7 +59,9 @@ public class ActorSearchVO {
         return displayOrder;
     }
 
-    public void setDisplayOrder(Integer displayOrder) {
+    public void setDisplayOrder(
+            Integer displayOrder) {
+
         this.displayOrder = displayOrder;
     }
 
