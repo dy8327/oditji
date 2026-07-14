@@ -203,7 +203,9 @@
 <c:set var="sidebarTab"
        value="${searchTab eq 'GOODS'
                 ? 'GOODS'
-                : 'CONTENT'}"/>
+                : (searchTab eq 'CONTENT'
+                    ? 'CONTENT'
+                    : 'ALL')}"/>
 
 <form id="searchFilterForm"
       class="search-filter-form"
@@ -232,6 +234,14 @@
          aria-label="검색 필터 종류">
 
         <button type="button"
+                class="sidebar-filter-tab ${sidebarTab eq 'ALL' ? 'is-active' : ''}"
+                data-sidebar-filter-tab="ALL"
+                role="tab"
+                aria-selected="${sidebarTab eq 'ALL' ? 'true' : 'false'}">
+            전체
+        </button>
+
+        <button type="button"
                 class="sidebar-filter-tab ${sidebarTab eq 'CONTENT' ? 'is-active' : ''}"
                 data-sidebar-filter-tab="CONTENT"
                 role="tab"
@@ -251,7 +261,7 @@
 
     <div class="sidebar-filter-panel"
          data-sidebar-filter-panel="CONTENT"
-         <c:if test="${sidebarTab ne 'CONTENT'}">hidden</c:if>>
+         <c:if test="${sidebarTab eq 'GOODS'}">hidden</c:if>>
 
         <section class="filter-group">
 
@@ -613,7 +623,7 @@
 
     <div class="sidebar-filter-panel"
          data-sidebar-filter-panel="GOODS"
-         <c:if test="${sidebarTab ne 'GOODS'}">hidden</c:if>>
+         <c:if test="${sidebarTab eq 'CONTENT'}">hidden</c:if>>
 
         <section class="filter-group">
 
