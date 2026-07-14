@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.cart.dao.CartDAO">
+
+    <resultMap id="cartResultMap"
+               type="com.project.oditji.cart.vo.CartVO">
+
+        <id property="cartNo"
+            column="CART_NO"/>
+
+        <result property="memberNo"
+                column="MEMBER_NO"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+    </resultMap>
+
+    <resultMap id="cartItemResultMap"
+               type="com.project.oditji.cart.vo.CartItemVO">
+
+        <id property="cartItemNo"
+            column="CART_ITEM_NO"/>
+
+        <result property="cartNo"
+                column="CART_NO"/>
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+    </resultMap>
+
+    <!-- 회원 장바구니 조회 -->
+    <select id="selectCartByMemberNo"
+            resultMap="cartResultMap">
+
+        SELECT
+            CART_NO,
+            MEMBER_NO,
+            CREATED_AT
+        FROM CART
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+    <!-- 회원 장바구니 생성 -->
+    <insert id="insertCart"
+            parameterType="com.project.oditji.cart.vo.CartVO">
+
+        <selectKey keyProperty="cartNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_CART_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO CART (
+            CART_NO,
+            MEMBER_NO,
+            CREATED_AT
+        )
+        VALUES (
+            #{cartNo},
+            #{memberNo},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- 장바구니 담기 전 상품 상태 및 재고 조회 -->
+    <select id="selectProductForCart"
+            resultMap="cartItemResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+
+    </select>
+
+    <!-- 동일 상품 장바구니 등록 여부 조회 -->
+    <select id="selectCartItemByProduct"
+            resultMap="cartItemResultMap">
+
+        SELECT *
+        FROM (
+            SELECT
+                CART_ITEM_NO,
+                CART_NO,
+                PRODUCT_NO,
+                QUANTITY,
+                CREATED_AT
+            FROM CART_ITEM
+            WHERE CART_NO = #{cartNo}
+              AND PRODUCT_NO = #{productNo}
+            ORDER BY CART_ITEM_NO
+        )
+        WHERE ROWNUM = 1
+
+    </select>
+
+    <!-- 로그인 회원 소유의 장바구니 상품 조회 -->
+    <select id="selectOwnedCartItem"
+            resultMap="cartItemResultMap">
+
+        SELECT
+            CI.CART_ITEM_NO,
+            CI.CART_NO,
+            CI.PRODUCT_NO,
+            CI.QUANTITY,
+            CI.CREATED_AT,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM CART_ITEM CI
+
+        INNER JOIN CART C
+            ON C.CART_NO = CI.CART_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = CI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+        WHERE C.MEMBER_NO = #{memberNo}
+          AND CI.CART_ITEM_NO = #{cartItemNo}
+
+    </select>
+
+    <!-- 장바구니 상품 추가 -->
+    <insert id="insertCartItem"
+            parameterType="com.project.oditji.cart.vo.CartItemVO">
+
+        <selectKey keyProperty="cartItemNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_CART_ITEM_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO CART_ITEM (
+            CART_ITEM_NO,
+            CART_NO,
+            PRODUCT_NO,
+            QUANTITY,
+            CREATED_AT
+        )
+        VALUES (
+            #{cartItemNo},
+            #{cartNo},
+            #{productNo},
+            #{quantity},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- 로그인 회원 소유의 장바구니 수량 변경 -->
+    <update id="updateCartItemQuantity">
+
+        UPDATE CART_ITEM CI
+
+        SET CI.QUANTITY = #{quantity}
+
+        WHERE CI.CART_ITEM_NO = #{cartItemNo}
+
+          AND EXISTS (
+              SELECT 1
+              FROM CART C
+              WHERE C.CART_NO = CI.CART_NO
+                AND C.MEMBER_NO = #{memberNo}
+          )
+
+    </update>
+
+    <!-- 장바구니 개별 삭제 -->
+    <delete id="deleteCartItem">
+
+        DELETE FROM CART_ITEM CI
+
+        WHERE CI.CART_ITEM_NO = #{cartItemNo}
+
+          AND EXISTS (
+              SELECT 1
+              FROM CART C
+              WHERE C.CART_NO = CI.CART_NO
+                AND C.MEMBER_NO = #{memberNo}
+          )
+
+    </delete>
+
+    <!-- 선택 장바구니 상품 삭제 -->
+    <delete id="deleteSelectedCartItems">
+
+        DELETE FROM CART_ITEM CI
+
+        WHERE CI.CART_ITEM_NO IN
+
+        <foreach collection="cartItemNos"
+                 item="cartItemNo"
+                 open="("
+                 separator=","
+                 close=")">
+
+            #{cartItemNo}
+
+        </foreach>
+
+        AND EXISTS (
+            SELECT 1
+            FROM CART C
+            WHERE C.CART_NO = CI.CART_NO
+              AND C.MEMBER_NO = #{memberNo}
+        )
+
+    </delete>
+
+    <!-- 장바구니 목록 -->
+    <select id="selectCartItemList"
+            resultMap="cartItemResultMap">
+
+        SELECT
+            CI.CART_ITEM_NO,
+            CI.CART_NO,
+            CI.PRODUCT_NO,
+            CI.QUANTITY,
+            CI.CREATED_AT,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM CART_ITEM CI
+
+        INNER JOIN CART C
+            ON C.CART_NO = CI.CART_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = CI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+        WHERE C.MEMBER_NO = #{memberNo}
+
+        ORDER BY
+            CI.CREATED_AT DESC,
+            CI.CART_ITEM_NO DESC
+
+    </select>
+
+    <!-- 마이페이지 표시용 장바구니 상품 종류 수 -->
+    <select id="countCartItems"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM CART_ITEM CI
+
+        INNER JOIN CART C
+            ON C.CART_NO = CI.CART_NO
+
+        WHERE C.MEMBER_NO = #{memberNo}
+
+    </select>
+
+</mapper>
