@@ -1,24 +1,41 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 
-<c:set var="activeMenu" value="product"/>
+<%@ taglib prefix="c"
+    uri="jakarta.tags.core" %>
+
+<c:set var="activeMenu"
+       value="productDelete"/>
 
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
+
 <meta charset="UTF-8">
-<title>ODITJI | 상품 삭제 요청</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/productDelete.css">
+
+<title>
+    ODITJI | 상품 삭제 요청
+</title>
+
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/business.css">
+
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/productDelete.css">
+
 </head>
 
 <body>
 
-<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<jsp:include
+    page="/WEB-INF/views/common/header.jsp"/>
 
 <div class="business-wrap">
 
-    <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp"/>
+    <jsp:include
+        page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
     <main class="main-content">
 
@@ -35,21 +52,36 @@
             </h1>
 
 
+            <c:if test="${not empty errorMessage}">
+
+                <div class="form-message error-message">
+                    <c:out value="${errorMessage}"/>
+                </div>
+
+            </c:if>
+
+
             <div class="delete-summary-box">
 
                 <div class="delete-summary-thumb">
 
                     <c:choose>
 
-                        <c:when test="${not empty product.thumbnailPath}">
+                        <%--
+                            GoodsManageVO의 상품 이미지 필드는
+                            thumbnailPath가 아니라 imagePath이다.
+                        --%>
+                        <c:when test="${not empty product.imagePath}">
 
-                            <img src="${product.thumbnailPath}"
-                                 alt="${product.productName}">
+                            <img src="${pageContext.request.contextPath}${product.imagePath}"
+                                 alt="<c:out value='${product.productName}'/>">
 
                         </c:when>
 
                         <c:otherwise>
+
                             상품
+
                         </c:otherwise>
 
                     </c:choose>
@@ -60,28 +92,90 @@
                 <div class="delete-summary-info">
 
                     <div class="delete-summary-type">
-                        ${product.productType}
+
+                        <c:choose>
+
+                            <c:when test="${product.productType == 'CLOTHES'}">
+                                의상
+                            </c:when>
+
+                            <c:when test="${product.productType == 'PROP'}">
+                                소품
+                            </c:when>
+
+                            <c:when test="${product.productType == 'GOODS'}">
+                                굿즈
+                            </c:when>
+
+                            <c:when test="${product.productType == 'OST'}">
+                                OST
+                            </c:when>
+
+                            <c:when test="${product.productType == 'BOOK'}">
+                                도서
+                            </c:when>
+
+                            <c:when test="${product.productType == 'FIGURE'}">
+                                피규어
+                            </c:when>
+
+                            <c:otherwise>
+                                기타
+                            </c:otherwise>
+
+                        </c:choose>
+
                     </div>
 
+
                     <div class="delete-summary-name">
-                        ${product.productName}
+
+                        <c:out value="${product.productName}"/>
+
                     </div>
+
 
                     <div class="delete-summary-meta">
 
                         <span>
-                            관련 콘텐츠: ${product.contentTitle}
+                            관련 콘텐츠:
+                            <c:out value="${product.contentTitle}"/>
                         </span>
 
-                        <span>
-                            수량: ${product.stock}개
-                        </span>
+
+                        <c:if test="${not empty product.actorName}">
+
+                            <span>
+                                관련 배우:
+                                <c:out value="${product.actorName}"/>
+                            </span>
+
+                        </c:if>
+
 
                         <span>
-                            가격: ${product.price}원
+                            수량:
+                            <c:out value="${product.stock}"/>개
                         </span>
+
+
+                        <span>
+                            가격:
+                            <c:out value="${product.price}"/>원
+                        </span>
+
+
+                        <c:if test="${product.discountRate > 0}">
+
+                            <span>
+                                할인율:
+                                <c:out value="${product.discountRate}"/>%
+                            </span>
+
+                        </c:if>
 
                     </div>
+
 
                     <div class="delete-summary-status">
 
@@ -97,6 +191,7 @@
 
                             </c:when>
 
+
                             <c:when test="${product.status == 'WAITING'}">
 
                                 <span class="status-waiting">
@@ -105,10 +200,20 @@
 
                             </c:when>
 
-                            <c:otherwise>
+
+                            <c:when test="${product.status == 'REJECTED'}">
 
                                 <span class="status-reject">
                                     반려
+                                </span>
+
+                            </c:when>
+
+
+                            <c:otherwise>
+
+                                <span class="status-reject">
+                                    <c:out value="${product.status}"/>
                                 </span>
 
                             </c:otherwise>
@@ -157,11 +262,13 @@
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label class="form-label"
+                           for="reason">
                         삭제 사유
                     </label>
 
                     <textarea class="form-textarea"
+                              id="reason"
                               name="reason"
                               placeholder="삭제 요청 사유를 입력하세요"
                               required></textarea>
@@ -185,18 +292,17 @@
 
                 </div>
 
-
             </form>
 
-
         </section>
-
 
     </main>
 
 </div>
 
-<jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+<jsp:include
+    page="/WEB-INF/views/common/footer.jsp"/>
 
 </body>
+
 </html>
