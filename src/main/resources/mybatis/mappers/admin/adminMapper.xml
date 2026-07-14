@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    관리자 기능 매퍼
+    namespace 는 com.project.oditji.admin.dao.AdminDAO (SqlSessionTemplate으로 문자열 id 호출)
+    MyBatisConfig 에서 mapUnderscoreToCamelCase=true 로 설정되어 있으므로
+    컬럼 별칭을 스네이크 케이스로 맞추면 VO 필드(카멜케이스)로 자동 매핑된다.
+    페이징은 사용하지 않는다.
+-->
+<mapper namespace="com.project.oditji.admin.dao.AdminDAO">
+
+    <!-- ===================== 대시보드 ===================== -->
+
+    <select id="selectDashboardStats" resultType="com.project.oditji.admin.vo.AdminVO">
+        SELECT
+            (SELECT COUNT(*) FROM MEMBER)                                            AS MEMBER_COUNT,
+            (SELECT COUNT(*) FROM CONTENT)                                            AS CONTENT_COUNT,
+            (SELECT COUNT(*) FROM REVIEW) + (SELECT COUNT(*) FROM PRODUCT_REVIEW)     AS REVIEW_COUNT,
+            (SELECT COUNT(*) FROM REVIEW_REPORT WHERE STATUS = 'WAITING')             AS REPORT_COUNT,
+            (SELECT COUNT(*) FROM BUSINESS WHERE STATUS = 'WAITING')                  AS BUSINESS_REQUEST_COUNT,
+            (SELECT COUNT(*) FROM PRODUCT WHERE STATUS = 'WAITING')                   AS PRODUCT_REQUEST_COUNT,
+            (SELECT COUNT(*) FROM EVENT WHERE STATUS = 'WAITING')                     AS EVENT_REQUEST_COUNT,
+            (SELECT COUNT(*) FROM SETTLEMENT WHERE STATUS = 'WAITING')                AS SETTLEMENT_WAITING_COUNT,
+            (SELECT COUNT(DISTINCT MEMBER_NO) FROM ACCESS_LOG
+                WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE))                             AS VISITOR_COUNT
+        FROM DUAL
+    </select>
+
+    <!-- ===================== 1. 회원 관리 (MEMBER) ===================== -->
+
+    <select id="selectMemberList" resultType="com.project.oditji.admin.vo.MemberManageVO">
+        SELECT
+            MEMBER_NO      AS MEMBER_NO,
+            MEMBER_ID      AS MEMBER_ID,
+            MEMBER_NAME    AS MEMBER_NAME,
+            NICKNAME       AS NICKNAME,
+            EMAIL          AS EMAIL,
+            PHONE          AS PHONE,
+            STATUS         AS STATUS,
+            CREATED_AT     AS CREATED_AT
+        FROM MEMBER
+        WHERE ROLE = 'USER'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                MEMBER_NAME LIKE '%' || #{keyword} || '%'
+                OR MEMBER_ID LIKE '%' || #{keyword} || '%'
+                OR NICKNAME LIKE '%' || #{keyword} || '%'
+                OR EMAIL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY MEMBER_NO DESC
+    </select>
+
+    <update id="updateMemberStatus">
+        UPDATE MEMBER
+        SET STATUS = #{status},
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+    </update>
+
+    <delete id="adminDeleteMember"
+            parameterType="long">
+
+        DELETE FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+        AND STATUS = 'WITHDRAWN'
+
+    </delete>
+
+    <!-- ===================== 2-1. 콘텐츠 리뷰 관리 (REVIEW) ===================== -->
+
+    <select id="selectContentReviewList" resultType="com.project.oditji.admin.vo.ReviewManageVO">
+        SELECT
+            R.REVIEW_NO     AS REVIEW_NO,
+            R.MEMBER_NO     AS MEMBER_NO,
+            M.NICKNAME      AS NICKNAME,
+            R.CONTENT_NO    AS CONTENT_NO,
+            R.RATING        AS RATING,
+            R.REVIEW_TEXT   AS CONTENT,
+            R.STATUS        AS STATUS,
+            0               AS LIKE_COUNT,
+            0               AS COMMENT_COUNT,
+            R.CREATED_AT    AS CREATED_AT
+        FROM REVIEW R
+        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
+        JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
+        WHERE R.STATUS != 'DELETED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR C.TITLE LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY R.CREATED_AT DESC
+    </select>
+
+    <select id="selectContentReviewReportList" resultType="com.project.oditji.admin.vo.ReviewManageVO">
+        SELECT
+            R.REVIEW_NO      AS REVIEW_NO,
+            R.MEMBER_NO      AS MEMBER_NO,
+            M.NICKNAME       AS NICKNAME,
+            R.CONTENT_NO     AS CONTENT_NO,
+            R.RATING         AS RATING,
+            R.REVIEW_TEXT    AS CONTENT,
+            R.STATUS         AS STATUS,
+            COUNT(RR.REPORT_NO) AS REPORT_COUNT,
+            0                AS LIKE_COUNT,
+            0                AS COMMENT_COUNT,
+            R.CREATED_AT     AS CREATED_AT
+        FROM REVIEW R
+        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
+        JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
+        JOIN REVIEW_REPORT RR ON RR.CONTENT_REVIEW_NO = R.REVIEW_NO AND RR.REVIEW_TYPE = 'CONTENT'
+        WHERE R.STATUS != 'DELETED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR C.TITLE LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        GROUP BY R.REVIEW_NO, R.MEMBER_NO, M.NICKNAME, R.CONTENT_NO, R.RATING, R.REVIEW_TEXT, R.STATUS, R.CREATED_AT
+        ORDER BY R.CREATED_AT DESC
+    </select>
+
+    <update id="adminDeleteContentReview">
+        UPDATE REVIEW
+        SET STATUS = 'DELETED',
+            UPDATED_AT = SYSDATE
+        WHERE REVIEW_NO = #{reviewNo}
+    </update>
+
+    <!-- ===================== 2-2. 상품 리뷰 관리 (PRODUCT_REVIEW) ===================== -->
+
+    <select id="selectProductReviewList" resultType="com.project.oditji.admin.vo.ReviewManageVO">
+        SELECT
+            PR.REVIEW_NO     AS REVIEW_NO,
+            PR.MEMBER_NO     AS MEMBER_NO,
+            M.NICKNAME       AS NICKNAME,
+            PR.PRODUCT_NO    AS PRODUCT_NO,
+            P.PRODUCT_NAME   AS PRODUCT_NAME,
+            PR.RATING        AS RATING,
+            PR.CONTENT       AS CONTENT,
+            0                AS LIKE_COUNT,
+            0                AS COMMENT_COUNT,
+            PR.CREATED_AT    AS CREATED_AT
+        FROM PRODUCT_REVIEW PR
+        JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY PR.CREATED_AT DESC
+    </select>
+
+    <select id="selectProductReviewReportList" resultType="com.project.oditji.admin.vo.ReviewManageVO">
+        SELECT
+            PR.REVIEW_NO      AS REVIEW_NO,
+            PR.MEMBER_NO      AS MEMBER_NO,
+            M.NICKNAME        AS NICKNAME,
+            PR.PRODUCT_NO     AS PRODUCT_NO,
+            P.PRODUCT_NAME    AS PRODUCT_NAME,
+            PR.RATING         AS RATING,
+            PR.CONTENT        AS CONTENT,
+            COUNT(RR.REPORT_NO) AS REPORT_COUNT,
+            0                 AS LIKE_COUNT,
+            0                 AS COMMENT_COUNT,
+            PR.CREATED_AT     AS CREATED_AT
+        FROM PRODUCT_REVIEW PR
+        JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
+        JOIN REVIEW_REPORT RR ON RR.PRODUCT_REVIEW_NO = PR.REVIEW_NO AND RR.REVIEW_TYPE = 'PRODUCT'
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        GROUP BY PR.REVIEW_NO, PR.MEMBER_NO, M.NICKNAME, PR.PRODUCT_NO, P.PRODUCT_NAME, PR.RATING, PR.CONTENT, PR.CREATED_AT
+        ORDER BY PR.CREATED_AT DESC
+    </select>
+
+    <delete id="deleteProductReviewReportByReviewNo">
+        DELETE FROM REVIEW_REPORT
+        WHERE PRODUCT_REVIEW_NO = #{reviewNo}
+    </delete>
+
+    <delete id="deleteProductReview">
+        DELETE FROM PRODUCT_REVIEW
+        WHERE REVIEW_NO = #{reviewNo}
+    </delete>
+
+    <!-- ===================== 3. 이벤트 관리 (EVENT) ===================== -->
+    <!-- EVENT 테이블에는 사업자 연결(BUSINESS_NO)/요청내용(DESCRIPTION) 컬럼이 없어
+         businessName, description 은 NULL로 반환된다. -->
+
+    <select id="selectEventList" resultType="com.project.oditji.admin.vo.EventManageVO">
+        SELECT
+            EVENT_NO      AS REQUEST_NO,
+            NULL          AS BUSINESS_NAME,
+            TITLE         AS EVENT_TITLE,
+            START_DATE    AS START_DATE,
+            END_DATE      AS END_DATE,
+            CREATED_AT    AS REQUESTED_AT,
+            STATUS        AS STATUS,
+            NULL          AS DESCRIPTION
+        FROM EVENT
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND TITLE LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY EVENT_NO DESC
+    </select>
+
+    <update id="updateEventStatus">
+        UPDATE EVENT
+        SET STATUS = #{status}
+        WHERE EVENT_NO = #{eventNo}
+    </update>
+
+    <!-- ===================== 4. 상품 관리 (PRODUCT) ===================== -->
+
+    <select id="selectProductRequestList" resultType="com.project.oditji.admin.vo.ProductManageVO">
+        SELECT
+            P.PRODUCT_NO      AS PRODUCT_NO,
+            P.BUSINESS_NO     AS BUSINESS_NO,
+            B.BUSINESS_NAME   AS BUSINESS_NAME,
+            P.CONTENT_NO      AS CONTENT_NO,
+            C.TITLE           AS CONTENT_TITLE,
+            P.PRODUCT_NAME    AS PRODUCT_NAME,
+            P.PRODUCT_TYPE    AS PRODUCT_TYPE,
+            P.PRICE           AS PRICE,
+            P.DISCOUNT_RATE   AS DISCOUNT_RATE,
+            P.STOCK           AS STOCK,
+            P.DESCRIPTION     AS DESCRIPTION,
+            P.STATUS          AS STATUS,
+            PI.IMAGE_PATH     AS MAIN_IMAGE,
+            P.CREATED_AT      AS CREATED_AT
+        FROM PRODUCT P
+        JOIN BUSINESS B ON B.BUSINESS_NO = P.BUSINESS_NO
+        JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
+        LEFT JOIN PRODUCT_IMAGE PI ON PI.PRODUCT_NO = P.PRODUCT_NO AND PI.IS_MAIN = 'Y'
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY P.CREATED_AT DESC
+    </select>
+
+    <update id="updateProductStatus">
+        UPDATE PRODUCT
+        SET STATUS = #{status}
+        WHERE PRODUCT_NO = #{productNo}
+    </update>
+
+    <!-- ===================== 5. 주문 관리 (ORDER_ITEM / DELIVERY) ===================== -->
+
+    <select id="selectOrderList" resultType="com.project.oditji.admin.vo.OrderManageVO">
+        SELECT
+            O.ORDER_NO        AS ORDER_NO,
+            OI.ORDER_ITEM_NO  AS ORDER_ITEM_NO,
+            OI.PRODUCT_NO     AS PRODUCT_NO,
+            P.PRODUCT_NAME    AS PRODUCT_NAME,
+            C.TITLE           AS CONTENT_TITLE,
+            OI.PRODUCT_PRICE  AS PRODUCT_PRICE,
+            OI.QUANTITY       AS QUANTITY,
+            NVL(D.STATUS, 'PREPARING') AS STATUS,
+            OI.BUSINESS_NO    AS BUSINESS_NO,
+            O.CREATED_AT      AS CREATED_AT
+        FROM ORDER_ITEM OI
+        JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+        JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
+        LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+        WHERE OI.STATUS != 'CANCELED'
+        <if test="keyword != null and keyword != ''">
+            AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY O.ORDER_NO DESC
+    </select>
+
+    <update id="updateDeliveryStatusByOrderNo">
+        UPDATE DELIVERY
+        SET STATUS = #{status},
+            UPDATED_AT = SYSDATE
+        WHERE ORDER_ITEM_NO IN (
+            SELECT ORDER_ITEM_NO FROM ORDER_ITEM WHERE ORDER_NO = #{orderNo}
+        )
+    </update>
+
+    <update id="updateOrderItemStatusCancel">
+        UPDATE ORDER_ITEM
+        SET STATUS = 'CANCELED'
+        WHERE ORDER_ITEM_NO = #{orderItemNo}
+    </update>
+
+    <!-- ===================== 5-2. 환불 관리 (CANCEL_REQUEST) ===================== -->
+
+    <select id="selectRefundList" resultType="com.project.oditji.admin.vo.OrderManageVO">
+        SELECT
+            CR.CANCEL_NO      AS CANCEL_NO,
+            OI.ORDER_ITEM_NO  AS ORDER_ITEM_NO,
+            OI.PRODUCT_NO     AS PRODUCT_NO,
+            P.PRODUCT_NAME    AS PRODUCT_NAME,
+            C.TITLE           AS CONTENT_TITLE,
+            M.MEMBER_ID       AS MEMBER_ID,
+            CR.REASON         AS REASON,
+            CR.CREATED_AT     AS CREATED_AT
+        FROM CANCEL_REQUEST CR
+        JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+        JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
+        JOIN MEMBER M ON M.MEMBER_NO = CR.MEMBER_NO
+        WHERE CR.STATUS = 'WAITING'
+        <if test="keyword != null and keyword != ''">
+            AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY CR.CREATED_AT DESC
+    </select>
+
+    <update id="updateCancelRequestStatus">
+        UPDATE CANCEL_REQUEST
+        SET STATUS = #{status}
+        WHERE CANCEL_NO = #{cancelNo}
+    </update>
+
+    <select id="selectOrderItemNoByCancelNo" resultType="java.lang.Long">
+        SELECT ORDER_ITEM_NO
+        FROM CANCEL_REQUEST
+        WHERE CANCEL_NO = #{cancelNo}
+    </select>
+
+    <update id="updateOrderItemStatus">
+        UPDATE ORDER_ITEM
+        SET STATUS = #{status}
+        WHERE ORDER_ITEM_NO = #{orderItemNo}
+    </update>
+
+    <!-- ===================== 6. 사업자 관리 (BUSINESS) ===================== -->
+
+    <select id="selectBusinessList" resultType="com.project.oditji.admin.vo.BusinessManageVO">
+        SELECT
+            B.BUSINESS_NO      AS BUSINESS_NO,
+            B.MEMBER_NO        AS MEMBER_NO,
+            M.MEMBER_ID        AS MEMBER_ID,
+            M.EMAIL            AS EMAIL,
+            B.BUSINESS_NAME    AS BUSINESS_NAME,
+            B.BUSINESS_NUMBER  AS BUSINESS_NUMBER,
+            B.BANK_NAME        AS BANK_NAME,
+            B.ACCOUNT_NUMBER   AS ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER   AS ACCOUNT_HOLDER,
+            B.GRADE_NAME       AS GRADE_NAME,
+            B.CUSTOM_RATE      AS CUSTOM_RATE,
+            B.STATUS           AS STATUS,
+            B.CREATED_AT       AS CREATED_AT
+        FROM BUSINESS B
+        JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
+        WHERE B.STATUS = 'APPROVED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                OR M.EMAIL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY B.BUSINESS_NO DESC
+    </select>
+
+    <select id="selectBusinessApprovalList" resultType="com.project.oditji.admin.vo.BusinessManageVO">
+        SELECT
+            B.BUSINESS_NO      AS BUSINESS_NO,
+            B.MEMBER_NO        AS MEMBER_NO,
+            M.MEMBER_ID        AS MEMBER_ID,
+            M.EMAIL            AS EMAIL,
+            B.BUSINESS_NAME    AS BUSINESS_NAME,
+            B.BUSINESS_NUMBER  AS BUSINESS_NUMBER,
+            B.BANK_NAME        AS BANK_NAME,
+            B.ACCOUNT_NUMBER   AS ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER   AS ACCOUNT_HOLDER,
+            B.GRADE_NAME       AS GRADE_NAME,
+            B.CUSTOM_RATE      AS CUSTOM_RATE,
+            B.STATUS           AS STATUS,
+            B.CREATED_AT       AS CREATED_AT
+        FROM BUSINESS B
+        JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
+        WHERE B.STATUS = 'WAITING'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                OR M.EMAIL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY B.CREATED_AT DESC
+    </select>
+
+    <update id="updateBusinessGrade">
+        UPDATE BUSINESS
+        SET GRADE_NAME = #{gradeName}
+        WHERE BUSINESS_NO = #{businessNo}
+    </update>
+
+    <update id="updateBusinessStatus">
+        UPDATE BUSINESS
+        SET STATUS = #{status}
+        WHERE BUSINESS_NO = #{businessNo}
+    </update>
+
+    <!-- ===================== 7. 정산 관리 (SETTLEMENT) ===================== -->
+
+    <select id="selectSettlementList" resultType="com.project.oditji.admin.vo.SettlementManageVO">
+        SELECT
+            S.SETTLEMENT_NO   AS SETTLEMENT_NO,
+            S.BUSINESS_NO     AS BUSINESS_NO,
+            B.BUSINESS_NAME   AS BUSINESS_NAME,
+            S.ORDER_ITEM_NO   AS ORDER_ITEM_NO,
+            S.TOTAL_AMOUNT    AS TOTAL_AMOUNT,
+            S.APPLIED_GRADE   AS APPLIED_GRADE,
+            S.APPLIED_RATE    AS APPLIED_RATE,
+            S.FEE_AMOUNT      AS FEE_AMOUNT,
+            S.SETTLED_AMOUNT  AS SETTLED_AMOUNT,
+            S.STATUS          AS STATUS,
+            B.BANK_NAME       AS BANK_NAME,
+            B.ACCOUNT_NUMBER  AS ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER  AS ACCOUNT_HOLDER,
+            S.SETTLED_AT      AS SETTLED_AT,
+            S.CREATED_AT      AS CREATED_AT
+        FROM SETTLEMENT S
+        JOIN BUSINESS B ON B.BUSINESS_NO = S.BUSINESS_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY S.CREATED_AT DESC
+    </select>
+
+    <update id="updateSettlementStatus">
+        UPDATE SETTLEMENT
+        SET STATUS = #{status},
+            SETTLED_AT = CASE WHEN #{status} = 'DONE' THEN SYSDATE ELSE SETTLED_AT END
+        WHERE SETTLEMENT_NO = #{settlementNo}
+    </update>
+
+    <!-- ===================== 8. 시스템 관리 (모니터링) ===================== -->
+    <!-- 콘텐츠 이용 수 / 상품 클릭 수는 PRODUCT_CLICK_LOG 를 집계하고,
+         최근 접속일/IP는 ACCESS_LOG 의 최신 로그를 사용한다. -->
+
+    <select id="selectMonitoringList" resultType="com.project.oditji.admin.vo.MonitoringVO">
+        SELECT
+            M.MEMBER_NO                      AS MEMBER_NO,
+            M.NICKNAME                        AS NICKNAME,
+            LOG.LAST_ACCESS_AT                AS LAST_ACCESS_AT,
+            LOG.ACCESS_IP                      AS ACCESS_IP,
+            NVL(CLICK.CONTENT_USE_COUNT, 0)    AS CONTENT_USE_COUNT,
+            NVL(CLICK.PRODUCT_CLICK_COUNT, 0)  AS PRODUCT_CLICK_COUNT
+        FROM MEMBER M
+        LEFT JOIN (
+            SELECT MEMBER_NO, COUNT(DISTINCT CONTENT_NO) AS CONTENT_USE_COUNT, COUNT(*) AS PRODUCT_CLICK_COUNT
+            FROM PRODUCT_CLICK_LOG
+            WHERE MEMBER_NO IS NOT NULL
+            GROUP BY MEMBER_NO
+        ) CLICK ON CLICK.MEMBER_NO = M.MEMBER_NO
+        LEFT JOIN (
+            SELECT MEMBER_NO, MAX(CREATED_AT) AS LAST_ACCESS_AT,
+                   MAX(ACCESS_IP) KEEP (DENSE_RANK LAST ORDER BY CREATED_AT) AS ACCESS_IP
+            FROM ACCESS_LOG
+            WHERE MEMBER_NO IS NOT NULL
+            GROUP BY MEMBER_NO
+        ) LOG ON LOG.MEMBER_NO = M.MEMBER_NO
+        WHERE M.ROLE = 'USER'
+        ORDER BY LOG.LAST_ACCESS_AT DESC NULLS LAST
+    </select>
+
+    <!-- ===================== 콘텐츠 관리 (CONTENT) ===================== -->
+
+    <select id="selectContentList" resultType="com.project.oditji.admin.vo.ContentManageVO">
+        SELECT
+            C.CONTENT_NO      AS CONTENT_NO,
+            C.TMDB_ID         AS TMDB_ID,
+            C.CONTENT_TYPE    AS CONTENT_TYPE,
+            C.TITLE           AS TITLE,
+            C.ORIGINAL_TITLE  AS ORIGINAL_TITLE,
+            C.OVERVIEW        AS OVERVIEW,
+            C.POSTER_PATH     AS POSTER_PATH,
+            C.BACKDROP_PATH   AS BACKDROP_PATH,
+            C.RELEASE_DATE    AS RELEASE_DATE,
+            C.GENRE_TEXT      AS GENRE_TEXT,
+            C.RUNTIME         AS RUNTIME,
+            C.EPISODE_COUNT   AS EPISODE_COUNT,
+            C.DIRECTOR        AS DIRECTOR,
+            C.CAST_NAMES      AS CAST_NAMES,
+            C.AGE_RATING      AS AGE_RATING,
+            C.TMDB_SCORE      AS TMDB_SCORE,
+            C.VIEW_COUNT      AS VIEW_COUNT,
+            (
+                SELECT LISTAGG(OP.PLATFORM_NAME, ', ') WITHIN GROUP (ORDER BY OP.PLATFORM_NAME)
+                FROM CONTENT_PLATFORM CP
+                JOIN OTT_PLATFORM OP ON OP.PLATFORM_NO = CP.PLATFORM_NO
+                WHERE CP.CONTENT_NO = C.CONTENT_NO
+            )                 AS PLATFORM_NAMES,
+            C.CREATED_AT      AS CREATED_AT,
+            C.UPDATED_AT      AS UPDATED_AT
+        FROM CONTENT C
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND C.TITLE LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY C.CONTENT_NO DESC
+    </select>
+
+    <update id="updateContent" parameterType="com.project.oditji.admin.vo.ContentManageVO">
+        UPDATE CONTENT
+        SET TITLE        = #{title},
+            CONTENT_TYPE  = #{contentType},
+            GENRE_TEXT    = #{genreText},
+            CAST_NAMES    = #{castNames},
+            OVERVIEW      = #{overview},
+            RUNTIME       = #{runtime},
+            UPDATED_AT    = SYSDATE
+        WHERE CONTENT_NO = #{contentNo}
+    </update>
+
+    <delete id="deleteContentPlatforms">
+        DELETE FROM CONTENT_PLATFORM
+        WHERE CONTENT_NO = #{contentNo}
+    </delete>
+
+    <insert id="insertContentPlatform">
+        INSERT INTO CONTENT_PLATFORM (
+            CONTENT_PLATFORM_NO, CONTENT_NO, PLATFORM_NO
+        ) VALUES (
+            SEQ_CONTENT_PLATFORM_NO.NEXTVAL, #{contentNo}, #{platformNo}
+        )
+    </insert>
+
+    <!-- ===================== OTT 플랫폼 관리 (OTT_PLATFORM) ===================== -->
+
+    <select id="selectPlatformList" resultType="com.project.oditji.admin.vo.PlatformVO">
+        SELECT
+            PLATFORM_NO    AS PLATFORM_NO,
+            PLATFORM_NAME  AS PLATFORM_NAME,
+            LOGO_IMAGE     AS LOGO_IMAGE,
+            SITE_URL       AS SITE_URL,
+            IS_ACTIVE      AS IS_ACTIVE
+        FROM OTT_PLATFORM
+        ORDER BY PLATFORM_NO
+    </select>
+
+    <insert id="insertPlatform" parameterType="com.project.oditji.admin.vo.PlatformVO">
+        INSERT INTO OTT_PLATFORM (
+            PLATFORM_NO, PLATFORM_NAME, LOGO_IMAGE, SITE_URL, IS_ACTIVE
+        ) VALUES (
+            SEQ_OTT_PLATFORM_NO.NEXTVAL, #{platformName}, #{logoImage}, #{siteUrl}, #{isActive}
+        )
+    </insert>
+
+    <update id="updatePlatform" parameterType="com.project.oditji.admin.vo.PlatformVO">
+        UPDATE OTT_PLATFORM
+        SET SITE_URL   = #{siteUrl},
+            IS_ACTIVE  = #{isActive},
+            UPDATED_AT = SYSDATE
+        WHERE PLATFORM_NO = #{platformNo}
+    </update>
+
+</mapper>

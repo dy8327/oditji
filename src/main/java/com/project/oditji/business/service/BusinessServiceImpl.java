@@ -27,10 +27,21 @@ public class BusinessServiceImpl
 
         private static final long MAX_IMAGE_SIZE = 10L * 1024L * 1024L;
 
-        private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+        private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+                        "jpg",
+                        "jpeg",
+                        "png",
+                        "gif",
+                        "webp");
 
-        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of("CLOTHES", "PROP", "GOODS", "OST", "BOOK",
-                        "FIGURE", "ETC");
+        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of(
+                        "CLOTHES",
+                        "PROP",
+                        "GOODS",
+                        "OST",
+                        "BOOK",
+                        "FIGURE",
+                        "ETC");
 
         private final BusinessDAO businessDAO;
         private final Path productUploadDirectory;
@@ -231,9 +242,8 @@ public class BusinessServiceImpl
                                         "존재하지 않는 콘텐츠입니다.");
                 }
 
-                List<ActorSearchVO> actorList = businessDAO
-                                .selectActorListByContentNo(
-                                                contentNo);
+                List<ActorSearchVO> actorList = businessDAO.selectActorListByContentNo(
+                                contentNo);
 
                 if (actorList == null) {
                         return Collections.emptyList();
@@ -257,15 +267,170 @@ public class BusinessServiceImpl
                                         "올바르지 않은 사업자 번호입니다.");
                 }
 
-                List<GoodsManageVO> productList = businessDAO
-                                .selectProductListByBusinessNo(
-                                                businessNo);
+                List<GoodsManageVO> productList = businessDAO.selectProductListByBusinessNo(
+                                businessNo);
 
                 if (productList == null) {
                         return Collections.emptyList();
                 }
 
                 return productList;
+        }
+
+        /*
+         * =========================================================
+         * 상품 수정 화면용 상품 단건 조회
+         * =========================================================
+         */
+        @Override
+        public GoodsManageVO getProductForUpdate(
+                        long productNo,
+                        long businessNo) {
+
+                if (productNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 상품 번호입니다.");
+                }
+
+                if (businessNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 사업자 번호입니다.");
+                }
+
+                GoodsManageVO product = businessDAO.selectProductForUpdate(
+                                productNo,
+                                businessNo);
+
+                if (product == null) {
+
+                        throw new IllegalArgumentException(
+                                        "상품이 존재하지 않거나 "
+                                                        + "수정 권한이 없습니다.");
+                }
+
+                return product;
+        }
+
+        /*
+         * =========================================================
+         * 상품 수정 요청
+         *
+         * 새 이미지가 없으면 기존 상품 이미지를 유지한다.
+         * 새 이미지가 있으면 기존 대표 이미지의 경로를 변경한다.
+         * 대표 이미지 행이 없다면 새 대표 이미지 행을 등록한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void updateProduct(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage) {
+
+                if (goodsManageVO == null) {
+
+                        throw new IllegalArgumentException(
+                                        "상품 수정 정보가 없습니다.");
+                }
+
+                if (goodsManageVO.getProductNo() <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 상품 번호입니다.");
+                }
+
+                GoodsManageVO existingProduct = businessDAO.selectProductForUpdate(
+                                goodsManageVO.getProductNo(),
+                                goodsManageVO.getBusinessNo());
+
+                if (existingProduct == null) {
+
+                        throw new IllegalArgumentException(
+                                        "상품이 존재하지 않거나 "
+                                                        + "수정 권한이 없습니다.");
+                }
+
+                validateProduct(
+                                goodsManageVO);
+
+                normalizeActorNo(
+                                goodsManageVO);
+
+                validateContentActor(
+                                goodsManageVO);
+
+                /*
+                 * 수정 요청이 들어오면 관리자 재승인을 받을 수 있도록
+                 * 승인 상태를 WAITING으로 변경한다.
+                 */
+                goodsManageVO.setStatus(
+                                "WAITING");
+
+                Path savedPhysicalPath = null;
+
+                try {
+
+                        int updateResult = businessDAO.updateProduct(
+                                        goodsManageVO);
+
+                        if (updateResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "상품 수정에 실패했습니다.");
+                        }
+
+                        /*
+                         * 새 이미지가 선택된 경우에만 이미지 정보를 변경한다.
+                         */
+                        if (productImage != null
+                                        && !productImage.isEmpty()) {
+
+                                validateProductImage(
+                                                productImage);
+
+                                SavedFileInfo savedFileInfo = saveProductImage(
+                                                productImage);
+
+                                savedPhysicalPath = savedFileInfo.physicalPath();
+
+                                goodsManageVO.setImagePath(
+                                                savedFileInfo.webPath());
+
+                                goodsManageVO.setIsMain(
+                                                "Y");
+
+                                int imageUpdateResult = businessDAO.updateProductMainImage(
+                                                goodsManageVO);
+
+                                /*
+                                 * 기존 대표 이미지가 없는 상품이면
+                                 * 새로운 대표 이미지 행을 등록한다.
+                                 */
+                                if (imageUpdateResult == 0) {
+
+                                        int imageInsertResult = businessDAO.insertProductImage(
+                                                        goodsManageVO);
+
+                                        if (imageInsertResult != 1) {
+
+                                                throw new IllegalStateException(
+                                                                "상품 대표 이미지 수정에 실패했습니다.");
+                                        }
+                                }
+                        }
+
+                } catch (RuntimeException e) {
+
+                        /*
+                         * DB 작업이 실패하면 이번 수정 과정에서
+                         * 새로 저장한 이미지 파일만 삭제한다.
+                         */
+                        deleteSavedFileQuietly(
+                                        savedPhysicalPath);
+
+                        throw e;
+                }
         }
 
         /*
@@ -562,7 +727,7 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 상품 등록 실패 시 저장된 이미지 삭제
+         * 상품 등록 또는 수정 실패 시 저장된 이미지 삭제
          * =========================================================
          */
         private void deleteSavedFileQuietly(

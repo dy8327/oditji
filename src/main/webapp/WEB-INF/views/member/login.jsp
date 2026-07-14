@@ -41,6 +41,12 @@
                 <div class="error-text">${error}</div>
             </c:if>
 
+            <c:if test="${not empty errorMessage}">
+                <script>
+                    alert("${errorMessage}");
+                </script>
+            </c:if>
+
             <button type="submit" class="btn-primary">로그인</button>
 
         </form>

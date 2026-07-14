@@ -72,10 +72,18 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
         MemberSocialJoinVO existingMember =
                 memberSocialDAO.selectMemberBySocial(PROVIDER_KAKAO, providerUserId);
 
+        // 기존 회원인 경우
         if (existingMember != null) {
+
+            // 정지 또는 탈퇴 회원 로그인 차단
+            if (!"ACTIVE".equals(existingMember.getStatus())) {
+                throw new IllegalStateException("정지 또는 탈퇴한 회원입니다.");
+            }
+
             return new KakaoLoginResultVO(false, existingMember);
         }
 
+        // 신규 회원 가입
         MemberVO newMember = createKakaoMember(kakaoUser);
         memberDAO.insertKakaoMember(newMember);
 

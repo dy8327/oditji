@@ -184,7 +184,10 @@
 
     </select>
 
-   <!-- 선택한 콘텐츠에 연결된 배우 목록 -->
+
+    <!-- =====================================================
+         선택한 콘텐츠에 연결된 배우 목록
+    ====================================================== -->
     <select id="selectActorListByContentNo"
             parameterType="long"
             resultType="com.project.oditji.business.vo.ActorSearchVO">
@@ -199,7 +202,7 @@
         FROM CONTENT_ACTOR CA
 
         JOIN ACTOR A
-        ON A.ACTOR_NO = CA.ACTOR_NO
+          ON A.ACTOR_NO = CA.ACTOR_NO
 
         WHERE CA.CONTENT_NO = #{contentNo}
 
@@ -210,16 +213,19 @@
     </select>
 
 
-    <!-- 선택한 콘텐츠와 배우의 연결 여부 검증 -->
+    <!-- =====================================================
+         선택한 콘텐츠와 배우의 연결 여부 검증
+    ====================================================== -->
     <select id="countContentActor"
             resultType="int">
 
         SELECT COUNT(*)
         FROM CONTENT_ACTOR
         WHERE CONTENT_NO = #{contentNo}
-        AND ACTOR_NO = #{actorNo}
+          AND ACTOR_NO = #{actorNo}
 
     </select>
+
 
     <!-- =====================================================
          사업자가 등록한 상품 목록
@@ -270,5 +276,107 @@
         ORDER BY P.PRODUCT_NO DESC
 
     </select>
+
+
+    <!-- =====================================================
+         상품 수정 화면용 상품 단건 조회
+
+         상품 번호와 사업자 번호를 함께 조회하여
+         다른 사업자의 상품을 수정할 수 없도록 한다.
+    ====================================================== -->
+    <select id="selectProductForUpdate"
+            resultType="com.project.oditji.business.vo.GoodsManageVO">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            P.DISCOUNT_RATE,
+            P.STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            P.CREATED_AT,
+
+            C.TITLE AS CONTENT_TITLE,
+            A.ACTOR_NAME,
+            B.BUSINESS_NAME,
+
+            (
+                SELECT PI.IMAGE_NO
+                FROM PRODUCT_IMAGE PI
+                WHERE PI.PRODUCT_NO = P.PRODUCT_NO
+                  AND PI.IS_MAIN = 'Y'
+                  AND ROWNUM = 1
+            ) AS IMAGE_NO,
+
+            (
+                SELECT PI.IMAGE_PATH
+                FROM PRODUCT_IMAGE PI
+                WHERE PI.PRODUCT_NO = P.PRODUCT_NO
+                  AND PI.IS_MAIN = 'Y'
+                  AND ROWNUM = 1
+            ) AS IMAGE_PATH,
+
+            'Y' AS IS_MAIN
+
+        FROM PRODUCT P
+
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        JOIN CONTENT C
+          ON C.CONTENT_NO = P.CONTENT_NO
+
+        LEFT JOIN ACTOR A
+          ON A.ACTOR_NO = P.ACTOR_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.BUSINESS_NO = #{businessNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         상품 기본 정보 수정
+
+         상품 수정 요청 이후에는 관리자 재승인을 받을 수 있도록
+         STATUS를 WAITING으로 변경한다.
+    ====================================================== -->
+    <update id="updateProduct"
+            parameterType="com.project.oditji.business.vo.GoodsManageVO">
+
+        UPDATE PRODUCT
+        SET
+            CONTENT_NO = #{contentNo},
+            ACTOR_NO = #{actorNo, jdbcType=NUMERIC},
+            PRODUCT_NAME = #{productName},
+            PRODUCT_TYPE = #{productType},
+            PRICE = #{price},
+            DISCOUNT_RATE = #{discountRate},
+            STOCK = #{stock},
+            DESCRIPTION = #{description, jdbcType=CLOB},
+            STATUS = #{status}
+        WHERE PRODUCT_NO = #{productNo}
+          AND BUSINESS_NO = #{businessNo}
+
+    </update>
+
+
+    <!-- =====================================================
+         기존 대표 이미지 경로 수정
+    ====================================================== -->
+    <update id="updateProductMainImage"
+            parameterType="com.project.oditji.business.vo.GoodsManageVO">
+
+        UPDATE PRODUCT_IMAGE
+        SET IMAGE_PATH = #{imagePath}
+        WHERE PRODUCT_NO = #{productNo}
+          AND IS_MAIN = 'Y'
+
+    </update>
 
 </mapper>
