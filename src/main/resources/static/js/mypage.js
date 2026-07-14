@@ -15,6 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal(modals.member);
   }
 
+  if (body.dataset.openOttModal === "true") {
+    openModal(modals.ott);
+
+    document
+      .getElementById("mypageOttSection")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }
+
   if (body.dataset.openDeleteModal === "true") {
     openModal(modals.delete);
   }
@@ -49,7 +60,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
   Object.values(modals).forEach((modal) => {
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     modal.addEventListener("click", (e) => {
       if (e.target === modal) {
@@ -72,7 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
        닉네임 변경 시 다시 중복확인
     ========================================================= */
 
-  const nicknameInput = document.getElementById("updateNickname");
+  const nicknameInput =
+    document.getElementById("updateNickname");
 
   nicknameInput?.addEventListener("input", () => {
     if (nicknameInput.value !== checkedNickname) {
@@ -84,124 +98,134 @@ document.addEventListener("DOMContentLoaded", () => {
        닉네임 중복확인 버튼
     ========================================================= */
 
-  document.getElementById("checkUpdateNicknameBtn")?.addEventListener("click", checkUpdateNickname);
+  document
+    .getElementById("checkUpdateNicknameBtn")
+    ?.addEventListener(
+      "click",
+      checkUpdateNickname
+    );
 
- /* =========================================================
-    MEMBER UPDATE VALIDATION
+  /* =========================================================
+       MEMBER UPDATE VALIDATION
     ========================================================= */
 
-memberForm?.addEventListener("submit", (e) => {
+  memberForm?.addEventListener("submit", (e) => {
+    const nickname =
+      memberForm.nickname.value.trim();
 
-  const nickname = memberForm.nickname.value.trim();
-  const email = memberForm.email.value.trim();
+    const email =
+      memberForm.email?.value.trim() ?? "";
 
-  const socialMember =
-    memberForm.socialMember.value === "true";
+    const socialMember =
+      memberForm.socialMember.value === "true";
 
+    // 닉네임
+    if (nickname === "") {
+      alert("닉네임을 입력해주세요.");
 
-  // 닉네임
-  if (nickname === "") {
-
-    alert("닉네임을 입력해주세요.");
-    e.preventDefault();
-    return;
-
-  }
-
-
-  // 닉네임 중복확인
-  if (!nicknameChecked) {
-
-    alert("닉네임 중복확인을 해주세요.");
-    e.preventDefault();
-    return;
-
-  }
-
-
-  // 이메일
-  if (email === "") {
-
-    alert("이메일을 입력해주세요.");
-    e.preventDefault();
-    return;
-
-  }
-
-
-
-  // 일반 회원만 비밀번호 변경 검증
-  if (!socialMember) {
-
-    const currentPw =
-      memberForm.currentPw?.value.trim() ?? "";
-
-    const newPw =
-      memberForm.newPw?.value.trim() ?? "";
-
-    const newPwCheck =
-      memberForm.newPwCheck?.value.trim() ?? "";
-
-
-
-    // 비밀번호 변경 시
-    if (newPw !== "" || newPwCheck !== "") {
-
-
-      if (currentPw === "") {
-
-        alert("현재 비밀번호를 입력해주세요.");
-        e.preventDefault();
-        return;
-
-      }
-
-
-      if (newPw !== newPwCheck) {
-
-        alert("새 비밀번호가 일치하지 않습니다.");
-        e.preventDefault();
-        return;
-
-      }
-
+      e.preventDefault();
+      return;
     }
 
-  }
+    // 닉네임 중복확인
+    if (!nicknameChecked) {
+      alert("닉네임 중복확인을 해주세요.");
 
-});
+      e.preventDefault();
+      return;
+    }
+
+    // 일반 회원 이메일 검증
+    if (!socialMember && email === "") {
+      alert("이메일을 입력해주세요.");
+
+      e.preventDefault();
+      return;
+    }
+
+    // 일반 회원만 비밀번호 변경 검증
+    if (!socialMember) {
+      const currentPw =
+        memberForm.currentPw?.value.trim() ?? "";
+
+      const newPw =
+        memberForm.newPw?.value.trim() ?? "";
+
+      const newPwCheck =
+        memberForm.newPwCheck?.value.trim() ?? "";
+
+      // 비밀번호 변경 시
+      if (newPw !== "" || newPwCheck !== "") {
+        if (currentPw === "") {
+          alert("현재 비밀번호를 입력해주세요.");
+
+          e.preventDefault();
+          return;
+        }
+
+        if (newPw !== newPwCheck) {
+          alert("새 비밀번호가 일치하지 않습니다.");
+
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+  });
 
   /* =========================================================
        DELETE VALIDATION
     ========================================================= */
 
-    const deleteForm = document.getElementById("deleteForm");
-    const deleteConfirmInput = document.getElementById("deleteConfirmInput");
+  const deleteForm =
+    document.getElementById("deleteForm");
 
-    deleteForm?.addEventListener("submit", (e) => {
-        const confirmText = deleteConfirmInput.value.trim();
+  const deleteConfirmInput =
+    document.getElementById("deleteConfirmInput");
 
-        // 1. 탈퇴 문구 일치 체크
-        if (confirmText !== "탈퇴하겠습니다") {
-            alert("탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요.");
-            deleteConfirmInput.focus();
-            e.preventDefault(); // 폼 전송 중단
-            return;
-        }
+  deleteForm?.addEventListener("submit", (e) => {
+    const confirmText =
+      deleteConfirmInput?.value.trim() ?? "";
 
-        // 2. 최종 확인
-        if (!confirm("정말 회원을 탈퇴하시겠습니까?\n탈퇴 후에는 모든 데이터가 삭제되며 복구할 수 없습니다.")) {
-            e.preventDefault(); // 취소 시 폼 전송 중단
-        }
-    });
+    // 1. 탈퇴 문구 일치 체크
+    if (confirmText !== "탈퇴하겠습니다") {
+      alert(
+        "탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요."
+      );
+
+      deleteConfirmInput?.focus();
+
+      e.preventDefault();
+      return;
+    }
+
+    // 2. 최종 확인
+    const confirmed = confirm(
+      "정말 회원을 탈퇴하시겠습니까?\n" +
+      "탈퇴 후에는 모든 데이터가 삭제되며 복구할 수 없습니다."
+    );
+
+    if (!confirmed) {
+      e.preventDefault();
+    }
+  });
 
   /* =========================================================
        닉네임 중복확인
     ========================================================= */
 
   async function checkUpdateNickname() {
-    const nickname = nicknameInput.value.trim();
-    const originalNickname = document.getElementById("originalNickname").value;
+    if (!nicknameInput) {
+      return;
+    }
+
+    const nickname =
+      nicknameInput.value.trim();
+
+    const originalNickname =
+      document
+        .getElementById("originalNickname")
+        ?.value ?? "";
 
     if (nickname === "") {
       alert("닉네임을 입력해주세요.");
@@ -218,13 +242,28 @@ memberForm?.addEventListener("submit", (e) => {
     }
 
     try {
-      const contextPath = document.body.dataset.contextPath;
+      const contextPath =
+        body.dataset.contextPath ?? "";
 
-      const memberNo = document.getElementById("memberNo").value;
+      const memberNo =
+        document
+          .getElementById("memberNo")
+          ?.value ?? "";
 
-      const response = await fetch(`${contextPath}/member/checkUpdateNickname?nickname=${encodeURIComponent(nickname)}&memberNo=${memberNo}`);
+      const response = await fetch(
+        `${contextPath}/member/checkUpdateNickname` +
+        `?nickname=${encodeURIComponent(nickname)}` +
+        `&memberNo=${encodeURIComponent(memberNo)}`
+      );
 
-      const result = await response.text();
+      if (!response.ok) {
+        throw new Error(
+          `HTTP 오류: ${response.status}`
+        );
+      }
+
+      const result =
+        await response.text();
 
       if (result.trim() === "Y") {
         alert("사용 가능한 닉네임입니다.");
@@ -238,7 +277,11 @@ memberForm?.addEventListener("submit", (e) => {
         checkedNickname = "";
       }
     } catch (e) {
-      alert("닉네임 중복확인 중 오류가 발생했습니다.");
+      console.error(e);
+
+      alert(
+        "닉네임 중복확인 중 오류가 발생했습니다."
+      );
     }
   }
 
@@ -247,17 +290,33 @@ memberForm?.addEventListener("submit", (e) => {
     ========================================================= */
 
   function openModal(modal) {
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
+
+    closeAllModals();
 
     modal.classList.remove("hidden");
     body.style.overflow = "hidden";
   }
 
   function closeModal(modal) {
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     modal.classList.add("hidden");
-    body.style.overflow = "";
+
+    const openedModal =
+      Object.values(modals).some(
+        (item) =>
+          item &&
+          !item.classList.contains("hidden")
+      );
+
+    if (!openedModal) {
+      body.style.overflow = "";
+    }
   }
 
   function closeAllModals() {
@@ -269,10 +328,18 @@ memberForm?.addEventListener("submit", (e) => {
   }
 
   function bindOpen(buttonId, modal) {
-    document.getElementById(buttonId)?.addEventListener("click", () => openModal(modal));
+    document
+      .getElementById(buttonId)
+      ?.addEventListener("click", () => {
+        openModal(modal);
+      });
   }
 
   function bindClose(buttonId, modal) {
-    document.getElementById(buttonId)?.addEventListener("click", () => closeModal(modal));
+    document
+      .getElementById(buttonId)
+      ?.addEventListener("click", () => {
+        closeModal(modal);
+      });
   }
 });

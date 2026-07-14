@@ -6,7 +6,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 
 <head>
 
@@ -17,13 +17,16 @@
 <link rel="stylesheet"
     href="${pageContext.request.contextPath}/css/mypage.css">
 
-<script defer src="${pageContext.request.contextPath}/js/mypage.js"></script>
+<script defer
+        src="${pageContext.request.contextPath}/js/mypage.js"></script>
+
 </head>
 
 <body
     data-context-path="${pageContext.request.contextPath}"
     data-open-member-modal="${openMemberModal}"
-    data-open-delete-modal="${openDeleteModal}">
+    data-open-delete-modal="${openDeleteModal}"
+    data-open-ott-modal="${param.openOttModal}">
 
     <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
@@ -68,24 +71,32 @@
                 <div class="mypage-profile-image">
 
                     <c:choose>
-						<c:when test="${empty loginMember.profileImage}">
-							<img class="profile-img"
-								src="${pageContext.request.contextPath}/images/default-profile.png"
-								alt="기본 프로필">
-						</c:when>
 
-						<c:when test="${fn:startsWith(loginMember.profileImage, 'http')}">
-							<img class="profile-img"
-								src="${loginMember.profileImage}"
-								alt="카카오 프로필">
-						</c:when>
+                        <c:when test="${empty loginMember.profileImage}">
 
-						<c:otherwise>
-							<img class="profile-img"
-                                src="${pageContext.request.contextPath}/uploads/profile/${loginMember.profileImage}"
-                                alt="업로드 프로필">
-						</c:otherwise>
-					</c:choose>
+                            <img class="profile-img"
+                                 src="${pageContext.request.contextPath}/images/default-profile.png"
+                                 alt="기본 프로필">
+
+                        </c:when>
+
+                        <c:when test="${fn:startsWith(loginMember.profileImage, 'http')}">
+
+                            <img class="profile-img"
+                                 src="${loginMember.profileImage}"
+                                 alt="카카오 프로필">
+
+                        </c:when>
+
+                        <c:otherwise>
+
+                            <img class="profile-img"
+                                 src="${pageContext.request.contextPath}/uploads/profile/${loginMember.profileImage}"
+                                 alt="업로드 프로필">
+
+                        </c:otherwise>
+
+                    </c:choose>
 
                 </div>
 
@@ -121,8 +132,11 @@
 
             <div class="mypage-profile-right">
 
-                <button type="button" id="updateMemberBtn">
+                <button type="button"
+                        id="updateMemberBtn">
+
                     회원정보 수정
+
                 </button>
 
             </div>
@@ -131,7 +145,8 @@
 
         <!-- ================= OTT ================= -->
 
-        <section class="mypage-ott">
+        <section class="mypage-ott"
+                 id="mypageOttSection">
 
             <div class="mypage-section-header">
 
@@ -147,8 +162,11 @@
 
                 </div>
 
-                <button type="button" id="updateOttBtn">
+                <button type="button"
+                        id="updateOttBtn">
+
                     OTT 정보 수정
+
                 </button>
 
             </div>
@@ -159,12 +177,11 @@
 
                     <c:when test="${not empty ottList}">
 
-                        <c:forEach var="ott" items="${ottList}">
+                        <c:forEach var="ott"
+                                   items="${ottList}">
 
                             <div class="mypage-ott-chip">
-
                                 ${ott.platformName}
-
                             </div>
 
                         </c:forEach>
@@ -193,9 +210,13 @@
 
                 <div>
 
-                    <h2>나의 활동</h2>
+                    <h2>
+                        나의 활동
+                    </h2>
 
-                    <p>ODITJI에서의 활동 내역입니다.</p>
+                    <p>
+                        ODITJI에서의 활동 내역입니다.
+                    </p>
 
                 </div>
 
@@ -206,7 +227,9 @@
                 <a href="${pageContext.request.contextPath}/favorite/list"
                    class="mypage-activity-card">
 
-                    <div class="mypage-activity-icon">❤️</div>
+                    <div class="mypage-activity-icon">
+                        ❤️
+                    </div>
 
                     <div class="mypage-activity-count">
                         ${favoriteCount}
@@ -221,7 +244,9 @@
                 <a href="${pageContext.request.contextPath}/cart"
                    class="mypage-activity-card">
 
-                    <div class="mypage-activity-icon">🛒</div>
+                    <div class="mypage-activity-icon">
+                        🛒
+                    </div>
 
                     <div class="mypage-activity-count">
                         ${cartCount}
@@ -236,7 +261,9 @@
                 <a href="${pageContext.request.contextPath}/order/list"
                    class="mypage-activity-card">
 
-                    <div class="mypage-activity-icon">📦</div>
+                    <div class="mypage-activity-icon">
+                        📦
+                    </div>
 
                     <div class="mypage-activity-count">
                         ${orderCount}
@@ -251,7 +278,9 @@
                 <a href="${pageContext.request.contextPath}/review/contentReviewList"
                    class="mypage-activity-card">
 
-                    <div class="mypage-activity-icon">⭐</div>
+                    <div class="mypage-activity-icon">
+                        ⭐
+                    </div>
 
                     <div class="mypage-activity-count">
                         ${reviewCount}
@@ -275,9 +304,13 @@
 
                 <div>
 
-                    <h2>최근 작성한 리뷰</h2>
+                    <h2>
+                        최근 작성한 리뷰
+                    </h2>
 
-                    <p>내가 최근 작성한 리뷰입니다.</p>
+                    <p>
+                        내가 최근 작성한 리뷰입니다.
+                    </p>
 
                 </div>
 
@@ -394,9 +427,13 @@
 
                 <div>
 
-                    <h2>사업자 서비스</h2>
+                    <h2>
+                        사업자 서비스
+                    </h2>
 
-                    <p>굿즈 판매 및 사업자 전용 서비스를 이용해보세요.</p>
+                    <p>
+                        굿즈 판매 및 사업자 전용 서비스를 이용해보세요.
+                    </p>
 
                 </div>
 
@@ -428,10 +465,9 @@
 
                     <c:when test="${business eq null}">
 
-                        <button
-                            type="button"
-                            class="mypage-business-btn"
-                            onclick="location.href='${pageContext.request.contextPath}/business/join'">
+                        <button type="button"
+                                class="mypage-business-btn"
+                                onclick="location.href='${pageContext.request.contextPath}/business/join'">
 
                             사업자 회원 전환
 
@@ -441,10 +477,9 @@
 
                     <c:otherwise>
 
-                        <button
-                            type="button"
-                            class="mypage-business-btn"
-                            onclick="location.href='${pageContext.request.contextPath}/business/businessMain'">
+                        <button type="button"
+                                class="mypage-business-btn"
+                                onclick="location.href='${pageContext.request.contextPath}/business/businessMain'">
 
                             사업자 페이지
 
@@ -466,9 +501,13 @@
 
                 <div>
 
-                    <h2>계정 정보</h2>
+                    <h2>
+                        계정 정보
+                    </h2>
 
-                    <p>회원 계정 정보를 확인할 수 있습니다.</p>
+                    <p>
+                        회원 계정 정보를 확인할 수 있습니다.
+                    </p>
 
                 </div>
 
@@ -478,7 +517,9 @@
 
                 <div class="mypage-account-card">
 
-                    <h4>회원등급</h4>
+                    <h4>
+                        회원등급
+                    </h4>
 
                     <p>
 
@@ -500,7 +541,9 @@
 
                 <div class="mypage-account-card">
 
-                    <h4>가입일</h4>
+                    <h4>
+                        가입일
+                    </h4>
 
                     <p>
                         ${loginMember.createdAt}
@@ -528,11 +571,14 @@
 
     <!-- ================= MEMBER MODAL ================= -->
 
-    <div id="memberModal" class="modal-overlay hidden">
+    <div id="memberModal"
+         class="modal-overlay hidden">
 
         <div class="modal-box">
 
-            <h2>회원정보 수정</h2>
+            <h2>
+                회원정보 수정
+            </h2>
 
             <form id="memberUpdateForm"
                   action="${pageContext.request.contextPath}/member/update"
@@ -724,11 +770,14 @@
 
     <!-- ================= OTT MODAL ================= -->
 
-    <div id="ottModal" class="modal-overlay hidden">
+    <div id="ottModal"
+         class="modal-overlay hidden">
 
         <div class="modal-box">
 
-            <h2>OTT 정보 수정</h2>
+            <h2>
+                OTT 정보 수정
+            </h2>
 
             <form action="${pageContext.request.contextPath}/member/updateOtt"
                   method="post">
@@ -738,45 +787,63 @@
                        value="${loginMember.memberNo}">
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Netflix">
+
                     넷플릭스
+
                 </label>
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Disney Plus">
+
                     디즈니+
+
                 </label>
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Tving">
+
                     티빙
+
                 </label>
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Wavve">
+
                     웨이브
+
                 </label>
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Watcha">
+
                     왓챠
+
                 </label>
 
                 <label>
+
                     <input type="checkbox"
                            name="ottList"
                            value="Coupangplay">
+
                     쿠팡플레이
+
                 </label>
 
                 <div class="modal-btns">
@@ -802,11 +869,14 @@
 
     <!-- ================= 회원탈퇴 ================= -->
 
-    <div id="deleteModal" class="modal-overlay hidden">
+    <div id="deleteModal"
+         class="modal-overlay hidden">
 
         <div class="modal-box">
 
-            <h2>회원 탈퇴</h2>
+            <h2>
+                회원 탈퇴
+            </h2>
 
             <form id="deleteForm"
                   action="${pageContext.request.contextPath}/member/delete"
@@ -822,7 +892,7 @@
 
                 <div class="form-group">
 
-                    <label>
+                    <label for="deleteConfirmInput">
                         탈퇴를 진행하려면 아래 문구를 입력해주세요.
                     </label>
 
