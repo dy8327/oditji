@@ -477,55 +477,107 @@
    REVIEW SECTION WRAPPER
 ========================= */
 
-.review-list{
-    margin-top:20px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
+#reviewSection {
+    margin-top: 32px;
+}
+
+#reviewSection > h2 {
+    margin: 0 0 18px;
+    color: #ffffff;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
 }
 
 /* =========================
    REVIEW ITEM CARD
 ========================= */
 
-.review-item{
-    background:#1E1E1E;
-    padding:14px;
-    border-radius:10px;
-
-    border:1px solid rgba(255,255,255,0.05);
+.review-item {
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #1e1e1e;
 }
 
 /* =========================
    REVIEW META
 ========================= */
 
-.review-meta{
-    display:flex;
-    gap:10px;
-    font-size:12px;
-    color:#999;
-    margin-bottom:8px;
+.review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+    color: #a9a9a9;
+    font-size: 12px;
 }
 
-.review-meta .writer{
-    font-weight:600;
-    color:#fff;
+.review-meta .writer {
+    color: #ffffff;
+    font-weight: 700;
 }
 
-.review-meta .rating{
-    color:#FFD700;
+.review-meta .rating {
+    color: #ffd54a;
+    font-weight: 700;
+}
+
+.review-meta .date {
+    color: #8f8f8f;
+}
+
+.review-meta .report-btn {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 105, 105, 0.35);
+    border-radius: 7px;
+    background: rgba(255, 80, 80, 0.08);
+    color: #ff9b9b;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.review-meta button.report-btn:hover {
+    border-color: rgba(255, 105, 105, 0.65);
+    background: rgba(255, 80, 80, 0.16);
+}
+
+.review-meta .report-btn.reported {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #777777;
+    cursor: default;
 }
 
 /* =========================
    REVIEW TEXT
 ========================= */
 
-.review-content{
-    font-size:13px;
-    line-height:1.6;
-    color:#ddd;
-    white-space:pre-wrap;
+.review-item .review-content {
+    display: block;
+    margin: 0;
+    color: #f2f2f2 !important;
+    font-size: 14px;
+    line-height: 1.7;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-text-fill-color: #f2f2f2;
 }
 
 /* =========================

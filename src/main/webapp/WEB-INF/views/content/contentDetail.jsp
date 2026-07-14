@@ -366,15 +366,16 @@ ${myReview.reviewText}
                                 <c:choose>
                                     <c:when test="${reportedReviewSet.contains(r.reviewNo)}">
                                         <span class="report-btn reported" aria-disabled="true">
-                                            신고완료
+                                            🚨 신고완료
                                         </span>
                                     </c:when>
                                     <c:otherwise>
                                         <button type="button"
                                                 class="report-btn"
                                                 data-review-type="CONTENT"
-                                                data-review-no="${r.reviewNo}">
-                                            신고
+                                                data-review-no="${r.reviewNo}"
+                                                aria-label="${r.writer}님의 리뷰 신고">
+                                            🚨 신고
                                         </button>
                                     </c:otherwise>
                                 </c:choose>
