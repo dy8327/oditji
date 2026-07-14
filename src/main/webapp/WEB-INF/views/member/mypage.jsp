@@ -3,6 +3,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html>
@@ -67,24 +68,24 @@
                 <div class="mypage-profile-image">
 
                     <c:choose>
+						<c:when test="${empty loginMember.profileImage}">
+							<img class="profile-img"
+								src="${pageContext.request.contextPath}/images/default-profile.png"
+								alt="기본 프로필">
+						</c:when>
 
-                        <c:when test="${not empty loginMember.profileImage}">
+						<c:when test="${fn:startsWith(loginMember.profileImage, 'http')}">
+							<img class="profile-img"
+								src="${loginMember.profileImage}"
+								alt="카카오 프로필">
+						</c:when>
 
-                            <img
-                                src="${pageContext.request.contextPath}/upload/profile/${loginMember.profileImage}"
-                                alt="프로필">
-
-                        </c:when>
-
-                        <c:otherwise>
-
-                            <img
-                                src="${pageContext.request.contextPath}/images/profile.svg"
-                                alt="기본 프로필">
-
-                        </c:otherwise>
-
-                    </c:choose>
+						<c:otherwise>
+							<img class="profile-img"
+								src="${pageContext.request.contextPath}/profile/${loginMember.profileImage}"
+								alt="업로드 프로필">
+						</c:otherwise>
+					</c:choose>
 
                 </div>
 
