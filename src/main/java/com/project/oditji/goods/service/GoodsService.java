@@ -26,5 +26,7 @@ public interface GoodsService {
             boolean inStockOnly
     );
 
+    List<GoodsVO> getRecommendedGoods(int limit);
+
     List<String> getSearchProductTypes();
 }
