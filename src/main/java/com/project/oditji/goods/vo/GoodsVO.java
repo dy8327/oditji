@@ -9,11 +9,9 @@ public class GoodsVO {
 
     private String productName;
     private String productType;
-
     private int price;
     private int discountRate;
     private int stock;
-
     private String description;
     private String status;
 
@@ -125,14 +123,7 @@ public class GoodsVO {
     }
 
     public int getDiscountPrice() {
-
-        if (discountRate <= 0) {
-            return price;
-        }
-
-        int discountAmount =
-                price * discountRate / 100;
-
-        return price - discountAmount;
+        int normalizedRate = Math.max(0, Math.min(discountRate, 100));
+        return price * (100 - normalizedRate) / 100;
     }
 }

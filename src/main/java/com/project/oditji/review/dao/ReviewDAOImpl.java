@@ -116,4 +116,35 @@ public class ReviewDAOImpl implements ReviewDAO {
     public int reactivateContentReview(ReviewVO review) {
         return sqlSession.update(NAMESPACE + "reactivateContentReview", review);
     }
+
+    @Override
+    public List<ProductReviewVO> selectProductReviewListByProductNo(
+            int productNo) {
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectProductReviewListByProductNo",
+                productNo
+        );
+    }
+
+    @Override
+    public Double selectProductAvgRatingByProductNo(
+            int productNo) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectProductAvgRatingByProductNo",
+                productNo
+        );
+    }
+
+    @Override
+    public int selectProductReviewCountByProductNo(
+            int productNo) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectProductReviewCountByProductNo",
+                productNo
+        );
+    }
+
 }

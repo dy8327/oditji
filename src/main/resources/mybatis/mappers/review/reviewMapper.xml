@@ -362,4 +362,59 @@
 
     </update>
 
+
+    <!-- 상품 상세페이지 리뷰 목록 -->
+    <select id="selectProductReviewListByProductNo"
+            parameterType="int"
+            resultType="com.project.oditji.review.vo.ProductReviewVO">
+
+        SELECT
+            PR.REVIEW_NO AS reviewNo,
+            PR.PRODUCT_NO AS productNo,
+            PR.ORDER_ITEM_NO AS orderItemNo,
+            PR.MEMBER_NO AS memberNo,
+            PR.RATING AS rating,
+            PR.CONTENT AS content,
+            PR.CREATED_AT AS createdAt,
+            COALESCE(
+                NULLIF(TRIM(M.NICKNAME), ''),
+                NULLIF(TRIM(M.MEMBER_NAME), ''),
+                M.MEMBER_ID
+            ) AS writer,
+            M.PROFILE_IMAGE AS profileImage
+        FROM PRODUCT_REVIEW PR
+
+        INNER JOIN MEMBER M
+            ON M.MEMBER_NO = PR.MEMBER_NO
+
+        WHERE PR.PRODUCT_NO = #{productNo}
+
+        ORDER BY
+            PR.CREATED_AT DESC,
+            PR.REVIEW_NO DESC
+
+    </select>
+
+    <!-- 상품 평균 평점 -->
+    <select id="selectProductAvgRatingByProductNo"
+            parameterType="int"
+            resultType="java.lang.Double">
+
+        SELECT ROUND(AVG(RATING), 1)
+        FROM PRODUCT_REVIEW
+        WHERE PRODUCT_NO = #{productNo}
+
+    </select>
+
+    <!-- 상품 리뷰 개수 -->
+    <select id="selectProductReviewCountByProductNo"
+            parameterType="int"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PRODUCT_REVIEW
+        WHERE PRODUCT_NO = #{productNo}
+
+    </select>
+
 </mapper>

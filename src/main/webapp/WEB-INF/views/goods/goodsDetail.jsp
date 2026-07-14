@@ -34,9 +34,7 @@
 
     <a href="${pageContext.request.contextPath}/goods/list"
        class="back-btn">
-
         ← 목록으로
-
     </a>
 
 </div>
@@ -56,7 +54,7 @@
 
                         <img id="mainImage"
                              src="${goods.mainImage}"
-                             alt="${goods.productName}">
+                             alt="<c:out value='${goods.productName}'/>">
 
                     </c:when>
 
@@ -64,7 +62,7 @@
 
                         <img id="mainImage"
                              src="${pageContext.request.contextPath}${goods.mainImage}"
-                             alt="${goods.productName}">
+                             alt="<c:out value='${goods.productName}'/>">
 
                     </c:otherwise>
 
@@ -101,7 +99,7 @@
                     </c:if>
 
                     <img src="${imageUrl}"
-                         alt="${goods.productName}"
+                         alt="<c:out value='${goods.productName}'/>"
                          class="${img.isMain eq 'Y' ? 'is-active' : ''}"
                          data-full="${imageUrl}">
 
@@ -116,17 +114,17 @@
     <div class="detail-info">
 
         <p class="detail-brand">
-            ${goods.businessName}
+            <c:out value="${goods.businessName}"/>
         </p>
 
         <h1 class="detail-title">
-            ${goods.productName}
+            <c:out value="${goods.productName}"/>
         </h1>
 
         <div class="detail-meta">
 
             <span>
-                ${goods.productType}
+                <c:out value="${goods.productType}"/>
             </span>
 
             <span class="divider">
@@ -143,18 +141,10 @@
 
                 </c:when>
 
-                <c:when test="${goods.status eq 'ON_SALE'}">
+                <c:otherwise>
 
                     <span class="status-badge on-sale">
                         판매중
-                    </span>
-
-                </c:when>
-
-                <c:otherwise>
-
-                    <span class="status-badge waiting">
-                        ${goods.status}
                     </span>
 
                 </c:otherwise>
@@ -166,7 +156,10 @@
             </span>
 
             <span>
-                재고 ${goods.stock}개
+                재고
+                <fmt:formatNumber
+                    value="${goods.stock}"
+                    pattern="#,###"/>개
             </span>
 
         </div>
@@ -178,12 +171,10 @@
                 <c:when test="${goods.discountRate > 0}">
 
                     <span class="price-original">
-
                         ₩
                         <fmt:formatNumber
                             value="${goods.price}"
                             pattern="#,###"/>
-
                     </span>
 
                     <span class="price-final">
@@ -204,12 +195,10 @@
                 <c:otherwise>
 
                     <span class="price-final">
-
                         ₩
                         <fmt:formatNumber
                             value="${goods.price}"
                             pattern="#,###"/>
-
                     </span>
 
                 </c:otherwise>
@@ -218,34 +207,22 @@
 
         </div>
 
-        <p class="detail-desc">
-            ${goods.description}
-        </p>
+        <p class="detail-desc"><c:out value="${goods.description}"/></p>
 
         <div class="action-box">
 
             <button type="button"
                     class="btn cart-btn"
                     data-product-no="${goods.productNo}"
-                    ${goods.stock <= 0
-                        or goods.status ne 'ON_SALE'
-                        ? 'disabled'
-                        : ''}>
-
+                    ${goods.stock <= 0 ? 'disabled' : ''}>
                 🛒 장바구니
-
             </button>
 
             <button type="button"
                     class="btn btn-primary buy-btn"
                     data-product-no="${goods.productNo}"
-                    ${goods.stock <= 0
-                        or goods.status ne 'ON_SALE'
-                        ? 'disabled'
-                        : ''}>
-
+                    ${goods.stock <= 0 ? 'disabled' : ''}>
                 바로 구매
-
             </button>
 
         </div>
@@ -267,7 +244,7 @@
         <article class="content-card">
 
             <a class="content-card__link"
-               href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">
+               href="${pageContext.request.contextPath}/content/detail/${content.contentNo}">
 
                 <div class="content-card__poster">
 
@@ -276,7 +253,7 @@
                         <c:when test="${not empty content.posterPath}">
 
                             <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                 alt="${content.title}">
+                                 alt="<c:out value='${content.title}'/>">
 
                         </c:when>
 
@@ -295,18 +272,23 @@
                 <div class="content-card__info">
 
                     <h3 class="content-card__title">
-                        ${content.title}
+                        <c:out value="${content.title}"/>
                     </h3>
 
                     <div class="content-card__meta">
 
                         <span>
-                            ${content.contentType}
+                            <c:out value="${content.contentType}"/>
                         </span>
 
-                        <span>
-                            ⭐ ${content.tmdbScore}
-                        </span>
+                        <c:if test="${not empty content.tmdbScore}">
+                            <span>
+                                ⭐
+                                <fmt:formatNumber
+                                    value="${content.tmdbScore}"
+                                    pattern="0.0"/>
+                            </span>
+                        </c:if>
 
                     </div>
 
@@ -322,9 +304,8 @@
 
         <p class="card-sub"
            style="margin-top:12px;">
-
-            출연 : ${actor.actorName}
-
+            출연 :
+            <c:out value="${actor.actorName}"/>
         </p>
 
     </c:if>
@@ -343,10 +324,14 @@
 
         <c:choose>
 
-            <c:when test="${not empty avgRating}">
+            <c:when test="${reviewCount > 0 and not empty avgRating}">
 
                 <span class="score-user">
-                    ⭐ ${avgRating} (${reviewCount}건)
+                    ⭐
+                    <fmt:formatNumber
+                        value="${avgRating}"
+                        pattern="0.0"/>
+                    (${reviewCount}건)
                 </span>
 
             </c:when>
@@ -377,22 +362,25 @@
                         <div class="review-meta">
 
                             <span class="writer">
-                                ${r.writer}
+                                <c:out value="${r.writer}"/>
                             </span>
 
                             <span class="rating">
-                                ⭐ ${r.rating}
+                                ⭐
+                                <fmt:formatNumber
+                                    value="${r.rating}"
+                                    pattern="0.0"/>
                             </span>
 
                             <span class="date">
-                                ${r.createdAt}
+                                <fmt:formatDate
+                                    value="${r.createdAt}"
+                                    pattern="yyyy-MM-dd"/>
                             </span>
 
                         </div>
 
-                        <p class="review-content">
-                            ${r.content}
-                        </p>
+                        <p class="review-content"><c:out value="${r.content}"/></p>
 
                     </div>
 
