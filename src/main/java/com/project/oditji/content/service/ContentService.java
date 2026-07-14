@@ -8,6 +8,7 @@ import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 public interface ContentService {
 
@@ -18,6 +19,8 @@ public interface ContentService {
     List<ActorVO> getActorListByContentNo(int contentNo);
 
     List<DirectorVO> getDirectorListByContentNo(int contentNo);
+
+    List<OttPlatformVO> getOttPlatformListByContentNo(int contentNo);
 
     PersonFilmographyVO getPersonFilmography(
             Long tmdbPersonId,

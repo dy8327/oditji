@@ -213,4 +213,28 @@
         ORDER BY CD.DISPLAY_ORDER, D.DIRECTOR_NO
     </select>
 
+    <!-- =========================
+         콘텐츠별 시청 가능 OTT 조회
+         - CONTENT_PLATFORM과 OTT_PLATFORM 연결
+         - 활성화된 플랫폼만 상세페이지에 노출
+         ========================= -->
+    <select id="selectOttPlatformListByContentNo"
+            parameterType="int"
+            resultType="com.project.oditji.tmdb.vo.OttPlatformVO">
+
+        SELECT
+            OP.PLATFORM_NO AS platformNo,
+            OP.PLATFORM_NAME AS platformName,
+            OP.LOGO_IMAGE AS logoImage,
+            OP.SITE_URL AS siteUrl,
+            OP.IS_ACTIVE AS isActive
+        FROM CONTENT_PLATFORM CP
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+        WHERE CP.CONTENT_NO = #{contentNo}
+          AND OP.IS_ACTIVE = 'Y'
+        ORDER BY OP.PLATFORM_NO
+
+    </select>
+
 </mapper>

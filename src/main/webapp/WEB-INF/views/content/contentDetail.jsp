@@ -105,6 +105,59 @@
 
         </div>
 
+<section class="ott-section">
+
+    <h2>시청 가능한 OTT</h2>
+
+    <c:choose>
+        <c:when test="${not empty ottList}">
+            <div class="ott-platform-list">
+
+                <c:forEach var="ott" items="${ottList}">
+                    <c:url var="ottSearchUrl" value="/content/ott-search">
+                        <c:param name="platformName" value="${ott.platformName}"/>
+                        <c:param name="title" value="${content.title}"/>
+                    </c:url>
+
+                    <a href="${ottSearchUrl}"
+                       class="ott-platform-item"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="${ott.platformName}에서 ${content.title} 검색">
+
+                        <span class="ott-platform-logo-wrap">
+                            <c:choose>
+                                <c:when test="${not empty ott.logoImage}">
+                                    <img src="${ott.logoImage}"
+                                         alt="${ott.platformName}"
+                                         class="ott-platform-logo">
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="ott-platform-no-logo">OTT</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
+
+                        <span class="ott-platform-name">
+                            ${ott.platformName}
+                        </span>
+
+                        <span class="ott-platform-link-icon" aria-hidden="true">↗</span>
+                    </a>
+                </c:forEach>
+
+            </div>
+        </c:when>
+
+        <c:otherwise>
+            <p class="ott-platform-empty">
+                현재 확인된 시청 가능 OTT가 없습니다.
+            </p>
+        </c:otherwise>
+    </c:choose>
+
+</section>
+
     </div>
 
 </section>
@@ -218,23 +271,7 @@
 
 </section>
 
-<section class="detail-section">
 
-    <h2>시청 가능한 OTT</h2>
-
-    <div class="ott-box">
-
-        <c:if test="${not empty ottList}">
-            <c:forEach var="ott" items="${ottList}">
-                <a href="${ott.url}" target="_blank">
-                    <img src="${ott.logo}" alt="OTT">
-                </a>
-            </c:forEach>
-        </c:if>
-
-    </div>
-
-</section>
 
 <section class="detail-section">
 

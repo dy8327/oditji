@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 @Repository
 public class ContentDAOImpl implements ContentDAO {
@@ -57,6 +58,13 @@ public class ContentDAOImpl implements ContentDAO {
     public List<DirectorVO> selectDirectorListByContentNo(int contentNo) {
         return sqlSession.selectList(
                 NAMESPACE + "selectDirectorListByContentNo",
+                contentNo);
+    }
+
+    @Override
+    public List<OttPlatformVO> selectOttPlatformListByContentNo(int contentNo) {
+        return sqlSession.selectList(
+                NAMESPACE + "selectOttPlatformListByContentNo",
                 contentNo);
     }
 

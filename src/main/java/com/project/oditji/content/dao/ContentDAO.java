@@ -6,6 +6,7 @@ import java.util.Map;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 public interface ContentDAO {
 
@@ -20,6 +21,8 @@ public interface ContentDAO {
     List<ActorVO> selectActorListByContentNo(int contentNo);
 
     List<DirectorVO> selectDirectorListByContentNo(int contentNo);
+
+    List<OttPlatformVO> selectOttPlatformListByContentNo(int contentNo);
 
     List<ContentVO> selectMainContentList();
 
