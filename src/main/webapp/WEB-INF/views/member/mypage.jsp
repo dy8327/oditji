@@ -82,8 +82,8 @@
 
 						<c:otherwise>
 							<img class="profile-img"
-								src="${pageContext.request.contextPath}/profile/${loginMember.profileImage}"
-								alt="업로드 프로필">
+                                src="${pageContext.request.contextPath}/uploads/profile/${loginMember.profileImage}"
+                                alt="업로드 프로필">
 						</c:otherwise>
 					</c:choose>
 
