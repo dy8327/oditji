@@ -74,6 +74,7 @@
     <select id="loginMember"
         parameterType="com.project.oditji.member.vo.MemberVO"
         resultMap="memberResultMap">
+
         SELECT
             MEMBER_NO,
             MEMBER_ID,
@@ -91,7 +92,7 @@
         FROM MEMBER
         WHERE MEMBER_ID = #{memberId}
         AND MEMBER_PW = #{memberPw}
-        AND STATUS = 'ACTIVE'
+
     </select>
 
     <select id="countByMemberId" parameterType="string" resultType="int">
