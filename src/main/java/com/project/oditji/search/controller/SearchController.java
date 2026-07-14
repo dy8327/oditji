@@ -282,12 +282,22 @@ public class SearchController {
         List<String> availableProductTypes =
                 goodsService.getSearchProductTypes();
 
+        /*
+         * 화면에 실제로 전달되는 카드 개수를 표시한다.
+         *
+         * contentPageVO.getTotalResults()는 TMDB가 반환한 전체 탐색 건수이므로
+         * OTT 제공 여부, 성인 콘텐츠 제외, 장르 및 카테고리 필터를 거친 뒤
+         * 실제 화면에 표시되는 카드 수와 다를 수 있다.
+         */
         int contentTotalCount =
-                contentPageVO.getTotalResults();
+                contentResults.size();
+
+        int goodsDisplayCount =
+                goodsResults.size();
 
         int combinedTotalCount =
-                contentTotalCount
-                        + goodsTotalCount;
+                allContentResults.size()
+                        + allGoodsResults.size();
 
         /*
          * OTT_PLATFORM 테이블의 활성 플랫폼 로고를
@@ -383,7 +393,7 @@ public class SearchController {
 
         model.addAttribute(
                 "goodsTotalCount",
-                goodsTotalCount
+                goodsDisplayCount
         );
 
         model.addAttribute(
