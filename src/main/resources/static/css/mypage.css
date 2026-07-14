@@ -460,6 +460,14 @@
 
 }
 
+.mypage-review-clickable { cursor: pointer; }
+.mypage-review-actions { text-align: right; margin-top: 8px; }
+.mypage-review-delete-btn { 
+    background: none; border: 1px solid #ddd; border-radius: 4px;
+    padding: 4px 10px; cursor: pointer; color: #888;
+}
+.mypage-review-delete-btn:hover { color: #e74c3c; border-color: #e74c3c; }
+
 .mypage-empty-box{
 
     background:#232323;

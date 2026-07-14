@@ -3,41 +3,55 @@ package com.project.oditji.review.dao;
 import java.util.List;
 import java.util.Map;
 
+import com.project.oditji.review.vo.ContentReviewVO;
 import com.project.oditji.review.vo.MyReviewVO;
 import com.project.oditji.review.vo.ProductReviewVO;
 import com.project.oditji.review.vo.ReviewVO;
 
 public interface ReviewDAO {
 
-    // 로그인 회원이 작성한 콘텐츠 리뷰 목록 (REVIEW 테이블)
     List<MyReviewVO> selectMyContentReviewList(Long memberNo);
-
-    // 로그인 회원이 작성한 상품 리뷰 목록 (PRODUCT_REVIEW 테이블)
     List<MyReviewVO> selectMyProductReviewList(Long memberNo);
-
-    // 로그인 회원이 작성한 콘텐츠 리뷰 개수
     int countMyContentReview(Long memberNo);
-
-    // 로그인 회원이 작성한 상품 리뷰 개수
     int countMyProductReview(Long memberNo);
 
-    // ================= 리뷰 작성 =================
-
-    // 콘텐츠 리뷰 등록
     int insertContentReview(ReviewVO review);
-
-    // 콘텐츠 리뷰 수정
     int updateContentReview(ReviewVO review);
-
-    // 리뷰번호로 콘텐츠 리뷰 단건 조회 (수정 시 작성자 본인 확인용)
     ReviewVO selectContentReviewByReviewNo(int reviewNo);
-
-    // 상품 리뷰 등록
     int insertProductReview(ProductReviewVO productReview);
-
-    // 회원이 해당 콘텐츠에 이미 리뷰를 남겼는지 확인 (UQ_REVIEW 제약조건 대응)
     ReviewVO selectContentReviewByMemberAndContent(Map<String, Object> param);
-
-    // 해당 주문상품(ORDER_ITEM_NO)에 이미 리뷰가 작성됐는지 확인
     ProductReviewVO selectProductReviewByOrderItem(int orderItemNo);
+
+    // ===== 콘텐츠 상세페이지용 신규 추가 =====
+
+    // 특정 콘텐츠의 리뷰 목록 (작성자 닉네임 포함, 최신순)
+    List<ContentReviewVO> selectContentReviewListByContentNo(int contentNo);
+
+    // 특정 콘텐츠의 평균 평점
+    Double selectAvgRatingByContentNo(int contentNo);
+
+    // 특정 콘텐츠의 리뷰 개수
+    int selectReviewCountByContentNo(int contentNo);
+
+    // 로그인 회원이 신고한 콘텐츠 리뷰번호 목록 (신고완료 버튼 표시용)
+    List<Integer> selectReportedContentReviewNoList(Long memberNo);
+
+    // ===== 삭제 기능 신규 추가 =====
+
+    // 콘텐츠 리뷰 삭제 (STATUS = 'DELETED' 로 변경하는 soft delete)
+    int deleteContentReview(int reviewNo);
+
+    // 상품 리뷰 단건 조회 (삭제 시 작성자 본인 확인용)
+    ProductReviewVO selectProductReviewByReviewNo(int reviewNo);
+
+    // 상품 리뷰 삭제 (실제 row 삭제)
+    int deleteProductReview(int reviewNo);
+
+    // ===== 삭제된 리뷰 재작성(재활성화) 신규 추가 =====
+
+    // 상태(ACTIVE/DELETED) 무관하고 (회원, 콘텐츠) 리뷰 조회 - 재작성 여부 판단용
+    ReviewVO selectContentReviewByMemberAndContentAnyStatus(Map<String, Object> param);
+
+    // 삭제됐던 리뷰를 재활성화(재작성)
+    int reactivateContentReview(ReviewVO review);
 }

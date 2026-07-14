@@ -3,6 +3,9 @@ package com.project.oditji.content.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,20 +18,28 @@ import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.review.vo.ContentReviewVO;
+import com.project.oditji.review.vo.ReviewVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+
 
 @Controller
 @RequestMapping("/content")
 public class ContentController {
 
     private final ContentService contentService;
+    private final ReviewService reviewService;
 
     public ContentController(
-            ContentService contentService) {
+            ContentService contentService,
+            ReviewService reviewService) {
 
         this.contentService = contentService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping("/prepare")
@@ -141,36 +152,54 @@ public class ContentController {
     @GetMapping("/contentDetail/{contentNo}")
     public String detail(
             @PathVariable int contentNo,
+            HttpSession session,
             Model model) {
 
         ContentVO content =
-                contentService.getContentDetail(
-                        contentNo);
+                contentService.getContentDetail(contentNo);
 
         if (content == null) {
-            throw new IllegalArgumentException(
-                    "존재하지 않는 콘텐츠입니다.");
+            throw new IllegalArgumentException("존재하지 않는 콘텐츠입니다.");
         }
 
         List<ActorVO> actorList =
-                contentService.getActorListByContentNo(
-                        contentNo);
+                contentService.getActorListByContentNo(contentNo);
 
         List<DirectorVO> directorList =
-                contentService.getDirectorListByContentNo(
-                        contentNo);
+                contentService.getDirectorListByContentNo(contentNo);
 
-        model.addAttribute(
-                "content",
-                content);
+        // ===== 리뷰 관련 데이터 =====
 
-        model.addAttribute(
-                "actorList",
-                actorList);
+        List<ContentReviewVO> reviewList =
+                reviewService.getContentReviewList(contentNo);
 
-        model.addAttribute(
-                "directorList",
-                directorList);
+        Double avgRating =
+                reviewService.getAvgRating(contentNo);
+
+        int reviewCount =
+                reviewService.getReviewCount(contentNo);
+
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
+
+        Long loginMemberNo =
+                loginMember == null ? null : loginMember.getMemberNo();
+
+        ReviewVO myReview =
+                reviewService.getMyReview(loginMemberNo, contentNo);
+
+        Set<Integer> reportedReviewSet =
+                reviewService.getReportedReviewSet(loginMemberNo);
+
+        model.addAttribute("content", content);
+        model.addAttribute("actorList", actorList);
+        model.addAttribute("directorList", directorList);
+
+        model.addAttribute("reviewList", reviewList);
+        model.addAttribute("avgRating", avgRating);
+        model.addAttribute("reviewCount", reviewCount);
+        model.addAttribute("myReview", myReview);
+        model.addAttribute("reportedReviewSet", reportedReviewSet);
 
         return "content/contentDetail";
     }

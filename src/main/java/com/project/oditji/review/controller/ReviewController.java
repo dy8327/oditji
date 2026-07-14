@@ -116,4 +116,46 @@ public class ReviewController {
 
         return "redirect:/order/list";
     }
+
+    /**
+     * 마이페이지에서 콘텐츠 리뷰 삭제.
+     * 삭제 후 다시 내가 작성한 리뷰 목록으로 이동한다.
+     */
+    @PostMapping("/deleteContentReview")
+    public String deleteContentReview(
+            HttpSession session,
+            @RequestParam int reviewNo) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        reviewService.deleteContentReview(
+                loginMember.getMemberNo(), reviewNo);
+
+        return "redirect:/review/contentReviewList";
+    }
+
+    /**
+     * 마이페이지에서 상품 리뷰 삭제.
+     * 삭제 후 다시 내가 작성한 리뷰 목록으로 이동한다.
+     */
+    @PostMapping("/deleteProductReview")
+    public String deleteProductReview(
+            HttpSession session,
+            @RequestParam int reviewNo) {
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+
+        if (loginMember == null) {
+            return "redirect:/member/login";
+        }
+
+        reviewService.deleteProductReview(
+                loginMember.getMemberNo(), reviewNo);
+
+        return "redirect:/review/contentReviewList";
+    }
 }
