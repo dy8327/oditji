@@ -53,53 +53,115 @@
 
 						<c:forEach var="review" items="${reviewList}">
 
+							<c:choose>
+								<c:when test="${review.reviewType == 'PRODUCT'}">
+									<c:url var="reviewLinkUrl" value="/goods/detail">
+										<c:param name="goodsNo" value="${review.targetNo}"/>
+									</c:url>
+								</c:when>
+								<c:otherwise>
+									<c:url var="reviewLinkUrl" value="/content/contentDetail/${review.targetNo}"/>
+								</c:otherwise>
+							</c:choose>
+
 							<div class="mypage-review-card">
 
-								<div class="mypage-review-top">
+								<div class="mypage-review-clickable"
+									 onclick="location.href='${reviewLinkUrl}'">
 
-									<div>
+									<div class="mypage-review-top">
 
-										<span class="mypage-member-type">
+										<div>
 
-											<c:choose>
-												<c:when test="${review.reviewType == 'PRODUCT'}">
-													상품 리뷰
-												</c:when>
-												<c:otherwise>
-													콘텐츠 리뷰
-												</c:otherwise>
-											</c:choose>
+											<span class="mypage-member-type">
 
-										</span>
+												<c:choose>
+													<c:when test="${review.reviewType == 'PRODUCT'}">
+														상품 리뷰
+													</c:when>
+													<c:otherwise>
+														콘텐츠 리뷰
+													</c:otherwise>
+												</c:choose>
 
-										<h3>
+											</span>
 
-											${review.title}
+											<h3>
 
-										</h3>
+												${review.title}
 
-										<span>
+											</h3>
 
-											<fmt:formatDate value="${review.createdAt}"
-															pattern="yyyy.MM.dd"/>
+											<span>
 
-										</span>
+												<fmt:formatDate value="${review.createdAt}"
+																pattern="yyyy.MM.dd"/>
+
+											</span>
+
+										</div>
+
+										<div class="mypage-review-score">
+
+											⭐ ${review.rating}
+
+										</div>
 
 									</div>
 
-									<div class="mypage-review-score">
+									<p class="mypage-review-content">
 
-										⭐ ${review.rating}
+										${review.content}
 
-									</div>
+									</p>
 
 								</div>
 
-								<p class="mypage-review-content">
+								<div class="mypage-review-actions">
 
-									${review.content}
+									<c:choose>
 
-								</p>
+										<c:when test="${review.reviewType == 'PRODUCT'}">
+
+											<form action="${pageContext.request.contextPath}/review/deleteProductReview"
+												  method="post"
+												  class="mypage-review-delete-form"
+												  onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+
+												<input type="hidden" name="reviewNo" value="${review.reviewNo}">
+
+												<button type="submit" class="mypage-review-delete-btn">
+
+													삭제
+
+												</button>
+
+											</form>
+
+										</c:when>
+
+										<c:otherwise>
+
+											<form action="${pageContext.request.contextPath}/review/deleteContentReview"
+												  method="post"
+												  class="mypage-review-delete-form"
+												  onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+
+												<input type="hidden" name="reviewNo" value="${review.reviewNo}">
+
+												<button type="submit" class="mypage-review-delete-btn">
+
+													삭제
+
+												</button>
+
+											</form>
+
+										</c:otherwise>
+
+									</c:choose>
+
+								</div>
 
 							</div>
 

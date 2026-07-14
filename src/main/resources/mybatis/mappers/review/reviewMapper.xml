@@ -211,4 +211,155 @@
 
     </select>
 
+    <!-- =========================
+     콘텐츠 상세페이지 리뷰 목록
+     - MEMBER 조인하여 닉네임을 작성자로 표시
+     - ACTIVE 상태만 노출
+     ========================= -->
+    <select id="selectContentReviewListByContentNo"
+            parameterType="int"
+            resultType="com.project.oditji.review.vo.ContentReviewVO">
+
+        SELECT
+            R.REVIEW_NO      AS reviewNo,
+            R.MEMBER_NO      AS memberNo,
+            M.NICKNAME       AS writer,
+            R.RATING         AS rating,
+            R.REVIEW_TEXT    AS reviewText,
+            R.STATUS         AS status,
+            R.CREATED_AT     AS createdAt
+        FROM REVIEW R
+        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
+        WHERE R.CONTENT_NO = #{contentNo}
+          AND R.STATUS = 'ACTIVE'
+        ORDER BY R.CREATED_AT DESC
+
+    </select>
+
+    <!-- 콘텐츠 평균 평점 -->
+    <select id="selectAvgRatingByContentNo"
+            parameterType="int"
+            resultType="java.lang.Double">
+
+        SELECT ROUND(AVG(RATING), 1)
+        FROM REVIEW
+        WHERE CONTENT_NO = #{contentNo}
+          AND STATUS = 'ACTIVE'
+
+    </select>
+
+    <!-- 콘텐츠 리뷰 개수 -->
+    <select id="selectReviewCountByContentNo"
+            parameterType="int"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM REVIEW
+        WHERE CONTENT_NO = #{contentNo}
+          AND STATUS = 'ACTIVE'
+
+    </select>
+
+    <!-- 로그인 회원이 신고한 콘텐츠 리뷰번호 목록 -->
+    <select id="selectReportedContentReviewNoList"
+            parameterType="java.lang.Long"
+            resultType="java.lang.Integer">
+
+        SELECT CONTENT_REVIEW_NO
+        FROM REVIEW_REPORT
+        WHERE MEMBER_NO = #{memberNo}
+          AND REVIEW_TYPE = 'CONTENT'
+
+    </select>
+
+    <!-- =========================
+     콘텐츠 리뷰 삭제 (soft delete)
+
+     [왜 실제 DELETE가 아니라 STATUS만 바꾸는가]
+     REVIEW_REPORT.CONTENT_REVIEW_NO 가 REVIEW.REVIEW_NO를 참조하는
+     외래키(FK_REPORT_CONTENT_REVIEW)로 걸려있는데, ON DELETE CASCADE가
+     없다. 그래서 신고당한 적 있는 리뷰를 실제로 DELETE 하면
+     ORA-02292(자식 레코드 존재) 에러가 발생한다.
+
+     STATUS를 'DELETED'로만 바꾸면:
+       - 목록/카운트 조회 쿼리들이 전부 STATUS != 'DELETED' 조건으로
+         걸러내므로 사용자 화면에는 완전히 삭제된 것처럼 보인다.
+       - REVIEW_REPORT의 신고 이력은 그대로 보존된다.
+       - 나중에 같은 콘텐츠에 재작성 시 UQ_REVIEW(MEMBER_NO, CONTENT_NO)
+         제약조건 위반 없이 기존 row를 재활용(reactivateContentReview)할
+         수 있다.
+     ========================= -->
+
+    <!-- 콘텐츠 리뷰 삭제 (soft delete) -->
+    <update id="deleteContentReview"
+            parameterType="int">
+
+        UPDATE REVIEW
+        SET STATUS = 'DELETED',
+            UPDATED_AT = SYSDATE
+        WHERE REVIEW_NO = #{reviewNo}
+
+    </update>
+
+    <!-- 상품 리뷰 단건 조회 (삭제 시 작성자 확인용) -->
+    <select id="selectProductReviewByReviewNo"
+            parameterType="int"
+            resultType="com.project.oditji.review.vo.ProductReviewVO">
+
+        SELECT
+            REVIEW_NO       AS reviewNo,
+            PRODUCT_NO      AS productNo,
+            ORDER_ITEM_NO   AS orderItemNo,
+            MEMBER_NO       AS memberNo,
+            RATING          AS rating,
+            CONTENT         AS content,
+            CREATED_AT      AS createdAt
+        FROM PRODUCT_REVIEW
+        WHERE REVIEW_NO = #{reviewNo}
+
+    </select>
+
+    <!-- 상품 리뷰 삭제 (실제 row 삭제) -->
+    <delete id="deleteProductReview"
+            parameterType="int">
+
+        DELETE FROM PRODUCT_REVIEW
+        WHERE REVIEW_NO = #{reviewNo}
+
+    </delete>
+
+    <!-- 상태(ACTIVE/DELETED) 무관하고 (회원, 콘텐츠) 리뷰 조회 - 재작성 여부 판단용 -->
+    <select id="selectContentReviewByMemberAndContentAnyStatus"
+            parameterType="map"
+            resultType="com.project.oditji.review.vo.ReviewVO">
+
+        SELECT
+            REVIEW_NO       AS reviewNo,
+            MEMBER_NO       AS memberNo,
+            CONTENT_NO      AS contentNo,
+            RATING          AS rating,
+            REVIEW_TEXT     AS reviewText,
+            STATUS          AS status,
+            CREATED_AT      AS createdAt,
+            UPDATED_AT      AS updatedAt
+        FROM REVIEW
+        WHERE MEMBER_NO = #{memberNo}
+          AND CONTENT_NO = #{contentNo}
+
+    </select>
+
+    <!-- 삭제됐던 리뷰를 재작성(재활성화) -->
+    <update id="reactivateContentReview"
+            parameterType="com.project.oditji.review.vo.ReviewVO">
+
+        UPDATE REVIEW
+        SET RATING = #{rating},
+            REVIEW_TEXT = #{reviewText},
+            STATUS = 'ACTIVE',
+            CREATED_AT = SYSDATE,
+            UPDATED_AT = NULL
+        WHERE REVIEW_NO = #{reviewNo}
+
+    </update>
+
 </mapper>
