@@ -10,6 +10,9 @@
                type="com.project.oditji.goods.vo.GoodsVO">
 
         <id property="productNo" column="PRODUCT_NO"/>
+        <result property="businessNo" column="BUSINESS_NO"/>
+        <result property="contentNo" column="CONTENT_NO"/>
+        <result property="actorNo" column="ACTOR_NO"/>
         <result property="productName" column="PRODUCT_NAME"/>
         <result property="productType" column="PRODUCT_TYPE"/>
         <result property="price" column="PRICE"/>
@@ -22,11 +25,40 @@
 
     </resultMap>
 
+    <sql id="mainImageJoin">
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
     <sql id="searchGoodsFilterCondition">
+
         WHERE P.STATUS = 'ON_SALE'
 
-          AND LOWER(P.PRODUCT_NAME)
-                LIKE '%' || LOWER(#{keyword}) || '%'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                LOWER(P.PRODUCT_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+                OR LOWER(B.BUSINESS_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+            )
+        </if>
 
         <if test="productTypes != null and productTypes.size() > 0">
             AND P.PRODUCT_TYPE IN
@@ -62,6 +94,7 @@
         <if test="inStockOnly">
             AND NVL(P.STOCK, 0) > 0
         </if>
+
     </sql>
 
     <select id="selectSearchGoods"
@@ -69,6 +102,9 @@
 
         SELECT
             PAGED.PRODUCT_NO,
+            PAGED.BUSINESS_NO,
+            PAGED.CONTENT_NO,
+            PAGED.ACTOR_NO,
             PAGED.PRODUCT_NAME,
             PAGED.PRODUCT_TYPE,
             PAGED.PRICE,
@@ -85,40 +121,25 @@
                         P.CREATED_AT DESC,
                         P.PRODUCT_NO DESC
                 ) AS RN,
-
                 P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
                 P.PRODUCT_NAME,
                 P.PRODUCT_TYPE,
                 P.PRICE,
-                P.DISCOUNT_RATE,
-                P.STOCK,
+                NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+                NVL(P.STOCK, 0) AS STOCK,
                 P.DESCRIPTION,
                 P.STATUS,
                 B.BUSINESS_NAME,
                 PI.MAIN_IMAGE
-
             FROM PRODUCT P
 
             INNER JOIN BUSINESS B
                 ON B.BUSINESS_NO = P.BUSINESS_NO
 
-            LEFT JOIN (
-                SELECT
-                    PRODUCT_NO,
-                    MAX(IMAGE_PATH)
-                        KEEP (
-                            DENSE_RANK FIRST
-                            ORDER BY
-                                CASE
-                                    WHEN IS_MAIN = 'Y' THEN 0
-                                    ELSE 1
-                                END,
-                                IMAGE_NO
-                        ) AS MAIN_IMAGE
-                FROM PRODUCT_IMAGE
-                GROUP BY PRODUCT_NO
-            ) PI
-                ON PI.PRODUCT_NO = P.PRODUCT_NO
+            <include refid="mainImageJoin"/>
 
             <include refid="searchGoodsFilterCondition"/>
         ) PAGED
@@ -135,7 +156,68 @@
         SELECT COUNT(*)
         FROM PRODUCT P
 
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
         <include refid="searchGoodsFilterCondition"/>
+
+    </select>
+
+    <select id="selectRecommendedGoods"
+            resultMap="goodsResultMap">
+
+        SELECT
+            RECOMMENDED.PRODUCT_NO,
+            RECOMMENDED.BUSINESS_NO,
+            RECOMMENDED.CONTENT_NO,
+            RECOMMENDED.ACTOR_NO,
+            RECOMMENDED.PRODUCT_NAME,
+            RECOMMENDED.PRODUCT_TYPE,
+            RECOMMENDED.PRICE,
+            RECOMMENDED.DISCOUNT_RATE,
+            RECOMMENDED.STOCK,
+            RECOMMENDED.DESCRIPTION,
+            RECOMMENDED.STATUS,
+            RECOMMENDED.BUSINESS_NAME,
+            RECOMMENDED.MAIN_IMAGE
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        CASE
+                            WHEN NVL(P.STOCK, 0) > 0 THEN 0
+                            ELSE 1
+                        END,
+                        NVL(P.DISCOUNT_RATE, 0) DESC,
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+                NVL(P.STOCK, 0) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+            FROM PRODUCT P
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            <include refid="mainImageJoin"/>
+
+            WHERE P.STATUS = 'ON_SALE'
+        ) RECOMMENDED
+
+        WHERE RECOMMENDED.RN BETWEEN 1 AND #{limit}
+
+        ORDER BY RECOMMENDED.RN
 
     </select>
 
@@ -147,6 +229,91 @@
         WHERE P.STATUS = 'ON_SALE'
           AND P.PRODUCT_TYPE IS NOT NULL
         ORDER BY P.PRODUCT_TYPE
+
+    </select>
+
+    <select id="selectGoodsDetail"
+            resultMap="goodsResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'ON_SALE'
+
+    </select>
+
+    <select id="selectGoodsImageList"
+            resultType="map">
+
+        SELECT
+            IMAGE_NO AS "imageNo",
+            PRODUCT_NO AS "productNo",
+            IMAGE_PATH AS "imagePath",
+            IS_MAIN AS "isMain"
+        FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+        ORDER BY
+            CASE
+                WHEN IS_MAIN = 'Y' THEN 0
+                ELSE 1
+            END,
+            IMAGE_NO
+
+    </select>
+
+    <select id="selectGoodsContent"
+            resultType="map">
+
+        SELECT
+            C.CONTENT_NO AS "contentNo",
+            C.TITLE AS "title",
+            C.POSTER_PATH AS "posterPath",
+            C.CONTENT_TYPE AS "contentType",
+            C.TMDB_SCORE AS "tmdbScore"
+        FROM PRODUCT P
+
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = P.CONTENT_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'ON_SALE'
+
+    </select>
+
+    <select id="selectGoodsActor"
+            resultType="map">
+
+        SELECT
+            A.ACTOR_NO AS "actorNo",
+            A.ACTOR_NAME AS "actorName",
+            A.PROFILE_PATH AS "profilePath"
+        FROM PRODUCT P
+
+        INNER JOIN ACTOR A
+            ON A.ACTOR_NO = P.ACTOR_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'ON_SALE'
+          AND P.ACTOR_NO IS NOT NULL
 
     </select>
 

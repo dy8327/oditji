@@ -1220,11 +1220,11 @@ public class TmdbServiceImpl implements TmdbService {
 
     private String convertTmdbProviderName(String name) {
 
-        if (name == null) {
-            return null;
-        }
+    if (name == null) {
+        return null;
+    }
 
-        String normalized = name.trim()
+    String normalized = name.trim()
                 .toLowerCase(Locale.ROOT)
                 .replace(" ", "")
                 .replace("_", "")
@@ -1234,18 +1234,23 @@ public class TmdbServiceImpl implements TmdbService {
         if (normalized.contains("netflix")) {
             return "Netflix";
         }
+
         if (normalized.contains("tving")) {
-            return "Tving";
+            return "TVING";
         }
+
         if (normalized.contains("wavve")) {
             return "Wavve";
         }
+
         if (normalized.contains("disney")) {
-            return "Disney+";
+            return "Disney Plus";
         }
+
         if (normalized.contains("watcha")) {
             return "Watcha";
         }
+
         if (normalized.contains("coupang")) {
             return "Coupangplay";
         }
@@ -1300,7 +1305,7 @@ public class TmdbServiceImpl implements TmdbService {
 
     private String normalizePlatformInput(String platform) {
 
-        String value = platform.trim()
+    String value = platform.trim()
                 .toLowerCase(Locale.ROOT)
                 .replace(" ", "")
                 .replace("_", "")
@@ -1310,18 +1315,23 @@ public class TmdbServiceImpl implements TmdbService {
         if (value.contains("netflix")) {
             return "Netflix";
         }
+
         if (value.contains("tving")) {
-            return "Tving";
+            return "TVING";
         }
+
         if (value.contains("wavve")) {
             return "Wavve";
         }
+
         if (value.contains("disney")) {
-            return "Disney+";
+            return "Disney Plus";
         }
+
         if (value.contains("watcha")) {
             return "Watcha";
         }
+
         if (value.contains("coupang")) {
             return "Coupangplay";
         }

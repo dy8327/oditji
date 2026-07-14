@@ -1,29 +1,37 @@
 package com.project.oditji.cart.vo;
 
+import java.util.Date;
+
 public class CartVO {
 
-    private int cartId;
-    private int goodsId;
-    private String goodsName;
-    private int price;
-    private int quantity;
-    private String image;
+    private Long cartNo;
+    private Long memberNo;
+    private Date createdAt;
 
-    public int getCartId() { return cartId; }
-    public void setCartId(int cartId) { this.cartId = cartId; }
+    public CartVO() {
+    }
 
-    public int getGoodsId() { return goodsId; }
-    public void setGoodsId(int goodsId) { this.goodsId = goodsId; }
+    public Long getCartNo() {
+        return cartNo;
+    }
 
-    public String getGoodsName() { return goodsName; }
-    public void setGoodsName(String goodsName) { this.goodsName = goodsName; }
+    public void setCartNo(Long cartNo) {
+        this.cartNo = cartNo;
+    }
 
-    public int getPrice() { return price; }
-    public void setPrice(int price) { this.price = price; }
+    public Long getMemberNo() {
+        return memberNo;
+    }
 
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public void setMemberNo(Long memberNo) {
+        this.memberNo = memberNo;
+    }
 
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 }

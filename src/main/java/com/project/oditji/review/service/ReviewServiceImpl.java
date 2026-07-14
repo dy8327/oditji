@@ -274,4 +274,49 @@ public class ReviewServiceImpl implements ReviewService {
 
         reviewDAO.deleteProductReview(reviewNo);
     }
+
+    @Override
+    public List<ProductReviewVO> getProductReviewList(
+            int productNo) {
+
+        if (productNo <= 0) {
+            return Collections.emptyList();
+        }
+
+        List<ProductReviewVO> reviewList =
+                reviewDAO.selectProductReviewListByProductNo(
+                        productNo
+                );
+
+        return reviewList == null
+                ? Collections.emptyList()
+                : reviewList;
+    }
+
+    @Override
+    public Double getProductAvgRating(
+            int productNo) {
+
+        if (productNo <= 0) {
+            return null;
+        }
+
+        return reviewDAO.selectProductAvgRatingByProductNo(
+                productNo
+        );
+    }
+
+    @Override
+    public int getProductReviewCount(
+            int productNo) {
+
+        if (productNo <= 0) {
+            return 0;
+        }
+
+        return reviewDAO.selectProductReviewCountByProductNo(
+                productNo
+        );
+    }
+
 }

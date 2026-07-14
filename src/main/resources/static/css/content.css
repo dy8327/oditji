@@ -477,55 +477,107 @@
    REVIEW SECTION WRAPPER
 ========================= */
 
-.review-list{
-    margin-top:20px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
+#reviewSection {
+    margin-top: 32px;
+}
+
+#reviewSection > h2 {
+    margin: 0 0 18px;
+    color: #ffffff;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;
 }
 
 /* =========================
    REVIEW ITEM CARD
 ========================= */
 
-.review-item{
-    background:#1E1E1E;
-    padding:14px;
-    border-radius:10px;
-
-    border:1px solid rgba(255,255,255,0.05);
+.review-item {
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #1e1e1e;
 }
 
 /* =========================
    REVIEW META
 ========================= */
 
-.review-meta{
-    display:flex;
-    gap:10px;
-    font-size:12px;
-    color:#999;
-    margin-bottom:8px;
+.review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+    color: #a9a9a9;
+    font-size: 12px;
 }
 
-.review-meta .writer{
-    font-weight:600;
-    color:#fff;
+.review-meta .writer {
+    color: #ffffff;
+    font-weight: 700;
 }
 
-.review-meta .rating{
-    color:#FFD700;
+.review-meta .rating {
+    color: #ffd54a;
+    font-weight: 700;
+}
+
+.review-meta .date {
+    color: #8f8f8f;
+}
+
+.review-meta .report-btn {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 105, 105, 0.35);
+    border-radius: 7px;
+    background: rgba(255, 80, 80, 0.08);
+    color: #ff9b9b;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.review-meta button.report-btn:hover {
+    border-color: rgba(255, 105, 105, 0.65);
+    background: rgba(255, 80, 80, 0.16);
+}
+
+.review-meta .report-btn.reported {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #777777;
+    cursor: default;
 }
 
 /* =========================
    REVIEW TEXT
 ========================= */
 
-.review-content{
-    font-size:13px;
-    line-height:1.6;
-    color:#ddd;
-    white-space:pre-wrap;
+.review-item .review-content {
+    display: block;
+    margin: 0;
+    color: #f2f2f2 !important;
+    font-size: 14px;
+    line-height: 1.7;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-text-fill-color: #f2f2f2;
 }
 
 /* =========================
@@ -1666,5 +1718,112 @@
     .recommend-poster img {
         scroll-behavior: auto;
         transition: none;
+    }
+}
+
+/* =========================================================
+   CONTENT DETAIL OTT PLATFORM LIST
+   - 상세 정보의 리뷰 버튼 아래에 작은 크기로 표시
+========================================================= */
+
+.ott-section {
+    margin-top: 22px;
+}
+
+.ott-section h2 {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.ott-platform-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ott-platform-item {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 38px;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 8px;
+    background: #1b1b1b;
+    color: #ffffff;
+    text-decoration: none;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.ott-platform-item:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: #242424;
+    transform: translateY(-1px);
+}
+
+.ott-platform-item:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.ott-platform-logo-wrap {
+    display: flex;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #101010;
+}
+
+.ott-platform-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.ott-platform-no-logo {
+    color: #777777;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.ott-platform-name {
+    max-width: 120px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ott-platform-link-icon {
+    flex-shrink: 0;
+    color: #777777;
+    font-size: 10px;
+}
+
+.ott-platform-item:hover .ott-platform-link-icon {
+    color: #ffffff;
+}
+
+.ott-platform-empty {
+    margin: 0;
+    color: #777777;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .ott-platform-list {
+        width: 100%;
     }
 }

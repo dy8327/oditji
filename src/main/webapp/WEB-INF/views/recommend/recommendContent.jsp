@@ -61,6 +61,7 @@
 
     <c:choose>
 
+        <%-- 로그인했고 OTT를 선택한 회원 --%>
         <c:when test="${personalizedRecommendation and not empty selectedPlatformList}">
 
             <section class="selected-platform-section">
@@ -97,6 +98,25 @@
 
         </c:when>
 
+        <%-- 로그인했지만 OTT를 선택하지 않은 회원 --%>
+        <c:when test="${loggedIn}">
+
+            <section class="recommend-guide">
+
+                <p>
+                    이용 중인 OTT를 선택하면,
+                    해당 OTT에서 시청 가능한 콘텐츠만 추천받을 수 있어요.
+                </p>
+
+                <a href="${pageContext.request.contextPath}/member/mypage?openOttModal=true">
+                    OTT 선택
+                </a>
+
+            </section>
+
+        </c:when>
+
+        <%-- 비로그인 사용자 --%>
         <c:otherwise>
 
             <section class="recommend-guide">
@@ -127,7 +147,9 @@
             <div>
 
                 <h2>
+
                     <c:choose>
+
                         <c:when test="${personalizedRecommendation}">
                             내 OTT에서 지금 인기 있는 콘텐츠
                         </c:when>
@@ -135,7 +157,9 @@
                         <c:otherwise>
                             지금 인기 있는 콘텐츠
                         </c:otherwise>
+
                     </c:choose>
+
                 </h2>
 
                 <p>
@@ -207,7 +231,9 @@
             <div>
 
                 <h2>
+
                     <c:choose>
+
                         <c:when test="${personalizedRecommendation}">
                             내 OTT에서 평점 높은 콘텐츠
                         </c:when>
@@ -215,7 +241,9 @@
                         <c:otherwise>
                             평점 높은 콘텐츠
                         </c:otherwise>
+
                     </c:choose>
+
                 </h2>
 
                 <p>
@@ -287,7 +315,9 @@
             <div>
 
                 <h2>
+
                     <c:choose>
+
                         <c:when test="${personalizedRecommendation}">
                             내 OTT 신작
                         </c:when>
@@ -295,7 +325,9 @@
                         <c:otherwise>
                             최근 공개된 콘텐츠
                         </c:otherwise>
+
                     </c:choose>
+
                 </h2>
 
                 <p>

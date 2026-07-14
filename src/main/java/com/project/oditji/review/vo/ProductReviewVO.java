@@ -3,8 +3,8 @@ package com.project.oditji.review.vo;
 import java.util.Date;
 
 /**
- * PRODUCT_REVIEW 테이블(상품 리뷰) 원본 매핑 VO.
- * 리뷰 작성 시 사용.
+ * PRODUCT_REVIEW 테이블 매핑 VO.
+ * 상품 리뷰 작성, 조회, 삭제에 사용한다.
  */
 public class ProductReviewVO {
 
@@ -15,6 +15,12 @@ public class ProductReviewVO {
     private double rating;
     private String content;
     private Date createdAt;
+
+    /*
+     * 상품 상세 리뷰 목록 출력용 회원 정보
+     */
+    private String writer;
+    private String profileImage;
 
     public ProductReviewVO() {
     }
@@ -73,5 +79,21 @@ public class ProductReviewVO {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getWriter() {
+        return writer;
+    }
+
+    public void setWriter(String writer) {
+        this.writer = writer;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

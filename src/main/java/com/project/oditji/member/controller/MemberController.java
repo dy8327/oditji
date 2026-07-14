@@ -75,7 +75,7 @@ public class MemberController {
                         if (profileImageFile != null
                                         && !profileImageFile.isEmpty()) {
 
-                                String uploadDir = "C:/oditji/upload/profile/";
+                                String uploadDir = "C:/oditji/uploads/profile/";
 
                                 File dir = new File(uploadDir);
 
@@ -430,7 +430,7 @@ public class MemberController {
 
                         try {
 
-                                String uploadDir = "C:/oditji/upload/profile/";
+                                String uploadDir = "C:/oditji/uploads/profile/";
 
                                 File dir = new File(uploadDir);
 

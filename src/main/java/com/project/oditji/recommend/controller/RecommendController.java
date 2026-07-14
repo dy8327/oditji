@@ -49,9 +49,12 @@ public class RecommendController {
         MemberVO loginMember =
                 (MemberVO) session.getAttribute("loginMember");
 
-        Long memberNo = loginMember == null
-                ? null
-                : loginMember.getMemberNo();
+        boolean loggedIn =
+                loginMember != null;
+
+        Long memberNo = loggedIn
+                ? loginMember.getMemberNo()
+                : null;
 
         List<PlatformVO> selectedPlatformList =
                 memberNo == null
@@ -144,6 +147,11 @@ public class RecommendController {
                         : new ArrayList<RecommendPlatformSectionVO>();
 
         model.addAttribute(
+                "loggedIn",
+                loggedIn
+        );
+
+        model.addAttribute(
                 "selectedPlatformList",
                 selectedPlatformList
         );
@@ -196,6 +204,7 @@ public class RecommendController {
 
             if (!platformNames.contains(
                     platform.getPlatformName())) {
+
                 platformNames.add(
                         platform.getPlatformName()
                 );
@@ -288,14 +297,16 @@ public class RecommendController {
 
         LocalDate today = LocalDate.now();
 
-        resultList.removeIf(content ->
-                parseReleaseDate(
-                        content.getReleaseDate()
-                ) == null
-                || parseReleaseDate(
-                        content.getReleaseDate()
-                ).isAfter(today)
-        );
+        resultList.removeIf(content -> {
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content.getReleaseDate()
+                    );
+
+            return releaseDate == null
+                    || releaseDate.isAfter(today);
+        });
 
         resultList.sort((first, second) -> {
 
@@ -462,10 +473,13 @@ public class RecommendController {
         }
 
         try {
+
             return LocalDate.parse(
                     releaseDate.trim()
             );
+
         } catch (Exception e) {
+
             return null;
         }
     }

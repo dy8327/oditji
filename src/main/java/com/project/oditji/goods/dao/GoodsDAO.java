@@ -1,6 +1,7 @@
 package com.project.oditji.goods.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -28,5 +29,25 @@ public interface GoodsDAO {
             @Param("inStockOnly") boolean inStockOnly
     );
 
+    List<GoodsVO> selectRecommendedGoods(
+            @Param("limit") int limit
+    );
+
     List<String> selectSearchProductTypes();
+
+    GoodsVO selectGoodsDetail(
+            @Param("productNo") int productNo
+    );
+
+    List<Map<String, Object>> selectGoodsImageList(
+            @Param("productNo") int productNo
+    );
+
+    Map<String, Object> selectGoodsContent(
+            @Param("productNo") int productNo
+    );
+
+    Map<String, Object> selectGoodsActor(
+            @Param("productNo") int productNo
+    );
 }

@@ -14,6 +14,7 @@ import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.service.TmdbService;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 @Service
 public class ContentServiceImpl implements ContentService {
@@ -137,6 +138,19 @@ public class ContentServiceImpl implements ContentService {
         return directorList == null
                 ? Collections.emptyList()
                 : directorList;
+    }
+
+    @Override
+    public List<OttPlatformVO> getOttPlatformListByContentNo(
+            int contentNo) {
+
+        List<OttPlatformVO> ottList =
+                contentDAO.selectOttPlatformListByContentNo(
+                        contentNo);
+
+        return ottList == null
+                ? Collections.emptyList()
+                : ottList;
     }
 
     @Override

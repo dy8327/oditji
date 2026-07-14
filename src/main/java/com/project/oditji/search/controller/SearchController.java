@@ -25,6 +25,7 @@ public class SearchController {
 
     private static final int CONTENT_PAGE_SIZE = 10;
     private static final int GOODS_PAGE_SIZE = 12;
+
     private static final int ALL_CONTENT_PREVIEW_SIZE = 5;
     private static final int ALL_GOODS_PREVIEW_SIZE = 5;
 
@@ -108,14 +109,10 @@ public class SearchController {
                 && maxPrice != null
                 && minPrice > maxPrice) {
 
-            int temporaryPrice =
-                    minPrice;
+            int temporaryPrice = minPrice;
 
-            minPrice =
-                    maxPrice;
-
-            maxPrice =
-                    temporaryPrice;
+            minPrice = maxPrice;
+            maxPrice = temporaryPrice;
         }
 
         boolean discountOnly =
@@ -129,46 +126,38 @@ public class SearchController {
                         searchVO.getSearchTab()
                 );
 
-        int goodsTotalCount = 0;
-        int goodsTotalPages = 0;
+        /*
+         * 검색어가 없어도 상품을 조회한다.
+         *
+         * keyword가 빈 문자열이면 goodsMapper.xml에서
+         * 상품명 LIKE 조건을 적용하지 않고
+         * ON_SALE 상품 전체를 조회한다.
+         */
+        int goodsTotalCount =
+                goodsService.countSearchGoods(
+                        keyword,
+                        productTypes,
+                        minPrice,
+                        maxPrice,
+                        discountOnly,
+                        inStockOnly
+                );
 
-        if (!keyword.isEmpty()) {
+        int goodsTotalPages =
+                calculateTotalPages(
+                        goodsTotalCount,
+                        GOODS_PAGE_SIZE
+                );
 
-            goodsTotalCount =
-                    goodsService.countSearchGoods(
-                            keyword,
-                            productTypes,
-                            minPrice,
-                            maxPrice,
-                            discountOnly,
-                            inStockOnly
-                    );
+        if (goodsTotalPages > 0
+                && goodsPage > goodsTotalPages) {
 
-            goodsTotalPages =
-                    calculateTotalPages(
-                            goodsTotalCount,
-                            GOODS_PAGE_SIZE
-                    );
-
-            if (goodsTotalPages > 0
-                    && goodsPage > goodsTotalPages) {
-
-                goodsPage =
-                        goodsTotalPages;
-            }
+            goodsPage = goodsTotalPages;
         }
 
-        searchVO.setKeyword(
-                keyword
-        );
-
-        searchVO.setContentPage(
-                contentPage
-        );
-
-        searchVO.setGoodsPage(
-                goodsPage
-        );
+        searchVO.setKeyword(keyword);
+        searchVO.setContentPage(contentPage);
+        searchVO.setGoodsPage(goodsPage);
 
         searchVO.setContentCategories(
                 contentCategories
@@ -206,6 +195,11 @@ public class SearchController {
                 searchTab
         );
 
+        /*
+         * 콘텐츠 조회
+         *
+         * 검색어가 비어 있으면 인기 콘텐츠가 조회된다.
+         */
         SearchResultPageVO contentPageVO =
                 searchContentPageCacheService.getContentPage(
                         keyword,
@@ -221,6 +215,9 @@ public class SearchController {
                         ? new ArrayList<SearchResultVO>()
                         : contentPageVO.getResultList();
 
+        /*
+         * 전체 탭용 콘텐츠 미리보기
+         */
         List<SearchResultVO> allContentResults =
                 searchContentPageCacheService.getFirstPagePreview(
                         keyword,
@@ -231,11 +228,20 @@ public class SearchController {
                         providerIds
                 );
 
+        if (allContentResults == null) {
+            allContentResults =
+                    new ArrayList<SearchResultVO>();
+        }
+
+        /*
+         * 상품 탭용 상품 목록
+         *
+         * 검색어가 없어도 ON_SALE 상품을 조회한다.
+         */
         List<GoodsVO> goodsResults =
                 new ArrayList<GoodsVO>();
 
-        if (!keyword.isEmpty()
-                && goodsTotalCount > 0) {
+        if (goodsTotalCount > 0) {
 
             goodsResults =
                     goodsService.searchGoods(
@@ -255,11 +261,15 @@ public class SearchController {
                     new ArrayList<GoodsVO>();
         }
 
+        /*
+         * 전체 탭용 상품 미리보기
+         *
+         * 검색어가 없어도 최신 판매 상품 5개를 조회한다.
+         */
         List<GoodsVO> allGoodsResults =
                 new ArrayList<GoodsVO>();
 
-        if (!keyword.isEmpty()
-                && goodsTotalCount > 0) {
+        if (goodsTotalCount > 0) {
 
             allGoodsResults =
                     goodsService.searchGoods(
@@ -282,19 +292,26 @@ public class SearchController {
         List<String> availableProductTypes =
                 goodsService.getSearchProductTypes();
 
-        int contentTotalCount =
-                contentPageVO.getTotalResults();
-
-        int combinedTotalCount =
-                contentTotalCount
-                        + goodsTotalCount;
+        if (availableProductTypes == null) {
+            availableProductTypes =
+                    new ArrayList<String>();
+        }
 
         /*
-         * OTT_PLATFORM 테이블의 활성 플랫폼 로고를
-         * 사이드바에서 사용하기 위한 Map으로 변환한다.
-         *
-         * 키 예:
-         * netflix, tving, wavve, disney, watcha, coupang
+         * 화면에 실제로 표시되는 카드 개수
+         */
+        int contentDisplayCount =
+                contentResults.size();
+
+        int goodsDisplayCount =
+                goodsResults.size();
+
+        int combinedDisplayCount =
+                allContentResults.size()
+                        + allGoodsResults.size();
+
+        /*
+         * 활성 OTT 플랫폼 로고
          */
         Map<String, String> ottLogoMap =
                 createOttLogoMap(
@@ -378,22 +395,22 @@ public class SearchController {
 
         model.addAttribute(
                 "contentTotalCount",
-                contentTotalCount
+                contentDisplayCount
         );
 
         model.addAttribute(
                 "goodsTotalCount",
-                goodsTotalCount
+                goodsDisplayCount
         );
 
         model.addAttribute(
                 "combinedTotalCount",
-                combinedTotalCount
+                combinedDisplayCount
         );
 
         model.addAttribute(
                 "totalResults",
-                contentTotalCount
+                contentDisplayCount
         );
 
         model.addAttribute(
@@ -485,6 +502,7 @@ public class SearchController {
                     || platform.getPlatformName() == null
                     || platform.getLogoImage() == null
                     || platform.getLogoImage().isBlank()) {
+
                 continue;
             }
 
@@ -574,9 +592,7 @@ public class SearchController {
                     || "DOCUMENTARY".equals(normalized))
                     && !safeList.contains(normalized)) {
 
-                safeList.add(
-                        normalized
-                );
+                safeList.add(normalized);
             }
         }
 
@@ -603,13 +619,9 @@ public class SearchController {
                     value.trim();
 
             if (!normalizedValue.isEmpty()
-                    && !safeList.contains(
-                            normalizedValue
-                    )) {
+                    && !safeList.contains(normalizedValue)) {
 
-                safeList.add(
-                        normalizedValue
-                );
+                safeList.add(normalizedValue);
             }
         }
 
@@ -623,10 +635,7 @@ public class SearchController {
             return null;
         }
 
-        return Math.max(
-                price,
-                0
-        );
+        return Math.max(price, 0);
     }
 
     private int calculateTotalPages(
@@ -635,6 +644,7 @@ public class SearchController {
 
         if (totalCount <= 0
                 || pageSize <= 0) {
+
             return 0;
         }
 
@@ -710,6 +720,21 @@ public class SearchController {
             return "선택 조건 검색 결과";
         }
 
-        return "지금 인기 있는 콘텐츠";
+        String searchTab =
+                searchVO == null
+                        ? "ALL"
+                        : normalizeSearchTab(
+                                searchVO.getSearchTab()
+                        );
+
+        if ("CONTENT".equals(searchTab)) {
+            return "지금 인기 있는 콘텐츠";
+        }
+
+        if ("GOODS".equals(searchTab)) {
+            return "현재 판매 중인 상품";
+        }
+
+        return "지금 인기 있는 콘텐츠와 상품";
     }
 }

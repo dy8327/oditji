@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.UriUtils;
 
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
@@ -25,6 +28,7 @@ import com.project.oditji.review.vo.ReviewVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 
 @Controller
@@ -168,6 +172,9 @@ public class ContentController {
         List<DirectorVO> directorList =
                 contentService.getDirectorListByContentNo(contentNo);
 
+        List<OttPlatformVO> ottList =
+                contentService.getOttPlatformListByContentNo(contentNo);
+
         // ===== 리뷰 관련 데이터 =====
 
         List<ContentReviewVO> reviewList =
@@ -194,6 +201,7 @@ public class ContentController {
         model.addAttribute("content", content);
         model.addAttribute("actorList", actorList);
         model.addAttribute("directorList", directorList);
+        model.addAttribute("ottList", ottList);
 
         model.addAttribute("reviewList", reviewList);
         model.addAttribute("avgRating", avgRating);
@@ -202,6 +210,92 @@ public class ContentController {
         model.addAttribute("reportedReviewSet", reportedReviewSet);
 
         return "content/contentDetail";
+    }
+
+    @GetMapping("/ott-search")
+    public RedirectView redirectOttSearch(
+            @RequestParam("platformName") String platformName,
+            @RequestParam("title") String title) {
+
+        String safePlatformName =
+                platformName == null
+                        ? ""
+                        : platformName.trim();
+
+        String safeTitle =
+                title == null
+                        ? ""
+                        : title.trim();
+
+        String encodedTitle =
+                UriUtils.encodeQueryParam(
+                        safeTitle,
+                        StandardCharsets.UTF_8);
+
+        String normalizedPlatformName =
+                safePlatformName
+                        .replace(" ", "")
+                        .toLowerCase(Locale.ROOT);
+
+        String redirectUrl;
+
+        switch (normalizedPlatformName) {
+            case "netflix":
+                redirectUrl =
+                        "https://www.netflix.com/search?q="
+                        + encodedTitle;
+                break;
+
+            case "tving":
+                redirectUrl =
+                        "https://www.tving.com/search/all?keyword="
+                        + encodedTitle;
+                break;
+
+            case "wavve":
+                redirectUrl =
+                        "https://www.wavve.com/search?searchWord="
+                        + encodedTitle;
+                break;
+
+            case "disney+":
+            case "disneyplus":
+                redirectUrl =
+                        "https://www.disneyplus.com/ko-kr/browse/search?q="
+                        + encodedTitle;
+                break;
+
+            case "watcha":
+                redirectUrl =
+                        "https://watcha.com/search?query="
+                        + encodedTitle;
+                break;
+
+            case "coupangplay":
+            case "coupang":
+                redirectUrl =
+                        "https://www.coupangplay.com/search?q="
+                        + encodedTitle;
+                break;
+
+            default:
+                String fallbackKeyword =
+                        safeTitle + " " + safePlatformName;
+
+                redirectUrl =
+                        "https://www.google.com/search?q="
+                        + UriUtils.encodeQueryParam(
+                                fallbackKeyword,
+                                StandardCharsets.UTF_8);
+                break;
+        }
+
+        RedirectView redirectView =
+                new RedirectView(redirectUrl);
+
+        redirectView.setExposeModelAttributes(false);
+
+        return redirectView;
     }
 
     @GetMapping("/person/{tmdbPersonId}")

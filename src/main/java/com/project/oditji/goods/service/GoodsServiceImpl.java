@@ -1,7 +1,9 @@
 package com.project.oditji.goods.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,11 +33,6 @@ public class GoodsServiceImpl implements GoodsService {
             int pageSize) {
 
         String normalizedKeyword = normalizeKeyword(keyword);
-
-        if (normalizedKeyword.isEmpty()) {
-            return new ArrayList<GoodsVO>();
-        }
-
         List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
         Integer normalizedMinPrice = normalizePrice(minPrice);
         Integer normalizedMaxPrice = normalizePrice(maxPrice);
@@ -43,6 +40,7 @@ public class GoodsServiceImpl implements GoodsService {
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
                 && normalizedMinPrice > normalizedMaxPrice) {
+
             int temporaryPrice = normalizedMinPrice;
             normalizedMinPrice = normalizedMaxPrice;
             normalizedMaxPrice = temporaryPrice;
@@ -79,11 +77,6 @@ public class GoodsServiceImpl implements GoodsService {
             boolean inStockOnly) {
 
         String normalizedKeyword = normalizeKeyword(keyword);
-
-        if (normalizedKeyword.isEmpty()) {
-            return 0;
-        }
-
         List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
         Integer normalizedMinPrice = normalizePrice(minPrice);
         Integer normalizedMaxPrice = normalizePrice(maxPrice);
@@ -91,6 +84,7 @@ public class GoodsServiceImpl implements GoodsService {
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
                 && normalizedMinPrice > normalizedMaxPrice) {
+
             int temporaryPrice = normalizedMinPrice;
             normalizedMinPrice = normalizedMaxPrice;
             normalizedMaxPrice = temporaryPrice;
@@ -107,12 +101,72 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     @Override
+    public List<GoodsVO> getRecommendedGoods(int limit) {
+
+        int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
+
+        List<GoodsVO> resultList =
+                goodsDAO.selectRecommendedGoods(normalizedLimit);
+
+        return resultList == null
+                ? new ArrayList<GoodsVO>()
+                : resultList;
+    }
+
+    @Override
     public List<String> getSearchProductTypes() {
-        List<String> productTypes = goodsDAO.selectSearchProductTypes();
+
+        List<String> productTypes =
+                goodsDAO.selectSearchProductTypes();
 
         return productTypes == null
                 ? new ArrayList<String>()
                 : productTypes;
+    }
+
+    @Override
+    public GoodsVO getGoodsDetail(int productNo) {
+
+        if (productNo <= 0) {
+            return null;
+        }
+
+        return goodsDAO.selectGoodsDetail(productNo);
+    }
+
+    @Override
+    public List<Map<String, Object>> getGoodsImageList(int productNo) {
+
+        if (productNo <= 0) {
+            return Collections.emptyList();
+        }
+
+        List<Map<String, Object>> imageList =
+                goodsDAO.selectGoodsImageList(productNo);
+
+        return imageList == null
+                ? Collections.emptyList()
+                : imageList;
+    }
+
+    @Override
+    public Map<String, Object> getGoodsContent(int productNo) {
+
+        if (productNo <= 0) {
+            return null;
+        }
+
+        return goodsDAO.selectGoodsContent(productNo);
+    }
+
+    @Override
+    public Map<String, Object> getGoodsActor(int productNo) {
+
+        if (productNo <= 0) {
+            return null;
+        }
+
+        return goodsDAO.selectGoodsActor(productNo);
     }
 
     private String normalizeKeyword(String keyword) {
@@ -120,6 +174,7 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     private List<String> normalizeProductTypes(List<String> sourceList) {
+
         List<String> normalizedList = new ArrayList<String>();
 
         if (sourceList == null) {
@@ -127,13 +182,16 @@ public class GoodsServiceImpl implements GoodsService {
         }
 
         for (String productType : sourceList) {
+
             if (productType == null) {
                 continue;
             }
 
             String normalized = productType.trim();
 
-            if (!normalized.isEmpty() && !normalizedList.contains(normalized)) {
+            if (!normalized.isEmpty()
+                    && !normalizedList.contains(normalized)) {
+
                 normalizedList.add(normalized);
             }
         }
@@ -142,6 +200,7 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     private Integer normalizePrice(Integer price) {
+
         if (price == null) {
             return null;
         }
@@ -154,6 +213,7 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     private int normalizePageSize(int pageSize) {
+
         if (pageSize <= 0) {
             return 12;
         }

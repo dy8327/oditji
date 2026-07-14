@@ -1,6 +1,7 @@
 package com.project.oditji.goods.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.project.oditji.goods.vo.GoodsVO;
 
@@ -26,5 +27,15 @@ public interface GoodsService {
             boolean inStockOnly
     );
 
+    List<GoodsVO> getRecommendedGoods(int limit);
+
     List<String> getSearchProductTypes();
+
+    GoodsVO getGoodsDetail(int productNo);
+
+    List<Map<String, Object>> getGoodsImageList(int productNo);
+
+    Map<String, Object> getGoodsContent(int productNo);
+
+    Map<String, Object> getGoodsActor(int productNo);
 }

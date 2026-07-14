@@ -3,6 +3,10 @@ package com.project.oditji.goods.vo;
 public class GoodsVO {
 
     private int productNo;
+    private int businessNo;
+    private int contentNo;
+    private Integer actorNo;
+
     private String productName;
     private String productType;
     private int price;
@@ -10,6 +14,7 @@ public class GoodsVO {
     private int stock;
     private String description;
     private String status;
+
     private String businessName;
     private String mainImage;
 
@@ -19,6 +24,30 @@ public class GoodsVO {
 
     public void setProductNo(int productNo) {
         this.productNo = productNo;
+    }
+
+    public int getBusinessNo() {
+        return businessNo;
+    }
+
+    public void setBusinessNo(int businessNo) {
+        this.businessNo = businessNo;
+    }
+
+    public int getContentNo() {
+        return contentNo;
+    }
+
+    public void setContentNo(int contentNo) {
+        this.contentNo = contentNo;
+    }
+
+    public Integer getActorNo() {
+        return actorNo;
+    }
+
+    public void setActorNo(Integer actorNo) {
+        this.actorNo = actorNo;
     }
 
     public String getProductName() {
@@ -94,6 +123,7 @@ public class GoodsVO {
     }
 
     public int getDiscountPrice() {
-        return price - (price * discountRate / 100);
+        int normalizedRate = Math.max(0, Math.min(discountRate, 100));
+        return price * (100 - normalizedRate) / 100;
     }
 }
