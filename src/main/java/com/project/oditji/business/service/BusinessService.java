@@ -59,4 +59,26 @@ public interface BusinessService {
          */
         List<GoodsManageVO> getProductListByBusinessNo(
                         long businessNo);
+
+        /*
+         * =========================================================
+         * 상품 수정 화면용 상품 단건 조회
+         *
+         * 현재 로그인한 사업자의 상품인지 함께 확인한다.
+         * =========================================================
+         */
+        GoodsManageVO getProductForUpdate(
+                        long productNo,
+                        long businessNo);
+
+        /*
+         * =========================================================
+         * 상품 수정 요청
+         *
+         * 새 이미지가 전달되지 않으면 기존 이미지를 유지한다.
+         * =========================================================
+         */
+        void updateProduct(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage);
 }

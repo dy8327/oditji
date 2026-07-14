@@ -3,6 +3,7 @@ package com.project.oditji.business.controller;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -117,15 +118,20 @@ public class BusinessController {
                         return "redirect:/";
                 }
 
-                List<GoodsManageVO> productList = businessService
-                                .getProductListByBusinessNo(
-                                                business.getBusinessNo());
+                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                                business.getBusinessNo());
 
-                model.addAttribute("business", business);
+                model.addAttribute(
+                                "business",
+                                business);
 
-                model.addAttribute("productList", productList);
+                model.addAttribute(
+                                "productList",
+                                productList);
 
-                model.addAttribute("activeMenu", "product");
+                model.addAttribute(
+                                "activeMenu",
+                                "product");
 
                 return "business/goods/productList";
         }
@@ -187,9 +193,13 @@ public class BusinessController {
                                         new GoodsManageVO());
                 }
 
-                model.addAttribute("business", business);
+                model.addAttribute(
+                                "business",
+                                business);
 
-                model.addAttribute("activeMenu", "productRegister");
+                model.addAttribute(
+                                "activeMenu",
+                                "productRegister");
 
                 return "business/goods/productRegister";
         }
@@ -256,28 +266,37 @@ public class BusinessController {
                 if (goodsManageVO.getActorNo() != null
                                 && goodsManageVO.getActorNo() <= 0) {
 
-                        goodsManageVO.setActorNo(null);
+                        goodsManageVO.setActorNo(
+                                        null);
                 }
 
                 try {
 
-                        long productNo = businessService.registerProduct(goodsManageVO, productImage);
+                        long productNo = businessService.registerProduct(
+                                        goodsManageVO,
+                                        productImage);
 
                         redirectAttributes.addFlashAttribute(
                                         "successMessage",
                                         "상품 등록 요청이 완료되었습니다. "
                                                         + "관리자 승인 후 판매됩니다.");
 
-                        redirectAttributes.addFlashAttribute("registeredProductNo", productNo);
+                        redirectAttributes.addFlashAttribute(
+                                        "registeredProductNo",
+                                        productNo);
 
                         return "redirect:/business/product/list";
 
                 } catch (IllegalArgumentException
                                 | IllegalStateException e) {
 
-                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
 
-                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
+                        redirectAttributes.addFlashAttribute(
+                                        "productForm",
+                                        goodsManageVO);
 
                         return "redirect:/business/product/register";
 
@@ -285,9 +304,13 @@ public class BusinessController {
 
                         e.printStackTrace();
 
-                        redirectAttributes.addFlashAttribute("errorMessage", "상품 등록 중 오류가 발생했습니다.");
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "상품 등록 중 오류가 발생했습니다.");
 
-                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
+                        redirectAttributes.addFlashAttribute(
+                                        "productForm",
+                                        goodsManageVO);
 
                         return "redirect:/business/product/register";
                 }
@@ -370,8 +393,12 @@ public class BusinessController {
         public List<ActorSearchVO> actorListByContentApi(
                         @RequestParam("contentNo") long contentNo) {
 
-                System.out.println("===== 콘텐츠별 배우 조회 API =====");
-                System.out.println("contentNo: " + contentNo);
+                System.out.println(
+                                "===== 콘텐츠별 배우 조회 API =====");
+
+                System.out.println(
+                                "contentNo: "
+                                                + contentNo);
 
                 if (contentNo <= 0) {
                         return Collections.emptyList();
@@ -380,13 +407,17 @@ public class BusinessController {
                 List<ActorSearchVO> actorList = businessService.getActorListByContentNo(
                                 contentNo);
 
-                System.out.println("조회된 배우 수: " + actorList.size());
+                System.out.println(
+                                "조회된 배우 수: "
+                                                + actorList.size());
 
                 for (ActorSearchVO actor : actorList) {
-                        System.out.println("배우: "
-                                        + actor.getActorName()
-                                        + ", 배역: "
-                                        + actor.getCharacterName());
+
+                        System.out.println(
+                                        "배우: "
+                                                        + actor.getActorName()
+                                                        + ", 배역: "
+                                                        + actor.getCharacterName());
                 }
 
                 return actorList;
@@ -394,30 +425,317 @@ public class BusinessController {
 
         /*
          * =========================================================
-         * 상품 수정
+         * 상품 수정 화면
+         *
+         * 상품 번호 없이 직접 접근한 경우에는
+         * 상품 목록으로 이동한다.
          * =========================================================
          */
         @GetMapping("/product/update")
         public String productUpdate(
-                        Model model) {
+                        @RequestParam(value = "productNo", required = false) Long productNo,
 
-                model.addAttribute("activeMenu", "productUpdate");
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                return "business/goods/productUpdate";
+                if (productNo == null
+                                || productNo <= 0) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "수정할 상품을 선택해주세요.");
+
+                        return "redirect:/business/product/list";
+                }
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 상품을 수정할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                try {
+
+                        /*
+                         * 수정 처리 실패 후 다시 돌아온 경우에는
+                         * 사용자가 입력했던 productForm을 유지한다.
+                         */
+                        if (!model.containsAttribute(
+                                        "productForm")) {
+
+                                GoodsManageVO product = businessService.getProductForUpdate(
+                                                productNo,
+                                                business.getBusinessNo());
+
+                                model.addAttribute(
+                                                "productForm",
+                                                product);
+                        }
+
+                        model.addAttribute(
+                                        "business",
+                                        business);
+
+                        /*
+                         * 상품 수정 메뉴 활성화
+                         */
+                        model.addAttribute(
+                                        "activeMenu",
+                                        "productUpdate");
+
+                        return "business/goods/productUpdate";
+
+                } catch (IllegalArgumentException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/product/list";
+                }
         }
 
         /*
          * =========================================================
-         * 상품 삭제 요청
+         * 상품 수정 처리
+         * =========================================================
+         */
+        @PostMapping("/product/update")
+        public String productUpdateProcess(
+                        @ModelAttribute("productForm") GoodsManageVO goodsManageVO,
+
+                        @RequestParam(value = "productImage", required = false) MultipartFile productImage,
+
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 상품을 수정할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                /*
+                 * 화면에서 넘어온 BUSINESS_NO는 신뢰하지 않고
+                 * 로그인 회원과 연결된 사업자 번호로 다시 설정한다.
+                 */
+                goodsManageVO.setBusinessNo(
+                                business.getBusinessNo());
+
+                /*
+                 * 배우 선택값이 없거나 0 이하이면
+                 * PRODUCT.ACTOR_NO에 NULL이 저장되도록 처리한다.
+                 */
+                if (goodsManageVO.getActorNo() != null
+                                && goodsManageVO.getActorNo() <= 0) {
+
+                        goodsManageVO.setActorNo(
+                                        null);
+                }
+
+                try {
+
+                        businessService.updateProduct(
+                                        goodsManageVO,
+                                        productImage);
+
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "상품 수정 요청이 완료되었습니다. "
+                                                        + "관리자 승인 후 변경 내용이 반영됩니다.");
+
+                        return "redirect:/business/product/list";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        redirectAttributes.addFlashAttribute(
+                                        "productForm",
+                                        goodsManageVO);
+
+                        return "redirect:/business/product/update"
+                                        + "?productNo="
+                                        + goodsManageVO.getProductNo();
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "상품 수정 중 오류가 발생했습니다.");
+
+                        redirectAttributes.addFlashAttribute(
+                                        "productForm",
+                                        goodsManageVO);
+
+                        return "redirect:/business/product/update"
+                                        + "?productNo="
+                                        + goodsManageVO.getProductNo();
+                }
+        }
+
+        /*
+         * =========================================================
+         * 상품 삭제 요청 화면
+         *
+         * 상품 목록에서 전달받은 PRODUCT_NO로 상품 정보를 조회한다.
+         * 로그인한 사업자가 등록한 상품만 조회할 수 있다.
+         *
+         * 요청 예:
+         * /business/product/delete?productNo=1
          * =========================================================
          */
         @GetMapping("/product/delete")
         public String productDelete(
-                        Model model) {
+                        @RequestParam(value = "productNo", required = false) Long productNo,
 
-                model.addAttribute("activeMenu", "productDelete");
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                return "business/goods/productDelete";
+                /*
+                 * 상품 번호 없이 삭제 페이지에 직접 접근한 경우
+                 */
+                if (productNo == null
+                                || productNo <= 0) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "삭제 요청할 상품을 선택해주세요.");
+
+                        return "redirect:/business/product/list";
+                }
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                try {
+
+                        /*
+                         * PRODUCT_NO와 BUSINESS_NO를 함께 조회하므로
+                         * 다른 사업자의 상품에는 접근할 수 없다.
+                         */
+                        GoodsManageVO product = businessService.getProductForUpdate(
+                                        productNo,
+                                        business.getBusinessNo());
+
+                        model.addAttribute(
+                                        "product",
+                                        product);
+
+                        model.addAttribute(
+                                        "business",
+                                        business);
+
+                        model.addAttribute(
+                                        "activeMenu",
+                                        "productDelete");
+
+                        return "business/goods/productDelete";
+
+                } catch (IllegalArgumentException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/product/list";
+                }
         }
 
         /*
@@ -429,7 +747,9 @@ public class BusinessController {
         public String eventList(
                         Model model) {
 
-                model.addAttribute("activeMenu", "event");
+                model.addAttribute(
+                                "activeMenu",
+                                "event");
 
                 return "business/event/eventList";
         }
@@ -443,9 +763,232 @@ public class BusinessController {
         public String eventRegister(
                         Model model) {
 
-                model.addAttribute("activeMenu", "eventRegister");
+                model.addAttribute(
+                                "activeMenu",
+                                "eventRegister");
 
                 return "business/event/eventRegister";
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 등록 처리
+         *
+         * eventRegister.jsp의 form에서 전송되는
+         * POST /business/event/register 요청을 처리한다.
+         *
+         * 현재 단계에서는 등록 요청값 검증과 파일 정보 확인까지 처리한다.
+         * EVENT 테이블에 실제 저장하려면 이후 BusinessService에
+         * 이벤트 등록 메서드와 MyBatis Mapper를 연결해야 한다.
+         * =========================================================
+         */
+        @PostMapping("/event/register")
+        public String eventRegisterProcess(
+                        @RequestParam("eventTitle") String eventTitle,
+
+                        @RequestParam(value = "eventContent", required = false) String eventContent,
+
+                        @RequestParam("startDate") LocalDate startDate,
+
+                        @RequestParam("endDate") LocalDate endDate,
+
+                        @RequestParam(value = "productName", required = false) String productName,
+
+                        /*
+                         * 현재 JSP가 checkbox 형태이므로 여러 상태값이 전달될 수 있다.
+                         * 이벤트 상태는 하나만 가져야 하므로 첫 번째 값을 사용한다.
+                         *
+                         * JSP의 status 입력을 radio로 수정하면
+                         * String status 하나로 받아도 된다.
+                         */
+                        @RequestParam(value = "status", required = false) List<String> statusList,
+
+                        @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
+
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                /*
+                 * 필수 입력값 검증
+                 */
+                if (eventTitle == null
+                                || eventTitle.trim().isEmpty()) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트명을 입력해주세요.");
+
+                        return "redirect:/business/event/register";
+                }
+
+                /*
+                 * 이벤트 날짜 입력값 검증
+                 */
+                if (startDate == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 시작일을 선택해주세요.");
+
+                        return "redirect:/business/event/register";
+                }
+
+                if (endDate == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 종료일을 선택해주세요.");
+
+                        return "redirect:/business/event/register";
+                }
+
+                /*
+                 * 종료일이 시작일보다 빠른 경우 등록을 중단한다.
+                 */
+                if (endDate.isBefore(
+                                startDate)) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 종료일은 시작일보다 빠를 수 없습니다.");
+
+                        return "redirect:/business/event/register";
+                }
+
+                /*
+                 * checkbox에서 여러 상태값이 전달된 경우
+                 * 첫 번째 상태값만 사용한다.
+                 */
+                String status = "WAITING";
+
+                if (statusList != null
+                                && !statusList.isEmpty()) {
+
+                        status = statusList.get(0);
+                }
+
+                /*
+                 * 허용하지 않는 상태값이 전달된 경우
+                 * 기본값인 WAITING으로 처리한다.
+                 */
+                if (!"WAITING".equals(status)
+                                && !"ACTIVE".equals(status)
+                                && !"ENDED".equals(status)) {
+
+                        status = "WAITING";
+                }
+
+                try {
+
+                        System.out.println(
+                                        "===== 이벤트 등록 요청 =====");
+
+                        System.out.println(
+                                        "사업자 번호: "
+                                                        + business.getBusinessNo());
+
+                        System.out.println(
+                                        "이벤트명: "
+                                                        + eventTitle.trim());
+
+                        System.out.println(
+                                        "이벤트 설명: "
+                                                        + eventContent);
+
+                        System.out.println(
+                                        "이벤트 시작일: "
+                                                        + startDate);
+
+                        System.out.println(
+                                        "이벤트 종료일: "
+                                                        + endDate);
+
+                        System.out.println(
+                                        "연결 상품명: "
+                                                        + productName);
+
+                        System.out.println(
+                                        "이벤트 상태: "
+                                                        + status);
+
+                        if (eventImage != null
+                                        && !eventImage.isEmpty()) {
+
+                                System.out.println(
+                                                "이벤트 이미지 파일명: "
+                                                                + eventImage.getOriginalFilename());
+
+                                System.out.println(
+                                                "이벤트 이미지 크기: "
+                                                                + eventImage.getSize());
+                        }
+
+                        /*
+                         * EVENT 테이블 저장 기능 구현 시 아래 형태로
+                         * BusinessService를 호출한다.
+                         *
+                         * businessService.registerEvent(
+                         * business.getBusinessNo(),
+                         * eventTitle,
+                         * eventContent,
+                         * startDate,
+                         * endDate,
+                         * productName,
+                         * status,
+                         * eventImage);
+                         */
+
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "이벤트 등록 요청이 접수되었습니다.");
+
+                        return "redirect:/business/event/list";
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
+
+                        return "redirect:/business/event/register";
+                }
         }
 
         /*
@@ -457,7 +1000,9 @@ public class BusinessController {
         public String eventUpdate(
                         Model model) {
 
-                model.addAttribute("activeMenu", "eventUpdate");
+                model.addAttribute(
+                                "activeMenu",
+                                "eventUpdate");
 
                 return "business/event/eventUpdate";
         }
@@ -471,7 +1016,9 @@ public class BusinessController {
         public String eventExtend(
                         Model model) {
 
-                model.addAttribute("activeMenu", "eventExtend");
+                model.addAttribute(
+                                "activeMenu",
+                                "eventExtend");
 
                 return "business/event/eventExtend";
         }
@@ -486,9 +1033,13 @@ public class BusinessController {
                         @RequestParam(defaultValue = "product") String type,
                         Model model) {
 
-                model.addAttribute("currentType", type);
+                model.addAttribute(
+                                "currentType",
+                                type);
 
-                model.addAttribute("activeMenu", "approval");
+                model.addAttribute(
+                                "activeMenu",
+                                "approval");
 
                 return "business/approval/approvalList";
         }
@@ -622,7 +1173,8 @@ public class BusinessController {
                                 "loginMemberNo: "
                                                 + loginMemberNo);
 
-                Long convertedLoginMemberNo = convertToLong(loginMemberNo);
+                Long convertedLoginMemberNo = convertToLong(
+                                loginMemberNo);
 
                 if (convertedLoginMemberNo != null) {
                         return convertedLoginMemberNo;
@@ -638,7 +1190,8 @@ public class BusinessController {
                                 "memberNo: "
                                                 + memberNo);
 
-                Long convertedMemberNo = convertToLong(memberNo);
+                Long convertedMemberNo = convertToLong(
+                                memberNo);
 
                 if (convertedMemberNo != null) {
 
@@ -681,7 +1234,8 @@ public class BusinessController {
                  * 현재 저장된 전체 세션 키를 콘솔에 출력한다.
                  * 세션 속성명 불일치 확인용이다.
                  */
-                printSessionAttributes(session);
+                printSessionAttributes(
+                                session);
 
                 return null;
         }

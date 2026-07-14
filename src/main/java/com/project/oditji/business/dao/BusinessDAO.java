@@ -18,28 +18,32 @@ public interface BusinessDAO {
          * 로그인 회원과 연결된 사업자 조회
          * =========================================================
          */
-        BusinessVO selectBusinessByMemberNo(@Param("memberNo") long memberNo);
+        BusinessVO selectBusinessByMemberNo(
+                        @Param("memberNo") long memberNo);
 
         /*
          * =========================================================
          * 상품 등록
          * =========================================================
          */
-        int insertProduct(GoodsManageVO goodsManageVO);
+        int insertProduct(
+                        GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
          * 상품 대표 이미지 등록
          * =========================================================
          */
-        int insertProductImage(GoodsManageVO goodsManageVO);
+        int insertProductImage(
+                        GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
          * 콘텐츠 검색 목록
          * =========================================================
          */
-        List<ContentSearchVO> selectContentList(@Param("keyword") String keyword);
+        List<ContentSearchVO> selectContentList(
+                        @Param("keyword") String keyword);
 
         /*
          * =========================================================
@@ -49,14 +53,16 @@ public interface BusinessDAO {
          * BusinessServiceImpl에서 콘텐츠 존재 여부 확인에 사용한다.
          * =========================================================
          */
-        ContentSearchVO selectContentByNo(@Param("contentNo") long contentNo);
+        ContentSearchVO selectContentByNo(
+                        @Param("contentNo") long contentNo);
 
         /*
          * =========================================================
          * 선택한 콘텐츠에 연결된 배우 목록
          * =========================================================
          */
-        List<ActorSearchVO> selectActorListByContentNo(@Param("contentNo") long contentNo);
+        List<ActorSearchVO> selectActorListByContentNo(
+                        @Param("contentNo") long contentNo);
 
         /*
          * =========================================================
@@ -74,4 +80,32 @@ public interface BusinessDAO {
          */
         List<GoodsManageVO> selectProductListByBusinessNo(
                         @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * 상품 수정 화면용 상품 단건 조회
+         *
+         * PRODUCT_NO와 BUSINESS_NO를 함께 검사하여
+         * 다른 사업자의 상품에 접근할 수 없도록 한다.
+         * =========================================================
+         */
+        GoodsManageVO selectProductForUpdate(
+                        @Param("productNo") long productNo,
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * 상품 기본 정보 수정
+         * =========================================================
+         */
+        int updateProduct(
+                        GoodsManageVO goodsManageVO);
+
+        /*
+         * =========================================================
+         * 기존 대표 이미지 수정
+         * =========================================================
+         */
+        int updateProductMainImage(
+                        GoodsManageVO goodsManageVO);
 }
