@@ -110,7 +110,18 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberVO loginMember(MemberVO memberVO) {
-        return memberDAO.loginMember(memberVO);
+
+        MemberVO loginMember = memberDAO.loginMember(memberVO);
+
+        if (loginMember == null) {
+            return null;
+        }
+
+        if (!"ACTIVE".equals(loginMember.getStatus())) {
+            throw new IllegalStateException("정지 또는 탈퇴한 회원입니다.");
+        }
+
+        return loginMember;
     }
 
     @Override

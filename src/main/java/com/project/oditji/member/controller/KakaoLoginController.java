@@ -10,6 +10,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.KakaoLoginResultVO;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberVO;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -38,70 +39,62 @@ public class KakaoLoginController {
     @GetMapping("/member/kakao/callback")
     public String kakaoCallback(
             @RequestParam("code") String code,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
-        KakaoLoginResultVO result = kakaoLoginService.kakaoLogin(code);
+        try {
 
-        if (result == null || result.getMember() == null) {
+            KakaoLoginResultVO result = kakaoLoginService.kakaoLogin(code);
+
+            if (result == null || result.getMember() == null) {
+                return "redirect:/member/login";
+            }
+
+            MemberSocialJoinVO member = result.getMember();
+
+            if (member.getMemberNo() <= 0) {
+                return "redirect:/member/login";
+            }
+
+            String displayName = getDisplayName(member);
+            member.setMemberName(displayName);
+
+            int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
+
+            if (result.isNewMember() || platformCount == 0) {
+
+                session.setAttribute("pendingMemberNo", member.getMemberNo());
+                session.setAttribute("pendingMemberId", member.getMemberId());
+                session.setAttribute("pendingMemberName", member.getMemberName());
+                session.setAttribute("pendingNickname", member.getNickname());
+                session.setAttribute("pendingRole", member.getRole());
+                session.setAttribute("pendingProvider", member.getProvider());
+                session.setAttribute("pendingDisplayName", displayName);
+                session.setAttribute("pendingProfileImage", member.getProfileImage());
+
+                return "redirect:/member/platform/select";
+            }
+
+            MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
+
+            if (loginMember == null) {
+                return "redirect:/member/login";
+            }
+
+            if (loginMember.getMemberName() == null
+                    || loginMember.getMemberName().isBlank()) {
+                loginMember.setMemberName(displayName);
+            }
+
+            saveLoginSession(session, loginMember, member.getProvider(), displayName);
+
+            return "redirect:/";
+
+        } catch (IllegalStateException e) {
+
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/member/login";
         }
-
-        MemberSocialJoinVO member = result.getMember();
-
-        if (member.getMemberNo() <= 0) {
-            return "redirect:/member/login";
-        }
-
-        String displayName = getDisplayName(member);
-        member.setMemberName(displayName);
-
-        int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
-
-        /*
-         * 신규 회원 또는 OTT 미선택 회원
-         * 이 단계에서는 아직 완전 로그인 처리하지 않고 플랫폼 선택 화면으로 보냄.
-         */
-        if (result.isNewMember() || platformCount == 0) {
-
-            session.setAttribute("pendingMemberNo", member.getMemberNo());
-            session.setAttribute("pendingMemberId", member.getMemberId());
-            session.setAttribute("pendingMemberName", member.getMemberName());
-            session.setAttribute("pendingNickname", member.getNickname());
-            session.setAttribute("pendingRole", member.getRole());
-            session.setAttribute("pendingProvider", member.getProvider());
-            session.setAttribute("pendingDisplayName", displayName);
-            session.setAttribute("pendingProfileImage", member.getProfileImage());
-
-            return "redirect:/member/platform/select";
-        }
-
-        /*
-         * 기존 카카오 회원이고 OTT 선택 기록도 있으면 로그인 완료 처리.
-         * loginMember 세션에는 반드시 MemberVO만 저장해야 함.
-         */
-        MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
-
-        if (loginMember == null) {
-            return "redirect:/member/login";
-        }
-
-        if (loginMember.getMemberName() == null
-                || loginMember.getMemberName().isBlank()) {
-            loginMember.setMemberName(displayName);
-        }
-
-        saveLoginSession(session, loginMember, member.getProvider(), displayName);
-
-        System.out.println("카카오 로그인 세션 저장 확인");
-        System.out.println("loginMemberNo = " + session.getAttribute("loginMemberNo"));
-        System.out.println("loginMemberId = " + session.getAttribute("loginMemberId"));
-        System.out.println("loginMemberName = " + session.getAttribute("loginMemberName"));
-        System.out.println("loginNickname = " + session.getAttribute("loginNickname"));
-        System.out.println("loginProvider = " + session.getAttribute("loginProvider"));
-        System.out.println("loginDisplayName = " + session.getAttribute("loginDisplayName"));
-        System.out.println("profileImage = " + session.getAttribute("profileImage"));
-
-        return "redirect:/";
     }
 
     private void saveLoginSession(

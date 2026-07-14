@@ -202,124 +202,57 @@ public class MemberController {
          */
         @PostMapping("/login")
         public String login(
-                        MemberVO memberVO,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                MemberVO memberVO,
+                HttpSession session,
+                RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = memberService.loginMember(
-                                memberVO);
+        try {
 
-                System.out.println(
-                                "===== loginMember 실행됨 =====");
+                MemberVO loginMember = memberService.loginMember(memberVO);
 
-                System.out.println(
-                                "입력 아이디: "
-                                                + memberVO.getMemberId());
-
-                System.out.println(
-                                "입력 비밀번호: "
-                                                + memberVO.getMemberPw());
-
-                /*
-                 * 로그인 실패
-                 *
-                 * redirectAfterLogin 값은 삭제하지 않는다.
-                 * 사용자가 다시 로그인하면 원래 페이지로 이동한다.
-                 */
                 if (loginMember == null) {
+                redirectAttributes.addFlashAttribute(
+                        "message",
+                        "아이디 또는 비밀번호가 일치하지 않습니다.");
 
-                        redirectAttributes.addFlashAttribute(
-                                        "message",
-                                        "아이디 또는 비밀번호가 일치하지 않습니다.");
-
-                        return "redirect:/member/login";
+                return "redirect:/member/login";
                 }
 
-                System.out.println(
-                                "조회 결과 memberNo: "
-                                                + loginMember.getMemberNo());
-
-                System.out.println(
-                                "조회 결과 memberId: "
-                                                + loginMember.getMemberId());
-
-                System.out.println(
-                                "조회 결과 memberName: "
-                                                + loginMember.getMemberName());
-
-                System.out.println(
-                                "조회 결과 role: "
-                                                + loginMember.getRole());
-
-                /*
-                 * 로그인 회원 세션 저장
-                 */
-                session.setAttribute(
-                                "loginMember",
-                                loginMember);
-
-                session.setAttribute(
-                                "memberNo",
-                                loginMember.getMemberNo());
-
-                session.setAttribute(
-                                "memberId",
-                                loginMember.getMemberId());
-
-                session.setAttribute(
-                                "memberName",
-                                loginMember.getMemberName());
-
-                session.setAttribute(
-                                "nickname",
-                                loginMember.getNickname());
-
-                session.setAttribute(
-                                "role",
-                                loginMember.getRole());
-
-                System.out.println(
-                                "세션 저장 완료: "
-                                                + session.getAttribute("memberId"));
+                session.setAttribute("loginMember", loginMember);
+                session.setAttribute("memberNo", loginMember.getMemberNo());
+                session.setAttribute("memberId", loginMember.getMemberId());
+                session.setAttribute("memberName", loginMember.getMemberName());
+                session.setAttribute("nickname", loginMember.getNickname());
+                session.setAttribute("role", loginMember.getRole());
 
                 String displayName = loginMember.getMemberName();
 
-                if (displayName == null
-                                || displayName.isBlank()) {
-
-                        displayName = loginMember.getNickname();
+                if (displayName == null || displayName.isBlank()) {
+                displayName = loginMember.getNickname();
                 }
 
-                if (displayName == null
-                                || displayName.isBlank()) {
-
-                        displayName = "회원";
+                if (displayName == null || displayName.isBlank()) {
+                displayName = "회원";
                 }
 
-                session.setAttribute(
-                                "loginDisplayName",
-                                displayName);
+                session.setAttribute("loginDisplayName", displayName);
 
-                /*
-                 * 로그인 화면으로 이동하기 전 주소를 꺼낸다.
-                 */
-                String redirectUrl = (String) session.getAttribute(
-                                LOGIN_REDIRECT_SESSION_KEY);
+                String redirectUrl =
+                        (String) session.getAttribute(LOGIN_REDIRECT_SESSION_KEY);
 
-                /*
-                 * 한 번 사용한 복귀 주소는 제거한다.
-                 */
-                session.removeAttribute(
-                                LOGIN_REDIRECT_SESSION_KEY);
+                session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
 
-                if (redirectUrl == null
-                                || redirectUrl.isBlank()) {
-
-                        return "redirect:/";
+                if (redirectUrl == null || redirectUrl.isBlank()) {
+                return "redirect:/";
                 }
 
-                return "redirect:"
-                                + redirectUrl;
+                return "redirect:" + redirectUrl;
+
+        } catch (IllegalStateException e) {
+
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/member/login";
+        }
         }
 
         /**
