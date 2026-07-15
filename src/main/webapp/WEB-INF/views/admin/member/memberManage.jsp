@@ -30,7 +30,8 @@
             <h1 class="admin-page-title">회원 관리</h1>
 
             <p class="admin-page-desc">
-                가입한 회원의 정보를 조회하고 정지, 탈퇴를 관리할 수 있습니다.
+                가입한 회원의 정보를 조회하고 정지, 복구, 탈퇴(즉시 완전삭제)를 관리할 수 있습니다.
+                회원이 마이페이지에서 직접 탈퇴한 경우 7일 후 자동으로 삭제됩니다.
             </p>
 
         </div>
@@ -100,7 +101,7 @@
 
                                             <form action="${pageContext.request.contextPath}/admin/member/withdraw"
                                                 method="post"
-                                                onsubmit="return confirm('해당 회원을 탈퇴 처리하시겠습니까?');">
+                                                onsubmit="return confirm('해당 회원 데이터를 완전히 삭제하시겠습니까?\\n삭제 후 복구할 수 없습니다.');">
 
                                                 <input type="hidden"
                                                     name="memberNo"
@@ -108,7 +109,7 @@
 
                                                 <button type="submit"
                                                         class="btn btn-danger">
-                                                    탈퇴
+                                                    탈퇴(완전삭제)
                                                 </button>
 
                                             </form>
@@ -134,7 +135,7 @@
 
                                             <form action="${pageContext.request.contextPath}/admin/member/withdraw"
                                                 method="post"
-                                                onsubmit="return confirm('해당 회원을 탈퇴 처리하시겠습니까?');">
+                                                onsubmit="return confirm('해당 회원 데이터를 완전히 삭제하시겠습니까?\\n삭제 후 복구할 수 없습니다.');">
 
                                                 <input type="hidden"
                                                     name="memberNo"
@@ -142,7 +143,7 @@
 
                                                 <button type="submit"
                                                         class="btn btn-danger">
-                                                    탈퇴
+                                                    탈퇴(완전삭제)
                                                 </button>
 
                                             </form>
@@ -152,25 +153,8 @@
                                         <c:when test="${member.status == 'WITHDRAWN'}">
 
                                             <span class="status-waiting">
-                                                탈퇴 완료
+                                                탈퇴 처리됨 (7일 후 자동 삭제)
                                             </span>
-
-
-                                            <form action="${pageContext.request.contextPath}/admin/member/delete"
-                                                method="post"
-                                                onsubmit="return confirm('회원 데이터를 완전히 삭제하시겠습니까?\\n삭제 후 복구할 수 없습니다.');">
-
-                                                <input type="hidden"
-                                                    name="memberNo"
-                                                    value="${member.memberNo}">
-
-
-                                                <button type="submit"
-                                                        class="btn btn-danger">
-                                                    완전 삭제
-                                                </button>
-
-                                            </form>
 
                                         </c:when>
 

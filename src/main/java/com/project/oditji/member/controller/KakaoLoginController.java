@@ -4,9 +4,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.project.oditji.member.exception.MemberBlockedException;
+import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.KakaoLoginService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
+import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.KakaoLoginResultVO;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -89,6 +92,30 @@ public class KakaoLoginController {
             saveLoginSession(session, loginMember, member.getProvider(), displayName);
 
             return "redirect:/";
+
+        } catch (MemberBlockedException e) {
+
+            /*
+             * 정지 회원: 복구 절차 없이 단순 안내만 노출한다.
+             */
+            redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
+            return "redirect:/member/login";
+
+        } catch (MemberWithdrawnException e) {
+
+            /*
+             * 탈퇴 회원: 카카오 OAuth 인증에 성공한 시점이 곧 본인 확인이므로
+             * 별도 비밀번호 확인 없이 세션에 복구 대상 회원번호만 저장해둔다.
+             * 로그인 화면(login.jsp)에서 이 값을 신뢰해 /member/restore를 호출한다.
+             */
+            session.setAttribute("restoreMemberNo", e.getMemberNo());
+            session.setAttribute("restoreProvider", "KAKAO");
+
+            redirectAttributes.addFlashAttribute(
+                    "withdrawnMessage",
+                    WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+
+            return "redirect:/member/login";
 
         } catch (IllegalStateException e) {
 

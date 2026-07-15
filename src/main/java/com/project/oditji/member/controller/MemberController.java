@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.oditji.member.exception.MemberBlockedException;
+import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
+import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 
@@ -199,6 +202,10 @@ public class MemberController {
 
         /**
          * 로그인 처리
+         *
+         * - 정지(BLOCKED) 회원: 안내 팝업만 노출한다.
+         * - 탈퇴(WITHDRAWN) 회원: ID/PW가 이미 일치했다는 것 자체가 본인 인증이므로,
+         *   세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
          */
         @PostMapping("/login")
         public String login(
@@ -248,11 +255,83 @@ public class MemberController {
 
                 return "redirect:" + redirectUrl;
 
+        } catch (MemberBlockedException e) {
+
+                redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
+                return "redirect:/member/login";
+
+        } catch (MemberWithdrawnException e) {
+
+                /*
+                 * DAO의 loginMember 조회는 MEMBER_ID + MEMBER_PW가 일치해야만
+                 * row를 반환하므로, 이 예외가 발생한 시점에는 이미 비밀번호 인증이
+                 * 끝난 상태다. 따라서 복구 시 비밀번호를 다시 묻지 않고
+                 * 세션에 회원번호만 저장해 /member/restore에서 신뢰한다.
+                 */
+                session.setAttribute("restoreMemberNo", e.getMemberNo());
+                session.setAttribute("restoreProvider", "LOCAL");
+
+                redirectAttributes.addFlashAttribute(
+                        "withdrawnMessage",
+                        WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+
+                return "redirect:/member/login";
+
         } catch (IllegalStateException e) {
 
                 redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 return "redirect:/member/login";
         }
+        }
+
+        /**
+         * 탈퇴 회원 복구 처리
+         *
+         * 로그인(/member/login) 또는 카카오 콜백(/member/kakao/callback)에서
+         * 이미 본인 인증이 끝난 뒤에 세션에 심어둔 restoreMemberNo만 신뢰해서 처리한다.
+         * 클라이언트가 임의의 회원번호를 파라미터로 넘겨도 무시되므로,
+         * 세션을 탈취하지 않는 한 다른 사람의 계정을 복구할 수 없다.
+         */
+        @PostMapping("/restore")
+        public String restoreMember(
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Object restoreNoObj = session.getAttribute("restoreMemberNo");
+
+                if (restoreNoObj == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                Long memberNo = ((Number) restoreNoObj).longValue();
+
+                try {
+
+                        memberService.restoreMember(memberNo);
+
+                        session.removeAttribute("restoreMemberNo");
+                        session.removeAttribute("restoreProvider");
+
+                        redirectAttributes.addFlashAttribute(
+                                        "restoredMessage",
+                                        "계정이 복구되었습니다. 다시 로그인해주세요.");
+
+                } catch (IllegalStateException | IllegalArgumentException e) {
+
+                        session.removeAttribute("restoreMemberNo");
+                        session.removeAttribute("restoreProvider");
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+                }
+
+                return "redirect:/member/login";
         }
 
         /**
@@ -541,8 +620,8 @@ public class MemberController {
                 return "redirect:/member/mypage";
         }
 
-        @PostMapping("/delete")
-        public String deleteMember(
+        @PostMapping("/withdraw")
+        public String withdrawMember(
                         HttpSession session) {
 
                 MemberVO loginMember = (MemberVO) session.getAttribute(
@@ -552,7 +631,7 @@ public class MemberController {
                         return "redirect:/member/login";
                 }
 
-                memberService.deleteMember(
+                memberService.withdrawMember(
                                 loginMember.getMemberNo());
 
                 session.invalidate();

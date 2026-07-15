@@ -11,14 +11,19 @@
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/member.css">
-      
+
 </head>
 
 <body>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<div class="auth-container">
+<div class="auth-container"
+     data-message="<c:out value="${message}"/>"
+     data-error-message="<c:out value="${errorMessage}"/>"
+     data-restored-message="<c:out value="${restoredMessage}"/>"
+     data-blocked-message="<c:out value="${blockedMessage}"/>"
+     data-withdrawn-message="<c:out value="${withdrawnMessage}"/>">
 
     <div class="auth-box">
 
@@ -39,12 +44,6 @@
 
             <c:if test="${not empty error}">
                 <div class="error-text">${error}</div>
-            </c:if>
-
-            <c:if test="${not empty errorMessage}">
-                <script>
-                    alert("${errorMessage}");
-                </script>
             </c:if>
 
             <button type="submit" class="btn-primary">로그인</button>
@@ -96,7 +95,35 @@
 
 </div>
 
+<!-- 탈퇴 회원 복구 모달 -->
+<div class="oditji-modal-overlay" id="restoreModal">
+    <div class="oditji-modal-box">
+
+        <h3>계정 복구</h3>
+
+        <p>
+            탈퇴한 계정입니다.<br>
+            아래 입력창에 <strong>복구</strong>라고 입력하시면<br>
+            계정을 다시 활성화할 수 있습니다.
+        </p>
+
+        <form action="${pageContext.request.contextPath}/member/restore" method="post">
+
+            <input type="text" id="restoreConfirmInput" placeholder="복구" autocomplete="off">
+
+            <div class="oditji-modal-btn-row">
+                <button type="button" class="oditji-btn-cancel" onclick="closeRestoreModal()">취소</button>
+                <button type="submit" class="oditji-btn-restore" id="restoreSubmitBtn" disabled>복구하기</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
+
+<script src="${pageContext.request.contextPath}/js/member.js"></script>
 
 </body>
 </html>

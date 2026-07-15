@@ -18,6 +18,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
+import com.project.oditji.member.exception.MemberBlockedException;
+import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.vo.KakaoLoginResultVO;
 import com.project.oditji.member.vo.KakaoTokenVO;
 import com.project.oditji.member.vo.KakaoUserInfoVO;
@@ -75,9 +77,20 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
         // 기존 회원인 경우
         if (existingMember != null) {
 
-            // 정지 또는 탈퇴 회원 로그인 차단
-            if (!"ACTIVE".equals(existingMember.getStatus())) {
-                throw new IllegalStateException("정지 또는 탈퇴한 회원입니다.");
+            /*
+             * 카카오 토큰 발급 + 사용자 정보 조회에 성공했다는 것 자체가
+             * "카카오 계정 소유자 본인"임을 증명하므로,
+             * 정지/탈퇴 여부만 STATUS로 분기한다.
+             */
+            if ("BLOCKED".equals(existingMember.getStatus())) {
+                throw new MemberBlockedException("정지된 계정입니다. 고객센터로 문의해주세요.");
+            }
+
+            if ("WITHDRAWN".equals(existingMember.getStatus())) {
+                throw new MemberWithdrawnException(
+                        "탈퇴한 계정입니다.",
+                        existingMember.getMemberNo(),
+                        existingMember.getWithdrawnAt());
             }
 
             return new KakaoLoginResultVO(false, existingMember);
