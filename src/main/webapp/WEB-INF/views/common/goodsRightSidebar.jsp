@@ -49,9 +49,9 @@
 
                                 <c:when test="${not empty recommend.mainImage}">
 
-                                    <img src="${recommend.mainImage}"
-                                         alt="${recommend.productName}"
-                                         loading="lazy">
+                                    <img src="${pageContext.request.contextPath}${recommend.mainImage}"
+                                                alt="<c:out value='${recommend.productName}'/>"
+                                                loading="lazy">
 
                                 </c:when>
 
