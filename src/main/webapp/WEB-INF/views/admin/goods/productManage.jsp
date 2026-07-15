@@ -38,6 +38,16 @@
 
         <section class="admin-content-box">
 
+            <%--
+                관리자 승인/반려 처리 결과 메시지 출력
+                기존 페이지 레이아웃과 디자인 구조는 유지한다.
+            --%>
+            <c:if test="${not empty message}">
+                <div class="admin-message" style="margin-bottom: 20px;">
+                    <c:out value="${message}"/>
+                </div>
+            </c:if>
+
             <nav class="tab-menu">
                 <a href="?tab=register" class="${currentTab == 'register' ? 'active' : ''}">상품 등록</a>
                 <a href="?tab=update" class="${currentTab == 'update' ? 'active' : ''}">상품 수정</a>
@@ -65,7 +75,12 @@
                                 <div class="thumb">
                                     <c:choose>
                                         <c:when test="${not empty req.mainImage}">
-                                            <img src="${req.mainImage}" alt="${req.productName}">
+                                            <%--
+                                                DB에는 /uploads/product/... 형태의 웹 경로가 저장되므로
+                                                context-path(/oditji)를 앞에 붙여 이미지를 출력한다.
+                                            --%>
+                                            <img src="${pageContext.request.contextPath}${req.mainImage}"
+                                                 alt="<c:out value='${req.productName}'/>">
                                         </c:when>
                                         <c:otherwise>상품</c:otherwise>
                                     </c:choose>
@@ -73,12 +88,12 @@
 
                                 <div class="item-info">
 
-                                    <h3>${req.productName}</h3>
+                                    <h3><c:out value="${req.productName}"/></h3>
 
                                     <div class="meta">
-                                        <span>사업자 ${req.businessName}</span>
-                                        <span>관련 콘텐츠 ${req.contentTitle}</span>
-                                        <span>가격 ${req.price}원</span>
+                                        <span>사업자 <c:out value="${req.businessName}"/></span>
+                                        <span>관련 콘텐츠 <c:out value="${req.contentTitle}"/></span>
+                                        <span>가격 <c:out value="${req.price}"/>원</span>
 
                                         <c:choose>
                                             <c:when test="${req.status == 'WAITING'}">
@@ -87,6 +102,10 @@
                                             <c:when test="${req.status == 'APPROVED'}">
                                                 <span class="status-ok">승인</span>
                                             </c:when>
+                                            <%-- 상품 삭제 요청 상태 표시 추가 --%>
+                                            <c:when test="${req.status == 'DELETE_REQUESTED'}">
+                                                <span class="status-reject">삭제 요청</span>
+                                            </c:when>
                                             <c:otherwise>
                                                 <span class="status-reject">반려</span>
                                             </c:otherwise>
@@ -94,7 +113,7 @@
                                     </div>
 
                                     <p style="margin-top:10px; color:var(--adm-text-sub);">
-                                        ${req.description}
+                                        <c:out value="${req.description}"/>
                                     </p>
 
                                 </div>
@@ -102,13 +121,12 @@
                                 <div class="item-actions">
 
                                     <button type="button" class="btn btn-dark"
-                                            onclick="openProductRequestModal(
-                                                '${req.productNo}',
-                                                '${req.businessName}',
-                                                '${req.productName}',
-                                                '${req.price}',
-                                                '${req.description}'
-                                            )">
+                                            data-product-no="${req.productNo}"
+                                            data-business-name="${req.businessName}"
+                                            data-product-name="${req.productName}"
+                                            data-price="${req.price}"
+                                            data-description="${req.description}"
+                                            onclick="openProductRequestModal(this)">
                                         상세보기
                                     </button>
 
@@ -181,9 +199,23 @@
             <input type="hidden" name="tab" value="${currentTab}">
 
             <div class="modal-footer">
-                <button type="submit" class="btn btn-success">승인</button>
-                <button type="submit" formaction="${pageContext.request.contextPath}/admin/product/reject"
-                        class="btn btn-danger">반려</button>
+                <%--
+                    삭제 탭의 승인 버튼은 PRODUCT를 실제로 최종 삭제한다.
+                    다른 탭에서는 기존과 동일하게 상품 요청을 승인한다.
+                --%>
+                <button type="submit"
+                        class="btn btn-success"
+                        onclick="return confirmProductApprove();">
+                    승인
+                </button>
+
+                <button type="submit"
+                        formaction="${pageContext.request.contextPath}/admin/product/reject"
+                        class="btn btn-danger"
+                        onclick="return confirmProductReject();">
+                    반려
+                </button>
+
                 <button type="button" class="btn btn-outline" onclick="closeModal('productRequestModal')">닫기</button>
             </div>
 
@@ -200,13 +232,37 @@ function closeModal(id) {
     document.getElementById(id).classList.remove('open');
 }
 
-function openProductRequestModal(productNo, businessName, productName, price, description) {
-    document.getElementById('reqProductNo').value = productNo;
-    document.getElementById('reqProductBusinessName').textContent = businessName;
-    document.getElementById('reqProductName').textContent = productName;
-    document.getElementById('reqProductPrice').textContent = price + '원';
-    document.getElementById('reqProductDescription').value = description;
+/*
+ * data-* 속성을 사용하여 상품명이나 설명에 따옴표가 포함되어도
+ * JavaScript 함수 호출 문자열이 깨지지 않도록 수정한다.
+ */
+function openProductRequestModal(button) {
+    document.getElementById('reqProductNo').value = button.dataset.productNo;
+    document.getElementById('reqProductBusinessName').textContent = button.dataset.businessName || '';
+    document.getElementById('reqProductName').textContent = button.dataset.productName || '';
+    document.getElementById('reqProductPrice').textContent = (button.dataset.price || '0') + '원';
+    document.getElementById('reqProductDescription').value = button.dataset.description || '';
     document.getElementById('productRequestModal').classList.add('open');
+}
+
+function confirmProductApprove() {
+    const currentTab = '${currentTab}';
+
+    if (currentTab === 'delete') {
+        return confirm('삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?');
+    }
+
+    return confirm('이 상품 요청을 승인하시겠습니까?');
+}
+
+function confirmProductReject() {
+    const currentTab = '${currentTab}';
+
+    if (currentTab === 'delete') {
+        return confirm('이 상품의 삭제 요청을 반려하시겠습니까?');
+    }
+
+    return confirm('이 상품 요청을 반려하시겠습니까?');
 }
 </script>
 
