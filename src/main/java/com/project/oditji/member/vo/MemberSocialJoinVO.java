@@ -13,6 +13,7 @@ public class MemberSocialJoinVO {
     private String profileImage;
     private String role;
     private String status;
+    private Date withdrawnAt;
 
     private int socialNo;
     private String provider;
@@ -92,6 +93,18 @@ public class MemberSocialJoinVO {
     
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    /**
+     * 탈퇴 시각.
+     * STATUS가 WITHDRAWN일 때 복구 가능 기한(7일) 계산에 사용된다.
+     */
+    public Date getWithdrawnAt() {
+        return withdrawnAt;
+    }
+
+    public void setWithdrawnAt(Date withdrawnAt) {
+        this.withdrawnAt = withdrawnAt;
     }
 
     public int getSocialNo() {

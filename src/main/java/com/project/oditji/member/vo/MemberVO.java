@@ -17,6 +17,7 @@ public class MemberVO {
     private String adultVerified;
     private Date createdAt;
     private Date updatedAt;
+    private Date withdrawnAt;
 
     public Long getMemberNo() {
         return memberNo;
@@ -120,5 +121,13 @@ public class MemberVO {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Date getWithdrawnAt() {
+        return withdrawnAt;
+    }
+
+    public void setWithdrawnAt(Date withdrawnAt) {
+        this.withdrawnAt = withdrawnAt;
     }
 }

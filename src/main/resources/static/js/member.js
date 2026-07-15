@@ -569,3 +569,77 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+/* =========================================================
+   LOGIN PAGE - 정지/탈퇴 안내 및 복구 모달
+========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  initLoginPageAlerts();
+});
+
+function initLoginPageAlerts() {
+  const authContainer = document.querySelector(".auth-container");
+
+  if (!authContainer) {
+    return;
+  }
+
+  const message = authContainer.dataset.message;
+  const errorMessage = authContainer.dataset.errorMessage;
+  const restoredMessage = authContainer.dataset.restoredMessage;
+  const blockedMessage = authContainer.dataset.blockedMessage;
+  const withdrawnMessage = authContainer.dataset.withdrawnMessage;
+
+  // 우선순위대로 하나씩만 알림 (서로 겹칠 일은 없지만 방어적으로 순서 지정)
+  if (message) {
+    alert(message);
+  } else if (errorMessage) {
+    alert(errorMessage);
+  } else if (restoredMessage) {
+    alert(restoredMessage);
+  } else if (blockedMessage) {
+    alert(blockedMessage);
+  } else if (withdrawnMessage) {
+    openRestoreConfirm(withdrawnMessage);
+  }
+
+  initRestoreModal();
+}
+
+function openRestoreConfirm(withdrawnMessage) {
+  const restoreModal = document.getElementById("restoreModal");
+
+  if (!restoreModal) {
+    return;
+  }
+
+  const wantsRestore = confirm(withdrawnMessage + "\n\n계정을 복구하시겠습니까?");
+
+  if (wantsRestore) {
+    restoreModal.classList.add("active");
+  }
+}
+
+function initRestoreModal() {
+  const input = document.getElementById("restoreConfirmInput");
+  const submitBtn = document.getElementById("restoreSubmitBtn");
+
+  if (!input || !submitBtn) {
+    return;
+  }
+
+  input.addEventListener("input", () => {
+    const isMatch = input.value.trim() === "복구";
+
+    submitBtn.disabled = !isMatch;
+    submitBtn.classList.toggle("enabled", isMatch);
+  });
+}
+
+function closeRestoreModal() {
+  const restoreModal = document.getElementById("restoreModal");
+
+  if (restoreModal) {
+    restoreModal.classList.remove("active");
+  }
+}

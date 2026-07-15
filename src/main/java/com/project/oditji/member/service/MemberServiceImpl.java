@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.member.dao.MemberDAO;
+import com.project.oditji.member.exception.MemberBlockedException;
+import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.vo.MemberVO;
 
 @Service
@@ -117,8 +119,19 @@ public class MemberServiceImpl implements MemberService {
             return null;
         }
 
-        if (!"ACTIVE".equals(loginMember.getStatus())) {
-            throw new IllegalStateException("정지 또는 탈퇴한 회원입니다.");
+        /*
+         * 이 시점에는 이미 MEMBER_ID + MEMBER_PW가 일치하는 회원이 조회된 상태이므로,
+         * 정지/탈퇴 여부만 STATUS로 분기한다.
+         */
+        if ("BLOCKED".equals(loginMember.getStatus())) {
+            throw new MemberBlockedException("정지된 계정입니다. 고객센터로 문의해주세요.");
+        }
+
+        if ("WITHDRAWN".equals(loginMember.getStatus())) {
+            throw new MemberWithdrawnException(
+                    "탈퇴한 계정입니다.",
+                    loginMember.getMemberNo(),
+                    loginMember.getWithdrawnAt());
         }
 
         return loginMember;
@@ -160,16 +173,26 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void deleteMember(Long memberNo) {
+    public void withdrawMember(Long memberNo) {
 
-        // 1. MEMBER_PLATFORM 삭제
-        memberDAO.deleteMemberPlatform(memberNo);
+        // 즉시 삭제하지 않고 상태만 WITHDRAWN으로 변경한다.
+        // 실제 데이터 삭제는 MemberDeleteScheduler가 7일 경과 후 처리한다.
+        memberDAO.withdrawMember(memberNo);
+    }
 
-        // 2. MEMBER_SOCIAL 삭제
-        memberDAO.deleteMemberSocial(memberNo);
+    @Override
+    @Transactional
+    public void restoreMember(Long memberNo) {
 
-        // 3. MEMBER 삭제
-        memberDAO.deleteMember(memberNo);
+        if (memberNo == null) {
+            throw new IllegalArgumentException("잘못된 요청입니다.");
+        }
+
+        int updated = memberDAO.restoreMember(memberNo);
+
+        if (updated == 0) {
+            throw new IllegalStateException("복구 가능한 기간이 지났거나 이미 처리된 계정입니다.");
+        }
     }
 
     @Override
