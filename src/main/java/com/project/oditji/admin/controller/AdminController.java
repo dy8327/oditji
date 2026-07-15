@@ -50,8 +50,18 @@ public class AdminController {
     }
 
     @PostMapping("/member/withdraw")
-    public String memberWithdraw(@RequestParam Long memberNo) {
-        adminService.withdrawMember(memberNo);
+    public String memberWithdraw(
+            @RequestParam Long memberNo,
+            RedirectAttributes ra) {
+
+        // 관리자가 탈퇴 처리하면 대기 상태 없이 즉시 DB에서 완전히 삭제한다.
+        try {
+            adminService.deleteMember(memberNo);
+            ra.addFlashAttribute("message", "회원 정보가 완전히 삭제되었습니다.");
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("message", e.getMessage());
+        }
+
         return "redirect:/admin/member/list";
     }
 
@@ -61,28 +71,13 @@ public class AdminController {
         return "redirect:/admin/member/list";
     }
 
-    @PostMapping("/member/delete")
-    public String deleteMember(
-            @RequestParam("memberNo") Long memberNo,
-            RedirectAttributes ra) {
-
-        try {
-            adminService.deleteMember(memberNo);
-            ra.addFlashAttribute("message", "회원 정보가 삭제되었습니다.");
-        } catch (IllegalStateException e) {
-            ra.addFlashAttribute("message", e.getMessage());
-        }
-
-        return "redirect:/admin/member/list";
-    }
-
     // ===================== 2. 리뷰 관리 (콘텐츠 리뷰 / 상품 리뷰) =====================
 
     // 2-1. 콘텐츠 리뷰 관리 (전체 리뷰, 신고 내역)
     @GetMapping("/review/list")
     public String reviewList(Model model,
-                              @RequestParam(required = false) String tab,
-                              @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "review");
         model.addAttribute("reviewList", adminService.getContentReviewList(tab, keyword));
         return "admin/review/reviewManage";
@@ -90,7 +85,7 @@ public class AdminController {
 
     @PostMapping("/review/delete")
     public String reviewDelete(@RequestParam Long reviewNo,
-                                @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab) {
         adminService.deleteContentReview(reviewNo);
         return "redirect:/admin/review/list?tab=" + tab;
     }
@@ -98,8 +93,8 @@ public class AdminController {
     // 2-2. 상품 리뷰 관리 (전체 리뷰, 신고 내역)
     @GetMapping("/productReview/list")
     public String productReviewList(Model model,
-                                     @RequestParam(required = false) String tab,
-                                     @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "productReview");
         model.addAttribute("productReviewList", adminService.getProductReviewList(tab, keyword));
         return "admin/review/productReviewManage";
@@ -107,7 +102,7 @@ public class AdminController {
 
     @PostMapping("/productReview/delete")
     public String productReviewDelete(@RequestParam Long reviewNo,
-                                    @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab) {
         adminService.deleteProductReview(reviewNo);
         return "redirect:/admin/productReview/list?tab=" + tab;
     }
@@ -116,8 +111,8 @@ public class AdminController {
 
     @GetMapping("/event/list")
     public String eventList(Model model,
-                             @RequestParam(required = false) String tab,
-                             @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "event");
         model.addAttribute("eventRequestList", adminService.getEventList(tab, keyword));
         return "admin/event/eventManage";
@@ -125,14 +120,14 @@ public class AdminController {
 
     @PostMapping("/event/approve")
     public String eventApprove(@RequestParam Long requestNo,
-                                @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab) {
         adminService.approveEvent(requestNo);
         return "redirect:/admin/event/list?tab=" + tab;
     }
 
     @PostMapping("/event/reject")
     public String eventReject(@RequestParam Long requestNo,
-                               @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab) {
         adminService.rejectEvent(requestNo);
         return "redirect:/admin/event/list?tab=" + tab;
     }
@@ -141,8 +136,8 @@ public class AdminController {
 
     @GetMapping("/product/list")
     public String productList(Model model,
-                            @RequestParam(required = false) String tab,
-                            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
 
         model.addAttribute("activeMenu", "product");
         model.addAttribute("currentTab", tab);
@@ -152,16 +147,56 @@ public class AdminController {
     }
 
     @PostMapping("/product/approve")
-    public String productApprove(@RequestParam Long productNo,
-                                @RequestParam(required = false) String tab) {
-        adminService.approveProduct(productNo);
+    public String productApprove(
+            @RequestParam Long productNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.approveProduct(productNo);
+
+            // 삭제 요청 탭에서 승인한 경우에는 실제 DB 삭제가 완료되었다는 메시지를 표시한다.
+            if ("delete".equals(tab)) {
+                redirectAttributes.addFlashAttribute(
+                        "message",
+                        "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
+            } else {
+                redirectAttributes.addFlashAttribute(
+                        "message",
+                        "상품 요청을 승인했습니다.");
+            }
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
         return "redirect:/admin/product/list?tab=" + tab;
     }
 
     @PostMapping("/product/reject")
-    public String productReject(@RequestParam Long productNo,
-                                @RequestParam(required = false) String tab) {
-        adminService.rejectProduct(productNo);
+    public String productReject(
+            @RequestParam Long productNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.rejectProduct(productNo);
+
+            // 삭제 요청 반려 시에는 상품을 기존 승인 상태로 복구한다.
+            if ("delete".equals(tab)) {
+                redirectAttributes.addFlashAttribute(
+                        "message",
+                        "상품 삭제 요청을 반려했습니다.");
+            } else {
+                redirectAttributes.addFlashAttribute(
+                        "message",
+                        "상품 요청을 반려했습니다.");
+            }
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
         return "redirect:/admin/product/list?tab=" + tab;
     }
 
@@ -169,8 +204,8 @@ public class AdminController {
 
     @GetMapping("/order/list")
     public String orderList(Model model,
-                             @RequestParam(required = false) String tab,
-                             @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "order");
 
         if ("refund".equals(tab)) {
@@ -210,8 +245,8 @@ public class AdminController {
 
     @GetMapping("/business/list")
     public String businessList(Model model,
-                                @RequestParam(required = false) String tab,
-                                @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "business");
 
         if ("approval".equals(tab)) {
@@ -283,14 +318,14 @@ public class AdminController {
 
     @PostMapping("/content/update")
     public String contentUpdate(@RequestParam Long contentNo,
-                                 @RequestParam(required = false) String title,
-                                 @RequestParam(required = false) String contentType,
-                                 @RequestParam(required = false) String genreText,
-                                 @RequestParam(required = false) String castNames,
-                                 @RequestParam(required = false) String overview,
-                                 @RequestParam(required = false) Integer runtime,
-                                 @RequestParam(required = false) String releaseDate,
-                                 @RequestParam(required = false) List<Long> platformNos) {
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String contentType,
+            @RequestParam(required = false) String genreText,
+            @RequestParam(required = false) String castNames,
+            @RequestParam(required = false) String overview,
+            @RequestParam(required = false) Integer runtime,
+            @RequestParam(required = false) String releaseDate,
+            @RequestParam(required = false) List<Long> platformNos) {
 
         ContentManageVO content = new ContentManageVO();
         content.setContentNo(contentNo);
@@ -309,8 +344,8 @@ public class AdminController {
 
     @PostMapping("/content/platform/register")
     public String contentPlatformRegister(@RequestParam String platformName,
-                                           @RequestParam(required = false) String siteUrl,
-                                           @RequestParam(required = false) String isActive) {
+            @RequestParam(required = false) String siteUrl,
+            @RequestParam(required = false) String isActive) {
 
         PlatformVO platform = new PlatformVO();
         platform.setPlatformName(platformName);
@@ -325,8 +360,8 @@ public class AdminController {
 
     @PostMapping("/content/platform/update")
     public String contentPlatformUpdate(@RequestParam Long platformNo,
-                                         @RequestParam(required = false) String siteUrl,
-                                         @RequestParam(required = false) String isActive) {
+            @RequestParam(required = false) String siteUrl,
+            @RequestParam(required = false) String isActive) {
 
         PlatformVO platform = new PlatformVO();
         platform.setPlatformNo(platformNo);
