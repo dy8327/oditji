@@ -81,4 +81,17 @@ public interface BusinessService {
         void updateProduct(
                         GoodsManageVO goodsManageVO,
                         MultipartFile productImage);
+
+        /*
+         * =========================================================
+         * 상품 삭제 요청
+         *
+         * 상품을 즉시 삭제하지 않고
+         * PRODUCT.STATUS를 DELETE_REQUESTED로 변경한다.
+         * =========================================================
+         */
+        void requestProductDelete(
+                        long productNo,
+                        long businessNo,
+                        String reason);
 }
