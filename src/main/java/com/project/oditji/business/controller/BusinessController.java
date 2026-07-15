@@ -1,9 +1,9 @@
 package com.project.oditji.business.controller;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.time.LocalDate;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -735,6 +735,100 @@ public class BusinessController {
                                         e.getMessage());
 
                         return "redirect:/business/product/list";
+                }
+        }
+
+        /*
+         * =========================================================
+         * 상품 삭제 요청 처리
+         *
+         * productDelete.jsp에서 전송되는
+         * POST /business/product/delete 요청을 처리한다.
+         *
+         * 실제 상품 데이터를 바로 삭제하지 않고
+         * PRODUCT.STATUS를 DELETE_REQUESTED로 변경한다.
+         * =========================================================
+         */
+        @PostMapping("/product/delete")
+        public String productDeleteProcess(
+                        @RequestParam("productNo") long productNo,
+
+                        @RequestParam("reason") String reason,
+
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                try {
+
+                        businessService.requestProductDelete(
+                                        productNo,
+                                        business.getBusinessNo(),
+                                        reason);
+
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "상품 삭제 요청이 완료되었습니다. "
+                                                        + "관리자 승인 후 최종 처리됩니다.");
+
+                        return "redirect:/business/product/list";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/product/delete"
+                                        + "?productNo="
+                                        + productNo;
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "상품 삭제 요청 처리 중 오류가 발생했습니다.");
+
+                        return "redirect:/business/product/delete"
+                                        + "?productNo="
+                                        + productNo;
                 }
         }
 
