@@ -379,4 +379,23 @@
 
     </update>
 
+
+    <!-- =====================================================
+         상품 삭제 요청
+
+         상품 데이터를 실제 삭제하지 않고
+         관리자 확인 전 상태값만 DELETE_REQUESTED로 변경한다.
+
+         이미 삭제 요청된 상품은 다시 변경하지 않는다.
+    ====================================================== -->
+    <update id="updateProductDeleteRequest">
+
+        UPDATE PRODUCT
+        SET STATUS = 'DELETE_REQUESTED'
+        WHERE PRODUCT_NO = #{productNo}
+          AND BUSINESS_NO = #{businessNo}
+          AND STATUS != 'DELETE_REQUESTED'
+
+    </update>
+
 </mapper>

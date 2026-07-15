@@ -108,4 +108,16 @@ public interface BusinessDAO {
          */
         int updateProductMainImage(
                         GoodsManageVO goodsManageVO);
+
+        /*
+         * =========================================================
+         * 상품 삭제 요청
+         *
+         * 실제 상품 행은 삭제하지 않고
+         * STATUS를 DELETE_REQUESTED로 변경한다.
+         * =========================================================
+         */
+        int updateProductDeleteRequest(
+                        @Param("productNo") long productNo,
+                        @Param("businessNo") long businessNo);
 }
