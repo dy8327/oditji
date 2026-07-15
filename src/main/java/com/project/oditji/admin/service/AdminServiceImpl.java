@@ -57,10 +57,47 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public void deleteMember(Long memberNo) {
 
-        adminDAO.deleteMember(memberNo);
+        // adminDeleteMember 쿼리 자체가 STATUS='WITHDRAWN' 조건이라,
+        // 탈퇴 처리가 안 된 회원은 삭제문이 0건 처리되어 아무 반응 없이 끝나버린다.
+        // 그래서 미리 상태를 확인해 명확한 안내 메시지를 던진다.
+        String status = adminDAO.selectMemberStatusByNo(memberNo);
+        if (!"WITHDRAWN".equals(status)) {
+            throw new IllegalStateException(
+                    "탈퇴 처리된 회원만 완전삭제할 수 있습니다. 먼저 탈퇴 처리를 진행해주세요.");
+        }
 
+        // 사업자로 등록된 회원은 PRODUCT/ORDER_ITEM/SETTLEMENT 등을 통해
+        // 다른 회원의 주문·리뷰 데이터와 얽혀 있으므로 완전삭제를 막고
+        // 탈퇴 처리(WITHDRAWN)를 이용하도록 유도한다.
+        if (adminDAO.countBusinessByMemberNo(memberNo) > 0) {
+            throw new IllegalStateException(
+                    "사업자로 등록된 회원은 완전삭제할 수 없습니다. 먼저 탈퇴 처리를 이용해주세요.");
+        }
+
+        // FK 제약조건(ORA-02292) 위반을 막기 위해 자식 테이블 -> 부모 테이블 순서로 삭제한다.
+        adminDAO.deleteReviewReportByMemberNo(memberNo);
+        adminDAO.deleteSettlementByMemberNo(memberNo);
+        adminDAO.deleteProductReviewByMemberNo(memberNo);
+        adminDAO.deleteCancelRequestByMemberNo(memberNo);
+        adminDAO.deleteDeliveryByMemberNo(memberNo);
+        adminDAO.deleteOrderItemByMemberNo(memberNo);
+        adminDAO.deleteOrdersByMemberNo(memberNo);
+        adminDAO.deleteCartItemByMemberNo(memberNo);
+        adminDAO.deleteCartByMemberNo(memberNo);
+        adminDAO.deleteProductWishByMemberNo(memberNo);
+        adminDAO.deleteFavoriteByMemberNo(memberNo);
+        adminDAO.deleteReviewByMemberNo(memberNo);
+        adminDAO.deleteProductClickLogByMemberNo(memberNo);
+        adminDAO.deleteAccessLogByMemberNo(memberNo);
+        adminDAO.deleteAdminLogByAdminNo(memberNo);
+        adminDAO.deleteMemberPlatformByMemberNo(memberNo);
+        adminDAO.deleteMemberSocialByMemberNo(memberNo);
+        // IDENTITY_VERIFY_LOG는 ON DELETE SET NULL 이라 별도 처리 불필요
+
+        adminDAO.deleteMember(memberNo);
     }
 
     // ===================== 콘텐츠 리뷰 관리 =====================

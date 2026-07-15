@@ -62,6 +62,99 @@ public class AdminDAO {
         return sqlSession.update("restoreMember", memberNo);
     }
 
+    /**
+     * 완전삭제 가능 여부 체크용 (선행 조건: 탈퇴 처리(WITHDRAWN) 상태인지 확인).
+     * adminDeleteMember 쿼리 자체도 STATUS='WITHDRAWN' 조건이 걸려 있어,
+     * 이 상태가 아니면 삭제문이 0건 처리되어 "삭제가 안 먹는" 것처럼 보인다.
+     * 그래서 서비스 단에서 미리 체크해 명확한 안내 메시지를 준다.
+     */
+    public String selectMemberStatusByNo(Long memberNo) {
+        return sqlSession.selectOne("selectMemberStatusByNo", memberNo);
+    }
+
+    /**
+     * 완전삭제 가능 여부 체크용.
+     * BUSINESS로 등록된 회원은 PRODUCT/ORDER_ITEM/SETTLEMENT 등
+     * 다른 회원의 데이터와 얽혀 있어 하드 삭제 시 정합성이 깨질 수 있으므로
+     * 이 값이 0보다 크면 삭제를 막고 탈퇴 처리로 유도한다.
+     */
+    public int countBusinessByMemberNo(Long memberNo) {
+        return sqlSession.selectOne("countBusinessByMemberNo", memberNo);
+    }
+
+    // ---- 완전삭제 전, FK 제약조건 위반(ORA-02292) 방지를 위한 자식 테이블 선삭제 ----
+    // 반드시 자식(리프) 테이블부터 부모 방향으로 삭제해야 한다.
+
+    public int deleteReviewReportByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteReviewReportByMember", memberNo);
+    }
+
+    public int deleteSettlementByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteSettlementByMember", memberNo);
+    }
+
+    public int deleteProductReviewByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteProductReviewByMember", memberNo);
+    }
+
+    public int deleteCancelRequestByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteCancelRequestByMember", memberNo);
+    }
+
+    public int deleteDeliveryByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteDeliveryByMember", memberNo);
+    }
+
+    public int deleteOrderItemByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteOrderItemByMember", memberNo);
+    }
+
+    public int deleteOrdersByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteOrdersByMember", memberNo);
+    }
+
+    public int deleteCartItemByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteCartItemByMember", memberNo);
+    }
+
+    public int deleteCartByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteCartByMember", memberNo);
+    }
+
+    public int deleteProductWishByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteProductWishByMember", memberNo);
+    }
+
+    public int deleteFavoriteByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteFavoriteByMember", memberNo);
+    }
+
+    public int deleteReviewByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteReviewByMember", memberNo);
+    }
+
+    public int deleteProductClickLogByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteProductClickLogByMember", memberNo);
+    }
+
+    public int deleteAccessLogByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteAccessLogByMember", memberNo);
+    }
+
+    public int deleteAdminLogByAdminNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteAdminLogByAdmin", memberNo);
+    }
+
+    public int deleteMemberPlatformByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteMemberPlatformByMember", memberNo);
+    }
+
+    public int deleteMemberSocialByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteMemberSocialByMember", memberNo);
+    }
+
+    // IDENTITY_VERIFY_LOG.MEMBER_NO는 FK가 ON DELETE SET NULL이라 별도 삭제가 필요 없다.
+
     public int deleteMember(Long memberNo) {
         return sqlSession.delete("adminDeleteMember", memberNo);
     }

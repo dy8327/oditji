@@ -57,7 +57,7 @@
 
                 <a href="${pageContext.request.contextPath}/admin/business/list?tab=approval"
                    class="stat-card">
-                    <span>사업자 입점 승인 대기</span>
+                    <span>사업자 승인 대기</span>
                     <strong>${adminMain.businessRequestCount}건</strong>
                 </a>
 
