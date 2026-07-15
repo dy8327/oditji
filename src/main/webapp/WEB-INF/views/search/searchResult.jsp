@@ -354,7 +354,7 @@
 
                                                     <c:when test="${not empty goods.mainImage}">
 
-                                                        <img src="${goods.mainImage}"
+                                                        <img src="${pageContext.request.contextPath}${goods.mainImage}"
                                                              alt="<c:out value='${goods.productName}'/>"
                                                              loading="lazy">
 
@@ -1037,7 +1037,7 @@
 
                                                 <c:when test="${not empty goods.mainImage}">
 
-                                                    <img src="${goods.mainImage}"
+                                                    <img src="${pageContext.request.contextPath}${goods.mainImage}"
                                                          alt="<c:out value='${goods.productName}'/>"
                                                          loading="lazy">
 

@@ -55,33 +55,21 @@
     </select>
 
     <update id="updateMemberStatus">
+
         UPDATE MEMBER
+
         SET STATUS = #{status},
-            UPDATED_AT = SYSDATE
+            UPDATED_AT = SYSDATE,
+            WITHDRAWN_AT =
+            CASE
+                WHEN #{status} = 'WITHDRAWN'
+                THEN SYSDATE
+                ELSE NULL
+            END
+
         WHERE MEMBER_NO = #{memberNo}
+
     </update>
-
-    <!-- 완전삭제 전, 현재 상태(WITHDRAWN 여부) 확인용 -->
-    <select id="selectMemberStatusByNo" parameterType="long" resultType="string">
-        SELECT STATUS
-        FROM MEMBER
-        WHERE MEMBER_NO = #{memberNo}
-    </select>
-
-    <!-- 완전삭제 전, 사업자(BUSINESS) 등록 여부 확인용.
-         사업자는 PRODUCT/ORDER_ITEM/SETTLEMENT 등으로 다른 회원 데이터와 얽혀 있어
-         하드 삭제 시 정합성이 깨질 수 있으므로 1건 이상이면 완전삭제를 막는다. -->
-    <select id="countBusinessByMemberNo" parameterType="long" resultType="int">
-        SELECT COUNT(*)
-        FROM BUSINESS
-        WHERE MEMBER_NO = #{memberNo}
-    </select>
-
-    <!--
-        완전삭제(하드 딜리트) 시, MEMBER_NO를 FK로 참조하는 자식 테이블을
-        리프 -> 루트 순서로 먼저 정리해야 ORA-02292(무결성 제약조건 위반)가 나지 않는다.
-        AdminServiceImpl.deleteMember()에서 아래 순서대로 호출한 뒤 마지막에 adminDeleteMember를 실행한다.
-    -->
 
     <!-- 1. REVIEW_REPORT: 회원이 신고자/처리 관리자이거나, 회원이 쓴 리뷰가 신고당한 경우 -->
     <delete id="adminDeleteReviewReportByMember" parameterType="long">
@@ -211,15 +199,22 @@
         MEMBER 삭제 시 자동으로 NULL 처리되므로 별도 삭제문이 필요 없다.
     -->
 
-    <!-- 18. 최종 MEMBER 삭제 (탈퇴 처리된 회원만 완전삭제 가능) -->
-    <delete id="adminDeleteMember"
-            parameterType="long">
-
+    <!-- 18. MEMBER: 최종 회원 하드 삭제 (관리자 즉시 탈퇴처리 / 자동 삭제 스케줄러 공용) -->
+    <delete id="adminDeleteMember" parameterType="long">
         DELETE FROM MEMBER
         WHERE MEMBER_NO = #{memberNo}
-        AND STATUS = 'WITHDRAWN'
-
     </delete>
+
+    <!-- 탈퇴 후 7일 경과 회원 조회 -->
+    <select id="selectExpiredWithdrawMembers"
+            resultType="long">
+
+        SELECT MEMBER_NO
+        FROM MEMBER
+        WHERE STATUS = 'WITHDRAWN'
+        AND WITHDRAWN_AT &lt;= SYSDATE - 7
+
+    </select>
 
     <!-- ===================== 2-1. 콘텐츠 리뷰 관리 (REVIEW) ===================== -->
 
@@ -399,6 +394,21 @@
         JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
         LEFT JOIN PRODUCT_IMAGE PI ON PI.PRODUCT_NO = P.PRODUCT_NO AND PI.IS_MAIN = 'Y'
         WHERE 1 = 1
+
+        <!--
+            PRODUCT 테이블에는 등록 요청과 수정 요청을 구분하는 별도 컬럼이 없다.
+            따라서 register/update 탭은 WAITING 상태를 동일하게 조회하고,
+            delete 탭은 DELETE_REQUESTED 상태만 조회한다.
+        -->
+        <choose>
+            <when test="tab == 'delete'">
+                AND P.STATUS = 'DELETE_REQUESTED'
+            </when>
+            <otherwise>
+                AND P.STATUS = 'WAITING'
+            </otherwise>
+        </choose>
+
         <if test="keyword != null and keyword != ''">
             AND (
                 B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
@@ -413,6 +423,101 @@
         SET STATUS = #{status}
         WHERE PRODUCT_NO = #{productNo}
     </update>
+
+    <!-- 상품 승인/반려 처리 전 현재 상태 조회 -->
+    <select id="selectProductStatusByNo"
+            parameterType="long"
+            resultType="string">
+        SELECT STATUS
+        FROM PRODUCT
+        WHERE PRODUCT_NO = #{productNo}
+    </select>
+
+    <!-- 주문 이력이 있는 상품은 주문/매출 기록 보존을 위해 완전삭제하지 않는다. -->
+    <select id="countOrderItemByProductNo"
+            parameterType="long"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM ORDER_ITEM
+        WHERE PRODUCT_NO = #{productNo}
+    </select>
+
+    <!-- DB 삭제 이후 실제 업로드 파일 정리를 위한 상품 이미지 경로 조회 -->
+    <select id="selectProductImagePathList"
+            parameterType="long"
+            resultType="string">
+        SELECT IMAGE_PATH
+        FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+          AND IMAGE_PATH IS NOT NULL
+        ORDER BY IMAGE_NO
+    </select>
+
+    <!--
+        상품 완전삭제 시 PRODUCT_NO를 참조하는 자식 테이블을
+        리프 -> 루트 순서로 먼저 정리해야 ORA-02292 오류가 발생하지 않는다.
+    -->
+
+    <!-- 1. 상품 리뷰에 연결된 신고 내역 삭제 -->
+    <delete id="adminDeleteReviewReportByProduct"
+            parameterType="long">
+        DELETE FROM REVIEW_REPORT
+        WHERE PRODUCT_REVIEW_NO IN (
+            SELECT REVIEW_NO
+            FROM PRODUCT_REVIEW
+            WHERE PRODUCT_NO = #{productNo}
+        )
+    </delete>
+
+    <!-- 2. 상품 리뷰 삭제 -->
+    <delete id="adminDeleteProductReviewByProduct"
+            parameterType="long">
+        DELETE FROM PRODUCT_REVIEW
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 3. 장바구니 상품 삭제 -->
+    <delete id="adminDeleteCartItemByProduct"
+            parameterType="long">
+        DELETE FROM CART_ITEM
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 4. 상품 찜 삭제 -->
+    <delete id="adminDeleteProductWishByProduct"
+            parameterType="long">
+        DELETE FROM PRODUCT_WISH
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 5. 상품 클릭 로그 삭제 -->
+    <delete id="adminDeleteProductClickLogByProduct"
+            parameterType="long">
+        DELETE FROM PRODUCT_CLICK_LOG
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 6. 이벤트-상품 연결 데이터 삭제 -->
+    <delete id="adminDeleteEventProductByProduct"
+            parameterType="long">
+        DELETE FROM EVENT_PRODUCT
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 7. 상품 이미지 데이터 삭제 -->
+    <delete id="adminDeleteProductImageByProduct"
+            parameterType="long">
+        DELETE FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+    </delete>
+
+    <!-- 8. DELETE_REQUESTED 상태인 상품만 최종 삭제 -->
+    <delete id="adminDeleteProduct"
+            parameterType="long">
+        DELETE FROM PRODUCT
+        WHERE PRODUCT_NO = #{productNo}
+          AND STATUS = 'DELETE_REQUESTED'
+    </delete>
 
     <!-- ===================== 5. 주문 관리 (ORDER_ITEM / DELIVERY) ===================== -->
 
