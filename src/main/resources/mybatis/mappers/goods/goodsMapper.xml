@@ -6,30 +6,66 @@
 
 <mapper namespace="com.project.oditji.goods.dao.GoodsDAO">
 
+    <!-- =====================================================
+         상품 조회 결과 매핑
+    ====================================================== -->
     <resultMap id="goodsResultMap"
                type="com.project.oditji.goods.vo.GoodsVO">
 
-        <id property="productNo" column="PRODUCT_NO"/>
-        <result property="businessNo" column="BUSINESS_NO"/>
-        <result property="contentNo" column="CONTENT_NO"/>
-        <result property="actorNo" column="ACTOR_NO"/>
-        <result property="productName" column="PRODUCT_NAME"/>
-        <result property="productType" column="PRODUCT_TYPE"/>
-        <result property="price" column="PRICE"/>
-        <result property="discountRate" column="DISCOUNT_RATE"/>
-        <result property="stock" column="STOCK"/>
-        <result property="description" column="DESCRIPTION"/>
-        <result property="status" column="STATUS"/>
-        <result property="businessName" column="BUSINESS_NAME"/>
-        <result property="mainImage" column="MAIN_IMAGE"/>
+        <id property="productNo"
+            column="PRODUCT_NO"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="contentNo"
+                column="CONTENT_NO"/>
+
+        <result property="actorNo"
+                column="ACTOR_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="description"
+                column="DESCRIPTION"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
 
     </resultMap>
 
+
+    <!-- =====================================================
+         상품 대표 이미지 조인
+
+         IS_MAIN = 'Y' 이미지를 우선 사용하고,
+         대표 이미지가 없으면 가장 먼저 등록된 이미지를 사용한다.
+    ====================================================== -->
     <sql id="mainImageJoin">
 
         LEFT JOIN (
             SELECT
                 PRODUCT_NO,
+
                 MAX(IMAGE_PATH)
                     KEEP (
                         DENSE_RANK FIRST
@@ -40,63 +76,109 @@
                             END,
                             IMAGE_NO
                     ) AS MAIN_IMAGE
+
             FROM PRODUCT_IMAGE
+
             GROUP BY PRODUCT_NO
         ) PI
             ON PI.PRODUCT_NO = P.PRODUCT_NO
 
     </sql>
 
+
+    <!-- =====================================================
+         사용자 상품 검색 공통 조건
+
+         관리자 승인 완료 상태인 APPROVED 상품만 공개한다.
+    ====================================================== -->
     <sql id="searchGoodsFilterCondition">
 
-        WHERE P.STATUS = 'ON_SALE'
+        WHERE P.STATUS = 'APPROVED'
 
         <if test="keyword != null and keyword != ''">
+
             AND (
                 LOWER(P.PRODUCT_NAME)
                     LIKE '%' || LOWER(#{keyword}) || '%'
+
                 OR LOWER(B.BUSINESS_NAME)
                     LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR LOWER(C.TITLE)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR LOWER(A.ACTOR_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
             )
+
         </if>
 
-        <if test="productTypes != null and productTypes.size() > 0">
+
+        <if test="productTypes != null
+                  and productTypes.size() > 0">
+
             AND P.PRODUCT_TYPE IN
+
             <foreach collection="productTypes"
                      item="productType"
                      open="("
                      separator=","
                      close=")">
+
                 #{productType}
+
             </foreach>
+
         </if>
+
 
         <if test="minPrice != null">
+
             AND FLOOR(
                     P.PRICE
-                    * (100 - NVL(P.DISCOUNT_RATE, 0))
+                    * (
+                        100
+                        - NVL(P.DISCOUNT_RATE, 0)
+                    )
                     / 100
                 ) <![CDATA[ >= ]]> #{minPrice}
+
         </if>
+
 
         <if test="maxPrice != null">
+
             AND FLOOR(
                     P.PRICE
-                    * (100 - NVL(P.DISCOUNT_RATE, 0))
+                    * (
+                        100
+                        - NVL(P.DISCOUNT_RATE, 0)
+                    )
                     / 100
                 ) <![CDATA[ <= ]]> #{maxPrice}
+
         </if>
+
 
         <if test="discountOnly">
+
             AND NVL(P.DISCOUNT_RATE, 0) > 0
+
         </if>
 
+
         <if test="inStockOnly">
+
             AND NVL(P.STOCK, 0) > 0
+
         </if>
 
     </sql>
 
+
+    <!-- =====================================================
+         사용자 상품 목록 조회
+    ====================================================== -->
     <select id="selectSearchGoods"
             resultMap="goodsResultMap">
 
@@ -114,6 +196,7 @@
             PAGED.STATUS,
             PAGED.BUSINESS_NAME,
             PAGED.MAIN_IMAGE
+
         FROM (
             SELECT
                 ROW_NUMBER() OVER (
@@ -121,6 +204,7 @@
                         P.CREATED_AT DESC,
                         P.PRODUCT_NO DESC
                 ) AS RN,
+
                 P.PRODUCT_NO,
                 P.BUSINESS_NO,
                 P.CONTENT_NO,
@@ -128,41 +212,72 @@
                 P.PRODUCT_NAME,
                 P.PRODUCT_TYPE,
                 P.PRICE,
-                NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
-                NVL(P.STOCK, 0) AS STOCK,
+                NVL(
+                    P.DISCOUNT_RATE,
+                    0
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
                 P.DESCRIPTION,
                 P.STATUS,
                 B.BUSINESS_NAME,
                 PI.MAIN_IMAGE
+
             FROM PRODUCT P
 
             INNER JOIN BUSINESS B
                 ON B.BUSINESS_NO = P.BUSINESS_NO
 
+            INNER JOIN CONTENT C
+                ON C.CONTENT_NO = P.CONTENT_NO
+
+            LEFT JOIN ACTOR A
+                ON A.ACTOR_NO = P.ACTOR_NO
+
             <include refid="mainImageJoin"/>
 
             <include refid="searchGoodsFilterCondition"/>
+
         ) PAGED
 
-        WHERE PAGED.RN BETWEEN #{startRow} AND #{endRow}
+        WHERE PAGED.RN BETWEEN
+            #{startRow}
+            AND #{endRow}
 
         ORDER BY PAGED.RN
 
     </select>
 
+
+    <!-- =====================================================
+         사용자 상품 검색 결과 개수
+    ====================================================== -->
     <select id="countSearchGoods"
             resultType="int">
 
         SELECT COUNT(*)
+
         FROM PRODUCT P
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
 
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = P.CONTENT_NO
+
+        LEFT JOIN ACTOR A
+            ON A.ACTOR_NO = P.ACTOR_NO
+
         <include refid="searchGoodsFilterCondition"/>
 
     </select>
 
+
+    <!-- =====================================================
+         추천 상품 조회
+    ====================================================== -->
     <select id="selectRecommendedGoods"
             resultMap="goodsResultMap">
 
@@ -180,18 +295,21 @@
             RECOMMENDED.STATUS,
             RECOMMENDED.BUSINESS_NAME,
             RECOMMENDED.MAIN_IMAGE
+
         FROM (
             SELECT
                 ROW_NUMBER() OVER (
                     ORDER BY
                         CASE
-                            WHEN NVL(P.STOCK, 0) > 0 THEN 0
+                            WHEN NVL(P.STOCK, 0) > 0
+                            THEN 0
                             ELSE 1
                         END,
                         NVL(P.DISCOUNT_RATE, 0) DESC,
                         P.CREATED_AT DESC,
                         P.PRODUCT_NO DESC
                 ) AS RN,
+
                 P.PRODUCT_NO,
                 P.BUSINESS_NO,
                 P.CONTENT_NO,
@@ -199,12 +317,19 @@
                 P.PRODUCT_NAME,
                 P.PRODUCT_TYPE,
                 P.PRICE,
-                NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
-                NVL(P.STOCK, 0) AS STOCK,
+                NVL(
+                    P.DISCOUNT_RATE,
+                    0
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
                 P.DESCRIPTION,
                 P.STATUS,
                 B.BUSINESS_NAME,
                 PI.MAIN_IMAGE
+
             FROM PRODUCT P
 
             INNER JOIN BUSINESS B
@@ -212,26 +337,42 @@
 
             <include refid="mainImageJoin"/>
 
-            WHERE P.STATUS = 'ON_SALE'
+            WHERE P.STATUS = 'APPROVED'
+
         ) RECOMMENDED
 
-        WHERE RECOMMENDED.RN BETWEEN 1 AND #{limit}
+        WHERE RECOMMENDED.RN BETWEEN
+            1 AND #{limit}
 
         ORDER BY RECOMMENDED.RN
 
     </select>
 
+
+    <!-- =====================================================
+         사용자 검색 필터용 상품 종류
+    ====================================================== -->
     <select id="selectSearchProductTypes"
             resultType="string">
 
-        SELECT DISTINCT P.PRODUCT_TYPE
+        SELECT DISTINCT
+            P.PRODUCT_TYPE
+
         FROM PRODUCT P
-        WHERE P.STATUS = 'ON_SALE'
+
+        WHERE P.STATUS = 'APPROVED'
           AND P.PRODUCT_TYPE IS NOT NULL
+
         ORDER BY P.PRODUCT_TYPE
 
     </select>
 
+
+    <!-- =====================================================
+         사용자 상품 상세 조회
+
+         승인 완료된 상품만 접근할 수 있다.
+    ====================================================== -->
     <select id="selectGoodsDetail"
             resultMap="goodsResultMap">
 
@@ -243,12 +384,19 @@
             P.PRODUCT_NAME,
             P.PRODUCT_TYPE,
             P.PRICE,
-            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
-            NVL(P.STOCK, 0) AS STOCK,
+            NVL(
+                P.DISCOUNT_RATE,
+                0
+            ) AS DISCOUNT_RATE,
+            NVL(
+                P.STOCK,
+                0
+            ) AS STOCK,
             P.DESCRIPTION,
             P.STATUS,
             B.BUSINESS_NAME,
             PI.MAIN_IMAGE
+
         FROM PRODUCT P
 
         INNER JOIN BUSINESS B
@@ -257,29 +405,47 @@
         <include refid="mainImageJoin"/>
 
         WHERE P.PRODUCT_NO = #{productNo}
-          AND P.STATUS = 'ON_SALE'
+          AND P.STATUS = 'APPROVED'
 
     </select>
 
+
+    <!-- =====================================================
+         상품 상세 이미지 목록
+
+         승인된 상품의 이미지만 조회한다.
+    ====================================================== -->
     <select id="selectGoodsImageList"
             resultType="map">
 
         SELECT
-            IMAGE_NO AS "imageNo",
-            PRODUCT_NO AS "productNo",
-            IMAGE_PATH AS "imagePath",
-            IS_MAIN AS "isMain"
-        FROM PRODUCT_IMAGE
-        WHERE PRODUCT_NO = #{productNo}
+            PI.IMAGE_NO AS "imageNo",
+            PI.PRODUCT_NO AS "productNo",
+            PI.IMAGE_PATH AS "imagePath",
+            PI.IS_MAIN AS "isMain"
+
+        FROM PRODUCT_IMAGE PI
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = PI.PRODUCT_NO
+
+        WHERE PI.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'APPROVED'
+
         ORDER BY
             CASE
-                WHEN IS_MAIN = 'Y' THEN 0
+                WHEN PI.IS_MAIN = 'Y'
+                THEN 0
                 ELSE 1
             END,
-            IMAGE_NO
+            PI.IMAGE_NO
 
     </select>
 
+
+    <!-- =====================================================
+         상품과 연결된 콘텐츠 조회
+    ====================================================== -->
     <select id="selectGoodsContent"
             resultType="map">
 
@@ -289,16 +455,21 @@
             C.POSTER_PATH AS "posterPath",
             C.CONTENT_TYPE AS "contentType",
             C.TMDB_SCORE AS "tmdbScore"
+
         FROM PRODUCT P
 
         INNER JOIN CONTENT C
             ON C.CONTENT_NO = P.CONTENT_NO
 
         WHERE P.PRODUCT_NO = #{productNo}
-          AND P.STATUS = 'ON_SALE'
+          AND P.STATUS = 'APPROVED'
 
     </select>
 
+
+    <!-- =====================================================
+         상품과 연결된 배우 조회
+    ====================================================== -->
     <select id="selectGoodsActor"
             resultType="map">
 
@@ -306,13 +477,14 @@
             A.ACTOR_NO AS "actorNo",
             A.ACTOR_NAME AS "actorName",
             A.PROFILE_PATH AS "profilePath"
+
         FROM PRODUCT P
 
         INNER JOIN ACTOR A
             ON A.ACTOR_NO = P.ACTOR_NO
 
         WHERE P.PRODUCT_NO = #{productNo}
-          AND P.STATUS = 'ON_SALE'
+          AND P.STATUS = 'APPROVED'
           AND P.ACTOR_NO IS NOT NULL
 
     </select>
