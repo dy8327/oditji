@@ -123,7 +123,7 @@
                                     <c:when test="${not empty g.mainImage}">
 
                                         <img
-                                            src="${g.mainImage}"
+                                            src="${pageContext.request.contextPath}${g.mainImage}"
                                             alt="<c:out value='${g.productName}'/>"
                                             loading="lazy"
                                             onerror="
