@@ -54,7 +54,8 @@ public class BusinessServiceImpl
 
                 this.businessDAO = businessDAO;
 
-                this.productUploadDirectory = Paths.get(productUploadPath)
+                this.productUploadDirectory = Paths.get(
+                                productUploadPath)
                                 .toAbsolutePath()
                                 .normalize();
         }
@@ -74,9 +75,8 @@ public class BusinessServiceImpl
                                         "올바르지 않은 회원 번호입니다.");
                 }
 
-                return businessDAO
-                                .selectBusinessByMemberNo(
-                                                memberNo);
+                return businessDAO.selectBusinessByMemberNo(
+                                memberNo);
         }
 
         /*
@@ -351,6 +351,13 @@ public class BusinessServiceImpl
                                                         + "수정 권한이 없습니다.");
                 }
 
+                if ("DELETE_REQUESTED".equals(
+                                existingProduct.getStatus())) {
+
+                        throw new IllegalStateException(
+                                        "삭제 요청 중인 상품은 수정할 수 없습니다.");
+                }
+
                 validateProduct(
                                 goodsManageVO);
 
@@ -430,6 +437,107 @@ public class BusinessServiceImpl
                                         savedPhysicalPath);
 
                         throw e;
+                }
+        }
+
+        /*
+         * =========================================================
+         * 상품 삭제 요청
+         *
+         * 실제 상품과 이미지를 즉시 삭제하지 않고
+         * PRODUCT.STATUS를 DELETE_REQUESTED로 변경한다.
+         *
+         * 현재 PRODUCT 테이블에는 삭제 사유 컬럼이 없으므로
+         * 삭제 사유는 검증 후 개발 로그에만 출력한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void requestProductDelete(
+                        long productNo,
+                        long businessNo,
+                        String reason) {
+
+                if (productNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 상품 번호입니다.");
+                }
+
+                if (businessNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 사업자 번호입니다.");
+                }
+
+                if (reason == null
+                                || reason.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "삭제 요청 사유를 입력해주세요.");
+                }
+
+                String normalizedReason = reason.trim();
+
+                if (normalizedReason.length() > 1000) {
+
+                        throw new IllegalArgumentException(
+                                        "삭제 요청 사유는 1000자 이하로 입력해주세요.");
+                }
+
+                /*
+                 * PRODUCT_NO와 BUSINESS_NO를 함께 조회하여
+                 * 로그인한 사업자가 등록한 상품인지 검증한다.
+                 */
+                GoodsManageVO existingProduct = businessDAO.selectProductForUpdate(
+                                productNo,
+                                businessNo);
+
+                if (existingProduct == null) {
+
+                        throw new IllegalArgumentException(
+                                        "상품이 존재하지 않거나 "
+                                                        + "삭제 요청 권한이 없습니다.");
+                }
+
+                if ("DELETE_REQUESTED".equals(
+                                existingProduct.getStatus())) {
+
+                        throw new IllegalStateException(
+                                        "이미 삭제 요청이 접수된 상품입니다.");
+                }
+
+                /*
+                 * PRODUCT 테이블에 삭제 사유를 저장할 컬럼이 없으므로
+                 * 현재 단계에서는 서버 로그로 확인한다.
+                 */
+                System.out.println(
+                                "===== 상품 삭제 요청 =====");
+
+                System.out.println(
+                                "상품 번호: "
+                                                + productNo);
+
+                System.out.println(
+                                "사업자 번호: "
+                                                + businessNo);
+
+                System.out.println(
+                                "상품명: "
+                                                + existingProduct.getProductName());
+
+                System.out.println(
+                                "삭제 사유: "
+                                                + normalizedReason);
+
+                int updateResult = businessDAO.updateProductDeleteRequest(
+                                productNo,
+                                businessNo);
+
+                if (updateResult != 1) {
+
+                        throw new IllegalStateException(
+                                        "상품 삭제 요청 처리에 실패했습니다.");
                 }
         }
 
