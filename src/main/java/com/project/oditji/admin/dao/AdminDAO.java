@@ -52,9 +52,12 @@ public class AdminDAO {
     }
 
     public int updateMemberStatus(Long memberNo, String status) {
+
         Map<String, Object> param = new HashMap<>();
+
         param.put("memberNo", memberNo);
         param.put("status", status);
+
         return sqlSession.update("updateMemberStatus", param);
     }
 
@@ -62,28 +65,16 @@ public class AdminDAO {
         return sqlSession.update("restoreMember", memberNo);
     }
 
-    /**
-     * 완전삭제 가능 여부 체크용 (선행 조건: 탈퇴 처리(WITHDRAWN) 상태인지 확인).
-     * adminDeleteMember 쿼리 자체도 STATUS='WITHDRAWN' 조건이 걸려 있어,
-     * 이 상태가 아니면 삭제문이 0건 처리되어 "삭제가 안 먹는" 것처럼 보인다.
-     * 그래서 서비스 단에서 미리 체크해 명확한 안내 메시지를 준다.
-     */
-    public String selectMemberStatusByNo(Long memberNo) {
-        return sqlSession.selectOne("selectMemberStatusByNo", memberNo);
-    }
+    // ===================== 탈퇴 회원 자동 삭제 =====================
 
     /**
-     * 완전삭제 가능 여부 체크용.
-     * BUSINESS로 등록된 회원은 PRODUCT/ORDER_ITEM/SETTLEMENT 등
-     * 다른 회원의 데이터와 얽혀 있어 하드 삭제 시 정합성이 깨질 수 있으므로
-     * 이 값이 0보다 크면 삭제를 막고 탈퇴 처리로 유도한다.
+     * 탈퇴 후 7일이 지난 회원 조회
      */
-    public int countBusinessByMemberNo(Long memberNo) {
-        return sqlSession.selectOne("countBusinessByMemberNo", memberNo);
+    public List<Long> selectExpiredWithdrawMembers() {
+        return sqlSession.selectList("selectExpiredWithdrawMembers");
     }
 
-    // ---- 완전삭제 전, FK 제약조건 위반(ORA-02292) 방지를 위한 자식 테이블 선삭제 ----
-    // 반드시 자식(리프) 테이블부터 부모 방향으로 삭제해야 한다.
+    // ===================== 회원 삭제 전 FK 데이터 삭제 =====================
 
     public int deleteReviewReportByMemberNo(Long memberNo) {
         return sqlSession.delete("adminDeleteReviewReportByMember", memberNo);
@@ -153,8 +144,7 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteMemberSocialByMember", memberNo);
     }
 
-    // IDENTITY_VERIFY_LOG.MEMBER_NO는 FK가 ON DELETE SET NULL이라 별도 삭제가 필요 없다.
-
+    // 최종 MEMBER 삭제
     public int deleteMember(Long memberNo) {
         return sqlSession.delete("adminDeleteMember", memberNo);
     }
@@ -209,9 +199,10 @@ public class AdminDAO {
 
     // ===================== 상품 관리 (PRODUCT) =====================
 
-    public List<ProductManageVO> selectProductRequestList(String keyword) {
-        // PRODUCT 테이블에 요청유형 구분 컬럼이 없어 tab 구분 없이 STATUS 기준 동일 목록 조회
-        return sqlSession.selectList("selectProductRequestList", keywordParam(keyword));
+    public List<ProductManageVO> selectProductRequestList(String tab, String keyword) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("tab", tab);
+        return sqlSession.selectList("selectProductRequestList", param);
     }
 
     public int updateProductStatus(Long productNo, String status) {
@@ -219,6 +210,65 @@ public class AdminDAO {
         param.put("productNo", productNo);
         param.put("status", status);
         return sqlSession.update("updateProductStatus", param);
+    }
+
+    /**
+     * 상품 승인/반려 처리 전에 현재 상태를 확인한다.
+     * DELETE_REQUESTED 상태이면 일반 승인 상태 변경이 아니라
+     * 상품 최종 삭제 또는 삭제 요청 반려 로직을 수행한다.
+     */
+    public String selectProductStatusByNo(Long productNo) {
+        return sqlSession.selectOne("selectProductStatusByNo", productNo);
+    }
+
+    /**
+     * 상품과 연결된 주문 이력 수를 확인한다.
+     * 주문 이력이 존재하면 주문/매출 기록 보존을 위해 상품 완전삭제를 막는다.
+     */
+    public int countOrderItemByProductNo(Long productNo) {
+        return sqlSession.selectOne("countOrderItemByProductNo", productNo);
+    }
+
+    /**
+     * DB 삭제 이후 서버에 저장된 이미지 파일도 정리하기 위해
+     * PRODUCT_IMAGE의 전체 이미지 경로를 먼저 조회한다.
+     */
+    public List<String> selectProductImagePathList(Long productNo) {
+        return sqlSession.selectList("selectProductImagePathList", productNo);
+    }
+
+    // ---- 상품 완전삭제 전, FK 제약조건 위반 방지를 위한 자식 테이블 선삭제 ----
+
+    public int deleteReviewReportByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteReviewReportByProduct", productNo);
+    }
+
+    public int deleteProductReviewByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteProductReviewByProduct", productNo);
+    }
+
+    public int deleteCartItemByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteCartItemByProduct", productNo);
+    }
+
+    public int deleteProductWishByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteProductWishByProduct", productNo);
+    }
+
+    public int deleteProductClickLogByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteProductClickLogByProduct", productNo);
+    }
+
+    public int deleteEventProductByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteEventProductByProduct", productNo);
+    }
+
+    public int deleteProductImageByProductNo(Long productNo) {
+        return sqlSession.delete("adminDeleteProductImageByProduct", productNo);
+    }
+
+    public int deleteProduct(Long productNo) {
+        return sqlSession.delete("adminDeleteProduct", productNo);
     }
 
     // ===================== 주문 관리 (ORDER_ITEM / DELIVERY) =====================
