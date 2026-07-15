@@ -66,9 +66,12 @@ public class AdminController {
             @RequestParam("memberNo") Long memberNo,
             RedirectAttributes ra) {
 
-        adminService.deleteMember(memberNo);
-
-        ra.addFlashAttribute("message", "회원 정보가 삭제되었습니다.");
+        try {
+            adminService.deleteMember(memberNo);
+            ra.addFlashAttribute("message", "회원 정보가 삭제되었습니다.");
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("message", e.getMessage());
+        }
 
         return "redirect:/admin/member/list";
     }

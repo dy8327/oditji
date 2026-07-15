@@ -7,6 +7,7 @@ const regex = {
   nick: /^[a-zA-Z0-9가-힣]{2,10}$/,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   phone: /^010-\d{4}-\d{4}$/,
+  businessNumber: /^\d{3}-\d{2}-\d{5}$/,
 };
 
 /* =========================================================
@@ -14,9 +15,11 @@ const regex = {
 ========================================================= */
 let idChecked = false;
 let nicknameChecked = false;
+let businessNumberChecked = false;
 
 let checkedIdValue = "";
 let checkedNicknameValue = "";
+let checkedBusinessNumberValue = "";
 
 /* =========================================================
    DOM HELPER
@@ -165,6 +168,64 @@ async function checkNickname() {
 }
 
 /* =========================================================
+   BUSINESS NUMBER CHECK (사업자 전용)
+   Controller 응답: "Y" 또는 "N"
+========================================================= */
+async function checkBusinessNumber() {
+  const businessNumber = getValue("businessNumber");
+
+  if (!regex.businessNumber.test(businessNumber)) {
+    alert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.");
+    businessNumberChecked = false;
+    checkedBusinessNumberValue = "";
+    setBorder("businessNumber", false);
+    focusInput("businessNumber");
+    return;
+  }
+
+  try {
+    const contextPath = getContextPath();
+    const url = `${contextPath}/member/checkBusinessNumber?businessNumber=${encodeURIComponent(businessNumber)}`;
+
+    const response = await fetch(url);
+    const result = await response.text();
+
+    if (!response.ok) {
+      alert("사업자등록번호 중복확인 요청 실패: " + response.status);
+      businessNumberChecked = false;
+      checkedBusinessNumberValue = "";
+      return;
+    }
+
+    if (result.trim() === "Y") {
+      alert("등록 가능한 사업자등록번호입니다.");
+      businessNumberChecked = true;
+      checkedBusinessNumberValue = businessNumber;
+      setBorder("businessNumber", true);
+      return;
+    }
+
+    if (result.trim() === "N") {
+      alert("이미 등록된 사업자등록번호입니다.");
+      businessNumberChecked = false;
+      checkedBusinessNumberValue = "";
+      setBorder("businessNumber", false);
+      focusInput("businessNumber");
+      return;
+    }
+
+    alert("알 수 없는 서버 응답입니다: " + result);
+    businessNumberChecked = false;
+    checkedBusinessNumberValue = "";
+  } catch (error) {
+    console.error("사업자등록번호 중복확인 오류:", error);
+    alert("사업자등록번호 중복확인 중 오류가 발생했습니다.");
+    businessNumberChecked = false;
+    checkedBusinessNumberValue = "";
+  }
+}
+
+/* =========================================================
    INIT
 ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
@@ -177,6 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const nickname = document.getElementById("nickname");
   const email = document.getElementById("email");
   const phone = document.getElementById("phone");
+  const joinType = document.getElementById("joinType");
+  const businessNumber = document.getElementById("businessNumber");
 
   const ottCheckboxes = document.querySelectorAll("input[name='ottList']");
   const fileInput = document.getElementById("profileImageFile");
@@ -308,6 +371,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
+  /* =========================
+     사업자등록번호 자동 하이픈 + 변경 시 중복확인 초기화
+  ========================= */
+  if (businessNumber) {
+
+      businessNumber.addEventListener("input", () => {
+
+          businessNumberChecked = false;
+          checkedBusinessNumberValue = "";
+
+          let value = businessNumber.value.replace(/\D/g, "");
+
+          if (value.length <= 3) {
+              businessNumber.value = value;
+          } else if (value.length <= 5) {
+              businessNumber.value = value.replace(/(\d{3})(\d+)/, "$1-$2");
+          } else {
+              businessNumber.value = value
+                  .slice(0, 10)
+                  .replace(/(\d{3})(\d{2})(\d{0,5})/, "$1-$2-$3");
+          }
+
+          if (businessNumber.value.length === 0) {
+              setBorder("businessNumber", true);
+          } else {
+              setBorder("businessNumber", regex.businessNumber.test(businessNumber.value));
+          }
+      });
+  }
+
 
 
   /* =========================
@@ -323,6 +416,9 @@ document.addEventListener("DOMContentLoaded", () => {
      최종 회원가입 유효성 검사
   ========================= */
   function validateJoin() {
+    const currentJoinType = joinType ? joinType.value : "USER";
+    const isBusinessJoin = currentJoinType === "BUSINESS";
+
     const nameValue = memberName.value.trim();
     const idValue = memberId.value.trim();
     const pwValue = memberPw.value.trim();
@@ -330,6 +426,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const nicknameValue = nickname.value.trim();
     const emailValue = email.value.trim();
     const phoneValue = phone.value.trim();
+
+    /* ---------- 공통 필드 검증 (일반/사업자 동일) ---------- */
 
     if (nameValue.length < 2) {
       alert("이름은 2자 이상 입력해주세요.");
@@ -381,18 +479,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 010-만 입력된 경우 빈 값으로 처리
     if (phoneValue === "010-") {
-    phone.value = "";
+      phone.value = "";
     } else if (phoneValue !== "" && !regex.phone.test(phoneValue)) {
-        phone.value = "";
-        alert("전화번호는 010-1234-5678 형식으로 입력해주세요.");
-        focusInput("phone");
-        return false;
+      phone.value = "";
+      alert("전화번호는 010-1234-5678 형식으로 입력해주세요.");
+      focusInput("phone");
+      return false;
     }
 
+    /* ---------- 유형별 분기 검증 ---------- */
+
+    if (isBusinessJoin) {
+      return validateBusinessFields();
+    }
+
+    return validateUserOttFields();
+  }
+
+  /* =========================
+     일반회원 전용 - OTT 선택 검증
+  ========================= */
+  function validateUserOttFields() {
     const ottCount = Array.from(ottCheckboxes).filter((checkbox) => checkbox.checked).length;
 
     if (ottCount < 1) {
       alert("OTT는 최소 1개 이상 선택해야 합니다.");
+      return false;
+    }
+
+    return true;
+  }
+
+  /* =========================
+     사업자 전용 - 사업자/정산 정보 검증
+  ========================= */
+  function validateBusinessFields() {
+    const businessName = document.getElementById("businessName");
+    const bankName = document.getElementById("bankName");
+    const accountNumber = document.getElementById("accountNumber");
+    const accountHolder = document.getElementById("accountHolder");
+
+    const businessNumberValue = businessNumber ? businessNumber.value.trim() : "";
+
+    if (!businessName || businessName.value.trim().length === 0) {
+      alert("상호명을 입력해주세요.");
+      focusInput("businessName");
+      return false;
+    }
+
+    if (!regex.businessNumber.test(businessNumberValue)) {
+      alert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.");
+      focusInput("businessNumber");
+      return false;
+    }
+
+    if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumberValue) {
+      alert("사업자등록번호 중복확인을 해주세요.");
+      focusInput("businessNumber");
+      return false;
+    }
+
+    if (!bankName || bankName.value.trim().length === 0) {
+      alert("은행명을 입력해주세요.");
+      focusInput("bankName");
+      return false;
+    }
+
+    if (!accountNumber || accountNumber.value.trim().length === 0) {
+      alert("계좌번호를 입력해주세요.");
+      focusInput("accountNumber");
+      return false;
+    }
+
+    if (!accountHolder || accountHolder.value.trim().length === 0) {
+      alert("예금주를 입력해주세요.");
+      focusInput("accountHolder");
       return false;
     }
 

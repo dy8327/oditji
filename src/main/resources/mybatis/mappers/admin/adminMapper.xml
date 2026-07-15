@@ -17,7 +17,8 @@
         SELECT
             (SELECT COUNT(*) FROM MEMBER)                                            AS MEMBER_COUNT,
             (SELECT COUNT(*) FROM CONTENT)                                            AS CONTENT_COUNT,
-            (SELECT COUNT(*) FROM REVIEW) + (SELECT COUNT(*) FROM PRODUCT_REVIEW)     AS REVIEW_COUNT,
+            (SELECT COUNT(*) FROM REVIEW WHERE STATUS != 'DELETED')
+                + (SELECT COUNT(*) FROM PRODUCT_REVIEW)                              AS REVIEW_COUNT,
             (SELECT COUNT(*) FROM REVIEW_REPORT WHERE STATUS = 'WAITING')             AS REPORT_COUNT,
             (SELECT COUNT(*) FROM BUSINESS WHERE STATUS = 'WAITING')                  AS BUSINESS_REQUEST_COUNT,
             (SELECT COUNT(*) FROM PRODUCT WHERE STATUS = 'WAITING')                   AS PRODUCT_REQUEST_COUNT,
@@ -60,6 +61,157 @@
         WHERE MEMBER_NO = #{memberNo}
     </update>
 
+    <!-- 완전삭제 전, 현재 상태(WITHDRAWN 여부) 확인용 -->
+    <select id="selectMemberStatusByNo" parameterType="long" resultType="string">
+        SELECT STATUS
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+    </select>
+
+    <!-- 완전삭제 전, 사업자(BUSINESS) 등록 여부 확인용.
+         사업자는 PRODUCT/ORDER_ITEM/SETTLEMENT 등으로 다른 회원 데이터와 얽혀 있어
+         하드 삭제 시 정합성이 깨질 수 있으므로 1건 이상이면 완전삭제를 막는다. -->
+    <select id="countBusinessByMemberNo" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM BUSINESS
+        WHERE MEMBER_NO = #{memberNo}
+    </select>
+
+    <!--
+        완전삭제(하드 딜리트) 시, MEMBER_NO를 FK로 참조하는 자식 테이블을
+        리프 -> 루트 순서로 먼저 정리해야 ORA-02292(무결성 제약조건 위반)가 나지 않는다.
+        AdminServiceImpl.deleteMember()에서 아래 순서대로 호출한 뒤 마지막에 adminDeleteMember를 실행한다.
+    -->
+
+    <!-- 1. REVIEW_REPORT: 회원이 신고자/처리 관리자이거나, 회원이 쓴 리뷰가 신고당한 경우 -->
+    <delete id="adminDeleteReviewReportByMember" parameterType="long">
+        DELETE FROM REVIEW_REPORT
+        WHERE MEMBER_NO = #{memberNo}
+           OR ADMIN_NO = #{memberNo}
+           OR CONTENT_REVIEW_NO IN (
+                SELECT REVIEW_NO FROM REVIEW WHERE MEMBER_NO = #{memberNo}
+              )
+           OR PRODUCT_REVIEW_NO IN (
+                SELECT REVIEW_NO FROM PRODUCT_REVIEW WHERE MEMBER_NO = #{memberNo}
+              )
+    </delete>
+
+    <!-- 2. SETTLEMENT: 회원의 주문에 딸린 정산 내역 -->
+    <delete id="adminDeleteSettlementByMember" parameterType="long">
+        DELETE FROM SETTLEMENT
+        WHERE ORDER_ITEM_NO IN (
+            SELECT OI.ORDER_ITEM_NO
+            FROM ORDER_ITEM OI
+            JOIN ORDERS O ON OI.ORDER_NO = O.ORDER_NO
+            WHERE O.MEMBER_NO = #{memberNo}
+        )
+    </delete>
+
+    <!-- 3. PRODUCT_REVIEW: 회원이 작성한 상품 리뷰 -->
+    <delete id="adminDeleteProductReviewByMember" parameterType="long">
+        DELETE FROM PRODUCT_REVIEW
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 4. CANCEL_REQUEST: 회원의 구매 취소 요청 -->
+    <delete id="adminDeleteCancelRequestByMember" parameterType="long">
+        DELETE FROM CANCEL_REQUEST
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 5. DELIVERY: 회원 주문 상세에 딸린 배송 정보 -->
+    <delete id="adminDeleteDeliveryByMember" parameterType="long">
+        DELETE FROM DELIVERY
+        WHERE ORDER_ITEM_NO IN (
+            SELECT OI.ORDER_ITEM_NO
+            FROM ORDER_ITEM OI
+            JOIN ORDERS O ON OI.ORDER_NO = O.ORDER_NO
+            WHERE O.MEMBER_NO = #{memberNo}
+        )
+    </delete>
+
+    <!-- 6. ORDER_ITEM: 회원 주문의 상세 내역 -->
+    <delete id="adminDeleteOrderItemByMember" parameterType="long">
+        DELETE FROM ORDER_ITEM
+        WHERE ORDER_NO IN (
+            SELECT ORDER_NO FROM ORDERS WHERE MEMBER_NO = #{memberNo}
+        )
+    </delete>
+
+    <!-- 7. ORDERS: 회원의 주문 -->
+    <delete id="adminDeleteOrdersByMember" parameterType="long">
+        DELETE FROM ORDERS
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 8. CART_ITEM: 회원 장바구니의 상품 상세 -->
+    <delete id="adminDeleteCartItemByMember" parameterType="long">
+        DELETE FROM CART_ITEM
+        WHERE CART_NO IN (
+            SELECT CART_NO FROM CART WHERE MEMBER_NO = #{memberNo}
+        )
+    </delete>
+
+    <!-- 9. CART: 회원의 장바구니 -->
+    <delete id="adminDeleteCartByMember" parameterType="long">
+        DELETE FROM CART
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 10. PRODUCT_WISH: 회원의 상품 찜 -->
+    <delete id="adminDeleteProductWishByMember" parameterType="long">
+        DELETE FROM PRODUCT_WISH
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 11. FAVORITE: 회원의 콘텐츠 찜 -->
+    <delete id="adminDeleteFavoriteByMember" parameterType="long">
+        DELETE FROM FAVORITE
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 12. REVIEW: 회원이 작성한 콘텐츠 리뷰 -->
+    <delete id="adminDeleteReviewByMember" parameterType="long">
+        DELETE FROM REVIEW
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 13. PRODUCT_CLICK_LOG: 회원의 상품 클릭 로그 -->
+    <delete id="adminDeleteProductClickLogByMember" parameterType="long">
+        DELETE FROM PRODUCT_CLICK_LOG
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 14. ACCESS_LOG: 회원의 접속 로그 -->
+    <delete id="adminDeleteAccessLogByMember" parameterType="long">
+        DELETE FROM ACCESS_LOG
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 15. ADMIN_LOG: 이 회원이 관리자로서 남긴 처리 로그 -->
+    <delete id="adminDeleteAdminLogByAdmin" parameterType="long">
+        DELETE FROM ADMIN_LOG
+        WHERE ADMIN_NO = #{memberNo}
+    </delete>
+
+    <!-- 16. MEMBER_PLATFORM: 회원별 OTT 매핑 -->
+    <delete id="adminDeleteMemberPlatformByMember" parameterType="long">
+        DELETE FROM MEMBER_PLATFORM
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 17. MEMBER_SOCIAL: SNS 로그인 연동 -->
+    <delete id="adminDeleteMemberSocialByMember" parameterType="long">
+        DELETE FROM MEMBER_SOCIAL
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!--
+        IDENTITY_VERIFY_LOG.MEMBER_NO는 FK가 ON DELETE SET NULL로 걸려 있어
+        MEMBER 삭제 시 자동으로 NULL 처리되므로 별도 삭제문이 필요 없다.
+    -->
+
+    <!-- 18. 최종 MEMBER 삭제 (탈퇴 처리된 회원만 완전삭제 가능) -->
     <delete id="adminDeleteMember"
             parameterType="long">
 
