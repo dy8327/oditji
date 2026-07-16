@@ -7,12 +7,11 @@ import com.project.oditji.favorite.vo.FavoriteVO;
 
 public interface FavoriteService {
 
-    boolean toggleFavorite(
-            FavoriteVO favoriteVO);
+    boolean toggleFavorite(FavoriteVO favoriteVO);
 
-    boolean isFavorite(
-            FavoriteVO favoriteVO);
+    boolean isFavorite(FavoriteVO favoriteVO);
 
-    List<ContentVO> selectFavoriteList(
-            Long memberNo);
+    boolean isFavoriteByTmdb(FavoriteVO favoriteVO);
+
+    List<ContentVO> selectFavoriteList(Long memberNo);
 }

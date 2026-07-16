@@ -20,6 +20,9 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/goods.css">
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/contentTopTabs.css?v=1">
+
 <script defer
         src="${pageContext.request.contextPath}/js/goods.js">
 </script>
@@ -31,6 +34,10 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 <main class="goods-list-container goods-page-container">
+
+<jsp:include page="/WEB-INF/views/common/contentTopTabs.jsp">
+    <jsp:param name="activeTab" value="goods"/>
+</jsp:include>
 
 <div class="goods-layout">
 

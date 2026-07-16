@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeContentFilters();
     initializeContentGenreToggle();
     initializeRecommendCarousel();
+    initializeContentListFavorites();
 
 });
 
@@ -362,4 +363,217 @@ function initializeRecommendCarousel() {
 
         updateCurrentSlide(0);
     });
+}
+
+
+function initializeContentListFavorites() {
+
+    const buttons =
+        Array.from(
+            document.querySelectorAll(
+                "[data-content-list-favorite]"
+            )
+        );
+
+    if (buttons.length === 0) {
+        return;
+    }
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                toggleContentListFavorite(
+                    button
+                );
+            }
+        );
+
+        loadContentListFavoriteStatus(
+                button
+        );
+    });
+}
+
+
+async function loadContentListFavoriteStatus(
+        button) {
+
+    const tmdbId =
+        button.dataset.tmdbId;
+
+    const contentType =
+        button.dataset.contentType;
+
+    if (!tmdbId || !contentType) {
+        return;
+    }
+
+    const query =
+        new URLSearchParams({
+            tmdbId: tmdbId,
+            contentType: contentType
+        });
+
+    try {
+
+        const response =
+            await fetch(
+                contextPath
+                + "/favorite/status-by-tmdb?"
+                + query.toString(),
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const result =
+            await response.json();
+
+        setContentListFavoriteState(
+            button,
+            result.active === true
+        );
+
+    } catch (error) {
+
+        console.error(
+            "찜 상태 조회 실패:",
+            error
+        );
+    }
+}
+
+
+async function toggleContentListFavorite(
+        button) {
+
+    if (button.dataset.loading === "true") {
+        return;
+    }
+
+    const tmdbId =
+        button.dataset.tmdbId;
+
+    const contentType =
+        button.dataset.contentType;
+
+    if (!tmdbId || !contentType) {
+
+        alert(
+            "콘텐츠 정보를 확인할 수 없습니다."
+        );
+
+        return;
+    }
+
+    button.dataset.loading = "true";
+    button.disabled = true;
+
+    try {
+
+        const response =
+            await fetch(
+                contextPath
+                + "/favorite/toggle-by-tmdb",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "Accept":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        tmdbId: Number(tmdbId),
+                        contentType: contentType
+                    })
+                }
+            );
+
+        if (response.status === 401) {
+
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        const result =
+            await response.json()
+                .catch(function () {
+                    return {};
+                });
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.message
+                || "찜 처리에 실패했습니다."
+            );
+        }
+
+        if (result.contentNo) {
+            button.dataset.contentNo =
+                String(result.contentNo);
+        }
+
+        setContentListFavoriteState(
+            button,
+            result.active === true
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message
+            || "찜 처리 중 오류가 발생했습니다."
+        );
+
+    } finally {
+
+        button.dataset.loading = "false";
+        button.disabled = false;
+    }
+}
+
+
+function setContentListFavoriteState(
+        button,
+        active) {
+
+    const icon =
+        button.querySelector("span");
+
+    button.classList.toggle(
+        "is-active",
+        active
+    );
+
+    button.setAttribute(
+        "aria-pressed",
+        active ? "true" : "false"
+    );
+
+    button.setAttribute(
+        "title",
+        active ? "찜 해제" : "찜하기"
+    );
+
+    if (icon) {
+        icon.textContent =
+            active ? "♥" : "♡";
+    }
 }

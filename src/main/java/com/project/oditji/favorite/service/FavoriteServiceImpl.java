@@ -2,6 +2,7 @@ package com.project.oditji.favorite.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,28 @@ public class FavoriteServiceImpl
     }
 
     @Override
+    public boolean isFavoriteByTmdb(
+            FavoriteVO favoriteVO) {
+
+        if (favoriteVO == null
+                || favoriteVO.getMemberNo() == null
+                || favoriteVO.getTmdbId() == null
+                || favoriteVO.getTmdbId() <= 0
+                || favoriteVO.getContentType() == null
+                || favoriteVO.getContentType().isBlank()) {
+
+            return false;
+        }
+
+        favoriteVO.setContentType(
+                normalizeContentType(
+                        favoriteVO.getContentType()));
+
+        return favoriteDAO.countFavoriteByTmdb(
+                favoriteVO) > 0;
+    }
+
+    @Override
     public List<ContentVO> selectFavoriteList(
             Long memberNo) {
 
@@ -96,5 +119,22 @@ public class FavoriteServiceImpl
             throw new IllegalArgumentException(
                     "콘텐츠 정보가 없습니다.");
         }
+    }
+
+    private String normalizeContentType(
+            String contentType) {
+
+        String normalized =
+                contentType.trim()
+                        .toUpperCase(Locale.ROOT);
+
+        if (!"MOVIE".equals(normalized)
+                && !"TV".equals(normalized)) {
+
+            throw new IllegalArgumentException(
+                    "올바르지 않은 콘텐츠 유형입니다.");
+        }
+
+        return normalized;
     }
 }

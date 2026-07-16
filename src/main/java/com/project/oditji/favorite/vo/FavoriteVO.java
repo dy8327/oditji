@@ -7,6 +7,8 @@ public class FavoriteVO {
     private Long favoriteNo;
     private Long memberNo;
     private Long contentNo;
+    private Long tmdbId;
+    private String contentType;
     private Date createdAt;
 
     public FavoriteVO() {
@@ -36,6 +38,22 @@ public class FavoriteVO {
         this.contentNo = contentNo;
     }
 
+    public Long getTmdbId() {
+        return tmdbId;
+    }
+
+    public void setTmdbId(Long tmdbId) {
+        this.tmdbId = tmdbId;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -49,6 +67,8 @@ public class FavoriteVO {
         return "FavoriteVO [favoriteNo=" + favoriteNo
                 + ", memberNo=" + memberNo
                 + ", contentNo=" + contentNo
+                + ", tmdbId=" + tmdbId
+                + ", contentType=" + contentType
                 + ", createdAt=" + createdAt + "]";
     }
 }
