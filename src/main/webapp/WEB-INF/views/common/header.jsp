@@ -54,7 +54,7 @@
                             <a href="${pageContext.request.contextPath}/favorite/list">찜 목록</a>
                             <a href="${pageContext.request.contextPath}/cart">장바구니</a>
                             <a href="${pageContext.request.contextPath}/order/list">주문 내역</a>
-                            <a href="${pageContext.request.contextPath}/review/my">내 리뷰</a>
+                            <a href="${pageContext.request.contextPath}/review/myReviewList">내 리뷰</a>
                             <hr>
                             <a href="${pageContext.request.contextPath}/member/logout" class="logout-link">로그아웃</a>
                         </div>

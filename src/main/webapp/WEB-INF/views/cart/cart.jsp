@@ -225,7 +225,7 @@
 
                                     </c:when>
 
-                                    <c:when test="${item.status ne 'ON_SALE'}">
+                                    <c:when test="${item.status ne 'APPROVED'}">
 
                                         <p class="cart-status-message error">
                                             현재 판매 중인 상품이 아닙니다.

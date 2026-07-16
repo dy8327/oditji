@@ -356,17 +356,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /*
-     * 주문 기능은 주문 모듈 연결 전 임시 처리
+     * 선택 상품 주문하기
      */
     if (checkoutBtn) {
 
         checkoutBtn.addEventListener(
             "click",
-            function () {
+            async function () {
 
                 const selectedChecks =
-                    document.querySelectorAll(
-                        ".cart-item-check:checked"
+                    Array.from(
+                        document.querySelectorAll(
+                            ".cart-item-check:checked"
+                        )
                     );
 
                 if (selectedChecks.length === 0) {
@@ -378,9 +380,55 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                alert(
-                    "주문 기능은 주문 로직과 연결 후 사용할 수 있습니다."
-                );
+                const cartItemNos =
+                    selectedChecks.map(
+                        function (checkbox) {
+
+                            return Number(
+                                checkbox.value
+                            );
+                        }
+                    );
+
+                checkoutBtn.disabled = true;
+
+                try {
+
+                    const result =
+                        await requestJson(
+                            contextPath
+                                + "/order/checkout",
+                            {
+                                cartItemNos:
+                                    cartItemNos
+                            }
+                        );
+
+                    if (!result.success) {
+
+                        handleServerFailure(result);
+                        return;
+                    }
+
+                    window.location.href =
+                        contextPath
+                        + (
+                            result.redirectUrl
+                                || "/order"
+                        );
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    alert(
+                        "주문서 작성 중 오류가 발생했습니다."
+                    );
+
+                } finally {
+
+                    checkoutBtn.disabled = false;
+                }
             }
         );
     }

@@ -1,5 +1,9 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -39,15 +43,15 @@
 
                 <div>
                     <strong>주문번호</strong>
-                    <span>${o.orderId}</span>
+                    <span>${o.orderNo}</span>
                 </div>
 
                 <div>
-                    <span>${o.createdAt}</span>
+                    <fmt:formatDate value="${o.createdAt}" pattern="yyyy.MM.dd HH:mm"/>
                 </div>
 
                 <div class="order-status">
-                    ${o.status}
+                    ${o.orderStatus}
                 </div>
 
             </div>
@@ -57,33 +61,46 @@
 
                 <c:forEach var="i" items="${o.items}">
 
-                    <div class="order-item">
+                    <a class="order-item"
+                       href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
 
-                        <img src="${i.image}" />
+                        <c:choose>
+
+                            <c:when test="${empty i.mainImage}">
+                                <div class="no-image">NO IMAGE</div>
+                            </c:when>
+
+                            <c:otherwise>
+                                <img src="${i.mainImage}" alt="${i.productName}">
+                            </c:otherwise>
+
+                        </c:choose>
 
                         <div class="order-item-info">
 
-                            <div>${i.goodsName}</div>
+                            <div>${i.productName}</div>
 
                             <div>
                                 수량: ${i.quantity}
                             </div>
 
                             <div>
-                                ₩ ${i.price}
+                                ₩ <fmt:formatNumber value="${i.itemTotalPrice}" pattern="#,###"/>
                             </div>
 
                         </div>
 
-                    </div>
+                    </a>
 
                 </c:forEach>
 
             </div>
 
+            <div class="ticket-divider" aria-hidden="true"></div>
+
             <!-- TOTAL -->
             <div class="order-total">
-                총 결제금액: ₩ ${o.totalPrice}
+                총 결제금액: ₩ <fmt:formatNumber value="${o.totalAmount}" pattern="#,###"/>
             </div>
 
         </section>
