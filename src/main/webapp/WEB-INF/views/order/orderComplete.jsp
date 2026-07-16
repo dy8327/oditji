@@ -1,5 +1,9 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -31,12 +35,12 @@
 
             <div>
                 <span>주문번호</span>
-                <strong>${order.orderId}</strong>
+                <strong>${order.orderNo}</strong>
             </div>
 
             <div>
                 <span>받는 사람</span>
-                <strong>${order.receiver}</strong>
+                <strong>${order.receiverName}</strong>
             </div>
 
             <div>
@@ -46,8 +50,45 @@
 
             <div>
                 <span>결제금액</span>
-                <strong>₩ ${order.totalPrice}</strong>
+                <strong>
+                    ₩ <fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>
+                </strong>
             </div>
+
+        </div>
+
+        <div class="ticket-divider" aria-hidden="true"></div>
+
+        <!-- ORDER ITEMS -->
+        <div class="complete-items">
+
+            <c:forEach var="item" items="${order.items}">
+
+                <div class="complete-item">
+
+                    <c:choose>
+
+                        <c:when test="${empty item.mainImage}">
+                            <div class="no-image">NO IMAGE</div>
+                        </c:when>
+
+                        <c:otherwise>
+                            <img src="${item.mainImage}" alt="${item.productName}">
+                        </c:otherwise>
+
+                    </c:choose>
+
+                    <div class="complete-item-info">
+                        <div>${item.productName}</div>
+                        <div>수량: ${item.quantity}</div>
+                        <div>
+                            ₩ <fmt:formatNumber value="${item.itemTotalPrice}" pattern="#,###"/>
+                        </div>
+                    </div>
+
+                </div>
+
+            </c:forEach>
 
         </div>
 
@@ -58,7 +99,7 @@
                 주문 내역 보기
             </a>
 
-            <a href="${pageContext.request.contextPath}/content/list">
+            <a href="${pageContext.request.contextPath}/goods/list">
                 쇼핑 계속하기
             </a>
 
