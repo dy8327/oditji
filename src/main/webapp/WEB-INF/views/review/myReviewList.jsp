@@ -15,6 +15,12 @@
 
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/mypage.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/review.css">
+
+<script defer
+        src="${pageContext.request.contextPath}/js/review.js">
+</script>
 
 </head>
 
@@ -49,6 +55,42 @@
 
 				<c:when test="${not empty reviewList}">
 
+					<div class="mypage-review-tabs">
+
+						<button type="button"
+								class="review-tab active"
+								data-type="ALL">
+							전체 (<span id="allCount">0</span>)
+						</button>
+
+						<button type="button"
+								class="review-tab"
+								data-type="CONTENT">
+							콘텐츠 리뷰 (<span id="contentCount">0</span>)
+						</button>
+
+						<button type="button"
+								class="review-tab"
+								data-type="PRODUCT">
+							상품 리뷰 (<span id="productCount">0</span>)
+						</button>
+
+					</div>
+
+					<div class="mypage-review-filter-empty" style="display:none;">
+
+						<div class="mypage-empty-icon">
+							📝
+						</div>
+
+						<h3 class="mypage-filter-empty-title">
+						</h3>
+
+						<p class="mypage-filter-empty-message">
+						</p>
+
+					</div>
+
 					<div class="mypage-review-list">
 
 						<c:forEach var="review" items="${reviewList}">
@@ -56,18 +98,21 @@
 							<c:choose>
 								<c:when test="${review.reviewType == 'PRODUCT'}">
 									<c:url var="reviewLinkUrl" value="/goods/detail">
-										<c:param name="goodsNo" value="${review.targetNo}"/>
+										<c:param name="goodsNo" value="${review.targetNo}" />
 									</c:url>
 								</c:when>
+
 								<c:otherwise>
-									<c:url var="reviewLinkUrl" value="/content/contentDetail/${review.targetNo}"/>
+									<c:url var="reviewLinkUrl"
+										value="/content/contentDetail/${review.targetNo}" />
 								</c:otherwise>
 							</c:choose>
 
-							<div class="mypage-review-card">
+							<div class="mypage-review-card"
+								data-type="${review.reviewType}">
 
 								<div class="mypage-review-clickable"
-									 onclick="location.href='${reviewLinkUrl}'">
+									onclick="location.href='${reviewLinkUrl}'">
 
 									<div class="mypage-review-top">
 
@@ -76,21 +121,20 @@
 											<span class="mypage-member-type">
 
 												<c:choose>
+
 													<c:when test="${review.reviewType == 'PRODUCT'}">
 														상품 리뷰
 													</c:when>
+
 													<c:otherwise>
 														콘텐츠 리뷰
 													</c:otherwise>
+
 												</c:choose>
 
 											</span>
 
-											<h3>
-
-												${review.title}
-
-											</h3>
+											<h3>${review.title}</h3>
 
 											<span>
 
@@ -124,13 +168,16 @@
 										<c:when test="${review.reviewType == 'PRODUCT'}">
 
 											<form action="${pageContext.request.contextPath}/review/deleteProductReview"
-												  method="post"
-												  class="mypage-review-delete-form"
-												  onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+												method="post"
+												class="mypage-review-delete-form"
+												onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
 
-												<input type="hidden" name="reviewNo" value="${review.reviewNo}">
+												<input type="hidden"
+													name="reviewNo"
+													value="${review.reviewNo}">
 
-												<button type="submit" class="mypage-review-delete-btn">
+												<button type="submit"
+														class="mypage-review-delete-btn">
 
 													삭제
 
@@ -143,13 +190,16 @@
 										<c:otherwise>
 
 											<form action="${pageContext.request.contextPath}/review/deleteContentReview"
-												  method="post"
-												  class="mypage-review-delete-form"
-												  onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+												method="post"
+												class="mypage-review-delete-form"
+												onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
 
-												<input type="hidden" name="reviewNo" value="${review.reviewNo}">
+												<input type="hidden"
+													name="reviewNo"
+													value="${review.reviewNo}">
 
-												<button type="submit" class="mypage-review-delete-btn">
+												<button type="submit"
+														class="mypage-review-delete-btn">
 
 													삭제
 
