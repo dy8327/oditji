@@ -19,6 +19,7 @@ import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 
 @Service
@@ -45,6 +46,15 @@ public class BusinessServiceImpl
 
         private final BusinessDAO businessDAO;
         private final Path productUploadDirectory;
+
+        /*
+         * application.properties를 추가로 수정하지 않고
+         * 기존 ODITJI 외부 업로드 폴더 구조를 그대로 사용한다.
+         */
+        private final Path eventUploadDirectory = Paths.get(
+                        "C:/oditji/uploads/event")
+                        .toAbsolutePath()
+                        .normalize();
 
         public BusinessServiceImpl(
                         BusinessDAO businessDAO,
@@ -538,6 +548,551 @@ public class BusinessServiceImpl
 
                         throw new IllegalStateException(
                                         "상품 삭제 요청 처리에 실패했습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 등록
+         *
+         * EVENT 테이블에 이벤트 기본 정보를 먼저 저장하고,
+         * 상품이 선택된 경우 EVENT_PRODUCT 테이블에도 연결 정보를 저장한다.
+         *
+         * 두 DB 작업은 하나의 트랜잭션으로 처리한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public long registerEvent(
+                        EventManageVO eventManageVO,
+                        MultipartFile eventImage) {
+
+                if (eventManageVO == null) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 등록 정보가 없습니다.");
+                }
+
+                validateEvent(
+                                eventManageVO);
+
+                Path savedPhysicalPath = null;
+
+                try {
+
+                        /*
+                         * 이벤트 이미지는 선택 항목이다.
+                         * 선택한 경우에만 검증 후 외부 폴더에 저장한다.
+                         */
+                        if (eventImage != null
+                                        && !eventImage.isEmpty()) {
+
+                                validateEventImage(
+                                                eventImage);
+
+                                SavedFileInfo savedFileInfo = saveEventImage(
+                                                eventImage);
+
+                                savedPhysicalPath = savedFileInfo.physicalPath();
+
+                                eventManageVO.setBannerImage(
+                                                savedFileInfo.webPath());
+                        }
+
+                        int eventResult = businessDAO.insertEvent(
+                                        eventManageVO);
+
+                        if (eventResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "이벤트 등록에 실패했습니다.");
+                        }
+
+                        if (eventManageVO.getEventNo() <= 0) {
+
+                                throw new IllegalStateException(
+                                                "등록된 이벤트 번호를 확인할 수 없습니다.");
+                        }
+
+                        /*
+                         * 연결 상품이 선택된 경우에만
+                         * EVENT_PRODUCT 테이블에 연결 정보를 저장한다.
+                         */
+                        if (eventManageVO.getProductNo() != null) {
+
+                                int eventProductResult = businessDAO.insertEventProduct(
+                                                eventManageVO);
+
+                                if (eventProductResult != 1) {
+
+                                        throw new IllegalStateException(
+                                                        "이벤트 상품 연결 등록에 실패했습니다.");
+                                }
+                        }
+
+                        return eventManageVO.getEventNo();
+
+                } catch (RuntimeException e) {
+
+                        /*
+                         * DB 작업이 실패하면 이번 등록 과정에서
+                         * 새로 저장한 이벤트 이미지 파일을 삭제한다.
+                         */
+                        deleteSavedFileQuietly(
+                                        savedPhysicalPath);
+
+                        throw e;
+                }
+        }
+
+        /*
+         * =========================================================
+         * 사업자 이벤트 목록 조회
+         * =========================================================
+         */
+        @Override
+        public List<EventManageVO> getEventListByBusinessNo(
+                        long businessNo,
+                        String keyword) {
+
+                if (businessNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 사업자 번호입니다.");
+                }
+
+                String searchKeyword = keyword;
+
+                if (searchKeyword != null) {
+
+                        searchKeyword = searchKeyword.trim();
+
+                        if (searchKeyword.isEmpty()) {
+                                searchKeyword = null;
+                        }
+                }
+
+                List<EventManageVO> eventList = businessDAO.selectEventListByBusinessNo(
+                                businessNo,
+                                searchKeyword);
+
+                if (eventList == null) {
+                        return Collections.emptyList();
+                }
+
+                return eventList;
+        }
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 단건 조회
+         * =========================================================
+         */
+        @Override
+        public EventManageVO getApprovedEventForBusiness(
+                        long eventNo,
+                        long businessNo) {
+
+                if (eventNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 이벤트 번호입니다.");
+                }
+
+                if (businessNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 사업자 번호입니다.");
+                }
+
+                EventManageVO event = businessDAO.selectApprovedEventForBusiness(
+                                eventNo,
+                                businessNo);
+
+                if (event == null) {
+
+                        throw new IllegalArgumentException(
+                                        "승인된 이벤트가 존재하지 않거나 "
+                                                        + "접근 권한이 없습니다.");
+                }
+
+                return event;
+        }
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 즉시 수정
+         *
+         * 별도 수정 요청 테이블이 없으므로
+         * EVENT와 EVENT_PRODUCT를 즉시 변경한다.
+         * 수정 후에도 APPROVED 상태를 유지한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void updateApprovedEvent(
+                        EventManageVO eventManageVO,
+                        MultipartFile eventImage) {
+
+                if (eventManageVO == null) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 수정 정보가 없습니다.");
+                }
+
+                EventManageVO existingEvent = getApprovedEventForBusiness(
+                                eventManageVO.getEventNo(),
+                                eventManageVO.getBusinessNo());
+
+                validateEvent(
+                                eventManageVO);
+
+                eventManageVO.setStatus(
+                                "APPROVED");
+
+                /*
+                 * 새 이미지를 선택하지 않은 경우 기존 이미지를 유지한다.
+                 */
+                eventManageVO.setBannerImage(
+                                existingEvent.getBannerImage());
+
+                Path savedPhysicalPath = null;
+
+                try {
+
+                        if (eventImage != null
+                                        && !eventImage.isEmpty()) {
+
+                                validateEventImage(
+                                                eventImage);
+
+                                SavedFileInfo savedFileInfo = saveEventImage(
+                                                eventImage);
+
+                                savedPhysicalPath = savedFileInfo.physicalPath();
+
+                                eventManageVO.setBannerImage(
+                                                savedFileInfo.webPath());
+                        }
+
+                        int updateResult = businessDAO.updateApprovedEvent(
+                                        eventManageVO);
+
+                        if (updateResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "이벤트 수정에 실패했습니다.");
+                        }
+
+                        int eventProductResult = businessDAO.updateEventProduct(
+                                        eventManageVO);
+
+                        if (eventProductResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "이벤트 연결 상품 수정에 실패했습니다.");
+                        }
+
+                } catch (RuntimeException e) {
+
+                        deleteSavedFileQuietly(
+                                        savedPhysicalPath);
+
+                        throw e;
+                }
+        }
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 즉시 연장
+         *
+         * 별도 연장 요청 테이블이 없으므로
+         * EVENT.END_DATE를 즉시 변경한다.
+         * 연장 사유는 서버 로그로만 확인한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void extendApprovedEvent(
+                        long eventNo,
+                        long businessNo,
+                        java.time.LocalDate extendEndDate,
+                        String extendReason) {
+
+                EventManageVO existingEvent = getApprovedEventForBusiness(
+                                eventNo,
+                                businessNo);
+
+                if (extendEndDate == null) {
+
+                        throw new IllegalArgumentException(
+                                        "연장 종료일을 선택해주세요.");
+                }
+
+                if (!extendEndDate.isAfter(
+                                existingEvent.getEndDate())) {
+
+                        throw new IllegalArgumentException(
+                                        "연장 종료일은 현재 종료일보다 이후여야 합니다.");
+                }
+
+                if (extendReason == null
+                                || extendReason.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 연장 사유를 입력해주세요.");
+                }
+
+                String normalizedReason = extendReason.trim();
+
+                if (normalizedReason.length() > 1000) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 연장 사유는 1000자 이하로 입력해주세요.");
+                }
+
+                System.out.println(
+                                "===== 이벤트 즉시 연장 =====");
+
+                System.out.println(
+                                "이벤트 번호: "
+                                                + eventNo);
+
+                System.out.println(
+                                "사업자 번호: "
+                                                + businessNo);
+
+                System.out.println(
+                                "기존 종료일: "
+                                                + existingEvent.getEndDate());
+
+                System.out.println(
+                                "연장 종료일: "
+                                                + extendEndDate);
+
+                System.out.println(
+                                "연장 사유: "
+                                                + normalizedReason);
+
+                int updateResult = businessDAO.extendApprovedEvent(
+                                eventNo,
+                                businessNo,
+                                extendEndDate);
+
+                if (updateResult != 1) {
+
+                        throw new IllegalStateException(
+                                        "이벤트 연장 처리에 실패했습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 입력값 검증
+         * =========================================================
+         */
+        private void validateEvent(
+                        EventManageVO eventManageVO) {
+
+                if (eventManageVO.getBusinessNo() <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "사업자 정보가 올바르지 않습니다.");
+                }
+
+                String title = eventManageVO.getTitle();
+
+                if (title == null
+                                || title.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트명을 입력해주세요.");
+                }
+
+                title = title.trim();
+
+                if (title.length() > 200) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트명은 200자 이하로 입력해주세요.");
+                }
+
+                eventManageVO.setTitle(
+                                title);
+
+                if (eventManageVO.getStartDate() == null) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 시작일을 선택해주세요.");
+                }
+
+                if (eventManageVO.getEndDate() == null) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 종료일을 선택해주세요.");
+                }
+
+                if (eventManageVO.getEndDate().isBefore(
+                                eventManageVO.getStartDate())) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 종료일은 시작일보다 빠를 수 없습니다.");
+                }
+
+                String status = eventManageVO.getStatus();
+
+                if (!"WAITING".equals(status)
+                                && !"ACTIVE".equals(status)
+                                && !"ENDED".equals(status)) {
+
+                        eventManageVO.setStatus(
+                                        "WAITING");
+                }
+
+                if (eventManageVO.getEventDiscountRate() < 0
+                                || eventManageVO.getEventDiscountRate() > 100) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 할인율은 0부터 100 사이여야 합니다.");
+                }
+
+                Long productNo = eventManageVO.getProductNo();
+
+                /*
+                 * EVENT 테이블에는 BUSINESS_NO가 없으므로
+                 * 사업자별 이벤트 소유권 확인을 위해 연결 상품은 필수이다.
+                 */
+                if (productNo == null
+                                || productNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트에 연결할 상품을 선택해주세요.");
+                }
+
+                /*
+                 * 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고
+                 * 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인한다.
+                 */
+                int productCount = businessDAO.countProductByBusinessNo(
+                                productNo,
+                                eventManageVO.getBusinessNo());
+
+                if (productCount == 0) {
+
+                        throw new IllegalArgumentException(
+                                        "선택한 상품이 존재하지 않거나 "
+                                                        + "이벤트에 연결할 권한이 없습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 이미지 검증
+         * =========================================================
+         */
+        private void validateEventImage(
+                        MultipartFile eventImage) {
+
+                if (eventImage.getSize() > MAX_IMAGE_SIZE) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 이미지는 10MB 이하만 "
+                                                        + "업로드할 수 있습니다.");
+                }
+
+                String originalFilename = eventImage.getOriginalFilename();
+
+                if (originalFilename == null
+                                || originalFilename.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 이미지 파일명이 올바르지 않습니다.");
+                }
+
+                String extension = getFileExtension(
+                                originalFilename);
+
+                if (!ALLOWED_EXTENSIONS.contains(
+                                extension)) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 이미지는 JPG, JPEG, PNG, GIF, "
+                                                        + "WEBP 형식만 업로드할 수 있습니다.");
+                }
+
+                String contentType = eventImage.getContentType();
+
+                if (contentType != null
+                                && !contentType.startsWith(
+                                                "image/")) {
+
+                        throw new IllegalArgumentException(
+                                        "이미지 파일만 업로드할 수 있습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 이미지 저장
+         * =========================================================
+         */
+        private SavedFileInfo saveEventImage(
+                        MultipartFile eventImage) {
+
+                String originalFilename = eventImage.getOriginalFilename();
+
+                if (originalFilename == null
+                                || originalFilename.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "이벤트 이미지 파일명이 없습니다.");
+                }
+
+                String extension = getFileExtension(
+                                originalFilename);
+
+                String savedFilename = UUID.randomUUID()
+                                .toString()
+                                .replace("-", "")
+                                + "."
+                                + extension;
+
+                try {
+
+                        Files.createDirectories(
+                                        eventUploadDirectory);
+
+                        Path targetPath = eventUploadDirectory
+                                        .resolve(savedFilename)
+                                        .normalize();
+
+                        if (!targetPath.startsWith(
+                                        eventUploadDirectory)) {
+
+                                throw new IllegalArgumentException(
+                                                "올바르지 않은 파일 경로입니다.");
+                        }
+
+                        try (var inputStream = eventImage.getInputStream()) {
+
+                                Files.copy(
+                                                inputStream,
+                                                targetPath,
+                                                StandardCopyOption.REPLACE_EXISTING);
+                        }
+
+                        String webPath = "/uploads/event/"
+                                        + savedFilename;
+
+                        return new SavedFileInfo(
+                                        webPath,
+                                        targetPath);
+
+                } catch (IOException e) {
+
+                        throw new IllegalStateException(
+                                        "이벤트 이미지 저장 중 오류가 발생했습니다.",
+                                        e);
                 }
         }
 
