@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 
 public interface BusinessService {
@@ -94,4 +95,62 @@ public interface BusinessService {
                         long productNo,
                         long businessNo,
                         String reason);
+
+        /*
+         * =========================================================
+         * 이벤트 등록
+         *
+         * EVENT 테이블에 이벤트를 저장하고,
+         * 상품이 선택된 경우 EVENT_PRODUCT에도 연결 정보를 저장한다.
+         * =========================================================
+         */
+        long registerEvent(
+                        EventManageVO eventManageVO,
+                        MultipartFile eventImage);
+
+        /*
+         * =========================================================
+         * 사업자 이벤트 목록 조회
+         * =========================================================
+         */
+        List<EventManageVO> getEventListByBusinessNo(
+                        long businessNo,
+                        String keyword);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 단건 조회
+         *
+         * 현재 로그인한 사업자의 이벤트인지 함께 확인한다.
+         * =========================================================
+         */
+        EventManageVO getApprovedEventForBusiness(
+                        long eventNo,
+                        long businessNo);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 즉시 수정
+         *
+         * 별도 수정 요청 테이블이 없으므로
+         * EVENT와 EVENT_PRODUCT를 즉시 변경한다.
+         * =========================================================
+         */
+        void updateApprovedEvent(
+                        EventManageVO eventManageVO,
+                        MultipartFile eventImage);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 즉시 연장
+         *
+         * 별도 연장 요청 테이블이 없으므로
+         * EVENT.END_DATE를 즉시 변경한다.
+         * =========================================================
+         */
+        void extendApprovedEvent(
+                        long eventNo,
+                        long businessNo,
+                        java.time.LocalDate extendEndDate,
+                        String extendReason);
 }

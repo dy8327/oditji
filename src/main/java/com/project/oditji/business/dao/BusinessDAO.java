@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 
 @Mapper
@@ -120,4 +121,79 @@ public interface BusinessDAO {
         int updateProductDeleteRequest(
                         @Param("productNo") long productNo,
                         @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * 이벤트 연결 상품 소유 여부 확인
+         *
+         * 로그인한 사업자가 등록한 상품인지 확인한다.
+         * =========================================================
+         */
+        int countProductByBusinessNo(
+                        @Param("productNo") long productNo,
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * 이벤트 등록
+         * =========================================================
+         */
+        int insertEvent(
+                        EventManageVO eventManageVO);
+
+        /*
+         * =========================================================
+         * 이벤트와 상품 연결 등록
+         * =========================================================
+         */
+        int insertEventProduct(
+                        EventManageVO eventManageVO);
+
+        /*
+         * =========================================================
+         * 사업자 이벤트 목록 조회
+         *
+         * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인한다.
+         * =========================================================
+         */
+        List<EventManageVO> selectEventListByBusinessNo(
+                        @Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 단건 조회
+         *
+         * EVENT_NO와 BUSINESS_NO를 함께 검사한다.
+         * =========================================================
+         */
+        EventManageVO selectApprovedEventForBusiness(
+                        @Param("eventNo") long eventNo,
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 기본 정보 수정
+         * =========================================================
+         */
+        int updateApprovedEvent(
+                        EventManageVO eventManageVO);
+
+        /*
+         * =========================================================
+         * 이벤트 연결 상품 수정
+         * =========================================================
+         */
+        int updateEventProduct(
+                        EventManageVO eventManageVO);
+
+        /*
+         * =========================================================
+         * 승인된 이벤트 종료일 연장
+         * =========================================================
+         */
+        int extendApprovedEvent(
+                        @Param("eventNo") long eventNo,
+                        @Param("businessNo") long businessNo,
+                        @Param("extendEndDate") java.time.LocalDate extendEndDate);
 }

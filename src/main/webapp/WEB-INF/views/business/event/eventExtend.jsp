@@ -7,7 +7,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>ODITJI | 이벤트 연장 요청</title>
+<title>ODITJI | 이벤트 연장</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
 </head>
 
@@ -29,15 +29,22 @@
         <section class="form-panel">
 
             <h1 class="form-title">
-                이벤트 연장 요청
+                이벤트 연장
             </h1>
+
+            <!-- 연장 실패 메시지 -->
+            <c:if test="${not empty errorMessage}">
+                <div class="alert alert-error">
+                    <c:out value="${errorMessage}"/>
+                </div>
+            </c:if>
 
             <form action="${pageContext.request.contextPath}/business/event/extend"
                   method="post">
 
                 <input type="hidden"
                        name="eventNo"
-                       value="${event.eventNo}">
+                       value="<c:out value='${event.eventNo}'/>">
 
                 <div class="form-group">
 
@@ -47,7 +54,7 @@
 
                     <input class="form-input"
                            type="text"
-                           value="${event.title}"
+                           value="<c:out value='${event.title}'/>"
                            readonly>
 
                 </div>
@@ -60,32 +67,44 @@
 
                     <input class="form-input"
                            type="text"
-                           value="${event.startDate} ~ ${event.endDate}"
+                           value="<c:out value='${event.startDate}'/> ~ <c:out value='${event.endDate}'/>"
                            readonly>
 
                 </div>
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label class="form-label"
+                           for="extendEndDate">
                         연장 종료일
                     </label>
 
                     <input class="form-input"
                            type="date"
-                           name="extendEndDate">
+                           id="extendEndDate"
+                           name="extendEndDate"
+                           min="<c:out value='${event.endDate}'/>"
+                           required>
 
                 </div>
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label class="form-label"
+                           for="extendReason">
                         연장 사유
                     </label>
 
+                    <!--
+                        현재 EVENT 테이블에는 연장 사유 컬럼이 없으므로
+                        입력한 사유는 서버 콘솔 로그로만 확인한다.
+                    -->
                     <textarea class="form-textarea"
+                              id="extendReason"
                               name="extendReason"
-                              placeholder="이벤트 연장 사유를 입력해주세요."></textarea>
+                              maxlength="1000"
+                              placeholder="이벤트 연장 사유를 입력해주세요."
+                              required></textarea>
 
                 </div>
 
@@ -125,6 +144,39 @@
 </div>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const extendEndDateInput =
+        document.getElementById("extendEndDate");
+
+    const currentEndDate =
+        "<c:out value='${event.endDate}'/>";
+
+    /*
+     * 현재 종료일과 같은 날짜가 아닌
+     * 다음 날부터 선택할 수 있도록 설정한다.
+     */
+    if (currentEndDate) {
+
+        const minimumDate =
+            new Date(currentEndDate + "T00:00:00");
+
+        minimumDate.setDate(
+            minimumDate.getDate() + 1
+        );
+
+        const year = minimumDate.getFullYear();
+        const month = String(minimumDate.getMonth() + 1).padStart(2, "0");
+        const day = String(minimumDate.getDate()).padStart(2, "0");
+
+        extendEndDateInput.min =
+            year + "-" + month + "-" + day;
+    }
+
+});
+</script>
 
 </body>
 </html>

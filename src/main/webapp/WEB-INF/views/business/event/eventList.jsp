@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="event"/>
 
@@ -30,6 +31,19 @@
             이벤트 관리
         </h1>
 
+        <!-- 처리 결과 메시지 -->
+        <c:if test="${not empty successMessage}">
+            <div class="alert alert-success">
+                <c:out value="${successMessage}"/>
+            </div>
+        </c:if>
+
+        <c:if test="${not empty errorMessage}">
+            <div class="alert alert-error">
+                <c:out value="${errorMessage}"/>
+            </div>
+        </c:if>
+
         <section class="content-panel">
         
             <div class="product-control-row">
@@ -37,13 +51,13 @@
                 <div></div>
 
                 <form action="${pageContext.request.contextPath}/business/event/list" 
-                    method="get" 
-                    class="product-search-form">
+                      method="get" 
+                      class="product-search-form">
 
                     <input type="text"
-                        name="keyword"
-                        value="${param.keyword}"
-                        placeholder="이벤트명, 상태 검색">
+                           name="keyword"
+                           value="<c:out value='${keyword}'/>"
+                           placeholder="이벤트명, 상태, 상품명 검색">
 
                     <button type="submit">
                         검색
@@ -65,6 +79,7 @@
                     <tr>
                         <th>번호</th>
                         <th>이벤트명</th>
+                        <th>연결 상품</th>
                         <th>이벤트 기간</th>
                         <th>상태</th>
                         <th>등록일</th>
@@ -83,27 +98,37 @@
 
                                 <tr>
 
-                                    <td>${event.eventNo}</td>
-
-                                    <td>${event.title}</td>
+                                    <td>
+                                        <c:out value="${event.eventNo}"/>
+                                    </td>
 
                                     <td>
-                                        ${event.startDate} ~ ${event.endDate}
+                                        <c:out value="${event.title}"/>
+                                    </td>
+
+                                    <td>
+                                        <c:out value="${event.productName}"/>
+                                    </td>
+
+                                    <td>
+                                        <c:out value="${event.startDate}"/>
+                                        ~
+                                        <c:out value="${event.endDate}"/>
                                     </td>
 
                                     <td>
 
                                         <c:choose>
 
-                                            <c:when test="${event.status == 'ACTIVE'}">
+                                            <c:when test="${event.status eq 'APPROVED'}">
 
                                                 <span class="status ok">
-                                                    진행중
+                                                    승인 완료
                                                 </span>
 
                                             </c:when>
 
-                                            <c:when test="${event.status == 'WAITING'}">
+                                            <c:when test="${event.status eq 'WAITING'}">
 
                                                 <span class="status waiting">
                                                     승인 대기
@@ -111,10 +136,26 @@
 
                                             </c:when>
 
-                                            <c:otherwise>
+                                            <c:when test="${event.status eq 'REJECTED'}">
+
+                                                <span class="status">
+                                                    승인 반려
+                                                </span>
+
+                                            </c:when>
+
+                                            <c:when test="${event.status eq 'ENDED'}">
 
                                                 <span class="status">
                                                     종료
+                                                </span>
+
+                                            </c:when>
+
+                                            <c:otherwise>
+
+                                                <span class="status">
+                                                    <c:out value="${event.status}"/>
                                                 </span>
 
                                             </c:otherwise>
@@ -123,37 +164,43 @@
 
                                     </td>
 
-                                    <td>${event.createdAt}</td>
+                                    <td>
+                                        <fmt:formatDate value="${event.createdAt}"
+                                                        pattern="yyyy-MM-dd"/>
+                                    </td>
 
                                     <td>
 
+                                        <!--
+                                            관리자 승인이 완료된 APPROVED 이벤트만
+                                            즉시 수정 또는 연장할 수 있다.
+                                        -->
                                         <c:choose>
 
-                                            <c:when test="${event.status == 'ACTIVE'}">
-
-                                                <a class="btn btn-dark"
-                                                href="${pageContext.request.contextPath}/business/event/extend?eventNo=${event.eventNo}">
-                                                    연장 요청
-                                                </a>
-
-                                            </c:when>
-
-                                            <c:when test="${event.status == 'WAITING'}">
-
-                                                <a class="btn btn-dark"
-                                                   href="${pageContext.request.contextPath}/business/approval/event-detail?eventNo=${event.eventNo}">
-                                                    승인 상태
-                                                </a>
-
-                                            </c:when>
-
-                                            <c:otherwise>
+                                            <c:when test="${event.status eq 'APPROVED'}">
 
                                                 <a class="btn btn-dark"
                                                    href="${pageContext.request.contextPath}/business/event/update?eventNo=${event.eventNo}">
-                                                    수정 요청
+                                                    수정
                                                 </a>
 
+                                                <a class="btn btn-dark"
+                                                   href="${pageContext.request.contextPath}/business/event/extend?eventNo=${event.eventNo}">
+                                                    연장
+                                                </a>
+
+                                            </c:when>
+
+                                            <c:when test="${event.status eq 'WAITING'}">
+                                                승인 대기 중
+                                            </c:when>
+
+                                            <c:when test="${event.status eq 'REJECTED'}">
+                                                승인 반려
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                처리 불가
                                             </c:otherwise>
 
                                         </c:choose>
@@ -169,7 +216,7 @@
                         <c:otherwise>
 
                             <tr>
-                                <td colspan="6">
+                                <td colspan="7">
                                     등록된 이벤트가 없습니다.
                                 </td>
                             </tr>
@@ -181,7 +228,6 @@
                 </tbody>
 
             </table>
-
 
             <div class="pagination">
 

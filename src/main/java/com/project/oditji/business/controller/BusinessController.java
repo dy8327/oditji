@@ -20,6 +20,7 @@ import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.member.vo.MemberVO;
 
@@ -835,11 +836,59 @@ public class BusinessController {
         /*
          * =========================================================
          * 이벤트 목록
+         *
+         * 현재 로그인한 사업자가 상품을 연결하여 등록한 이벤트만 조회한다.
+         * EVENT 테이블에는 BUSINESS_NO가 없으므로
+         * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인한다.
          * =========================================================
          */
         @GetMapping("/event/list")
         public String eventList(
-                        Model model) {
+                        @RequestParam(value = "keyword", required = false) String keyword,
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(
+                                business.getBusinessNo(),
+                                keyword);
+
+                model.addAttribute(
+                                "business",
+                                business);
+
+                model.addAttribute(
+                                "keyword",
+                                keyword);
+
+                model.addAttribute(
+                                "eventList",
+                                eventList);
 
                 model.addAttribute(
                                 "activeMenu",
@@ -851,11 +900,67 @@ public class BusinessController {
         /*
          * =========================================================
          * 이벤트 등록
+         *
+         * 현재 로그인한 사업자가 등록한 상품 목록을 함께 조회하여
+         * eventRegister.jsp 내부 상품 검색 모달에서 사용한다.
          * =========================================================
          */
         @GetMapping("/event/register")
         public String eventRegister(
-                        Model model) {
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                if (!"APPROVED".equals(
+                                business.getStatus())) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
+
+                        return "redirect:/business/main";
+                }
+
+                /*
+                 * 현재 로그인한 사업자가 등록한 상품만 조회한다.
+                 * 별도 검색 JSP를 추가하지 않고 현재 이벤트 등록 화면의
+                 * 상품 검색 모달에서 이 목록을 사용한다.
+                 */
+                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                                business.getBusinessNo());
+
+                model.addAttribute(
+                                "business",
+                                business);
+
+                model.addAttribute(
+                                "productList",
+                                productList);
 
                 model.addAttribute(
                                 "activeMenu",
@@ -871,9 +976,14 @@ public class BusinessController {
          * eventRegister.jsp의 form에서 전송되는
          * POST /business/event/register 요청을 처리한다.
          *
-         * 현재 단계에서는 등록 요청값 검증과 파일 정보 확인까지 처리한다.
-         * EVENT 테이블에 실제 저장하려면 이후 BusinessService에
-         * 이벤트 등록 메서드와 MyBatis Mapper를 연결해야 한다.
+         * EVENT 테이블에 WAITING 상태로 이벤트 기본 정보를 저장하고,
+         * EVENT_PRODUCT 테이블에 선택 상품 연결 정보를 저장한다.
+         *
+         * EVENT 테이블에는 BUSINESS_NO가 없으므로
+         * 사업자별 조회를 위해 연결 상품 선택은 필수로 처리한다.
+         *
+         * EVENT 테이블에는 이벤트 설명 컬럼이 없으므로
+         * eventContent는 현재 서버 로그 확인용으로만 사용한다.
          * =========================================================
          */
         @PostMapping("/event/register")
@@ -886,16 +996,12 @@ public class BusinessController {
 
                         @RequestParam("endDate") LocalDate endDate,
 
-                        @RequestParam(value = "productName", required = false) String productName,
-
                         /*
-                         * 현재 JSP가 checkbox 형태이므로 여러 상태값이 전달될 수 있다.
-                         * 이벤트 상태는 하나만 가져야 하므로 첫 번째 값을 사용한다.
-                         *
-                         * JSP의 status 입력을 radio로 수정하면
-                         * String status 하나로 받아도 된다.
+                         * 상품 검색 모달에서 선택한 실제 상품 번호
                          */
-                        @RequestParam(value = "status", required = false) List<String> statusList,
+                        @RequestParam(value = "productNo", required = false) Long productNo,
+
+                        @RequestParam(value = "productName", required = false) String productName,
 
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
@@ -937,75 +1043,36 @@ public class BusinessController {
                         return "redirect:/business/main";
                 }
 
-                /*
-                 * 필수 입력값 검증
-                 */
-                if (eventTitle == null
-                                || eventTitle.trim().isEmpty()) {
+                EventManageVO eventManageVO = new EventManageVO();
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트명을 입력해주세요.");
+                eventManageVO.setBusinessNo(
+                                business.getBusinessNo());
 
-                        return "redirect:/business/event/register";
-                }
+                eventManageVO.setTitle(
+                                eventTitle);
 
-                /*
-                 * 이벤트 날짜 입력값 검증
-                 */
-                if (startDate == null) {
+                eventManageVO.setStartDate(
+                                startDate);
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 시작일을 선택해주세요.");
-
-                        return "redirect:/business/event/register";
-                }
-
-                if (endDate == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 종료일을 선택해주세요.");
-
-                        return "redirect:/business/event/register";
-                }
+                eventManageVO.setEndDate(
+                                endDate);
 
                 /*
-                 * 종료일이 시작일보다 빠른 경우 등록을 중단한다.
+                 * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
+                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
-                if (endDate.isBefore(
-                                startDate)) {
+                eventManageVO.setStatus(
+                                "WAITING");
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 종료일은 시작일보다 빠를 수 없습니다.");
-
-                        return "redirect:/business/event/register";
-                }
+                eventManageVO.setProductNo(
+                                productNo);
 
                 /*
-                 * checkbox에서 여러 상태값이 전달된 경우
-                 * 첫 번째 상태값만 사용한다.
+                 * 현재 화면에는 이벤트 특별 할인율 입력란이 없으므로
+                 * EVENT_PRODUCT.EVENT_DISCOUNT_RATE에는 0을 저장한다.
                  */
-                String status = "WAITING";
-
-                if (statusList != null
-                                && !statusList.isEmpty()) {
-
-                        status = statusList.get(0);
-                }
-
-                /*
-                 * 허용하지 않는 상태값이 전달된 경우
-                 * 기본값인 WAITING으로 처리한다.
-                 */
-                if (!"WAITING".equals(status)
-                                && !"ACTIVE".equals(status)
-                                && !"ENDED".equals(status)) {
-
-                        status = "WAITING";
-                }
+                eventManageVO.setEventDiscountRate(
+                                0);
 
                 try {
 
@@ -1018,7 +1085,7 @@ public class BusinessController {
 
                         System.out.println(
                                         "이벤트명: "
-                                                        + eventTitle.trim());
+                                                        + eventTitle);
 
                         System.out.println(
                                         "이벤트 설명: "
@@ -1033,45 +1100,38 @@ public class BusinessController {
                                                         + endDate);
 
                         System.out.println(
+                                        "연결 상품 번호: "
+                                                        + productNo);
+
+                        System.out.println(
                                         "연결 상품명: "
                                                         + productName);
 
                         System.out.println(
-                                        "이벤트 상태: "
-                                                        + status);
+                                        "이벤트 상태: WAITING");
 
-                        if (eventImage != null
-                                        && !eventImage.isEmpty()) {
-
-                                System.out.println(
-                                                "이벤트 이미지 파일명: "
-                                                                + eventImage.getOriginalFilename());
-
-                                System.out.println(
-                                                "이벤트 이미지 크기: "
-                                                                + eventImage.getSize());
-                        }
-
-                        /*
-                         * EVENT 테이블 저장 기능 구현 시 아래 형태로
-                         * BusinessService를 호출한다.
-                         *
-                         * businessService.registerEvent(
-                         * business.getBusinessNo(),
-                         * eventTitle,
-                         * eventContent,
-                         * startDate,
-                         * endDate,
-                         * productName,
-                         * status,
-                         * eventImage);
-                         */
+                        long eventNo = businessService.registerEvent(
+                                        eventManageVO,
+                                        eventImage);
 
                         redirectAttributes.addFlashAttribute(
                                         "successMessage",
                                         "이벤트 등록 요청이 접수되었습니다.");
 
+                        redirectAttributes.addFlashAttribute(
+                                        "registeredEventNo",
+                                        eventNo);
+
                         return "redirect:/business/event/list";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/event/register";
 
                 } catch (Exception e) {
 
@@ -1087,34 +1147,394 @@ public class BusinessController {
 
         /*
          * =========================================================
-         * 이벤트 수정
+         * 이벤트 수정 화면
+         *
+         * 관리자 승인이 완료된 APPROVED 이벤트만 수정할 수 있다.
+         * 현재 로그인한 사업자의 상품과 연결된 이벤트인지 함께 확인한다.
          * =========================================================
          */
         @GetMapping("/event/update")
         public String eventUpdate(
-                        Model model) {
+                        @RequestParam(value = "eventNo", required = false) Long eventNo,
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                model.addAttribute(
-                                "activeMenu",
-                                "eventUpdate");
+                if (eventNo == null
+                                || eventNo <= 0) {
 
-                return "business/event/eventUpdate";
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "수정할 이벤트를 선택해주세요.");
+
+                        return "redirect:/business/event/list";
+                }
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                try {
+
+                        EventManageVO event = businessService.getApprovedEventForBusiness(
+                                        eventNo,
+                                        business.getBusinessNo());
+
+                        List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                                        business.getBusinessNo());
+
+                        model.addAttribute(
+                                        "business",
+                                        business);
+
+                        model.addAttribute(
+                                        "event",
+                                        event);
+
+                        model.addAttribute(
+                                        "productList",
+                                        productList);
+
+                        model.addAttribute(
+                                        "activeMenu",
+                                        "eventUpdate");
+
+                        return "business/event/eventUpdate";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/event/list";
+                }
         }
 
         /*
          * =========================================================
-         * 이벤트 연장 요청
+         * 이벤트 수정 처리
+         *
+         * APPROVED 상태 이벤트의 내용을 즉시 수정한다.
+         * 별도 수정 요청 테이블이 없으므로 수정 후에도
+         * EVENT.STATUS는 APPROVED 상태를 유지한다.
+         * =========================================================
+         */
+        @PostMapping("/event/update")
+        public String eventUpdateProcess(
+                        @RequestParam("eventNo") long eventNo,
+
+                        @RequestParam("eventTitle") String eventTitle,
+
+                        @RequestParam("startDate") LocalDate startDate,
+
+                        @RequestParam("endDate") LocalDate endDate,
+
+                        @RequestParam("productNo") Long productNo,
+
+                        @RequestParam(value = "productName", required = false) String productName,
+
+                        @RequestParam(value = "eventContent", required = false) String eventContent,
+
+                        @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
+
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                EventManageVO eventManageVO = new EventManageVO();
+
+                eventManageVO.setEventNo(
+                                eventNo);
+
+                eventManageVO.setBusinessNo(
+                                business.getBusinessNo());
+
+                eventManageVO.setTitle(
+                                eventTitle);
+
+                eventManageVO.setStartDate(
+                                startDate);
+
+                eventManageVO.setEndDate(
+                                endDate);
+
+                eventManageVO.setProductNo(
+                                productNo);
+
+                /*
+                 * 수정 후에도 관리자 승인 완료 상태를 유지한다.
+                 */
+                eventManageVO.setStatus(
+                                "APPROVED");
+
+                eventManageVO.setEventDiscountRate(
+                                0);
+
+                try {
+
+                        System.out.println(
+                                        "===== 이벤트 즉시 수정 =====");
+
+                        System.out.println(
+                                        "이벤트 번호: "
+                                                        + eventNo);
+
+                        System.out.println(
+                                        "사업자 번호: "
+                                                        + business.getBusinessNo());
+
+                        System.out.println(
+                                        "이벤트 설명: "
+                                                        + eventContent);
+
+                        System.out.println(
+                                        "연결 상품명: "
+                                                        + productName);
+
+                        businessService.updateApprovedEvent(
+                                        eventManageVO,
+                                        eventImage);
+
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "이벤트 내용이 수정되었습니다.");
+
+                        return "redirect:/business/event/list";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/event/update"
+                                        + "?eventNo="
+                                        + eventNo;
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 수정 처리 중 오류가 발생했습니다.");
+
+                        return "redirect:/business/event/update"
+                                        + "?eventNo="
+                                        + eventNo;
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 연장 화면
+         *
+         * 관리자 승인이 완료된 APPROVED 이벤트만 연장할 수 있다.
          * =========================================================
          */
         @GetMapping("/event/extend")
         public String eventExtend(
-                        Model model) {
+                        @RequestParam(value = "eventNo", required = false) Long eventNo,
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                model.addAttribute(
-                                "activeMenu",
-                                "eventExtend");
+                if (eventNo == null
+                                || eventNo <= 0) {
 
-                return "business/event/eventExtend";
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "연장할 이벤트를 선택해주세요.");
+
+                        return "redirect:/business/event/list";
+                }
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                try {
+
+                        EventManageVO event = businessService.getApprovedEventForBusiness(
+                                        eventNo,
+                                        business.getBusinessNo());
+
+                        model.addAttribute(
+                                        "business",
+                                        business);
+
+                        model.addAttribute(
+                                        "event",
+                                        event);
+
+                        model.addAttribute(
+                                        "activeMenu",
+                                        "eventExtend");
+
+                        return "business/event/eventExtend";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/event/list";
+                }
+        }
+
+        /*
+         * =========================================================
+         * 이벤트 연장 처리
+         *
+         * APPROVED 상태 이벤트의 END_DATE를 즉시 변경한다.
+         * 현재 연장 요청 테이블과 사유 컬럼이 없으므로
+         * 연장 사유는 서버 콘솔 로그로만 확인한다.
+         * =========================================================
+         */
+        @PostMapping("/event/extend")
+        public String eventExtendProcess(
+                        @RequestParam("eventNo") long eventNo,
+
+                        @RequestParam("extendEndDate") LocalDate extendEndDate,
+
+                        @RequestParam("extendReason") String extendReason,
+
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(
+                                session);
+
+                if (memberNo == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                                                        + "다시 로그인해주세요.");
+
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                memberNo);
+
+                if (business == null) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                        return "redirect:/";
+                }
+
+                try {
+
+                        businessService.extendApprovedEvent(
+                                        eventNo,
+                                        business.getBusinessNo(),
+                                        extendEndDate,
+                                        extendReason);
+
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "이벤트 종료일이 연장되었습니다.");
+
+                        return "redirect:/business/event/list";
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/business/event/extend"
+                                        + "?eventNo="
+                                        + eventNo;
+
+                } catch (Exception e) {
+
+                        e.printStackTrace();
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 연장 처리 중 오류가 발생했습니다.");
+
+                        return "redirect:/business/event/extend"
+                                        + "?eventNo="
+                                        + eventNo;
+                }
         }
 
         /*

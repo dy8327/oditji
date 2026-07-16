@@ -56,19 +56,25 @@ public class MemberController {
                         Model model,
                         RedirectAttributes redirectAttributes) {
 
-                System.out.println("===== 회원가입 요청 들어옴 =====");
+                System.out.println(
+                                "===== 회원가입 요청 들어옴 =====");
+
                 System.out.println(
                                 "memberId = "
                                                 + memberVO.getMemberId());
+
                 System.out.println(
                                 "memberName = "
                                                 + memberVO.getMemberName());
+
                 System.out.println(
                                 "nickname = "
                                                 + memberVO.getNickname());
+
                 System.out.println(
                                 "email = "
                                                 + memberVO.getEmail());
+
                 System.out.println(
                                 "ottList = "
                                                 + ottList);
@@ -205,83 +211,124 @@ public class MemberController {
          *
          * - 정지(BLOCKED) 회원: 안내 팝업만 노출한다.
          * - 탈퇴(WITHDRAWN) 회원: ID/PW가 이미 일치했다는 것 자체가 본인 인증이므로,
-         *   세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
+         * 세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
          */
         @PostMapping("/login")
         public String login(
-                MemberVO memberVO,
-                HttpSession session,
-                RedirectAttributes redirectAttributes) {
+                        MemberVO memberVO,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
 
-        try {
+                try {
 
-                MemberVO loginMember = memberService.loginMember(memberVO);
+                        MemberVO loginMember = memberService.loginMember(
+                                        memberVO);
 
-                if (loginMember == null) {
-                redirectAttributes.addFlashAttribute(
-                        "message",
-                        "아이디 또는 비밀번호가 일치하지 않습니다.");
+                        if (loginMember == null) {
 
-                return "redirect:/member/login";
+                                redirectAttributes.addFlashAttribute(
+                                                "message",
+                                                "아이디 또는 비밀번호가 일치하지 않습니다.");
+
+                                return "redirect:/member/login";
+                        }
+
+                        session.setAttribute(
+                                        "loginMember",
+                                        loginMember);
+
+                        session.setAttribute(
+                                        "memberNo",
+                                        loginMember.getMemberNo());
+
+                        session.setAttribute(
+                                        "memberId",
+                                        loginMember.getMemberId());
+
+                        session.setAttribute(
+                                        "memberName",
+                                        loginMember.getMemberName());
+
+                        session.setAttribute(
+                                        "nickname",
+                                        loginMember.getNickname());
+
+                        session.setAttribute(
+                                        "role",
+                                        loginMember.getRole());
+
+                        String displayName = loginMember.getMemberName();
+
+                        if (displayName == null
+                                        || displayName.isBlank()) {
+
+                                displayName = loginMember.getNickname();
+                        }
+
+                        if (displayName == null
+                                        || displayName.isBlank()) {
+
+                                displayName = "회원";
+                        }
+
+                        session.setAttribute(
+                                        "loginDisplayName",
+                                        displayName);
+
+                        String redirectUrl = (String) session.getAttribute(
+                                        LOGIN_REDIRECT_SESSION_KEY);
+
+                        session.removeAttribute(
+                                        LOGIN_REDIRECT_SESSION_KEY);
+
+                        if (redirectUrl == null
+                                        || redirectUrl.isBlank()) {
+
+                                return "redirect:/";
+                        }
+
+                        return "redirect:"
+                                        + redirectUrl;
+
+                } catch (MemberBlockedException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "blockedMessage",
+                                        e.getMessage());
+
+                        return "redirect:/member/login";
+
+                } catch (MemberWithdrawnException e) {
+
+                        /*
+                         * DAO의 loginMember 조회는 MEMBER_ID + MEMBER_PW가 일치해야만
+                         * row를 반환하므로, 이 예외가 발생한 시점에는 이미 비밀번호 인증이
+                         * 끝난 상태다. 따라서 복구 시 비밀번호를 다시 묻지 않고
+                         * 세션에 회원번호만 저장해 /member/restore에서 신뢰한다.
+                         */
+                        session.setAttribute(
+                                        "restoreMemberNo",
+                                        e.getMemberNo());
+
+                        session.setAttribute(
+                                        "restoreProvider",
+                                        "LOCAL");
+
+                        redirectAttributes.addFlashAttribute(
+                                        "withdrawnMessage",
+                                        WithdrawPolicy.buildWithdrawnMessage(
+                                                        e.getWithdrawnAt()));
+
+                        return "redirect:/member/login";
+
+                } catch (IllegalStateException e) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
+
+                        return "redirect:/member/login";
                 }
-
-                session.setAttribute("loginMember", loginMember);
-                session.setAttribute("memberNo", loginMember.getMemberNo());
-                session.setAttribute("memberId", loginMember.getMemberId());
-                session.setAttribute("memberName", loginMember.getMemberName());
-                session.setAttribute("nickname", loginMember.getNickname());
-                session.setAttribute("role", loginMember.getRole());
-
-                String displayName = loginMember.getMemberName();
-
-                if (displayName == null || displayName.isBlank()) {
-                displayName = loginMember.getNickname();
-                }
-
-                if (displayName == null || displayName.isBlank()) {
-                displayName = "회원";
-                }
-
-                session.setAttribute("loginDisplayName", displayName);
-
-                String redirectUrl =
-                        (String) session.getAttribute(LOGIN_REDIRECT_SESSION_KEY);
-
-                session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
-
-                if (redirectUrl == null || redirectUrl.isBlank()) {
-                return "redirect:/";
-                }
-
-                return "redirect:" + redirectUrl;
-
-        } catch (MemberBlockedException e) {
-
-                redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
-                return "redirect:/member/login";
-
-        } catch (MemberWithdrawnException e) {
-
-                /*
-                 * DAO의 loginMember 조회는 MEMBER_ID + MEMBER_PW가 일치해야만
-                 * row를 반환하므로, 이 예외가 발생한 시점에는 이미 비밀번호 인증이
-                 * 끝난 상태다. 따라서 복구 시 비밀번호를 다시 묻지 않고
-                 * 세션에 회원번호만 저장해 /member/restore에서 신뢰한다.
-                 */
-                session.setAttribute("restoreMemberNo", e.getMemberNo());
-                session.setAttribute("restoreProvider", "LOCAL");
-
-                redirectAttributes.addFlashAttribute(
-                        "withdrawnMessage",
-                        WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
-
-                return "redirect:/member/login";
-
-        } catch (IllegalStateException e) {
-
-                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-                return "redirect:/member/login";
-        }
         }
 
         /**
@@ -297,7 +344,8 @@ public class MemberController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Object restoreNoObj = session.getAttribute("restoreMemberNo");
+                Object restoreNoObj = session.getAttribute(
+                                "restoreMemberNo");
 
                 if (restoreNoObj == null) {
 
@@ -312,19 +360,27 @@ public class MemberController {
 
                 try {
 
-                        memberService.restoreMember(memberNo);
+                        memberService.restoreMember(
+                                        memberNo);
 
-                        session.removeAttribute("restoreMemberNo");
-                        session.removeAttribute("restoreProvider");
+                        session.removeAttribute(
+                                        "restoreMemberNo");
+
+                        session.removeAttribute(
+                                        "restoreProvider");
 
                         redirectAttributes.addFlashAttribute(
                                         "restoredMessage",
                                         "계정이 복구되었습니다. 다시 로그인해주세요.");
 
-                } catch (IllegalStateException | IllegalArgumentException e) {
+                } catch (IllegalStateException
+                                | IllegalArgumentException e) {
 
-                        session.removeAttribute("restoreMemberNo");
-                        session.removeAttribute("restoreProvider");
+                        session.removeAttribute(
+                                        "restoreMemberNo");
+
+                        session.removeAttribute(
+                                        "restoreProvider");
 
                         redirectAttributes.addFlashAttribute(
                                         "errorMessage",
@@ -464,6 +520,19 @@ public class MemberController {
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
 
+                /*
+                 * 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지한다.
+                 */
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
+                        return "redirect:/member/login";
+                }
+
+                /*
+                 * 클라이언트가 전달한 memberNo를 신뢰하지 않고
+                 * 로그인 세션의 회원번호를 사용한다.
+                 */
                 memberVO.setMemberNo(
                                 loginMember.getMemberNo());
 
@@ -481,7 +550,8 @@ public class MemberController {
                                                 "현재 비밀번호를 입력해주세요.");
                         }
 
-                        if (!newPw.equals(newPwCheck)) {
+                        if (!newPw.equals(
+                                        newPwCheck)) {
 
                                 return redirectWithError(
                                                 redirectAttributes,
@@ -560,6 +630,32 @@ public class MemberController {
                                 "loginMember",
                                 updated);
 
+                /*
+                 * 헤더 등에서 개별 세션값을 사용하고 있으므로
+                 * 수정된 닉네임도 함께 갱신한다.
+                 */
+                session.setAttribute(
+                                "nickname",
+                                updated.getNickname());
+
+                String displayName = updated.getMemberName();
+
+                if (displayName == null
+                                || displayName.isBlank()) {
+
+                        displayName = updated.getNickname();
+                }
+
+                if (displayName == null
+                                || displayName.isBlank()) {
+
+                        displayName = "회원";
+                }
+
+                session.setAttribute(
+                                "loginDisplayName",
+                                displayName);
+
                 redirectAttributes.addFlashAttribute(
                                 "message",
                                 "회원정보가 수정되었습니다.");
@@ -567,17 +663,80 @@ public class MemberController {
                 return "redirect:/member/mypage";
         }
 
+        /**
+         * 회원정보 수정용 닉네임 중복확인
+         *
+         * 브라우저에서 전달하는 memberNo는 값이 비어 있거나
+         * 다른 회원번호로 조작될 수 있으므로 사용하지 않는다.
+         *
+         * 로그인 세션의 loginMember에서 현재 회원번호를 꺼내
+         * 자기 자신을 제외한 닉네임 중복 여부를 검사한다.
+         */
         @GetMapping("/checkUpdateNickname")
         @ResponseBody
         public String checkUpdateNickname(
-                        @RequestParam String nickname,
-                        @RequestParam Long memberNo) {
+                        @RequestParam("nickname") String nickname,
+                        HttpSession session) {
 
-                boolean result = memberService.checkUpdateNickname(
+                System.out.println(
+                                "===== 회원정보 수정 닉네임 중복확인 요청 =====");
+
+                System.out.println(
+                                "nickname = "
+                                                + nickname);
+
+                /*
+                 * 현재 로그인한 회원 정보를 세션에서 조회한다.
+                 */
+                MemberVO loginMember = (MemberVO) session.getAttribute(
+                                "loginMember");
+
+                /*
+                 * 로그인 세션이 없거나 회원번호가 없다면
+                 * 정상적인 중복확인을 진행할 수 없다.
+                 */
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
+                        System.out.println(
+                                        "닉네임 중복확인 실패: 로그인 회원 정보 없음");
+
+                        return "N";
+                }
+
+                /*
+                 * 공백만 입력된 닉네임은 검사하지 않는다.
+                 */
+                if (nickname == null
+                                || nickname.isBlank()) {
+
+                        System.out.println(
+                                        "닉네임 중복확인 실패: 닉네임 값 없음");
+
+                        return "N";
+                }
+
+                String trimmedNickname = nickname.trim();
+
+                Long memberNo = loginMember.getMemberNo();
+
+                System.out.println(
+                                "로그인 회원번호 = "
+                                                + memberNo);
+
+                /*
+                 * 현재 로그인한 회원을 제외하고
+                 * 같은 닉네임을 사용하는 회원이 있는지 검사한다.
+                 */
+                boolean available = memberService.checkUpdateNickname(
                                 memberNo,
-                                nickname);
+                                trimmedNickname);
 
-                return result
+                System.out.println(
+                                "닉네임 사용 가능 여부 = "
+                                                + available);
+
+                return available
                                 ? "Y"
                                 : "N";
         }
@@ -585,11 +744,17 @@ public class MemberController {
         @GetMapping("/checkPassword")
         @ResponseBody
         public String checkPassword(
-                        @RequestParam String password,
+                        @RequestParam("password") String password,
                         HttpSession session) {
 
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
+
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
+                        return "N";
+                }
 
                 boolean result = memberService.checkPassword(
                                 loginMember.getMemberNo(),
@@ -609,6 +774,12 @@ public class MemberController {
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
 
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
+                        return "redirect:/member/login";
+                }
+
                 memberService.updateMemberOtt(
                                 loginMember.getMemberNo(),
                                 ottList);
@@ -627,7 +798,9 @@ public class MemberController {
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
 
-                if (loginMember == null) {
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
                         return "redirect:/member/login";
                 }
 
@@ -661,8 +834,8 @@ public class MemberController {
 
         @PostMapping("/findId")
         public String findIdPost(
-                        @RequestParam String memberName,
-                        @RequestParam String email,
+                        @RequestParam("memberName") String memberName,
+                        @RequestParam("email") String email,
                         Model model) {
 
                 MemberVO memberVO = new MemberVO();
@@ -699,9 +872,9 @@ public class MemberController {
 
         @PostMapping("/findPw")
         public String findPwPost(
-                        @RequestParam String memberId,
-                        @RequestParam String memberName,
-                        @RequestParam String email,
+                        @RequestParam("memberId") String memberId,
+                        @RequestParam("memberName") String memberName,
+                        @RequestParam("email") String email,
                         Model model) {
 
                 MemberVO memberVO = new MemberVO();
@@ -745,7 +918,8 @@ public class MemberController {
         private String extractPreviousUrl(
                         HttpServletRequest request) {
 
-                String referer = request.getHeader("Referer");
+                String referer = request.getHeader(
+                                "Referer");
 
                 return normalizeRedirectUrl(
                                 referer,
@@ -807,7 +981,8 @@ public class MemberController {
                          */
                         if (contextPath != null
                                         && !contextPath.isBlank()
-                                        && path.startsWith(contextPath)) {
+                                        && path.startsWith(
+                                                        contextPath)) {
 
                                 path = path.substring(
                                                 contextPath.length());
@@ -818,7 +993,8 @@ public class MemberController {
                         }
 
                         if (!path.startsWith("/")) {
-                                path = "/" + path;
+                                path = "/"
+                                                + path;
                         }
 
                         String query = uri.getRawQuery();
@@ -899,6 +1075,7 @@ public class MemberController {
                 int queryIndex = path.indexOf("?");
 
                 if (queryIndex >= 0) {
+
                         path = path.substring(
                                         0,
                                         queryIndex);
