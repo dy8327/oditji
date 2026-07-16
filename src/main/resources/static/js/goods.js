@@ -185,18 +185,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function initializeCartButton() {
 
-        const cartButton =
-            document.querySelector(
-                ".detail-info .cart-btn"
-            );
-
-        if (!cartButton) {
-            return;
-        }
-
-        cartButton.addEventListener(
+        document.addEventListener(
             "click",
-            async function () {
+            async function (event) {
+
+                const cartButton =
+                    event.target.closest(
+                        ".cart-btn"
+                    );
+
+                if (!cartButton
+                        || cartButton.disabled) {
+
+                    return;
+                }
 
                 const productNo =
                     Number(
@@ -330,11 +332,117 @@ document.addEventListener("DOMContentLoaded", function () {
 
         buyButton.addEventListener(
             "click",
-            function () {
+            async function () {
 
-                alert(
-                    "바로 구매 기능은 주문 로직과 연결 후 사용할 수 있습니다."
-                );
+                const productNo =
+                    Number(
+                        buyButton.dataset.productNo
+                    );
+
+                if (!Number.isInteger(productNo)
+                        || productNo <= 0) {
+
+                    alert(
+                        "상품 정보가 올바르지 않습니다."
+                    );
+
+                    return;
+                }
+
+                buyButton.disabled = true;
+
+                const originalText =
+                    buyButton.textContent;
+
+                buyButton.textContent =
+                    "처리 중...";
+
+                try {
+
+                    const response =
+                        await fetch(
+                            contextPath
+                                + "/order/direct",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        {
+                                            productNo:
+                                                productNo,
+
+                                            quantity:
+                                                1
+                                        }
+                                    )
+                            }
+                        );
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "HTTP "
+                                + response.status
+                        );
+                    }
+
+                    const result =
+                        await response.json();
+
+                    if (result.loginRequired) {
+
+                        const currentUrl =
+                            window.location.pathname
+                            + window.location.search;
+
+                        window.location.href =
+                            contextPath
+                            + "/member/login?redirect="
+                            + encodeURIComponent(
+                                currentUrl
+                            );
+
+                        return;
+                    }
+
+                    if (!result.success) {
+
+                        alert(
+                            result.message
+                                || "주문서 작성에 실패했습니다."
+                        );
+
+                        return;
+                    }
+
+                    window.location.href =
+                        contextPath
+                        + (
+                            result.redirectUrl
+                                || "/order"
+                        );
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    alert(
+                        "바로 구매 처리 중 오류가 발생했습니다."
+                    );
+
+                } finally {
+
+                    buyButton.disabled = false;
+
+                    buyButton.textContent =
+                        originalText;
+                }
             }
         );
     }
