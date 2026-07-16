@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.order.dao.OrderDAO">
+
+    <!-- =====================================================
+         주문서 작성용 상품 정보 매핑
+         (selectProductForOrder / selectCartItemsForOrder 공용)
+    ====================================================== -->
+    <resultMap id="orderSheetItemResultMap"
+               type="com.project.oditji.order.vo.OrderSheetItemVO">
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="cartItemNo"
+                column="CART_ITEM_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         주문(ORDERS) 매핑
+    ====================================================== -->
+    <resultMap id="orderResultMap"
+               type="com.project.oditji.order.vo.OrderVO">
+
+        <id property="orderNo"
+            column="ORDER_NO"/>
+
+        <result property="memberNo"
+                column="MEMBER_NO"/>
+
+        <result property="totalAmount"
+                column="TOTAL_AMOUNT"/>
+
+        <result property="orderStatus"
+                column="ORDER_STATUS"/>
+
+        <result property="receiverName"
+                column="RECEIVER_NAME"/>
+
+        <result property="receiverPhone"
+                column="RECEIVER_PHONE"/>
+
+        <result property="address"
+                column="ADDRESS"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         주문 상세(ORDER_ITEM) 매핑
+    ====================================================== -->
+    <resultMap id="orderItemResultMap"
+               type="com.project.oditji.order.vo.OrderItemVO">
+
+        <id property="orderItemNo"
+            column="ORDER_ITEM_NO"/>
+
+        <result property="orderNo"
+                column="ORDER_NO"/>
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="productPrice"
+                column="PRODUCT_PRICE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         상품 대표 이미지 조인 (goodsMapper / cartMapper와 동일 패턴)
+    ====================================================== -->
+    <sql id="mainImageJoin">
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
+
+    <!-- =====================================================
+         바로 구매용 상품 단건 조회
+    ====================================================== -->
+    <select id="selectProductForOrder"
+            resultMap="orderSheetItemResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE P.PRODUCT_NO = #{productNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         장바구니 선택 상품 주문서 작성용 조회
+         (로그인 회원 소유의 장바구니 상품만 조회)
+    ====================================================== -->
+    <select id="selectCartItemsForOrder"
+            resultMap="orderSheetItemResultMap">
+
+        SELECT
+            CI.CART_ITEM_NO,
+            CI.QUANTITY,
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM CART_ITEM CI
+
+        INNER JOIN CART C
+            ON C.CART_NO = CI.CART_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = CI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE C.MEMBER_NO = #{memberNo}
+
+          AND CI.CART_ITEM_NO IN
+
+        <foreach collection="cartItemNos"
+                 item="cartItemNo"
+                 open="("
+                 separator=","
+                 close=")">
+
+            #{cartItemNo}
+
+        </foreach>
+
+    </select>
+
+
+    <!-- =====================================================
+         주문 생성
+    ====================================================== -->
+    <insert id="insertOrder"
+            parameterType="com.project.oditji.order.vo.OrderVO">
+
+        <selectKey keyProperty="orderNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_ORDER_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO ORDERS (
+            ORDER_NO,
+            MEMBER_NO,
+            TOTAL_AMOUNT,
+            ORDER_STATUS,
+            RECEIVER_NAME,
+            RECEIVER_PHONE,
+            ADDRESS,
+            CREATED_AT
+        )
+        VALUES (
+            #{orderNo},
+            #{memberNo},
+            #{totalAmount},
+            #{orderStatus},
+            #{receiverName},
+            #{receiverPhone},
+            #{address},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         주문 상세 생성
+    ====================================================== -->
+    <insert id="insertOrderItem"
+            parameterType="com.project.oditji.order.vo.OrderItemVO">
+
+        <selectKey keyProperty="orderItemNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_ORDER_ITEM_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO ORDER_ITEM (
+            ORDER_ITEM_NO,
+            ORDER_NO,
+            PRODUCT_NO,
+            BUSINESS_NO,
+            PRODUCT_PRICE,
+            QUANTITY,
+            STATUS
+        )
+        VALUES (
+            #{orderItemNo},
+            #{orderNo},
+            #{productNo},
+            #{businessNo},
+            #{productPrice},
+            #{quantity},
+            #{status}
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         주문 확정 시 재고 차감
+         WHERE 절에 재고 조건을 포함해 동시성 문제로 인한
+         재고 초과 차감(음수 재고)을 방지한다.
+    ====================================================== -->
+    <update id="decreaseProductStock">
+
+        UPDATE PRODUCT
+
+        SET STOCK = STOCK - #{quantity}
+
+        WHERE PRODUCT_NO = #{productNo}
+          AND STOCK >= #{quantity}
+
+    </update>
+
+
+    <!-- =====================================================
+         로그인 회원의 주문 목록 (헤더)
+    ====================================================== -->
+    <select id="selectOrderListByMember"
+            resultMap="orderResultMap">
+
+        SELECT
+            ORDER_NO,
+            MEMBER_NO,
+            TOTAL_AMOUNT,
+            ORDER_STATUS,
+            RECEIVER_NAME,
+            RECEIVER_PHONE,
+            ADDRESS,
+            CREATED_AT
+        FROM ORDERS
+        WHERE MEMBER_NO = #{memberNo}
+        ORDER BY
+            CREATED_AT DESC,
+            ORDER_NO DESC
+
+    </select>
+
+
+    <!-- =====================================================
+         로그인 회원의 전체 주문 상세 목록
+         (서비스 계층에서 ORDER_NO 기준으로 그룹핑)
+    ====================================================== -->
+    <select id="selectOrderItemListByMember"
+            resultMap="orderItemResultMap">
+
+        SELECT
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            OI.BUSINESS_NO,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            OI.STATUS,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM ORDER_ITEM OI
+
+        INNER JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = OI.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE O.MEMBER_NO = #{memberNo}
+
+        ORDER BY
+            OI.ORDER_NO DESC,
+            OI.ORDER_ITEM_NO ASC
+
+    </select>
+
+
+    <!-- =====================================================
+         주문 단건 조회 (로그인 회원 소유 검증 포함)
+    ====================================================== -->
+    <select id="selectOrderByMember"
+            resultMap="orderResultMap">
+
+        SELECT
+            ORDER_NO,
+            MEMBER_NO,
+            TOTAL_AMOUNT,
+            ORDER_STATUS,
+            RECEIVER_NAME,
+            RECEIVER_PHONE,
+            ADDRESS,
+            CREATED_AT
+        FROM ORDERS
+        WHERE MEMBER_NO = #{memberNo}
+          AND ORDER_NO = #{orderNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         특정 주문의 주문 상세 목록
+    ====================================================== -->
+    <select id="selectOrderItemListByOrderNo"
+            resultMap="orderItemResultMap">
+
+        SELECT
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            OI.BUSINESS_NO,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            OI.STATUS,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM ORDER_ITEM OI
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = OI.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE OI.ORDER_NO = #{orderNo}
+
+        ORDER BY OI.ORDER_ITEM_NO ASC
+
+    </select>
+
+</mapper>
