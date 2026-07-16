@@ -1,0 +1,53 @@
+.mypage-review-tabs{
+    display:flex;
+    gap:12px;
+    margin-bottom:25px;
+}
+
+.review-tab{
+
+    padding:10px 22px;
+    border:none;
+    border-radius:30px;
+
+    background:#2d2d2d;
+    color:#bdbdbd;
+
+    cursor:pointer;
+    transition:.2s;
+}
+
+.review-tab:hover{
+
+    background:#3a3a3a;
+    color:#fff;
+
+}
+
+.review-tab.active{
+
+    background:#6d4aff;
+    color:#fff;
+
+}
+
+.mypage-review-filter-empty{
+
+    text-align:center;
+    padding:70px 20px;
+
+}
+
+.mypage-filter-empty-title{
+
+    margin-top:18px;
+    font-size:22px;
+
+}
+
+.mypage-filter-empty-message{
+
+    margin-top:12px;
+    color:#9d9d9d;
+
+}
