@@ -170,7 +170,7 @@ public class CartItemVO {
                 ? 0
                 : quantity;
 
-        return "ON_SALE".equals(status)
+        return "APPROVED".equals(status)
                 && currentStock > 0
                 && currentQuantity >= 1
                 && currentQuantity <= currentStock;

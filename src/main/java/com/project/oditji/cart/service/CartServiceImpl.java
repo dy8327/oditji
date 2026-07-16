@@ -189,7 +189,7 @@ public class CartServiceImpl implements CartService {
             );
         }
 
-        if (!"ON_SALE".equals(cartItem.getStatus())) {
+        if (!"APPROVED".equals(cartItem.getStatus())) {
             throw new IllegalArgumentException(
                     "현재 판매 중인 상품이 아닙니다."
             );
@@ -324,7 +324,7 @@ public class CartServiceImpl implements CartService {
             );
         }
 
-        if (!"ON_SALE".equals(product.getStatus())) {
+        if (!"APPROVED".equals(product.getStatus())) {
             throw new IllegalArgumentException(
                     "현재 판매 중인 상품이 아닙니다."
             );
