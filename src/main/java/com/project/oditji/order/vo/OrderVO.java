@@ -1,66 +1,99 @@
 package com.project.oditji.order.vo;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import com.project.oditji.cart.vo.CartItemVO;
 
 public class OrderVO {
 
-    private Long orderId;
-    private String createdAt;
-    private String status;
-    private long totalPrice;
+    private Long orderNo;
+    private Long memberNo;
+    private Long totalAmount;
+    private String orderStatus;
+    private String receiverName;
+    private String receiverPhone;
+    private String address;
+    private Date createdAt;
 
     /*
-     * 현재는 임시 화면 구성을 위해 CartItemVO를 사용한다.
-     *
-     * 이후 실제 주문 로직을 구현할 때는
-     * OrderItemVO를 별도로 만들어 교체하는 것이 좋다.
+     * 주문 목록/상세 화면 구성을 위해 서비스 계층에서 채워주는
+     * 해당 주문에 속한 상품 목록 (ORDER_ITEM 조인 결과).
+     * DB 컬럼과 직접 매핑되지 않는다.
      */
-    private List<CartItemVO> items;
+    private List<OrderItemVO> items = new ArrayList<OrderItemVO>();
 
     public OrderVO() {
     }
 
-    public Long getOrderId() {
-        return orderId;
+    public Long getOrderNo() {
+        return orderNo;
     }
 
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
+    public void setOrderNo(Long orderNo) {
+        this.orderNo = orderNo;
     }
 
-    public String getCreatedAt() {
+    public Long getMemberNo() {
+        return memberNo;
+    }
+
+    public void setMemberNo(Long memberNo) {
+        this.memberNo = memberNo;
+    }
+
+    public Long getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Long totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public String getOrderStatus() {
+        return orderStatus;
+    }
+
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
+
+    public String getReceiverPhone() {
+        return receiverPhone;
+    }
+
+    public void setReceiverPhone(String receiverPhone) {
+        this.receiverPhone = receiverPhone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public long getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(long totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public List<CartItemVO> getItems() {
+    public List<OrderItemVO> getItems() {
         return items;
     }
 
-    public void setItems(
-            List<CartItemVO> items) {
-
-        this.items = items;
+    public void setItems(List<OrderItemVO> items) {
+        this.items = items == null ? new ArrayList<OrderItemVO>() : items;
     }
 }
