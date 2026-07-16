@@ -7,10 +7,12 @@ import com.project.oditji.favorite.vo.FavoriteVO;
 
 public interface FavoriteService {
 
-    // 찜 토글
-    boolean toggleFavorite(FavoriteVO favoriteVO);
+    boolean toggleFavorite(
+            FavoriteVO favoriteVO);
 
-    // 내 찜 목록 조회
-    List<ContentVO> selectFavoriteList(Long memberNo);
+    boolean isFavorite(
+            FavoriteVO favoriteVO);
 
+    List<ContentVO> selectFavoriteList(
+            Long memberNo);
 }
