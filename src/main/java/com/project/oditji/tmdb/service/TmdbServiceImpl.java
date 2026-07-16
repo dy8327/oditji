@@ -35,7 +35,8 @@ import com.project.oditji.tmdb.vo.TmdbVO;
 @Service
 public class TmdbServiceImpl implements TmdbService {
 
-    private static final int LOAD_PAGE_COUNT = 10;
+    private static final int MOVIE_LOAD_PAGE_COUNT = 10;
+    private static final int TV_LOAD_PAGE_COUNT = 15;
     private static final int CAST_SAVE_LIMIT = 5;
     private static final int MAIN_POPULAR_LIMIT = 5;
     private static final int MAIN_SLIDER_LIMIT = 20;
@@ -72,15 +73,24 @@ public class TmdbServiceImpl implements TmdbService {
 
     @Override
     public int loadMovieData() {
-        return loadBasicData("movie", "MOVIE");
+        return loadBasicData(
+                "movie",
+                "MOVIE",
+                MOVIE_LOAD_PAGE_COUNT);
     }
 
     @Override
     public int loadTvData() {
-        return loadBasicData("tv", "TV");
+        return loadBasicData(
+                "tv",
+                "TV",
+                TV_LOAD_PAGE_COUNT);
     }
 
-    private int loadBasicData(String apiType, String contentType) {
+    private int loadBasicData(
+            String apiType,
+            String contentType,
+            int loadPageCount) {
 
         int saveCount = 0;
         String providerIds = getSupportedProviderIdText(apiType, null);
@@ -89,7 +99,7 @@ public class TmdbServiceImpl implements TmdbService {
             return 0;
         }
 
-        for (int page = 1; page <= LOAD_PAGE_COUNT; page++) {
+        for (int page = 1; page <= loadPageCount; page++) {
 
             String url = tmdbApiBaseUrl
                     + "/discover/" + apiType

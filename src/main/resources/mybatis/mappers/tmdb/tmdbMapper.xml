@@ -19,6 +19,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <!-- =====================================================
+         콘텐츠 유형별 현재 저장 개수
+    ====================================================== -->
+    <select id="countContentByType"
+            parameterType="string"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM CONTENT
+        WHERE CONTENT_TYPE = #{contentType}
+
+    </select>
+
+    <!-- =====================================================
          CONTENT 기본 저장
     ====================================================== -->
     <insert id="insertContent"
@@ -110,46 +123,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
         SELECT PLATFORM_NO
         FROM OTT_PLATFORM
-        WHERE LOWER(
-                REPLACE(
-                    REPLACE(
-                        REPLACE(
-                            REPLACE(
-                                TRIM(PLATFORM_NAME),
-                                ' ',
-                                ''
-                            ),
-                            '_',
-                            ''
-                        ),
-                        '-',
-                        ''
-                    ),
-                    '+',
-                    ''
-                )
-            )
-            =
-            LOWER(
-                REPLACE(
-                    REPLACE(
-                        REPLACE(
-                            REPLACE(
-                                TRIM(#{platformName}),
-                                ' ',
-                                ''
-                            ),
-                            '_',
-                            ''
-                        ),
-                        '-',
-                        ''
-                    ),
-                    '+',
-                    ''
-                )
-            )
-        AND IS_ACTIVE = 'Y'
+        WHERE PLATFORM_NAME = #{platformName}
+          AND IS_ACTIVE = 'Y'
 
     </select>
 
