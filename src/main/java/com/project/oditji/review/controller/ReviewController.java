@@ -29,7 +29,7 @@ public class ReviewController {
      * 마이페이지 "내가 작성한 리뷰" 클릭 시 진입.
      * 콘텐츠 리뷰 + 상품 리뷰를 합쳐서 보여준다.
      */
-    @GetMapping("/contentReviewList")
+    @GetMapping("/myReviewList")
     public String myReviewList(HttpSession session, Model model) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
