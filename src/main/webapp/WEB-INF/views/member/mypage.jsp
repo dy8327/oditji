@@ -322,7 +322,7 @@
 
 
 
-        <a href="${pageContext.request.contextPath}/review/contentReviewList"
+        <a href="${pageContext.request.contextPath}/review/myReviewList"
            class="mypage-activity-card">
 
             <div class="mypage-activity-icon">
