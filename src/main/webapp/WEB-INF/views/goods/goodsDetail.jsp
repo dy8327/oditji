@@ -244,7 +244,7 @@
         <article class="content-card">
 
             <a class="content-card__link"
-               href="${pageContext.request.contextPath}/content/detail/${content.contentNo}">
+               href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">
 
                 <div class="content-card__poster">
 

@@ -17,6 +17,9 @@ public interface TmdbDAO {
             @Param("tmdbId") Long tmdbId,
             @Param("contentType") String contentType);
 
+    int countContentByType(
+            @Param("contentType") String contentType);
+
     int insertContent(TmdbVO vo);
 
     List<TmdbVO> selectContentList();

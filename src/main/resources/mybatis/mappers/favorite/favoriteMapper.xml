@@ -18,6 +18,23 @@
     </select>
 
 
+    <!-- TMDB ID + 콘텐츠 유형으로 찜 여부 확인
+         CONTENT가 DB에 없는 경우에는 0을 반환하며 저장하지 않는다. -->
+    <select id="countFavoriteByTmdb"
+            parameterType="com.project.oditji.favorite.vo.FavoriteVO"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM FAVORITE F
+        JOIN CONTENT C
+          ON C.CONTENT_NO = F.CONTENT_NO
+        WHERE F.MEMBER_NO = #{memberNo}
+          AND C.TMDB_ID = #{tmdbId}
+          AND UPPER(C.CONTENT_TYPE) = UPPER(#{contentType})
+
+    </select>
+
+
     <!-- 찜 추가 -->
     <insert id="insertFavorite"
             parameterType="com.project.oditji.favorite.vo.FavoriteVO">

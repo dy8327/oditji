@@ -24,6 +24,8 @@ public interface ContentDAO {
 
     List<OttPlatformVO> selectOttPlatformListByContentNo(int contentNo);
 
+    List<ContentVO> selectRelatedContentCandidates(Map<String, Object> param);
+
     List<ContentVO> selectMainContentList();
 
     List<ContentVO> selectContentListByType(Map<String, Object> param);

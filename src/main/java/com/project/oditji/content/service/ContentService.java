@@ -22,6 +22,8 @@ public interface ContentService {
 
     List<OttPlatformVO> getOttPlatformListByContentNo(int contentNo);
 
+    List<ContentVO> getRelatedContentList(int contentNo);
+
     PersonFilmographyVO getPersonFilmography(
             Long tmdbPersonId,
             String role);

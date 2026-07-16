@@ -16,7 +16,10 @@
     <title>ODITJI | ${pageTitle}</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content.css?v=21">
+          href="${pageContext.request.contextPath}/css/content.css?v=22">
+
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/contentTopTabs.css?v=1">
 
 <script>
     const contextPath = "${pageContext.request.contextPath}";
@@ -28,7 +31,7 @@
 <script defer
         src="${pageContext.request.contextPath}/js/favorite.js"></script>
     <script defer
-            src="${pageContext.request.contextPath}/js/contentList.js?v=2">
+            src="${pageContext.request.contextPath}/js/contentList.js?v=3">
     </script>
 </head>
 
@@ -38,48 +41,9 @@
 
 <main class="content-list-page">
 
-    <nav class="content-list-tabs"
-         aria-label="콘텐츠 목록 분류">
-
-        <c:url var="allListUrl"
-               value="/content/list">
-            <c:param name="type"
-                     value="all"/>
-        </c:url>
-
-        <c:url var="popularListUrl"
-               value="/content/list">
-            <c:param name="type"
-                     value="popular"/>
-        </c:url>
-
-        <c:url var="newListUrl"
-               value="/content/list">
-            <c:param name="type"
-                     value="new"/>
-        </c:url>
-
-        <a class="content-list-tab ${type eq 'all' ? 'is-active' : ''}"
-           href="${allListUrl}">
-            영화·시리즈
-        </a>
-
-        <a class="content-list-tab ${type eq 'popular' ? 'is-active' : ''}"
-           href="${popularListUrl}">
-            인기
-        </a>
-
-        <a class="content-list-tab ${type eq 'new' ? 'is-active' : ''}"
-           href="${newListUrl}">
-            신규
-        </a>
-
-        <a class="content-list-tab"
-           href="${pageContext.request.contextPath}/goods/list">
-            상품
-        </a>
-
-    </nav>
+    <jsp:include page="/WEB-INF/views/common/contentTopTabs.jsp">
+        <jsp:param name="activeTab" value="${type}"/>
+    </jsp:include>
 
     <div class="content-list-layout">
 
@@ -134,6 +98,17 @@
                                              value="${content.contentType}"/>
 
                                 </c:url>
+
+                                <button type="button"
+                                        class="content-list-favorite-btn"
+                                        data-content-list-favorite
+                                        data-tmdb-id="${content.tmdbId}"
+                                        data-content-type="${content.contentType}"
+                                        aria-pressed="false"
+                                        aria-label="<c:out value='${content.title}'/> 찜하기"
+                                        title="찜하기">
+                                    <span aria-hidden="true">♡</span>
+                                </button>
 
                                 <a class="content-list-card-link"
                                    href="${detailUrl}">

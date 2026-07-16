@@ -69,6 +69,15 @@ public class ContentDAOImpl implements ContentDAO {
     }
 
     @Override
+    public List<ContentVO> selectRelatedContentCandidates(
+            Map<String, Object> param) {
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectRelatedContentCandidates",
+                param);
+    }
+
+    @Override
     public List<ContentVO> selectMainContentList() {
         return sqlSession.selectList(NAMESPACE + "selectMainContentList");
     }

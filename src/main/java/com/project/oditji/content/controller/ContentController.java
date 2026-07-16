@@ -1,12 +1,10 @@
 package com.project.oditji.content.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
-
-import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +19,8 @@ import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.favorite.service.FavoriteService;
+import com.project.oditji.favorite.vo.FavoriteVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ContentReviewVO;
@@ -30,6 +30,7 @@ import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/content")
@@ -37,13 +38,16 @@ public class ContentController {
 
     private final ContentService contentService;
     private final ReviewService reviewService;
+    private final FavoriteService favoriteService;
 
     public ContentController(
             ContentService contentService,
-            ReviewService reviewService) {
+            ReviewService reviewService,
+            FavoriteService favoriteService) {
 
         this.contentService = contentService;
         this.reviewService = reviewService;
+        this.favoriteService = favoriteService;
     }
 
     @GetMapping("/prepare")
@@ -62,20 +66,15 @@ public class ContentController {
 
     @GetMapping("/list")
     public String list(
-            @RequestParam(
-                    defaultValue = "all")
+            @RequestParam(defaultValue = "all")
             String type,
-            @RequestParam(
-                    defaultValue = "1")
+            @RequestParam(defaultValue = "1")
             int page,
-            @RequestParam(
-                    required = false)
+            @RequestParam(required = false)
             List<String> contentCategories,
-            @RequestParam(
-                    required = false)
+            @RequestParam(required = false)
             List<String> genreCodes,
-            @RequestParam(
-                    required = false)
+            @RequestParam(required = false)
             List<String> providerIds,
             Model model) {
 
@@ -163,7 +162,8 @@ public class ContentController {
                 contentService.getContentDetail(contentNo);
 
         if (content == null) {
-            throw new IllegalArgumentException("존재하지 않는 콘텐츠입니다.");
+            throw new IllegalArgumentException(
+                    "존재하지 않는 콘텐츠입니다.");
         }
 
         List<ActorVO> actorList =
@@ -175,7 +175,8 @@ public class ContentController {
         List<OttPlatformVO> ottList =
                 contentService.getOttPlatformListByContentNo(contentNo);
 
-        // ===== 리뷰 관련 데이터 =====
+        List<ContentVO> relatedContentList =
+                contentService.getRelatedContentList(contentNo);
 
         List<ContentReviewVO> reviewList =
                 reviewService.getContentReviewList(contentNo);
@@ -190,32 +191,66 @@ public class ContentController {
                 (MemberVO) session.getAttribute("loginMember");
 
         Long loginMemberNo =
-                loginMember == null ? null : loginMember.getMemberNo();
+                loginMember == null
+                        ? null
+                        : loginMember.getMemberNo();
 
         ReviewVO myReview =
-                reviewService.getMyReview(loginMemberNo, contentNo);
+                reviewService.getMyReview(
+                        loginMemberNo,
+                        contentNo);
 
         Set<Integer> reportedReviewSet =
-                reviewService.getReportedReviewSet(loginMemberNo);
+                reviewService.getReportedReviewSet(
+                        loginMemberNo);
+
+        boolean favoriteActive = false;
+
+        if (loginMemberNo != null) {
+
+            FavoriteVO favoriteVO =
+                    new FavoriteVO();
+
+            favoriteVO.setMemberNo(loginMemberNo);
+            favoriteVO.setContentNo((long) contentNo);
+
+            favoriteActive =
+                    favoriteService.isFavorite(favoriteVO);
+        }
 
         model.addAttribute("content", content);
         model.addAttribute("actorList", actorList);
         model.addAttribute("directorList", directorList);
         model.addAttribute("ottList", ottList);
+        model.addAttribute(
+                "relatedContentList",
+                relatedContentList);
 
         model.addAttribute("reviewList", reviewList);
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("myReview", myReview);
-        model.addAttribute("reportedReviewSet", reportedReviewSet);
+        model.addAttribute(
+                "reportedReviewSet",
+                reportedReviewSet);
+
+        model.addAttribute(
+                "favoriteActive",
+                favoriteActive);
+
+        model.addAttribute(
+                "loginRequired",
+                loginMember == null);
 
         return "content/contentDetail";
     }
 
     @GetMapping("/ott-search")
     public RedirectView redirectOttSearch(
-            @RequestParam("platformName") String platformName,
-            @RequestParam("title") String title) {
+            @RequestParam("platformName")
+            String platformName,
+            @RequestParam("title")
+            String title) {
 
         String safePlatformName =
                 platformName == null
@@ -301,8 +336,7 @@ public class ContentController {
     @GetMapping("/person/{tmdbPersonId}")
     public String personFilmography(
             @PathVariable Long tmdbPersonId,
-            @RequestParam(
-                    defaultValue = "ACTOR")
+            @RequestParam(defaultValue = "ACTOR")
             String role,
             Model model) {
 
@@ -321,13 +355,15 @@ public class ContentController {
     private String normalizeListType(
             String type) {
 
-        String value = type == null
-                ? "all"
-                : type.trim()
-                        .toLowerCase(Locale.ROOT);
+        String value =
+                type == null
+                        ? "all"
+                        : type.trim()
+                                .toLowerCase(Locale.ROOT);
 
         if ("popular".equals(value)
                 || "new".equals(value)) {
+
             return value;
         }
 
