@@ -273,6 +273,90 @@
 
 
 
+<section class="detail-section related-content-section">
+
+    <div class="related-content-header">
+        <div>
+            <h2>관련 콘텐츠 추천</h2>
+            <p>비슷한 장르와 제작진 정보를 기준으로 추천했어요.</p>
+        </div>
+    </div>
+
+    <c:choose>
+        <c:when test="${not empty relatedContentList}">
+            <div class="related-content-grid">
+
+                <c:forEach var="related" items="${relatedContentList}">
+                    <a href="${pageContext.request.contextPath}/content/contentDetail/${related.contentNo}"
+                       class="related-content-card">
+
+                        <div class="related-content-poster">
+                            <c:choose>
+                                <c:when test="${not empty related.posterPath}">
+                                    <img src="https://image.tmdb.org/t/p/w500${related.posterPath}"
+                                         alt="${related.title}">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="related-content-no-image">NO IMAGE</div>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <span class="related-content-type">
+                                <c:choose>
+                                    <c:when test="${related.contentType eq 'MOVIE'}">영화</c:when>
+                                    <c:otherwise>시리즈</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+
+                        <div class="related-content-info">
+                            <h3>${related.title}</h3>
+
+                            <div class="related-content-meta">
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${not empty related.releaseDate}">
+                                            ${related.releaseDate}
+                                        </c:when>
+                                        <c:otherwise>공개일 미정</c:otherwise>
+                                    </c:choose>
+                                </span>
+
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${not empty related.tmdbScore}">
+                                            ⭐ ${related.tmdbScore}
+                                        </c:when>
+                                        <c:otherwise>평점 없음</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+
+                            <p class="related-content-genre">
+                                <c:choose>
+                                    <c:when test="${not empty related.genreText}">
+                                        ${related.genreText}
+                                    </c:when>
+                                    <c:otherwise>장르 정보 없음</c:otherwise>
+                                </c:choose>
+                            </p>
+                        </div>
+                    </a>
+                </c:forEach>
+
+            </div>
+        </c:when>
+
+        <c:otherwise>
+            <div class="related-content-empty">
+                추천할 수 있는 관련 콘텐츠가 아직 없습니다.
+            </div>
+        </c:otherwise>
+    </c:choose>
+
+</section>
+
+
 <section class="detail-section">
 
     <h2>관련 상품</h2>

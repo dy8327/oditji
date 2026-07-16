@@ -1,7 +1,14 @@
 package com.project.oditji.content.service;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,6 +158,260 @@ public class ContentServiceImpl implements ContentService {
         return ottList == null
                 ? Collections.emptyList()
                 : ottList;
+    }
+
+    @Override
+    public List<ContentVO> getRelatedContentList(
+            int contentNo) {
+
+        ContentVO currentContent =
+                contentDAO.selectContentByContentNo(contentNo);
+
+        if (currentContent == null) {
+            return Collections.emptyList();
+        }
+
+        Map<String, Object> param =
+                new HashMap<String, Object>();
+
+        param.put("contentNo", contentNo);
+        param.put("candidateSize", 500);
+
+        List<ContentVO> candidates =
+                contentDAO.selectRelatedContentCandidates(param);
+
+        if (candidates == null || candidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final String currentCategory =
+                resolveRecommendationCategory(currentContent);
+
+        final List<String> currentGenreList =
+                splitNormalizedList(currentContent.getGenreText());
+
+        final Set<String> currentGenres =
+                new HashSet<String>(currentGenreList);
+
+        final String currentMainGenre =
+                resolveMainGenre(currentGenreList);
+
+        final Set<String> currentCast =
+                splitNormalizedValues(currentContent.getCastNames());
+
+        final Set<String> currentDirectors =
+                splitNormalizedValues(currentContent.getDirector());
+
+        List<ContentVO> sameCategoryCandidates =
+                new ArrayList<ContentVO>();
+
+        for (ContentVO candidate : candidates) {
+
+            if (currentCategory.equals(
+                    resolveRecommendationCategory(candidate))) {
+
+                sameCategoryCandidates.add(candidate);
+            }
+        }
+
+        if (sameCategoryCandidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        sameCategoryCandidates.sort(
+                Comparator
+                        .comparingInt(
+                                (ContentVO candidate) ->
+                                        calculateRelatedScore(
+                                                candidate,
+                                                currentGenres,
+                                                currentMainGenre,
+                                                currentCast,
+                                                currentDirectors))
+                        .reversed()
+                        .thenComparing(
+                                ContentVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()))
+                        .thenComparing(
+                                ContentVO::getViewCount,
+                                Comparator.reverseOrder())
+                        .thenComparing(
+                                ContentVO::getContentNo,
+                                Comparator.reverseOrder()));
+
+        int resultSize =
+                Math.min(3, sameCategoryCandidates.size());
+
+        return new ArrayList<ContentVO>(
+                sameCategoryCandidates.subList(
+                        0,
+                        resultSize));
+    }
+
+    private int calculateRelatedScore(
+            ContentVO candidate,
+            Set<String> currentGenres,
+            String currentMainGenre,
+            Set<String> currentCast,
+            Set<String> currentDirectors) {
+
+        int score = 0;
+
+        List<String> candidateGenreList =
+                splitNormalizedList(candidate.getGenreText());
+
+        Set<String> candidateGenres =
+                new HashSet<String>(candidateGenreList);
+
+        String candidateMainGenre =
+                resolveMainGenre(candidateGenreList);
+
+        if (!currentMainGenre.isEmpty()
+                && currentMainGenre.equals(candidateMainGenre)) {
+
+            score += 1000;
+        }
+
+        for (String genre : candidateGenres) {
+
+            if (currentGenres.contains(genre)) {
+                score += 50;
+            }
+        }
+
+        Set<String> candidateDirectors =
+                splitNormalizedValues(candidate.getDirector());
+
+        for (String director : candidateDirectors) {
+
+            if (currentDirectors.contains(director)) {
+                score += 30;
+            }
+        }
+
+        Set<String> candidateCast =
+                splitNormalizedValues(candidate.getCastNames());
+
+        for (String castName : candidateCast) {
+
+            if (currentCast.contains(castName)) {
+                score += 10;
+            }
+        }
+
+        return score;
+    }
+
+    private String resolveRecommendationCategory(
+            ContentVO content) {
+
+        if (content == null) {
+            return "";
+        }
+
+        String contentType =
+                normalizeValue(content.getContentType());
+
+        if ("movie".equals(contentType)) {
+            return "MOVIE";
+        }
+
+        List<String> genres =
+                splitNormalizedList(content.getGenreText());
+
+        if (genres.contains("애니메이션")) {
+            return "ANIMATION";
+        }
+
+        if (genres.contains("리얼리티")
+                || genres.contains("토크")) {
+
+            return "ENTERTAINMENT";
+        }
+
+        if (genres.contains("다큐멘터리")) {
+            return "DOCUMENTARY";
+        }
+
+        return "DRAMA";
+    }
+
+    private String resolveMainGenre(
+            List<String> genres) {
+
+        if (genres == null || genres.isEmpty()) {
+            return "";
+        }
+
+        Set<String> excludedGenres =
+                new HashSet<String>();
+
+        Collections.addAll(
+                excludedGenres,
+                "드라마",
+                "애니메이션",
+                "다큐멘터리",
+                "리얼리티",
+                "토크",
+                "연속극",
+                "키즈",
+                "tv영화",
+                "뉴스");
+
+        for (String genre : genres) {
+
+            String comparisonValue =
+                    genre.replace(" ", "");
+
+            if (!excludedGenres.contains(comparisonValue)) {
+                return genre;
+            }
+        }
+
+        return genres.get(0);
+    }
+
+    private List<String> splitNormalizedList(
+            String value) {
+
+        List<String> result =
+                new ArrayList<String>();
+
+        if (value == null || value.trim().isEmpty()) {
+            return result;
+        }
+
+        String[] tokens = value.split(",");
+
+        for (String token : tokens) {
+
+            String normalized =
+                    normalizeValue(token);
+
+            if (!normalized.isEmpty()
+                    && !result.contains(normalized)) {
+
+                result.add(normalized);
+            }
+        }
+
+        return result;
+    }
+
+    private Set<String> splitNormalizedValues(
+            String value) {
+
+        return new HashSet<String>(
+                splitNormalizedList(value));
+    }
+
+    private String normalizeValue(
+            String value) {
+
+        return value == null
+                ? ""
+                : value.trim().toLowerCase(Locale.ROOT);
     }
 
     @Override

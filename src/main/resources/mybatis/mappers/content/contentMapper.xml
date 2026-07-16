@@ -237,4 +237,54 @@
 
     </select>
 
+    <!-- =========================
+         콘텐츠 상세 관련 콘텐츠 추천 후보 조회
+         - 현재 콘텐츠 제외
+         - 영화/드라마/애니/예능/다큐 분류는 서비스에서 판별
+         - 활성 OTT가 연결된 콘텐츠만 조회
+         - 서비스에서 주 장르/전체 장르/감독/출연진 유사도를 계산
+         - 최종 3개 선정
+         ========================= -->
+    <select id="selectRelatedContentCandidates"
+            parameterType="map"
+            resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT
+            C.CONTENT_NO AS contentNo,
+            C.TMDB_ID AS tmdbId,
+            C.CONTENT_TYPE AS contentType,
+            C.TITLE AS title,
+            C.ORIGINAL_TITLE AS originalTitle,
+            C.OVERVIEW AS overview,
+            C.POSTER_PATH AS posterPath,
+            C.BACKDROP_PATH AS backdropPath,
+            C.RELEASE_DATE AS releaseDate,
+            C.GENRE_TEXT AS genreText,
+            C.RUNTIME AS runtime,
+            C.EPISODE_COUNT AS episodeCount,
+            C.DIRECTOR AS director,
+            C.CAST_NAMES AS castNames,
+            C.AGE_RATING AS ageRating,
+            C.TMDB_SCORE AS tmdbScore,
+            C.VIEW_COUNT AS viewCount,
+            C.CREATED_AT AS createdAt,
+            C.UPDATED_AT AS updatedAt
+        FROM CONTENT C
+        WHERE C.CONTENT_NO != #{contentNo}
+          AND EXISTS (
+                SELECT 1
+                FROM CONTENT_PLATFORM CP
+                INNER JOIN OTT_PLATFORM OP
+                    ON OP.PLATFORM_NO = CP.PLATFORM_NO
+                WHERE CP.CONTENT_NO = C.CONTENT_NO
+                  AND OP.IS_ACTIVE = 'Y'
+          )
+        ORDER BY
+            C.TMDB_SCORE DESC NULLS LAST,
+            C.VIEW_COUNT DESC,
+            C.CONTENT_NO DESC
+        FETCH FIRST #{candidateSize} ROWS ONLY
+
+    </select>
+
 </mapper>

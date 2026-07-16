@@ -175,6 +175,9 @@ public class ContentController {
         List<OttPlatformVO> ottList =
                 contentService.getOttPlatformListByContentNo(contentNo);
 
+        List<ContentVO> relatedContentList =
+                contentService.getRelatedContentList(contentNo);
+
         // ===== 리뷰 관련 데이터 =====
 
         List<ContentReviewVO> reviewList =
@@ -202,6 +205,7 @@ public class ContentController {
         model.addAttribute("actorList", actorList);
         model.addAttribute("directorList", directorList);
         model.addAttribute("ottList", ottList);
+        model.addAttribute("relatedContentList", relatedContentList);
 
         model.addAttribute("reviewList", reviewList);
         model.addAttribute("avgRating", avgRating);
