@@ -26,7 +26,7 @@
 
 </head>
 
-<body>
+<body data-context-path="${pageContext.request.contextPath}">
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
