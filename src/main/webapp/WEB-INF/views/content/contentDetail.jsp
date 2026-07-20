@@ -13,6 +13,9 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/content.css">
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/report.css">
+
 <script defer
         src="${pageContext.request.contextPath}/js/content.js"></script>
 

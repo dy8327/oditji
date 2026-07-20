@@ -14,7 +14,10 @@
     <title>ODITJI | 주문 내역</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/order.css">
+      href="${pageContext.request.contextPath}/css/order.css">
+
+    <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/review.css">
 
 </head>
 
