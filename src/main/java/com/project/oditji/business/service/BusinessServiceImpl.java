@@ -573,6 +573,13 @@ public class BusinessServiceImpl
                                         "이벤트 등록 정보가 없습니다.");
                 }
 
+                /*
+                 * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
+                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
+                 */
+                eventManageVO.setStatus(
+                                "WAITING");
+
                 validateEvent(
                                 eventManageVO);
 
@@ -721,11 +728,13 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 승인된 이벤트 즉시 수정
+         * 승인된 이벤트 수정 요청
          *
          * 별도 수정 요청 테이블이 없으므로
-         * EVENT와 EVENT_PRODUCT를 즉시 변경한다.
-         * 수정 후에도 APPROVED 상태를 유지한다.
+         * EVENT와 EVENT_PRODUCT의 값을 먼저 변경하고
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않는다.
          * =========================================================
          */
         @Override
@@ -747,8 +756,12 @@ public class BusinessServiceImpl
                 validateEvent(
                                 eventManageVO);
 
+                /*
+                 * 수정된 내용은 관리자 재승인을 받아야 하므로
+                 * 승인 대기 상태로 변경한다.
+                 */
                 eventManageVO.setStatus(
-                                "APPROVED");
+                                "WAITING");
 
                 /*
                  * 새 이미지를 선택하지 않은 경우 기존 이미지를 유지한다.
@@ -804,10 +817,13 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 승인된 이벤트 즉시 연장
+         * 승인된 이벤트 연장 요청
          *
          * 별도 연장 요청 테이블이 없으므로
-         * EVENT.END_DATE를 즉시 변경한다.
+         * EVENT.END_DATE를 먼저 변경하고
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않는다.
          * 연장 사유는 서버 로그로만 확인한다.
          * =========================================================
          */
@@ -852,7 +868,7 @@ public class BusinessServiceImpl
                 }
 
                 System.out.println(
-                                "===== 이벤트 즉시 연장 =====");
+                                "===== 이벤트 연장 요청 =====");
 
                 System.out.println(
                                 "이벤트 번호: "
