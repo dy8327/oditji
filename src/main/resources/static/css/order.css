@@ -1,644 +1,1039 @@
-:root{
+:root {
+  /* ---- surface & text ---- */
+  --oditji-bg: #121214;
+  --oditji-surface: #1e1e1e;
+  --oditji-surface-raised: #262629;
+  --oditji-border: #313136;
+  --oditji-text: #f3f3f3;
+  --oditji-text-muted: #a6a6ab;
+  --oditji-text-faint: #6f6f75;
 
-    /* ---- surface & text ---- */
-    --oditji-bg:            #121214;
-    --oditji-surface:       #1e1e1e;
-    --oditji-surface-raised:#262629;
-    --oditji-border:        #313136;
-    --oditji-text:          #f3f3f3;
-    --oditji-text-muted:    #a6a6ab;
-    --oditji-text-faint:    #6f6f75;
+  /* ---- accent ---- */
+  --oditji-accent: #4caf50;
+  --oditji-accent-strong: #3f9942;
+  --oditji-accent-soft: rgba(76, 175, 80, 0.14);
+  --oditji-danger: #e2585d;
+  --oditji-danger-soft: rgba(226, 88, 93, 0.12);
 
-    /* ---- accent ---- */
-    --oditji-accent:        #4caf50;
-    --oditji-accent-strong: #3f9942;
-    --oditji-accent-soft:   rgba(76, 175, 80, .14);
-    --oditji-danger:        #e2585d;
-    --oditji-danger-soft:   rgba(226, 88, 93, .12);
+  /* ---- shape & motion ---- */
+  --oditji-radius-lg: 12px;
+  --oditji-radius-sm: 8px;
+  --oditji-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 
-    /* ---- shape & motion ---- */
-    --oditji-radius-lg: 12px;
-    --oditji-radius-sm: 8px;
-    --oditji-ease: cubic-bezier(.2, .7, .3, 1);
+  /* ---- type ---- */
+  --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 
-    /* ---- type ---- */
-    --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont,
-                 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular,
-                 Menlo, Consolas, monospace;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* =====================================================
    PAGE SHELLS
 ====================================================== */
+
 .order-container,
 .order-list-container,
-.order-complete-container{
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 40px 20px 80px;
-    color: var(--oditji-text);
-    font-family: var(--font-body);
+.order-complete-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  color: var(--oditji-text);
+  font-family: var(--font-body);
 }
 
 .order-container h1,
 .order-list-container h1,
-.complete-box h1{
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -.01em;
-    margin: 0 0 24px;
+.complete-box h1 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* 빈 주문 내역 */
-.empty-box{
-    background: var(--oditji-surface);
-    border: 1px dashed var(--oditji-border);
-    border-radius: var(--oditji-radius-lg);
-    padding: 60px 20px;
-    text-align: center;
-    color: var(--oditji-text-muted);
+.empty-box {
+  padding: 60px 20px;
+  border: 1px dashed var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+  color: var(--oditji-text-muted);
+  text-align: center;
 }
 
 /* 이미지가 없는 상품 썸네일 공용 */
-.no-image{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: var(--oditji-surface-raised);
-    color: var(--oditji-text-faint);
-    font-size: 11px;
-    letter-spacing: .05em;
-    border-radius: var(--oditji-radius-sm);
+.no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-faint);
+  font-size: 11px;
+  letter-spacing: 0.05em;
 }
 
 /* =====================================================
-   TICKET DIVIDER (시그니처 절취선)
-
-   아이템 목록과 합계 사이를 영화 티켓의 절취선처럼 표현한다.
-   좌우 노치는 카드 배경색과 같은 원을 페이지 배경색으로 "오려낸" 것처럼
-   만들어 실제로 뜯어낼 수 있을 듯한 느낌을 준다.
+   TICKET DIVIDER
 ====================================================== */
-.ticket-divider{
-    position: relative;
-    height: 1px;
-    margin: 20px -20px;
-    background-image: repeating-linear-gradient(
-        to right,
-        var(--oditji-border) 0 10px,
-        transparent 10px 18px
-    );
+
+.ticket-divider {
+  position: relative;
+
+  height: 1px;
+  margin: 20px -20px;
+
+  background-image: repeating-linear-gradient(to right, var(--oditji-border) 0 10px, transparent 10px 18px);
 }
 
 .ticket-divider::before,
-.ticket-divider::after{
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 20px;
-    height: 20px;
-    background: var(--oditji-bg);
-    border-radius: 50%;
-    transform: translateY(-50%);
+.ticket-divider::after {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+  background: var(--oditji-bg);
+
+  transform: translateY(-50%);
 }
 
-.ticket-divider::before{ left: -10px; }
-.ticket-divider::after{ right: -10px; }
-
-/* =====================================================
-   ORDER SHEET (order.jsp)
-====================================================== */
-.order-items{
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
+.ticket-divider::before {
+  left: -10px;
 }
 
-.order-item{
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: var(--oditji-surface);
-    border: 1px solid var(--oditji-border);
-    border-radius: var(--oditji-radius-lg);
-    padding: 16px;
-}
-
-.order-img{
-    flex: none;
-    width: 64px;
-    height: 64px;
-    border-radius: var(--oditji-radius-sm);
-    overflow: hidden;
-}
-
-.order-img img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.order-info{
-    flex: 1;
-    min-width: 0;
-}
-
-.order-info h3{
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0 0 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.order-info p{
-    margin: 2px 0;
-    font-size: 13px;
-    color: var(--oditji-text-muted);
-}
-
-.order-item-business{
-    color: var(--oditji-accent) !important;
-    font-weight: 500;
-}
-
-.order-subtotal{
-    flex: none;
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 15px;
-    font-variant-numeric: tabular-nums;
-}
-
-/* ---- 배송 정보 입력 ---- */
-.order-form{
-    background: var(--oditji-surface);
-    border: 1px solid var(--oditji-border);
-    border-radius: var(--oditji-radius-lg);
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.order-form h2{
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 14px;
-    color: var(--oditji-text-muted);
-}
-
-.order-form input[type="text"]{
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--oditji-surface-raised);
-    border: 1px solid var(--oditji-border);
-    border-radius: var(--oditji-radius-sm);
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    color: var(--oditji-text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    transition: border-color .15s var(--oditji-ease),
-                background-color .15s var(--oditji-ease);
-}
-
-.order-form input[type="text"]:last-child{
-    margin-bottom: 0;
-}
-
-.order-form input[type="text"]::placeholder{
-    color: var(--oditji-text-faint);
-}
-
-.order-form input[type="text"]:hover{
-    border-color: var(--oditji-text-faint);
-}
-
-.order-form input[type="text"]:focus-visible{
-    outline: none;
-    border-color: var(--oditji-accent);
-    background: var(--oditji-surface);
-    box-shadow: 0 0 0 3px var(--oditji-accent-soft);
-}
-
-/* ---- 결제 요약 ---- */
-.order-summary{
-    background: var(--oditji-surface);
-    border: 1px solid var(--oditji-border);
-    border-radius: var(--oditji-radius-lg);
-    padding: 20px;
-}
-
-.order-summary > div{
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 6px 0;
-    font-size: 14px;
-    color: var(--oditji-text-muted);
-}
-
-.order-summary > div span:last-child{
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--oditji-text);
-}
-
-.order-summary .final{
-    margin-top: 4px;
-    padding-top: 16px;
-    border-top: 1px dashed var(--oditji-border);
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--oditji-text);
-}
-
-.order-summary .final span:last-child{
-    font-size: 20px;
-    color: var(--oditji-accent);
-}
-
-.order-error{
-    display: none;
-    margin: 14px 0 0;
-    padding: 10px 14px;
-    background: var(--oditji-danger-soft);
-    border: 1px solid var(--oditji-danger);
-    border-radius: var(--oditji-radius-sm);
-    color: var(--oditji-danger);
-    font-size: 13px;
-}
-
-#orderBtn{
-    display: block;
-    width: 100%;
-    margin-top: 20px;
-    padding: 15px;
-    border: none;
-    border-radius: var(--oditji-radius-sm);
-    background: var(--oditji-accent);
-    color: #0d1f0e;
-    font-family: var(--font-body);
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color .15s var(--oditji-ease),
-                transform .1s var(--oditji-ease);
-}
-
-#orderBtn:hover{
-    background: var(--oditji-accent-strong);
-}
-
-#orderBtn:active{
-    transform: scale(.99);
-}
-
-#orderBtn:disabled{
-    background: var(--oditji-surface-raised);
-    color: var(--oditji-text-faint);
-    cursor: not-allowed;
-}
-
-#orderBtn:focus-visible{
-    outline: 2px solid var(--oditji-accent);
-    outline-offset: 2px;
+.ticket-divider::after {
+  right: -10px;
 }
 
 /* =====================================================
-   ORDER LIST (orderList.jsp)
+   ORDER SHEET
+   order.jsp
 ====================================================== */
-.order-card{
-    position: relative;
-    background: var(--oditji-surface);
-    border: 1px solid var(--oditji-border);
-    border-radius: var(--oditji-radius-lg);
-    padding: 20px;
-    margin-bottom: 20px;
-    overflow: hidden;
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-bottom: 24px;
 }
 
-.order-card-header{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 4px;
-    color: var(--oditji-text-muted);
-    font-size: 13px;
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 16px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
 }
 
-.order-card-header strong{
-    color: var(--oditji-text-faint);
-    font-weight: 500;
-    margin-right: 6px;
+.order-img {
+  flex: none;
+
+  width: 64px;
+  height: 64px;
+
+  border-radius: var(--oditji-radius-sm);
+  overflow: hidden;
 }
 
-.order-card-header > div:first-child span{
-    font-family: var(--font-mono);
-    color: var(--oditji-text);
+.order-img img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
 }
 
-.order-status{
-    flex: none;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: var(--oditji-accent-soft);
-    color: var(--oditji-accent);
-    font-size: 12px;
-    font-weight: 700;
+.order-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.order-card .order-items{
-    margin: 16px 0 0;
-    gap: 0;
+.order-info h3 {
+  margin: 0 0 4px;
+
+  overflow: hidden;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.order-card .ticket-divider{
-    margin: 16px -20px;
+.order-info p {
+  margin: 2px 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
 }
 
-a.order-item{
-    text-decoration: none;
-    color: inherit;
-    padding: 10px 0;
-    border: none;
-    border-radius: 0;
-    background: none;
-    transition: opacity .15s var(--oditji-ease);
+.order-item-business {
+  color: var(--oditji-accent) !important;
+  font-weight: 500;
 }
 
-a.order-item:hover{
-    opacity: .8;
-}
+.order-subtotal {
+  flex: none;
 
-a.order-item:focus-visible{
-    outline: 2px solid var(--oditji-accent);
-    outline-offset: 4px;
-    border-radius: var(--oditji-radius-sm);
-}
-
-.order-item-info{
-    flex: 1;
-    min-width: 0;
-}
-
-.order-item-info > div:first-child{
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.order-item-info > div{
-    font-size: 13px;
-    color: var(--oditji-text-muted);
-}
-
-.order-item-info > div:last-child{
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--oditji-text);
-}
-
-.order-total{
-    text-align: right;
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    font-size: 15px;
-    margin-top: 4px;
-    padding-top: 14px;
-    border-top: 1px dashed var(--oditji-border);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 /* =====================================================
-   ORDER COMPLETE (orderComplete.jsp)
+   배송 정보 입력
 ====================================================== */
-.complete-box{
-    text-align: center;
-    background: var(--oditji-surface);
-    border: 1px solid var(--oditji-border);
-    padding: 48px 32px;
-    border-radius: var(--oditji-radius-lg);
+
+.order-form {
+  margin-bottom: 24px;
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
 }
 
-.complete-box > p{
-    color: var(--oditji-text-muted);
-    margin: 0 0 4px;
+.order-form h2 {
+  margin: 0 0 14px;
+
+  color: var(--oditji-text-muted);
+  font-size: 15px;
+  font-weight: 700;
 }
 
-.complete-box .ticket-divider{
-    margin: 24px -32px;
+.order-form input[type="text"] {
+  display: block;
+
+  box-sizing: border-box;
+  width: 100%;
+
+  margin-bottom: 10px;
+  padding: 12px 14px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    background-color 0.15s var(--oditji-ease);
 }
 
-.complete-info{
-    margin-top: 24px;
-    text-align: left;
+.order-form input[type="text"]:last-child {
+  margin-bottom: 0;
 }
 
-.complete-info div{
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 8px 0;
-    font-size: 14px;
-    color: var(--oditji-text-muted);
-    border-bottom: 1px solid var(--oditji-border);
+.order-form input[type="text"]::placeholder {
+  color: var(--oditji-text-faint);
 }
 
-.complete-info div:last-child{
-    border-bottom: none;
+.order-form input[type="text"]:hover {
+  border-color: var(--oditji-text-faint);
 }
 
-.complete-info strong{
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--oditji-text);
-    font-weight: 600;
+.order-form input[type="text"]:focus-visible {
+  outline: none;
+
+  border-color: var(--oditji-accent);
+  background: var(--oditji-surface);
+
+  box-shadow: 0 0 0 3px var(--oditji-accent-soft);
 }
 
-.complete-items{
-    text-align: left;
-    margin-top: 8px;
+/* =====================================================
+   배송지 주소 검색 영역
+====================================================== */
+
+.address-search-row {
+  display: flex;
+  align-items: stretch;
+
+  width: 100%;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.complete-item{
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--oditji-border);
+.order-form .address-search-row input[type="text"] {
+  flex: 1;
+
+  width: auto;
+  min-width: 0;
+  margin-bottom: 0;
 }
 
-.complete-item:last-child{
-    border-bottom: none;
+.address-search-btn {
+  flex: none;
+
+  box-sizing: border-box;
+  width: 112px;
+  padding: 0 14px;
+
+  border: 1px solid var(--oditji-accent);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    border-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.address-search-btn:hover {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+
+  color: #0d1f0e;
+}
+
+.address-search-btn:active {
+  transform: scale(0.98);
+}
+
+.address-search-btn:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+.address-search-btn:disabled {
+  border-color: var(--oditji-border);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+.order-form input[type="text"][readonly] {
+  color: var(--oditji-text-muted);
+  cursor: default;
+}
+
+.order-form input[type="text"][readonly]:hover {
+  border-color: var(--oditji-border);
+}
+
+.order-form input[type="text"][readonly]:focus-visible {
+  border-color: var(--oditji-border);
+  background: var(--oditji-surface-raised);
+
+  box-shadow: none;
+}
+
+#zipcode,
+#address1 {
+  color: var(--oditji-text-muted);
+}
+
+/* =====================================================
+   결제 요약
+====================================================== */
+
+.order-summary {
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+}
+
+.order-summary > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  padding: 6px 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+}
+
+.order-summary > div span:last-child {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.order-summary .final {
+  margin-top: 4px;
+  padding-top: 16px;
+
+  border-top: 1px dashed var(--oditji-border);
+
+  color: var(--oditji-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-summary .final span:last-child {
+  color: var(--oditji-accent);
+  font-size: 20px;
+}
+
+.order-error {
+  display: none;
+
+  margin: 14px 0 0;
+  padding: 10px 14px;
+
+  border: 1px solid var(--oditji-danger);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-danger-soft);
+
+  color: var(--oditji-danger);
+  font-size: 13px;
+}
+
+#orderBtn {
+  display: block;
+
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-accent);
+
+  color: #0d1f0e;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+#orderBtn:hover {
+  background: var(--oditji-accent-strong);
+}
+
+#orderBtn:active {
+  transform: scale(0.99);
+}
+
+#orderBtn:disabled {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+#orderBtn:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   ORDER LIST
+   orderList.jsp
+====================================================== */
+
+.order-card {
+  position: relative;
+
+  margin-bottom: 20px;
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+
+  overflow: hidden;
+}
+
+/* 주문번호, 주문일시, 주문상태 */
+.order-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+  margin-bottom: 4px;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.order-card-header strong {
+  margin-right: 6px;
+
+  color: var(--oditji-text-faint);
+  font-weight: 500;
+}
+
+.order-card-header > div:first-child span {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+}
+
+.order-status {
+  flex: none;
+
+  padding: 4px 10px;
+
+  border-radius: 999px;
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 주문 상품 목록 */
+.order-card .order-items {
+  gap: 10px;
+
+  margin: 16px 0 0;
+}
+
+/*
+ * orderList.jsp 구조:
+ *
+ * .order-item
+ *   ├─ a
+ *   │   ├─ img 또는 .no-image
+ *   │   └─ .order-item-info
+ *   └─ .review-btn
+ */
+.order-card .order-item {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+  padding: 14px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: rgba(18, 18, 20, 0.28);
+}
+
+.order-card .order-item + .order-item {
+  margin-top: 0;
+}
+
+.order-card .order-item > a {
+  display: flex;
+  flex: 1;
+  align-items: center;
+
+  min-width: 0;
+  gap: 14px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition: opacity 0.15s var(--oditji-ease);
+}
+
+.order-card .order-item > a:hover {
+  opacity: 0.8;
+}
+
+.order-card .order-item > a:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 4px;
+
+  border-radius: var(--oditji-radius-sm);
+}
+
+/* 상품 이미지 */
+.order-card .order-item > a > img,
+.order-card .order-item > a > .no-image {
+  flex: none;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  object-fit: cover;
+}
+
+.order-card .order-item > a > img {
+  display: block;
+
+  background: var(--oditji-surface-raised);
+}
+
+/* 상품 이름, 수량, 가격 */
+.order-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-item-info > div:first-child {
+  margin-bottom: 5px;
+
+  overflow: hidden;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-item-info > div {
+  margin-top: 2px;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.order-item-info > div:last-child {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   주문 카드 내부 주문 정보
+====================================================== */
+
+.order-info-section {
+  margin-top: 22px;
+  padding: 22px 4px 2px;
+
+  border-top: 1px solid var(--oditji-border);
+}
+
+.order-info-title {
+  margin: 0 0 14px;
+
+  color: var(--oditji-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-info-list {
+  width: 100%;
+}
+
+.order-info-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  align-items: start;
+
+  gap: 20px;
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+}
+
+.order-info-row:last-child {
+  border-bottom: none;
+}
+
+.order-info-label {
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.order-info-value {
+  min-width: 0;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.order-info-price {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-info-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 27px;
+  padding: 3px 12px;
+
+  border-radius: 999px;
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 주문 카드 내부 티켓 구분선 */
+.order-card .ticket-divider {
+  margin: 18px -20px 14px;
+}
+
+/* 총 결제금액 */
+.order-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+  margin-top: 0;
+  padding: 0;
+
+  border-top: none;
+
+  color: var(--oditji-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.order-total-price {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   REVIEW BUTTON
+====================================================== */
+
+.review-btn {
+  flex: none;
+
+  width: auto;
+  min-width: 90px;
+  height: 36px;
+
+  margin: 0;
+  padding: 0 18px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+  background: #7eb1ff;
+
+  color: #181818;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.review-btn:hover {
+  background: #9ac4ff;
+}
+
+.review-btn:active {
+  transform: scale(0.97);
+}
+
+.review-btn:focus-visible {
+  outline: 2px solid #9ac4ff;
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   ORDER COMPLETE
+   orderComplete.jsp
+====================================================== */
+
+.complete-box {
+  padding: 48px 32px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+
+  text-align: center;
+}
+
+.complete-box > p {
+  margin: 0 0 4px;
+
+  color: var(--oditji-text-muted);
+}
+
+.complete-box .ticket-divider {
+  margin: 24px -32px;
+}
+
+.complete-info {
+  margin-top: 24px;
+
+  text-align: left;
+}
+
+.complete-info div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  padding: 8px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+}
+
+.complete-info div:last-child {
+  border-bottom: none;
+}
+
+.complete-info strong {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.complete-items {
+  margin-top: 8px;
+
+  text-align: left;
+}
+
+.complete-item {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+}
+
+.complete-item:last-child {
+  border-bottom: none;
 }
 
 .complete-item img,
-.complete-item .no-image{
-    flex: none;
-    width: 52px;
-    height: 52px;
-    border-radius: var(--oditji-radius-sm);
-    object-fit: cover;
+.complete-item .no-image {
+  flex: none;
+
+  width: 52px;
+  height: 52px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  object-fit: cover;
 }
 
-.complete-item-info{
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
-    color: var(--oditji-text-muted);
+.complete-item-info {
+  flex: 1;
+  min-width: 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
 }
 
-.complete-item-info > div:first-child{
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--oditji-text);
-    margin-bottom: 2px;
+.complete-item-info > div:first-child {
+  margin-bottom: 2px;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.complete-item-info > div:last-child{
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
+.complete-item-info > div:last-child {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-.complete-actions{
-    margin-top: 28px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+.complete-actions {
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+  margin-top: 28px;
 }
 
-.complete-actions a{
-    padding: 12px 18px;
-    border-radius: var(--oditji-radius-sm);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background-color .15s var(--oditji-ease),
-                opacity .15s var(--oditji-ease);
+.complete-actions a {
+  padding: 12px 18px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    opacity 0.15s var(--oditji-ease);
 }
 
-.complete-actions a:first-child{
-    background: var(--oditji-accent);
-    color: #0d1f0e;
+.complete-actions a:first-child {
+  background: var(--oditji-accent);
+  color: #0d1f0e;
 }
 
-.complete-actions a:first-child:hover{
-    background: var(--oditji-accent-strong);
+.complete-actions a:first-child:hover {
+  background: var(--oditji-accent-strong);
 }
 
-.complete-actions a:last-child{
-    background: var(--oditji-surface-raised);
-    color: var(--oditji-text);
+.complete-actions a:last-child {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text);
 }
 
-.complete-actions a:last-child:hover{
-    opacity: .8;
+.complete-actions a:last-child:hover {
+  opacity: 0.8;
 }
 
-.complete-actions a:focus-visible{
-    outline: 2px solid var(--oditji-accent);
-    outline-offset: 2px;
+.complete-actions a:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
 }
 
 /* =====================================================
-   RESPONSIVE (모바일)
+   RESPONSIVE
 ====================================================== */
-@media (max-width: 560px){
 
-    .order-container,
-    .order-list-container,
-    .order-complete-container{
-        padding: 24px 16px 60px;
-    }
+@media (max-width: 640px) {
+  .order-info-row {
+    grid-template-columns: 1fr;
 
-    .order-item{
-        align-items: flex-start;
-        flex-wrap: wrap;
-    }
+    gap: 5px;
+  }
 
-    .order-subtotal{
-        width: 100%;
-        text-align: right;
-    }
+  .order-info-label {
+    font-size: 12px;
+  }
 
-    .order-card-header{
-        flex-wrap: wrap;
-        row-gap: 6px;
-    }
+  .order-total {
+    justify-content: space-between;
+  }
+}
 
-    .complete-box{
-        padding: 32px 20px;
-    }
+@media (max-width: 560px) {
+  .order-container,
+  .order-list-container,
+  .order-complete-container {
+    padding: 24px 16px 60px;
+  }
 
-    .complete-box .ticket-divider{
-        margin: 24px -20px;
-    }
+  .order-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 
-    .complete-actions{
-        flex-direction: column;
-    }
+  .order-subtotal {
+    width: 100%;
 
-    .complete-actions a{
-        text-align: center;
-    }
+    text-align: right;
+  }
+
+  .order-card-header {
+    flex-wrap: wrap;
+
+    row-gap: 6px;
+  }
+
+  .order-card .order-item {
+    align-items: center;
+
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .order-card .order-item > a {
+    width: 100%;
+  }
+
+  .order-card .order-item > a > img,
+  .order-card .order-item > a > .no-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .review-btn {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .order-info-section {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .complete-box {
+    padding: 32px 20px;
+  }
+
+  .complete-box .ticket-divider {
+    margin: 24px -20px;
+  }
+
+  .complete-actions {
+    flex-direction: column;
+  }
+
+  .complete-actions a {
+    text-align: center;
+  }
+
+  .address-search-row {
+    gap: 8px;
+  }
+
+  .address-search-btn {
+    width: 96px;
+    padding: 0 10px;
+
+    font-size: 13px;
+  }
 }
 
 /* =====================================================
    REDUCED MOTION
 ====================================================== */
-@media (prefers-reduced-motion: reduce){
 
-    #orderBtn,
-    .order-form input[type="text"],
-    a.order-item,
-    .complete-actions a{
-        transition: none;
-    }
-}
-
-.review-btn {
-
-    width:auto;
-
-    min-width:90px;
-
-    height:36px;
-
-    padding:0 18px;
-
-    margin-top:12px;
-
-    border:none;
-
-    border-radius:8px;
-
-    background:#7EB1FF;
-
-    color:#181818;
-
-    font-size:13px;
-
-    font-weight:600;
-
-    cursor:pointer;
-
-    transition:0.2s;
-
-}
-
-
-.review-btn:hover {
-
-    background:#9ac4ff;
-
+@media (prefers-reduced-motion: reduce) {
+  #orderBtn,
+  .order-form input[type="text"],
+  .address-search-btn,
+  .order-card .order-item > a,
+  .review-btn,
+  .complete-actions a {
+    transition: none;
+  }
 }
