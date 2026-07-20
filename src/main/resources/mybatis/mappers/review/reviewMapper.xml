@@ -193,6 +193,22 @@
 
     </insert>
 
+    <select id="countMyOrderItem"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM ORDER_ITEM OI
+        INNER JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+        WHERE OI.ORDER_ITEM_NO = #{orderItemNo}
+        AND OI.PRODUCT_NO = #{productNo}
+        AND O.MEMBER_NO = #{memberNo}
+        AND O.ORDER_STATUS = 'ORDERED'
+        AND OI.STATUS = 'ORDERED'
+
+    </select>
+
     <!-- 해당 주문상품(ORDER_ITEM_NO)에 이미 리뷰가 작성됐는지 확인 -->
     <select id="selectProductReviewByOrderItem"
             parameterType="int"

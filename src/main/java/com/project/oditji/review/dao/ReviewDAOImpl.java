@@ -147,4 +147,12 @@ public class ReviewDAOImpl implements ReviewDAO {
         );
     }
 
+    @Override
+    public int countMyOrderItem(Map<String, Object> param) {
+        return sqlSession.selectOne(
+                NAMESPACE + "countMyOrderItem",
+                param
+        );
+    }
+
 }

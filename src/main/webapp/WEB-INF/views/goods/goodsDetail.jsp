@@ -22,6 +22,10 @@
         src="${pageContext.request.contextPath}/js/goods.js">
 </script>
 
+<script defer
+        src="${pageContext.request.contextPath}/js/report.js">
+</script>
+
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">
@@ -314,7 +318,8 @@
 
 </c:if>
 
-<section class="detail-section">
+<section id="reviewSection"
+         class="detail-section">
 
     <h2>
         상품 리뷰
@@ -378,6 +383,31 @@
                                     pattern="yyyy-MM-dd"/>
                             </span>
 
+                            <c:choose>
+
+                                <c:when test="${reportedReviewSet.contains(r.reviewNo)}">
+
+                                    <span class="report-btn reported"
+                                          aria-disabled="true">
+                                        🚨 신고완료
+                                    </span>
+
+                                </c:when>
+
+                                <c:otherwise>
+
+                                    <button type="button"
+                                            class="report-btn"
+                                            data-review-type="PRODUCT"
+                                            data-review-no="${r.reviewNo}"
+                                            aria-label="<c:out value='${r.writer}'/>님의 리뷰 신고">
+                                        🚨 신고
+                                    </button>
+
+                                </c:otherwise>
+
+                            </c:choose>
+
                         </div>
 
                         <p class="review-content"><c:out value="${r.content}"/></p>
@@ -401,6 +431,86 @@
     </div>
 
 </section>
+
+<div id="reportModal"
+     class="modal-overlay"
+     hidden>
+
+    <div class="modal-box">
+
+        <h3>리뷰 신고</h3>
+
+        <input type="hidden"
+               id="reportReviewType"
+               value="">
+
+        <input type="hidden"
+               id="reportReviewNo"
+               value="">
+
+        <div class="modal-field">
+
+            <label for="reportReason">
+                신고 사유
+            </label>
+
+            <select id="reportReason">
+
+                <option value="욕설/비방">
+                    욕설/비방
+                </option>
+
+                <option value="스팸/광고">
+                    스팸/광고
+                </option>
+
+                <option value="도배">
+                    도배
+                </option>
+
+                <option value="음란물/불법정보">
+                    음란물/불법정보
+                </option>
+
+                <option value="기타">
+                    기타
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="modal-field">
+
+            <label for="reportDetail">
+                상세 내용
+            </label>
+
+            <textarea id="reportDetail"
+                      maxlength="1000"
+                      placeholder="신고 사유를 자세히 적어주세요"></textarea>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    id="reportCancelBtn"
+                    class="btn">
+                취소
+            </button>
+
+            <button type="button"
+                    id="reportSubmitBtn"
+                    class="btn btn-danger">
+                신고하기
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 </main>
 

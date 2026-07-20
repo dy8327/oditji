@@ -152,6 +152,13 @@ public class ReviewServiceImpl implements ReviewService {
     public void writeProductReview(
             Long memberNo, int productNo, int orderItemNo, double rating, String content) {
 
+        System.out.println("===== 상품 리뷰 작성 =====");
+        System.out.println("memberNo = " + memberNo);
+        System.out.println("productNo = " + productNo);
+        System.out.println("orderItemNo = " + orderItemNo);
+        System.out.println("rating = " + rating);
+        System.out.println("content = " + content);
+
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
         }
@@ -164,8 +171,22 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalArgumentException("리뷰 내용을 입력해주세요.");
         }
 
+        Map<String, Object> param = new HashMap<>();
+        param.put("memberNo", memberNo);
+        param.put("productNo", productNo);
+        param.put("orderItemNo", orderItemNo);
+
+        int count = reviewDAO.countMyOrderItem(param);
+        System.out.println("countMyOrderItem = " + count);
+
+        if (count == 0) {
+            throw new IllegalStateException("구매한 상품만 리뷰를 작성할 수 있습니다.");
+        }
+
         ProductReviewVO existingReview =
                 reviewDAO.selectProductReviewByOrderItem(orderItemNo);
+
+        System.out.println("existingReview = " + existingReview);
 
         if (existingReview != null) {
             throw new IllegalStateException("이미 작성한 리뷰가 있습니다.");
@@ -178,7 +199,9 @@ public class ReviewServiceImpl implements ReviewService {
         productReview.setRating(rating);
         productReview.setContent(content);
 
+        System.out.println("insert 시작");
         reviewDAO.insertProductReview(productReview);
+        System.out.println("insert 완료");
     }
 
     @Override
