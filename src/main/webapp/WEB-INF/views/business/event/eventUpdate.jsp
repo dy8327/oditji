@@ -252,6 +252,38 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">
+                            상태
+                    </label>
+
+                        <div class="btn-row">
+
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="WAITING"
+                                    ${event.status == 'WAITING' ? 'checked' : ''}>
+                                예정
+                            </label>
+
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ACTIVE"
+                                    ${event.status == 'ACTIVE' ? 'checked' : ''}>
+                                진행중
+                            </label>
+
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ENDED"
+                                    ${event.status == 'ENDED' ? 'checked' : ''}>
+                                종료
+                            </label>
+                </div>
+
+                <div class="form-group">
 
                     <label class="form-label">
                         요청 상태
@@ -347,7 +379,7 @@
                    type="text"
                    id="productSearchKeyword"
                    placeholder="상품명, 작품명, 배우명, 상품 종류를 검색하세요.">
-                   
+
             <button class="btn btn-dark"
                     type="button"
                     id="productSearchResetButton">
