@@ -90,6 +90,40 @@ public class AdminController {
         return "redirect:/admin/review/list?tab=" + tab;
     }
 
+    // 신고 승인: 신고를 인정하여 리뷰를 삭제 처리한다.
+    @PostMapping("/review/report/approve")
+    public String reviewReportApprove(
+            @RequestParam Long reviewNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.approveContentReviewReport(reviewNo);
+            redirectAttributes.addFlashAttribute("message", "신고를 승인하여 리뷰를 삭제했습니다.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/review/list?tab=" + tab;
+    }
+
+    // 신고 반려: 신고를 기각하고 리뷰는 그대로 유지한다.
+    @PostMapping("/review/report/reject")
+    public String reviewReportReject(
+            @RequestParam Long reviewNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.rejectContentReviewReport(reviewNo);
+            redirectAttributes.addFlashAttribute("message", "신고를 반려했습니다.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/review/list?tab=" + tab;
+    }
+
     // 2-2. 상품 리뷰 관리 (전체 리뷰, 신고 내역)
     @GetMapping("/productReview/list")
     public String productReviewList(Model model,
@@ -107,28 +141,77 @@ public class AdminController {
         return "redirect:/admin/productReview/list?tab=" + tab;
     }
 
+    // 신고 승인: 신고를 인정하여 상품 리뷰를 삭제 처리한다.
+    @PostMapping("/productReview/report/approve")
+    public String productReviewReportApprove(
+            @RequestParam Long reviewNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.approveProductReviewReport(reviewNo);
+            redirectAttributes.addFlashAttribute("message", "신고를 승인하여 리뷰를 삭제했습니다.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/productReview/list?tab=" + tab;
+    }
+
+    // 신고 반려: 신고를 기각하고 리뷰는 그대로 유지한다.
+    @PostMapping("/productReview/report/reject")
+    public String productReviewReportReject(
+            @RequestParam Long reviewNo,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.rejectProductReviewReport(reviewNo);
+            redirectAttributes.addFlashAttribute("message", "신고를 반려했습니다.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/productReview/list?tab=" + tab;
+    }
+
     // ===================== 3. 이벤트 관리 (사업자 등록/수정/연장 요청 처리) =====================
 
     @GetMapping("/event/list")
-    public String eventList(Model model,
+    public String eventList(
+            Model model,
             @RequestParam(required = false) String tab,
             @RequestParam(required = false) String keyword) {
+
         model.addAttribute("activeMenu", "event");
-        model.addAttribute("eventRequestList", adminService.getEventList(tab, keyword));
+
+        model.addAttribute(
+            "eventRequestList",
+            adminService.getEventList(tab, keyword)
+        );
+
         return "admin/event/eventManage";
     }
 
+
     @PostMapping("/event/approve")
-    public String eventApprove(@RequestParam Long requestNo,
+    public String eventApprove(
+            @RequestParam Long eventNo,
             @RequestParam(required = false) String tab) {
-        adminService.approveEvent(requestNo);
+
+        adminService.approveEvent(eventNo);
+
         return "redirect:/admin/event/list?tab=" + tab;
     }
 
+
     @PostMapping("/event/reject")
-    public String eventReject(@RequestParam Long requestNo,
+    public String eventReject(
+            @RequestParam Long eventNo,
             @RequestParam(required = false) String tab) {
-        adminService.rejectEvent(requestNo);
+
+        adminService.rejectEvent(eventNo);
+
         return "redirect:/admin/event/list?tab=" + tab;
     }
 

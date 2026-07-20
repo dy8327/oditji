@@ -1003,6 +1003,12 @@ public class BusinessController {
 
                         @RequestParam(value = "productName", required = false) String productName,
 
+                        /*
+                         * 이벤트 진행 시 연결 상품에 적용할 특별 할인율(%).
+                         * 입력이 없으면 0으로 처리한다.
+                         */
+                        @RequestParam(value = "eventDiscountRate", required = false, defaultValue = "0") int eventDiscountRate,
+
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
                         HttpSession session,
@@ -1043,6 +1049,16 @@ public class BusinessController {
                         return "redirect:/business/main";
                 }
 
+                if (eventDiscountRate < 0
+                                || eventDiscountRate > 100) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+
+                        return "redirect:/business/event/register";
+                }
+
                 EventManageVO eventManageVO = new EventManageVO();
 
                 eventManageVO.setBusinessNo(
@@ -1067,12 +1083,8 @@ public class BusinessController {
                 eventManageVO.setProductNo(
                                 productNo);
 
-                /*
-                 * 현재 화면에는 이벤트 특별 할인율 입력란이 없으므로
-                 * EVENT_PRODUCT.EVENT_DISCOUNT_RATE에는 0을 저장한다.
-                 */
                 eventManageVO.setEventDiscountRate(
-                                0);
+                                eventDiscountRate);
 
                 try {
 
@@ -1106,6 +1118,11 @@ public class BusinessController {
                         System.out.println(
                                         "연결 상품명: "
                                                         + productName);
+
+                        System.out.println(
+                                        "이벤트 할인율: "
+                                                        + eventDiscountRate
+                                                        + "%");
 
                         System.out.println(
                                         "이벤트 상태: WAITING");
@@ -1260,6 +1277,12 @@ public class BusinessController {
 
                         @RequestParam(value = "eventContent", required = false) String eventContent,
 
+                        /*
+                         * 이벤트 진행 시 연결 상품에 적용할 특별 할인율(%).
+                         * 입력이 없으면 0으로 처리한다.
+                         */
+                        @RequestParam(value = "eventDiscountRate", required = false, defaultValue = "0") int eventDiscountRate,
+
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
                         HttpSession session,
@@ -1290,6 +1313,16 @@ public class BusinessController {
                         return "redirect:/";
                 }
 
+                if (eventDiscountRate < 0
+                                || eventDiscountRate > 100) {
+
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+
+                        return "redirect:/business/event/update?eventNo=" + eventNo;
+                }
+
                 EventManageVO eventManageVO = new EventManageVO();
 
                 eventManageVO.setEventNo(
@@ -1318,7 +1351,7 @@ public class BusinessController {
                                 "WAITING");
 
                 eventManageVO.setEventDiscountRate(
-                                0);
+                                eventDiscountRate);
 
                 try {
 

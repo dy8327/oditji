@@ -114,8 +114,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void updateContentReview(
-            Long memberNo, int reviewNo, double rating, String reviewText) {
-
+        Long memberNo, Long reviewNo, double rating, String reviewText) {
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
         }
@@ -256,7 +255,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void deleteContentReview(Long memberNo, int reviewNo) {
+    public void deleteContentReview(Long memberNo, Long reviewNo) {
 
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
@@ -278,7 +277,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void deleteProductReview(Long memberNo, int reviewNo) {
+    public void deleteProductReview(Long memberNo, Long reviewNo) {
 
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");

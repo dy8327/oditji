@@ -26,11 +26,12 @@ public class ReviewController {
     }
 
     /**
-     * 마이페이지 "내가 작성한 리뷰" 클릭 시 진입.
-     * 콘텐츠 리뷰 + 상품 리뷰를 합쳐서 보여준다.
+     * 마이페이지 내가 작성한 리뷰 목록
      */
     @GetMapping("/myReviewList")
-    public String myReviewList(HttpSession session, Model model) {
+    public String myReviewList(
+            HttpSession session,
+            Model model) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -38,17 +39,18 @@ public class ReviewController {
             return "redirect:/member/login";
         }
 
-        List<MyReviewVO> reviewList =
-                reviewService.getMyReviewList(loginMember.getMemberNo());
+        List<MyReviewVO> reviewList = reviewService.getMyReviewList(
+                loginMember.getMemberNo());
 
-        model.addAttribute("reviewList", reviewList);
+        model.addAttribute(
+                "reviewList",
+                reviewList);
 
         return "review/myReviewList";
     }
 
     /**
-     * 콘텐츠 리뷰 작성 처리.
-     * 작성 후 해당 콘텐츠 상세 페이지로 이동한다.
+     * 콘텐츠 리뷰 작성
      */
     @PostMapping("/write")
     public String writeContentReview(
@@ -64,19 +66,21 @@ public class ReviewController {
         }
 
         reviewService.writeContentReview(
-                loginMember.getMemberNo(), contentNo, rating, reviewText);
+                loginMember.getMemberNo(),
+                contentNo,
+                rating,
+                reviewText);
 
         return "redirect:/content/contentDetail/" + contentNo;
     }
 
     /**
-     * 콘텐츠 리뷰 수정 처리.
-     * 작성 후 해당 콘텐츠 상세 페이지로 이동한다.
+     * 콘텐츠 리뷰 수정
      */
     @PostMapping("/update")
     public String updateContentReview(
             HttpSession session,
-            @RequestParam int reviewNo,
+            @RequestParam Long reviewNo,
             @RequestParam int contentNo,
             @RequestParam double rating,
             @RequestParam String reviewText) {
@@ -88,14 +92,16 @@ public class ReviewController {
         }
 
         reviewService.updateContentReview(
-                loginMember.getMemberNo(), reviewNo, rating, reviewText);
+                loginMember.getMemberNo(),
+                reviewNo,
+                rating,
+                reviewText);
 
         return "redirect:/content/contentDetail/" + contentNo;
     }
 
     /**
-     * 상품 리뷰 작성 처리.
-     * 작성 후 주문내역 페이지로 이동한다.
+     * 상품 리뷰 작성
      */
     @PostMapping("/writeProductReview")
     public String writeProductReview(
@@ -112,19 +118,22 @@ public class ReviewController {
         }
 
         reviewService.writeProductReview(
-                loginMember.getMemberNo(), productNo, orderItemNo, rating, content);
+                loginMember.getMemberNo(),
+                productNo,
+                orderItemNo,
+                rating,
+                content);
 
         return "redirect:/order/list";
     }
 
     /**
-     * 마이페이지에서 콘텐츠 리뷰 삭제.
-     * 삭제 후 다시 내가 작성한 리뷰 목록으로 이동한다.
+     * 콘텐츠 리뷰 삭제
      */
     @PostMapping("/deleteContentReview")
     public String deleteContentReview(
             HttpSession session,
-            @RequestParam int reviewNo) {
+            @RequestParam Long reviewNo) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -133,19 +142,19 @@ public class ReviewController {
         }
 
         reviewService.deleteContentReview(
-                loginMember.getMemberNo(), reviewNo);
+                loginMember.getMemberNo(),
+                reviewNo);
 
-        return "redirect:/review/contentReviewList";
+        return "redirect:/review/myReviewList";
     }
 
     /**
-     * 마이페이지에서 상품 리뷰 삭제.
-     * 삭제 후 다시 내가 작성한 리뷰 목록으로 이동한다.
+     * 상품 리뷰 삭제
      */
     @PostMapping("/deleteProductReview")
     public String deleteProductReview(
             HttpSession session,
-            @RequestParam int reviewNo) {
+            @RequestParam Long reviewNo) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -154,8 +163,10 @@ public class ReviewController {
         }
 
         reviewService.deleteProductReview(
-                loginMember.getMemberNo(), reviewNo);
+                loginMember.getMemberNo(),
+                reviewNo);
 
-        return "redirect:/review/contentReviewList";
+        return "redirect:/review/myReviewList";
     }
+
 }

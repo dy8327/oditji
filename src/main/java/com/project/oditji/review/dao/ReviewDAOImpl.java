@@ -16,106 +16,251 @@ public class ReviewDAOImpl implements ReviewDAO {
 
     private final SqlSession sqlSession;
 
-    private static final String NAMESPACE = "com.project.oditji.review.dao.ReviewDAO.";
+    private static final String NAMESPACE =
+            "com.project.oditji.review.dao.ReviewDAO.";
 
     public ReviewDAOImpl(SqlSession sqlSession) {
         this.sqlSession = sqlSession;
     }
 
+
+    // =========================
+    // 마이페이지 리뷰 조회
+    // =========================
+
     @Override
     public List<MyReviewVO> selectMyContentReviewList(Long memberNo) {
-        return sqlSession.selectList(NAMESPACE + "selectMyContentReviewList", memberNo);
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectMyContentReviewList",
+                memberNo
+        );
     }
+
 
     @Override
     public List<MyReviewVO> selectMyProductReviewList(Long memberNo) {
-        return sqlSession.selectList(NAMESPACE + "selectMyProductReviewList", memberNo);
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectMyProductReviewList",
+                memberNo
+        );
     }
+
 
     @Override
     public int countMyContentReview(Long memberNo) {
-        return sqlSession.selectOne(NAMESPACE + "countMyContentReview", memberNo);
+
+        return sqlSession.selectOne(
+                NAMESPACE + "countMyContentReview",
+                memberNo
+        );
     }
+
 
     @Override
     public int countMyProductReview(Long memberNo) {
-        return sqlSession.selectOne(NAMESPACE + "countMyProductReview", memberNo);
+
+        return sqlSession.selectOne(
+                NAMESPACE + "countMyProductReview",
+                memberNo
+        );
     }
+
+
+
+    // =========================
+    // 콘텐츠 리뷰 작성 / 수정
+    // =========================
 
     @Override
     public int insertContentReview(ReviewVO review) {
-        return sqlSession.insert(NAMESPACE + "insertContentReview", review);
+
+        return sqlSession.insert(
+                NAMESPACE + "insertContentReview",
+                review
+        );
     }
+
 
     @Override
     public int updateContentReview(ReviewVO review) {
-        return sqlSession.update(NAMESPACE + "updateContentReview", review);
+
+        return sqlSession.update(
+                NAMESPACE + "updateContentReview",
+                review
+        );
     }
 
+
     @Override
-    public ReviewVO selectContentReviewByReviewNo(int reviewNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectContentReviewByReviewNo", reviewNo);
+    public ReviewVO selectContentReviewByReviewNo(Long reviewNo) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectContentReviewByReviewNo",
+                reviewNo
+        );
     }
+
+
+
+    // =========================
+    // 상품 리뷰
+    // =========================
 
     @Override
     public int insertProductReview(ProductReviewVO productReview) {
-        return sqlSession.insert(NAMESPACE + "insertProductReview", productReview);
+
+        return sqlSession.insert(
+                NAMESPACE + "insertProductReview",
+                productReview
+        );
     }
 
-    @Override
-    public ReviewVO selectContentReviewByMemberAndContent(Map<String, Object> param) {
-        return sqlSession.selectOne(NAMESPACE + "selectContentReviewByMemberAndContent", param);
-    }
 
     @Override
     public ProductReviewVO selectProductReviewByOrderItem(int orderItemNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectProductReviewByOrderItem", orderItemNo);
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectProductReviewByOrderItem",
+                orderItemNo
+        );
     }
 
+
     @Override
-    public List<ContentReviewVO> selectContentReviewListByContentNo(int contentNo) {
-        return sqlSession.selectList(NAMESPACE + "selectContentReviewListByContentNo", contentNo);
+    public ProductReviewVO selectProductReviewByReviewNo(Long reviewNo) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectProductReviewByReviewNo",
+                reviewNo
+        );
     }
+
+
+
+    // =========================
+    // 리뷰 작성 여부 확인
+    // =========================
+
+    @Override
+    public ReviewVO selectContentReviewByMemberAndContent(
+            Map<String, Object> param) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectContentReviewByMemberAndContent",
+                param
+        );
+    }
+
+
+    @Override
+    public ReviewVO selectContentReviewByMemberAndContentAnyStatus(
+            Map<String, Object> param) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectContentReviewByMemberAndContentAnyStatus",
+                param
+        );
+    }
+
+
+
+    // =========================
+    // 콘텐츠 리뷰 목록 / 통계
+    // =========================
+
+    @Override
+    public List<ContentReviewVO> selectContentReviewListByContentNo(
+            int contentNo) {
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectContentReviewListByContentNo",
+                contentNo
+        );
+    }
+
 
     @Override
     public Double selectAvgRatingByContentNo(int contentNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectAvgRatingByContentNo", contentNo);
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectAvgRatingByContentNo",
+                contentNo
+        );
     }
+
 
     @Override
     public int selectReviewCountByContentNo(int contentNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectReviewCountByContentNo", contentNo);
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectReviewCountByContentNo",
+                contentNo
+        );
     }
 
-    @Override
-    public List<Integer> selectReportedContentReviewNoList(Long memberNo) {
-        return sqlSession.selectList(NAMESPACE + "selectReportedContentReviewNoList", memberNo);
-    }
+
+
+    // =========================
+    // 신고 리뷰
+    // =========================
 
     @Override
-    public int deleteContentReview(int reviewNo) {
-        return sqlSession.update(NAMESPACE + "deleteContentReview", reviewNo);
+    public List<Integer> selectReportedContentReviewNoList(
+            Long memberNo) {
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectReportedContentReviewNoList",
+                memberNo
+        );
     }
 
-    @Override
-    public ProductReviewVO selectProductReviewByReviewNo(int reviewNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectProductReviewByReviewNo", reviewNo);
-    }
+
+
+    // =========================
+    // 리뷰 삭제
+    // =========================
 
     @Override
-    public int deleteProductReview(int reviewNo) {
-        return sqlSession.delete(NAMESPACE + "deleteProductReview", reviewNo);
+    public int deleteContentReview(Long reviewNo) {
+
+        return sqlSession.update(
+                NAMESPACE + "deleteContentReview",
+                reviewNo
+        );
     }
 
+
     @Override
-    public ReviewVO selectContentReviewByMemberAndContentAnyStatus(Map<String, Object> param) {
-        return sqlSession.selectOne(NAMESPACE + "selectContentReviewByMemberAndContentAnyStatus", param);
+    public int deleteProductReview(Long reviewNo) {
+
+        return sqlSession.delete(
+                NAMESPACE + "deleteProductReview",
+                reviewNo
+        );
     }
+
+
+
+    // =========================
+    // 콘텐츠 리뷰 복구
+    // =========================
 
     @Override
     public int reactivateContentReview(ReviewVO review) {
-        return sqlSession.update(NAMESPACE + "reactivateContentReview", review);
+
+        return sqlSession.update(
+                NAMESPACE + "reactivateContentReview",
+                review
+        );
     }
+
+
+
+    // =========================
+    // 상품 리뷰 목록 / 통계
+    // =========================
 
     @Override
     public List<ProductReviewVO> selectProductReviewListByProductNo(
@@ -127,6 +272,7 @@ public class ReviewDAOImpl implements ReviewDAO {
         );
     }
 
+
     @Override
     public Double selectProductAvgRatingByProductNo(
             int productNo) {
@@ -136,6 +282,7 @@ public class ReviewDAOImpl implements ReviewDAO {
                 productNo
         );
     }
+
 
     @Override
     public int selectProductReviewCountByProductNo(
@@ -147,8 +294,16 @@ public class ReviewDAOImpl implements ReviewDAO {
         );
     }
 
+
+
+    // =========================
+    // 주문 상품 리뷰 작성 가능 여부
+    // =========================
+
     @Override
-    public int countMyOrderItem(Map<String, Object> param) {
+    public int countMyOrderItem(
+            Map<String, Object> param) {
+
         return sqlSession.selectOne(
                 NAMESPACE + "countMyOrderItem",
                 param

@@ -8,7 +8,7 @@ import java.util.Date;
  */
 public class ReviewVO {
 
-    private int reviewNo;
+    private Long reviewNo;
     private Long memberNo;
     private int contentNo;
     private double rating;
@@ -20,11 +20,11 @@ public class ReviewVO {
     public ReviewVO() {
     }
 
-    public int getReviewNo() {
+    public Long getReviewNo() {
         return reviewNo;
     }
 
-    public void setReviewNo(int reviewNo) {
+    public void setReviewNo(Long reviewNo) {
         this.reviewNo = reviewNo;
     }
 

@@ -10,41 +10,77 @@ import com.project.oditji.review.vo.ReviewVO;
 
 public interface ReviewService {
 
-    List<MyReviewVO> getMyReviewList(Long memberNo);
-    int getMyReviewCount(Long memberNo);
+        List<MyReviewVO> getMyReviewList(Long memberNo);
 
-    void writeContentReview(
-            Long memberNo,
-            int contentNo,
-            double rating,
-            String reviewText
-    );
+        int getMyReviewCount(Long memberNo);
 
-    void updateContentReview(
-            Long memberNo,
-            int reviewNo,
-            double rating,
-            String reviewText
-    );
+        // =========================
+        // 콘텐츠 리뷰 작성 / 수정
+        // =========================
 
-    void writeProductReview(
-            Long memberNo,
-            int productNo,
-            int orderItemNo,
-            double rating,
-            String content
-    );
+        void writeContentReview(
+                        Long memberNo,
+                        int contentNo,
+                        double rating,
+                        String reviewText);
 
-    List<ContentReviewVO> getContentReviewList(int contentNo);
-    Double getAvgRating(int contentNo);
-    int getReviewCount(int contentNo);
-    ReviewVO getMyReview(Long memberNo, int contentNo);
-    Set<Integer> getReportedReviewSet(Long memberNo);
+        void updateContentReview(
+                        Long memberNo,
+                        Long reviewNo,
+                        double rating,
+                        String reviewText);
 
-    void deleteContentReview(Long memberNo, int reviewNo);
-    void deleteProductReview(Long memberNo, int reviewNo);
+        // =========================
+        // 상품 리뷰 작성
+        // =========================
 
-    List<ProductReviewVO> getProductReviewList(int productNo);
-    Double getProductAvgRating(int productNo);
-    int getProductReviewCount(int productNo);
+        void writeProductReview(
+                        Long memberNo,
+                        int productNo,
+                        int orderItemNo,
+                        double rating,
+                        String content);
+
+        // =========================
+        // 콘텐츠 리뷰 조회
+        // =========================
+
+        List<ContentReviewVO> getContentReviewList(int contentNo);
+
+        Double getAvgRating(int contentNo);
+
+        int getReviewCount(int contentNo);
+
+        ReviewVO getMyReview(
+                        Long memberNo,
+                        int contentNo);
+
+        Set<Integer> getReportedReviewSet(
+                        Long memberNo);
+
+        // =========================
+        // 리뷰 삭제
+        // =========================
+
+        void deleteContentReview(
+                        Long memberNo,
+                        Long reviewNo);
+
+        void deleteProductReview(
+                        Long memberNo,
+                        Long reviewNo);
+
+        // =========================
+        // 상품 리뷰 조회
+        // =========================
+
+        List<ProductReviewVO> getProductReviewList(
+                        int productNo);
+
+        Double getProductAvgRating(
+                        int productNo);
+
+        int getProductReviewCount(
+                        int productNo);
+
 }

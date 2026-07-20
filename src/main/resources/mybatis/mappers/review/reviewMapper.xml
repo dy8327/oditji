@@ -135,7 +135,7 @@
 
     <!-- 리뷰번호로 콘텐츠 리뷰 단건 조회 (수정 시 작성자 본인 확인용) -->
     <select id="selectContentReviewByReviewNo"
-            parameterType="int"
+            parameterType="long"
             resultType="com.project.oditji.review.vo.ReviewVO">
 
         SELECT
@@ -308,7 +308,7 @@
 
     <!-- 콘텐츠 리뷰 삭제 (soft delete) -->
     <update id="deleteContentReview"
-            parameterType="int">
+            parameterType="long">
 
         UPDATE REVIEW
         SET STATUS = 'DELETED',
@@ -319,17 +319,17 @@
 
     <!-- 상품 리뷰 단건 조회 (삭제 시 작성자 확인용) -->
     <select id="selectProductReviewByReviewNo"
-            parameterType="int"
+            parameterType="java.lang.Long"
             resultType="com.project.oditji.review.vo.ProductReviewVO">
 
         SELECT
-            REVIEW_NO       AS reviewNo,
-            PRODUCT_NO      AS productNo,
-            ORDER_ITEM_NO   AS orderItemNo,
-            MEMBER_NO       AS memberNo,
-            RATING          AS rating,
-            CONTENT         AS content,
-            CREATED_AT      AS createdAt
+            REVIEW_NO AS reviewNo,
+            PRODUCT_NO AS productNo,
+            ORDER_ITEM_NO AS orderItemNo,
+            MEMBER_NO AS memberNo,
+            RATING AS rating,
+            CONTENT AS content,
+            CREATED_AT AS createdAt
         FROM PRODUCT_REVIEW
         WHERE REVIEW_NO = #{reviewNo}
 

@@ -517,6 +517,7 @@
             EP.PRODUCT_NO,
             EP.EVENT_DISCOUNT_RATE,
             P.PRODUCT_NAME,
+            P.PRICE,
             P.BUSINESS_NO
 
         FROM EVENT E
@@ -568,6 +569,7 @@
             EP.PRODUCT_NO,
             EP.EVENT_DISCOUNT_RATE,
             P.PRODUCT_NAME,
+            P.PRICE,
             P.BUSINESS_NO
 
         FROM EVENT E

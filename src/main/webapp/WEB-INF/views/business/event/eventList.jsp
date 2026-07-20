@@ -80,6 +80,7 @@
                         <th>번호</th>
                         <th>이벤트명</th>
                         <th>연결 상품</th>
+                        <th>할인 적용가</th>
                         <th>이벤트 기간</th>
                         <th>상태</th>
                         <th>등록일</th>
@@ -108,6 +109,23 @@
 
                                     <td>
                                         <c:out value="${event.productName}"/>
+                                    </td>
+
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${event.eventDiscountRate > 0 and not empty event.price}">
+                                                <span class="discount-rate">
+                                                    <c:out value="${event.eventDiscountRate}"/>%
+                                                </span>
+                                                <br>
+                                                <s><fmt:formatNumber value="${event.price}" pattern="#,###"/>원</s>
+                                                →
+                                                <strong><fmt:formatNumber value="${event.discountedPrice}" pattern="#,###"/>원</strong>
+                                            </c:when>
+                                            <c:otherwise>
+                                                할인 없음
+                                            </c:otherwise>
+                                        </c:choose>
                                     </td>
 
                                     <td>
@@ -216,7 +234,7 @@
                         <c:otherwise>
 
                             <tr>
-                                <td colspan="7">
+                                <td colspan="8">
                                     등록된 이벤트가 없습니다.
                                 </td>
                             </tr>

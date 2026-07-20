@@ -97,9 +97,10 @@
 
 							<c:choose>
 								<c:when test="${review.reviewType == 'PRODUCT'}">
-									<c:url var="reviewLinkUrl" value="/goods/detail">
-										<c:param name="goodsNo" value="${review.targetNo}" />
-									</c:url>
+
+									<c:url var="reviewLinkUrl"
+										value="/goods/goodsDetail/${review.targetNo}" />
+
 								</c:when>
 
 								<c:otherwise>
