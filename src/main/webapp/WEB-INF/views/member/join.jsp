@@ -155,25 +155,66 @@
             <div class="business-only-fields" id="businessOnlyFields">
                 <div class="join-section-title">사업자 정보</div>
 
-                <div class="form-group">
-                    <label>상호명</label>
+            <div class="form-group">
+                <label>상호명</label>
+                <input type="text"
+                    name="businessName"
+                    id="businessName"
+                    placeholder="사업체명을 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>대표자명</label>
+                <input type="text"
+                    name="representativeName"
+                    id="representativeName"
+                    placeholder="사업자등록증의 대표자명을 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>개업일</label>
+                <input type="text"
+                    name="openDate"
+                    id="openDate"
+                    placeholder="YYYYMMDD (예: 20200101)"
+                    maxlength="8"
+                    inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+                <label>사업자등록번호</label>
+                <div class="row">
                     <input type="text"
-                           name="businessName"
-                           id="businessName"
-                           placeholder="사업체명을 입력하세요">
+                        name="businessNumber"
+                        id="businessNumber"
+                        placeholder="000-00-00000"
+                        maxlength="12">
+                    <button type="button" onclick="checkBusinessNumber()">중복확인</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>사업자등록증</label>
+
+                <div class="file-box">
+                    <input type="file"
+                        name="licenseFile"
+                        id="licenseFile"
+                        accept=".pdf,.jpg,.jpeg,.png">
+
+                    <label for="licenseFile" class="file-label">
+                        파일 선택
+                    </label>
+
+                    <span class="file-name" id="licenseFileName">
+                        선택된 파일 없음
+                    </span>
                 </div>
 
-                <div class="form-group">
-                    <label>사업자등록번호</label>
-                    <div class="row">
-                        <input type="text"
-                               name="businessNumber"
-                               id="businessNumber"
-                               placeholder="000-00-00000"
-                               maxlength="12">
-                        <button type="button" onclick="checkBusinessNumber()">중복확인</button>
-                    </div>
+                <div class="form-hint">
+                    PDF, JPG, JPEG, PNG 파일을 등록해주세요.
                 </div>
+            </div>
 
                 <div class="join-section-title">정산 계좌 정보</div>
 
@@ -252,6 +293,9 @@
         var bankName = document.getElementById('bankName');
         var accountNumber = document.getElementById('accountNumber');
         var accountHolder = document.getElementById('accountHolder');
+        var representativeName = document.getElementById('representativeName');
+        var openDate = document.getElementById('openDate');
+        var licenseFile = document.getElementById('licenseFile');
 
         if (type === 'BUSINESS') {
             userFields.classList.remove('active');
@@ -261,7 +305,10 @@
 
             // 사업자 전용 필드는 필수값으로 전환
             businessName.required = true;
+            representativeName.required = true;
+            openDate.required = true;
             businessNumber.required = true;
+            licenseFile.required = true;
             bankName.required = true;
             accountNumber.required = true;
             accountHolder.required = true;
@@ -271,11 +318,14 @@
 
             // 일반회원 전환 시 사업자 필드 required 해제 (숨겨진 상태라 제출 막힘 방지)
             businessName.required = false;
+            representativeName.required = false;
+            openDate.required = false;
             businessNumber.required = false;
+            licenseFile.required = false;
             bankName.required = false;
             accountNumber.required = false;
             accountHolder.required = false;
-        }
+                    }
     }
 
     // 유효성 검사 실패로 폼이 다시 렌더링된 경우, 이전에 선택했던 탭을 복원
