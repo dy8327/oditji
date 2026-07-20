@@ -15,6 +15,9 @@
 
 <script defer
         src="${pageContext.request.contextPath}/js/content.js"></script>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/report.js"></script>
 </head>
 
 <body>

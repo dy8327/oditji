@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.report.dao.ReportDAO">
+
+    <!-- =========================
+     리뷰 신고 등록
+     - reviewType = CONTENT 이면 CONTENT_REVIEW_NO 만,
+       PRODUCT 이면 PRODUCT_REVIEW_NO 만 채워서 INSERT 한다.
+     - UQ_CONTENT_REVIEW_REPORT / UQ_PRODUCT_REVIEW_REPORT 제약조건으로
+       DB 레벨에서도 회원당 동일 리뷰 중복신고를 막아준다.
+     ========================= -->
+    <insert id="insertReport"
+            parameterType="com.project.oditji.report.vo.ReportVO">
+
+        INSERT INTO REVIEW_REPORT (
+            REPORT_NO,
+            MEMBER_NO,
+            REVIEW_TYPE,
+            CONTENT_REVIEW_NO,
+            PRODUCT_REVIEW_NO,
+            REASON,
+            DETAIL,
+            STATUS,
+            CREATED_AT
+        )
+        VALUES (
+            SEQ_REVIEW_REPORT_NO.NEXTVAL,
+            #{memberNo},
+            #{reviewType},
+            #{contentReviewNo, jdbcType=INTEGER},
+            #{productReviewNo, jdbcType=INTEGER},
+            #{reason},
+            #{detail},
+            'WAITING',
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- =========================
+     중복 신고 여부 사전 체크
+     - param: memberNo, reviewType, contentReviewNo, productReviewNo
+     ========================= -->
+    <select id="countReport"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM REVIEW_REPORT
+        WHERE MEMBER_NO = #{memberNo}
+
+        <choose>
+
+            <when test="reviewType == 'CONTENT'">
+                AND CONTENT_REVIEW_NO = #{contentReviewNo, jdbcType=INTEGER}
+            </when>
+
+            <when test="reviewType == 'PRODUCT'">
+                AND PRODUCT_REVIEW_NO = #{productReviewNo, jdbcType=INTEGER}
+            </when>
+
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+
+        </choose>
+
+    </select>
+
+    <!-- 로그인 회원이 신고한 상품 리뷰번호 목록 -->
+    <select id="selectReportedProductReviewNoList"
+            parameterType="java.lang.Long"
+            resultType="java.lang.Integer">
+
+        SELECT PRODUCT_REVIEW_NO
+        FROM REVIEW_REPORT
+        WHERE MEMBER_NO = #{memberNo}
+          AND REVIEW_TYPE = 'PRODUCT'
+
+    </select>
+
+</mapper>

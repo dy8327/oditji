@@ -40,4 +40,6 @@ public interface ReviewDAO {
     List<ProductReviewVO> selectProductReviewListByProductNo(int productNo);
     Double selectProductAvgRatingByProductNo(int productNo);
     int selectProductReviewCountByProductNo(int productNo);
+
+    int countMyOrderItem(Map<String, Object> param);
 }

@@ -61,36 +61,48 @@
 
                 <c:forEach var="i" items="${o.items}">
 
-                    <a class="order-item"
-                       href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
+                    <div class="order-item">
 
-                        <c:choose>
+                        <a href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
 
-                            <c:when test="${empty i.mainImage}">
-                                <div class="no-image">NO IMAGE</div>
-                            </c:when>
+                            <c:choose>
 
-                            <c:otherwise>
-                                <img src="${i.mainImage}" alt="${i.productName}">
-                            </c:otherwise>
+                                <c:when test="${empty i.mainImage}">
+                                    <div class="no-image">NO IMAGE</div>
+                                </c:when>
 
-                        </c:choose>
+                                <c:otherwise>
+                                    <img src="${i.mainImage}" alt="${i.productName}">
+                                </c:otherwise>
 
-                        <div class="order-item-info">
+                            </c:choose>
 
-                            <div>${i.productName}</div>
+                            <div class="order-item-info">
 
-                            <div>
-                                수량: ${i.quantity}
+                                <div>${i.productName}</div>
+
+                                <div>
+                                    수량: ${i.quantity}
+                                </div>
+
+                                <div>
+                                    ₩ <fmt:formatNumber value="${i.itemTotalPrice}" pattern="#,###"/>
+                                </div>
+
                             </div>
 
-                            <div>
-                                ₩ <fmt:formatNumber value="${i.itemTotalPrice}" pattern="#,###"/>
-                            </div>
+                        </a>
 
-                        </div>
+                        <!-- 리뷰 버튼은 a 태그 밖 -->
+                        <button
+                            type="button"
+                            class="review-btn"
+                            data-order-item="${i.orderItemNo}"
+                            data-product="${i.productNo}">
+                            리뷰 작성
+                        </button>
 
-                    </a>
+                    </div>
 
                 </c:forEach>
 
@@ -107,9 +119,51 @@
 
     </c:forEach>
 
+    <!-- 리뷰 작성 모달 -->
+    <div id="reviewModal" class="review-modal" style="display:none;">
+
+        <div class="review-modal-content">
+
+            <h2>상품 리뷰 작성</h2>
+
+            <form action="${pageContext.request.contextPath}/review/writeProductReview"
+                method="post">
+
+                <input type="hidden" id="orderItemNo" name="orderItemNo">
+                <input type="hidden" id="productNo" name="productNo">
+
+                <div>
+                    <label>평점</label>
+
+                    <select name="rating">
+                        <option value="5">★★★★★</option>
+                        <option value="4">★★★★☆</option>
+                        <option value="3">★★★☆☆</option>
+                        <option value="2">★★☆☆☆</option>
+                        <option value="1">★☆☆☆☆</option>
+                    </select>
+                </div>
+
+                <div>
+                    <textarea name="content"
+                            rows="6"
+                            placeholder="리뷰를 작성해주세요."></textarea>
+                </div>
+
+                <button type="submit">등록</button>
+                <button type="button" id="closeReviewModal">취소</button>
+
+            </form>
+
+        </div>
+
+    </div>
+
 </main>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+
+<script src="${pageContext.request.contextPath}/js/orderReview.js"></script>
 
 </body>
 

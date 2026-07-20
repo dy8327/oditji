@@ -2,6 +2,7 @@ package com.project.oditji.goods.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -13,8 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
+import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.report.service.ReportService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ProductReviewVO;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class GoodsController {
@@ -24,13 +29,16 @@ public class GoodsController {
 
     private final GoodsService goodsService;
     private final ReviewService reviewService;
+    private final ReportService reportService;
 
     public GoodsController(
             GoodsService goodsService,
-            ReviewService reviewService) {
+            ReviewService reviewService,
+            ReportService reportService) {
 
         this.goodsService = goodsService;
         this.reviewService = reviewService;
+        this.reportService = reportService;
     }
 
     @GetMapping("/goods/list")
@@ -104,6 +112,7 @@ public class GoodsController {
     @GetMapping("/goods/goodsDetail/{productNo}")
     public String detail(
             @PathVariable int productNo,
+            HttpSession session,
             Model model) {
 
         GoodsVO goods =
@@ -134,6 +143,17 @@ public class GoodsController {
         int reviewCount =
                 reviewService.getProductReviewCount(productNo);
 
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
+
+        Long loginMemberNo =
+                loginMember == null
+                        ? null
+                        : loginMember.getMemberNo();
+
+        Set<Integer> reportedReviewSet =
+                reportService.getReportedProductReviewSet(loginMemberNo);
+
         model.addAttribute("goods", goods);
         model.addAttribute("imageList", imageList);
         model.addAttribute("content", content);
@@ -141,6 +161,7 @@ public class GoodsController {
         model.addAttribute("reviewList", reviewList);
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("reviewCount", reviewCount);
+        model.addAttribute("reportedReviewSet", reportedReviewSet);
 
         return "goods/goodsDetail";
     }
