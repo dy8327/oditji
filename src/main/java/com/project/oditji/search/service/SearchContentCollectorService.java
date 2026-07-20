@@ -1063,7 +1063,14 @@ public class SearchContentCollectorService {
             return false;
         }
 
-        if (!hasText(previous.getAgeRating())) {
+        /*
+         * 이전 JSON에 미국 등급 원문이나 숫자형 한국 등급이 남아 있으면
+         * 한국식 표시 문구로 다시 변환하기 위해 재사용하지 않습니다.
+         */
+        if (!isNormalizedAgeRating(
+                previous.getAgeRating()
+        )) {
+
             return false;
         }
 
@@ -1382,7 +1389,10 @@ public class SearchContentCollectorService {
                 );
 
         if (hasText(koreaRating)) {
-            return koreaRating;
+
+            return normalizeKoreanAgeRating(
+                    koreaRating
+            );
         }
 
         String usRating =
@@ -1392,7 +1402,9 @@ public class SearchContentCollectorService {
                 );
 
         return hasText(usRating)
-                ? usRating
+                ? convertUsMovieAgeRating(
+                        usRating
+                )
                 : "등급 정보 없음";
     }
 
@@ -1481,7 +1493,10 @@ public class SearchContentCollectorService {
                 );
 
         if (hasText(koreaRating)) {
-            return koreaRating;
+
+            return normalizeKoreanAgeRating(
+                    koreaRating
+            );
         }
 
         String usRating =
@@ -1491,7 +1506,9 @@ public class SearchContentCollectorService {
                 );
 
         return hasText(usRating)
-                ? usRating
+                ? convertUsTvAgeRating(
+                        usRating
+                )
                 : "등급 정보 없음";
     }
 
@@ -1533,6 +1550,188 @@ public class SearchContentCollectorService {
         }
 
         return null;
+    }
+
+    /**
+     * 한국 연령등급 원문을 홈페이지 표시 문구로 통일합니다.
+     */
+    private String normalizeKoreanAgeRating(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return "등급 정보 없음";
+        }
+
+        String normalized =
+                rawRating.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .replace(" ", "")
+                        .replace("-", "")
+                        .replace("_", "");
+
+        if ("ALL".equals(normalized)
+                || "전체".equals(normalized)
+                || "전체관람가".equals(normalized)
+                || "전체이용가".equals(normalized)
+                || "0".equals(normalized)
+                || "0+".equals(normalized)) {
+
+            return "전체 관람가";
+        }
+
+        if ("7".equals(normalized)
+                || "7+".equals(normalized)
+                || normalized.contains("7세")) {
+
+            return "7세 이상 관람가";
+        }
+
+        if ("12".equals(normalized)
+                || "12+".equals(normalized)
+                || normalized.contains("12세")) {
+
+            return "12세 이상 관람가";
+        }
+
+        if ("15".equals(normalized)
+                || "15+".equals(normalized)
+                || normalized.contains("15세")) {
+
+            return "15세 이상 관람가";
+        }
+
+        if ("18".equals(normalized)
+                || "18+".equals(normalized)
+                || "19".equals(normalized)
+                || "19+".equals(normalized)
+                || normalized.contains("18세")
+                || normalized.contains("19세")
+                || normalized.contains("청소년관람불가")
+                || normalized.contains("청불")
+                || normalized.contains("제한상영가")) {
+
+            return "청소년 관람불가";
+        }
+
+        /*
+         * 알 수 없는 한국 등급 원문은 그대로 노출하지 않습니다.
+         */
+        return "등급 정보 없음";
+    }
+
+    /**
+     * 미국 영화 등급을 홈페이지용 한국식 문구로 변환합니다.
+     *
+     * 프로젝트 정책에 따라 R 등급은
+     * 15세 이상 관람가로 표시합니다.
+     */
+    private String convertUsMovieAgeRating(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return "등급 정보 없음";
+        }
+
+        String normalized =
+                rawRating.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .replace(" ", "")
+                        .replace("_", "-");
+
+        switch (normalized) {
+            case "G":
+                return "전체 관람가";
+
+            case "PG":
+            case "PG-13":
+            case "PG13":
+                return "12세 이상 관람가";
+
+            case "R":
+                return "15세 이상 관람가";
+
+            case "NC-17":
+            case "NC17":
+                return "청소년 관람불가";
+
+            case "NR":
+            case "NOTRATED":
+            case "UNRATED":
+                return "등급 정보 없음";
+
+            default:
+                return "등급 정보 없음";
+        }
+    }
+
+    /**
+     * 미국 TV 등급을 홈페이지용 한국식 문구로 변환합니다.
+     */
+    private String convertUsTvAgeRating(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return "등급 정보 없음";
+        }
+
+        String normalized =
+                rawRating.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .replace(" ", "")
+                        .replace("_", "-");
+
+        switch (normalized) {
+            case "TV-Y":
+            case "TVY":
+            case "TV-G":
+            case "TVG":
+                return "전체 관람가";
+
+            case "TV-Y7":
+            case "TVY7":
+                return "7세 이상 관람가";
+
+            case "TV-PG":
+            case "TVPG":
+                return "12세 이상 관람가";
+
+            case "TV-14":
+            case "TV14":
+                return "15세 이상 관람가";
+
+            case "TV-MA":
+            case "TVMA":
+                return "청소년 관람불가";
+
+            case "NR":
+            case "NOTRATED":
+            case "UNRATED":
+                return "등급 정보 없음";
+
+            default:
+                return "등급 정보 없음";
+        }
+    }
+
+    /**
+     * JSON에 저장된 등급이 이미 홈페이지 표시 형식인지 확인합니다.
+     *
+     * 미국 등급 원문이나 숫자형 등급이 남아 있으면 false를 반환하여
+     * 다음 수집에서 해당 콘텐츠만 다시 상세 보강합니다.
+     */
+    private boolean isNormalizedAgeRating(
+            String ageRating) {
+
+        if (!hasText(ageRating)) {
+            return false;
+        }
+
+        return "전체 관람가".equals(ageRating)
+                || "7세 이상 관람가".equals(ageRating)
+                || "12세 이상 관람가".equals(ageRating)
+                || "15세 이상 관람가".equals(ageRating)
+                || "청소년 관람불가".equals(ageRating)
+                || "등급 정보 없음".equals(ageRating);
     }
 
     private boolean hasText(
