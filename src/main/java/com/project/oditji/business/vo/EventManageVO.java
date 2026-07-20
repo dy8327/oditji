@@ -21,6 +21,7 @@ public class EventManageVO {
 
     // 조회 화면 표시용
     private String productName;
+    private Long price; // = PRODUCT.PRICE (원가, 조회 전용)
 
     /*
      * 이벤트 등록 권한 및 연결 상품 소유 여부 검증용이다.
@@ -120,6 +121,27 @@ public class EventManageVO {
         this.productName = productName;
     }
 
+    public Long getPrice() {
+        return price;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    /**
+     * 이벤트 할인이 적용된 판매가.
+     * price가 조회되지 않은 경우(등록/수정 처리 시점 등) null을 반환한다.
+     */
+    public Long getDiscountedPrice() {
+
+        if (price == null) {
+            return null;
+        }
+
+        return Math.round(price * (100 - eventDiscountRate) / 100.0);
+    }
+
     public long getBusinessNo() {
         return businessNo;
     }
@@ -142,6 +164,7 @@ public class EventManageVO {
                 ", productNo=" + productNo +
                 ", eventDiscountRate=" + eventDiscountRate +
                 ", productName='" + productName + '\'' +
+                ", price=" + price +
                 ", businessNo=" + businessNo +
                 '}';
     }

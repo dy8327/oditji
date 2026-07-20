@@ -174,27 +174,78 @@ public class AdminDAO {
         return sqlSession.selectList("selectProductReviewReportList", keywordParam(keyword));
     }
 
-    public int deleteProductReviewReportByReviewNo(Long reviewNo) {
-        // PRODUCT_REVIEW는 STATUS 컬럼이 없어 하드 삭제 -> FK(REVIEW_REPORT) 선삭제 필요
-        return sqlSession.delete("deleteProductReviewReportByReviewNo", reviewNo);
+    public int adminDeleteProductReview(Long reviewNo) {
+        // PRODUCT_REVIEW는 STATUS 컬럼이 없어 하드 삭제.
+        // FK_REPORT_PRODUCT_REVIEW가 ON DELETE CASCADE로 걸려 있어
+        // 연결된 REVIEW_REPORT 행은 자동으로 함께 삭제된다.
+        return sqlSession.delete("deleteProductReview", reviewNo);
     }
 
-    public int adminDeleteProductReview(Long reviewNo) {
-        return sqlSession.delete("deleteProductReview", reviewNo);
+    /**
+     * 해당 콘텐츠 리뷰에 걸린 WAITING 상태 신고를 전부 ACCEPTED/REJECTED로 변경한다.
+     */
+    public int updateContentReviewReportStatus(Long reviewNo, String status) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("reviewNo", reviewNo);
+        param.put("status", status);
+        return sqlSession.update("adminUpdateContentReviewReportStatus", param);
+    }
+
+    /**
+     * 해당 상품 리뷰에 걸린 WAITING 상태 신고를 전부 ACCEPTED/REJECTED로 변경한다.
+     */
+    public int updateProductReviewReportStatus(Long reviewNo, String status) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("reviewNo", reviewNo);
+        param.put("status", status);
+        return sqlSession.update("adminUpdateProductReviewReportStatus", param);
     }
 
     // ===================== 이벤트 관리 (EVENT) =====================
 
-    public List<EventManageVO> selectEventList(String keyword) {
-        // EVENT 테이블에 요청유형 구분 컬럼이 없어 tab 구분 없이 동일 목록 조회
-        return sqlSession.selectList("selectEventList", keywordParam(keyword));
+    public List<EventManageVO> selectAdminEventList(String tab, String keyword) {
+
+        Map<String, Object> param = new HashMap<>();
+
+        param.put("tab", tab);
+        param.put("keyword", keyword);
+
+        return sqlSession.selectList(
+                "selectAdminEventList",
+                param
+        );
     }
 
     public int updateEventStatus(Long eventNo, String status) {
+
         Map<String, Object> param = new HashMap<>();
+
         param.put("eventNo", eventNo);
         param.put("status", status);
-        return sqlSession.update("updateEventStatus", param);
+
+        return sqlSession.update(
+                "updateEventStatus",
+                param
+        );
+    }
+
+    /*
+     * 이벤트 승인 시 연결 상품의 할인율을 갱신하기 위해
+     * EVENT_PRODUCT에서 PRODUCT_NO / EVENT_DISCOUNT_RATE를 조회한다.
+     */
+    public EventManageVO selectEventProductByEventNo(Long eventNo) {
+        return sqlSession.selectOne("selectEventProductByEventNo", eventNo);
+    }
+
+    /*
+     * 이벤트 승인 시 연결 상품의 PRODUCT.DISCOUNT_RATE를
+     * 이벤트 할인율로 갱신한다.
+     */
+    public int applyEventDiscountToProduct(Long productNo, Integer eventDiscountRate) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("productNo", productNo);
+        param.put("eventDiscountRate", eventDiscountRate);
+        return sqlSession.update("applyEventDiscountToProduct", param);
     }
 
     // ===================== 상품 관리 (PRODUCT) =====================
@@ -239,11 +290,9 @@ public class AdminDAO {
 
     // ---- 상품 완전삭제 전, FK 제약조건 위반 방지를 위한 자식 테이블 선삭제 ----
 
-    public int deleteReviewReportByProductNo(Long productNo) {
-        return sqlSession.delete("adminDeleteReviewReportByProduct", productNo);
-    }
-
     public int deleteProductReviewByProductNo(Long productNo) {
+        // REVIEW_REPORT는 FK_REPORT_PRODUCT_REVIEW의 ON DELETE CASCADE로
+        // 이 상품의 리뷰들을 삭제할 때 자동으로 함께 정리된다.
         return sqlSession.delete("adminDeleteProductReviewByProduct", productNo);
     }
 

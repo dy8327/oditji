@@ -300,6 +300,40 @@
 
                 </div>
 
+                <!-- 이벤트 할인율 -->
+                <div class="form-group">
+
+                    <label class="form-label"
+                           for="eventDiscountRate">
+                        이벤트 할인율 (%)
+                    </label>
+
+                    <!--
+                        연결 상품에 적용할 이벤트 특별 할인율이다.
+                        관리자 승인 후 상품 판매가에 자동으로 반영된다.
+                    -->
+                    <input class="form-input"
+                           type="number"
+                           id="eventDiscountRate"
+                           name="eventDiscountRate"
+                           min="0"
+                           max="100"
+                           step="1"
+                           value="0"
+                           placeholder="0 ~ 100 사이의 숫자를 입력하세요."
+                           required>
+
+                    <!-- 선택한 상품 가격(할인가 미리보기 계산용, 서버 전송 X) -->
+                    <input type="hidden"
+                           id="selectedProductPrice">
+
+                    <p class="form-hint"
+                       id="eventDiscountPreview">
+                        상품을 선택하면 할인 적용가가 표시됩니다.
+                    </p>
+
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">
                             상태
@@ -557,7 +591,8 @@
                                             <button class="btn btn-primary product-select-button"
                                                     type="button"
                                                     data-product-no="<c:out value='${product.productNo}'/>"
-                                                    data-product-name="<c:out value='${product.productName}'/>">
+                                                    data-product-name="<c:out value='${product.productName}'/>"
+                                                    data-product-price="<c:out value='${product.price}'/>">
                                                 선택
                                             </button>
 
@@ -629,6 +664,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const productNameInput =
         document.getElementById("productName");
+
+    const selectedProductPriceInput =
+        document.getElementById("selectedProductPrice");
+
+    const eventDiscountRateInput =
+        document.getElementById("eventDiscountRate");
+
+    const eventDiscountPreview =
+        document.getElementById("eventDiscountPreview");
 
     const startDateInput =
         document.getElementById("startDate");
@@ -830,6 +874,39 @@ document.addEventListener("DOMContentLoaded", function () {
      * 상품 번호는 hidden input에 저장하고
      * 상품명은 readonly input에 표시한다.
      */
+    /*
+     * 할인 적용가 미리보기 갱신
+     *
+     * 서버로 전송되는 값이 아니라 화면에서만 참고용으로 계산한다.
+     * 실제 할인가 계산 및 저장은 서버(EVENT_PRODUCT.EVENT_DISCOUNT_RATE)에서 처리한다.
+     */
+    function updateDiscountPreview() {
+
+        const price =
+            Number(selectedProductPriceInput.value);
+
+        const rate =
+            Number(eventDiscountRateInput.value);
+
+        if (!price || Number.isNaN(rate)) {
+            eventDiscountPreview.textContent =
+                "상품을 선택하면 할인 적용가가 표시됩니다.";
+            return;
+        }
+
+        const discountedPrice =
+            Math.round(price * (100 - rate) / 100);
+
+        eventDiscountPreview.textContent =
+            "원가 " + price.toLocaleString() + "원 → 할인 적용가 "
+            + discountedPrice.toLocaleString() + "원 (할인율 " + rate + "%)";
+    }
+
+    eventDiscountRateInput.addEventListener(
+        "input",
+        updateDiscountPreview
+    );
+
     productSelectButtons.forEach(
         function (button) {
 
@@ -848,6 +925,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     productNameInput.value =
                         productName;
+
+                    selectedProductPriceInput.value =
+                        button.dataset.productPrice || "";
+
+                    updateDiscountPreview();
 
                     closeProductSearchModal();
                 }

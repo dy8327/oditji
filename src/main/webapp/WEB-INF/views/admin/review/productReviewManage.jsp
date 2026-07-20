@@ -31,7 +31,8 @@
             <h1 class="admin-page-title">상품 리뷰 관리</h1>
 
             <p class="admin-page-desc">
-                구매 상품에 등록된 전체 리뷰를 조회하고, 신고 접수된 리뷰를 확인하여 삭제 처리할 수 있습니다.
+                구매 상품에 등록된 전체 리뷰를 조회하고, 신고 접수된 리뷰를 확인하여
+                승인(리뷰 삭제) 또는 반려 처리할 수 있습니다.
             </p>
 
         </div>
@@ -85,11 +86,27 @@
                                 </div>
 
                                 <div class="item-actions">
-                                    <form action="${pageContext.request.contextPath}/admin/productReview/delete" method="post">
-                                        <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                        <input type="hidden" name="tab" value="${currentTab}">
-                                        <button type="submit" class="btn btn-danger">리뷰 삭제</button>
-                                    </form>
+                                    <c:choose>
+                                        <c:when test="${currentTab == 'report'}">
+                                            <form action="${pageContext.request.contextPath}/admin/productReview/report/approve" method="post" style="display:inline;">
+                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
+                                                <input type="hidden" name="tab" value="${currentTab}">
+                                                <button type="submit" class="btn btn-danger">승인 (리뷰 삭제)</button>
+                                            </form>
+                                            <form action="${pageContext.request.contextPath}/admin/productReview/report/reject" method="post" style="display:inline;">
+                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
+                                                <input type="hidden" name="tab" value="${currentTab}">
+                                                <button type="submit" class="btn btn-secondary">반려</button>
+                                            </form>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <form action="${pageContext.request.contextPath}/admin/productReview/delete" method="post">
+                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
+                                                <input type="hidden" name="tab" value="${currentTab}">
+                                                <button type="submit" class="btn btn-danger">리뷰 삭제</button>
+                                            </form>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
 
                             </article>

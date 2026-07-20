@@ -35,17 +35,25 @@ public interface AdminService {
 
     void deleteContentReview(Long reviewNo);
 
+    void approveContentReviewReport(Long reviewNo);
+
+    void rejectContentReviewReport(Long reviewNo);
+
     // 상품 리뷰 관리
     List<ReviewManageVO> getProductReviewList(String tab, String keyword);
 
     void deleteProductReview(Long reviewNo);
 
+    void approveProductReviewReport(Long reviewNo);
+
+    void rejectProductReviewReport(Long reviewNo);
+
     // 이벤트 관리
     List<EventManageVO> getEventList(String tab, String keyword);
 
-    void approveEvent(Long requestNo);
+    void approveEvent(Long eventNo);
 
-    void rejectEvent(Long requestNo);
+    void rejectEvent(Long eventNo);
 
     // 상품 관리
     List<ProductManageVO> getProductRequestList(String tab, String keyword);

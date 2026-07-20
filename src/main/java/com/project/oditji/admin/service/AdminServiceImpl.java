@@ -132,6 +132,38 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.deleteContentReview(reviewNo);
     }
 
+    /*
+     * 신고 승인: 신고가 정당하다고 판단 -> 대기 중인 신고를 ACCEPTED로 바꾸고
+     * 리뷰를 소프트 삭제한다. REVIEW는 하드 삭제가 아니라 STATUS만 바뀌므로
+     * REVIEW_REPORT의 ACCEPTED 이력은 그대로 보존된다.
+     */
+    @Override
+    @Transactional
+    public void approveContentReviewReport(Long reviewNo) {
+
+        int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "ACCEPTED");
+
+        if (updated == 0) {
+            throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
+        }
+
+        adminDAO.deleteContentReview(reviewNo);
+    }
+
+    /*
+     * 신고 반려: 신고가 부당하다고 판단 -> 대기 중인 신고를 REJECTED로 바꾸고
+     * 리뷰는 그대로 둔다.
+     */
+    @Override
+    public void rejectContentReviewReport(Long reviewNo) {
+
+        int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "REJECTED");
+
+        if (updated == 0) {
+            throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
+        }
+    }
+
     // ===================== 상품 리뷰 관리 =====================
 
     @Override
@@ -143,51 +175,91 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
     public void deleteProductReview(Long reviewNo) {
         // PRODUCT_REVIEW는 STATUS 컬럼이 없어 하드 삭제.
-        // REVIEW_REPORT가 PRODUCT_REVIEW_NO를 참조하므로 신고 내역을 먼저 삭제한다.
-        adminDAO.deleteProductReviewReportByReviewNo(reviewNo);
+        // REVIEW_REPORT가 PRODUCT_REVIEW_NO를 참조하지만 FK_REPORT_PRODUCT_REVIEW가
+        // ON DELETE CASCADE로 걸려 있어 신고 내역을 별도로 먼저 삭제할 필요가 없다.
         adminDAO.adminDeleteProductReview(reviewNo);
+    }
+
+    /*
+     * 신고 승인: 신고가 정당하다고 판단 -> 대기 중인 신고를 ACCEPTED로 바꾼 뒤
+     * 리뷰를 삭제한다. PRODUCT_REVIEW는 STATUS 컬럼이 없어 소프트 삭제가
+     * 불가능하므로 하드 삭제하며, FK_REPORT_PRODUCT_REVIEW의 ON DELETE CASCADE로
+     * 방금 ACCEPTED 처리한 REVIEW_REPORT 행도 리뷰와 함께 삭제된다.
+     * (콘텐츠 리뷰와 달리 처리 이력이 남지 않는다 - PRODUCT_REVIEW에 소프트 삭제용
+     * STATUS 컬럼이 없는 현재 테이블 구조상의 한계)
+     */
+    @Override
+    @Transactional
+    public void approveProductReviewReport(Long reviewNo) {
+
+        int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "ACCEPTED");
+
+        if (updated == 0) {
+            throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
+        }
+
+        adminDAO.adminDeleteProductReview(reviewNo);
+    }
+
+    /*
+     * 신고 반려: 신고가 부당하다고 판단 -> 대기 중인 신고를 REJECTED로 바꾸고
+     * 리뷰는 그대로 둔다.
+     */
+    @Override
+    public void rejectProductReviewReport(Long reviewNo) {
+
+        int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "REJECTED");
+
+        if (updated == 0) {
+            throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
+        }
     }
 
     // ===================== 이벤트 관리 =====================
 
     @Override
     public List<EventManageVO> getEventList(String tab, String keyword) {
-        // EVENT 테이블에 요청유형 구분 컬럼이 없어 tab 값과 무관하게 동일 목록을 조회한다.
-        return adminDAO.selectEventList(keyword);
+
+        return adminDAO.selectAdminEventList(tab, keyword);
     }
+
 
     @Override
     @Transactional
-    public void approveEvent(Long requestNo) {
+    public void approveEvent(Long eventNo) {
 
-        validateEventNo(requestNo);
+        validateEventNo(eventNo);
 
         int updateResult = adminDAO.updateEventStatus(
-                requestNo,
-                "APPROVED");
+                eventNo,
+                "APPROVED"
+        );
 
         if (updateResult != 1) {
             throw new IllegalStateException(
-                    "승인 대기 중인 이벤트가 아니거나 이벤트 승인 처리에 실패했습니다.");
+                    "이벤트 승인 처리에 실패했습니다."
+            );
         }
     }
 
+
     @Override
     @Transactional
-    public void rejectEvent(Long requestNo) {
+    public void rejectEvent(Long eventNo) {
 
-        validateEventNo(requestNo);
+        validateEventNo(eventNo);
 
         int updateResult = adminDAO.updateEventStatus(
-                requestNo,
-                "REJECTED");
+                eventNo,
+                "REJECTED"
+        );
 
         if (updateResult != 1) {
             throw new IllegalStateException(
-                    "승인 대기 중인 이벤트가 아니거나 이벤트 반려 처리에 실패했습니다.");
+                    "이벤트 반려 처리에 실패했습니다."
+            );
         }
     }
 
@@ -237,7 +309,8 @@ public class AdminServiceImpl implements AdminService {
             List<String> imagePathList = adminDAO.selectProductImagePathList(productNo);
 
             // FK 제약조건(ORA-02292) 위반을 막기 위해 자식 테이블부터 삭제한다.
-            adminDAO.deleteReviewReportByProductNo(productNo);
+            // REVIEW_REPORT는 FK_REPORT_PRODUCT_REVIEW의 ON DELETE CASCADE로
+            // 아래 상품 리뷰 삭제 시 자동으로 함께 정리되므로 별도 단계가 필요 없다.
             adminDAO.deleteProductReviewByProductNo(productNo);
             adminDAO.deleteCartItemByProductNo(productNo);
             adminDAO.deleteProductWishByProductNo(productNo);

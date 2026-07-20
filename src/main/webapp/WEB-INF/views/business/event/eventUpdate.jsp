@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="event"/>
 
@@ -251,6 +252,41 @@
 
                 </div>
 
+                <!-- 이벤트 할인율 -->
+                <div class="form-group">
+
+                    <label class="form-label"
+                           for="eventDiscountRate">
+                        이벤트 할인율 (%)
+                    </label>
+
+                    <!--
+                        연결 상품에 적용할 이벤트 특별 할인율이다.
+                        관리자 재승인 후 상품 판매가에 자동으로 반영된다.
+                    -->
+                    <input class="form-input"
+                           type="number"
+                           id="eventDiscountRate"
+                           name="eventDiscountRate"
+                           min="0"
+                           max="100"
+                           step="1"
+                           value="<c:out value='${event.eventDiscountRate}'/>"
+                           placeholder="0 ~ 100 사이의 숫자를 입력하세요."
+                           required>
+
+                    <!-- 선택한 상품 가격(할인가 미리보기 계산용, 서버 전송 X) -->
+                    <input type="hidden"
+                           id="selectedProductPrice"
+                           value="<c:out value='${event.price}'/>">
+
+                    <p class="form-hint"
+                       id="eventDiscountPreview">
+                        상품을 선택하면 할인 적용가가 표시됩니다.
+                    </p>
+
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">
                             상태
@@ -396,6 +432,7 @@
                         <th>상품명</th>
                         <th>작품</th>
                         <th>배우</th>
+                        <th>가격</th>
                         <th>상태</th>
                         <th>선택</th>
                     </tr>
@@ -424,6 +461,11 @@
                                 </td>
 
                                 <td>
+                                    <fmt:formatNumber value="${product.price}"
+                                                      pattern="#,###"/>원
+                                </td>
+
+                                <td>
                                     <c:out value="${product.status}"/>
                                 </td>
 
@@ -431,7 +473,8 @@
                                     <button class="btn btn-primary product-select-button"
                                             type="button"
                                             data-product-no="<c:out value='${product.productNo}'/>"
-                                            data-product-name="<c:out value='${product.productName}'/>">
+                                            data-product-name="<c:out value='${product.productName}'/>"
+                                            data-product-price="<c:out value='${product.price}'/>">
                                         선택
                                     </button>
                                 </td>
@@ -475,6 +518,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const productSearchNoResult = document.getElementById("productSearchNoResult");
     const productNoInput = document.getElementById("productNo");
     const productNameInput = document.getElementById("productName");
+    const selectedProductPriceInput = document.getElementById("selectedProductPrice");
+    const eventDiscountRateInput = document.getElementById("eventDiscountRate");
+    const eventDiscountPreview = document.getElementById("eventDiscountPreview");
 
     /* 이벤트 종료일 최소 날짜 설정 */
     startDateInput.addEventListener("change", function () {
@@ -537,12 +583,41 @@ document.addEventListener("DOMContentLoaded", function () {
             visibleCount === 0 ? "block" : "none";
     });
 
+    /*
+     * 할인 적용가 미리보기 갱신
+     *
+     * 서버로 전송되는 값이 아니라 화면에서만 참고용으로 계산한다.
+     * 실제 할인가 계산 및 저장은 서버(EVENT_PRODUCT.EVENT_DISCOUNT_RATE)에서 처리한다.
+     */
+    function updateDiscountPreview() {
+
+        const price = Number(selectedProductPriceInput.value);
+        const rate = Number(eventDiscountRateInput.value);
+
+        if (!price || Number.isNaN(rate)) {
+            eventDiscountPreview.textContent = "상품을 선택하면 할인 적용가가 표시됩니다.";
+            return;
+        }
+
+        const discountedPrice = Math.round(price * (100 - rate) / 100);
+
+        eventDiscountPreview.textContent =
+            "원가 " + price.toLocaleString() + "원 → 할인 적용가 "
+            + discountedPrice.toLocaleString() + "원 (할인율 " + rate + "%)";
+    }
+
+    eventDiscountRateInput.addEventListener("input", updateDiscountPreview);
+    updateDiscountPreview();
+
     productSelectButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
 
             productNoInput.value = button.dataset.productNo;
             productNameInput.value = button.dataset.productName;
+            selectedProductPriceInput.value = button.dataset.productPrice || "";
+
+            updateDiscountPreview();
 
             closeProductSearchModal();
         });

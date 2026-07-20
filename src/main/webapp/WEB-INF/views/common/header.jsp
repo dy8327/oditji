@@ -17,6 +17,7 @@
                 <li><a href="${pageContext.request.contextPath}/content/list?type=popular">인기</a></li>
                 <li><a href="${pageContext.request.contextPath}/content/list?type=new">신규</a></li>
                 <li><a href="${pageContext.request.contextPath}/goods/list">상품</a></li>
+                <li><a href="${pageContext.request.contextPath}/event/list">이벤트</a></li>
             </ul>
         </nav>
 
