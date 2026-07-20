@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.payment.dao.PaymentDAO">
+
+    <!-- =====================================================
+         결제 정보 매핑
+    ====================================================== -->
+    <resultMap id="paymentResultMap"
+               type="com.project.oditji.payment.vo.PaymentVO">
+
+        <id property="paymentNo"
+            column="PAYMENT_NO"/>
+
+        <result property="orderNo"
+                column="ORDER_NO"/>
+
+        <result property="orderName"
+                column="ORDER_NAME"/>
+
+        <result property="paymentId"
+                column="PAYMENT_ID"/>
+
+        <result property="paymentAmount"
+                column="PAYMENT_AMOUNT"/>
+
+        <result property="payMethod"
+                column="PAY_METHOD"/>
+
+        <result property="paymentStatus"
+                column="PAYMENT_STATUS"/>
+
+        <result property="pgProvider"
+                column="PG_PROVIDER"/>
+
+        <result property="pgTxId"
+                column="PG_TX_ID"/>
+
+        <result property="paidAt"
+                column="PAID_AT"/>
+
+        <result property="canceledAt"
+                column="CANCELED_AT"/>
+
+        <result property="cancelReason"
+                column="CANCEL_REASON"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         결제내역 저장
+    ====================================================== -->
+   <insert id="insertPayment"
+        parameterType="com.project.oditji.payment.vo.PaymentVO">
+
+        <selectKey keyProperty="paymentNo"
+                resultType="long"
+                order="BEFORE">
+
+            SELECT SEQ_PAYMENT_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO PAYMENT (
+            PAYMENT_NO,
+            ORDER_NO,
+            ORDER_NAME,
+            PAYMENT_ID,
+            PAYMENT_AMOUNT,
+            PAY_METHOD,
+            PAYMENT_STATUS,
+            PG_PROVIDER,
+            PG_TX_ID,
+            PAID_AT,
+            CANCELED_AT,
+            CANCEL_REASON,
+            CREATED_AT
+        )
+        VALUES (
+            #{paymentNo, jdbcType=NUMERIC},
+            #{orderNo, jdbcType=NUMERIC},
+            #{orderName, jdbcType=VARCHAR},
+            #{paymentId, jdbcType=VARCHAR},
+            #{paymentAmount, jdbcType=NUMERIC},
+            #{payMethod, jdbcType=VARCHAR},
+            #{paymentStatus, jdbcType=VARCHAR},
+            #{pgProvider, jdbcType=VARCHAR},
+            #{pgTxId, jdbcType=VARCHAR},
+            #{paidAt, jdbcType=VARCHAR},
+            #{canceledAt, jdbcType=VARCHAR},
+            #{cancelReason, jdbcType=VARCHAR},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         결제 ID 기준 조회
+    ====================================================== -->
+    <select id="selectPaymentByPaymentId"
+            resultMap="paymentResultMap">
+
+        SELECT
+            PAYMENT_NO,
+            ORDER_NO,
+            ORDER_NAME,
+            PAYMENT_ID,
+            PAYMENT_AMOUNT,
+            PAY_METHOD,
+            PAYMENT_STATUS,
+            PG_PROVIDER,
+            PG_TX_ID,
+            PAID_AT,
+            CANCELED_AT,
+            CANCEL_REASON,
+            CREATED_AT
+        FROM PAYMENT
+        WHERE PAYMENT_ID = #{paymentId}
+
+    </select>
+
+
+    <!-- =====================================================
+         주문 번호 기준 결제 조회
+    ====================================================== -->
+    <select id="selectPaymentByOrderNo"
+            resultMap="paymentResultMap">
+
+        SELECT
+            PAYMENT_NO,
+            ORDER_NO,
+            ORDER_NAME,
+            PAYMENT_ID,
+            PAYMENT_AMOUNT,
+            PAY_METHOD,
+            PAYMENT_STATUS,
+            PG_PROVIDER,
+            PG_TX_ID,
+            PAID_AT,
+            CANCELED_AT,
+            CANCEL_REASON,
+            CREATED_AT
+        FROM PAYMENT
+        WHERE ORDER_NO = #{orderNo}
+        ORDER BY PAYMENT_NO DESC
+        FETCH FIRST 1 ROWS ONLY
+
+    </select>
+
+
+    <!-- =====================================================
+         전체 결제내역
+    ====================================================== -->
+    <select id="selectPaymentList"
+            resultMap="paymentResultMap">
+
+        SELECT
+            PAYMENT_NO,
+            ORDER_NO,
+            ORDER_NAME,
+            PAYMENT_ID,
+            PAYMENT_AMOUNT,
+            PAY_METHOD,
+            PAYMENT_STATUS,
+            PG_PROVIDER,
+            PG_TX_ID,
+            PAID_AT,
+            CANCELED_AT,
+            CANCEL_REASON,
+            CREATED_AT
+        FROM PAYMENT
+        ORDER BY
+            CREATED_AT DESC,
+            PAYMENT_NO DESC
+
+    </select>
+
+</mapper>

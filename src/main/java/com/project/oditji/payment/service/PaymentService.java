@@ -1,17 +1,28 @@
 package com.project.oditji.payment.service;
 
-import com.project.oditji.payment.vo.PaymentCancelRequestVO;
-import com.project.oditji.payment.vo.PaymentCompleteRequestVO;
-import com.project.oditji.payment.vo.PaymentCompleteResponseVO;
-import com.project.oditji.payment.vo.PaymentTestVO;
-
 import java.util.List;
+
+import com.project.oditji.payment.vo.PaymentVO;
 
 public interface PaymentService {
 
-    PaymentCompleteResponseVO completePayment(PaymentCompleteRequestVO requestVO);
+    /**
+     * 포트원 서버 API에서 결제 정보를 조회하고
+     * 상태와 실제 결제 금액을 검증한다.
+     */
+    PaymentVO verifyPaidPayment(
+            String paymentId,
+            Long expectedAmount,
+            String expectedOrderName);
 
-    List<PaymentTestVO> getPaymentTestList();
+    /**
+     * 결제 ID로 DB 결제내역 조회
+     */
+    PaymentVO getPaymentByPaymentId(
+            String paymentId);
 
-    PaymentCompleteResponseVO cancelPayment(PaymentCancelRequestVO requestVO);
+    /**
+     * 전체 결제내역 조회
+     */
+    List<PaymentVO> getPaymentList();
 }

@@ -1,0 +1,153 @@
+/* ==========================================
+   1. 공통 및 기본 스타일 (Global Styles)
+   ========================================== */
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f6f8;
+  margin: 0;
+  padding: 40px;
+}
+
+h2 {
+  margin-top: 0;
+  color: #111;
+}
+
+/* 안내 문구용 */
+p {
+  color: #555;
+}
+
+.notice {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #777;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   2. 카드 / 박스 레이아웃 (Card & Containers)
+   ========================================== */
+/* 기본 알림/결제 카드 (작은 폭) */
+.box,
+.payment-box {
+  width: 420px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.box {
+  text-align: center;
+}
+
+/* 에러/경고용 제목 */
+.box h2.error-title {
+  color: #c0392b;
+}
+
+/* 리스트/테이블용 넓은 컨테이너 */
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================
+   3. 테이블 스타일 (Table Styles)
+   ========================================== */
+table {
+  width: 100%;
+  margin-top: 24px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 11px;
+  border-bottom: 1px solid #eeeeee;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background: #fafafa;
+}
+
+.long-text {
+  max-width: 200px;
+  word-break: break-all;
+}
+
+.empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: #777777;
+}
+
+/* ==========================================
+   4. 결제 정보 및 상태 표시 (Payment & Status)
+   ========================================== */
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+  font-size: 15px;
+}
+
+.price {
+  font-size: 22px;
+  font-weight: bold;
+  color: #222;
+}
+
+.status-paid {
+  color: #0a7d32;
+  font-weight: 700;
+}
+
+.status-canceled {
+  color: #c0392b;
+  font-weight: 700;
+}
+
+/* ==========================================
+   5. 버튼 및 링크 (Buttons & Links)
+   ========================================== */
+a,
+.action-link {
+  display: inline-block;
+  margin-top: 20px;
+  margin-right: 8px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+}
+
+.sub-link {
+  background: #555;
+}
+
+button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #333;
+}

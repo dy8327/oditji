@@ -73,7 +73,7 @@
                         </c:when>
 
                         <c:otherwise>
-                            <img src="${item.mainImage}" alt="${item.productName}">
+                            <img src="${pageContext.request.contextPath}${item.mainImage}" alt="${item.productName}">
                         </c:otherwise>
 
                     </c:choose>

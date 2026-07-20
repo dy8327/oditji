@@ -1,37 +1,40 @@
 package com.project.oditji.payment.vo;
 
-public class PaymentTestVO {
+import java.util.Date;
 
-    private int paymentNo;
-    private String paymentId;
+public class PaymentVO {
+
+    private Long paymentNo;
+    private Long orderNo;
     private String orderName;
-    private int paymentAmount;
-    private String paymentStatus;
+    private String paymentId;
+    private Long paymentAmount;
     private String payMethod;
+    private String paymentStatus;
     private String pgProvider;
     private String pgTxId;
     private String paidAt;
     private String canceledAt;
     private String cancelReason;
-    private String createdAt;
+    private Date createdAt;
 
-    public PaymentTestVO() {
+    public PaymentVO() {
     }
 
-    public int getPaymentNo() {
+    public Long getPaymentNo() {
         return paymentNo;
     }
 
-    public void setPaymentNo(int paymentNo) {
+    public void setPaymentNo(Long paymentNo) {
         this.paymentNo = paymentNo;
     }
 
-    public String getPaymentId() {
-        return paymentId;
+    public Long getOrderNo() {
+        return orderNo;
     }
 
-    public void setPaymentId(String paymentId) {
-        this.paymentId = paymentId;
+    public void setOrderNo(Long orderNo) {
+        this.orderNo = orderNo;
     }
 
     public String getOrderName() {
@@ -42,20 +45,20 @@ public class PaymentTestVO {
         this.orderName = orderName;
     }
 
-    public int getPaymentAmount() {
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
+    }
+
+    public Long getPaymentAmount() {
         return paymentAmount;
     }
 
-    public void setPaymentAmount(int paymentAmount) {
+    public void setPaymentAmount(Long paymentAmount) {
         this.paymentAmount = paymentAmount;
-    }
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
     }
 
     public String getPayMethod() {
@@ -64,6 +67,14 @@ public class PaymentTestVO {
 
     public void setPayMethod(String payMethod) {
         this.payMethod = payMethod;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public String getPgProvider() {
@@ -106,11 +117,11 @@ public class PaymentTestVO {
         this.cancelReason = cancelReason;
     }
 
-    public String getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 }
