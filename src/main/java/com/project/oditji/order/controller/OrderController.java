@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,8 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.order.vo.OrderCheckoutRequestVO;
 import com.project.oditji.order.vo.OrderDirectRequestVO;
+import com.project.oditji.order.vo.OrderPaymentCompleteRequestVO;
+import com.project.oditji.order.vo.OrderPaymentPrepareVO;
 import com.project.oditji.order.vo.OrderSheetItemVO;
 import com.project.oditji.order.vo.OrderSubmitRequestVO;
 import com.project.oditji.order.vo.OrderVO;
@@ -29,13 +32,17 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/order")
 public class OrderController {
 
-    /*
-     * 결제 전 임시 주문서 정보를 담아두는 세션 키.
-     * 로그인 회원 1명당 1개의 진행 중인 주문서만 유지한다.
-     */
     private static final String ORDER_SHEET_SESSION_KEY = "orderSheet";
 
+    private static final String PAYMENT_PREPARE_SESSION_KEY = "orderPaymentPrepare";
+
     private final OrderService orderService;
+
+    @Value("${portone.store-id}")
+    private String storeId;
+
+    @Value("${portone.payment.channel-key}")
+    private String paymentChannelKey;
 
     public OrderController(
             OrderService orderService) {
@@ -60,21 +67,23 @@ public class OrderController {
 
         try {
 
-            List<OrderSheetItemVO> sheetItems =
-                    orderService.prepareCheckoutFromCart(
-                            loginMember.getMemberNo(),
-                            requestVO.getCartItemNos()
-                    );
+            List<OrderSheetItemVO> sheetItems = orderService.prepareCheckoutFromCart(
+                    loginMember.getMemberNo(),
+                    requestVO.getCartItemNos());
 
             session.setAttribute(
                     ORDER_SHEET_SESSION_KEY,
-                    sheetItems
-            );
+                    sheetItems);
 
-            Map<String, Object> response =
-                    successResponse("주문서를 작성해주세요.");
+            session.removeAttribute(
+                    PAYMENT_PREPARE_SESSION_KEY);
 
-            response.put("redirectUrl", "/order");
+            Map<String, Object> response = successResponse(
+                    "주문서를 작성해주세요.");
+
+            response.put(
+                    "redirectUrl",
+                    "/order");
 
             return response;
 
@@ -86,12 +95,13 @@ public class OrderController {
 
             e.printStackTrace();
 
-            return failResponse("주문서 작성 중 오류가 발생했습니다.");
+            return failResponse(
+                    "주문서 작성 중 오류가 발생했습니다.");
         }
     }
 
     /**
-     * 상품 상세의 "바로 구매"로 주문서 작성 준비
+     * 상품 상세 바로 구매 주문서 작성 준비
      */
     @PostMapping("/direct")
     @ResponseBody
@@ -107,22 +117,24 @@ public class OrderController {
 
         try {
 
-            List<OrderSheetItemVO> sheetItems =
-                    orderService.prepareDirectOrder(
-                            loginMember.getMemberNo(),
-                            requestVO.getProductNo(),
-                            requestVO.getQuantity()
-                    );
+            List<OrderSheetItemVO> sheetItems = orderService.prepareDirectOrder(
+                    loginMember.getMemberNo(),
+                    requestVO.getProductNo(),
+                    requestVO.getQuantity());
 
             session.setAttribute(
                     ORDER_SHEET_SESSION_KEY,
-                    sheetItems
-            );
+                    sheetItems);
 
-            Map<String, Object> response =
-                    successResponse("주문서를 작성해주세요.");
+            session.removeAttribute(
+                    PAYMENT_PREPARE_SESSION_KEY);
 
-            response.put("redirectUrl", "/order");
+            Map<String, Object> response = successResponse(
+                    "주문서를 작성해주세요.");
+
+            response.put(
+                    "redirectUrl",
+                    "/order");
 
             return response;
 
@@ -134,7 +146,8 @@ public class OrderController {
 
             e.printStackTrace();
 
-            return failResponse("주문서 작성 중 오류가 발생했습니다.");
+            return failResponse(
+                    "주문서 작성 중 오류가 발생했습니다.");
         }
     }
 
@@ -153,10 +166,8 @@ public class OrderController {
         }
 
         @SuppressWarnings("unchecked")
-        List<OrderSheetItemVO> sheetItems =
-                (List<OrderSheetItemVO>) session.getAttribute(
-                        ORDER_SHEET_SESSION_KEY
-                );
+        List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session.getAttribute(
+                ORDER_SHEET_SESSION_KEY);
 
         if (sheetItems == null || sheetItems.isEmpty()) {
             return "redirect:/cart";
@@ -168,20 +179,35 @@ public class OrderController {
             totalPrice += item.getItemTotalPrice();
         }
 
-        model.addAttribute("orderItems", sheetItems);
-        model.addAttribute("totalPrice", totalPrice);
-        model.addAttribute("defaultReceiverName", loginMember.getMemberName());
-        model.addAttribute("defaultReceiverPhone", loginMember.getPhone());
+        model.addAttribute(
+                "orderItems",
+                sheetItems);
+
+        model.addAttribute(
+                "totalPrice",
+                totalPrice);
+
+        model.addAttribute(
+                "defaultReceiverName",
+                loginMember.getMemberName());
+
+        model.addAttribute(
+                "defaultReceiverPhone",
+                loginMember.getPhone());
+
+        model.addAttribute(
+                "defaultReceiverEmail",
+                loginMember.getEmail());
 
         return "order/order";
     }
 
     /**
-     * 주문서 최종 제출 (결제하기)
+     * 포트원 결제창 호출 전 결제 준비
      */
-    @PostMapping("/submit")
+    @PostMapping("/payment/prepare")
     @ResponseBody
-    public Map<String, Object> submitOrder(
+    public Map<String, Object> preparePayment(
             @RequestBody OrderSubmitRequestVO requestVO,
             HttpSession session) {
 
@@ -192,39 +218,54 @@ public class OrderController {
         }
 
         @SuppressWarnings("unchecked")
-        List<OrderSheetItemVO> sheetItems =
-                (List<OrderSheetItemVO>) session.getAttribute(
-                        ORDER_SHEET_SESSION_KEY
-                );
+        List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session.getAttribute(
+                ORDER_SHEET_SESSION_KEY);
 
         if (sheetItems == null || sheetItems.isEmpty()) {
-            return failResponse("주문서 정보가 만료되었습니다. 다시 시도해주세요.");
+            return failResponse(
+                    "주문서 정보가 만료되었습니다. "
+                            + "다시 주문해주세요.");
         }
 
         try {
 
-            /*
-             * TODO: 실제 결제(PG) 연동 지점.
-             * 현재는 결제 승인 절차 없이 바로 주문을 확정한다.
-             * PortOne 등 PG 연동 시, 결제 승인 콜백 이후 이 지점에서
-             * 주문을 확정하도록 순서를 조정해야 한다.
-             */
-            Long orderNo =
-                    orderService.submitOrder(
-                            loginMember.getMemberNo(),
-                            sheetItems,
-                            requestVO.getReceiverName(),
-                            requestVO.getReceiverPhone(),
-                            requestVO.getAddress()
-                    );
+            OrderPaymentPrepareVO prepareVO = orderService.preparePayment(
+                    loginMember.getMemberNo(),
+                    sheetItems,
+                    requestVO.getReceiverName(),
+                    requestVO.getReceiverPhone(),
+                    requestVO.getAddress());
 
-            session.removeAttribute(ORDER_SHEET_SESSION_KEY);
+            prepareVO.setStoreId(storeId);
+            prepareVO.setChannelKey(
+                    paymentChannelKey);
 
-            Map<String, Object> response =
-                    successResponse("주문이 완료되었습니다.");
+            session.setAttribute(
+                    PAYMENT_PREPARE_SESSION_KEY,
+                    prepareVO);
 
-            response.put("orderNo", orderNo);
-            response.put("redirectUrl", "/order/complete/" + orderNo);
+            Map<String, Object> response = successResponse(
+                    "결제 준비가 완료되었습니다.");
+
+            response.put(
+                    "storeId",
+                    prepareVO.getStoreId());
+
+            response.put(
+                    "channelKey",
+                    prepareVO.getChannelKey());
+
+            response.put(
+                    "paymentId",
+                    prepareVO.getPaymentId());
+
+            response.put(
+                    "orderName",
+                    prepareVO.getOrderName());
+
+            response.put(
+                    "totalAmount",
+                    prepareVO.getTotalAmount());
 
             return response;
 
@@ -236,7 +277,79 @@ public class OrderController {
 
             e.printStackTrace();
 
-            return failResponse("주문 처리 중 오류가 발생했습니다.");
+            return failResponse(
+                    "결제 준비 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 포트원 결제 완료 후 서버 검증 및 주문 확정
+     */
+    @PostMapping("/payment/complete")
+    @ResponseBody
+    public Map<String, Object> completePayment(
+            @RequestBody OrderPaymentCompleteRequestVO requestVO,
+            HttpSession session) {
+
+        MemberVO loginMember = getLoginMember(session);
+
+        if (loginMember == null) {
+            return loginRequiredResponse();
+        }
+
+        if (requestVO == null
+                || requestVO.getPaymentId() == null
+                || requestVO.getPaymentId().isBlank()) {
+
+            return failResponse(
+                    "결제 ID가 없습니다.");
+        }
+
+        OrderPaymentPrepareVO prepareVO = (OrderPaymentPrepareVO) session.getAttribute(
+                PAYMENT_PREPARE_SESSION_KEY);
+
+        if (prepareVO == null) {
+            return failResponse(
+                    "결제 준비 정보가 만료되었습니다. "
+                            + "주문서를 다시 작성해주세요.");
+        }
+
+        try {
+
+            Long orderNo = orderService.completePaidOrder(
+                    loginMember.getMemberNo(),
+                    prepareVO,
+                    requestVO.getPaymentId());
+
+            session.removeAttribute(
+                    ORDER_SHEET_SESSION_KEY);
+
+            session.removeAttribute(
+                    PAYMENT_PREPARE_SESSION_KEY);
+
+            Map<String, Object> response = successResponse(
+                    "결제와 주문이 완료되었습니다.");
+
+            response.put(
+                    "orderNo",
+                    orderNo);
+
+            response.put(
+                    "redirectUrl",
+                    "/order/complete/" + orderNo);
+
+            return response;
+
+        } catch (IllegalArgumentException e) {
+
+            return failResponse(e.getMessage());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return failResponse(
+                    "결제 검증 또는 주문 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -261,15 +374,13 @@ public class OrderController {
 
             order = orderService.getOrderDetail(
                     loginMember.getMemberNo(),
-                    orderNo
-            );
+                    orderNo);
 
         } catch (IllegalArgumentException e) {
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    e.getMessage()
-            );
+                    e.getMessage());
         }
 
         model.addAttribute("order", order);
@@ -291,12 +402,11 @@ public class OrderController {
             return "redirect:/member/login?redirect=/order/list";
         }
 
-        List<OrderVO> orderList =
-                orderService.getOrderList(
-                        loginMember.getMemberNo()
-                );
+        List<OrderVO> orderList = orderService.getOrderList(loginMember.getMemberNo());
 
-        model.addAttribute("orderList", orderList);
+        model.addAttribute(
+                "orderList",
+                orderList);
 
         return "order/orderList";
     }
@@ -304,8 +414,7 @@ public class OrderController {
     private MemberVO getLoginMember(
             HttpSession session) {
 
-        Object sessionMember =
-                session.getAttribute("loginMember");
+        Object sessionMember = session.getAttribute("loginMember");
 
         if (!(sessionMember instanceof MemberVO)) {
             return null;
@@ -325,8 +434,7 @@ public class OrderController {
     private Map<String, Object> successResponse(
             String message) {
 
-        Map<String, Object> response =
-                new LinkedHashMap<String, Object>();
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
 
         response.put("success", true);
         response.put("message", message);
@@ -337,8 +445,7 @@ public class OrderController {
     private Map<String, Object> failResponse(
             String message) {
 
-        Map<String, Object> response =
-                new LinkedHashMap<String, Object>();
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
 
         response.put("success", false);
         response.put("message", message);
@@ -348,10 +455,10 @@ public class OrderController {
 
     private Map<String, Object> loginRequiredResponse() {
 
-        Map<String, Object> response =
-                failResponse("로그인이 필요한 서비스입니다.");
+        Map<String, Object> response = failResponse("로그인이 필요한 서비스입니다.");
 
-        response.put("loginRequired", true);
+        response.put(
+                "loginRequired", true);
 
         return response;
     }
