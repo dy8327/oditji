@@ -586,10 +586,10 @@
 
 
     <!-- =====================================================
-         승인된 이벤트 기본 정보 즉시 수정
+         승인된 이벤트 수정 요청
 
-         별도 수정 요청 테이블이 없으므로 EVENT를 직접 수정한다.
-         수정 후에도 APPROVED 상태를 유지한다.
+         별도 수정 요청 테이블이 없으므로 EVENT를 직접 수정하고,
+         관리자 재승인을 받을 수 있도록 STATUS를 WAITING으로 변경한다.
     ====================================================== -->
     <update id="updateApprovedEvent"
             parameterType="com.project.oditji.business.vo.EventManageVO">
@@ -600,7 +600,7 @@
             BANNER_IMAGE = #{bannerImage, jdbcType=VARCHAR},
             START_DATE = #{startDate, jdbcType=DATE},
             END_DATE = #{endDate, jdbcType=DATE},
-            STATUS = 'APPROVED'
+            STATUS = 'WAITING'
         WHERE EVENT_NO = #{eventNo}
           AND STATUS = 'APPROVED'
           AND EXISTS (
@@ -616,7 +616,7 @@
 
 
     <!-- =====================================================
-         이벤트 연결 상품 즉시 수정
+         이벤트 수정 요청 연결 상품 변경
     ====================================================== -->
     <update id="updateEventProduct"
             parameterType="com.project.oditji.business.vo.EventManageVO">
@@ -638,14 +638,16 @@
 
 
     <!-- =====================================================
-         승인된 이벤트 종료일 즉시 연장
+         승인된 이벤트 연장 요청
 
-         별도 연장 요청 테이블이 없으므로 EVENT.END_DATE를 직접 변경한다.
+         별도 연장 요청 테이블이 없으므로 EVENT.END_DATE를 직접 변경하고,
+         관리자 재승인을 받을 수 있도록 STATUS를 WAITING으로 변경한다.
     ====================================================== -->
     <update id="extendApprovedEvent">
 
         UPDATE EVENT E
-        SET END_DATE = #{extendEndDate, jdbcType=DATE}
+        SET END_DATE = #{extendEndDate, jdbcType=DATE},
+            STATUS = 'WAITING'
         WHERE EVENT_NO = #{eventNo}
           AND STATUS = 'APPROVED'
           AND EXISTS (

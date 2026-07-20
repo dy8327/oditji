@@ -300,41 +300,37 @@
 
                 </div>
 
-                <!-- 상태 -->
                 <div class="form-group">
-
                     <label class="form-label">
-                        상태
+                            상태
                     </label>
 
-                    <div class="btn-row">
+                        <div class="btn-row">
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="WAITING"
-                                   ${event.status == 'WAITING' ? 'checked' : ''}>
-                            예정
-                        </label>
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="WAITING"
+                                    ${event.status == 'WAITING' ? 'checked' : ''}>
+                                예정
+                            </label>
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="ACTIVE"
-                                   ${event.status == 'ACTIVE' ? 'checked' : ''}>
-                            진행중
-                        </label>
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ACTIVE"
+                                    ${event.status == 'ACTIVE' ? 'checked' : ''}>
+                                진행중
+                            </label>
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="ENDED"
-                                   ${event.status == 'ENDED' ? 'checked' : ''}>
-                            종료
-                        </label>
-
-                    </div>
-
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ENDED"
+                                    ${event.status == 'ENDED' ? 'checked' : ''}>
+                                종료
+                            </label>
+                        </div>
                 </div>
 
                 <!-- 이벤트 이미지 -->

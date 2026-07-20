@@ -387,7 +387,7 @@
             STATUS        AS STATUS,
             NULL          AS DESCRIPTION
         FROM EVENT
-        WHERE 1 = 1
+        WHERE STATUS = 'WAITING'
         <if test="keyword != null and keyword != ''">
             AND TITLE LIKE '%' || #{keyword} || '%'
         </if>
@@ -398,6 +398,7 @@
         UPDATE EVENT
         SET STATUS = #{status}
         WHERE EVENT_NO = #{eventNo}
+          AND STATUS = 'WAITING'
     </update>
 
     <!-- ===================== 4. 상품 관리 (PRODUCT) ===================== -->

@@ -160,13 +160,35 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public void approveEvent(Long requestNo) {
-        adminDAO.updateEventStatus(requestNo, "APPROVED");
+
+        validateEventNo(requestNo);
+
+        int updateResult = adminDAO.updateEventStatus(
+                requestNo,
+                "APPROVED");
+
+        if (updateResult != 1) {
+            throw new IllegalStateException(
+                    "승인 대기 중인 이벤트가 아니거나 이벤트 승인 처리에 실패했습니다.");
+        }
     }
 
     @Override
+    @Transactional
     public void rejectEvent(Long requestNo) {
-        adminDAO.updateEventStatus(requestNo, "REJECTED");
+
+        validateEventNo(requestNo);
+
+        int updateResult = adminDAO.updateEventStatus(
+                requestNo,
+                "REJECTED");
+
+        if (updateResult != 1) {
+            throw new IllegalStateException(
+                    "승인 대기 중인 이벤트가 아니거나 이벤트 반려 처리에 실패했습니다.");
+        }
     }
 
     // ===================== 상품 관리 =====================
@@ -390,6 +412,18 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void updatePlatform(PlatformVO platform) {
         adminDAO.updatePlatform(platform);
+    }
+
+    /*
+     * =========================================================
+     * 이벤트 번호 검증
+     * =========================================================
+     */
+    private void validateEventNo(Long eventNo) {
+
+        if (eventNo == null || eventNo <= 0) {
+            throw new IllegalArgumentException("올바르지 않은 이벤트 번호입니다.");
+        }
     }
 
     /*

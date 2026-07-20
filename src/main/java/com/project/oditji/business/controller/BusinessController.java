@@ -1149,7 +1149,7 @@ public class BusinessController {
          * =========================================================
          * 이벤트 수정 화면
          *
-         * 관리자 승인이 완료된 APPROVED 이벤트만 수정할 수 있다.
+         * 관리자 승인이 완료된 APPROVED 이벤트만 수정 요청할 수 있다.
          * 현재 로그인한 사업자의 상품과 연결된 이벤트인지 함께 확인한다.
          * =========================================================
          */
@@ -1237,9 +1237,11 @@ public class BusinessController {
          * =========================================================
          * 이벤트 수정 처리
          *
-         * APPROVED 상태 이벤트의 내용을 즉시 수정한다.
-         * 별도 수정 요청 테이블이 없으므로 수정 후에도
-         * EVENT.STATUS는 APPROVED 상태를 유지한다.
+         * APPROVED 상태 이벤트의 내용을 수정하고
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않고,
+         * 승인 후 수정된 정보가 다시 노출된다.
          * =========================================================
          */
         @PostMapping("/event/update")
@@ -1309,10 +1311,11 @@ public class BusinessController {
                                 productNo);
 
                 /*
-                 * 수정 후에도 관리자 승인 완료 상태를 유지한다.
+                 * 이벤트 수정 요청은 반드시 관리자 재승인을 거치므로
+                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
                 eventManageVO.setStatus(
-                                "APPROVED");
+                                "WAITING");
 
                 eventManageVO.setEventDiscountRate(
                                 0);
@@ -1320,7 +1323,7 @@ public class BusinessController {
                 try {
 
                         System.out.println(
-                                        "===== 이벤트 즉시 수정 =====");
+                                        "===== 이벤트 수정 요청 =====");
 
                         System.out.println(
                                         "이벤트 번호: "
@@ -1344,7 +1347,8 @@ public class BusinessController {
 
                         redirectAttributes.addFlashAttribute(
                                         "successMessage",
-                                        "이벤트 내용이 수정되었습니다.");
+                                        "이벤트 수정 요청이 접수되었습니다. "
+                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
 
                         return "redirect:/business/event/list";
 
@@ -1377,7 +1381,7 @@ public class BusinessController {
          * =========================================================
          * 이벤트 연장 화면
          *
-         * 관리자 승인이 완료된 APPROVED 이벤트만 연장할 수 있다.
+         * 관리자 승인이 완료된 APPROVED 이벤트만 연장 요청할 수 있다.
          * =========================================================
          */
         @GetMapping("/event/extend")
@@ -1457,9 +1461,14 @@ public class BusinessController {
          * =========================================================
          * 이벤트 연장 처리
          *
-         * APPROVED 상태 이벤트의 END_DATE를 즉시 변경한다.
+         * APPROVED 상태 이벤트의 END_DATE를 변경하고
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
          * 현재 연장 요청 테이블과 사유 컬럼이 없으므로
          * 연장 사유는 서버 콘솔 로그로만 확인한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않고,
+         * 승인 후 연장된 종료일로 다시 노출된다.
          * =========================================================
          */
         @PostMapping("/event/extend")
@@ -1508,7 +1517,8 @@ public class BusinessController {
 
                         redirectAttributes.addFlashAttribute(
                                         "successMessage",
-                                        "이벤트 종료일이 연장되었습니다.");
+                                        "이벤트 연장 요청이 접수되었습니다. "
+                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
 
                         return "redirect:/business/event/list";
 

@@ -37,7 +37,7 @@
 
 .product-search-modal-panel {
     width: 100%;
-    max-width: 900px;
+     max-width: 1000px;
     max-height: 82vh;
     padding: 28px;
     border: 1px solid #3b3e46;
@@ -69,7 +69,14 @@
 }
 
 .product-search-bar {
+    display: flex;
+    gap: 10px;
     margin-bottom: 20px;
+}
+
+.product-search-bar .form-input {
+    flex: 1;
+    min-width: 0;
 }
 
 .product-search-result {
@@ -245,38 +252,52 @@
                 </div>
 
                 <div class="form-group">
-
                     <label class="form-label">
-                        상태
+                            상태
                     </label>
 
-                    <div class="btn-row">
+                        <div class="btn-row">
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="WAITING"
-                                   ${event.status == 'WAITING' ? 'checked' : ''}>
-                            예정
-                        </label>
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="WAITING"
+                                    ${event.status == 'WAITING' ? 'checked' : ''}>
+                                예정
+                            </label>
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="ACTIVE"
-                                   ${event.status == 'ACTIVE' ? 'checked' : ''}>
-                            진행중
-                        </label>
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ACTIVE"
+                                    ${event.status == 'ACTIVE' ? 'checked' : ''}>
+                                진행중
+                            </label>
 
-                        <label>
-                            <input type="checkbox"
-                                   name="status"
-                                   value="ENDED"
-                                   ${event.status == 'ENDED' ? 'checked' : ''}>
-                            종료
-                        </label>
+                            <label>
+                                <input type="checkbox"
+                                    name="status"
+                                    value="ENDED"
+                                    ${event.status == 'ENDED' ? 'checked' : ''}>
+                                종료
+                            </label>
+                </div>
 
-                    </div>
+                <div class="form-group">
+
+                    <label class="form-label">
+                        요청 상태
+                    </label>
+
+                    <!--
+                        이벤트 수정 요청이 접수되면
+                        EVENT.STATUS는 WAITING으로 변경된다.
+                        관리자 승인 전에는 사용자 화면에 노출되지 않는다.
+                    -->
+                    <input class="form-input"
+                           type="text"
+                           value="승인 대기"
+                           readonly>
 
                 </div>
 
@@ -358,6 +379,12 @@
                    type="text"
                    id="productSearchKeyword"
                    placeholder="상품명, 작품명, 배우명, 상품 종류를 검색하세요.">
+
+            <button class="btn btn-dark"
+                    type="button"
+                    id="productSearchResetButton">
+                초기화
+            </button>
         </div>
 
         <div class="product-search-result">
