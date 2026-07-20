@@ -112,7 +112,7 @@
     <!-- =====================================================
          콘텐츠 검색
     ====================================================== -->
-    <select id="selectContentList"
+    <select id="selectBusinessContentList"
             resultType="com.project.oditji.business.vo.ContentSearchVO">
 
         SELECT

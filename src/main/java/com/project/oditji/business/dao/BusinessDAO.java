@@ -43,7 +43,7 @@ public interface BusinessDAO {
          * 콘텐츠 검색 목록
          * =========================================================
          */
-        List<ContentSearchVO> selectContentList(
+        List<ContentSearchVO> selectBusinessContentList(
                         @Param("keyword") String keyword);
 
         /*

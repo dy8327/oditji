@@ -191,7 +191,7 @@ public class BusinessServiceImpl
                         }
                 }
 
-                List<ContentSearchVO> contentList = businessDAO.selectContentList(
+                List<ContentSearchVO> contentList = businessDAO.selectBusinessContentList(
                                 searchKeyword);
 
                 if (contentList == null) {
