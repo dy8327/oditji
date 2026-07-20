@@ -361,7 +361,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<ContentManageVO> getContentList(String keyword) {
-        return adminDAO.selectContentList(keyword);
+        return adminDAO.selectAdminContentList(keyword);
     }
 
     @Override

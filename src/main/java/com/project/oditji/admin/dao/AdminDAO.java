@@ -357,8 +357,8 @@ public class AdminDAO {
 
     // ===================== 콘텐츠 관리 (CONTENT) =====================
 
-    public List<ContentManageVO> selectContentList(String keyword) {
-        return sqlSession.selectList("selectContentList", keywordParam(keyword));
+    public List<ContentManageVO> selectAdminContentList(String keyword) {
+        return sqlSession.selectList("selectAdminContentList", keywordParam(keyword));
     }
 
     public int updateContent(ContentManageVO content) {

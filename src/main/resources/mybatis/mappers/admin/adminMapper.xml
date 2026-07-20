@@ -739,7 +739,7 @@
 
     <!-- ===================== 콘텐츠 관리 (CONTENT) ===================== -->
 
-    <select id="selectContentList" resultType="com.project.oditji.admin.vo.ContentManageVO">
+    <select id="selectAdminContentList" resultType="com.project.oditji.admin.vo.ContentManageVO">
         SELECT
             C.CONTENT_NO      AS CONTENT_NO,
             C.TMDB_ID         AS TMDB_ID,
