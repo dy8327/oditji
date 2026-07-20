@@ -179,7 +179,7 @@ public class AdminDAO {
         return sqlSession.delete("deleteProductReviewReportByReviewNo", reviewNo);
     }
 
-    public int deleteProductReview(Long reviewNo) {
+    public int adminDeleteProductReview(Long reviewNo) {
         return sqlSession.delete("deleteProductReview", reviewNo);
     }
 

@@ -71,6 +71,14 @@ public class ReportServiceImpl implements ReportService {
 
         int existingCount = reportDAO.countReport(checkParam);
 
+        System.out.println("=========================");
+        System.out.println("memberNo = " + memberNo);
+        System.out.println("reviewType = " + normalizedType);
+        System.out.println("contentReviewNo = " + contentReviewNo);
+        System.out.println("productReviewNo = " + productReviewNo);
+        System.out.println("existingCount = " + existingCount);
+        System.out.println("=========================");
+
         if (existingCount > 0) {
             // UQ_CONTENT_REVIEW_REPORT / UQ_PRODUCT_REVIEW_REPORT 제약조건과
             // 동일한 조건을 애플리케이션 단에서 먼저 체크하여

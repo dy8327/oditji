@@ -336,12 +336,9 @@
     </select>
 
     <!-- 상품 리뷰 삭제 (실제 row 삭제) -->
-    <delete id="deleteProductReview"
-            parameterType="int">
-
+    <delete id="deleteProductReview" parameterType="long">
         DELETE FROM PRODUCT_REVIEW
         WHERE REVIEW_NO = #{reviewNo}
-
     </delete>
 
     <!-- 상태(ACTIVE/DELETED) 무관하고 (회원, 콘텐츠) 리뷰 조회 - 재작성 여부 판단용 -->

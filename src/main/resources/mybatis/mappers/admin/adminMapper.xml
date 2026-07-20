@@ -243,32 +243,41 @@
         ORDER BY R.CREATED_AT DESC
     </select>
 
-    <select id="selectContentReviewReportList" resultType="com.project.oditji.admin.vo.ReviewManageVO">
+    <select id="selectContentReviewReportList"
+            resultType="com.project.oditji.admin.vo.ReviewManageVO">
+
+    SELECT
+        R.REVIEW_NO AS REVIEW_NO,
+        R.MEMBER_NO AS MEMBER_NO,
+        M.NICKNAME AS NICKNAME,
+        R.CONTENT_NO AS CONTENT_NO,
+        R.RATING AS RATING,
+        R.REVIEW_TEXT AS CONTENT,
+        R.STATUS AS STATUS,
+        NVL(RC.REPORT_COUNT, 0) AS REPORT_COUNT,
+        0 AS LIKE_COUNT,
+        0 AS COMMENT_COUNT,
+        R.CREATED_AT AS CREATED_AT
+
+    FROM REVIEW R
+
+    JOIN MEMBER M
+    ON M.MEMBER_NO = R.MEMBER_NO
+
+    LEFT JOIN (
         SELECT
-            R.REVIEW_NO      AS REVIEW_NO,
-            R.MEMBER_NO      AS MEMBER_NO,
-            M.NICKNAME       AS NICKNAME,
-            R.CONTENT_NO     AS CONTENT_NO,
-            R.RATING         AS RATING,
-            R.REVIEW_TEXT    AS CONTENT,
-            R.STATUS         AS STATUS,
-            COUNT(RR.REPORT_NO) AS REPORT_COUNT,
-            0                AS LIKE_COUNT,
-            0                AS COMMENT_COUNT,
-            R.CREATED_AT     AS CREATED_AT
-        FROM REVIEW R
-        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
-        JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
-        JOIN REVIEW_REPORT RR ON RR.CONTENT_REVIEW_NO = R.REVIEW_NO AND RR.REVIEW_TYPE = 'CONTENT'
-        WHERE R.STATUS != 'DELETED'
-        <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR C.TITLE LIKE '%' || #{keyword} || '%'
-            )
-        </if>
-        GROUP BY R.REVIEW_NO, R.MEMBER_NO, M.NICKNAME, R.CONTENT_NO, R.RATING, R.REVIEW_TEXT, R.STATUS, R.CREATED_AT
-        ORDER BY R.CREATED_AT DESC
+            CONTENT_REVIEW_NO,
+            COUNT(REPORT_NO) AS REPORT_COUNT
+        FROM REVIEW_REPORT
+        WHERE REVIEW_TYPE = 'CONTENT'
+        GROUP BY CONTENT_REVIEW_NO
+    ) RC
+    ON RC.CONTENT_REVIEW_NO = R.REVIEW_NO
+
+    WHERE R.STATUS != 'DELETED'
+
+    ORDER BY R.CREATED_AT DESC
+
     </select>
 
     <update id="adminDeleteContentReview">
@@ -338,7 +347,7 @@
         WHERE PRODUCT_REVIEW_NO = #{reviewNo}
     </delete>
 
-    <delete id="deleteProductReview">
+    <delete id="adminDeleteProductReview">
         DELETE FROM PRODUCT_REVIEW
         WHERE REVIEW_NO = #{reviewNo}
     </delete>
