@@ -54,16 +54,22 @@
 
         <choose>
 
-            <when test="reviewType == 'CONTENT'">
-                AND CONTENT_REVIEW_NO = #{contentReviewNo, jdbcType=INTEGER}
+            <when test='"CONTENT".equals(reviewType)'>
+
+                AND CONTENT_REVIEW_NO = #{contentReviewNo}
+
             </when>
 
-            <when test="reviewType == 'PRODUCT'">
-                AND PRODUCT_REVIEW_NO = #{productReviewNo, jdbcType=INTEGER}
+            <when test='"PRODUCT".equals(reviewType)'>
+
+                AND PRODUCT_REVIEW_NO = #{productReviewNo}
+
             </when>
 
             <otherwise>
+
                 AND 1 = 0
+
             </otherwise>
 
         </choose>

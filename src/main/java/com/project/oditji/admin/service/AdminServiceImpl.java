@@ -148,7 +148,7 @@ public class AdminServiceImpl implements AdminService {
         // PRODUCT_REVIEW는 STATUS 컬럼이 없어 하드 삭제.
         // REVIEW_REPORT가 PRODUCT_REVIEW_NO를 참조하므로 신고 내역을 먼저 삭제한다.
         adminDAO.deleteProductReviewReportByReviewNo(reviewNo);
-        adminDAO.deleteProductReview(reviewNo);
+        adminDAO.adminDeleteProductReview(reviewNo);
     }
 
     // ===================== 이벤트 관리 =====================
