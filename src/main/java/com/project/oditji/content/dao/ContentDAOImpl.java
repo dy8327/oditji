@@ -16,56 +16,100 @@ public class ContentDAOImpl implements ContentDAO {
 
     private final SqlSession sqlSession;
 
-    private static final String NAMESPACE = "com.project.oditji.content.dao.ContentDAO.";
+    private static final String NAMESPACE =
+            "com.project.oditji.content.dao.ContentDAO.";
 
-    public ContentDAOImpl(SqlSession sqlSession) {
+    public ContentDAOImpl(
+            SqlSession sqlSession) {
+
         this.sqlSession = sqlSession;
     }
 
     @Override
-    public ContentVO selectContentByTmdbId(Long tmdbId, String contentType) {
+    public ContentVO selectContentByTmdbId(
+            Long tmdbId,
+            String contentType) {
 
-        ContentVO param = new ContentVO();
+        ContentVO param =
+                new ContentVO();
+
         param.setTmdbId(tmdbId);
         param.setContentType(contentType);
 
-        return sqlSession.selectOne(NAMESPACE + "selectContentByTmdbId", param);
+        return sqlSession.selectOne(
+                NAMESPACE + "selectContentByTmdbId",
+                param
+        );
     }
 
     @Override
-    public ContentVO selectContentByContentNo(int contentNo) {
-        return sqlSession.selectOne(NAMESPACE + "selectContentByContentNo", contentNo);
+    public ContentVO selectContentByContentNo(
+            int contentNo) {
+
+        return sqlSession.selectOne(
+                NAMESPACE + "selectContentByContentNo",
+                contentNo
+        );
     }
 
     @Override
-    public int insertContent(ContentVO content) {
-        return sqlSession.insert(NAMESPACE + "insertContent", content);
+    public int insertContent(
+            ContentVO content) {
+
+        return sqlSession.insert(
+                NAMESPACE + "insertContent",
+                content
+        );
     }
 
     @Override
-    public int increaseViewCount(int contentNo) {
-        return sqlSession.update(NAMESPACE + "increaseViewCount", contentNo);
+    public int updateContentFromSearchCache(
+            ContentVO content) {
+
+        return sqlSession.update(
+                NAMESPACE + "updateContentFromSearchCache",
+                content
+        );
     }
 
     @Override
-    public List<ActorVO> selectActorListByContentNo(int contentNo) {
+    public int increaseViewCount(
+            int contentNo) {
+
+        return sqlSession.update(
+                NAMESPACE + "increaseViewCount",
+                contentNo
+        );
+    }
+
+    @Override
+    public List<ActorVO> selectActorListByContentNo(
+            int contentNo) {
+
         return sqlSession.selectList(
                 NAMESPACE + "selectActorListByContentNo",
-                contentNo);
+                contentNo
+        );
     }
 
     @Override
-    public List<DirectorVO> selectDirectorListByContentNo(int contentNo) {
+    public List<DirectorVO> selectDirectorListByContentNo(
+            int contentNo) {
+
         return sqlSession.selectList(
                 NAMESPACE + "selectDirectorListByContentNo",
-                contentNo);
+                contentNo
+        );
     }
 
     @Override
-    public List<OttPlatformVO> selectOttPlatformListByContentNo(int contentNo) {
+    public List<OttPlatformVO> selectOttPlatformListByContentNo(
+            int contentNo) {
+
         return sqlSession.selectList(
                 NAMESPACE + "selectOttPlatformListByContentNo",
-                contentNo);
+                contentNo
+        );
     }
 
     @Override
@@ -74,18 +118,25 @@ public class ContentDAOImpl implements ContentDAO {
 
         return sqlSession.selectList(
                 NAMESPACE + "selectRelatedContentCandidates",
-                param);
+                param
+        );
     }
 
     @Override
     public List<ContentVO> selectMainContentList() {
-        return sqlSession.selectList(NAMESPACE + "selectMainContentList");
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectMainContentList"
+        );
     }
 
     @Override
-    public List<ContentVO> selectContentListByType(Map<String, Object> param) {
+    public List<ContentVO> selectContentListByType(
+            Map<String, Object> param) {
+
         return sqlSession.selectList(
                 NAMESPACE + "selectContentListByType",
-                param);
+                param
+        );
     }
 }

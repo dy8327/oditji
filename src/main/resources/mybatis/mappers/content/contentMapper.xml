@@ -110,6 +110,31 @@
 
     </insert>
 
+    <!--
+        검색 JSON 캐시 값을 기존 CONTENT 행에 반영합니다.
+        캐시에 존재하는 핵심 검색 값만 갱신하며,
+        overview, backdropPath, runtime 등 기존 상세 전용 값은 유지합니다.
+    -->
+    <update id="updateContentFromSearchCache"
+            parameterType="com.project.oditji.content.vo.ContentVO">
+
+        UPDATE CONTENT
+        SET
+            TITLE = #{title},
+            ORIGINAL_TITLE = #{originalTitle, jdbcType=VARCHAR},
+            POSTER_PATH = #{posterPath, jdbcType=VARCHAR},
+            RELEASE_DATE = #{releaseDate, jdbcType=DATE},
+            GENRE_TEXT = #{genreText, jdbcType=VARCHAR},
+            EPISODE_COUNT = #{episodeCount, jdbcType=NUMERIC},
+            DIRECTOR = #{director, jdbcType=VARCHAR},
+            CAST_NAMES = #{castNames, jdbcType=VARCHAR},
+            AGE_RATING = #{ageRating, jdbcType=VARCHAR},
+            TMDB_SCORE = #{tmdbScore, jdbcType=NUMERIC},
+            UPDATED_AT = SYSDATE
+        WHERE CONTENT_NO = #{contentNo}
+
+    </update>
+
     <update id="increaseViewCount"
             parameterType="int">
 
