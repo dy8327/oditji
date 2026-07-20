@@ -1,34 +1,48 @@
 package com.project.oditji.search.service;
 
-import java.time.Duration;
+import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.dao.TmdbDAO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 @Service
 public class SearchContentPageCacheService {
 
-    private static final long CACHE_TTL_MILLIS =
-            Duration.ofMinutes(10).toMillis();
+    private static final String MOVIE = "MOVIE";
+    private static final String TV = "TV";
 
-    private static final int MAX_CACHE_SIZE = 200;
-    private static final int MAX_TMDB_PAGE = 500;
+    private static final String CATEGORY_MOVIE = "MOVIE";
+    private static final String CATEGORY_DRAMA = "DRAMA";
+    private static final String CATEGORY_ANIMATION = "ANIMATION";
+    private static final String CATEGORY_VARIETY = "VARIETY";
+    private static final String CATEGORY_DOCUMENTARY = "DOCUMENTARY";
 
-    private final SearchService searchService;
+    private final SearchContentStore searchContentStore;
+    private final TmdbDAO tmdbDAO;
 
-    private final Map<String, SearchCacheEntry> searchCache =
-            new ConcurrentHashMap<String, SearchCacheEntry>();
+    public SearchContentPageCacheService(
+            SearchContentStore searchContentStore,
+            TmdbDAO tmdbDAO) {
 
-    public SearchContentPageCacheService(SearchService searchService) {
-        this.searchService = searchService;
+        this.searchContentStore =
+                searchContentStore;
+
+        this.tmdbDAO =
+                tmdbDAO;
     }
 
     public SearchResultPageVO getContentPage(
@@ -39,46 +53,77 @@ public class SearchContentPageCacheService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        int normalizedPage = displayPage <= 0 ? 1 : displayPage;
-        int normalizedPageSize = pageSize <= 0 ? 10 : Math.min(pageSize, 100);
-        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        int normalizedPage =
+                Math.max(displayPage, 1);
 
-        List<String> normalizedCategories = normalizeAndSortList(contentCategories);
-        List<String> normalizedGenres = normalizeAndSortList(genreCodes);
-        List<String> normalizedProviders = normalizeAndSortList(providerIds);
+        int normalizedPageSize =
+                Math.max(
+                        1,
+                        Math.min(
+                                pageSize,
+                                100
+                        )
+                );
 
-        String cacheKey = createCacheKey(
-                normalizedKeyword,
-                normalizedCategories,
-                normalizedGenres,
-                normalizedProviders
-        );
+        List<SearchResultVO> filtered =
+                searchAll(
+                        keyword,
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
 
-        SearchCacheEntry cacheEntry = getOrCreateCacheEntry(cacheKey);
+        int totalResults =
+                filtered.size();
 
-        int startIndex = (normalizedPage - 1) * normalizedPageSize;
-        int requiredResultCount = startIndex + normalizedPageSize + 1;
+        int totalPages =
+                totalResults == 0
+                        ? 0
+                        : (totalResults
+                                + normalizedPageSize
+                                - 1)
+                                / normalizedPageSize;
 
-        synchronized (cacheEntry) {
-            if (cacheEntry.isExpired()) {
-                cacheEntry.reset();
-            }
+        if (totalPages > 0
+                && normalizedPage > totalPages) {
 
-            collectUntilRequiredCount(
-                    cacheEntry,
-                    requiredResultCount,
-                    normalizedKeyword,
-                    normalizedCategories,
-                    normalizedGenres,
-                    normalizedProviders
-            );
+            normalizedPage = totalPages;
+        }
 
-            return createDisplayPage(
-                    cacheEntry,
-                    normalizedPage,
-                    normalizedPageSize
+        int startIndex =
+                (normalizedPage - 1)
+                        * normalizedPageSize;
+
+        int endIndex =
+                Math.min(
+                        startIndex
+                                + normalizedPageSize,
+                        totalResults
+                );
+
+        List<SearchResultVO> pageResult =
+                new ArrayList<SearchResultVO>();
+
+        if (startIndex >= 0
+                && startIndex < totalResults) {
+
+            pageResult.addAll(
+                    filtered.subList(
+                            startIndex,
+                            endIndex
+                    )
             );
         }
+
+        SearchResultPageVO pageVO =
+                new SearchResultPageVO();
+
+        pageVO.setPage(normalizedPage);
+        pageVO.setResultList(pageResult);
+        pageVO.setTotalPages(totalPages);
+        pageVO.setTotalResults(totalResults);
+
+        return pageVO;
     }
 
     public List<SearchResultVO> getFirstPagePreview(
@@ -93,365 +138,753 @@ public class SearchContentPageCacheService {
             return new ArrayList<SearchResultVO>();
         }
 
-        SearchResultPageVO firstPage = getContentPage(
-                keyword,
-                1,
-                contentPageSize,
-                contentCategories,
-                genreCodes,
-                providerIds
-        );
+        SearchResultPageVO pageVO =
+                getContentPage(
+                        keyword,
+                        1,
+                        Math.max(
+                                previewSize,
+                                contentPageSize
+                        ),
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
 
-        List<SearchResultVO> resultList = firstPage.getResultList();
+        List<SearchResultVO> resultList =
+                pageVO.getResultList();
 
-        if (resultList == null || resultList.isEmpty()) {
+        if (resultList == null
+                || resultList.isEmpty()) {
+
             return new ArrayList<SearchResultVO>();
         }
 
-        int endIndex = Math.min(previewSize, resultList.size());
+        int endIndex =
+                Math.min(
+                        previewSize,
+                        resultList.size()
+                );
 
         return new ArrayList<SearchResultVO>(
-                resultList.subList(0, endIndex)
+                resultList.subList(
+                        0,
+                        endIndex
+                )
         );
     }
 
-    private void collectUntilRequiredCount(
-            SearchCacheEntry cacheEntry,
-            int requiredResultCount,
+    private List<SearchResultVO> searchAll(
             String keyword,
             List<String> contentCategories,
             List<String> genreCodes,
             List<String> providerIds) {
 
-        while (!cacheEntry.isComplete()
-                && cacheEntry.getResultList().size() < requiredResultCount) {
+        String normalizedKeyword =
+                normalizeSearchText(keyword);
 
-            int tmdbPage = cacheEntry.getNextTmdbPage();
-
-            if (tmdbPage > MAX_TMDB_PAGE) {
-                cacheEntry.setComplete(true);
-                break;
-            }
-
-            SearchResultPageVO partialPage = requestSearchPage(
-                    keyword,
-                    tmdbPage,
-                    contentCategories,
-                    genreCodes,
-                    providerIds
-            );
-
-            cacheEntry.setNextTmdbPage(tmdbPage + 1);
-
-            if (partialPage == null) {
-                cacheEntry.setComplete(true);
-                break;
-            }
-
-            if (tmdbPage == 1) {
-                cacheEntry.setSourceTotalPages(
-                        Math.min(partialPage.getTotalPages(), MAX_TMDB_PAGE)
+        List<String> normalizedCategories =
+                normalizeUpperCaseList(
+                        contentCategories
                 );
-                cacheEntry.setSourceTotalResults(partialPage.getTotalResults());
-            }
 
-            addUniqueResults(
-                    cacheEntry.getResultList(),
-                    partialPage.getResultList()
-            );
+        List<String> normalizedGenres =
+                normalizeUpperCaseList(
+                        genreCodes
+                );
 
-            int sourceTotalPages = cacheEntry.getSourceTotalPages();
+        Set<String> selectedPlatformKeys =
+                providerIdsToKeys(
+                        providerIds
+                );
 
-            if (sourceTotalPages <= 0
-                    || tmdbPage >= sourceTotalPages
-                    || tmdbPage >= MAX_TMDB_PAGE) {
-                cacheEntry.setComplete(true);
-            }
+        Map<String, OttPlatformVO> platformMap =
+                createPlatformMap(
+                        tmdbDAO.selectActivePlatformList()
+                );
 
-            cacheEntry.updateAccessTime();
-        }
-    }
-
-    private SearchResultPageVO requestSearchPage(
-            String keyword,
-            int tmdbPage,
-            List<String> contentCategories,
-            List<String> genreCodes,
-            List<String> providerIds) {
-
-        if (keyword == null || keyword.isEmpty()) {
-            return searchService.getPopularContent(
-                    tmdbPage,
-                    contentCategories,
-                    genreCodes,
-                    providerIds
-            );
-        }
-
-        return searchService.searchByTmdb(
-                keyword,
-                tmdbPage,
-                contentCategories,
-                genreCodes,
-                providerIds
-        );
-    }
-
-    private SearchResultPageVO createDisplayPage(
-            SearchCacheEntry cacheEntry,
-            int displayPage,
-            int pageSize) {
-
-        int startIndex = (displayPage - 1) * pageSize;
-        int endIndex = Math.min(
-                startIndex + pageSize,
-                cacheEntry.getResultList().size()
-        );
-
-        List<SearchResultVO> displayResultList =
+        List<SearchResultVO> result =
                 new ArrayList<SearchResultVO>();
 
-        if (startIndex < cacheEntry.getResultList().size()) {
-            displayResultList.addAll(
-                    cacheEntry.getResultList().subList(startIndex, endIndex)
+        for (CachedContentVO content
+                : searchContentStore.getAll()) {
+
+            if (content == null
+                    || content.getTmdbId() == null
+                    || content.getContentType() == null) {
+
+                continue;
+            }
+
+            if (!matchesKeyword(
+                    content,
+                    normalizedKeyword
+            )) {
+
+                continue;
+            }
+
+            if (!matchesContentCategories(
+                    content,
+                    normalizedCategories
+            )) {
+
+                continue;
+            }
+
+            if (!matchesGenreCodes(
+                    content,
+                    normalizedGenres
+            )) {
+
+                continue;
+            }
+
+            if (!matchesProviders(
+                    content,
+                    selectedPlatformKeys
+            )) {
+
+                continue;
+            }
+
+            result.add(
+                    toSearchResultVO(
+                            content,
+                            platformMap,
+                            normalizedKeyword
+                    )
             );
         }
 
-        SearchResultPageVO pageVO = new SearchResultPageVO();
-        pageVO.setPage(displayPage);
-        pageVO.setResultList(displayResultList);
-        pageVO.setTotalPages(
-                calculateDisplayTotalPages(cacheEntry, displayPage, pageSize)
+        result.sort(
+                Comparator
+                        .comparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
         );
-        pageVO.setTotalResults(cacheEntry.getSourceTotalResults());
 
-        return pageVO;
+        return result;
     }
 
-    private int calculateDisplayTotalPages(
-            SearchCacheEntry cacheEntry,
-            int currentPage,
-            int pageSize) {
+    private boolean matchesKeyword(
+            CachedContentVO content,
+            String normalizedKeyword) {
 
-        int collectedCount = cacheEntry.getResultList().size();
-        int collectedPages = (collectedCount + pageSize - 1) / pageSize;
-
-        if (cacheEntry.isComplete()) {
-            return collectedPages;
+        if (normalizedKeyword.isEmpty()) {
+            return true;
         }
 
-        if (collectedCount > currentPage * pageSize) {
-            return Math.max(collectedPages, currentPage + 1);
+        String searchText =
+                content.getSearchText();
+
+        if (searchText == null
+                || searchText.isBlank()) {
+
+            searchText =
+                    normalizeSearchText(
+                            safeText(
+                                    content.getTitle()
+                            )
+                                    + " "
+                                    + safeText(
+                                            content.getOriginalTitle()
+                                    )
+                                    + " "
+                                    + safeText(
+                                            content.getDirector()
+                                    )
+                                    + " "
+                                    + safeText(
+                                            content.getCastNames()
+                                    )
+                    );
         }
 
-        return Math.max(collectedPages, currentPage);
+        return searchText.contains(
+                normalizedKeyword
+        );
     }
 
-    private void addUniqueResults(
-            List<SearchResultVO> targetList,
-            List<SearchResultVO> sourceList) {
+    private boolean matchesContentCategories(
+            CachedContentVO content,
+            List<String> categories) {
 
-        if (sourceList == null) {
+        if (categories.isEmpty()) {
+            return true;
+        }
+
+        for (String category
+                : categories) {
+
+            if (matchesContentCategory(
+                    content,
+                    category
+            )) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchesContentCategory(
+            CachedContentVO content,
+            String category) {
+
+        String contentType =
+                safeText(
+                        content.getContentType()
+                ).toUpperCase(Locale.ROOT);
+
+        String genreText =
+                safeText(
+                        content.getGenreText()
+                );
+
+        boolean animation =
+                genreText.contains("애니메이션");
+
+        boolean documentary =
+                genreText.contains("다큐멘터리");
+
+        boolean variety =
+                genreText.contains("리얼리티")
+                        || genreText.contains("토크");
+
+        if (CATEGORY_MOVIE.equals(category)) {
+
+            return MOVIE.equals(contentType)
+                    && !animation
+                    && !documentary;
+        }
+
+        if (CATEGORY_DRAMA.equals(category)) {
+
+            return TV.equals(contentType)
+                    && genreText.contains("드라마")
+                    && !animation
+                    && !documentary
+                    && !variety;
+        }
+
+        if (CATEGORY_ANIMATION.equals(category)) {
+            return animation;
+        }
+
+        if (CATEGORY_VARIETY.equals(category)) {
+
+            return TV.equals(contentType)
+                    && variety;
+        }
+
+        if (CATEGORY_DOCUMENTARY.equals(category)) {
+            return documentary;
+        }
+
+        return false;
+    }
+
+    private boolean matchesGenreCodes(
+            CachedContentVO content,
+            List<String> genreCodes) {
+
+        if (genreCodes.isEmpty()) {
+            return true;
+        }
+
+        String genreText =
+                safeText(
+                        content.getGenreText()
+                );
+
+        for (String genreCode
+                : genreCodes) {
+
+            String genreName =
+                    displayGenreName(
+                            genreCode
+                    );
+
+            if (genreText.contains(
+                    genreName
+            )) {
+
+                return true;
+            }
+
+            if ("ACTION".equals(genreCode)
+                    && genreText.contains(
+                            "액션·모험"
+                    )) {
+
+                return true;
+            }
+
+            if (("SCI_FI".equals(genreCode)
+                    || "FANTASY".equals(genreCode))
+                    && genreText.contains(
+                            "SF·판타지"
+                    )) {
+
+                return true;
+            }
+
+            if ("ROMANCE".equals(genreCode)
+                    && genreText.contains(
+                            "연속극"
+                    )) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchesProviders(
+            CachedContentVO content,
+            Set<String> selectedPlatformKeys) {
+
+        if (selectedPlatformKeys.isEmpty()) {
+            return !content
+                    .getPlatformKeys()
+                    .isEmpty();
+        }
+
+        for (String platformKey
+                : content.getPlatformKeys()) {
+
+            if (selectedPlatformKeys.contains(
+                    platformKey
+            )) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private SearchResultVO toSearchResultVO(
+            CachedContentVO content,
+            Map<String, OttPlatformVO> platformMap,
+            String normalizedKeyword) {
+
+        SearchResultVO result =
+                new SearchResultVO();
+
+        result.setTmdbId(
+                content.getTmdbId()
+        );
+
+        result.setContentType(
+                content.getContentType()
+        );
+
+        result.setTitle(
+                content.getTitle()
+        );
+
+        result.setOriginalTitle(
+                content.getOriginalTitle()
+        );
+
+        result.setPosterPath(
+                content.getPosterPath()
+        );
+
+        result.setReleaseDate(
+                content.getReleaseDate()
+        );
+
+        result.setGenreText(
+                content.getGenreText()
+        );
+
+        result.setAgeRating(
+                content.getAgeRating()
+        );
+
+        result.setTmdbScore(
+                content.getTmdbScore()
+        );
+
+        result.setPopularity(
+                content.getPopularity()
+        );
+
+        result.setEpisodeCount(
+                content.getEpisodeCount()
+        );
+
+        result.setDirector(
+                content.getDirector()
+        );
+
+        result.setCastNames(
+                content.getCastNames()
+        );
+
+        result.setPlatformList(
+                createPlatformList(
+                        content.getPlatformKeys(),
+                        platformMap
+                )
+        );
+
+        applyMatchInformation(
+                result,
+                content,
+                normalizedKeyword
+        );
+
+        return result;
+    }
+
+    private void applyMatchInformation(
+            SearchResultVO result,
+            CachedContentVO content,
+            String normalizedKeyword) {
+
+        result.setMatchType("TITLE");
+
+        if (normalizedKeyword.isEmpty()) {
             return;
         }
 
-        for (SearchResultVO sourceVO : sourceList) {
-            if (sourceVO == null
-                    || sourceVO.getTmdbId() == null
-                    || sourceVO.getContentType() == null) {
-                continue;
-            }
+        String normalizedTitle =
+                normalizeSearchText(
+                        safeText(
+                                content.getTitle()
+                        )
+                                + " "
+                                + safeText(
+                                        content.getOriginalTitle()
+                                )
+                );
 
-            SearchResultVO duplicatedVO = findDuplicatedResult(
-                    targetList,
-                    sourceVO
+        if (normalizedTitle.contains(
+                normalizedKeyword
+        )) {
+
+            return;
+        }
+
+        String normalizedDirector =
+                normalizeSearchText(
+                        content.getDirector()
+                );
+
+        if (normalizedDirector.contains(
+                normalizedKeyword
+        )) {
+
+            result.setMatchType("PERSON");
+
+            result.setMatchedPersonName(
+                    content.getDirector()
             );
 
-            if (duplicatedVO == null) {
-                targetList.add(sourceVO);
+            result.setMatchedPersonRole(
+                    "감독"
+            );
+
+            return;
+        }
+
+        String normalizedCast =
+                normalizeSearchText(
+                        content.getCastNames()
+                );
+
+        if (normalizedCast.contains(
+                normalizedKeyword
+        )) {
+
+            result.setMatchType("PERSON");
+
+            result.setMatchedPersonName(
+                    content.getCastNames()
+            );
+
+            result.setMatchedPersonRole(
+                    "배우"
+            );
+        }
+    }
+
+    private List<OttPlatformVO> createPlatformList(
+            List<String> platformKeys,
+            Map<String, OttPlatformVO> platformMap) {
+
+        List<OttPlatformVO> result =
+                new ArrayList<OttPlatformVO>();
+
+        if (platformKeys == null) {
+            return result;
+        }
+
+        for (String platformKey
+                : platformKeys) {
+
+            OttPlatformVO platform =
+                    platformMap.get(
+                            platformKey
+                    );
+
+            if (platform != null) {
+                result.add(platform);
+            }
+        }
+
+        return result;
+    }
+
+    private Map<String, OttPlatformVO> createPlatformMap(
+            List<OttPlatformVO> platformList) {
+
+        Map<String, OttPlatformVO> result =
+                new LinkedHashMap<String, OttPlatformVO>();
+
+        if (platformList == null) {
+            return result;
+        }
+
+        for (OttPlatformVO platform
+                : platformList) {
+
+            if (platform == null
+                    || platform.getPlatformName() == null) {
+
                 continue;
             }
 
-            if ("PERSON".equals(sourceVO.getMatchType())) {
-                duplicatedVO.setMatchType(sourceVO.getMatchType());
-                duplicatedVO.setMatchedPersonName(sourceVO.getMatchedPersonName());
-                duplicatedVO.setMatchedPersonRole(sourceVO.getMatchedPersonRole());
-            }
-        }
-    }
+            String key =
+                    normalizePlatformName(
+                            platform.getPlatformName()
+                    );
 
-    private SearchResultVO findDuplicatedResult(
-            List<SearchResultVO> targetList,
-            SearchResultVO sourceVO) {
-
-        for (SearchResultVO targetVO : targetList) {
-            if (targetVO == null
-                    || targetVO.getTmdbId() == null
-                    || targetVO.getContentType() == null) {
-                continue;
-            }
-
-            if (sourceVO.getTmdbId().equals(targetVO.getTmdbId())
-                    && sourceVO.getContentType().equalsIgnoreCase(
-                            targetVO.getContentType()
-                    )) {
-                return targetVO;
+            if (!key.isEmpty()) {
+                result.put(key, platform);
             }
         }
 
-        return null;
+        return result;
     }
 
-    private SearchCacheEntry getOrCreateCacheEntry(String cacheKey) {
-        removeExpiredEntries();
-
-        if (searchCache.size() >= MAX_CACHE_SIZE) {
-            removeOldestEntry();
-        }
-
-        return searchCache.compute(
-                cacheKey,
-                (key, oldEntry) -> {
-                    if (oldEntry == null || oldEntry.isExpired()) {
-                        return new SearchCacheEntry();
-                    }
-                    oldEntry.updateAccessTime();
-                    return oldEntry;
-                }
-        );
-    }
-
-    private void removeExpiredEntries() {
-        searchCache.entrySet().removeIf(
-                entry -> entry.getValue() == null
-                        || entry.getValue().isExpired()
-        );
-    }
-
-    private void removeOldestEntry() {
-        String oldestKey = searchCache.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue() != null)
-                .min(
-                        Comparator.comparingLong(
-                                entry -> entry.getValue().getLastAccessTime()
-                        )
-                )
-                .map(Map.Entry::getKey)
-                .orElse(null);
-
-        if (oldestKey != null) {
-            searchCache.remove(oldestKey);
-        }
-    }
-
-    private String createCacheKey(
-            String keyword,
-            List<String> contentCategories,
-            List<String> genreCodes,
+    /**
+     * 사이드바에서 전달된 OTT 값을 내부 플랫폼 키로 변환합니다.
+     *
+     * 신규 화면에서는 netflix, tving 등의 내부 키를 직접 사용하고,
+     * 기존 북마크나 URL 호환을 위해 과거 숫자 값도 함께 지원합니다.
+     *
+     * 숫자 283은 TMDB에서 Crunchyroll이지만,
+     * 과거 ODITJI 화면에서 쿠팡플레이 값으로 사용했기 때문에
+     * 기존 URL 호환 목적으로만 coupang으로 처리합니다.
+     */
+    private Set<String> providerIdsToKeys(
             List<String> providerIds) {
 
-        return keyword.toLowerCase()
-                + "|CATEGORY=" + String.join(",", contentCategories)
-                + "|GENRE=" + String.join(",", genreCodes)
-                + "|PROVIDER=" + String.join(",", providerIds);
-    }
+        Set<String> result =
+                new HashSet<String>();
 
-    private List<String> normalizeAndSortList(List<String> sourceList) {
-        List<String> normalizedList = new ArrayList<String>();
-
-        if (sourceList == null) {
-            return normalizedList;
+        if (providerIds == null) {
+            return result;
         }
 
-        for (String value : sourceList) {
+        for (String providerId
+                : providerIds) {
+
+            if (providerId == null
+                    || providerId.isBlank()) {
+
+                continue;
+            }
+
+            String normalized =
+                    providerId.trim()
+                            .toLowerCase(Locale.ROOT);
+
+            if ("netflix".equals(normalized)
+                    || "8".equals(normalized)) {
+
+                result.add("netflix");
+
+            } else if ("tving".equals(normalized)
+                    || "1883".equals(normalized)) {
+
+                result.add("tving");
+
+            } else if ("wavve".equals(normalized)
+                    || "356".equals(normalized)) {
+
+                result.add("wavve");
+
+            } else if ("disney".equals(normalized)
+                    || "disney+".equals(normalized)
+                    || "337".equals(normalized)) {
+
+                result.add("disney");
+
+            } else if ("watcha".equals(normalized)
+                    || "97".equals(normalized)) {
+
+                result.add("watcha");
+
+            } else if ("coupang".equals(normalized)
+                    || "coupangplay".equals(normalized)
+                    || "283".equals(normalized)) {
+
+                result.add("coupang");
+            }
+        }
+
+        return result;
+    }
+
+    private String normalizePlatformName(
+            String name) {
+
+        if (name == null) {
+            return "";
+        }
+
+        String normalized =
+                name.toLowerCase(Locale.ROOT)
+                        .replaceAll(
+                                "[^a-z0-9]",
+                                ""
+                        );
+
+        if (normalized.contains("netflix")) {
+            return "netflix";
+        }
+
+        if (normalized.contains("tving")) {
+            return "tving";
+        }
+
+        if (normalized.contains("wavve")) {
+            return "wavve";
+        }
+
+        if (normalized.contains("disney")) {
+            return "disney";
+        }
+
+        if (normalized.contains("watcha")) {
+            return "watcha";
+        }
+
+        if (normalized.contains("coupang")) {
+            return "coupang";
+        }
+
+        return normalized;
+    }
+
+    private List<String> normalizeUpperCaseList(
+            List<String> sourceList) {
+
+        List<String> result =
+                new ArrayList<String>();
+
+        if (sourceList == null) {
+            return result;
+        }
+
+        for (String value
+                : sourceList) {
+
             if (value == null) {
                 continue;
             }
 
-            String normalizedValue = value.trim().toUpperCase();
+            String normalized =
+                    value.trim()
+                            .toUpperCase(
+                                    Locale.ROOT
+                            );
 
-            if (!normalizedValue.isEmpty()
-                    && !normalizedList.contains(normalizedValue)) {
-                normalizedList.add(normalizedValue);
+            if (!normalized.isEmpty()
+                    && !result.contains(normalized)) {
+
+                result.add(normalized);
             }
         }
 
-        Collections.sort(normalizedList);
-        return normalizedList;
+        return result;
     }
 
-    private static class SearchCacheEntry {
+    private String normalizeSearchText(
+            String value) {
 
-        private final List<SearchResultVO> resultList;
-        private int nextTmdbPage;
-        private int sourceTotalPages;
-        private int sourceTotalResults;
-        private boolean complete;
-        private long createdTime;
-        private long lastAccessTime;
-
-        private SearchCacheEntry() {
-            this.resultList = new ArrayList<SearchResultVO>();
-            reset();
+        if (value == null) {
+            return "";
         }
 
-        private void reset() {
-            resultList.clear();
-            nextTmdbPage = 1;
-            sourceTotalPages = 0;
-            sourceTotalResults = 0;
-            complete = false;
-            createdTime = System.currentTimeMillis();
-            lastAccessTime = createdTime;
-        }
+        String normalized =
+                Normalizer.normalize(
+                        value,
+                        Normalizer.Form.NFKC
+                );
 
-        private boolean isExpired() {
-            return System.currentTimeMillis() - createdTime >= CACHE_TTL_MILLIS;
-        }
+        return normalized
+                .toLowerCase(Locale.ROOT)
+                .replaceAll(
+                        "[^\\p{L}\\p{N}]",
+                        ""
+                );
+    }
 
-        private List<SearchResultVO> getResultList() {
-            return resultList;
-        }
+    private String safeText(String value) {
+        return value == null ? "" : value;
+    }
 
-        private int getNextTmdbPage() {
-            return nextTmdbPage;
-        }
+    private String displayGenreName(
+            String code) {
 
-        private void setNextTmdbPage(int nextTmdbPage) {
-            this.nextTmdbPage = nextTmdbPage;
-        }
+        Map<String, String> names =
+                new HashMap<String, String>();
 
-        private int getSourceTotalPages() {
-            return sourceTotalPages;
-        }
+        names.put("ACTION", "액션");
+        names.put("ADVENTURE", "모험");
+        names.put("ANIMATION", "애니메이션");
+        names.put("COMEDY", "코미디");
+        names.put("CRIME", "범죄");
+        names.put("DOCUMENTARY", "다큐멘터리");
+        names.put("DRAMA", "드라마");
+        names.put("FAMILY", "가족");
+        names.put("FANTASY", "판타지");
+        names.put("HISTORY", "역사");
+        names.put("HORROR", "공포");
+        names.put("MUSIC", "음악");
+        names.put("MYSTERY", "미스터리");
+        names.put("ROMANCE", "로맨스");
+        names.put("SCI_FI", "SF");
+        names.put("THRILLER", "스릴러");
+        names.put("WAR", "전쟁");
+        names.put("WESTERN", "서부");
+        names.put("KIDS", "키즈");
+        names.put("NEWS", "뉴스");
+        names.put("REALITY", "리얼리티");
+        names.put("SOAP", "연속극");
+        names.put("TALK", "토크");
 
-        private void setSourceTotalPages(int sourceTotalPages) {
-            this.sourceTotalPages = sourceTotalPages;
-        }
-
-        private int getSourceTotalResults() {
-            return sourceTotalResults;
-        }
-
-        private void setSourceTotalResults(int sourceTotalResults) {
-            this.sourceTotalResults = sourceTotalResults;
-        }
-
-        private boolean isComplete() {
-            return complete;
-        }
-
-        private void setComplete(boolean complete) {
-            this.complete = complete;
-        }
-
-        private long getLastAccessTime() {
-            return lastAccessTime;
-        }
-
-        private void updateAccessTime() {
-            this.lastAccessTime = System.currentTimeMillis();
-        }
+        return names.getOrDefault(
+                code,
+                code
+        );
     }
 }

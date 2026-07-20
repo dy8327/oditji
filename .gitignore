@@ -35,3 +35,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# 검색 콘텐츠 캐시
+/cache/

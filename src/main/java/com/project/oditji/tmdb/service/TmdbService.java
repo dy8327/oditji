@@ -26,21 +26,6 @@ public interface TmdbService {
 
     int loadAllData();
 
-    List<SearchResultVO> searchMulti(String keyword, int page);
-
-    List<SearchResultVO> searchMulti(
-            String keyword,
-            int page,
-            List<String> platformList,
-            List<String> categoryList,
-            List<String> genreList);
-
-    List<SearchResultVO> getPopularKrOttContent(
-            int page,
-            List<String> platformList,
-            List<String> categoryList,
-            List<String> genreList);
-
     List<SearchResultVO> getMainPopularContent();
 
     List<SearchResultVO> getMainTodayContent();

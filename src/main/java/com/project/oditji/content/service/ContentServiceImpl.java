@@ -1,5 +1,7 @@
 package com.project.oditji.content.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,6 +19,8 @@ import com.project.oditji.content.dao.ContentDAO;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.search.service.SearchContentStore;
+import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.service.TmdbService;
 import com.project.oditji.tmdb.vo.ActorVO;
@@ -29,17 +33,37 @@ public class ContentServiceImpl implements ContentService {
     private final ContentDAO contentDAO;
     private final TmdbService tmdbService;
     private final ContentListTmdbService contentListTmdbService;
+    private final SearchContentStore searchContentStore;
 
     public ContentServiceImpl(
             ContentDAO contentDAO,
             TmdbService tmdbService,
-            ContentListTmdbService contentListTmdbService) {
+            ContentListTmdbService contentListTmdbService,
+            SearchContentStore searchContentStore) {
 
         this.contentDAO = contentDAO;
         this.tmdbService = tmdbService;
-        this.contentListTmdbService = contentListTmdbService;
+        this.contentListTmdbService =
+                contentListTmdbService;
+        this.searchContentStore =
+                searchContentStore;
     }
 
+    /**
+     * 검색 결과에서 상세페이지로 진입할 때 콘텐츠를 DB에 준비합니다.
+     *
+     * 기존 콘텐츠:
+     * - JSON 공용 캐시 값을 기존 CONTENT 행에 UPDATE
+     * - 플랫폼과 인물 관계 저장
+     * - 조회수 증가
+     *
+     * 신규 콘텐츠:
+     * - TMDB 상세 저장용 데이터를 생성
+     * - JSON 공용 캐시 값을 우선 반영
+     * - CONTENT INSERT
+     * - 플랫폼과 인물 관계 저장
+     * - 조회수 증가
+     */
     @Override
     @Transactional
     public int prepareContentDetail(
@@ -51,74 +75,251 @@ public class ContentServiceImpl implements ContentService {
                 || contentType.trim().isEmpty()) {
 
             throw new IllegalArgumentException(
-                    "콘텐츠 상세 진입에 필요한 값이 없습니다.");
+                    "콘텐츠 상세 진입에 필요한 값이 없습니다."
+            );
         }
 
         String normalizedType =
-                contentType.trim().toUpperCase();
+                contentType.trim()
+                        .toUpperCase(Locale.ROOT);
 
         if (!"MOVIE".equals(normalizedType)
                 && !"TV".equals(normalizedType)) {
 
             throw new IllegalArgumentException(
                     "지원하지 않는 콘텐츠 타입입니다: "
-                    + normalizedType);
+                            + normalizedType
+            );
         }
+
+        CachedContentVO cachedContent =
+                searchContentStore
+                        .findByTmdbIdAndContentType(
+                                tmdbId,
+                                normalizedType
+                        );
 
         ContentVO existingContent =
                 contentDAO.selectContentByTmdbId(
                         tmdbId,
-                        normalizedType);
+                        normalizedType
+                );
 
         if (existingContent != null) {
 
+            /*
+             * 검색 JSON에 저장된 장르, 평점, 연령등급 등
+             * 검색 기준 데이터를 기존 DB 행에 반영합니다.
+             */
+            boolean changed =
+                    applyCachedContent(
+                            existingContent,
+                            cachedContent
+                    );
+
+            if (changed) {
+
+                contentDAO
+                        .updateContentFromSearchCache(
+                                existingContent
+                        );
+            }
+
             tmdbService.saveContentPlatform(
-                    existingContent);
+                    existingContent
+            );
 
             tmdbService.saveContentPeople(
-                    existingContent);
+                    existingContent
+            );
 
             contentDAO.increaseViewCount(
-                    existingContent.getContentNo());
+                    existingContent.getContentNo()
+            );
 
             return existingContent.getContentNo();
         }
 
+        /*
+         * DB에 없는 콘텐츠는 기존 TMDB 상세 저장 로직으로
+         * overview, backdrop, runtime 등의 값을 만든 뒤
+         * 검색 JSON 값을 우선 적용합니다.
+         */
         ContentVO contentForSave =
                 tmdbService.getDetailForSave(
                         tmdbId,
-                        normalizedType);
+                        normalizedType
+                );
+
+        applyCachedContent(
+                contentForSave,
+                cachedContent
+        );
 
         contentDAO.insertContent(
-                contentForSave);
+                contentForSave
+        );
 
         ContentVO savedContent =
                 contentDAO.selectContentByTmdbId(
                         tmdbId,
-                        normalizedType);
+                        normalizedType
+                );
 
         if (savedContent == null) {
 
             throw new IllegalStateException(
-                    "콘텐츠 저장 후 조회에 실패했습니다.");
+                    "콘텐츠 저장 후 조회에 실패했습니다."
+            );
         }
 
         tmdbService.saveContentPlatform(
-                savedContent);
+                savedContent
+        );
 
         tmdbService.saveContentPeople(
-                savedContent);
+                savedContent
+        );
 
         contentDAO.increaseViewCount(
-                savedContent.getContentNo());
+                savedContent.getContentNo()
+        );
 
         return savedContent.getContentNo();
     }
 
+    /**
+     * 검색 JSON 캐시 값을 DB 저장용 ContentVO에 반영합니다.
+     *
+     * 캐시에 값이 있을 때만 반영하므로
+     * TMDB 상세 API에서 이미 가져온 정상값을 null로 덮어쓰지 않습니다.
+     *
+     * @return 한 개 이상의 값이 반영됐으면 true
+     */
+    private boolean applyCachedContent(
+            ContentVO target,
+            CachedContentVO cached) {
+
+        if (target == null
+                || cached == null) {
+
+            return false;
+        }
+
+        boolean changed = false;
+
+        if (hasText(cached.getTitle())) {
+            target.setTitle(cached.getTitle());
+            changed = true;
+        }
+
+        if (hasText(cached.getOriginalTitle())) {
+            target.setOriginalTitle(
+                    cached.getOriginalTitle()
+            );
+            changed = true;
+        }
+
+        if (hasText(cached.getPosterPath())) {
+            target.setPosterPath(
+                    cached.getPosterPath()
+            );
+            changed = true;
+        }
+
+        LocalDate cachedReleaseDate =
+                parseLocalDate(
+                        cached.getReleaseDate()
+                );
+
+        if (cachedReleaseDate != null) {
+            target.setReleaseDate(
+                    cachedReleaseDate
+            );
+            changed = true;
+        }
+
+        if (hasText(cached.getGenreText())) {
+            target.setGenreText(
+                    cached.getGenreText()
+            );
+            changed = true;
+        }
+
+        if (cached.getEpisodeCount() != null) {
+            target.setEpisodeCount(
+                    cached.getEpisodeCount()
+            );
+            changed = true;
+        }
+
+        if (hasText(cached.getDirector())) {
+            target.setDirector(
+                    cached.getDirector()
+            );
+            changed = true;
+        }
+
+        if (hasText(cached.getCastNames())) {
+            target.setCastNames(
+                    cached.getCastNames()
+            );
+            changed = true;
+        }
+
+        if (hasText(cached.getAgeRating())) {
+            target.setAgeRating(
+                    cached.getAgeRating()
+            );
+            changed = true;
+        }
+
+        if (cached.getTmdbScore() != null) {
+            target.setTmdbScore(
+                    cached.getTmdbScore()
+            );
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    /**
+     * JSON 문자열 날짜를 ContentVO의 LocalDate로 변환합니다.
+     */
+    private LocalDate parseLocalDate(
+            String value) {
+
+        if (!hasText(value)) {
+            return null;
+        }
+
+        try {
+
+            return LocalDate.parse(
+                    value.trim()
+            );
+
+        } catch (DateTimeParseException e) {
+
+            return null;
+        }
+    }
+
+    private boolean hasText(
+            String value) {
+
+        return value != null
+                && !value.trim().isEmpty();
+    }
+
     @Override
-    public ContentVO getContentDetail(int contentNo) {
+    public ContentVO getContentDetail(
+            int contentNo) {
+
         return contentDAO.selectContentByContentNo(
-                contentNo);
+                contentNo
+        );
     }
 
     @Override
@@ -127,7 +328,8 @@ public class ContentServiceImpl implements ContentService {
 
         List<ActorVO> actorList =
                 contentDAO.selectActorListByContentNo(
-                        contentNo);
+                        contentNo
+                );
 
         return actorList == null
                 ? Collections.emptyList()
@@ -140,7 +342,8 @@ public class ContentServiceImpl implements ContentService {
 
         List<DirectorVO> directorList =
                 contentDAO.selectDirectorListByContentNo(
-                        contentNo);
+                        contentNo
+                );
 
         return directorList == null
                 ? Collections.emptyList()
@@ -153,7 +356,8 @@ public class ContentServiceImpl implements ContentService {
 
         List<OttPlatformVO> ottList =
                 contentDAO.selectOttPlatformListByContentNo(
-                        contentNo);
+                        contentNo
+                );
 
         return ottList == null
                 ? Collections.emptyList()
@@ -165,7 +369,9 @@ public class ContentServiceImpl implements ContentService {
             int contentNo) {
 
         ContentVO currentContent =
-                contentDAO.selectContentByContentNo(contentNo);
+                contentDAO.selectContentByContentNo(
+                        contentNo
+                );
 
         if (currentContent == null) {
             return Collections.emptyList();
@@ -178,39 +384,61 @@ public class ContentServiceImpl implements ContentService {
         param.put("candidateSize", 500);
 
         List<ContentVO> candidates =
-                contentDAO.selectRelatedContentCandidates(param);
+                contentDAO.selectRelatedContentCandidates(
+                        param
+                );
 
-        if (candidates == null || candidates.isEmpty()) {
+        if (candidates == null
+                || candidates.isEmpty()) {
+
             return Collections.emptyList();
         }
 
         final String currentCategory =
-                resolveRecommendationCategory(currentContent);
+                resolveRecommendationCategory(
+                        currentContent
+                );
 
         final List<String> currentGenreList =
-                splitNormalizedList(currentContent.getGenreText());
+                splitNormalizedList(
+                        currentContent.getGenreText()
+                );
 
         final Set<String> currentGenres =
-                new HashSet<String>(currentGenreList);
+                new HashSet<String>(
+                        currentGenreList
+                );
 
         final String currentMainGenre =
-                resolveMainGenre(currentGenreList);
+                resolveMainGenre(
+                        currentGenreList
+                );
 
         final Set<String> currentCast =
-                splitNormalizedValues(currentContent.getCastNames());
+                splitNormalizedValues(
+                        currentContent.getCastNames()
+                );
 
         final Set<String> currentDirectors =
-                splitNormalizedValues(currentContent.getDirector());
+                splitNormalizedValues(
+                        currentContent.getDirector()
+                );
 
         List<ContentVO> sameCategoryCandidates =
                 new ArrayList<ContentVO>();
 
-        for (ContentVO candidate : candidates) {
+        for (ContentVO candidate
+                : candidates) {
 
             if (currentCategory.equals(
-                    resolveRecommendationCategory(candidate))) {
+                    resolveRecommendationCategory(
+                            candidate
+                    )
+            )) {
 
-                sameCategoryCandidates.add(candidate);
+                sameCategoryCandidates.add(
+                        candidate
+                );
             }
         }
 
@@ -227,26 +455,38 @@ public class ContentServiceImpl implements ContentService {
                                                 currentGenres,
                                                 currentMainGenre,
                                                 currentCast,
-                                                currentDirectors))
+                                                currentDirectors
+                                        )
+                        )
                         .reversed()
                         .thenComparing(
                                 ContentVO::getTmdbScore,
                                 Comparator.nullsLast(
-                                        Comparator.reverseOrder()))
+                                        Comparator.reverseOrder()
+                                )
+                        )
                         .thenComparing(
                                 ContentVO::getViewCount,
-                                Comparator.reverseOrder())
+                                Comparator.reverseOrder()
+                        )
                         .thenComparing(
                                 ContentVO::getContentNo,
-                                Comparator.reverseOrder()));
+                                Comparator.reverseOrder()
+                        )
+        );
 
         int resultSize =
-                Math.min(3, sameCategoryCandidates.size());
+                Math.min(
+                        3,
+                        sameCategoryCandidates.size()
+                );
 
         return new ArrayList<ContentVO>(
                 sameCategoryCandidates.subList(
                         0,
-                        resultSize));
+                        resultSize
+                )
+        );
     }
 
     private int calculateRelatedScore(
@@ -259,21 +499,30 @@ public class ContentServiceImpl implements ContentService {
         int score = 0;
 
         List<String> candidateGenreList =
-                splitNormalizedList(candidate.getGenreText());
+                splitNormalizedList(
+                        candidate.getGenreText()
+                );
 
         Set<String> candidateGenres =
-                new HashSet<String>(candidateGenreList);
+                new HashSet<String>(
+                        candidateGenreList
+                );
 
         String candidateMainGenre =
-                resolveMainGenre(candidateGenreList);
+                resolveMainGenre(
+                        candidateGenreList
+                );
 
         if (!currentMainGenre.isEmpty()
-                && currentMainGenre.equals(candidateMainGenre)) {
+                && currentMainGenre.equals(
+                        candidateMainGenre
+                )) {
 
             score += 1000;
         }
 
-        for (String genre : candidateGenres) {
+        for (String genre
+                : candidateGenres) {
 
             if (currentGenres.contains(genre)) {
                 score += 50;
@@ -281,21 +530,33 @@ public class ContentServiceImpl implements ContentService {
         }
 
         Set<String> candidateDirectors =
-                splitNormalizedValues(candidate.getDirector());
+                splitNormalizedValues(
+                        candidate.getDirector()
+                );
 
-        for (String director : candidateDirectors) {
+        for (String director
+                : candidateDirectors) {
 
-            if (currentDirectors.contains(director)) {
+            if (currentDirectors.contains(
+                    director
+            )) {
+
                 score += 30;
             }
         }
 
         Set<String> candidateCast =
-                splitNormalizedValues(candidate.getCastNames());
+                splitNormalizedValues(
+                        candidate.getCastNames()
+                );
 
-        for (String castName : candidateCast) {
+        for (String castName
+                : candidateCast) {
 
-            if (currentCast.contains(castName)) {
+            if (currentCast.contains(
+                    castName
+            )) {
+
                 score += 10;
             }
         }
@@ -311,14 +572,18 @@ public class ContentServiceImpl implements ContentService {
         }
 
         String contentType =
-                normalizeValue(content.getContentType());
+                normalizeValue(
+                        content.getContentType()
+                );
 
         if ("movie".equals(contentType)) {
             return "MOVIE";
         }
 
         List<String> genres =
-                splitNormalizedList(content.getGenreText());
+                splitNormalizedList(
+                        content.getGenreText()
+                );
 
         if (genres.contains("애니메이션")) {
             return "ANIMATION";
@@ -340,7 +605,9 @@ public class ContentServiceImpl implements ContentService {
     private String resolveMainGenre(
             List<String> genres) {
 
-        if (genres == null || genres.isEmpty()) {
+        if (genres == null
+                || genres.isEmpty()) {
+
             return "";
         }
 
@@ -357,14 +624,19 @@ public class ContentServiceImpl implements ContentService {
                 "연속극",
                 "키즈",
                 "tv영화",
-                "뉴스");
+                "뉴스"
+        );
 
-        for (String genre : genres) {
+        for (String genre
+                : genres) {
 
             String comparisonValue =
                     genre.replace(" ", "");
 
-            if (!excludedGenres.contains(comparisonValue)) {
+            if (!excludedGenres.contains(
+                    comparisonValue
+            )) {
+
                 return genre;
             }
         }
@@ -378,19 +650,25 @@ public class ContentServiceImpl implements ContentService {
         List<String> result =
                 new ArrayList<String>();
 
-        if (value == null || value.trim().isEmpty()) {
+        if (value == null
+                || value.trim().isEmpty()) {
+
             return result;
         }
 
-        String[] tokens = value.split(",");
+        String[] tokens =
+                value.split(",");
 
-        for (String token : tokens) {
+        for (String token
+                : tokens) {
 
             String normalized =
                     normalizeValue(token);
 
             if (!normalized.isEmpty()
-                    && !result.contains(normalized)) {
+                    && !result.contains(
+                            normalized
+                    )) {
 
                 result.add(normalized);
             }
@@ -403,7 +681,8 @@ public class ContentServiceImpl implements ContentService {
             String value) {
 
         return new HashSet<String>(
-                splitNormalizedList(value));
+                splitNormalizedList(value)
+        );
     }
 
     private String normalizeValue(
@@ -411,7 +690,8 @@ public class ContentServiceImpl implements ContentService {
 
         return value == null
                 ? ""
-                : value.trim().toLowerCase(Locale.ROOT);
+                : value.trim()
+                        .toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -421,11 +701,13 @@ public class ContentServiceImpl implements ContentService {
 
         return tmdbService.getPersonFilmography(
                 tmdbPersonId,
-                role);
+                role
+        );
     }
 
     @Override
     public List<ContentVO> getMainContentList() {
+
         return contentDAO.selectMainContentList();
     }
 
@@ -437,19 +719,23 @@ public class ContentServiceImpl implements ContentService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        return contentListTmdbService.getContentListPage(
-                type,
-                page,
-                contentCategories,
-                genreCodes,
-                providerIds);
+        return contentListTmdbService
+                .getContentListPage(
+                        type,
+                        page,
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
     }
 
     @Override
     public List<SearchResultVO> getContentRecommendedList(
             List<String> providerIds) {
 
-        return contentListTmdbService.getRecommendedList(
-                providerIds);
+        return contentListTmdbService
+                .getRecommendedList(
+                        providerIds
+                );
     }
 }

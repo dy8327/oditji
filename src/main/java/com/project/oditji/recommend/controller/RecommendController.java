@@ -17,6 +17,8 @@ import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.recommend.vo.RecommendPlatformSectionVO;
+import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.service.TmdbService;
 
@@ -26,17 +28,21 @@ import jakarta.servlet.http.HttpSession;
 public class RecommendController {
 
     private static final int SECTION_CONTENT_LIMIT = 10;
+    private static final int CACHE_FETCH_SIZE = 100;
 
     private final TmdbService tmdbService;
+    private final SearchContentPageCacheService searchContentPageCacheService;
     private final MemberPlatformService memberPlatformService;
     private final MainContentPlatformService mainContentPlatformService;
 
     public RecommendController(
             TmdbService tmdbService,
+            SearchContentPageCacheService searchContentPageCacheService,
             MemberPlatformService memberPlatformService,
             MainContentPlatformService mainContentPlatformService) {
 
         this.tmdbService = tmdbService;
+        this.searchContentPageCacheService = searchContentPageCacheService;
         this.memberPlatformService = memberPlatformService;
         this.mainContentPlatformService = mainContentPlatformService;
     }
@@ -96,13 +102,8 @@ public class RecommendController {
          * 2. 지금 인기 있는 콘텐츠
          */
         List<SearchResultVO> popularContentList =
-                safeList(
-                        tmdbService.getPopularKrOttContent(
-                                1,
-                                selectedPlatformNames,
-                                Collections.emptyList(),
-                                Collections.emptyList()
-                        )
+                getCachedPopularContent(
+                        selectedPlatformNames
                 );
 
         popularContentList =
@@ -182,6 +183,32 @@ public class RecommendController {
         );
 
         return "recommend/recommendContent";
+    }
+
+    /**
+     * JSON 공용 검색 캐시에서 인기 콘텐츠를 조회합니다.
+     *
+     * platformValues에는 Netflix, TVING 등의 플랫폼 이름이 전달되며,
+     * SearchContentPageCacheService에서 내부 플랫폼 키로 정규화합니다.
+     */
+    private List<SearchResultVO> getCachedPopularContent(
+            List<String> platformValues) {
+
+        SearchResultPageVO pageVO =
+                searchContentPageCacheService.getContentPage(
+                        "",
+                        1,
+                        CACHE_FETCH_SIZE,
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        platformValues
+                );
+
+        return pageVO == null
+                ? new ArrayList<SearchResultVO>()
+                : safeList(
+                        pageVO.getResultList()
+                );
     }
 
     private List<String> extractPlatformNames(
@@ -360,13 +387,8 @@ public class RecommendController {
                     );
 
             List<SearchResultVO> contentList =
-                    safeList(
-                            tmdbService.getPopularKrOttContent(
-                                    1,
-                                    onePlatformNameList,
-                                    Collections.emptyList(),
-                                    Collections.emptyList()
-                            )
+                    getCachedPopularContent(
+                            onePlatformNameList
                     );
 
             contentList =
