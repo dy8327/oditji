@@ -512,6 +512,10 @@ public class SearchContentPageCacheService {
                 content.getGenreText()
         );
 
+        result.setAgeRating(
+                content.getAgeRating()
+        );
+
         result.setTmdbScore(
                 content.getTmdbScore()
         );
@@ -679,6 +683,16 @@ public class SearchContentPageCacheService {
         return result;
     }
 
+    /**
+     * 사이드바에서 전달된 OTT 값을 내부 플랫폼 키로 변환합니다.
+     *
+     * 신규 화면에서는 netflix, tving 등의 내부 키를 직접 사용하고,
+     * 기존 북마크나 URL 호환을 위해 과거 숫자 값도 함께 지원합니다.
+     *
+     * 숫자 283은 TMDB에서 Crunchyroll이지만,
+     * 과거 ODITJI 화면에서 쿠팡플레이 값으로 사용했기 때문에
+     * 기존 URL 호환 목적으로만 coupang으로 처리합니다.
+     */
     private Set<String> providerIdsToKeys(
             List<String> providerIds) {
 
@@ -692,22 +706,46 @@ public class SearchContentPageCacheService {
         for (String providerId
                 : providerIds) {
 
-            if ("8".equals(providerId)) {
+            if (providerId == null
+                    || providerId.isBlank()) {
+
+                continue;
+            }
+
+            String normalized =
+                    providerId.trim()
+                            .toLowerCase(Locale.ROOT);
+
+            if ("netflix".equals(normalized)
+                    || "8".equals(normalized)) {
+
                 result.add("netflix");
 
-            } else if ("1883".equals(providerId)) {
+            } else if ("tving".equals(normalized)
+                    || "1883".equals(normalized)) {
+
                 result.add("tving");
 
-            } else if ("356".equals(providerId)) {
+            } else if ("wavve".equals(normalized)
+                    || "356".equals(normalized)) {
+
                 result.add("wavve");
 
-            } else if ("337".equals(providerId)) {
+            } else if ("disney".equals(normalized)
+                    || "disney+".equals(normalized)
+                    || "337".equals(normalized)) {
+
                 result.add("disney");
 
-            } else if ("97".equals(providerId)) {
+            } else if ("watcha".equals(normalized)
+                    || "97".equals(normalized)) {
+
                 result.add("watcha");
 
-            } else if ("283".equals(providerId)) {
+            } else if ("coupang".equals(normalized)
+                    || "coupangplay".equals(normalized)
+                    || "283".equals(normalized)) {
+
                 result.add("coupang");
             }
         }

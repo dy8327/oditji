@@ -18,6 +18,7 @@ public class SearchResultVO {
     private String backdropPath;
     private String releaseDate;
     private String genreText;
+    private String ageRating;
 
     private Double tmdbScore;
     private Integer viewCount;
@@ -129,6 +130,16 @@ public class SearchResultVO {
             String genreText) {
 
         this.genreText = genreText;
+    }
+
+    public String getAgeRating() {
+        return ageRating;
+    }
+
+    public void setAgeRating(
+            String ageRating) {
+
+        this.ageRating = ageRating;
     }
 
     public Double getTmdbScore() {
