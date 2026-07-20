@@ -15,17 +15,37 @@
 
     <select id="selectDashboardStats" resultType="com.project.oditji.admin.vo.AdminVO">
         SELECT
-            (SELECT COUNT(*) FROM MEMBER)                                            AS MEMBER_COUNT,
-            (SELECT COUNT(*) FROM CONTENT)                                            AS CONTENT_COUNT,
+            (SELECT COUNT(*) FROM MEMBER) AS MEMBER_COUNT,
+
+            (SELECT COUNT(*) FROM CONTENT) AS CONTENT_COUNT,
+
             (SELECT COUNT(*) FROM REVIEW WHERE STATUS != 'DELETED')
-                + (SELECT COUNT(*) FROM PRODUCT_REVIEW)                              AS REVIEW_COUNT,
-            (SELECT COUNT(*) FROM REVIEW_REPORT WHERE STATUS = 'WAITING')             AS REPORT_COUNT,
-            (SELECT COUNT(*) FROM BUSINESS WHERE STATUS = 'WAITING')                  AS BUSINESS_REQUEST_COUNT,
-            (SELECT COUNT(*) FROM PRODUCT WHERE STATUS = 'WAITING')                   AS PRODUCT_REQUEST_COUNT,
-            (SELECT COUNT(*) FROM EVENT WHERE STATUS = 'WAITING')                     AS EVENT_REQUEST_COUNT,
-            (SELECT COUNT(*) FROM SETTLEMENT WHERE STATUS = 'WAITING')                AS SETTLEMENT_WAITING_COUNT,
-            (SELECT COUNT(DISTINCT MEMBER_NO) FROM ACCESS_LOG
-                WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE))                             AS VISITOR_COUNT
+                + (SELECT COUNT(*) FROM PRODUCT_REVIEW) AS REVIEW_COUNT,
+
+            (
+                SELECT COUNT(*)
+                FROM REVIEW_REPORT RR
+                LEFT JOIN REVIEW R
+                    ON RR.CONTENT_REVIEW_NO = R.REVIEW_NO
+                WHERE RR.STATUS = 'WAITING'
+                AND (
+                    RR.REVIEW_TYPE = 'PRODUCT'
+                    OR R.STATUS != 'DELETED'
+                )
+            ) AS REPORT_COUNT,
+
+            (SELECT COUNT(*) FROM BUSINESS WHERE STATUS = 'WAITING') AS BUSINESS_REQUEST_COUNT,
+
+            (SELECT COUNT(*) FROM PRODUCT WHERE STATUS = 'WAITING') AS PRODUCT_REQUEST_COUNT,
+
+            (SELECT COUNT(*) FROM EVENT WHERE STATUS = 'WAITING') AS EVENT_REQUEST_COUNT,
+
+            (SELECT COUNT(*) FROM SETTLEMENT WHERE STATUS = 'WAITING') AS SETTLEMENT_WAITING_COUNT,
+
+            (SELECT COUNT(DISTINCT MEMBER_NO)
+            FROM ACCESS_LOG
+            WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)) AS VISITOR_COUNT
+
         FROM DUAL
     </select>
 
