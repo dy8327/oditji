@@ -232,6 +232,81 @@ public class PaymentServiceImpl implements PaymentService {
         return canceledPaymentVO;
     }
 
+    /*
+     * =========================================================
+     * [부분 환불 기능 추가]
+     *
+     * 포트원 V2 결제 취소 API에 amount를 전달하여
+     * 주문상품 금액만 부분 취소한다.
+     * =========================================================
+     */
+    @Override
+    public PaymentVO cancelPaidPaymentPartially(
+            PaymentVO paymentVO,
+            Long cancelAmount,
+            String reason) {
+
+        if (paymentVO == null) {
+            throw new IllegalArgumentException("결제내역을 찾을 수 없습니다.");
+        }
+
+        validatePaymentId(paymentVO.getPaymentId());
+
+        if (cancelAmount == null || cancelAmount <= 0) {
+            throw new IllegalArgumentException("부분 환불 금액이 올바르지 않습니다.");
+        }
+
+        long alreadyCanceled = paymentVO.getCanceledAmount() == null
+                ? 0L
+                : paymentVO.getCanceledAmount();
+        long remainingAmount = paymentVO.getPaymentAmount() - alreadyCanceled;
+
+        if (cancelAmount > remainingAmount) {
+            throw new IllegalArgumentException("남은 결제 금액보다 큰 금액은 환불할 수 없습니다.");
+        }
+
+        if (!PAID_STATUS.equals(paymentVO.getPaymentStatus())
+                && !"PARTIAL_CANCELED".equals(paymentVO.getPaymentStatus())) {
+            throw new IllegalArgumentException("결제 완료 또는 부분 취소 상태의 결제만 환불할 수 있습니다.");
+        }
+
+        String normalizedReason = normalizeCancelReason(reason);
+
+        Map<String, Object> body = new HashMap<String, Object>();
+        body.put("reason", normalizedReason);
+        body.put("amount", cancelAmount);
+        body.put("currentCancellableAmount", remainingAmount);
+
+        try {
+            restClient.post()
+                    .uri("/payments/{paymentId}/cancel", paymentVO.getPaymentId())
+                    .header("Authorization", "PortOne " + apiSecret)
+                    .body(body)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+        } catch (RestClientResponseException e) {
+            throw createPortOneException("포트원 부분 환불에 실패했습니다.", e);
+        }
+
+        long canceledTotal = alreadyCanceled + cancelAmount;
+
+        PaymentVO result = new PaymentVO();
+        result.setPaymentNo(paymentVO.getPaymentNo());
+        result.setOrderNo(paymentVO.getOrderNo());
+        result.setPaymentId(paymentVO.getPaymentId());
+        result.setPaymentAmount(paymentVO.getPaymentAmount());
+        result.setCanceledAmount(canceledTotal);
+        result.setPaymentStatus(
+                canceledTotal >= paymentVO.getPaymentAmount()
+                        ? CANCELED_STATUS
+                        : "PARTIAL_CANCELED");
+        result.setCanceledAt(OffsetDateTime.now().toString());
+        result.setCancelReason(normalizedReason);
+
+        return result;
+    }
+
     @Override
     public PaymentVO getPaymentByPaymentId(String paymentId) {
 
