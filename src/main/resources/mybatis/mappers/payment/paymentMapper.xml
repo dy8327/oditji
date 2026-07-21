@@ -27,6 +27,9 @@
         <result property="paymentAmount"
                 column="PAYMENT_AMOUNT"/>
 
+        <result property="canceledAmount"
+                column="CANCELED_AMOUNT"/>
+
         <result property="payMethod"
                 column="PAY_METHOD"/>
 
@@ -75,6 +78,7 @@
             ORDER_NAME,
             PAYMENT_ID,
             PAYMENT_AMOUNT,
+            CANCELED_AMOUNT,
             PAY_METHOD,
             PAYMENT_STATUS,
             PG_PROVIDER,
@@ -90,6 +94,7 @@
             #{orderName, jdbcType=VARCHAR},
             #{paymentId, jdbcType=VARCHAR},
             #{paymentAmount, jdbcType=NUMERIC},
+            0,
             #{payMethod, jdbcType=VARCHAR},
             #{paymentStatus, jdbcType=VARCHAR},
             #{pgProvider, jdbcType=VARCHAR},
@@ -115,6 +120,7 @@
             ORDER_NAME,
             PAYMENT_ID,
             PAYMENT_AMOUNT,
+            CANCELED_AMOUNT,
             PAY_METHOD,
             PAYMENT_STATUS,
             PG_PROVIDER,
@@ -141,6 +147,7 @@
             ORDER_NAME,
             PAYMENT_ID,
             PAYMENT_AMOUNT,
+            CANCELED_AMOUNT,
             PAY_METHOD,
             PAYMENT_STATUS,
             PG_PROVIDER,
@@ -181,6 +188,25 @@
     </update>
 
 
+
+    <!-- =====================================================
+         [부분 환불 기능 추가]
+         누적 취소 금액과 전체/부분 취소 상태 변경
+    ====================================================== -->
+    <update id="updatePaymentPartialCanceled"
+            parameterType="com.project.oditji.payment.vo.PaymentVO">
+
+        UPDATE PAYMENT
+           SET CANCELED_AMOUNT = #{canceledAmount, jdbcType=NUMERIC},
+               PAYMENT_STATUS = #{paymentStatus, jdbcType=VARCHAR},
+               CANCELED_AT = #{canceledAt, jdbcType=VARCHAR},
+               CANCEL_REASON = #{cancelReason, jdbcType=VARCHAR}
+         WHERE PAYMENT_NO = #{paymentNo, jdbcType=NUMERIC}
+           AND PAYMENT_ID = #{paymentId, jdbcType=VARCHAR}
+           AND PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
+
+    </update>
+
     <!-- =====================================================
          전체 결제내역
     ====================================================== -->
@@ -193,6 +219,7 @@
             ORDER_NAME,
             PAYMENT_ID,
             PAYMENT_AMOUNT,
+            CANCELED_AMOUNT,
             PAY_METHOD,
             PAYMENT_STATUS,
             PG_PROVIDER,
