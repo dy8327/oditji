@@ -324,6 +324,95 @@
 
     </update>
 
+     <!-- =====================================================
+         해당 주문의 배송 시작 여부 확인
+
+         DELIVERY 행이 없거나 PREPARING 상태이면 취소 가능.
+         SHIPPING 또는 DELIVERED 상태가 하나라도 존재하면 취소 불가.
+    ====================================================== -->
+    <select id="countStartedDeliveryByOrderNo"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM DELIVERY D
+
+        INNER JOIN ORDER_ITEM OI
+            ON OI.ORDER_ITEM_NO = D.ORDER_ITEM_NO
+
+        WHERE OI.ORDER_NO = #{orderNo}
+
+          AND D.STATUS IN (
+              'SHIPPING',
+              'DELIVERED'
+          )
+
+    </select>
+
+    <!-- =====================================================
+         결제 취소 시 상품 재고 복구
+
+         주문상품 상태가 PAID일 때만 복구한다.
+         동일 주문의 동일 상품이 여러 행이면 수량을 합산한다.
+    ====================================================== -->
+    <update id="restoreProductStockByOrderNo">
+
+        MERGE INTO PRODUCT P
+
+        USING (
+            SELECT
+                PRODUCT_NO,
+                SUM(QUANTITY) AS RESTORE_QUANTITY
+            FROM ORDER_ITEM
+            WHERE ORDER_NO = #{orderNo}
+              AND STATUS = 'PAID'
+            GROUP BY PRODUCT_NO
+        ) CANCELED_ITEM
+
+        ON (
+            P.PRODUCT_NO = CANCELED_ITEM.PRODUCT_NO
+        )
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+                P.STOCK =
+                    NVL(P.STOCK, 0)
+                    + CANCELED_ITEM.RESTORE_QUANTITY
+
+    </update>
+
+    <!-- =====================================================
+         주문상품 취소 상태 변경
+    ====================================================== -->
+    <update id="updateOrderItemsCanceled">
+
+        UPDATE ORDER_ITEM
+
+        SET STATUS = 'CANCELED'
+
+        WHERE ORDER_NO = #{orderNo}
+          AND STATUS = 'PAID'
+
+    </update>
+
+    <!-- =====================================================
+         주문 취소 상태 변경
+
+         로그인 회원 소유 검증과 PAID 상태 검증을
+         UPDATE 조건에서 한 번 더 수행한다.
+    ====================================================== -->
+    <update id="updateOrderCanceled">
+
+        UPDATE ORDERS
+
+        SET ORDER_STATUS = 'CANCELED'
+
+        WHERE ORDER_NO = #{orderNo}
+          AND MEMBER_NO = #{memberNo}
+          AND ORDER_STATUS = 'PAID'
+
+    </update>
+
 
     <!-- =====================================================
          로그인 회원의 주문 목록 (헤더)
@@ -388,7 +477,6 @@
             OI.ORDER_ITEM_NO ASC
 
     </select>
-
 
     <!-- =====================================================
          주문 단건 조회 (로그인 회원 소유 검증 포함)
