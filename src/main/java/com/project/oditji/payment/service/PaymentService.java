@@ -6,23 +6,31 @@ import com.project.oditji.payment.vo.PaymentVO;
 
 public interface PaymentService {
 
-    /**
-     * 포트원 서버 API에서 결제 정보를 조회하고
-     * 상태와 실제 결제 금액을 검증한다.
-     */
-    PaymentVO verifyPaidPayment(
-            String paymentId,
-            Long expectedAmount,
-            String expectedOrderName);
+        /**
+         * 포트원 서버 API에서 결제 정보를 조회하고
+         * 상태와 실제 결제 금액을 검증한다.
+         */
+        PaymentVO verifyPaidPayment(
+                        String paymentId,
+                        Long expectedAmount,
+                        String expectedOrderName);
 
-    /**
-     * 결제 ID로 DB 결제내역 조회
-     */
-    PaymentVO getPaymentByPaymentId(
-            String paymentId);
+        /**
+         * 포트원에 결제 전액 취소를 요청한 뒤
+         * 취소 상태를 재조회하여 반환한다.
+         */
+        PaymentVO cancelPaidPayment(
+                        PaymentVO paymentVO,
+                        String reason);
 
-    /**
-     * 전체 결제내역 조회
-     */
-    List<PaymentVO> getPaymentList();
+        /**
+         * 결제 ID로 DB 결제내역 조회
+         */
+        PaymentVO getPaymentByPaymentId(
+                        String paymentId);
+
+        /**
+         * 전체 결제내역 조회
+         */
+        List<PaymentVO> getPaymentList();
 }
