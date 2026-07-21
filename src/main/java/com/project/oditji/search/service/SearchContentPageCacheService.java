@@ -301,6 +301,340 @@ public class SearchContentPageCacheService {
 
 
     /**
+     * 콘텐츠 상세 페이지의 관련 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+     *
+     * 추천 우선순위:
+     * 1. 동일 분류(영화, 드라마, 애니메이션, 예능, 다큐멘터리)
+     * 2. 주 장르 일치
+     * 3. 겹치는 전체 장르 수
+     * 4. 같은 감독
+     * 5. 같은 출연진
+     * 6. TMDB 평점
+     * 7. TMDB 인기도
+     *
+     * 현재 상세 콘텐츠 자체는 TMDB ID와 콘텐츠 유형으로 제외합니다.
+     */
+    public List<SearchResultVO> getRelatedContentList(
+            com.project.oditji.content.vo.ContentVO currentContent,
+            int limit) {
+
+        if (currentContent == null || limit <= 0) {
+            return new ArrayList<SearchResultVO>();
+        }
+
+        List<SearchResultVO> candidateList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        final String currentCategory =
+                resolveRelatedCategory(
+                        currentContent.getContentType(),
+                        currentContent.getGenreText()
+                );
+
+        final List<String> currentGenreList =
+                splitRelatedValues(
+                        currentContent.getGenreText()
+                );
+
+        final Set<String> currentGenres =
+                new HashSet<String>(
+                        currentGenreList
+                );
+
+        final String currentMainGenre =
+                resolveRelatedMainGenre(
+                        currentGenreList
+                );
+
+        final Set<String> currentDirectors =
+                new HashSet<String>(
+                        splitRelatedValues(
+                                currentContent.getDirector()
+                        )
+                );
+
+        final Set<String> currentCast =
+                new HashSet<String>(
+                        splitRelatedValues(
+                                currentContent.getCastNames()
+                        )
+                );
+
+        candidateList.removeIf(candidate -> {
+
+            if (candidate == null) {
+                return true;
+            }
+
+            boolean sameContent =
+                    currentContent.getTmdbId() != null
+                    && currentContent.getTmdbId().equals(
+                            candidate.getTmdbId()
+                    )
+                    && normalizeRelatedValue(
+                            currentContent.getContentType()
+                    ).equals(
+                            normalizeRelatedValue(
+                                    candidate.getContentType()
+                            )
+                    );
+
+            if (sameContent) {
+                return true;
+            }
+
+            String candidateCategory =
+                    resolveRelatedCategory(
+                            candidate.getContentType(),
+                            candidate.getGenreText()
+                    );
+
+            return !currentCategory.equals(
+                    candidateCategory
+            );
+        });
+
+        candidateList.sort(
+                Comparator
+                        .comparingInt(
+                                (SearchResultVO candidate) ->
+                                        calculateRelatedScore(
+                                                candidate,
+                                                currentGenres,
+                                                currentMainGenre,
+                                                currentDirectors,
+                                                currentCast
+                                        )
+                        )
+                        .reversed()
+                        .thenComparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+        );
+
+        return limitList(
+                candidateList,
+                limit
+        );
+    }
+
+    /**
+     * 관련 콘텐츠 한 건의 유사도 점수를 계산합니다.
+     */
+    private int calculateRelatedScore(
+            SearchResultVO candidate,
+            Set<String> currentGenres,
+            String currentMainGenre,
+            Set<String> currentDirectors,
+            Set<String> currentCast) {
+
+        int score = 0;
+
+        List<String> candidateGenreList =
+                splitRelatedValues(
+                        candidate.getGenreText()
+                );
+
+        Set<String> candidateGenres =
+                new HashSet<String>(
+                        candidateGenreList
+                );
+
+        String candidateMainGenre =
+                resolveRelatedMainGenre(
+                        candidateGenreList
+                );
+
+        /*
+         * 사용자가 요청한 우선순위대로
+         * 주 장르 일치를 가장 크게 반영합니다.
+         */
+        if (!currentMainGenre.isEmpty()
+                && currentMainGenre.equals(
+                        candidateMainGenre
+                )) {
+
+            score += 1000;
+        }
+
+        for (String genre : candidateGenres) {
+
+            if (currentGenres.contains(genre)) {
+                score += 50;
+            }
+        }
+
+        Set<String> candidateDirectors =
+                new HashSet<String>(
+                        splitRelatedValues(
+                                candidate.getDirector()
+                        )
+                );
+
+        for (String director : candidateDirectors) {
+
+            if (currentDirectors.contains(director)) {
+                score += 30;
+            }
+        }
+
+        Set<String> candidateCast =
+                new HashSet<String>(
+                        splitRelatedValues(
+                                candidate.getCastNames()
+                        )
+                );
+
+        for (String castName : candidateCast) {
+
+            if (currentCast.contains(castName)) {
+                score += 10;
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * 콘텐츠를 영화, 드라마, 애니메이션, 예능, 다큐멘터리로 구분합니다.
+     */
+    private String resolveRelatedCategory(
+            String contentType,
+            String genreText) {
+
+        String normalizedType =
+                normalizeRelatedValue(
+                        contentType
+                );
+
+        List<String> genres =
+                splitRelatedValues(
+                        genreText
+                );
+
+        if (genres.contains("애니메이션")) {
+            return CATEGORY_ANIMATION;
+        }
+
+        if (genres.contains("다큐멘터리")) {
+            return CATEGORY_DOCUMENTARY;
+        }
+
+        if (genres.contains("리얼리티")
+                || genres.contains("토크")) {
+
+            return CATEGORY_VARIETY;
+        }
+
+        if ("movie".equals(normalizedType)) {
+            return CATEGORY_MOVIE;
+        }
+
+        return CATEGORY_DRAMA;
+    }
+
+    /**
+     * 장르 목록에서 일반 분류용 장르를 제외하고
+     * 첫 번째 핵심 장르를 주 장르로 사용합니다.
+     */
+    private String resolveRelatedMainGenre(
+            List<String> genres) {
+
+        if (genres == null || genres.isEmpty()) {
+            return "";
+        }
+
+        Set<String> excludedGenres =
+                new HashSet<String>();
+
+        Collections.addAll(
+                excludedGenres,
+                "드라마",
+                "애니메이션",
+                "다큐멘터리",
+                "리얼리티",
+                "토크",
+                "연속극",
+                "키즈",
+                "tv영화",
+                "뉴스"
+        );
+
+        for (String genre : genres) {
+
+            String comparisonValue =
+                    genre.replace(" ", "");
+
+            if (!excludedGenres.contains(
+                    comparisonValue
+            )) {
+
+                return genre;
+            }
+        }
+
+        return genres.get(0);
+    }
+
+    /**
+     * 쉼표로 구분된 장르, 감독, 출연진 값을
+     * 비교 가능한 소문자 목록으로 변환합니다.
+     */
+    private List<String> splitRelatedValues(
+            String value) {
+
+        List<String> result =
+                new ArrayList<String>();
+
+        if (value == null || value.isBlank()) {
+            return result;
+        }
+
+        String[] tokens =
+                value.split(",");
+
+        for (String token : tokens) {
+
+            String normalized =
+                    normalizeRelatedValue(
+                            token
+                    );
+
+            if (!normalized.isEmpty()
+                    && !result.contains(normalized)) {
+
+                result.add(normalized);
+            }
+        }
+
+        return result;
+    }
+
+    private String normalizeRelatedValue(
+            String value) {
+
+        return value == null
+                ? ""
+                : value.trim()
+                        .toLowerCase(Locale.ROOT);
+    }
+
+
+    /**
      * 상단 영화·시리즈, 인기, 신규 탭의 콘텐츠 목록을
      * JSONL 공용 저장소에서 조회합니다.
      *

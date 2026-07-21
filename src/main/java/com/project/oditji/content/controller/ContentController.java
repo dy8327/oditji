@@ -206,7 +206,7 @@ public class ContentController {
         List<OttPlatformVO> ottList =
                 contentService.getOttPlatformListByContentNo(contentNo);
 
-        List<ContentVO> relatedContentList =
+        List<SearchResultVO> relatedContentList =
                 contentService.getRelatedContentList(contentNo);
 
         List<ContentReviewVO> reviewList =

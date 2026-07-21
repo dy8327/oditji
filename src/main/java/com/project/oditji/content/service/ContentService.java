@@ -22,7 +22,11 @@ public interface ContentService {
 
     List<OttPlatformVO> getOttPlatformListByContentNo(int contentNo);
 
-    List<ContentVO> getRelatedContentList(int contentNo);
+    /**
+     * 콘텐츠 상세 페이지의 관련 콘텐츠를
+     * JSONL 공용 캐시에서 조회합니다.
+     */
+    List<SearchResultVO> getRelatedContentList(int contentNo);
 
     PersonFilmographyVO getPersonFilmography(
             Long tmdbPersonId,

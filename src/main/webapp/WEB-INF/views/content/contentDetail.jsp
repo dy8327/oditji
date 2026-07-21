@@ -453,7 +453,7 @@
             <h2>관련 콘텐츠 추천</h2>
 
             <p>
-                비슷한 장르와 제작진 정보를 기준으로 추천했어요.
+                JSONL에 저장된 콘텐츠 중 주 장르와 제작진 정보가 비슷한 작품을 추천했어요.
             </p>
 
         </div>
@@ -469,7 +469,18 @@
                 <c:forEach var="related"
                            items="${relatedContentList}">
 
-                    <a href="${pageContext.request.contextPath}/content/contentDetail/${related.contentNo}"
+                    <c:url var="relatedDetailUrl"
+                           value="/content/prepare">
+
+                        <c:param name="tmdbId"
+                                 value="${related.tmdbId}"/>
+
+                        <c:param name="contentType"
+                                 value="${related.contentType}"/>
+
+                    </c:url>
+
+                    <a href="${relatedDetailUrl}"
                        class="related-content-card">
 
                         <div class="related-content-poster">
