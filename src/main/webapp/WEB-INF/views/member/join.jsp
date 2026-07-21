@@ -52,14 +52,6 @@
             <div class="join-section-title no-border">기본 정보</div>
 
             <div class="form-group">
-                <label>이름</label>
-                <input type="text"
-                       name="memberName"
-                       id="memberName"
-                       required>
-            </div>
-
-            <div class="form-group">
                 <label>아이디</label>
                 <div class="row">
                     <input type="text"
@@ -88,18 +80,6 @@
             </div>
 
             <div class="form-group">
-                <label>닉네임</label>
-                <div class="row">
-                    <input type="text"
-                           name="nickname"
-                           id="nickname"
-                           placeholder="한글/영문/숫자 2~10자"
-                           required>
-                    <button type="button" onclick="checkNickname()">중복확인</button>
-                </div>
-            </div>
-
-            <div class="form-group">
                 <label>이메일</label>
                 <input type="email"
                        name="email"
@@ -117,6 +97,34 @@
                        maxlength="13">
             </div>
 
+            <!-- 일반회원 전용 기본 정보 -->
+            <div class="user-only-fields active" id="userBasicFields">
+
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text"
+                        name="memberName"
+                        id="memberName"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label>닉네임</label>
+                    <div class="row">
+                        <input type="text"
+                            name="nickname"
+                            id="nickname"
+                            placeholder="한글/영문/숫자 2~10자"
+                            required>
+
+                        <button type="button"
+                                onclick="checkNickname()">
+                            중복확인
+                        </button>
+                    </div>
+                </div>
+
+            </div>
             <!-- 프로필 이미지 -->
             <div class="form-group">
                 <label>프로필 이미지</label>
@@ -190,6 +198,17 @@
                         placeholder="000-00-00000"
                         maxlength="12">
                     <button type="button" onclick="checkBusinessNumber()">중복확인</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button"
+                        id="verifyBusinessBtn"
+                        onclick="verifyBusiness()">
+                    사업자 정보 인증
+                </button>
+
+                <div id="businessVerifyMessage"
+                    style="margin-top: 8px;">
                 </div>
             </div>
 
@@ -287,7 +306,10 @@
         });
 
         var userFields = document.getElementById('userOnlyFields');
+        var userBasicFields = document.getElementById('userBasicFields');
         var businessFields = document.getElementById('businessOnlyFields');
+        var memberName = document.getElementById('memberName');
+        var nickname = document.getElementById('nickname');
         var businessName = document.getElementById('businessName');
         var businessNumber = document.getElementById('businessNumber');
         var bankName = document.getElementById('bankName');
@@ -298,11 +320,19 @@
         var licenseFile = document.getElementById('licenseFile');
 
         if (type === 'BUSINESS') {
+            userBasicFields.classList.remove('active');
             userFields.classList.remove('active');
             businessFields.classList.add('active');
 
             // 숨겨진 일반회원 전용 필드는 제출 시 막히지 않도록 required 해제할 것 없음(체크박스라 required 아님)
 
+            // 일반회원 전용 필수 해제
+            memberName.required = false;
+            nickname.required = false;
+
+            memberName.disabled = true;
+            nickname.disabled = true;
+            
             // 사업자 전용 필드는 필수값으로 전환
             businessName.required = true;
             representativeName.required = true;
@@ -315,7 +345,13 @@
         } else {
             businessFields.classList.remove('active');
             userFields.classList.add('active');
+            userBasicFields.classList.add('active');
+            // 일반회원 전용 필수
+            memberName.required = true;
+            nickname.required = true;
 
+            memberName.disabled = false;
+            nickname.disabled = false;
             // 일반회원 전환 시 사업자 필드 required 해제 (숨겨진 상태라 제출 막힘 방지)
             businessName.required = false;
             representativeName.required = false;

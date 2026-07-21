@@ -20,32 +20,42 @@ public interface BusinessDAO {
          * 로그인 회원과 연결된 사업자 조회
          * =========================================================
          */
-        BusinessVO selectBusinessByMemberNo(
-                        @Param("memberNo") long memberNo);
+        BusinessVO selectBusinessByMemberNo(@Param("memberNo") long memberNo);
+
+        /*
+        * =========================================================
+        * 사업자등록번호 중복 확인
+        * =========================================================
+        */
+        int countByBusinessNumber(@Param("businessNumber") String businessNumber);
+
+        /*
+        * =========================================================
+        * 사업자 회원가입 정보 등록
+        * =========================================================
+        */
+        int insertBusiness(BusinessVO businessVO);
 
         /*
          * =========================================================
          * 상품 등록
          * =========================================================
          */
-        int insertProduct(
-                        GoodsManageVO goodsManageVO);
+        int insertProduct(GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
          * 상품 대표 이미지 등록
          * =========================================================
          */
-        int insertProductImage(
-                        GoodsManageVO goodsManageVO);
+        int insertProductImage(GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
          * 콘텐츠 검색 목록
          * =========================================================
          */
-        List<ContentSearchVO> selectBusinessContentList(
-                        @Param("keyword") String keyword);
+        List<ContentSearchVO> selectBusinessContentList(@Param("keyword") String keyword);
 
         /*
          * =========================================================
@@ -55,25 +65,21 @@ public interface BusinessDAO {
          * BusinessServiceImpl에서 콘텐츠 존재 여부 확인에 사용한다.
          * =========================================================
          */
-        ContentSearchVO selectContentByNo(
-                        @Param("contentNo") long contentNo);
+        ContentSearchVO selectContentByNo(@Param("contentNo") long contentNo);
 
         /*
          * =========================================================
          * 선택한 콘텐츠에 연결된 배우 목록
          * =========================================================
          */
-        List<ActorSearchVO> selectActorListByContentNo(
-                        @Param("contentNo") long contentNo);
+        List<ActorSearchVO> selectActorListByContentNo(@Param("contentNo") long contentNo);
 
         /*
          * =========================================================
          * 선택한 콘텐츠와 배우의 연결 여부 확인
          * =========================================================
          */
-        int countContentActor(
-                        @Param("contentNo") long contentNo,
-                        @Param("actorNo") long actorNo);
+        int countContentActor(@Param("contentNo") long contentNo, @Param("actorNo") long actorNo);
 
         /*
          * =========================================================
@@ -92,8 +98,7 @@ public interface BusinessDAO {
          * 사업자가 등록한 상품 목록
          * =========================================================
          */
-        List<GoodsManageVO> selectProductListByBusinessNo(
-                        @Param("businessNo") long businessNo);
+        List<GoodsManageVO> selectProductListByBusinessNo(@Param("businessNo") long businessNo);
 
         /*
          * =========================================================
@@ -103,25 +108,21 @@ public interface BusinessDAO {
          * 다른 사업자의 상품에 접근할 수 없도록 한다.
          * =========================================================
          */
-        GoodsManageVO selectProductForUpdate(
-                        @Param("productNo") long productNo,
-                        @Param("businessNo") long businessNo);
+        GoodsManageVO selectProductForUpdate(@Param("productNo") long productNo, @Param("businessNo") long businessNo);
 
         /*
          * =========================================================
          * 상품 기본 정보 수정
          * =========================================================
          */
-        int updateProduct(
-                        GoodsManageVO goodsManageVO);
+        int updateProduct(GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
          * 기존 대표 이미지 수정
          * =========================================================
          */
-        int updateProductMainImage(
-                        GoodsManageVO goodsManageVO);
+        int updateProductMainImage(GoodsManageVO goodsManageVO);
 
         /*
          * =========================================================
@@ -131,9 +132,7 @@ public interface BusinessDAO {
          * STATUS를 DELETE_REQUESTED로 변경한다.
          * =========================================================
          */
-        int updateProductDeleteRequest(
-                        @Param("productNo") long productNo,
-                        @Param("businessNo") long businessNo);
+        int updateProductDeleteRequest(@Param("productNo") long productNo, @Param("businessNo") long businessNo);
 
         /*
          * =========================================================
@@ -142,17 +141,14 @@ public interface BusinessDAO {
          * 로그인한 사업자가 등록한 상품인지 확인한다.
          * =========================================================
          */
-        int countProductByBusinessNo(
-                        @Param("productNo") long productNo,
-                        @Param("businessNo") long businessNo);
+        int countProductByBusinessNo(@Param("productNo") long productNo, @Param("businessNo") long businessNo);
 
         /*
          * =========================================================
          * 이벤트 등록
          * =========================================================
          */
-        int insertEvent(
-                        EventManageVO eventManageVO);
+        int insertEvent(EventManageVO eventManageVO);
 
         /*
          * =========================================================
@@ -196,9 +192,7 @@ public interface BusinessDAO {
          * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인한다.
          * =========================================================
          */
-        List<EventManageVO> selectEventListByBusinessNo(
-                        @Param("businessNo") long businessNo,
-                        @Param("keyword") String keyword);
+        List<EventManageVO> selectEventListByBusinessNo(@Param("businessNo") long businessNo, @Param("keyword") String keyword);
 
         /*
          * =========================================================
@@ -207,25 +201,19 @@ public interface BusinessDAO {
          * EVENT_NO와 BUSINESS_NO를 함께 검사한다.
          * =========================================================
          */
-        EventManageVO selectApprovedEventForBusiness(
-                        @Param("eventNo") long eventNo,
-                        @Param("businessNo") long businessNo);
+        EventManageVO selectApprovedEventForBusiness(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo);
 
         /*
          * =========================================================
          * 승인된 이벤트 기본 정보 수정
          * =========================================================
          */
-        int updateApprovedEvent(
-                        EventManageVO eventManageVO);
+        int updateApprovedEvent(EventManageVO eventManageVO);
 
         /*
          * =========================================================
          * 승인된 이벤트 종료일 연장
          * =========================================================
          */
-        int extendApprovedEvent(
-                        @Param("eventNo") long eventNo,
-                        @Param("businessNo") long businessNo,
-                        @Param("extendEndDate") java.time.LocalDate extendEndDate);
+        int extendApprovedEvent(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo, @Param("extendEndDate") java.time.LocalDate extendEndDate);
 }

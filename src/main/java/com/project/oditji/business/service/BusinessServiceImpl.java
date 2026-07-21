@@ -77,17 +77,36 @@ public class BusinessServiceImpl
          * =========================================================
          */
         @Override
-        public BusinessVO getBusinessByMemberNo(
-                        long memberNo) {
+        public BusinessVO getBusinessByMemberNo(long memberNo) {
 
                 if (memberNo <= 0) {
-
-                        throw new IllegalArgumentException(
-                                        "올바르지 않은 회원 번호입니다.");
+                        throw new IllegalArgumentException("올바르지 않은 회원 번호입니다.");
                 }
 
-                return businessDAO.selectBusinessByMemberNo(
-                                memberNo);
+                return businessDAO.selectBusinessByMemberNo(memberNo);
+        }
+
+        /*
+        * =========================================================
+        * 사업자등록번호 사용 가능 여부 확인
+        * =========================================================
+        */
+        @Override
+        public boolean isBusinessNumberAvailable(String businessNumber) {
+
+                if (businessNumber == null || businessNumber.isBlank()) {
+                        throw new IllegalArgumentException("사업자등록번호를 입력해주세요.");
+                }
+
+        String normalizedBusinessNumber = businessNumber.trim();
+
+                if (!normalizedBusinessNumber.matches("\\d{3}-\\d{2}-\\d{5}")) {
+                        throw new IllegalArgumentException("사업자등록번호 형식이 올바르지 않습니다.");
+                }
+
+        int count = businessDAO.countByBusinessNumber(normalizedBusinessNumber);
+
+        return count == 0;
         }
 
         /*
@@ -97,76 +116,42 @@ public class BusinessServiceImpl
          */
         @Override
         @Transactional
-        public long registerProduct(
-                        GoodsManageVO goodsManageVO,
-                        MultipartFile productImage) {
+        public long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage) {
 
                 if (goodsManageVO == null) {
-
-                        throw new IllegalArgumentException(
-                                        "상품 등록 정보가 없습니다.");
+                        throw new IllegalArgumentException("상품 등록 정보가 없습니다.");
                 }
 
-                validateProduct(
-                                goodsManageVO);
-
-                normalizeActorNo(
-                                goodsManageVO);
-
-                validateContentActor(
-                                goodsManageVO);
-
-                validateProductImage(
-                                productImage);
-
+                validateProduct(goodsManageVO);
+                normalizeActorNo(goodsManageVO);
+                validateContentActor(goodsManageVO);
+                validateProductImage(productImage);
                 Path savedPhysicalPath = null;
 
                 try {
-
-                        SavedFileInfo savedFileInfo = saveProductImage(
-                                        productImage);
-
+                        SavedFileInfo savedFileInfo = saveProductImage(productImage);
                         savedPhysicalPath = savedFileInfo.physicalPath();
+                        goodsManageVO.setImagePath(savedFileInfo.webPath());
+                        goodsManageVO.setIsMain("Y");
+                        goodsManageVO.setStatus("WAITING");
 
-                        goodsManageVO.setImagePath(
-                                        savedFileInfo.webPath());
+                        int productResult = businessDAO.insertProduct(goodsManageVO);
+                                if (productResult != 1) {
+                                        throw new IllegalStateException("상품 등록에 실패했습니다.");
+                                }
+                                if (goodsManageVO.getProductNo() <= 0) {
+                                        throw new IllegalStateException("등록된 상품 번호를 확인할 수 없습니다.");
+                                }
 
-                        goodsManageVO.setIsMain(
-                                        "Y");
+                        int imageResult = businessDAO.insertProductImage(goodsManageVO);
 
-                        goodsManageVO.setStatus(
-                                        "WAITING");
-
-                        int productResult = businessDAO.insertProduct(
-                                        goodsManageVO);
-
-                        if (productResult != 1) {
-
-                                throw new IllegalStateException(
-                                                "상품 등록에 실패했습니다.");
-                        }
-
-                        if (goodsManageVO.getProductNo() <= 0) {
-
-                                throw new IllegalStateException(
-                                                "등록된 상품 번호를 확인할 수 없습니다.");
-                        }
-
-                        int imageResult = businessDAO.insertProductImage(
-                                        goodsManageVO);
-
-                        if (imageResult != 1) {
-
-                                throw new IllegalStateException(
-                                                "상품 대표 이미지 등록에 실패했습니다.");
-                        }
-
+                                if (imageResult != 1) {
+                                        throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
+                                }
                         return goodsManageVO.getProductNo();
 
                 } catch (RuntimeException e) {
-
-                        deleteSavedFileQuietly(
-                                        savedPhysicalPath);
+                        deleteSavedFileQuietly(savedPhysicalPath);
 
                         throw e;
                 }

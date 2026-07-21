@@ -3,10 +3,13 @@ package com.project.oditji.member.service;
 import java.util.List;
 
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.business.vo.BusinessVO;
 
 public interface MemberService {
 
     void joinMember(MemberVO memberVO, List<String> ottList);
+
+    void joinBusinessMember(MemberVO memberVO, BusinessVO businessVO);
 
     boolean isDuplicateId(String memberId);
 
