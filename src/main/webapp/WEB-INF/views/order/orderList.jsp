@@ -227,7 +227,7 @@
                                     </c:when>
 
                                     <c:when test="${o.orderStatus eq 'CANCELED'}">
-                                        결제 취소
+                                        주문 취소
                                     </c:when>
 
                                     <c:otherwise>
