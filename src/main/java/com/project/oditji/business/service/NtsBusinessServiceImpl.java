@@ -104,7 +104,7 @@ public class NtsBusinessServiceImpl
             String valid = String.valueOf(result.get("valid"));
 
             if ("01".equals(valid)) {
-                return new NtsBusinessVerifyVO(true, null, "사업자 정보가 확인되었습니다.");
+                return checkBusinessStatus(normalizedBusinessNumber);
             }
 
             return new NtsBusinessVerifyVO(false, null, "사업자등록번호, 대표자명 또는 개업일이 "
@@ -115,6 +115,80 @@ public class NtsBusinessServiceImpl
             e.printStackTrace();
 
             return new NtsBusinessVerifyVO(false, null, "국세청 사업자 확인 중 오류가 발생했습니다.");
+        }
+    }
+
+     /* ======================
+        국세청 사업자 상태조회
+        계속사업자만 가입 가능
+     ========================*/
+    private NtsBusinessVerifyVO checkBusinessStatus(String businessNumber) {
+
+        Map<String, Object> requestBody = new HashMap<>();
+
+        // 상태조회 API 요청 형식
+        // {
+        //   "b_no": ["1234567890"]
+        // }
+        requestBody.put("b_no", List.of(businessNumber));
+
+        try {
+
+            Map<?, ?> response = restClient.post()
+                    .uri(uriBuilder ->
+                            uriBuilder
+                                    .scheme("https")
+                                    .host("api.odcloud.kr")
+                                    .path("/api/nts-businessman/v1/status")
+                                    .queryParam("serviceKey", serviceKey)
+                                    .build())
+                    .body(requestBody)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response == null) {
+                return new NtsBusinessVerifyVO(false, null, "사업자 상태조회 응답이 없습니다.");
+            }
+
+            Object dataObject = response.get("data");
+
+            if (!(dataObject instanceof List<?> dataList) || dataList.isEmpty()) {
+                return new NtsBusinessVerifyVO(false, null, "사업자 상태조회 결과가 없습니다.");
+            }
+
+            Object first = dataList.get(0);
+
+            if (!(first instanceof Map<?, ?> result)) {
+                return new NtsBusinessVerifyVO(false, null, "사업자 상태조회 응답 형식이 올바르지 않습니다.");
+            }
+
+            /*
+             * b_stt 값 예시
+             * - 계속사업자
+             * - 휴업자
+             * - 폐업자
+             */
+            Object statusObject = result.get("b_stt");
+
+            String businessStatus = statusObject == null ? "" : statusObject.toString().trim();
+
+            // 계속사업자만 가입 허용
+            if ("계속사업자".equals(businessStatus)) {
+                return new NtsBusinessVerifyVO(true, businessStatus, "사업자 정보가 확인되었습니다. (계속사업자)");
+            }
+
+            // 상태값을 확인할 수 없는 경우
+            if (businessStatus.isBlank()) {
+                return new NtsBusinessVerifyVO(false, null, "국세청에서 사업자 상태를 확인할 수 없습니다.");
+            }
+            // 휴업자 / 폐업자 등
+            return new NtsBusinessVerifyVO(false, businessStatus, businessStatus + " 상태의 사업자는 가입할 수 없습니다.");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return new NtsBusinessVerifyVO(false, null, "국세청 사업자 상태조회 중 오류가 발생했습니다.");
         }
     }
 }
