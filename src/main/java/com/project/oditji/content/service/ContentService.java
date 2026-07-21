@@ -30,6 +30,10 @@ public interface ContentService {
 
     List<ContentVO> getMainContentList();
 
+    /**
+     * JSONL 공용 콘텐츠 저장소를 기준으로
+     * 영화·시리즈, 인기, 신규 목록을 조회합니다.
+     */
     ContentListPageVO getContentListByType(
             String type,
             int page,
@@ -37,6 +41,12 @@ public interface ContentService {
             List<String> genreCodes,
             List<String> providerIds);
 
+    /**
+     * 현재 목록의 카테고리, 장르, OTT 조건을 반영하여
+     * 우측 추천 콘텐츠를 JSONL에서 조회합니다.
+     */
     List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds);
 }

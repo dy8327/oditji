@@ -101,8 +101,17 @@ public class ContentController {
                         safeGenres,
                         safeProviders);
 
+        /*
+         * 우측 추천 콘텐츠도 현재 선택한
+         * 콘텐츠 종류, 장르, OTT 조건을 함께 반영합니다.
+         *
+         * 목록과 추천 모두 JSONL 공용 저장소를 사용하므로
+         * 별도의 TMDB API 호출은 발생하지 않습니다.
+         */
         List<SearchResultVO> recommendedList =
                 contentService.getContentRecommendedList(
+                        safeCategories,
+                        safeGenres,
                         safeProviders);
 
         model.addAttribute(

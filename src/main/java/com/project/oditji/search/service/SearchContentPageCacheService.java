@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
@@ -127,20 +128,14 @@ public class SearchContentPageCacheService {
      *
      * 선택 OTT가 있으면 해당 OTT 콘텐츠만 사용하고,
      * 선택 OTT가 없으면 지원 OTT 전체를 사용합니다.
+     *
+     * 추천 우선순위:
+     * 1. 인기도 높은 순
+     * 2. 평점 높은 순
      */
-    /**
-         * 추천 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
-         *
-         * 선택 OTT가 있으면 해당 OTT 콘텐츠만 사용하고,
-         * 선택 OTT가 없으면 지원 OTT 전체를 사용합니다.
-         *
-         * 추천 우선순위:
-         * 1. 인기도 높은 순
-         * 2. 평점 높은 순
-         */
-        public List<SearchResultVO> getMainRecommendedContent(
-                List<String> providerValues,
-                int limit) {
+    public List<SearchResultVO> getMainRecommendedContent(
+            List<String> providerValues,
+            int limit) {
 
         List<SearchResultVO> resultList =
                 searchAll(
@@ -170,7 +165,7 @@ public class SearchContentPageCacheService {
                 resultList,
                 limit
         );
-        }
+    }
 
     private void appendReleasedContent(
             Map<String, SearchResultVO> selectedMap,
@@ -302,6 +297,274 @@ public class SearchContentPageCacheService {
                         limit
                 )
         );
+    }
+
+
+    /**
+     * 상단 영화·시리즈, 인기, 신규 탭의 콘텐츠 목록을
+     * JSONL 공용 저장소에서 조회합니다.
+     *
+     * type별 정렬 기준:
+     * - all: 평점 내림차순, 인기도 내림차순
+     * - popular: 인기도 내림차순, 평점 내림차순
+     * - new: 최근 90일 이내 공개작을 공개일 내림차순으로 정렬
+     */
+    public ContentListPageVO getContentListPage(
+            String type,
+            int displayPage,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds) {
+
+        final int pageSize = 20;
+
+        String normalizedType =
+                normalizeContentListType(type);
+
+        int normalizedPage =
+                Math.max(displayPage, 1);
+
+        List<SearchResultVO> filteredList =
+                searchAll(
+                        "",
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
+
+        if ("new".equals(normalizedType)) {
+
+            /*
+             * 신규 탭은 오늘보다 미래인 콘텐츠를 제외하고,
+             * 최근 90일 이내 공개된 콘텐츠만 표시합니다.
+             */
+            LocalDate today =
+                    LocalDate.now();
+
+            LocalDate startDate =
+                    today.minusDays(90);
+
+            filteredList.removeIf(
+                    content -> {
+
+                        LocalDate releaseDate =
+                                parseReleaseDate(
+                                        content == null
+                                                ? null
+                                                : content.getReleaseDate()
+                                );
+
+                        return releaseDate == null
+                                || releaseDate.isBefore(startDate)
+                                || releaseDate.isAfter(today);
+                    }
+            );
+        }
+
+        sortContentListByType(
+                filteredList,
+                normalizedType
+        );
+
+        int totalResults =
+                filteredList.size();
+
+        int totalPages =
+                totalResults == 0
+                        ? 0
+                        : (totalResults
+                                + pageSize
+                                - 1)
+                                / pageSize;
+
+        if (totalPages > 0
+                && normalizedPage > totalPages) {
+
+            normalizedPage =
+                    totalPages;
+        }
+
+        int startIndex =
+                (normalizedPage - 1)
+                        * pageSize;
+
+        int endIndex =
+                Math.min(
+                        startIndex + pageSize,
+                        totalResults
+                );
+
+        List<SearchResultVO> pageContentList =
+                new ArrayList<SearchResultVO>();
+
+        if (startIndex >= 0
+                && startIndex < totalResults) {
+
+            pageContentList.addAll(
+                    filteredList.subList(
+                            startIndex,
+                            endIndex
+                    )
+            );
+        }
+
+        ContentListPageVO pageVO =
+                new ContentListPageVO();
+
+        pageVO.setContentList(
+                pageContentList
+        );
+
+        pageVO.setCurrentPage(
+                normalizedPage
+        );
+
+        pageVO.setTotalPages(
+                totalPages
+        );
+
+        pageVO.setTotalResults(
+                totalResults
+        );
+
+        return pageVO;
+    }
+
+    /**
+     * 콘텐츠 목록 우측의 추천 캐러셀을 JSONL에서 조회합니다.
+     *
+     * 현재 선택된 콘텐츠 종류, 장르, OTT 필터를 반영한 뒤
+     * 인기도 내림차순, 평점 내림차순으로 정렬합니다.
+     */
+    public List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds,
+            int limit) {
+
+        List<SearchResultVO> recommendedList =
+                searchAll(
+                        "",
+                        contentCategories,
+                        genreCodes,
+                        providerIds
+                );
+
+        recommendedList.sort(
+                Comparator
+                        .comparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+        );
+
+        return limitList(
+                recommendedList,
+                limit
+        );
+    }
+
+    /**
+     * 콘텐츠 목록 탭에 따라 정렬 기준을 적용합니다.
+     */
+    private void sortContentListByType(
+            List<SearchResultVO> contentList,
+            String type) {
+
+        Comparator<SearchResultVO> comparator;
+
+        if ("new".equals(type)) {
+
+            comparator =
+                    Comparator
+                            .comparing(
+                                    SearchResultVO::getReleaseDate,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            )
+                            .thenComparing(
+                                    SearchResultVO::getPopularity,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            )
+                            .thenComparing(
+                                    SearchResultVO::getTmdbScore,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            );
+
+        } else if ("all".equals(type)) {
+
+            comparator =
+                    Comparator
+                            .comparing(
+                                    SearchResultVO::getTmdbScore,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            )
+                            .thenComparing(
+                                    SearchResultVO::getPopularity,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            );
+
+        } else {
+
+            comparator =
+                    Comparator
+                            .comparing(
+                                    SearchResultVO::getPopularity,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            )
+                            .thenComparing(
+                                    SearchResultVO::getTmdbScore,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            );
+        }
+
+        contentList.sort(
+                comparator
+        );
+    }
+
+    /**
+     * 잘못된 탭 값이 들어오면 영화·시리즈(all)로 처리합니다.
+     */
+    private String normalizeContentListType(
+            String type) {
+
+        String normalized =
+                type == null
+                        ? "all"
+                        : type.trim()
+                                .toLowerCase(
+                                        Locale.ROOT
+                                );
+
+        if ("popular".equals(normalized)
+                || "new".equals(normalized)) {
+
+            return normalized;
+        }
+
+        return "all";
     }
 
     public SearchResultPageVO getContentPage(

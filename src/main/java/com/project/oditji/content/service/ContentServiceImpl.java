@@ -19,6 +19,7 @@ import com.project.oditji.content.dao.ContentDAO;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.service.SearchContentStore;
 import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultVO;
@@ -32,19 +33,26 @@ public class ContentServiceImpl implements ContentService {
 
     private final ContentDAO contentDAO;
     private final TmdbService tmdbService;
-    private final ContentListTmdbService contentListTmdbService;
+    /*
+     * 콘텐츠 목록 화면은 외부 TMDB API가 아니라
+     * JSONL에서 적재된 공용 검색 캐시를 사용합니다.
+     */
+    private final SearchContentPageCacheService
+            searchContentPageCacheService;
+
     private final SearchContentStore searchContentStore;
 
     public ContentServiceImpl(
             ContentDAO contentDAO,
             TmdbService tmdbService,
-            ContentListTmdbService contentListTmdbService,
+            SearchContentPageCacheService
+                    searchContentPageCacheService,
             SearchContentStore searchContentStore) {
 
         this.contentDAO = contentDAO;
         this.tmdbService = tmdbService;
-        this.contentListTmdbService =
-                contentListTmdbService;
+        this.searchContentPageCacheService =
+                searchContentPageCacheService;
         this.searchContentStore =
                 searchContentStore;
     }
@@ -719,7 +727,11 @@ public class ContentServiceImpl implements ContentService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        return contentListTmdbService
+        /*
+         * 기존 ContentListTmdbService의 discover API 호출 대신
+         * SearchContentStore에 적재된 JSONL 콘텐츠를 사용합니다.
+         */
+        return searchContentPageCacheService
                 .getContentListPage(
                         type,
                         page,
@@ -731,11 +743,20 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds) {
 
-        return contentListTmdbService
-                .getRecommendedList(
-                        providerIds
+        /*
+         * 현재 목록 필터를 반영한 인기 콘텐츠 중
+         * 상위 5개를 우측 추천 영역에 표시합니다.
+         */
+        return searchContentPageCacheService
+                .getContentRecommendedList(
+                        contentCategories,
+                        genreCodes,
+                        providerIds,
+                        5
                 );
     }
 }
