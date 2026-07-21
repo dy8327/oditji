@@ -22,6 +22,7 @@ import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
+import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
@@ -31,11 +32,14 @@ import jakarta.servlet.http.HttpSession;
 public class BusinessController {
 
         private final BusinessService businessService;
+        private final OrderCancelRefundService orderCancelRefundService;
 
         public BusinessController(
-                        BusinessService businessService) {
+                        BusinessService businessService,
+                        OrderCancelRefundService orderCancelRefundService) {
 
                 this.businessService = businessService;
+                this.orderCancelRefundService = orderCancelRefundService;
         }
 
         /*
@@ -989,32 +993,29 @@ public class BusinessController {
         @PostMapping("/event/register")
         public String eventRegisterProcess(
 
-                @RequestParam("eventTitle") String eventTitle,
+                        @RequestParam("eventTitle") String eventTitle,
 
-                @RequestParam(value = "eventContent", required = false) String eventContent,
+                        @RequestParam(value = "eventContent", required = false) String eventContent,
 
-                @RequestParam("startDate") LocalDate startDate,
+                        @RequestParam("startDate") LocalDate startDate,
 
-                @RequestParam("endDate") LocalDate endDate,
+                        @RequestParam("endDate") LocalDate endDate,
 
+                        /*
+                         * 선택한 연결 상품 목록
+                         */
+                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
 
-                /*
-                * 선택한 연결 상품 목록
-                */
-                @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
+                        /*
+                         * 상품별 할인율 목록
+                         */
+                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
 
+                        @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
-                /*
-                * 상품별 할인율 목록
-                */
-                @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+                        HttpSession session,
 
-
-                @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
-
-                HttpSession session,
-
-                RedirectAttributes redirectAttributes) {
+                        RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(
                                 session);
@@ -1053,18 +1054,18 @@ public class BusinessController {
 
                 if (discountRateList != null) {
 
-                for(Integer rate : discountRateList) {
+                        for (Integer rate : discountRateList) {
 
-                        if(rate < 0 || rate > 100) {
+                                if (rate < 0 || rate > 100) {
 
-                        redirectAttributes.addFlashAttribute(
-                                "errorMessage",
-                                "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                                        redirectAttributes.addFlashAttribute(
+                                                        "errorMessage",
+                                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
-                        return "redirect:/business/event/register";
+                                        return "redirect:/business/event/register";
+                                }
+
                         }
-
-                }
 
                 }
 
@@ -1087,60 +1088,49 @@ public class BusinessController {
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
                 eventManageVO.setStatus(
-                        "WAITING");
-
+                                "WAITING");
 
                 eventManageVO.setProductNoList(
-                        productNoList);
-
+                                productNoList);
 
                 eventManageVO.setDiscountRateList(
-                        discountRateList);
-
+                                discountRateList);
 
                 try {
 
                         System.out.println(
-                                "===== 이벤트 등록 요청 =====");
-
-
-                        System.out.println(
-                                "사업자 번호: "
-                                + business.getBusinessNo());
-
+                                        "===== 이벤트 등록 요청 =====");
 
                         System.out.println(
-                                "이벤트명: "
-                                + eventTitle);
-
-
-                        System.out.println(
-                                "이벤트 설명: "
-                                + eventContent);
-
+                                        "사업자 번호: "
+                                                        + business.getBusinessNo());
 
                         System.out.println(
-                                "이벤트 시작일: "
-                                + startDate);
-
-
-                        System.out.println(
-                                "이벤트 종료일: "
-                                + endDate);
-
+                                        "이벤트명: "
+                                                        + eventTitle);
 
                         System.out.println(
-                                "연결 상품 번호 목록: "
-                                + productNoList);
-
-
-                        System.out.println(
-                                "상품별 할인율 목록: "
-                                + discountRateList);
-
+                                        "이벤트 설명: "
+                                                        + eventContent);
 
                         System.out.println(
-                                "이벤트 상태: WAITING");
+                                        "이벤트 시작일: "
+                                                        + startDate);
+
+                        System.out.println(
+                                        "이벤트 종료일: "
+                                                        + endDate);
+
+                        System.out.println(
+                                        "연결 상품 번호 목록: "
+                                                        + productNoList);
+
+                        System.out.println(
+                                        "상품별 할인율 목록: "
+                                                        + discountRateList);
+
+                        System.out.println(
+                                        "이벤트 상태: WAITING");
 
                         long eventNo = businessService.registerEvent(
                                         eventManageVO,
@@ -1159,26 +1149,26 @@ public class BusinessController {
                 } catch (IllegalArgumentException
                                 | IllegalStateException e) {
 
-                System.out.println("===== catch 실행 =====");
-                System.out.println("에러 메시지 : " + e.getMessage());
-                e.printStackTrace();
+                        System.out.println("===== catch 실행 =====");
+                        System.out.println("에러 메시지 : " + e.getMessage());
+                        e.printStackTrace();
 
-                redirectAttributes.addFlashAttribute(
-                                "errorMessage",
-                                e.getMessage());
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        e.getMessage());
 
-                return "redirect:/business/event/register";
+                        return "redirect:/business/event/register";
 
                 } catch (Exception e) {
 
-                System.out.println("===== Exception catch 실행 =====");
-                e.printStackTrace();
+                        System.out.println("===== Exception catch 실행 =====");
+                        e.printStackTrace();
 
-                redirectAttributes.addFlashAttribute(
-                                "errorMessage",
-                                "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
 
-                return "redirect:/business/event/register";
+                        return "redirect:/business/event/register";
                 }
         }
 
@@ -1718,13 +1708,84 @@ public class BusinessController {
          */
         @GetMapping("/cancel/list")
         public String cancelList(
-                        Model model) {
+                        @RequestParam(name = "status", required = false) String status,
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                model.addAttribute(
-                                "activeMenu",
-                                "cancel");
+                Long memberNo = getLoginMemberNo(session);
 
-                return "business/order/cancelList";
+                if (memberNo == null) {
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다.");
+                        return "redirect:/member/login";
+                }
+
+                try {
+                        model.addAttribute(
+                                        "cancelList",
+                                        orderCancelRefundService.getBusinessCancelList(memberNo, status));
+                        model.addAttribute("activeMenu", "cancel");
+                        return "business/order/cancelList";
+
+                } catch (IllegalArgumentException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        return "redirect:/business/main";
+                }
+        }
+
+        /*
+         * =========================================================
+         * [취소 요청 승인 기능 추가]
+         * 사업자가 승인하면 포트원 부분 환불 후 재고와 상태를 변경한다.
+         * =========================================================
+         */
+        @PostMapping("/cancel/approve")
+        public String approveCancel(
+                        @RequestParam("cancelNo") Long cancelNo,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(session);
+
+                try {
+                        orderCancelRefundService.approveCancel(memberNo, cancelNo);
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "취소 요청을 승인하고 환불을 완료했습니다.");
+                } catch (Exception e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                }
+
+                return "redirect:/business/cancel/list";
+        }
+
+        /*
+         * =========================================================
+         * [취소 요청 반려 기능 추가]
+         * 반려 사유를 저장하고 주문상품 상태를 결제 완료로 복구한다.
+         * =========================================================
+         */
+        @PostMapping("/cancel/reject")
+        public String rejectCancel(
+                        @RequestParam("cancelNo") Long cancelNo,
+                        @RequestParam(name = "rejectReason", required = false) String rejectReason,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(session);
+
+                try {
+                        orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason);
+                        redirectAttributes.addFlashAttribute(
+                                        "successMessage",
+                                        "취소 요청을 반려했습니다.");
+                } catch (Exception e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                }
+
+                return "redirect:/business/cancel/list";
         }
 
         /*
