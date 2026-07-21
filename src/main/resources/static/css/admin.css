@@ -2,7 +2,14 @@
    ODITJI ADMIN COMMON CSS
    ===================================================== */
 
-.admin-wrap {
+/*
+ * [수정] --adm-* 변수를 .admin-wrap 안에서 정의하면 .admin-wrap의 "자손"
+ * 요소에서만 상속된다. 팝업(.modal-overlay)이 admin-wrap 바깥에 형제
+ * (sibling)로 렌더링되는 구조라, 셀렉터에서 .admin-wrap 스코프를 없애도
+ * 이 변수들 자체가 비어 있어 색상이 깨진다. 페이지 전역에서 쓰이는
+ * 디자인 토큰이므로 :root로 옮겨 전역에서 상속되게 한다.
+ */
+:root {
   /* ---- Surface (배경 단계) ---- */
   --adm-surface-1: var(--color-bg2, #202020); /* 패널/히어로 등 상승된 표면 */
   --adm-surface-2: var(--color-bg, #181818); /* 카드/인풋 등 기본 표면 */
@@ -30,7 +37,9 @@
   --adm-radius-lg: 16px;
   --adm-radius-pill: 999px;
   --adm-transition: var(--transition, 0.2s ease);
+}
 
+.admin-wrap {
   display: flex;
   align-items: flex-start;
   min-height: calc(100vh - var(--header-height, 80px) - 80px);
@@ -249,14 +258,14 @@
    Button
    ===================================================== */
 
-.admin-wrap .btn-row {
+.btn-row {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 20px 0;
 }
 
-.admin-wrap .btn {
+.btn {
   display: inline-flex;
 
   justify-content: center;
@@ -273,62 +282,62 @@
   transition: var(--adm-transition);
 }
 
-.admin-wrap .btn-primary {
+.btn-primary {
   background: var(--adm-point);
   color: #fff;
 
   box-shadow: 0 4px 12px rgba(94, 163, 255, 0.25);
 }
 
-.admin-wrap .btn-primary:hover {
+.btn-primary:hover {
   background: #7bb5ff;
 }
 
-.admin-wrap .btn-dark {
+.btn-dark {
   background: var(--adm-surface-1);
   border-color: var(--adm-border);
   color: var(--adm-text);
 }
 
-.admin-wrap .btn-dark:hover {
+.btn-dark:hover {
   border-color: var(--adm-point);
 }
 
-.admin-wrap .btn-danger {
+.btn-danger {
   background: var(--adm-danger-bg);
   color: var(--adm-danger);
 }
 
-.admin-wrap .btn-danger:hover {
+.btn-danger:hover {
   background: rgba(255, 107, 107, 0.2);
 }
 
-.admin-wrap .btn-success {
+.btn-success {
   background: var(--adm-success-bg);
   color: var(--adm-success);
 }
 
-.admin-wrap .btn-success:hover {
+.btn-success:hover {
   background: rgba(74, 222, 128, 0.2);
 }
 
-.admin-wrap .btn-outline {
+.btn-outline {
   background: transparent;
   border-color: var(--adm-border);
   color: var(--adm-text-sub);
 }
 
-.admin-wrap .btn-outline:hover {
+.btn-outline:hover {
   border-color: var(--adm-point);
   color: var(--adm-text);
 }
 
-.admin-wrap .btn:focus-visible {
+.btn:focus-visible {
   outline: 2px solid var(--adm-point);
   outline-offset: 2px;
 }
 
-.admin-wrap .btn-block {
+.btn-block {
   width: 100%;
 }
 
@@ -570,11 +579,11 @@
    Form
    ===================================================== */
 
-.admin-wrap .form-group {
+.form-group {
   margin-bottom: 22px;
 }
 
-.admin-wrap .form-label {
+.form-label {
   display: block;
 
   margin-bottom: 10px;
@@ -586,9 +595,9 @@
   color: var(--adm-text-sub);
 }
 
-.admin-wrap .form-input,
-.admin-wrap .form-textarea,
-.admin-wrap .form-select {
+.form-input,
+.form-textarea,
+.form-select {
   width: 100%;
 
   padding: 14px 16px;
@@ -603,40 +612,40 @@
   transition: var(--adm-transition);
 }
 
-.admin-wrap .form-input:focus,
-.admin-wrap .form-textarea:focus,
-.admin-wrap .form-select:focus {
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   border-color: var(--adm-point);
   box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
 }
 
-.admin-wrap .form-textarea {
+.form-textarea {
   min-height: 140px;
 
   resize: vertical;
 }
 
-.admin-wrap .form-textarea[readonly] {
+.form-textarea[readonly] {
   color: var(--adm-text-sub);
   background: var(--adm-surface-3);
 }
 
-.admin-wrap .form-row {
+.form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-.admin-wrap .radio-group,
-.admin-wrap .checkbox-group {
+.radio-group,
+.checkbox-group {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.admin-wrap .radio-group label,
-.admin-wrap .checkbox-group label {
+.radio-group label,
+.checkbox-group label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -645,7 +654,7 @@
   cursor: pointer;
 }
 
-.admin-wrap .file-box {
+.file-box {
   display: flex;
 
   align-items: center;
@@ -661,33 +670,33 @@
   border-radius: var(--adm-radius-sm);
 }
 
-.admin-wrap .file-box .file-name {
+.file-box .file-name {
   color: var(--adm-text-dim);
   font-size: 13px;
 }
 
 /* 회원/사업자 등급 변경 선택 목록 */
-.admin-wrap .grade-select-box {
+.grade-select-box {
   padding: 18px;
   background: var(--adm-surface-2);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-sm);
 }
 
-.admin-wrap .grade-select-box .grade-select-title {
+.grade-select-box .grade-select-title {
   margin-bottom: 12px;
   font-size: 14px;
   font-weight: 600;
   color: var(--adm-text-sub);
 }
 
-.admin-wrap .grade-option-list {
+.grade-option-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.admin-wrap .grade-option-list label {
+.grade-option-list label {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -697,7 +706,7 @@
 }
 
 /* 대상 정보 요약 (팝업 상단) */
-.admin-wrap .target-info-box {
+.target-info-box {
   margin-bottom: 20px;
   padding: 16px 18px;
   background: var(--adm-surface-2);
@@ -705,7 +714,7 @@
   border-radius: var(--adm-radius-sm);
 }
 
-.admin-wrap .target-info-box p {
+.target-info-box p {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
@@ -713,7 +722,7 @@
   color: var(--adm-text-sub);
 }
 
-.admin-wrap .target-info-box p strong {
+.target-info-box p strong {
   color: var(--adm-text);
   font-weight: 600;
 }
@@ -924,7 +933,7 @@
     border-bottom: 1px solid var(--adm-border);
   }
 
-  .admin-wrap .form-row {
+  .form-row {
     grid-template-columns: 1fr;
   }
 }
