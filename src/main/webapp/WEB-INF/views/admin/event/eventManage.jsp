@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:set var="activeMenu" value="event"/>
 <c:set var="currentTab" value="${empty param.tab ? 'register' : param.tab}"/>
@@ -14,6 +15,16 @@
 <title>ODITJI | 이벤트 관리</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+
+<style>
+.event-product-discount-line {
+    margin-bottom: 4px;
+}
+
+.event-product-discount-line:last-child {
+    margin-bottom: 0;
+}
+</style>
 
 </head>
 
@@ -147,22 +158,52 @@
 
                                         <c:choose>
 
-                                            <c:when test="${req.eventDiscountRate > 0 and not empty req.price}">
+                                            <c:when test="${not empty req.productDetail}">
 
-                                                <fmt:formatNumber value="${req.price}" pattern="#,###"/>원
-                                                →
-                                                <strong>
-                                                    <fmt:formatNumber value="${req.discountedPrice}" pattern="#,###"/>원
-                                                </strong>
-                                                (${req.eventDiscountRate}%)
+                                                <c:forEach var="productItem"
+                                                           items="${fn:split(req.productDetail, ';')}"
+                                                           varStatus="productStatus">
+
+                                                    <%-- 빈 값이 섞여 들어오는 경우를 대비한 방어 코드 --%>
+                                                    <c:if test="${not empty productItem}">
+
+                                                        <c:set var="productParts"
+                                                               value="${fn:split(productItem, '|')}"/>
+
+                                                        <c:set var="productRate" value="${productParts[1]}"/>
+
+                                                        <div class="event-product-discount-line">
+
+                                                            <c:out value="${productParts[0]}"/>
+                                                            :
+
+                                                            <c:choose>
+
+                                                                <c:when test="${productRate > 0}">
+                                                                    <fmt:formatNumber value="${productParts[2]}" pattern="#,###"/>원
+                                                                    →
+                                                                    <strong>
+                                                                        <fmt:formatNumber value="${productParts[3]}" pattern="#,###"/>원
+                                                                    </strong>
+                                                                    (${productRate}%)
+                                                                </c:when>
+
+                                                                <c:otherwise>
+                                                                    할인 없음
+                                                                </c:otherwise>
+
+                                                            </c:choose>
+
+                                                        </div>
+
+                                                    </c:if>
+
+                                                </c:forEach>
 
                                             </c:when>
 
-
                                             <c:otherwise>
-
                                                 할인 없음
-
                                             </c:otherwise>
 
                                         </c:choose>
@@ -176,7 +217,7 @@
 
 
                                     <td>
-                                        ${req.requestedAt}
+                                        <fmt:formatDate value="${req.createdAt}" pattern="yyyy-MM-dd"/>
                                     </td>
 
 
@@ -224,7 +265,7 @@
                                                     '${req.businessName}',
                                                     '${req.title}',
                                                     '${req.startDate} ~ ${req.endDate}',
-                                                    '${req.productName} (${req.eventDiscountRate}% 할인)'
+                                                    '${req.productDetail}'
                                                 )">
                                             상세보기
                                         </button>
@@ -444,7 +485,7 @@ function closeModal(id) {
 }
 
 
-function openEventRequestModal(eventNo, businessName, title, period, description) {
+function openEventRequestModal(eventNo, businessName, title, period, productDetail) {
 
     document.getElementById('reqeventNo').value = eventNo;
 
@@ -454,9 +495,69 @@ function openEventRequestModal(eventNo, businessName, title, period, description
 
     document.getElementById('reqEventPeriod').textContent = period;
 
-    document.getElementById('reqDescription').value = description;
+    document.getElementById('reqDescription').value = formatProductDetail(productDetail);
 
     document.getElementById('eventRequestModal').classList.add('open');
+
+}
+
+/*
+ * 상품별 상세 내역 파싱
+ *
+ * productDetail 형식: "상품명|할인율|가격|할인적용가;상품명|할인율|가격|할인적용가;..."
+ * (adminMapper.xml selectAdminEventList의 productDetail 컬럼)
+ */
+function formatProductDetail(productDetail) {
+
+    if (!productDetail) {
+
+        return '연결된 상품이 없습니다.';
+
+    }
+
+    const items = productDetail.split(';').filter(Boolean);
+
+    if (items.length === 0) {
+
+        return '연결된 상품이 없습니다.';
+
+    }
+
+    const lines = [];
+
+    items.forEach(function (item) {
+
+        const parts = item.split('|');
+
+        const name = parts[0];
+        const rate = Number(parts[1]);
+        const price = Number(parts[2]);
+        const discounted = Number(parts[3]);
+
+        if (!name) {
+            return;
+        }
+
+        if (rate > 0) {
+
+            lines.push(
+                name
+                + ' : '
+                + price.toLocaleString()
+                + '원 → '
+                + discounted.toLocaleString()
+                + '원 (' + rate + '% 할인)'
+            );
+
+        } else {
+
+            lines.push(name + ' : 할인 없음');
+
+        }
+
+    });
+
+    return lines.join('\n');
 
 }
 

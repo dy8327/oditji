@@ -3,693 +3,451 @@ package com.project.oditji.ranking.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
+import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultVO;
 
+/**
+ * 랭킹 화면에서 사용할 콘텐츠를 JSONL 공용 캐시에서 조회합니다.
+ *
+ * 기존처럼 사용자 요청 시 TMDB API를 다시 호출하지 않고,
+ * JSONL 메모리 캐시에 저장된 인기도와 평점을 함께 사용합니다.
+ *
+ * 랭킹 계산 기준:
+ * 1. TMDB 평점 6.0 이상만 사용
+ * 2. 인기도를 로그 정규화하여 0~100점으로 변환
+ * 3. 평점을 0~100점으로 변환
+ * 4. 인기도 60% + 평점 40%로 최종 점수 계산
+ * 5. 최종 점수가 같으면 인기도, 평점 순으로 정렬
+ */
 @Service
 public class RankingServiceImpl implements RankingService {
-
-    private final JsonMapper jsonMapper;
-
-    public RankingServiceImpl(JsonMapper jsonMapper) {
-        this.jsonMapper = jsonMapper;
-    }
-
-    private static final String CONTENT_TYPE_MOVIE = "MOVIE";
-    private static final String CONTENT_TYPE_TV = "TV";
-
-    private static final String API_TYPE_MOVIE = "movie";
-    private static final String API_TYPE_TV = "tv";
 
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 100;
 
-    /*
-     * 랭킹 정확도를 높이기 위해 영화와 TV를 각각 여러 페이지 조회합니다.
-     * 페이지당 약 20건이므로 3페이지씩 조회하면
-     * 영화 약 60건, TV 약 60건을 합쳐 정렬할 수 있습니다.
+    /**
+     * 현재 JSONL 최대 적재량보다 넉넉하게 조회합니다.
+     *
+     * getMainRecommendedContent()는 전달한 개수만큼 반환하므로,
+     * 50,000건을 요청하면 현재 저장된 약 33,000건 전체를 후보로
+     * 받아서 복합 점수를 계산할 수 있습니다.
      */
-    private static final int RANKING_API_PAGE_COUNT = 3;
+    private static final int RANKING_CANDIDATE_LIMIT = 50000;
 
+    /**
+     * 랭킹에 포함할 최소 TMDB 평점입니다.
+     *
+     * 평점이 지나치게 낮은 콘텐츠가 높은 인기도만으로
+     * 상위 랭킹에 노출되는 것을 방지합니다.
+     */
+    private static final double MINIMUM_TMDB_SCORE = 6.0;
+
+    /**
+     * 최종 랭킹 점수에서 인기도가 차지하는 비중입니다.
+     */
+    private static final double POPULARITY_WEIGHT = 0.60;
+
+    /**
+     * 최종 랭킹 점수에서 TMDB 평점이 차지하는 비중입니다.
+     */
+    private static final double RATING_WEIGHT = 0.40;
+
+    /**
+     * Map의 키는 contentRanking.jsp에서 조회하는 이름과
+     * 동일하게 유지합니다.
+     */
     private static final List<String> SUPPORTED_PLATFORM_LIST =
             List.of(
                     "Netflix",
                     "TVING",
                     "wavve",
                     "Disney Plus",
-                    "Watcha"
+                    "Watcha",
+                    "Coupangplay"
             );
 
-    @Value("${tmdb.api.token}")
-    private String token;
+    private final SearchContentPageCacheService
+            searchContentPageCacheService;
 
-    @Value("${tmdb.api.base-url:https://api.themoviedb.org/3}")
-    private String tmdbApiBaseUrl;
+    public RankingServiceImpl(
+            SearchContentPageCacheService
+                    searchContentPageCacheService) {
 
-    @Value("${tmdb.api.language:ko-KR}")
-    private String tmdbApiLanguage;
-
-    @Override
-    public List<SearchResultVO> getOverallPopularRanking(int limit) {
-
-        int normalizedLimit = normalizeLimit(limit);
-
-        /*
-         * 전체 랭킹에서는 ODITJI가 지원하는 5개 OTT의
-         * Provider ID를 모두 사용합니다.
-         */
-        List<SearchResultVO> rankingList =
-                getCombinedRanking(
-                        SUPPORTED_PLATFORM_LIST,
-                        normalizedLimit);
-
-        return rankingList;
+        this.searchContentPageCacheService =
+                searchContentPageCacheService;
     }
 
+    /**
+     * 전체 JSONL 콘텐츠를 대상으로
+     * 인기도와 평점을 합산한 랭킹을 반환합니다.
+     */
+    @Override
+    public List<SearchResultVO> getOverallPopularRanking(
+            int limit) {
+
+        int normalizedLimit =
+                normalizeLimit(limit);
+
+        List<SearchResultVO> candidateList =
+                searchContentPageCacheService
+                        .getMainRecommendedContent(
+                                Collections.emptyList(),
+                                RANKING_CANDIDATE_LIMIT
+                        );
+
+        return createWeightedRanking(
+                candidateList,
+                normalizedLimit
+        );
+    }
+
+    /**
+     * 전달된 OTT에서 제공되는 콘텐츠만 대상으로
+     * 인기도와 평점을 합산한 랭킹을 반환합니다.
+     */
     @Override
     public List<SearchResultVO> getPlatformPopularRanking(
             String platformName,
             int limit) {
 
-        int normalizedLimit = normalizeLimit(limit);
+        int normalizedLimit =
+                normalizeLimit(limit);
 
         String normalizedPlatformName =
-                normalizePlatformName(platformName);
+                normalizePlatformName(
+                        platformName
+                );
 
         if (normalizedPlatformName == null) {
+
             return new ArrayList<SearchResultVO>();
         }
 
-        List<String> platformList = new ArrayList<String>();
-        platformList.add(normalizedPlatformName);
+        List<SearchResultVO> candidateList =
+                searchContentPageCacheService
+                        .getMainRecommendedContent(
+                                Collections.singletonList(
+                                        normalizedPlatformName
+                                ),
+                                RANKING_CANDIDATE_LIMIT
+                        );
 
-        return getCombinedRanking(
-                platformList,
-                normalizedLimit);
+        return createWeightedRanking(
+                candidateList,
+                normalizedLimit
+        );
     }
 
+    /**
+     * 지원 OTT 6개의 랭킹을 순서대로 생성합니다.
+     */
     @Override
     public Map<String, List<SearchResultVO>>
-            getAllPlatformPopularRankings(int limit) {
+            getAllPlatformPopularRankings(
+                    int limit) {
 
-        int normalizedLimit = normalizeLimit(limit);
+        int normalizedLimit =
+                normalizeLimit(limit);
 
         Map<String, List<SearchResultVO>> rankingMap =
-                new LinkedHashMap<String, List<SearchResultVO>>();
+                new LinkedHashMap<
+                        String,
+                        List<SearchResultVO>>();
 
-        for (String platformName : SUPPORTED_PLATFORM_LIST) {
-
-            List<SearchResultVO> rankingList =
-                    getPlatformPopularRanking(
-                            platformName,
-                            normalizedLimit);
+        for (String platformName
+                : SUPPORTED_PLATFORM_LIST) {
 
             rankingMap.put(
                     platformName,
-                    rankingList);
+                    getPlatformPopularRanking(
+                            platformName,
+                            normalizedLimit
+                    )
+            );
         }
 
         return rankingMap;
     }
 
-    private List<SearchResultVO> getCombinedRanking(
-            List<String> platformList,
+    /**
+     * 인기도와 평점을 동일한 0~100 범위로 환산한 뒤
+     * 각각의 가중치를 적용하여 복합 랭킹을 만듭니다.
+     */
+    private List<SearchResultVO> createWeightedRanking(
+            List<SearchResultVO> sourceList,
             int limit) {
 
-        List<SearchResultVO> combinedList =
-                new ArrayList<SearchResultVO>();
+        if (sourceList == null
+                || sourceList.isEmpty()) {
 
-        try {
-
-            /*
-             * 영화와 TV의 Provider 목록은 별도 API이기 때문에
-             * 각각 Provider ID를 조회합니다.
-             */
-            String movieProviderIdText =
-                    getProviderIdText(
-                            API_TYPE_MOVIE,
-                            platformList);
-
-            String tvProviderIdText =
-                    getProviderIdText(
-                            API_TYPE_TV,
-                            platformList);
-
-            if (movieProviderIdText != null
-                    && !movieProviderIdText.isBlank()) {
-
-                List<SearchResultVO> movieList =
-                        getMovieRankingList(
-                                movieProviderIdText);
-
-                combinedList.addAll(movieList);
-            }
-
-            if (tvProviderIdText != null
-                    && !tvProviderIdText.isBlank()) {
-
-                List<SearchResultVO> tvList =
-                        getTvRankingList(
-                                tvProviderIdText);
-
-                combinedList.addAll(tvList);
-            }
-
-            /*
-             * 같은 콘텐츠가 여러 페이지에 중복 포함되는 경우를 대비해
-             * CONTENT_TYPE + TMDB_ID 기준으로 중복을 제거합니다.
-             */
-            combinedList =
-                    removeDuplicateContent(combinedList);
-
-            /*
-             * 영화와 TV 결과를 TMDB popularity 기준으로
-             * 다시 통합 정렬합니다.
-             */
-            Collections.sort(
-                    combinedList,
-                    new Comparator<SearchResultVO>() {
-
-                        @Override
-                        public int compare(
-                                SearchResultVO first,
-                                SearchResultVO second) {
-
-                            double firstPopularity =
-                                    first.getPopularity() == null
-                                            ? 0.0
-                                            : first.getPopularity();
-
-                            double secondPopularity =
-                                    second.getPopularity() == null
-                                            ? 0.0
-                                            : second.getPopularity();
-
-                            return Double.compare(
-                                    secondPopularity,
-                                    firstPopularity);
-                        }
-                    });
-
-            if (combinedList.size() > limit) {
-                return new ArrayList<SearchResultVO>(
-                        combinedList.subList(0, limit));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return combinedList;
-    }
-
-    private List<SearchResultVO> getMovieRankingList(
-            String providerIdText) {
-
-        List<SearchResultVO> movieList =
-                new ArrayList<SearchResultVO>();
-
-        for (int page = 1;
-                page <= RANKING_API_PAGE_COUNT;
-                page++) {
-
-            try {
-
-                String url =
-                        tmdbApiBaseUrl
-                        + "/discover/movie"
-                        + "?language=" + tmdbApiLanguage
-                        + "&region=KR"
-                        + "&watch_region=KR"
-                        + "&with_watch_monetization_types=flatrate"
-                        + "&with_watch_providers=" + providerIdText
-                        + "&sort_by=popularity.desc"
-                        + "&include_adult=false"
-                        + "&page=" + page;
-
-                JsonNode root = callTmdbApi(url);
-
-                JsonNode results = root.path("results");
-
-                if (!results.isArray()) {
-                    continue;
-                }
-
-                for (JsonNode movie : results) {
-
-                    SearchResultVO vo =
-                            createMovieRankingVO(movie);
-
-                    if (vo != null) {
-                        movieList.add(vo);
-                    }
-                }
-
-            } catch (Exception e) {
-
-                System.out.println(
-                        "영화 인기 랭킹 조회 실패"
-                        + " - page: "
-                        + page);
-
-                e.printStackTrace();
-            }
-        }
-
-        return movieList;
-    }
-
-    private List<SearchResultVO> getTvRankingList(
-            String providerIdText) {
-
-        List<SearchResultVO> tvList =
-                new ArrayList<SearchResultVO>();
-
-        for (int page = 1;
-                page <= RANKING_API_PAGE_COUNT;
-                page++) {
-
-            try {
-
-                String url =
-                        tmdbApiBaseUrl
-                        + "/discover/tv"
-                        + "?language=" + tmdbApiLanguage
-                        + "&watch_region=KR"
-                        + "&with_watch_monetization_types=flatrate"
-                        + "&with_watch_providers=" + providerIdText
-                        + "&sort_by=popularity.desc"
-                        + "&include_adult=false"
-                        + "&page=" + page;
-
-                JsonNode root = callTmdbApi(url);
-
-                JsonNode results = root.path("results");
-
-                if (!results.isArray()) {
-                    continue;
-                }
-
-                for (JsonNode tv : results) {
-
-                    SearchResultVO vo =
-                            createTvRankingVO(tv);
-
-                    if (vo != null) {
-                        tvList.add(vo);
-                    }
-                }
-
-            } catch (Exception e) {
-
-                System.out.println(
-                        "TV 인기 랭킹 조회 실패"
-                        + " - page: "
-                        + page);
-
-                e.printStackTrace();
-            }
-        }
-
-        return tvList;
-    }
-
-    private SearchResultVO createMovieRankingVO(
-            JsonNode movie) {
-
-        Long tmdbId = movie.path("id").asLong();
-
-        if (tmdbId == null || tmdbId == 0) {
-            return null;
-        }
-
-        SearchResultVO vo = new SearchResultVO();
-
-        vo.setTmdbId(tmdbId);
-        vo.setContentType(CONTENT_TYPE_MOVIE);
-
-        String title =
-                movie.path("title").asString(null);
-
-        String originalTitle =
-                movie.path("original_title").asString(null);
-
-        if (title == null || title.isBlank()) {
-            title = originalTitle;
-        }
-
-        if (title == null || title.isBlank()) {
-            return null;
-        }
-
-        vo.setTitle(title);
-        vo.setOverview(
-                movie.path("overview").asString(null));
-        vo.setPosterPath(
-                movie.path("poster_path").asString(null));
-        vo.setReleaseDate(
-                movie.path("release_date").asString(null));
-
-        if (!movie.path("vote_average").isMissingNode()
-                && !movie.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(
-                    movie.path("vote_average").asDouble());
-        }
-
-        if (!movie.path("popularity").isMissingNode()
-                && !movie.path("popularity").isNull()) {
-
-            vo.setPopularity(
-                    movie.path("popularity").asDouble());
-        }
-
-        return vo;
-    }
-
-    private SearchResultVO createTvRankingVO(
-            JsonNode tv) {
-
-        Long tmdbId = tv.path("id").asLong();
-
-        if (tmdbId == null || tmdbId == 0) {
-            return null;
-        }
-
-        SearchResultVO vo = new SearchResultVO();
-
-        vo.setTmdbId(tmdbId);
-        vo.setContentType(CONTENT_TYPE_TV);
-
-        String title =
-                tv.path("name").asString(null);
-
-        String originalTitle =
-                tv.path("original_name").asString(null);
-
-        if (title == null || title.isBlank()) {
-            title = originalTitle;
-        }
-
-        if (title == null || title.isBlank()) {
-            return null;
-        }
-
-        vo.setTitle(title);
-        vo.setOverview(
-                tv.path("overview").asString(null));
-        vo.setPosterPath(
-                tv.path("poster_path").asString(null));
-        vo.setReleaseDate(
-                tv.path("first_air_date").asString(null));
-
-        if (!tv.path("vote_average").isMissingNode()
-                && !tv.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(
-                    tv.path("vote_average").asDouble());
-        }
-
-        if (!tv.path("popularity").isMissingNode()
-                && !tv.path("popularity").isNull()) {
-
-            vo.setPopularity(
-                    tv.path("popularity").asDouble());
-        }
-
-        return vo;
-    }
-
-    private List<SearchResultVO> removeDuplicateContent(
-            List<SearchResultVO> originalList) {
-
-        List<SearchResultVO> resultList =
-                new ArrayList<SearchResultVO>();
-
-        Set<String> contentKeySet =
-                new LinkedHashSet<String>();
-
-        for (SearchResultVO content : originalList) {
-
-            if (content.getTmdbId() == null
-                    || content.getContentType() == null) {
-
-                continue;
-            }
-
-            String contentKey =
-                    content.getContentType()
-                    + ":"
-                    + content.getTmdbId();
-
-            if (contentKeySet.contains(contentKey)) {
-                continue;
-            }
-
-            contentKeySet.add(contentKey);
-            resultList.add(content);
-        }
-
-        return resultList;
-    }
-
-    private String getProviderIdText(
-            String apiType,
-            List<String> selectedPlatformList) {
-
-        Set<String> providerIdSet =
-                new LinkedHashSet<String>();
-
-        try {
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/watch/providers/"
-                    + apiType
-                    + "?language="
-                    + tmdbApiLanguage
-                    + "&watch_region=KR";
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode results = root.path("results");
-
-            if (!results.isArray()) {
-                return "";
-            }
-
-            Iterator<JsonNode> iterator =
-                    results.iterator();
-
-            while (iterator.hasNext()) {
-
-                JsonNode provider = iterator.next();
-
-                String tmdbProviderName =
-                        provider.path("provider_name")
-                                .asString(null);
-
-                int providerId =
-                        provider.path("provider_id")
-                                .asInt();
-
-                String platformName =
-                        convertTmdbProviderName(
-                                tmdbProviderName);
-
-                if (platformName == null) {
-                    continue;
-                }
-
-                if (selectedPlatformList != null
-                        && !selectedPlatformList.isEmpty()
-                        && !selectedPlatformList.contains(
-                                platformName)) {
-
-                    continue;
-                }
-
-                if (providerId > 0) {
-                    providerIdSet.add(
-                            String.valueOf(providerId));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            return new ArrayList<SearchResultVO>();
         }
 
         /*
-         * 파이프는 TMDB Discover API에서
-         * Provider OR 조건으로 사용됩니다.
+         * 원본 캐시 목록을 직접 수정하지 않도록
+         * 새로운 목록에 랭킹 후보를 담습니다.
          */
-        return String.join("|", providerIdSet);
+        List<SearchResultVO> filteredList =
+                new ArrayList<SearchResultVO>();
+
+        /*
+         * TMDB 평점 6.0 미만 콘텐츠는 랭킹 후보에서 제외합니다.
+         */
+        for (SearchResultVO content : sourceList) {
+
+            if (content == null) {
+                continue;
+            }
+
+            double tmdbScore =
+                    safeDouble(
+                            content.getTmdbScore()
+                    );
+
+            if (tmdbScore < MINIMUM_TMDB_SCORE) {
+                continue;
+            }
+
+            filteredList.add(content);
+        }
+
+        if (filteredList.isEmpty()) {
+            return filteredList;
+        }
+
+        /*
+         * 현재 후보 목록에서 가장 높은 popularity 값을 구합니다.
+         *
+         * 이 최댓값을 기준으로 각 콘텐츠의 인기도를
+         * 0~100점 범위로 정규화합니다.
+         */
+        double maxPopularity =
+                filteredList.stream()
+                        .map(
+                                SearchResultVO::getPopularity
+                        )
+                        .filter(
+                                value ->
+                                        value != null
+                                        && value > 0.0
+                        )
+                        .mapToDouble(
+                                Double::doubleValue
+                        )
+                        .max()
+                        .orElse(0.0);
+
+        /*
+         * 최종 복합 랭킹 점수 기준으로 내림차순 정렬합니다.
+         *
+         * 복합 점수가 같은 경우:
+         * 1. 인기도가 높은 콘텐츠
+         * 2. 평점이 높은 콘텐츠
+         * 순서로 배치합니다.
+         */
+        Comparator<SearchResultVO> rankingComparator =
+                Comparator
+                        .comparingDouble(
+                                (SearchResultVO content) ->
+                                        calculateRankingScore(
+                                                content,
+                                                maxPopularity
+                                        )
+                        )
+                        .reversed()
+                        .thenComparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        );
+
+        filteredList.sort(rankingComparator);
+
+        if (filteredList.size() <= limit) {
+            return filteredList;
+        }
+
+        return new ArrayList<SearchResultVO>(
+                filteredList.subList(
+                        0,
+                        limit
+                )
+        );
     }
 
-    private String convertTmdbProviderName(
-            String tmdbProviderName) {
+    /**
+     * 콘텐츠 한 건의 최종 랭킹 점수를 계산합니다.
+     *
+     * 계산식:
+     *
+     * 인기도 정규화 점수 × 0.6
+     * + 평점 환산 점수 × 0.4
+     *
+     * TMDB popularity는 값의 편차가 매우 크므로
+     * Math.log1p()를 사용해 차이를 완화한 뒤,
+     * 현재 후보 목록의 최대 인기도를 기준으로 정규화합니다.
+     */
+    private double calculateRankingScore(
+            SearchResultVO content,
+            double maxPopularity) {
 
-        if (tmdbProviderName == null) {
-            return null;
+        double popularity =
+                Math.max(
+                        safeDouble(
+                                content.getPopularity()
+                        ),
+                        0.0
+                );
+
+        /*
+         * TMDB 평점은 원래 0~10 범위이므로
+         * 비정상적인 값이 들어와도 0~10으로 제한합니다.
+         */
+        double tmdbScore =
+                Math.max(
+                        0.0,
+                        Math.min(
+                                safeDouble(
+                                        content.getTmdbScore()
+                                ),
+                                10.0
+                        )
+                );
+
+        double popularityScore = 0.0;
+
+        /*
+         * 인기도를 로그 정규화합니다.
+         *
+         * 단순히 popularity / maxPopularity를 사용하면
+         * 인기도가 매우 높은 일부 콘텐츠 때문에
+         * 나머지 콘텐츠의 점수가 지나치게 낮아질 수 있습니다.
+         *
+         * log1p를 사용하면 인기도 차이를 유지하면서도
+         * 극단적인 수치 차이를 완화할 수 있습니다.
+         */
+        if (maxPopularity > 0.0
+                && popularity > 0.0) {
+
+            popularityScore =
+                    Math.log1p(popularity)
+                    / Math.log1p(maxPopularity)
+                    * 100.0;
         }
 
-        String originalName =
-                tmdbProviderName.trim();
+        /*
+         * TMDB 평점 0~10을 0~100점으로 환산합니다.
+         */
+        double ratingScore =
+                tmdbScore * 10.0;
 
-        String normalizedName =
-                originalName.toLowerCase()
-                        .replace(" ", "")
-                        .replace("_", "")
-                        .replace("-", "")
-                        .replace("+", "");
-
-        if (normalizedName.contains("netflix")
-                || originalName.contains("넷플릭스")) {
-
-            return "Netflix";
-        }
-
-        if (normalizedName.contains("tving")
-                || originalName.contains("티빙")) {
-
-            return "TVING";
-        }
-
-        if (normalizedName.contains("wavve")
-                || originalName.contains("웨이브")) {
-
-            return "wavve";
-        }
-
-        if (normalizedName.contains("disney")
-                || originalName.contains("디즈니")) {
-
-            return "Disney Plus";
-        }
-
-        if (normalizedName.contains("watcha")
-                || originalName.contains("왓챠")) {
-
-            return "Watcha";
-        }
-
-        return null;
+        /*
+         * 최종 복합 점수를 반환합니다.
+         */
+        return popularityScore
+                * POPULARITY_WEIGHT
+                + ratingScore
+                * RATING_WEIGHT;
     }
 
+    /**
+     * null 숫자를 안전하게 0으로 처리합니다.
+     */
+    private double safeDouble(
+            Double value) {
+
+        return value == null
+                ? 0.0
+                : value;
+    }
+
+    /**
+     * 다양한 OTT 표기를 프로젝트 내부 표기로 통일합니다.
+     */
     private String normalizePlatformName(
             String platformName) {
 
         if (platformName == null
-                || platformName.trim().isEmpty()) {
+                || platformName.isBlank()) {
 
             return null;
         }
 
-        String name = platformName.trim();
+        String normalized =
+                platformName.trim()
+                        .toLowerCase(Locale.ROOT)
+                        .replaceAll(
+                                "[^a-z0-9가-힣]",
+                                ""
+                        );
 
-        if ("Netflix".equalsIgnoreCase(name)
-                || "넷플릭스".equals(name)) {
+        if (normalized.contains("netflix")
+                || normalized.contains("넷플릭스")) {
 
             return "Netflix";
         }
 
-        if ("TVING".equalsIgnoreCase(name)
-                || "티빙".equals(name)) {
+        if (normalized.contains("tving")
+                || normalized.contains("티빙")) {
 
             return "TVING";
         }
 
-        if ("wavve".equalsIgnoreCase(name)
-                || "웨이브".equals(name)) {
+        if (normalized.contains("wavve")
+                || normalized.contains("웨이브")) {
 
             return "wavve";
         }
 
-        if ("Disney Plus".equalsIgnoreCase(name)
-                || "Disney+".equalsIgnoreCase(name)
-                || "DisneyPlus".equalsIgnoreCase(name)
-                || "디즈니플러스".equals(name)
-                || "디즈니+".equals(name)) {
+        if (normalized.contains("disney")
+                || normalized.contains("디즈니")) {
 
             return "Disney Plus";
         }
 
-        if ("Watcha".equalsIgnoreCase(name)
-                || "왓챠".equals(name)) {
+        if (normalized.contains("watcha")
+                || normalized.contains("왓챠")) {
 
             return "Watcha";
+        }
+
+        if (normalized.contains("coupang")
+                || normalized.contains("쿠팡")) {
+
+            return "Coupangplay";
         }
 
         return null;
     }
 
-    private int normalizeLimit(int limit) {
+    /**
+     * 비정상적인 limit 값으로 과도한 목록을 반환하지 않도록
+     * 반환 개수를 보정합니다.
+     */
+    private int normalizeLimit(
+            int limit) {
 
         if (limit <= 0) {
             return DEFAULT_LIMIT;
         }
 
-        if (limit > MAX_LIMIT) {
-            return MAX_LIMIT;
-        }
-
-        return limit;
-    }
-
-    private JsonNode callTmdbApi(String url) {
-
-        try {
-
-            RestTemplate restTemplate =
-                    new RestTemplate();
-
-            HttpHeaders headers =
-                    new HttpHeaders();
-
-            headers.setBearerAuth(token);
-
-            HttpEntity<String> entity =
-                    new HttpEntity<String>(headers);
-
-            ResponseEntity<String> response =
-                    restTemplate.exchange(
-                            url,
-                            HttpMethod.GET,
-                            entity,
-                            String.class);
-
-            if (response.getBody() == null
-                    || response.getBody().isBlank()) {
-
-                throw new IllegalStateException(
-                        "TMDB API 응답 본문이 없습니다.");
-            }
-
-            return jsonMapper.readTree(
-                    response.getBody());
-
-        } catch (Exception e) {
-
-            throw new IllegalStateException(
-                    "TMDB API 호출에 실패했습니다. URL="
-                    + url,
-                    e);
-        }
+        return Math.min(
+                limit,
+                MAX_LIMIT
+        );
     }
 }

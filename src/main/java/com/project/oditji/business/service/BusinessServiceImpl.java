@@ -20,6 +20,7 @@ import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
+import com.project.oditji.business.vo.EventProductVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 
 @Service
@@ -245,6 +246,33 @@ public class BusinessServiceImpl
                 }
 
                 return actorList;
+        }
+
+        /*
+         * =========================================================
+         * 사업자가 등록한 상품 목록 조회 (승인된 상품만)
+         *
+         * 이벤트 등록/수정 화면의 상품 검색 모달 전용이다.
+         * =========================================================
+         */
+        @Override
+        public List<GoodsManageVO> getApprovedProductListByBusinessNo(
+                        long businessNo) {
+
+                if (businessNo <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "올바르지 않은 사업자 번호입니다.");
+                }
+
+                List<GoodsManageVO> productList = businessDAO.selectApprovedProductListByBusinessNo(
+                                businessNo);
+
+                if (productList == null) {
+                        return Collections.emptyList();
+                }
+
+                return productList;
         }
 
         /*
@@ -607,13 +635,19 @@ public class BusinessServiceImpl
                         }
 
                         /*
-                         * 연결 상품이 선택된 경우에만
-                         * EVENT_PRODUCT 테이블에 연결 정보를 저장한다.
+                         * 선택된 상품 수만큼 EVENT_PRODUCT에 연결 정보를 저장한다.
+                         * productNoList / discountRateList는 validateEvent에서
+                         * 이미 같은 길이로 검증되었다.
                          */
-                        if (eventManageVO.getProductNo() != null) {
+                        List<Long> productNoList = eventManageVO.getProductNoList();
+                        List<Integer> discountRateList = eventManageVO.getDiscountRateList();
+
+                        for (int i = 0; i < productNoList.size(); i++) {
 
                                 int eventProductResult = businessDAO.insertEventProduct(
-                                                eventManageVO);
+                                                eventManageVO.getEventNo(),
+                                                productNoList.get(i),
+                                                discountRateList.get(i));
 
                                 if (eventProductResult != 1) {
 
@@ -708,6 +742,17 @@ public class BusinessServiceImpl
                                                         + "접근 권한이 없습니다.");
                 }
 
+                event.setBusinessNo(
+                                businessNo);
+
+                List<EventProductVO> connectedProducts = businessDAO.selectEventProductListByEventNo(
+                                eventNo);
+
+                event.setConnectedProducts(
+                                connectedProducts == null
+                                                ? Collections.emptyList()
+                                                : connectedProducts);
+
                 return event;
         }
 
@@ -764,6 +809,7 @@ public class BusinessServiceImpl
                                 validateEventImage(
                                                 eventImage);
 
+
                                 SavedFileInfo savedFileInfo = saveEventImage(
                                                 eventImage);
 
@@ -782,13 +828,38 @@ public class BusinessServiceImpl
                                                 "이벤트 수정에 실패했습니다.");
                         }
 
-                        int eventProductResult = businessDAO.updateEventProduct(
-                                        eventManageVO);
+                        /*
+                         * 연결 상품을 개별적으로 수정/추가/삭제하지 않고
+                         * 기존 연결을 모두 지운 뒤 새로 선택된 목록을
+                         * 다시 등록하는 방식으로 처리한다.
+                         * 등록 화면과 동일한 +버튼 다중 선택 UI를 그대로
+                         * 재사용할 수 있고, 상품 추가/삭제 케이스를
+                         * 따로 분기하지 않아도 되어 단순하다.
+                         */
+                        int deletedCount = businessDAO.deleteEventProductByEventNo(
+                                        eventManageVO.getEventNo());
 
-                        if (eventProductResult != 1) {
+                        if (deletedCount == 0) {
 
                                 throw new IllegalStateException(
-                                                "이벤트 연결 상품 수정에 실패했습니다.");
+                                                "기존 연결 상품 삭제에 실패했습니다.");
+                        }
+
+                        List<Long> productNoList = eventManageVO.getProductNoList();
+                        List<Integer> discountRateList = eventManageVO.getDiscountRateList();
+
+                        for (int i = 0; i < productNoList.size(); i++) {
+
+                                int eventProductResult = businessDAO.insertEventProduct(
+                                                eventManageVO.getEventNo(),
+                                                productNoList.get(i),
+                                                discountRateList.get(i));
+
+                                if (eventProductResult != 1) {
+
+                                        throw new IllegalStateException(
+                                                        "이벤트 연결 상품 등록에 실패했습니다.");
+                                }
                         }
 
                 } catch (RuntimeException e) {
@@ -940,49 +1011,96 @@ public class BusinessServiceImpl
                                         "이벤트 종료일은 시작일보다 빠를 수 없습니다.");
                 }
 
-                String status = eventManageVO.getStatus();
-
-                if (!"WAITING".equals(status)
-                                && !"ACTIVE".equals(status)
-                                && !"ENDED".equals(status)) {
+                /*
+                 * 이벤트 등록/수정은 항상 관리자 승인 대기 상태로 저장되어야 한다.
+                 * registerEvent/updateApprovedEvent에서 이미 "WAITING"으로
+                 * 강제 설정하지만, 화면이나 다른 호출 경로에서 잘못된 값이
+                 * 넘어오는 경우를 대비해 여기서도 한 번 더 방어한다.
+                 *
+                 * EVENT.STATUS는 CK_EVENT_STATUS 제약조건에 의해
+                 * WAITING / APPROVED / END / REJECTED / DELETED 값만 허용되며,
+                 * 사업자가 직접 지정할 수 있는 값은 WAITING뿐이다.
+                 */
+                if (!"WAITING".equals(
+                                eventManageVO.getStatus())) {
 
                         eventManageVO.setStatus(
                                         "WAITING");
                 }
 
-                if (eventManageVO.getEventDiscountRate() < 0
-                                || eventManageVO.getEventDiscountRate() > 100) {
-
-                        throw new IllegalArgumentException(
-                                        "이벤트 할인율은 0부터 100 사이여야 합니다.");
-                }
-
-                Long productNo = eventManageVO.getProductNo();
-
                 /*
                  * EVENT 테이블에는 BUSINESS_NO가 없으므로
-                 * 사업자별 이벤트 소유권 확인을 위해 연결 상품은 필수이다.
+                 * 사업자별 이벤트 소유권 확인을 위해 연결 상품은 최소 1개 필수이다.
+                 *
+                 * 화면(business.js)에서 addProductButton으로 여러 개의
+                 * 상품 행을 추가하므로 productNoList / discountRateList가
+                 * 여러 건 전달될 수 있다.
                  */
-                if (productNo == null
-                                || productNo <= 0) {
+                List<Long> productNoList = eventManageVO.getProductNoList();
+                List<Integer> discountRateList = eventManageVO.getDiscountRateList();
+
+                if (productNoList == null
+                                || productNoList.isEmpty()) {
 
                         throw new IllegalArgumentException(
                                         "이벤트에 연결할 상품을 선택해주세요.");
                 }
 
-                /*
-                 * 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고
-                 * 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인한다.
-                 */
-                int productCount = businessDAO.countProductByBusinessNo(
-                                productNo,
-                                eventManageVO.getBusinessNo());
-
-                if (productCount == 0) {
+                if (discountRateList == null
+                                || discountRateList.size() != productNoList.size()) {
 
                         throw new IllegalArgumentException(
-                                        "선택한 상품이 존재하지 않거나 "
-                                                        + "이벤트에 연결할 권한이 없습니다.");
+                                        "상품별 할인율 입력값이 올바르지 않습니다.");
+                }
+
+                for (int i = 0; i < productNoList.size(); i++) {
+
+                        Long productNo = productNoList.get(i);
+                        Integer discountRate = discountRateList.get(i);
+
+                        if (productNo == null
+                                        || productNo <= 0) {
+
+                                throw new IllegalArgumentException(
+                                                "이벤트에 연결할 상품을 선택해주세요.");
+                        }
+
+                        if (discountRate == null
+                                        || discountRate < 0
+                                        || discountRate > 100) {
+
+                                throw new IllegalArgumentException(
+                                                "이벤트 할인율은 0부터 100 사이여야 합니다.");
+                        }
+
+                        /*
+                         * 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고
+                         * 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인한다.
+                         */
+                        int productCount = businessDAO.countProductByBusinessNo(
+                                        productNo,
+                                        eventManageVO.getBusinessNo());
+                        System.out.println("productCount = " + productCount);
+
+                        if (productCount == 0) {
+
+                                throw new IllegalArgumentException(
+                                                "선택한 상품이 존재하지 않거나 "
+                                                                + "이벤트에 연결할 권한이 없습니다.");
+                        }
+                }
+
+                /*
+                 * 같은 상품을 중복 선택한 경우도 방지한다.
+                 */
+                long distinctProductCount = productNoList.stream()
+                                .distinct()
+                                .count();
+
+                if (distinctProductCount != productNoList.size()) {
+
+                        throw new IllegalArgumentException(
+                                        "같은 상품을 중복해서 연결할 수 없습니다.");
                 }
         }
 

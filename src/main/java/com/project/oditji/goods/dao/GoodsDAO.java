@@ -16,6 +16,7 @@ public interface GoodsDAO {
             @Param("maxPrice") Integer maxPrice,
             @Param("discountOnly") boolean discountOnly,
             @Param("inStockOnly") boolean inStockOnly,
+            @Param("type") String type,
             @Param("startRow") int startRow,
             @Param("endRow") int endRow
     );

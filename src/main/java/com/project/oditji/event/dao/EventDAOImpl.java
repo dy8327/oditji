@@ -10,31 +10,28 @@ import com.project.oditji.event.vo.EventVO;
 @Repository
 public class EventDAOImpl implements EventDAO {
 
+    private static final String NAMESPACE =
+            "com.project.oditji.event.dao.EventDAO";
+
     private final SqlSessionTemplate sqlSession;
 
-    private static final String NAMESPACE = "com.project.oditji.event.dao.EventDAO";
-
     public EventDAOImpl(SqlSessionTemplate sqlSession) {
-
         this.sqlSession = sqlSession;
-
     }
 
     @Override
-    public List<EventVO> selectEventList() {
-
+    public List<EventVO> selectEventList(String period) {
         return sqlSession.selectList(
-                NAMESPACE + ".selectEventList");
-
+                NAMESPACE + ".selectEventList",
+                period
+        );
     }
 
     @Override
     public EventVO selectEventDetail(Long eventNo) {
-
         return sqlSession.selectOne(
                 NAMESPACE + ".selectEventDetail",
-                eventNo);
-
+                eventNo
+        );
     }
-
 }

@@ -156,6 +156,30 @@
 
     </select>
 
+    <!-- =====================================================
+         포트원 결제 취소 후 DB 상태 변경
+    ====================================================== -->
+    <update id="updatePaymentCanceled"
+            parameterType="com.project.oditji.payment.vo.PaymentVO">
+
+        UPDATE PAYMENT
+
+        SET PAYMENT_STATUS = 'CANCELED',
+            CANCELED_AT =
+                #{canceledAt, jdbcType=VARCHAR},
+            CANCEL_REASON =
+                #{cancelReason, jdbcType=VARCHAR}
+
+        WHERE PAYMENT_NO =
+                #{paymentNo, jdbcType=NUMERIC}
+
+          AND PAYMENT_ID =
+                #{paymentId, jdbcType=VARCHAR}
+
+          AND PAYMENT_STATUS = 'PAID'
+
+    </update>
+
 
     <!-- =====================================================
          전체 결제내역

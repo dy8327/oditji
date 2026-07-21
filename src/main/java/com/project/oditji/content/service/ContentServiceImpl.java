@@ -4,13 +4,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +14,7 @@ import com.project.oditji.content.dao.ContentDAO;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.service.SearchContentStore;
 import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultVO;
@@ -32,19 +28,26 @@ public class ContentServiceImpl implements ContentService {
 
     private final ContentDAO contentDAO;
     private final TmdbService tmdbService;
-    private final ContentListTmdbService contentListTmdbService;
+    /*
+     * 콘텐츠 목록 화면은 외부 TMDB API가 아니라
+     * JSONL에서 적재된 공용 검색 캐시를 사용합니다.
+     */
+    private final SearchContentPageCacheService
+            searchContentPageCacheService;
+
     private final SearchContentStore searchContentStore;
 
     public ContentServiceImpl(
             ContentDAO contentDAO,
             TmdbService tmdbService,
-            ContentListTmdbService contentListTmdbService,
+            SearchContentPageCacheService
+                    searchContentPageCacheService,
             SearchContentStore searchContentStore) {
 
         this.contentDAO = contentDAO;
         this.tmdbService = tmdbService;
-        this.contentListTmdbService =
-                contentListTmdbService;
+        this.searchContentPageCacheService =
+                searchContentPageCacheService;
         this.searchContentStore =
                 searchContentStore;
     }
@@ -364,8 +367,14 @@ public class ContentServiceImpl implements ContentService {
                 : ottList;
     }
 
+    /**
+     * 콘텐츠 상세 페이지의 관련 콘텐츠를 JSONL 공용 캐시에서 조회합니다.
+     *
+     * 현재 상세 콘텐츠 자체는 DB에서 조회하지만,
+     * 추천 후보는 DB 적재 여부와 관계없이 JSONL 전체 콘텐츠를 사용합니다.
+     */
     @Override
-    public List<ContentVO> getRelatedContentList(
+    public List<SearchResultVO> getRelatedContentList(
             int contentNo) {
 
         ContentVO currentContent =
@@ -377,321 +386,11 @@ public class ContentServiceImpl implements ContentService {
             return Collections.emptyList();
         }
 
-        Map<String, Object> param =
-                new HashMap<String, Object>();
-
-        param.put("contentNo", contentNo);
-        param.put("candidateSize", 500);
-
-        List<ContentVO> candidates =
-                contentDAO.selectRelatedContentCandidates(
-                        param
+        return searchContentPageCacheService
+                .getRelatedContentList(
+                        currentContent,
+                        3
                 );
-
-        if (candidates == null
-                || candidates.isEmpty()) {
-
-            return Collections.emptyList();
-        }
-
-        final String currentCategory =
-                resolveRecommendationCategory(
-                        currentContent
-                );
-
-        final List<String> currentGenreList =
-                splitNormalizedList(
-                        currentContent.getGenreText()
-                );
-
-        final Set<String> currentGenres =
-                new HashSet<String>(
-                        currentGenreList
-                );
-
-        final String currentMainGenre =
-                resolveMainGenre(
-                        currentGenreList
-                );
-
-        final Set<String> currentCast =
-                splitNormalizedValues(
-                        currentContent.getCastNames()
-                );
-
-        final Set<String> currentDirectors =
-                splitNormalizedValues(
-                        currentContent.getDirector()
-                );
-
-        List<ContentVO> sameCategoryCandidates =
-                new ArrayList<ContentVO>();
-
-        for (ContentVO candidate
-                : candidates) {
-
-            if (currentCategory.equals(
-                    resolveRecommendationCategory(
-                            candidate
-                    )
-            )) {
-
-                sameCategoryCandidates.add(
-                        candidate
-                );
-            }
-        }
-
-        if (sameCategoryCandidates.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        sameCategoryCandidates.sort(
-                Comparator
-                        .comparingInt(
-                                (ContentVO candidate) ->
-                                        calculateRelatedScore(
-                                                candidate,
-                                                currentGenres,
-                                                currentMainGenre,
-                                                currentCast,
-                                                currentDirectors
-                                        )
-                        )
-                        .reversed()
-                        .thenComparing(
-                                ContentVO::getTmdbScore,
-                                Comparator.nullsLast(
-                                        Comparator.reverseOrder()
-                                )
-                        )
-                        .thenComparing(
-                                ContentVO::getViewCount,
-                                Comparator.reverseOrder()
-                        )
-                        .thenComparing(
-                                ContentVO::getContentNo,
-                                Comparator.reverseOrder()
-                        )
-        );
-
-        int resultSize =
-                Math.min(
-                        3,
-                        sameCategoryCandidates.size()
-                );
-
-        return new ArrayList<ContentVO>(
-                sameCategoryCandidates.subList(
-                        0,
-                        resultSize
-                )
-        );
-    }
-
-    private int calculateRelatedScore(
-            ContentVO candidate,
-            Set<String> currentGenres,
-            String currentMainGenre,
-            Set<String> currentCast,
-            Set<String> currentDirectors) {
-
-        int score = 0;
-
-        List<String> candidateGenreList =
-                splitNormalizedList(
-                        candidate.getGenreText()
-                );
-
-        Set<String> candidateGenres =
-                new HashSet<String>(
-                        candidateGenreList
-                );
-
-        String candidateMainGenre =
-                resolveMainGenre(
-                        candidateGenreList
-                );
-
-        if (!currentMainGenre.isEmpty()
-                && currentMainGenre.equals(
-                        candidateMainGenre
-                )) {
-
-            score += 1000;
-        }
-
-        for (String genre
-                : candidateGenres) {
-
-            if (currentGenres.contains(genre)) {
-                score += 50;
-            }
-        }
-
-        Set<String> candidateDirectors =
-                splitNormalizedValues(
-                        candidate.getDirector()
-                );
-
-        for (String director
-                : candidateDirectors) {
-
-            if (currentDirectors.contains(
-                    director
-            )) {
-
-                score += 30;
-            }
-        }
-
-        Set<String> candidateCast =
-                splitNormalizedValues(
-                        candidate.getCastNames()
-                );
-
-        for (String castName
-                : candidateCast) {
-
-            if (currentCast.contains(
-                    castName
-            )) {
-
-                score += 10;
-            }
-        }
-
-        return score;
-    }
-
-    private String resolveRecommendationCategory(
-            ContentVO content) {
-
-        if (content == null) {
-            return "";
-        }
-
-        String contentType =
-                normalizeValue(
-                        content.getContentType()
-                );
-
-        if ("movie".equals(contentType)) {
-            return "MOVIE";
-        }
-
-        List<String> genres =
-                splitNormalizedList(
-                        content.getGenreText()
-                );
-
-        if (genres.contains("애니메이션")) {
-            return "ANIMATION";
-        }
-
-        if (genres.contains("리얼리티")
-                || genres.contains("토크")) {
-
-            return "ENTERTAINMENT";
-        }
-
-        if (genres.contains("다큐멘터리")) {
-            return "DOCUMENTARY";
-        }
-
-        return "DRAMA";
-    }
-
-    private String resolveMainGenre(
-            List<String> genres) {
-
-        if (genres == null
-                || genres.isEmpty()) {
-
-            return "";
-        }
-
-        Set<String> excludedGenres =
-                new HashSet<String>();
-
-        Collections.addAll(
-                excludedGenres,
-                "드라마",
-                "애니메이션",
-                "다큐멘터리",
-                "리얼리티",
-                "토크",
-                "연속극",
-                "키즈",
-                "tv영화",
-                "뉴스"
-        );
-
-        for (String genre
-                : genres) {
-
-            String comparisonValue =
-                    genre.replace(" ", "");
-
-            if (!excludedGenres.contains(
-                    comparisonValue
-            )) {
-
-                return genre;
-            }
-        }
-
-        return genres.get(0);
-    }
-
-    private List<String> splitNormalizedList(
-            String value) {
-
-        List<String> result =
-                new ArrayList<String>();
-
-        if (value == null
-                || value.trim().isEmpty()) {
-
-            return result;
-        }
-
-        String[] tokens =
-                value.split(",");
-
-        for (String token
-                : tokens) {
-
-            String normalized =
-                    normalizeValue(token);
-
-            if (!normalized.isEmpty()
-                    && !result.contains(
-                            normalized
-                    )) {
-
-                result.add(normalized);
-            }
-        }
-
-        return result;
-    }
-
-    private Set<String> splitNormalizedValues(
-            String value) {
-
-        return new HashSet<String>(
-                splitNormalizedList(value)
-        );
-    }
-
-    private String normalizeValue(
-            String value) {
-
-        return value == null
-                ? ""
-                : value.trim()
-                        .toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -719,7 +418,11 @@ public class ContentServiceImpl implements ContentService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        return contentListTmdbService
+        /*
+         * 기존 ContentListTmdbService의 discover API 호출 대신
+         * SearchContentStore에 적재된 JSONL 콘텐츠를 사용합니다.
+         */
+        return searchContentPageCacheService
                 .getContentListPage(
                         type,
                         page,
@@ -731,11 +434,20 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds) {
 
-        return contentListTmdbService
-                .getRecommendedList(
-                        providerIds
+        /*
+         * 현재 목록 필터를 반영한 인기 콘텐츠 중
+         * 상위 5개를 우측 추천 영역에 표시합니다.
+         */
+        return searchContentPageCacheService
+                .getContentRecommendedList(
+                        contentCategories,
+                        genreCodes,
+                        providerIds,
+                        5
                 );
     }
 }

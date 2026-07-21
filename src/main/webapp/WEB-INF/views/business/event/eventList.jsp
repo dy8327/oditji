@@ -162,7 +162,7 @@
 
                                             </c:when>
 
-                                            <c:when test="${event.status eq 'ENDED'}">
+                                            <c:when test="${event.status eq 'END'}">
 
                                                 <span class="status">
                                                     종료

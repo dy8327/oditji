@@ -29,6 +29,7 @@ public class GoodsServiceImpl implements GoodsService {
             Integer maxPrice,
             boolean discountOnly,
             boolean inStockOnly,
+            String type,
             int page,
             int pageSize) {
 
@@ -46,6 +47,7 @@ public class GoodsServiceImpl implements GoodsService {
             normalizedMaxPrice = temporaryPrice;
         }
 
+        String normalizedType = normalizeListType(type);
         int normalizedPage = normalizePage(page);
         int normalizedPageSize = normalizePageSize(pageSize);
         int startRow = (normalizedPage - 1) * normalizedPageSize + 1;
@@ -58,6 +60,7 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizedMaxPrice,
                 discountOnly,
                 inStockOnly,
+                normalizedType,
                 startRow,
                 endRow
         );
@@ -167,6 +170,20 @@ public class GoodsServiceImpl implements GoodsService {
         }
 
         return goodsDAO.selectGoodsActor(productNo);
+    }
+
+    /** 상품 목록 정렬 유형을 안전한 값으로 정규화합니다. */
+    private String normalizeListType(String type) {
+
+        if (type == null) {
+            return "all";
+        }
+
+        String normalized = type.trim().toLowerCase();
+
+        return "popular".equals(normalized)
+                ? "popular"
+                : "all";
     }
 
     private String normalizeKeyword(String keyword) {

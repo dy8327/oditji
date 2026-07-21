@@ -2,6 +2,7 @@
 pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html>
@@ -107,13 +108,32 @@ pageEncoding="UTF-8"%>
                                         ${product.productName}
                                     </h3>
 
-                                    <p>
-                                        ${product.price}원
-                                    </p>
+                                    <c:choose>
 
-                                    <p>
-                                        할인율 ${product.eventDiscountRate}%
-                                    </p>
+                                        <c:when test="${product.eventDiscountRate > 0}">
+
+                                            <p class="price-original">
+                                                <fmt:formatNumber value="${product.price}" pattern="#,###"/>원
+                                            </p>
+
+                                            <p class="price-discounted">
+                                                <fmt:formatNumber value="${product.discountPrice}" pattern="#,###"/>원
+                                                <span class="discount-rate">
+                                                    ${product.eventDiscountRate}%
+                                                </span>
+                                            </p>
+
+                                        </c:when>
+
+                                        <c:otherwise>
+
+                                            <p>
+                                                <fmt:formatNumber value="${product.price}" pattern="#,###"/>원
+                                            </p>
+
+                                        </c:otherwise>
+
+                                    </c:choose>
 
                                 </div>
 

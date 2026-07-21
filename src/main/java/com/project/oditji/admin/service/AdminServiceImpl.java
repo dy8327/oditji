@@ -242,6 +242,35 @@ public class AdminServiceImpl implements AdminService {
                     "이벤트 승인 처리에 실패했습니다."
             );
         }
+
+        /*
+         * 이벤트 승인만으로는 EVENT.STATUS만 바뀔 뿐
+         * 실제 판매 화면(goodsDetail/goodsList)이 참조하는
+         * PRODUCT.DISCOUNT_RATE는 갱신되지 않는다.
+         * 승인 시점에 연결된 상품 전체(1건 이상)의 할인율을 함께 반영한다.
+         */
+        List<EventManageVO> eventProducts = adminDAO.selectEventProductByEventNo(eventNo);
+
+        if (eventProducts != null) {
+
+            for (EventManageVO eventProduct : eventProducts) {
+
+                if (eventProduct.getProductNo() == null) {
+                    continue;
+                }
+
+                int discountResult = adminDAO.applyEventDiscountToProduct(
+                        eventProduct.getProductNo(),
+                        eventProduct.getEventDiscountRate()
+                );
+
+                if (discountResult != 1) {
+                    throw new IllegalStateException(
+                            "이벤트 할인율을 상품에 반영하지 못했습니다."
+                    );
+                }
+            }
+        }
     }
 
 

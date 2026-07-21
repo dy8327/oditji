@@ -290,13 +290,12 @@ String contextPath = request.getContextPath();
 
 <main class="ranking-page">
 
-```
 <section class="ranking-header">
     <h1>한국 OTT 콘텐츠 인기 랭킹</h1>
 
     <p>
         한국에서 정액제로 제공되는 영화와 TV 콘텐츠를
-        TMDB 인기도 기준으로 정렬한 랭킹입니다.
+        JSONL에 저장된 인기도와 평점 기준으로 정렬한 랭킹입니다.
     </p>
 </section>
 
@@ -337,6 +336,12 @@ String contextPath = request.getContextPath();
             class="ranking-tab-button"
             data-ranking-tab="watcha">
         Watcha
+    </button>
+
+    <button type="button"
+            class="ranking-tab-button"
+            data-ranking-tab="coupang">
+        Coupang Play
     </button>
 
 </nav>
@@ -1031,7 +1036,119 @@ String contextPath = request.getContextPath();
     </c:choose>
 
 </section>
-```
+
+<!-- Coupang Play 랭킹 -->
+<section class="ranking-panel"
+         id="ranking-panel-coupang">
+
+    <div class="ranking-panel-header">
+        <div>
+            <h2 class="ranking-panel-title">
+                Coupang Play 인기 콘텐츠
+            </h2>
+
+            <p class="ranking-panel-description">
+                한국 Coupang Play 정액제 제공 콘텐츠 기준입니다.
+            </p>
+        </div>
+    </div>
+
+    <c:set var="coupangRanking"
+           value="${platformRankings['Coupangplay']}" />
+
+    <c:choose>
+        <c:when test="${not empty coupangRanking}">
+
+            <ol class="ranking-list">
+
+                <c:forEach var="content"
+                           items="${coupangRanking}"
+                           varStatus="status">
+
+                    <li class="ranking-card">
+
+                        <c:url var="detailUrl"
+                               value="/content/prepare">
+                            <c:param name="tmdbId"
+                                     value="${content.tmdbId}" />
+                            <c:param name="contentType"
+                                     value="${content.contentType}" />
+                        </c:url>
+
+                        <a href="${detailUrl}"
+                           class="ranking-link">
+
+                            <div class="ranking-poster-wrap">
+
+                                <c:choose>
+                                    <c:when test="${not empty content.posterPath}">
+                                        <img class="ranking-poster"
+                                             src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                             alt="<c:out value='${content.title}' /> 포스터"
+                                             loading="lazy">
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <div class="ranking-no-poster">
+                                            포스터 이미지가 없습니다.
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <span class="ranking-number
+                                    ${status.count le 3 ? 'top-rank' : ''}">
+                                    ${status.count}
+                                </span>
+
+                            </div>
+
+                            <div class="ranking-info">
+
+                                <h3 class="ranking-content-title">
+                                    <c:out value="${content.title}" />
+                                </h3>
+
+                                <div class="ranking-meta">
+
+                                    <span class="ranking-type">
+                                        ${content.contentType eq 'MOVIE' ? '영화' : 'TV'}
+                                    </span>
+
+                                    <c:if test="${not empty content.releaseDate}">
+                                        <span>
+                                            <c:out value="${content.releaseDate}" />
+                                        </span>
+                                    </c:if>
+
+                                    <c:if test="${not empty content.tmdbScore}">
+                                        <span class="ranking-score">
+                                            ★
+                                            <c:out value="${content.tmdbScore}" />
+                                        </span>
+                                    </c:if>
+
+                                </div>
+
+                            </div>
+
+                        </a>
+
+                    </li>
+
+                </c:forEach>
+
+            </ol>
+
+        </c:when>
+
+        <c:otherwise>
+            <div class="ranking-empty">
+                Coupang Play 인기 랭킹을 불러오지 못했습니다.
+            </div>
+        </c:otherwise>
+    </c:choose>
+
+</section>
 
 </main>
 

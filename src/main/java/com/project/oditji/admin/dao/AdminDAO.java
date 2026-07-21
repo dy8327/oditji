@@ -232,9 +232,12 @@ public class AdminDAO {
     /*
      * 이벤트 승인 시 연결 상품의 할인율을 갱신하기 위해
      * EVENT_PRODUCT에서 PRODUCT_NO / EVENT_DISCOUNT_RATE를 조회한다.
+     *
+     * 하나의 이벤트에 여러 상품이 연결될 수 있으므로
+     * selectOne이 아닌 selectList를 사용한다.
      */
-    public EventManageVO selectEventProductByEventNo(Long eventNo) {
-        return sqlSession.selectOne("selectEventProductByEventNo", eventNo);
+    public List<EventManageVO> selectEventProductByEventNo(Long eventNo) {
+        return sqlSession.selectList("selectEventProductByEventNo", eventNo);
     }
 
     /*

@@ -9,6 +9,7 @@ import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
+import com.project.oditji.business.vo.EventProductVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 
 @Mapper
@@ -82,6 +83,18 @@ public interface BusinessDAO {
 
         /*
          * =========================================================
+         * 사업자가 등록한 상품 목록 (승인된 상품만)
+         *
+         * 이벤트 등록/수정 화면의 상품 검색 모달에서 사용한다.
+         * 승인 대기(WAITING)/반려(REJECTED) 상품은 이벤트에 연결할 수
+         * 없으므로 목록 자체에 포함하지 않는다.
+         * =========================================================
+         */
+        List<GoodsManageVO> selectApprovedProductListByBusinessNo(
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
          * 사업자가 등록한 상품 목록
          * =========================================================
          */
@@ -140,9 +153,37 @@ public interface BusinessDAO {
         /*
          * =========================================================
          * 이벤트와 상품 연결 등록
+         *
+         * 하나의 이벤트에 여러 상품을 연결할 수 있으므로
+         * 상품 1건당 1회씩 호출한다. (Service 계층에서 반복 호출)
          * =========================================================
          */
-        int insertEventProduct(EventManageVO eventManageVO);
+        int insertEventProduct(
+                        @Param("eventNo") long eventNo,
+                        @Param("productNo") long productNo,
+                        @Param("discountRate") int discountRate);
+
+        /*
+         * =========================================================
+         * 이벤트에 연결된 상품 전체 삭제
+         *
+         * 이벤트 수정 시 기존 연결 상품을 모두 지우고
+         * 새로 선택된 상품 목록을 다시 등록하는 방식으로 처리한다.
+         * =========================================================
+         */
+        int deleteEventProductByEventNo(
+                        @Param("eventNo") long eventNo);
+
+        /*
+         * =========================================================
+         * 이벤트에 연결된 상품 목록 조회
+         *
+         * 이벤트 수정 화면 진입 시 기존에 연결되어 있던
+         * 상품 목록을 그대로 화면에 다시 그려주기 위해 사용한다.
+         * =========================================================
+         */
+        List<EventProductVO> selectEventProductListByEventNo(
+                        @Param("eventNo") long eventNo);
 
         /*
          * =========================================================
@@ -168,13 +209,6 @@ public interface BusinessDAO {
          * =========================================================
          */
         int updateApprovedEvent(EventManageVO eventManageVO);
-
-        /*
-         * =========================================================
-         * 이벤트 연결 상품 수정
-         * =========================================================
-         */
-        int updateEventProduct(EventManageVO eventManageVO);
 
         /*
          * =========================================================
