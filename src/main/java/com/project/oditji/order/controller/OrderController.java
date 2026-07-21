@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.order.vo.OrderCheckoutRequestVO;
@@ -42,6 +43,7 @@ public class OrderController {
         private static final String PAYMENT_PREPARE_SESSION_KEY = "orderPaymentPrepare";
 
         private final OrderService orderService;
+        private final OrderCancelRefundService orderCancelRefundService;
 
         @Value("${portone.store-id}")
         private String storeId;
@@ -53,9 +55,11 @@ public class OrderController {
          * 의존성 주입을 위한 생성자.
          */
         public OrderController(
-                        OrderService orderService) {
+                        OrderService orderService,
+                        OrderCancelRefundService orderCancelRefundService) {
 
                 this.orderService = orderService;
+                this.orderCancelRefundService = orderCancelRefundService;
         }
 
         /**
@@ -392,13 +396,21 @@ public class OrderController {
 
                 try {
 
-                        orderService.cancelPaidOrder(
+                        /*
+                         * =========================================================
+                         * [주문 취소 요청 방식으로 변경]
+                         *
+                         * 사용자가 버튼을 누르는 즉시 포트원을 취소하지 않고
+                         * 사업자 승인 대기 상태의 취소 요청을 등록한다.
+                         * =========================================================
+                         */
+                        orderCancelRefundService.requestOrderCancel(
                                         loginMember.getMemberNo(),
                                         requestVO.getOrderNo(),
                                         requestVO.getReason());
 
                         Map<String, Object> response = successResponse(
-                                        "결제가 정상적으로 취소되었습니다.");
+                                        "주문 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
 
                         response.put(
                                         "redirectUrl",
@@ -416,7 +428,7 @@ public class OrderController {
                         e.printStackTrace();
 
                         return failResponse(
-                                        "결제 취소 처리 중 오류가 발생했습니다.");
+                                        "주문 취소 요청 처리 중 오류가 발생했습니다.");
                 }
         }
 
