@@ -25,6 +25,7 @@ import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.service.NtsBusinessService;
 import com.project.oditji.business.vo.NtsBusinessVerifyVO;
+import com.project.oditji.business.vo.BusinessVO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -70,12 +71,9 @@ public class MemberController {
         public String checkBusinessNumber(
                 @RequestParam("businessNumber")
                 String businessNumber) {
+                boolean available = businessService.isBusinessNumberAvailable(businessNumber);
 
-        boolean available =
-                businessService.isBusinessNumberAvailable(
-                        businessNumber);
-
-        return available ? "Y" : "N";
+                return available ? "Y" : "N";
         }
 
         /*
@@ -90,50 +88,33 @@ public class MemberController {
                 @RequestParam("representativeName") String representativeName,
                 @RequestParam("openDate") String openDate) {
 
-        return ntsBusinessService.verifyBusiness(
-                businessNumber,
-                representativeName,
-                openDate);
-        }
+                return ntsBusinessService.verifyBusiness(
+                        businessNumber,
+                        representativeName,
+                        openDate);
+                }
 
         @PostMapping("/join")
-        public String join(
-                        MemberVO memberVO,
+                public String join(MemberVO memberVO, BusinessVO businessVO,
+                        @RequestParam(value = "joinType", defaultValue = "USER") String joinType,
                         @RequestParam(value = "ottList", required = false) List<String> ottList,
                         @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+                        @RequestParam(value = "licenseFile", required = false) MultipartFile licenseFile,
+
                         Model model,
                         RedirectAttributes redirectAttributes) {
 
-                System.out.println(
-                                "===== 회원가입 요청 들어옴 =====");
-
-                System.out.println(
-                                "memberId = "
-                                                + memberVO.getMemberId());
-
-                System.out.println(
-                                "memberName = "
-                                                + memberVO.getMemberName());
-
-                System.out.println(
-                                "nickname = "
-                                                + memberVO.getNickname());
-
-                System.out.println(
-                                "email = "
-                                                + memberVO.getEmail());
-
-                System.out.println(
-                                "ottList = "
-                                                + ottList);
+                System.out.println("===== 회원가입 요청 들어옴 =====");
+                System.out.println("memberId = " + memberVO.getMemberId());
+                System.out.println("memberName = " + memberVO.getMemberName());
+                System.out.println("nickname = " + memberVO.getNickname());
+                System.out.println("email = " + memberVO.getEmail());
+                System.out.println("ottList = " + ottList);
 
                 try {
 
-                        if (profileImageFile != null
-                                        && !profileImageFile.isEmpty()) {
-
+                        if (profileImageFile != null && !profileImageFile.isEmpty()) {
                                 String uploadDir = "C:/oditji/uploads/profile/";
-
                                 File dir = new File(uploadDir);
 
                                 if (!dir.exists()) {
@@ -141,68 +122,120 @@ public class MemberController {
                                 }
 
                                 String originalFileName = profileImageFile.getOriginalFilename();
-
                                 String ext = "";
 
-                                if (originalFileName != null
-                                                && originalFileName.contains(".")) {
-
-                                        ext = originalFileName.substring(
-                                                        originalFileName.lastIndexOf("."));
+                                if (originalFileName != null && originalFileName.contains(".")) {
+                                        ext = originalFileName.substring(originalFileName.lastIndexOf("."));
                                 }
 
-                                String saveFileName = UUID.randomUUID().toString()
-                                                + ext;
-
-                                File saveFile = new File(
-                                                uploadDir
-                                                                + saveFileName);
-
-                                profileImageFile.transferTo(
-                                                saveFile);
+                                String saveFileName = UUID.randomUUID().toString() + ext;
+                                File saveFile = new File(uploadDir + saveFileName);
+                                profileImageFile.transferTo(saveFile);
 
                                 /*
                                  * DB에는 경로가 아닌
                                  * 저장된 파일명만 저장한다.
                                  */
-                                memberVO.setProfileImage(
-                                                saveFileName);
+                                memberVO.setProfileImage(saveFileName);
 
-                                System.out.println(
-                                                "저장된 프로필 파일명 = "
-                                                                + saveFileName);
+                                System.out.println("저장된 프로필 파일명 = " + saveFileName);
                         }
 
-                        memberService.joinMember(
-                                        memberVO,
-                                        ottList);
+                /*회원 유형별 가입 처리 */
+                if ("BUSINESS".equalsIgnoreCase(joinType)) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "message",
-                                        "회원가입이 완료되었습니다.");
+                        /* 1. 국세청 사업자 정보 서버 재검증
+                        * 브라우저의 businessVerified 값은 조작 가능하므로
+                        * 실제 가입 시 서버에서 다시 검증한다. */
+                        NtsBusinessVerifyVO verifyResult = ntsBusinessService.verifyBusiness(
+                                                        businessVO.getBusinessNumber(), businessVO.getRepresentativeName(), businessVO.getOpenDate());
 
-                        return "redirect:/member/login";
+                        if (verifyResult == null || !verifyResult.isValid()) {
+                                String message = verifyResult != null && verifyResult.getMessage() != null
+                                                                ? verifyResult.getMessage() : "사업자 정보를 확인할 수 없습니다.";
+
+                                throw new IllegalArgumentException(message);
+                        }
+
+                        /* 2. 계속사업자인지 최종 확인 */
+                        if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
+
+                                throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
+                        }
+
+                        /*
+                        * 국세청에서 실제 확인한 상태값을 저장한다.
+                        * 클라이언트에서 전달된 값은 사용하지 않는다.
+                        */
+                        businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
+
+                        /* 3. 사업자등록증 필수 확인 */
+                        if (licenseFile == null || licenseFile.isEmpty()) {
+                                throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
+                        }
+
+                        /* 4. 사업자등록증 확장자 확인 */
+                        String originalLicenseName = licenseFile.getOriginalFilename();
+
+                        if (originalLicenseName == null || !originalLicenseName.contains(".")) {
+                                throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
+                        }
+
+                        String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
+                                                        .toLowerCase();
+
+                        if (!licenseExt.equals(".pdf")
+                                        && !licenseExt.equals(".jpg")
+                                        && !licenseExt.equals(".jpeg")
+                                        && !licenseExt.equals(".png")) {
+
+                                throw new IllegalArgumentException("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+                        }
+
+                        /* 5. 사업자등록증 저장 */
+                        String licenseUploadDir = "C:/oditji/uploads/business-license/";
+                        File licenseDir = new File(licenseUploadDir);
+
+                        if (!licenseDir.exists()) {
+                                boolean created = licenseDir.mkdirs();
+
+                                if (!created && !licenseDir.exists()) {
+                                        throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
+                                }
+                        }
+
+                        String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
+                        File savedLicenseFile = new File(licenseUploadDir + savedLicenseName);
+                        licenseFile.transferTo(savedLicenseFile);
+
+                        /* DB에는 UUID로 저장한 파일명만 저장 */
+                        businessVO.setLicenseFilePath(savedLicenseName);
+
+                        /* 6. MEMBER + BUSINESS 저장 */
+                        memberService.joinBusinessMember(memberVO, businessVO);
+
+                        redirectAttributes.addFlashAttribute( "message",
+                                        "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
+
+                } else {
+                        /*일반회원은 기존 가입 로직 그대로 사용 */
+                        memberService.joinMember(memberVO, ottList);
+
+                        redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
+                }
+
+                return "redirect:/member/login";        
 
                 } catch (IllegalArgumentException e) {
-
                         e.printStackTrace();
-
-                        model.addAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                        model.addAttribute("errorMessage", e.getMessage());
 
                         return "member/join";
 
                 } catch (Exception e) {
-
                         e.printStackTrace();
-
-                        model.addAttribute(
-                                        "errorMessage",
-                                        "회원가입 처리 중 오류가 발생했습니다: "
-                                                        + e.getClass().getName()
-                                                        + " / "
-                                                        + e.getMessage());
+                        model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다: " + e.getClass().getName()
+                                                        + " / " + e.getMessage());
 
                         return "member/join";
                 }
@@ -224,31 +257,23 @@ public class MemberController {
                  * URL 파라미터로 돌아갈 주소가 전달되었다면
                  * 해당 주소를 우선 사용한다.
                  */
-                String redirectUrl = normalizeRedirectUrl(
-                                redirect,
-                                request);
+                String redirectUrl = normalizeRedirectUrl(redirect, request);
 
                 /*
                  * redirect 파라미터가 없다면
                  * Referer 헤더에서 이전 페이지를 확인한다.
                  */
                 if (redirectUrl == null) {
-
-                        redirectUrl = extractPreviousUrl(
-                                        request);
+                        redirectUrl = extractPreviousUrl(request);
                 }
 
                 /*
                  * 로그인, 회원가입 등 회원 관련 화면 자체는
                  * 복귀 주소로 저장하지 않는다.
                  */
-                if (isUsableRedirectUrl(
-                                redirectUrl,
-                                request)) {
+                if (isUsableRedirectUrl(redirectUrl, request)) {
 
-                        session.setAttribute(
-                                        LOGIN_REDIRECT_SESSION_KEY,
-                                        redirectUrl);
+                        session.setAttribute(LOGIN_REDIRECT_SESSION_KEY, redirectUrl);
                 }
 
                 return "member/login";
@@ -262,87 +287,46 @@ public class MemberController {
          * 세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
          */
         @PostMapping("/login")
-        public String login(
-                        MemberVO memberVO,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+        public String login(MemberVO memberVO, HttpSession session, RedirectAttributes redirectAttributes) {
 
                 try {
-
-                        MemberVO loginMember = memberService.loginMember(
-                                        memberVO);
+                        MemberVO loginMember = memberService.loginMember(memberVO);
 
                         if (loginMember == null) {
-
-                                redirectAttributes.addFlashAttribute(
-                                                "message",
-                                                "아이디 또는 비밀번호가 일치하지 않습니다.");
+                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
 
                                 return "redirect:/member/login";
                         }
 
-                        session.setAttribute(
-                                        "loginMember",
-                                        loginMember);
-
-                        session.setAttribute(
-                                        "memberNo",
-                                        loginMember.getMemberNo());
-
-                        session.setAttribute(
-                                        "memberId",
-                                        loginMember.getMemberId());
-
-                        session.setAttribute(
-                                        "memberName",
-                                        loginMember.getMemberName());
-
-                        session.setAttribute(
-                                        "nickname",
-                                        loginMember.getNickname());
-
-                        session.setAttribute(
-                                        "role",
-                                        loginMember.getRole());
+                        session.setAttribute("loginMember", loginMember);
+                        session.setAttribute("memberNo", loginMember.getMemberNo());
+                        session.setAttribute("memberId", loginMember.getMemberId());
+                        session.setAttribute("memberName", loginMember.getMemberName());
+                        session.setAttribute("nickname", loginMember.getNickname());
+                        session.setAttribute("role", loginMember.getRole());
 
                         String displayName = loginMember.getMemberName();
 
-                        if (displayName == null
-                                        || displayName.isBlank()) {
-
+                        if (displayName == null || displayName.isBlank()) {
                                 displayName = loginMember.getNickname();
                         }
 
-                        if (displayName == null
-                                        || displayName.isBlank()) {
-
+                        if (displayName == null || displayName.isBlank()) {
                                 displayName = "회원";
                         }
 
-                        session.setAttribute(
-                                        "loginDisplayName",
-                                        displayName);
+                        session.setAttribute("loginDisplayName", displayName);
+                        String redirectUrl = (String) session.getAttribute(LOGIN_REDIRECT_SESSION_KEY);
+                        session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
 
-                        String redirectUrl = (String) session.getAttribute(
-                                        LOGIN_REDIRECT_SESSION_KEY);
-
-                        session.removeAttribute(
-                                        LOGIN_REDIRECT_SESSION_KEY);
-
-                        if (redirectUrl == null
-                                        || redirectUrl.isBlank()) {
-
+                        if (redirectUrl == null || redirectUrl.isBlank()) {
                                 return "redirect:/";
                         }
 
-                        return "redirect:"
-                                        + redirectUrl;
+                        return "redirect:" + redirectUrl;
 
                 } catch (MemberBlockedException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "blockedMessage",
-                                        e.getMessage());
+                        redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
 
                         return "redirect:/member/login";
 
@@ -354,26 +338,14 @@ public class MemberController {
                          * 끝난 상태다. 따라서 복구 시 비밀번호를 다시 묻지 않고
                          * 세션에 회원번호만 저장해 /member/restore에서 신뢰한다.
                          */
-                        session.setAttribute(
-                                        "restoreMemberNo",
-                                        e.getMemberNo());
-
-                        session.setAttribute(
-                                        "restoreProvider",
-                                        "LOCAL");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "withdrawnMessage",
-                                        WithdrawPolicy.buildWithdrawnMessage(
-                                                        e.getWithdrawnAt()));
+                        session.setAttribute("restoreMemberNo", e.getMemberNo());
+                        session.setAttribute("restoreProvider", "LOCAL");
+                        redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
                         return "redirect:/member/login";
 
                 } catch (IllegalStateException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
                         return "redirect:/member/login";
                 }
@@ -396,7 +368,6 @@ public class MemberController {
                                 "restoreMemberNo");
 
                 if (restoreNoObj == null) {
-
                         redirectAttributes.addFlashAttribute(
                                         "errorMessage",
                                         "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
@@ -622,13 +593,9 @@ public class MemberController {
                 /*
                  * 프로필 이미지
                  */
-                if (profileImageFile != null
-                                && !profileImageFile.isEmpty()) {
-
+                if (profileImageFile != null && !profileImageFile.isEmpty()) {
                         try {
-
                                 String uploadDir = "C:/oditji/uploads/profile/";
-
                                 File dir = new File(uploadDir);
 
                                 if (!dir.exists()) {
@@ -636,32 +603,19 @@ public class MemberController {
                                 }
 
                                 String original = profileImageFile.getOriginalFilename();
-
                                 String ext = "";
 
-                                if (original != null
-                                                && original.contains(".")) {
-
-                                        ext = original.substring(
-                                                        original.lastIndexOf("."));
+                                if (original != null && original.contains(".")) {
+                                        ext = original.substring(original.lastIndexOf("."));
                                 }
 
-                                String saveName = UUID.randomUUID()
-                                                + ext;
-
-                                profileImageFile.transferTo(
-                                                new File(
-                                                                uploadDir
-                                                                                + saveName));
-
-                                memberVO.setProfileImage(
-                                                saveName);
+                                String saveName = UUID.randomUUID() + ext;
+                                profileImageFile.transferTo(new File(uploadDir + saveName));
+                                memberVO.setProfileImage(saveName);
 
                         } catch (Exception e) {
 
-                                return redirectWithError(
-                                                redirectAttributes,
-                                                "이미지 업로드에 실패했습니다.");
+                                return redirectWithError(redirectAttributes,"이미지 업로드에 실패했습니다.");
                         }
                 }
 

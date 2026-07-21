@@ -1,6 +1,4 @@
-/* =========================================================
-   REGEX RULES
-========================================================= */
+/* REGEX RULES */
 const regex = {
   id: /^[a-z0-9]{5,12}$/,
   pw: /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,20}$/,
@@ -11,20 +9,20 @@ const regex = {
   openDate: /^\d{8}$/,
 };
 
-/* =========================================================
-   DUPLICATE CHECK STATE
-========================================================= */
+/* DUPLICATE CHECK STATE */
 let idChecked = false;
 let nicknameChecked = false;
 let businessNumberChecked = false;
+let businessVerified = false;
 
 let checkedIdValue = "";
 let checkedNicknameValue = "";
 let checkedBusinessNumberValue = "";
+let verifiedBusinessNumber = "";
+let verifiedRepresentativeName = "";
+let verifiedOpenDate = "";
 
-/* =========================================================
-   DOM HELPER
-========================================================= */
+/* DOM HELPER */
 function getValue(id) {
   const el = document.getElementById(id);
   return el ? el.value.trim() : "";
@@ -52,10 +50,26 @@ function focusInput(id) {
   }
 }
 
-/* =========================================================
+function resetBusinessVerification() {
+
+  businessVerified = false;
+
+  verifiedBusinessNumber = "";
+  verifiedRepresentativeName = "";
+  verifiedOpenDate = "";
+
+  const messageEl = document.getElementById("businessVerifyMessage");
+
+  if (messageEl) {
+    messageEl.textContent = "";
+    messageEl.style.color = "";
+  }
+}
+
+/* =============================
    ID CHECK
    Controller 응답: "Y" 또는 "N"
-========================================================= */
+================================ */
 async function checkId() {
   const memberId = getValue("memberId");
 
@@ -109,10 +123,10 @@ async function checkId() {
   }
 }
 
-/* =========================================================
+/* =============================
    NICKNAME CHECK
    Controller 응답: "Y" 또는 "N"
-========================================================= */
+================================ */
 async function checkNickname() {
   const nickname = getValue("nickname");
 
@@ -167,10 +181,10 @@ async function checkNickname() {
   }
 }
 
-/* =========================================================
+/* ===================================
    BUSINESS NUMBER CHECK (사업자 전용)
    Controller 응답: "Y" 또는 "N"
-========================================================= */
+====================================== */
 async function checkBusinessNumber() {
   const businessNumber = getValue("businessNumber");
 
@@ -224,9 +238,123 @@ async function checkBusinessNumber() {
   }
 }
 
-/* =========================================================
-   INIT
-========================================================= */
+/* NTS BUSINESS VERIFY(국세청 사업자 진위확인) */
+async function verifyBusiness() {
+
+  const businessNumber = getValue("businessNumber");
+  const representativeName = getValue("representativeName");
+  const openDate = getValue("openDate");
+
+  const messageEl = document.getElementById("businessVerifyMessage");
+
+  /* 사업자번호 형식 */
+  if (!regex.businessNumber.test(businessNumber)) {
+    alert("사업자등록번호 형식을 확인해주세요.");
+    focusInput("businessNumber");
+    return;
+  }
+
+  /* 중복확인 여부 */
+  if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumber) {
+
+    alert("먼저 사업자등록번호 중복확인을 해주세요.");
+    focusInput("businessNumber");
+    return;
+  }
+
+  /* 대표자명 */
+  if (!representativeName) {
+    alert("대표자명을 입력해주세요.");
+    focusInput("representativeName");
+    return;
+  }
+
+  /* 개업일 */
+  if (!regex.openDate.test(openDate)) {
+    alert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.");
+    focusInput("openDate");
+    return;
+  }
+
+  try {
+
+    const contextPath = getContextPath();
+    const formData = new FormData();
+    formData.append("businessNumber", businessNumber);
+    formData.append("representativeName", representativeName);
+    formData.append("openDate", openDate);
+
+    if (messageEl) {
+      messageEl.textContent = "국세청 사업자 정보를 확인 중입니다...";
+    }
+
+    const response = await fetch(
+      `${contextPath}/member/verifyBusiness`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      businessVerified = false;
+      if (messageEl) {
+        messageEl.textContent = "사업자 인증 요청 중 오류가 발생했습니다.";
+      }
+
+      alert("사업자 인증 요청 실패: " + response.status);
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.valid === true) {
+
+      businessVerified = true;
+      verifiedBusinessNumber = businessNumber;
+      verifiedRepresentativeName = representativeName;
+      verifiedOpenDate = openDate;
+
+      if (messageEl) {
+        messageEl.textContent = result.message || "사업자 정보가 확인되었습니다.";
+        messageEl.style.color = "green";
+      }
+
+      alert(result.message || "사업자 정보가 확인되었습니다.");
+
+      return;
+    }
+
+    /* 인증 실패 */
+
+    businessVerified = false;
+    verifiedBusinessNumber = "";
+    verifiedRepresentativeName = "";
+    verifiedOpenDate = "";
+
+    if (messageEl) {
+
+      messageEl.textContent = result.message || "사업자 정보를 확인할 수 없습니다.";
+      messageEl.style.color = "red";
+        }
+
+    alert(result.message || "사업자 정보를 확인할 수 없습니다.");
+
+  } catch (error) {
+    console.error("국세청 사업자 인증 오류:", error);
+
+    businessVerified = false;
+
+    if (messageEl) {
+      messageEl.textContent = "사업자 인증 중 오류가 발생했습니다.";
+      messageEl.style.color = "red";
+    }
+
+    alert("사업자 인증 중 오류가 발생했습니다.");
+  }
+}
+
+/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("joinForm");
   const memberName = document.getElementById("memberName");
@@ -243,14 +371,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileFileName = document.querySelector("label[for='profileImageFile']")?.parentElement.querySelector(".file-name");
   const licenseFile = document.getElementById("licenseFile");
   const licenseFileName = document.getElementById("licenseFileName");
+  const representativeName = document.getElementById("representativeName");
+  const openDate = document.getElementById("openDate");
 
   if (!form) {
     return;
   }
 
-  /* =========================
-     아이디 변경 시 중복확인 초기화
-  ========================= */
+  /* 아이디 변경 시 중복확인 초기화 */
   if (memberId) {
     memberId.addEventListener("input", () => {
       idChecked = false;
@@ -266,9 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-     닉네임 변경 시 중복확인 초기화
-  ========================= */
+  /* 닉네임 변경 시 중복확인 초기화 */
   if (nickname) {
     nickname.addEventListener("input", () => {
       nicknameChecked = false;
@@ -284,9 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-     비밀번호 형식 검사
-  ========================= */
+  /* 비밀번호 형식 검사 */
   if (memberPw) {
     memberPw.addEventListener("input", () => {
       const value = memberPw.value.trim();
@@ -303,9 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-     비밀번호 확인 검사
-  ========================= */
+  /* 비밀번호 확인 검사 */
   if (memberPw && memberPwCheck) {
     memberPwCheck.addEventListener("input", () => {
       if (memberPwCheck.value.length === 0) {
@@ -316,9 +438,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-     이메일 형식 검사
-  ========================= */
+  /* 이메일 형식 검사 */
   if (email) {
     email.addEventListener("input", () => {
       const value = email.value.trim();
@@ -331,9 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-    전화번호 자동 입력 및 형식 검사
-  ========================= */
+  /* 전화번호 자동 입력 및 형식 검사 */
   if (phone) {
 
       // 처음 클릭하면 010- 자동 입력
@@ -370,14 +488,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  /* =========================
-     사업자등록번호 자동 하이픈 + 변경 시 중복확인 초기화
-  ========================= */
+  /* 사업자등록번호 자동 하이픈 + 변경 시 중복확인 초기화 */
   if (businessNumber) {
 
       businessNumber.addEventListener("input", () => {
           businessNumberChecked = false;
           checkedBusinessNumberValue = "";
+          resetBusinessVerification();
           let value = businessNumber.value.replace(/\D/g, "");
 
           if (value.length <= 3) {
@@ -398,13 +515,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  /* =========================
-    개업일 숫자만 입력
-  ========================= */
-  const openDate = document.getElementById("openDate");
+      /* 대표자명 변경 시 사업자 인증 초기화 */
+    if (representativeName) {
+      representativeName.addEventListener("input", () => {
+        resetBusinessVerification();
+      });
+    }
 
+
+  /* 개업일 숫자만 입력 */
   if (openDate) {
     openDate.addEventListener("input", () => {
+       resetBusinessVerification();
       openDate.value = openDate.value
         .replace(/\D/g, "")
         .slice(0, 8);
@@ -420,18 +542,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* =========================
-    프로필 이미지 파일명 표시
-  ========================= */
+  /* 프로필 이미지 파일명 표시 */
   if (profileImageFile && profileFileName) {
     profileImageFile.addEventListener("change", () => {
       profileFileName.textContent = profileImageFile.files.length > 0 ? profileImageFile.files[0].name: "선택된 파일 없음";
     });
   }
 
-  /* =========================
-    사업자등록증 파일명 표시
-  ========================= */
+  /* 사업자등록증 파일명 표시 */
   if (licenseFile && licenseFileName) {
     licenseFile.addEventListener("change", () => {
 
@@ -459,28 +577,18 @@ document.addEventListener("DOMContentLoaded", () => {
       licenseFileName.textContent = file.name;
     });
   }
-  /* =========================
-     최종 회원가입 유효성 검사
-  ========================= */
+  /* 최종 회원가입 유효성 검사*/
   function validateJoin() {
     const currentJoinType = joinType ? joinType.value : "USER";
     const isBusinessJoin = currentJoinType === "BUSINESS";
 
-    const nameValue = memberName.value.trim();
     const idValue = memberId.value.trim();
     const pwValue = memberPw.value.trim();
     const pwCheckValue = memberPwCheck.value.trim();
-    const nicknameValue = nickname.value.trim();
     const emailValue = email.value.trim();
     const phoneValue = phone.value.trim();
 
     /* ---------- 공통 필드 검증 (일반/사업자 동일) ---------- */
-
-    if (nameValue.length < 2) {
-      alert("이름은 2자 이상 입력해주세요.");
-      focusInput("memberName");
-      return false;
-    }
 
     if (!regex.id.test(idValue)) {
       alert("아이디는 5~12자의 소문자/숫자만 가능합니다.");
@@ -506,17 +614,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    if (!regex.nick.test(nicknameValue)) {
-      alert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.");
-      focusInput("nickname");
-      return false;
-    }
-
-    if (!nicknameChecked || checkedNicknameValue !== nicknameValue) {
-      alert("닉네임 중복확인을 해주세요.");
-      focusInput("nickname");
-      return false;
-    }
 
     if (!regex.email.test(emailValue)) {
       alert("이메일 형식이 올바르지 않습니다.");
@@ -540,12 +637,45 @@ document.addEventListener("DOMContentLoaded", () => {
       return validateBusinessFields();
     }
 
-    return validateUserOttFields();
+    return validateUserFields();
   }
 
-  /* =========================
-     일반회원 전용 - OTT 선택 검증
-  ========================= */
+  /* 일반회원 전용 - OTT 선택 검증 */
+  function validateUserFields() {
+
+  const nameValue =
+    memberName ? memberName.value.trim() : "";
+
+  const nicknameValue =
+    nickname ? nickname.value.trim() : "";
+
+  /* 이름 */
+  if (nameValue.length < 2) {
+    alert("이름은 2자 이상 입력해주세요.");
+    focusInput("memberName");
+
+    return false;
+  }
+
+  /* 닉네임 */
+  if (!regex.nick.test(nicknameValue)) {
+    alert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.");
+    focusInput("nickname");
+
+    return false;
+  }
+
+  /* 닉네임 중복확인 */
+  if (!nicknameChecked || checkedNicknameValue !== nicknameValue) {
+    alert("닉네임 중복확인을 해주세요.");
+    focusInput("nickname");
+
+    return false;
+  }
+
+  /* OTT */
+  return validateUserOttFields();
+}
   function validateUserOttFields() {
     const ottCount = Array.from(ottCheckboxes).filter((checkbox) => checkbox.checked).length;
 
@@ -557,9 +687,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  /* =========================
-     사업자 전용 - 사업자/정산 정보 검증
-  ========================= */
+  /* 사업자 전용 - 사업자/정산 정보 검증 */
   function validateBusinessFields() {
     const businessName = document.getElementById("businessName");
     const representativeName = document.getElementById("representativeName");
@@ -601,11 +729,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       return false;
     }
-
+    
     /* 사업자번호 중복 확인 */
     if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumberValue) {
       alert("사업자등록번호 중복확인을 해주세요.");
       focusInput("businessNumber");
+
+      return false;
+    }
+
+    /* 국세청 사업자 진위확인 */
+    if (!businessVerified || verifiedBusinessNumber !== businessNumberValue || verifiedRepresentativeName !== 
+      representativeName.value.trim() || verifiedOpenDate !== openDate.value.trim()) {
+      alert("사업자 정보 인증을 완료해주세요.");
 
       return false;
     }
@@ -655,9 +791,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  /* =========================
-     SUBMIT HANDLER
-  ========================= */
+  /* SUBMIT HANDLER */
   form.addEventListener("submit", (event) => {
     if (!validateJoin()) {
       event.preventDefault();
@@ -665,9 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* =========================================================
-   LOGIN PAGE - 정지/탈퇴 안내 및 복구 모달
-========================================================= */
+/* LOGIN PAGE - 정지/탈퇴 안내 및 복구 모달 */
 document.addEventListener("DOMContentLoaded", () => {
   initLoginPageAlerts();
 });
