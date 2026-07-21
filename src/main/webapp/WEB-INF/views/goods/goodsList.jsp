@@ -20,8 +20,6 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/goods.css">
 
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/contentTopTabs.css?v=1">
 
 <script defer
         src="${pageContext.request.contextPath}/js/goods.js">
@@ -35,16 +33,13 @@
 
 <main class="goods-list-container goods-page-container">
 
-<jsp:include page="/WEB-INF/views/common/contentTopTabs.jsp">
-    <jsp:param name="activeTab" value="goods"/>
-</jsp:include>
 
 <div class="goods-layout">
 
     <!-- =================================================
          LEFT FILTER SIDEBAR
     ================================================== -->
-    <aside class="goods-left-sidebar">
+    <aside class="goods-left-sidebar" id="goods-category-filter">
 
         <jsp:include
             page="/WEB-INF/views/common/goodsLeftSidebar.jsp"/>
@@ -62,16 +57,16 @@
 
                 <c:choose>
 
-                    <c:when test="${type eq 'new'}">
-                        신상품
+                    <c:when test="${type eq 'popular'}">
+                        인기 상품
                     </c:when>
 
-                    <c:when test="${type eq 'best'}">
-                        베스트 상품
+                    <c:when test="${type eq 'category'}">
+                        카테고리별 상품
                     </c:when>
 
                     <c:otherwise>
-                        상품 리스트
+                        전체 상품
                     </c:otherwise>
 
                 </c:choose>

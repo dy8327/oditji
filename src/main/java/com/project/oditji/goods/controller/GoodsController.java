@@ -1,6 +1,7 @@
 package com.project.oditji.goods.controller;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,6 +42,13 @@ public class GoodsController {
         this.reportService = reportService;
     }
 
+    /**
+     * 전체, 인기, 카테고리별 상품 목록을 같은 화면에서 제공합니다.
+     *
+     * type=all      : 최신 등록순
+     * type=popular  : 재고 상품 우선, 할인율 높은 순, 최신순
+     * type=category : 전체 목록을 보여주되 왼쪽 카테고리 필터로 이동
+     */
     @GetMapping("/goods/list")
     public String goodsList(
             @RequestParam(required = false, defaultValue = "") String keyword,
@@ -49,10 +57,11 @@ public class GoodsController {
             @RequestParam(required = false) Integer maxPrice,
             @RequestParam(required = false, defaultValue = "false") boolean discountOnly,
             @RequestParam(required = false, defaultValue = "false") boolean inStockOnly,
-            @RequestParam(required = false, defaultValue = "") String type,
+            @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(required = false, defaultValue = "1") int page,
             Model model) {
 
+        String normalizedType = normalizeListType(type);
         int normalizedPage = page <= 0 ? 1 : page;
 
         int totalCount = goodsService.countSearchGoods(
@@ -80,28 +89,21 @@ public class GoodsController {
                 maxPrice,
                 discountOnly,
                 inStockOnly,
+                normalizedType,
                 normalizedPage,
                 GOODS_PAGE_SIZE
         );
 
         model.addAttribute("goodsList", goodsList);
-        model.addAttribute(
-                "recommendedGoodsList",
-                goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE)
-        );
-        model.addAttribute(
-                "availableProductTypes",
-                goodsService.getSearchProductTypes()
-        );
-
+        model.addAttribute("recommendedGoodsList", goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE));
+        model.addAttribute("availableProductTypes", goodsService.getSearchProductTypes());
         model.addAttribute("keyword", keyword);
         model.addAttribute("productTypes", productTypes);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("discountOnly", discountOnly);
         model.addAttribute("inStockOnly", inStockOnly);
-
-        model.addAttribute("type", type);
+        model.addAttribute("type", normalizedType);
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("page", normalizedPage);
         model.addAttribute("totalPage", totalPage);
@@ -115,8 +117,7 @@ public class GoodsController {
             HttpSession session,
             Model model) {
 
-        GoodsVO goods =
-                goodsService.getGoodsDetail(productNo);
+        GoodsVO goods = goodsService.getGoodsDetail(productNo);
 
         if (goods == null) {
             throw new ResponseStatusException(
@@ -125,34 +126,16 @@ public class GoodsController {
             );
         }
 
-        List<Map<String, Object>> imageList =
-                goodsService.getGoodsImageList(productNo);
+        List<Map<String, Object>> imageList = goodsService.getGoodsImageList(productNo);
+        Map<String, Object> content = goodsService.getGoodsContent(productNo);
+        Map<String, Object> actor = goodsService.getGoodsActor(productNo);
+        List<ProductReviewVO> reviewList = reviewService.getProductReviewList(productNo);
+        Double avgRating = reviewService.getProductAvgRating(productNo);
+        int reviewCount = reviewService.getProductReviewCount(productNo);
 
-        Map<String, Object> content =
-                goodsService.getGoodsContent(productNo);
-
-        Map<String, Object> actor =
-                goodsService.getGoodsActor(productNo);
-
-        List<ProductReviewVO> reviewList =
-                reviewService.getProductReviewList(productNo);
-
-        Double avgRating =
-                reviewService.getProductAvgRating(productNo);
-
-        int reviewCount =
-                reviewService.getProductReviewCount(productNo);
-
-        MemberVO loginMember =
-                (MemberVO) session.getAttribute("loginMember");
-
-        Long loginMemberNo =
-                loginMember == null
-                        ? null
-                        : loginMember.getMemberNo();
-
-        Set<Integer> reportedReviewSet =
-                reportService.getReportedProductReviewSet(loginMemberNo);
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Set<Integer> reportedReviewSet = reportService.getReportedProductReviewSet(loginMemberNo);
 
         model.addAttribute("goods", goods);
         model.addAttribute("imageList", imageList);
@@ -164,5 +147,18 @@ public class GoodsController {
         model.addAttribute("reportedReviewSet", reportedReviewSet);
 
         return "goods/goodsDetail";
+    }
+
+    /** 잘못된 상품 목록 유형은 전체 상품으로 처리합니다. */
+    private String normalizeListType(String type) {
+        String normalized = type == null
+                ? "all"
+                : type.trim().toLowerCase(Locale.ROOT);
+
+        if ("popular".equals(normalized) || "category".equals(normalized)) {
+            return normalized;
+        }
+
+        return "all";
     }
 }
