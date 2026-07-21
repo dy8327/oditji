@@ -9,6 +9,8 @@
     <title>ODITJI | 찜 목록</title>
 
     <link rel="stylesheet"
+  <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/component.css">
           href="${pageContext.request.contextPath}/css/favorite.css">
 
     <script>

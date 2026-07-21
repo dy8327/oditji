@@ -9,6 +9,8 @@
 <title>ODITJI | 신규 콘텐츠</title>
 
 <link rel="stylesheet"
+  <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/component.css">
       href="${pageContext.request.contextPath}/css/content.css">
 
 <script defer

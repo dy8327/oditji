@@ -1160,3 +1160,39 @@
     height: 180px;
   }
 }
+
+/* =====================================================
+   [리팩터링 추가] form-title / form-message / form-help
+   business/goods/product* 등 여러 JSP에서 사용 중이었으나
+   CSS 정의가 없어 스타일이 적용되지 않던 클래스 (rule 5)
+   ===================================================== */
+.form-title {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--biz-text);
+}
+
+.form-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: var(--biz-radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form-message.success-message {
+  background: var(--biz-success-bg);
+  color: var(--biz-success);
+}
+
+.form-message.error-message {
+  background: var(--biz-danger-bg);
+  color: var(--biz-danger);
+}
+
+.form-help {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--biz-text-sub);
+}

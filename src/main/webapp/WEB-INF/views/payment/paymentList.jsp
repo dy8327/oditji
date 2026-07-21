@@ -13,7 +13,7 @@
     <meta charset="UTF-8">
     <title>ODITJI | 결제 내역</title>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/payment.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/payment.css">
 
 </head>
 

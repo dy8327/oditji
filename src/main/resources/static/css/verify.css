@@ -1,0 +1,181 @@
+/* verify.css
+ * adultVerify.jsp 페이지 내부 <style> 태그에 있던 스타일을
+ * 외부 CSS 파일로 분리했습니다. (rule 8, 내용 변경 없음)
+ */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: #f5f6f8;
+            font-family: Arial, 'Noto Sans KR', sans-serif;
+            color: #222;
+        }
+        .verify-wrap {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 16px;
+        }
+        .verify-card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 18px;
+            padding: 36px 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        }
+        .badge-19 {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #111;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            line-height: 1.35;
+            font-weight: 700;
+        }
+        .desc {
+            margin: 0 0 24px;
+            color: #666;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .standard-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px;
+            background: #fafafa;
+            margin-bottom: 22px;
+        }
+        .standard-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .standard-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .notice {
+            padding: 14px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            color: #9a3412;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 22px;
+        }
+        .btn-area {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-custom {
+            width: 100%;
+            min-height: 48px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .method-panel {
+            display: none;
+            margin-top: 22px;
+            padding: 22px;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: #fbfbfc;
+        }
+        .method-panel.show {
+            display: block;
+        }
+        .method-title {
+            margin: 0 0 16px;
+            font-size: 18px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .method-desc {
+            margin: 0 0 18px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .method-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .method-btn {
+            width: 100%;
+            min-height: 58px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #222;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+        }
+        .method-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            border-color: #111;
+        }
+        .method-btn-main {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+        .method-sub {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.75;
+        }
+        .method-back {
+            margin-top: 14px;
+            width: 100%;
+            min-height: 42px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .result-message {
+            display: none;
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .result-message.success {
+            display: block;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+        }
+        .result-message.fail {
+            display: block;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+    
