@@ -1,23 +1,80 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
-<script defer src="${pageContext.request.contextPath}/js/common.js"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=6">
+<script defer src="${pageContext.request.contextPath}/js/common.js?v=6"></script>
 
 <header class="header">
     <div class="header-container">
         <div class="header-left">
-            <a href="${pageContext.request.contextPath}/" class="logo"><span class="logo-main">ODITJI</span></a>
+            <a href="${pageContext.request.contextPath}/" class="logo">
+                <span class="logo-main">ODITJI</span>
+            </a>
         </div>
 
-        <nav class="header-nav">
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/">홈</a></li>
-                <li><a href="${pageContext.request.contextPath}/content/list?type=all">영화 · 시리즈</a></li>
-                <li><a href="${pageContext.request.contextPath}/content/list?type=popular">인기</a></li>
-                <li><a href="${pageContext.request.contextPath}/content/list?type=new">신규</a></li>
-                <li><a href="${pageContext.request.contextPath}/goods/list">상품</a></li>
-                <li><a href="${pageContext.request.contextPath}/event/list">이벤트</a></li>
+        <button type="button"
+                class="header-nav-toggle"
+                id="headerNavToggle"
+                aria-controls="headerNav"
+                aria-expanded="false"
+                aria-label="전체 메뉴 열기">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="header-nav" id="headerNav" aria-label="주요 메뉴">
+            <ul class="header-nav-list">
+                <li class="header-nav-item header-nav-dropdown" data-nav-dropdown>
+                    <button type="button"
+                            class="header-nav-link header-nav-trigger"
+                            aria-expanded="false">
+                        콘텐츠
+                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                    </button>
+
+                    <div class="header-submenu" role="menu">
+                        <div class="header-submenu-heading">콘텐츠 탐색</div>
+                        <a href="${pageContext.request.contextPath}/content/list?type=all" role="menuitem">영화·시리즈</a>
+                        <a href="${pageContext.request.contextPath}/content/list?type=popular" role="menuitem">인기</a>
+                        <a href="${pageContext.request.contextPath}/content/list?type=new" role="menuitem">신규</a>
+                        <a href="${pageContext.request.contextPath}/ranking" role="menuitem">랭킹</a>
+                        <a href="${pageContext.request.contextPath}/content/today" role="menuitem">오늘의 콘텐츠</a>
+                        <a href="${pageContext.request.contextPath}/recommend" role="menuitem">추천 콘텐츠</a>
+                    </div>
+                </li>
+
+                <li class="header-nav-item header-nav-dropdown" data-nav-dropdown>
+                    <button type="button"
+                            class="header-nav-link header-nav-trigger"
+                            aria-expanded="false">
+                        상품
+                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                    </button>
+
+                    <div class="header-submenu" role="menu">
+                        <div class="header-submenu-heading">상품 탐색</div>
+                        <a href="${pageContext.request.contextPath}/goods/list?type=all" role="menuitem">전체 상품</a>
+                        <a href="${pageContext.request.contextPath}/goods/list?type=popular" role="menuitem">인기 상품</a>
+                        <a href="${pageContext.request.contextPath}/goods/list?type=category#goods-category-filter" role="menuitem">카테고리별 상품</a>
+                    </div>
+                </li>
+
+                <li class="header-nav-item header-nav-dropdown" data-nav-dropdown>
+                    <button type="button"
+                            class="header-nav-link header-nav-trigger"
+                            aria-expanded="false">
+                        이벤트
+                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                    </button>
+
+                    <div class="header-submenu" role="menu">
+                        <div class="header-submenu-heading">할인 이벤트</div>
+                        <a href="${pageContext.request.contextPath}/event/list?period=ongoing" role="menuitem">진행 중</a>
+                        <a href="${pageContext.request.contextPath}/event/list?period=upcoming" role="menuitem">예정</a>
+                        <a href="${pageContext.request.contextPath}/event/list?period=ended" role="menuitem">종료</a>
+                    </div>
+                </li>
             </ul>
         </nav>
 
@@ -44,12 +101,14 @@
                     <a href="${pageContext.request.contextPath}/member/login" class="login-btn">로그인</a>
                 </c:when>
                 <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/cart" class="icon-btn" title="장바구니">🛒</a>
+                    <a href="${pageContext.request.contextPath}/cart" class="icon-btn" title="장바구니" aria-label="장바구니">🛒</a>
                     <c:if test="${sessionScope.loginMember.role eq 'ADMIN'}">
-                        <a href="${pageContext.request.contextPath}/admin/main" class="icon-btn" title="관리자">⚙</a>
+                        <a href="${pageContext.request.contextPath}/admin/main" class="icon-btn" title="관리자" aria-label="관리자">⚙</a>
                     </c:if>
                     <div class="profile-menu">
-                        <button class="profile-btn" id="profileBtn">👤 <span>${sessionScope.loginMember.nickname}</span></button>
+                        <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
+                            👤 <span>${sessionScope.loginMember.nickname}</span>
+                        </button>
                         <div class="profile-dropdown">
                             <a href="${pageContext.request.contextPath}/member/mypage">마이페이지</a>
                             <a href="${pageContext.request.contextPath}/favorite/list">찜 목록</a>

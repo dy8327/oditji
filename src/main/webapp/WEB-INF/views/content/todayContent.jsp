@@ -37,7 +37,7 @@
             </h1>
 
             <p class="content-more-description">
-                오늘 주목받는 영화와 TV 콘텐츠를 한 번에 확인해보세요.
+                최근 30일 이내 공개된 인기 영화와 TV 콘텐츠를 확인해보세요.
             </p>
 
         </div>
@@ -167,7 +167,7 @@
             <c:otherwise>
 
                 <div class="content-more-empty">
-                    오늘의 콘텐츠를 불러오지 못했습니다.
+                    조건에 맞는 오늘의 콘텐츠가 없습니다.
                 </div>
 
             </c:otherwise>

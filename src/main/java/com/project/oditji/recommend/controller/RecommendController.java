@@ -20,7 +20,6 @@ import com.project.oditji.recommend.vo.RecommendPlatformSectionVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
-import com.project.oditji.tmdb.service.TmdbService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -30,18 +29,15 @@ public class RecommendController {
     private static final int SECTION_CONTENT_LIMIT = 10;
     private static final int CACHE_FETCH_SIZE = 100;
 
-    private final TmdbService tmdbService;
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final MemberPlatformService memberPlatformService;
     private final MainContentPlatformService mainContentPlatformService;
 
     public RecommendController(
-            TmdbService tmdbService,
             SearchContentPageCacheService searchContentPageCacheService,
             MemberPlatformService memberPlatformService,
             MainContentPlatformService mainContentPlatformService) {
 
-        this.tmdbService = tmdbService;
         this.searchContentPageCacheService = searchContentPageCacheService;
         this.memberPlatformService = memberPlatformService;
         this.mainContentPlatformService = mainContentPlatformService;
@@ -81,11 +77,11 @@ public class RecommendController {
          * 1. 평점이 높은 콘텐츠
          */
         List<SearchResultVO> highRatedContentList =
-                safeList(
-                        tmdbService.getMainRecommendedContent(
-                                selectedPlatformNames
-                        )
-                );
+                searchContentPageCacheService
+                        .getMainRecommendedContent(
+                                selectedPlatformNames,
+                                CACHE_FETCH_SIZE
+                        );
 
         highRatedContentList =
                 sortAndLimitByScore(

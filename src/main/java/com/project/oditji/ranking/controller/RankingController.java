@@ -12,48 +12,65 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.project.oditji.ranking.service.RankingService;
 import com.project.oditji.search.vo.SearchResultVO;
 
+/**
+ * 전체 및 OTT별 인기 랭킹 화면과 JSON API를 제공합니다.
+ *
+ * 실제 데이터 조회는 RankingService에서 처리하며,
+ * 현재 구현은 TMDB 실시간 호출이 아닌 JSONL 공용 캐시를 사용합니다.
+ */
 @Controller
 public class RankingController {
 
     private final RankingService rankingService;
 
-    RankingController(RankingService rankingService) {
-        this.rankingService = rankingService;
+    public RankingController(
+            RankingService rankingService) {
+
+        this.rankingService =
+                rankingService;
     }
 
-    /*
-     * 전체 랭킹 페이지
+    /**
+     * 전체 랭킹 페이지를 표시합니다.
      *
      * 접속 주소:
      * GET /ranking
      */
     @GetMapping("/ranking")
-    public String rankingPage(Model model) {
+    public String rankingPage(
+            Model model) {
 
         int overallLimit = 20;
         int platformLimit = 10;
 
         List<SearchResultVO> overallRanking =
-                rankingService.getOverallPopularRanking(
-                        overallLimit);
+                rankingService
+                        .getOverallPopularRanking(
+                                overallLimit
+                        );
 
-        Map<String, List<SearchResultVO>> platformRankings =
-                rankingService.getAllPlatformPopularRankings(
-                        platformLimit);
+        Map<String, List<SearchResultVO>>
+                platformRankings =
+                rankingService
+                        .getAllPlatformPopularRankings(
+                                platformLimit
+                        );
 
         model.addAttribute(
                 "overallRanking",
-                overallRanking);
+                overallRanking
+        );
 
         model.addAttribute(
                 "platformRankings",
-                platformRankings);
+                platformRankings
+        );
 
         return "content/contentRanking";
     }
 
-    /*
-     * 전체 인기랭킹 JSON API
+    /**
+     * 전체 인기 랭킹을 JSON으로 반환합니다.
      *
      * 예:
      * GET /api/ranking/overall
@@ -68,22 +85,23 @@ public class RankingController {
             int limit) {
 
         return rankingService
-                .getOverallPopularRanking(limit);
+                .getOverallPopularRanking(
+                        limit
+                );
     }
 
-    /*
-     * OTT별 인기랭킹 JSON API
+    /**
+     * 특정 OTT의 인기 랭킹을 JSON으로 반환합니다.
      *
      * 예:
      * GET /api/ranking/platform?platform=Netflix
-     * GET /api/ranking/platform?platform=TVING&limit=20
+     * GET /api/ranking/platform?platform=Coupangplay&limit=20
      */
     @GetMapping("/api/ranking/platform")
     @ResponseBody
     public List<SearchResultVO> platformRankingApi(
             @RequestParam("platform")
             String platformName,
-
             @RequestParam(
                     name = "limit",
                     defaultValue = "10")
@@ -92,11 +110,12 @@ public class RankingController {
         return rankingService
                 .getPlatformPopularRanking(
                         platformName,
-                        limit);
+                        limit
+                );
     }
 
-    /*
-     * 전체 OTT별 인기랭킹 JSON API
+    /**
+     * 지원 OTT 6개의 인기 랭킹을 JSON Map으로 반환합니다.
      *
      * 예:
      * GET /api/ranking/platform/all
@@ -111,6 +130,8 @@ public class RankingController {
                     int limit) {
 
         return rankingService
-                .getAllPlatformPopularRankings(limit);
+                .getAllPlatformPopularRankings(
+                        limit
+                );
     }
 }

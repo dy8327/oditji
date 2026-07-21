@@ -18,8 +18,6 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/content.css?v=22">
 
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/contentTopTabs.css?v=1">
 
 <script>
     const contextPath = "${pageContext.request.contextPath}";
@@ -41,9 +39,6 @@
 
 <main class="content-list-page">
 
-    <jsp:include page="/WEB-INF/views/common/contentTopTabs.jsp">
-        <jsp:param name="activeTab" value="${type}"/>
-    </jsp:include>
 
     <div class="content-list-layout">
 

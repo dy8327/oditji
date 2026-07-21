@@ -14,9 +14,37 @@ public interface GoodsService {
             Integer maxPrice,
             boolean discountOnly,
             boolean inStockOnly,
+            String type,
             int page,
             int pageSize
     );
+
+    /**
+     * 기존 호출부 호환용 메서드입니다.
+     * 정렬 유형을 전달하지 않으면 전체 상품 최신순으로 조회합니다.
+     */
+    default List<GoodsVO> searchGoods(
+            String keyword,
+            List<String> productTypes,
+            Integer minPrice,
+            Integer maxPrice,
+            boolean discountOnly,
+            boolean inStockOnly,
+            int page,
+            int pageSize) {
+
+        return searchGoods(
+                keyword,
+                productTypes,
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly,
+                "all",
+                page,
+                pageSize
+        );
+    }
 
     int countSearchGoods(
             String keyword,

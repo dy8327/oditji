@@ -1,10 +1,7 @@
 package com.project.oditji.tmdb.service;
 
-import java.util.List;
-
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
-import com.project.oditji.search.vo.SearchResultVO;
 
 public interface TmdbService {
 
@@ -26,20 +23,17 @@ public interface TmdbService {
 
     int loadAllData();
 
-    List<SearchResultVO> getMainPopularContent();
+    ContentVO getDetailForSave(
+            Long tmdbId,
+            String contentType);
 
-    List<SearchResultVO> getMainTodayContent();
+    void saveContentPlatform(
+            ContentVO content);
 
-    List<SearchResultVO> getMainRecommendedContent();
+    void saveContentPeople(
+            ContentVO content);
 
-    List<SearchResultVO> getMainRecommendedContent(
-            List<String> platformList);
-
-    ContentVO getDetailForSave(Long tmdbId, String contentType);
-
-    void saveContentPlatform(ContentVO content);
-
-    void saveContentPeople(ContentVO content);
-
-    PersonFilmographyVO getPersonFilmography(Long tmdbPersonId, String role);
+    PersonFilmographyVO getPersonFilmography(
+            Long tmdbPersonId,
+            String role);
 }

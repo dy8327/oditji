@@ -171,6 +171,32 @@
 
 </c:forEach>
 
+<c:set var="providerSelectedCount" value="0"/>
+
+<c:if test="${netflixChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
+<c:if test="${tvingChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
+<c:if test="${wavveChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
+<c:if test="${disneyChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
+<c:if test="${watchaChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
+<c:if test="${coupangChecked}">
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
+</c:if>
+
 <form id="contentFilterForm"
       class="content-filter-form"
       action="${pageContext.request.contextPath}/content/list"
@@ -438,79 +464,38 @@
 
     </section>
 
-    <section class="content-filter-group">
+    <section class="content-filter-group content-provider-group">
 
         <h2>OTT 플랫폼</h2>
 
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   data-content-filter-all
-                   data-content-filter-group="provider"
-                   <c:if test="${empty providerIds}">
-                       checked
-                   </c:if>>
-            <span>전체</span>
-        </label>
+        <button type="button"
+                id="contentOttModalOpenButton"
+                class="content-provider-select-btn"
+                aria-haspopup="dialog"
+                aria-controls="contentOttPlatformModal">
+            OTT 플랫폼 선택
+        </button>
 
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Netflix"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${netflixChecked}">checked</c:if>>
-            <span>Netflix</span>
-        </label>
+        <p id="contentOttSelectedSummary"
+           class="content-provider-summary"
+           aria-live="polite">
 
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Tving"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${tvingChecked}">checked</c:if>>
-            <span>Tving</span>
-        </label>
+            <c:choose>
+                <c:when test="${providerSelectedCount == 0}">
+                    전체 플랫폼
+                </c:when>
+                <c:when test="${providerSelectedCount == 1 and netflixChecked}">Netflix</c:when>
+                <c:when test="${providerSelectedCount == 1 and tvingChecked}">Tving</c:when>
+                <c:when test="${providerSelectedCount == 1 and wavveChecked}">Wavve</c:when>
+                <c:when test="${providerSelectedCount == 1 and disneyChecked}">Disney+</c:when>
+                <c:when test="${providerSelectedCount == 1 and watchaChecked}">Watcha</c:when>
+                <c:when test="${providerSelectedCount == 1 and coupangChecked}">Coupangplay</c:when>
+                <c:otherwise>
+                    <c:out value="${providerSelectedCount}"/>개 플랫폼 선택됨
+                </c:otherwise>
+            </c:choose>
 
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Wavve"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${wavveChecked}">checked</c:if>>
-            <span>Wavve</span>
-        </label>
-
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Disney+"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${disneyChecked}">checked</c:if>>
-            <span>Disney+</span>
-        </label>
-
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Watcha"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${watchaChecked}">checked</c:if>>
-            <span>Watcha</span>
-        </label>
-
-        <label class="content-filter-option">
-            <input type="checkbox"
-                   name="providerIds"
-                   value="Coupangplay"
-                   data-content-filter-item
-                   data-content-filter-group="provider"
-                   <c:if test="${coupangChecked}">checked</c:if>>
-            <span>Coupangplay</span>
-        </label>
+        </p>
 
     </section>
 
@@ -534,6 +519,136 @@
             필터 초기화
         </a>
 
+    </div>
+
+    <div id="contentOttPlatformModal"
+         class="content-ott-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="contentOttModalTitle"
+         hidden>
+
+        <div class="content-ott-modal-backdrop"
+             data-content-ott-modal-close></div>
+
+        <div class="content-ott-modal-dialog"
+             role="document">
+
+            <header class="content-ott-modal-header">
+                <h2 id="contentOttModalTitle">OTT 플랫폼 선택</h2>
+                <button type="button"
+                        class="content-ott-modal-close-btn"
+                        data-content-ott-modal-close
+                        aria-label="닫기">×</button>
+            </header>
+
+            <div class="content-ott-modal-body">
+
+                <label class="content-ott-modal-option content-ott-modal-all-option">
+                    <input type="checkbox"
+                           id="contentOttProviderAll"
+                           data-content-filter-all
+                           data-content-filter-group="provider"
+                           <c:if test="${providerSelectedCount == 0}">checked</c:if>>
+                    <span class="content-ott-modal-option-text">전체 플랫폼</span>
+                </label>
+
+                <div class="content-ott-modal-option-grid">
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Netflix"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Netflix"
+                               <c:if test="${netflixChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['netflix']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["netflix"]}'/>"
+                                 alt="Netflix 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Netflix</span>
+                    </label>
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Tving"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Tving"
+                               <c:if test="${tvingChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['tving']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["tving"]}'/>"
+                                 alt="Tving 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Tving</span>
+                    </label>
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Wavve"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Wavve"
+                               <c:if test="${wavveChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['wavve']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["wavve"]}'/>"
+                                 alt="Wavve 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Wavve</span>
+                    </label>
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Disney+"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Disney+"
+                               <c:if test="${disneyChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['disney']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["disney"]}'/>"
+                                 alt="Disney+ 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Disney+</span>
+                    </label>
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Watcha"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Watcha"
+                               <c:if test="${watchaChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['watcha']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["watcha"]}'/>"
+                                 alt="Watcha 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Watcha</span>
+                    </label>
+                    <label class="content-ott-modal-option">
+                        <input type="checkbox" name="providerIds" value="Coupangplay"
+                               data-content-provider-checkbox
+                               data-content-filter-item data-content-filter-group="provider"
+                               data-provider-name="Coupangplay"
+                               <c:if test="${coupangChecked}">checked</c:if>>
+                        <c:if test="${not empty ottLogoMap['coupang']}">
+                            <img class="content-ott-modal-option-logo"
+                                 src="<c:out value='${ottLogoMap["coupang"]}'/>"
+                                 alt="Coupangplay 로고"
+                                 loading="lazy">
+                        </c:if>
+                        <span class="content-ott-modal-option-text">Coupangplay</span>
+                    </label>
+                </div>
+            </div>
+
+            <footer class="content-ott-modal-footer">
+                <button type="button" id="contentOttModalCancelButton"
+                        class="content-ott-modal-cancel-btn">취소</button>
+                <button type="button" id="contentOttModalConfirmButton"
+                        class="content-ott-modal-confirm-btn">선택 완료</button>
+            </footer>
+
+        </div>
     </div>
 
 </form>

@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     initializeContentFilters();
     initializeContentGenreToggle();
+    initializeContentOttPlatformModal();
     initializeRecommendCarousel();
     initializeContentListFavorites();
 
@@ -64,6 +65,10 @@ function initializeContentFilters() {
                         item.checked = false;
                     });
 
+                    if (groupName === "provider") {
+                        updateContentOttSelectedSummary();
+                    }
+
                     return;
                 }
 
@@ -122,6 +127,10 @@ function updateContentFilterAllState(
 
     allCheckbox.checked =
         checkedItems.length === 0;
+
+    if (groupName === "provider") {
+        updateContentOttSelectedSummary();
+    }
 }
 
 
@@ -577,3 +586,144 @@ function setContentListFavoriteState(
             active ? "♥" : "♡";
     }
 }
+
+/**
+ * 콘텐츠 목록 전용 OTT 선택 모달을 초기화합니다.
+ *
+ * 검색 결과 화면의 search.js를 직접 불러오지 않고,
+ * 콘텐츠 목록에서 필요한 OTT 선택 기능만 독립적으로 처리합니다.
+ */
+function initializeContentOttPlatformModal() {
+
+    const modal = document.getElementById("contentOttPlatformModal");
+    const openButton = document.getElementById("contentOttModalOpenButton");
+    const cancelButton = document.getElementById("contentOttModalCancelButton");
+    const confirmButton = document.getElementById("contentOttModalConfirmButton");
+
+    if (!modal || !openButton || !cancelButton || !confirmButton) {
+        return;
+    }
+
+    const closeElements = modal.querySelectorAll("[data-content-ott-modal-close]");
+    let selectionSnapshot = createContentOttSelectionSnapshot();
+
+    openButton.addEventListener("click", function () {
+        selectionSnapshot = createContentOttSelectionSnapshot();
+        openContentOttPlatformModal(modal);
+    });
+
+    confirmButton.addEventListener("click", function () {
+        updateContentOttSelectedSummary();
+        closeContentOttPlatformModal(modal, openButton);
+    });
+
+    cancelButton.addEventListener("click", function () {
+        restoreContentOttSelectionSnapshot(selectionSnapshot);
+        updateContentOttSelectedSummary();
+        closeContentOttPlatformModal(modal, openButton);
+    });
+
+    closeElements.forEach(function (element) {
+        element.addEventListener("click", function () {
+            restoreContentOttSelectionSnapshot(selectionSnapshot);
+            updateContentOttSelectedSummary();
+            closeContentOttPlatformModal(modal, openButton);
+        });
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape" || modal.hidden) {
+            return;
+        }
+
+        restoreContentOttSelectionSnapshot(selectionSnapshot);
+        updateContentOttSelectedSummary();
+        closeContentOttPlatformModal(modal, openButton);
+    });
+
+    updateContentOttSelectedSummary();
+}
+
+function openContentOttPlatformModal(modal) {
+    modal.hidden = false;
+    document.body.classList.add("content-ott-modal-open");
+
+    const firstCheckbox = modal.querySelector("input[type='checkbox']");
+
+    if (firstCheckbox) {
+        window.requestAnimationFrame(function () {
+            firstCheckbox.focus();
+        });
+    }
+}
+
+function closeContentOttPlatformModal(modal, focusTarget) {
+    modal.hidden = true;
+    document.body.classList.remove("content-ott-modal-open");
+
+    if (focusTarget) {
+        focusTarget.focus();
+    }
+}
+
+function createContentOttSelectionSnapshot() {
+    const providerCheckboxes = document.querySelectorAll(
+        "[data-content-provider-checkbox]"
+    );
+
+    const snapshot = {};
+
+    providerCheckboxes.forEach(function (checkbox) {
+        snapshot[checkbox.value] = checkbox.checked;
+    });
+
+    return snapshot;
+}
+
+function restoreContentOttSelectionSnapshot(snapshot) {
+    const providerCheckboxes = document.querySelectorAll(
+        "[data-content-provider-checkbox]"
+    );
+
+    providerCheckboxes.forEach(function (checkbox) {
+        checkbox.checked = Boolean(snapshot[checkbox.value]);
+    });
+
+    const form = document.getElementById("contentFilterForm");
+
+    if (form) {
+        updateContentFilterAllState(form, "provider");
+    }
+}
+
+function updateContentOttSelectedSummary() {
+    const summary = document.getElementById("contentOttSelectedSummary");
+
+    if (!summary) {
+        return;
+    }
+
+    const checkedProviders = Array.from(
+        document.querySelectorAll("[data-content-provider-checkbox]:checked")
+    );
+
+    if (checkedProviders.length === 0) {
+        summary.textContent = "전체 플랫폼";
+        return;
+    }
+
+    const selectedNames = checkedProviders.map(function (checkbox) {
+        return checkbox.dataset.providerName;
+    });
+
+    if (selectedNames.length === 1) {
+        summary.textContent = selectedNames[0];
+        return;
+    }
+
+    summary.textContent = selectedNames[0]
+        + " 외 "
+        + (selectedNames.length - 1)
+        + "개";
+}
+
