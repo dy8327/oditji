@@ -23,6 +23,8 @@ import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.business.service.BusinessService;
+import com.project.oditji.business.service.NtsBusinessService;
+import com.project.oditji.business.vo.NtsBusinessVerifyVO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -36,16 +38,19 @@ public class MemberController {
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
         private final BusinessService businessService;
+        private final NtsBusinessService ntsBusinessService;
 
         public MemberController(
                 MemberService memberService,
                 MemberPlatformService memberPlatformService,
-                BusinessService businessService) {
+                BusinessService businessService,
+                NtsBusinessService ntsBusinessService) {
 
-                this.memberService = memberService;
-                this.memberPlatformService = memberPlatformService;
-                this.businessService = businessService;
-                }
+        this.memberService = memberService;
+        this.memberPlatformService = memberPlatformService;
+        this.businessService = businessService;
+        this.ntsBusinessService = ntsBusinessService;
+}
 
         @GetMapping("/join")
         public String joinForm() {
@@ -71,6 +76,24 @@ public class MemberController {
                         businessNumber);
 
         return available ? "Y" : "N";
+        }
+
+        /*
+        * =========================================================
+        * 국세청 사업자등록정보 진위확인
+        * =========================================================
+        */
+        @PostMapping("/verifyBusiness")
+        @ResponseBody
+        public NtsBusinessVerifyVO verifyBusiness(
+                @RequestParam("businessNumber") String businessNumber,
+                @RequestParam("representativeName") String representativeName,
+                @RequestParam("openDate") String openDate) {
+
+        return ntsBusinessService.verifyBusiness(
+                businessNumber,
+                representativeName,
+                openDate);
         }
 
         @PostMapping("/join")
