@@ -227,43 +227,8 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
-<script>
-function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
-
-/*
- * data-* 속성을 사용하여 상품명이나 설명에 따옴표가 포함되어도
- * JavaScript 함수 호출 문자열이 깨지지 않도록 수정한다.
- */
-function openProductRequestModal(button) {
-    document.getElementById('reqProductNo').value = button.dataset.productNo;
-    document.getElementById('reqProductBusinessName').textContent = button.dataset.businessName || '';
-    document.getElementById('reqProductName').textContent = button.dataset.productName || '';
-    document.getElementById('reqProductPrice').textContent = (button.dataset.price || '0') + '원';
-    document.getElementById('reqProductDescription').value = button.dataset.description || '';
-    document.getElementById('productRequestModal').classList.add('open');
-}
-
-function confirmProductApprove() {
-    const currentTab = '${currentTab}';
-
-    if (currentTab === 'delete') {
-        return confirm('삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?');
-    }
-
-    return confirm('이 상품 요청을 승인하시겠습니까?');
-}
-
-function confirmProductReject() {
-    const currentTab = '${currentTab}';
-
-    if (currentTab === 'delete') {
-        return confirm('이 상품의 삭제 요청을 반려하시겠습니까?');
-    }
-
-    return confirm('이 상품 요청을 반려하시겠습니까?');
-}
+<script defer
+        src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
 </body>

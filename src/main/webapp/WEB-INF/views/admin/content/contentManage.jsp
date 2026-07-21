@@ -325,30 +325,8 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
-<script>
-function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
-
-function openPlatformRegisterModal() {
-    document.getElementById('platformRegisterModal').classList.add('open');
-}
-
-function openPlatformManageModal() {
-    document.getElementById('platformManageModal').classList.add('open');
-}
-
-function openContentEditModal(contentNo, title, contentType, genreText, castNames, overview, runtime, releaseDate) {
-    document.getElementById('editContentNo').value = contentNo;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editContentType').value = contentType;
-    document.getElementById('editGenreText').value = genreText;
-    document.getElementById('editCastNames').value = castNames;
-    document.getElementById('editOverview').value = overview;
-    document.getElementById('editRuntime').value = runtime;
-    document.getElementById('editReleaseDate').value = releaseDate;
-    document.getElementById('contentEditModal').classList.add('open');
-}
+<script defer
+        src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
 </body>

@@ -291,34 +291,8 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
-<script>
-function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
-
-function openGradeModal(businessNo, name, memberId, email, currentGrade) {
-    document.getElementById('gradeBusinessNo').value = businessNo;
-    document.getElementById('gradeBusinessName').textContent = name;
-    document.getElementById('gradeBusinessId').textContent = memberId;
-    document.getElementById('gradeBusinessEmail').textContent = email;
-    document.getElementById('gradeBusinessCurrent').textContent = currentGrade;
-
-    var radios = document.getElementsByName('gradeName');
-    for (var i = 0; i < radios.length; i++) {
-        radios[i].checked = (radios[i].value === currentGrade);
-    }
-
-    document.getElementById('gradeModal').classList.add('open');
-}
-
-function openApprovalModal(businessNo, businessName, memberId, email, businessNumber) {
-    document.getElementById('approvalBusinessNo').value = businessNo;
-    document.getElementById('approvalBusinessName').textContent = businessName;
-    document.getElementById('approvalMemberId').textContent = memberId;
-    document.getElementById('approvalEmail').textContent = email;
-    document.getElementById('approvalBusinessNumber').textContent = businessNumber;
-    document.getElementById('approvalModal').classList.add('open');
-}
+<script defer
+        src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
 </body>
