@@ -1095,6 +1095,7 @@ public class BusinessServiceImpl
                         int productCount = businessDAO.countProductByBusinessNo(
                                         productNo,
                                         eventManageVO.getBusinessNo());
+                        System.out.println("productCount = " + productCount);
 
                         if (productCount == 0) {
 

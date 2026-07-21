@@ -262,11 +262,18 @@
                 이벤트 등록 요청
             </h1>
 
-            <!-- 등록 실패 메시지 -->
+            <!-- 성공 메시지 -->
+            <c:if test="${not empty successMessage}">
+                <script>
+                    alert("${successMessage}");
+                </script>
+            </c:if>
+
+            <!-- 실패 메시지 -->
             <c:if test="${not empty errorMessage}">
-                <div class="alert alert-error">
-                    <c:out value="${errorMessage}"/>
-                </div>
+                <script>
+                    alert("${errorMessage}");
+                </script>
             </c:if>
 
             <form action="${pageContext.request.contextPath}/business/event/register"
