@@ -16,7 +16,7 @@ public class NtsBusinessServiceImpl
 
     private final RestClient restClient;
 
-    @Value("${nts.business.api.key}")
+    @Value("${nts.business.service-key}")
     private String serviceKey;
 
     public NtsBusinessServiceImpl() {
