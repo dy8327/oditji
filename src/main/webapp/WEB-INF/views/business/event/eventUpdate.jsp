@@ -10,6 +10,7 @@
 <meta charset="UTF-8">
 <title>ODITJI | 이벤트 수정</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
+<script defer src="${pageContext.request.contextPath}/js/business.js"></script>
 
 <style>
 /*
@@ -117,6 +118,81 @@
     color: #a7acb5;
     text-align: center;
 }
+
+/*
+ * =========================================================
+ * 연결 상품 / 할인율 행 레이아웃
+ *
+ * 상품 검색 행과 할인율 행의 입력창·버튼 박스 크기를
+ * 동일하게 맞추고, +/- 버튼을 할인율 입력 오른쪽에 배치한다.
+ * 화면에 미리 그려지는 행과 business.js가 동적으로
+ * 추가하는 행이 항상 같은 구조/크기를 갖도록 한다.
+ * =========================================================
+ */
+.product-item {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #3b3e46;
+}
+
+.product-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.input-with-btn,
+.discount-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-with-btn {
+    margin-bottom: 10px;
+}
+
+.input-with-btn .productName {
+    flex: 1;
+    min-width: 0;
+}
+
+.discount-row .form-label {
+    flex-shrink: 0;
+}
+
+.discount-controls .productDiscountRate {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-with-btn .btn,
+.discount-controls .btn {
+    flex-shrink: 0;
+    height: 44px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.addProductButton,
+.removeProductButton {
+    width: 44px;
+    padding: 0;
+    text-align: center;
+}
+
+.discount-row .form-hint {
+    margin: 8px 0 0;
+    color: #a7acb5;
+    font-size: 13px;
+}
+
+@media (max-width: 760px) {
+    .input-with-btn,
+    .discount-controls {
+        flex-wrap: wrap;
+    }
+}
 </style>
 </head>
 
@@ -150,7 +226,8 @@
 
             <form action="${pageContext.request.contextPath}/business/event/update"
                   method="post"
-                  enctype="multipart/form-data">
+                  enctype="multipart/form-data"
+                  id="eventForm">
 
                 <input type="hidden"
                        name="eventNo"
@@ -221,102 +298,147 @@
 
                 </div>
 
+                <!-- 연결 상품 (여러 개 연결 가능) -->
                 <div class="form-group">
 
-                    <label class="form-label"
-                           for="productName">
+                    <label class="form-label">
                         연결 상품
                     </label>
 
-                    <div class="input-with-btn">
 
-                        <input type="hidden"
-                               id="productNo"
-                               name="productNo"
-                               value="<c:out value='${event.productNo}'/>">
+                    <div id="productList">
 
-                        <input class="form-input"
-                               type="text"
-                               id="productName"
-                               name="productName"
-                               value="<c:out value='${event.productName}'/>"
-                               readonly>
+                        <c:choose>
 
-                        <button class="btn btn-dark"
-                                type="button"
-                                id="productSearchButton">
-                            상품 검색
-                        </button>
+                            <!-- 기존에 연결되어 있던 상품이 있으면 그대로 다시 그려준다 -->
+                            <c:when test="${not empty event.connectedProducts}">
+
+                                <c:forEach var="connectedProduct"
+                                           items="${event.connectedProducts}">
+
+                                    <div class="product-item">
+
+                                        <input type="hidden"
+                                            name="productNoList"
+                                            class="productNo"
+                                            value="<c:out value='${connectedProduct.productNo}'/>">
+
+                                        <div class="input-with-btn">
+
+                                            <input class="form-input productName"
+                                                type="text"
+                                                name="productNameList"
+                                                value="<c:out value='${connectedProduct.productName}'/>"
+                                                placeholder="연결할 상품을 선택하세요."
+                                                readonly>
+
+                                            <button class="btn btn-dark productSearchButton"
+                                                    type="button">
+                                                상품 검색
+                                            </button>
+
+                                        </div>
+
+                                        <div class="discount-row">
+
+                                            <div class="discount-controls">
+
+                                                <label class="form-label">
+                                                    할인율 (%)
+                                                </label>
+
+                                                <input class="form-input productDiscountRate"
+                                                    type="number"
+                                                    name="discountRateList"
+                                                    min="0"
+                                                    max="100"
+                                                    value="<c:out value='${connectedProduct.discountRate}'/>">
+
+                                                <button class="btn btn-primary addProductButton"
+                                                        type="button">
+                                                    +
+                                                </button>
+
+                                                <button class="btn btn-dark removeProductButton"
+                                                        type="button">
+                                                    -
+                                                </button>
+
+                                            </div>
+
+                                            <p class="form-hint productDiscountPreview">
+                                                <fmt:formatNumber value="${connectedProduct.price}" pattern="#,###"/>원 →
+                                                할인율 <c:out value="${connectedProduct.discountRate}"/>%
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </c:forEach>
+
+                            </c:when>
+
+                            <!-- 연결된 상품이 없는 경우 빈 행을 하나 보여준다 -->
+                            <c:otherwise>
+
+                                <div class="product-item">
+
+                                    <input type="hidden"
+                                        name="productNoList"
+                                        class="productNo">
+
+                                    <div class="input-with-btn">
+
+                                        <input class="form-input productName"
+                                            type="text"
+                                            name="productNameList"
+                                            placeholder="연결할 상품을 선택하세요."
+                                            readonly>
+
+                                        <button class="btn btn-dark productSearchButton"
+                                                type="button">
+                                            상품 검색
+                                        </button>
+
+                                    </div>
+
+                                    <div class="discount-row">
+
+                                        <div class="discount-controls">
+
+                                            <label class="form-label">
+                                                할인율 (%)
+                                            </label>
+
+                                            <input class="form-input productDiscountRate"
+                                                type="number"
+                                                name="discountRateList"
+                                                min="0"
+                                                max="100"
+                                                value="0">
+
+                                            <button class="btn btn-primary addProductButton"
+                                                    type="button">
+                                                +
+                                            </button>
+
+                                        </div>
+
+                                        <p class="form-hint productDiscountPreview">
+                                            상품을 선택하면 할인 적용가가 표시됩니다.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </c:otherwise>
+
+                        </c:choose>
 
                     </div>
 
-                </div>
-
-                <!-- 이벤트 할인율 -->
-                <div class="form-group">
-
-                    <label class="form-label"
-                           for="eventDiscountRate">
-                        이벤트 할인율 (%)
-                    </label>
-
-                    <!--
-                        연결 상품에 적용할 이벤트 특별 할인율이다.
-                        관리자 재승인 후 상품 판매가에 자동으로 반영된다.
-                    -->
-                    <input class="form-input"
-                           type="number"
-                           id="eventDiscountRate"
-                           name="eventDiscountRate"
-                           min="0"
-                           max="100"
-                           step="1"
-                           value="<c:out value='${event.eventDiscountRate}'/>"
-                           placeholder="0 ~ 100 사이의 숫자를 입력하세요."
-                           required>
-
-                    <!-- 선택한 상품 가격(할인가 미리보기 계산용, 서버 전송 X) -->
-                    <input type="hidden"
-                           id="selectedProductPrice"
-                           value="<c:out value='${event.price}'/>">
-
-                    <p class="form-hint"
-                       id="eventDiscountPreview">
-                        상품을 선택하면 할인 적용가가 표시됩니다.
-                    </p>
-
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">
-                            상태
-                    </label>
-
-                        <div class="btn-row">
-
-                            <label>
-                                <input type="checkbox"
-                                    name="status"
-                                    value="WAITING"
-                                    ${event.status == 'WAITING' ? 'checked' : ''}>
-                                예정
-                            </label>
-
-                            <label>
-                                <input type="checkbox"
-                                    name="status"
-                                    value="ACTIVE"
-                                    ${event.status == 'ACTIVE' ? 'checked' : ''}>
-                                진행중
-                            </label>
-
-                            <label>
-                                <input type="checkbox"
-                                    name="status"
-                                    value="ENDED"
-                                    ${event.status == 'ENDED' ? 'checked' : ''}>
-                                종료
-                            </label>
                 </div>
 
                 <div class="form-group">
@@ -326,9 +448,11 @@
                     </label>
 
                     <!--
-                        이벤트 수정 요청이 접수되면
-                        EVENT.STATUS는 WAITING으로 변경된다.
-                        관리자 승인 전에는 사용자 화면에 노출되지 않는다.
+                        이벤트 상태는 사업자가 직접 지정할 수 없다.
+                        수정 요청이 접수되면 EVENT.STATUS는 WAITING으로
+                        변경되고, 관리자 승인 전에는 사용자 화면에
+                        노출되지 않는다.
+                        (EVENT.STATUS CHECK 제약: WAITING/APPROVED/END/REJECTED/DELETED)
                     -->
                     <input class="form-input"
                            type="text"
@@ -337,6 +461,7 @@
 
                 </div>
 
+                <!-- 이벤트 이미지 -->
                 <div class="form-group">
 
                     <label class="form-label"
@@ -501,130 +626,6 @@
 </div>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const startDateInput = document.getElementById("startDate");
-    const endDateInput = document.getElementById("endDate");
-    const eventImageInput = document.getElementById("eventImage");
-    const eventImageFileName = document.getElementById("eventImageFileName");
-    const productSearchButton = document.getElementById("productSearchButton");
-    const productSearchModal = document.getElementById("productSearchModal");
-    const productSearchModalClose = document.getElementById("productSearchModalClose");
-    const productSearchKeyword = document.getElementById("productSearchKeyword");
-    const productSearchRows = document.querySelectorAll(".product-search-row");
-    const productSelectButtons = document.querySelectorAll(".product-select-button");
-    const productSearchNoResult = document.getElementById("productSearchNoResult");
-    const productNoInput = document.getElementById("productNo");
-    const productNameInput = document.getElementById("productName");
-    const selectedProductPriceInput = document.getElementById("selectedProductPrice");
-    const eventDiscountRateInput = document.getElementById("eventDiscountRate");
-    const eventDiscountPreview = document.getElementById("eventDiscountPreview");
-
-    /* 이벤트 종료일 최소 날짜 설정 */
-    startDateInput.addEventListener("change", function () {
-
-        endDateInput.min = startDateInput.value;
-
-        if (endDateInput.value && endDateInput.value < startDateInput.value) {
-            endDateInput.value = "";
-        }
-    });
-
-    /* 새 이벤트 이미지 파일명 출력 */
-    eventImageInput.addEventListener("change", function () {
-
-        if (eventImageInput.files.length === 0) {
-            eventImageFileName.textContent = "기존 이미지 유지";
-            return;
-        }
-
-        eventImageFileName.textContent = eventImageInput.files[0].name;
-    });
-
-    function closeProductSearchModal() {
-        productSearchModal.classList.remove("active");
-        document.body.style.overflow = "";
-    }
-
-    productSearchButton.addEventListener("click", function () {
-        productSearchModal.classList.add("active");
-        document.body.style.overflow = "hidden";
-        productSearchKeyword.focus();
-    });
-
-    productSearchModalClose.addEventListener("click", closeProductSearchModal);
-
-    productSearchModal.addEventListener("click", function (event) {
-        if (event.target === productSearchModal) {
-            closeProductSearchModal();
-        }
-    });
-
-    productSearchKeyword.addEventListener("input", function () {
-
-        const keyword = productSearchKeyword.value.trim().toLowerCase();
-        let visibleCount = 0;
-
-        productSearchRows.forEach(function (row) {
-
-            const searchText = (row.dataset.searchText || "").toLowerCase();
-            const matched = keyword === "" || searchText.includes(keyword);
-
-            row.style.display = matched ? "" : "none";
-
-            if (matched) {
-                visibleCount++;
-            }
-        });
-
-        productSearchNoResult.style.display =
-            visibleCount === 0 ? "block" : "none";
-    });
-
-    /*
-     * 할인 적용가 미리보기 갱신
-     *
-     * 서버로 전송되는 값이 아니라 화면에서만 참고용으로 계산한다.
-     * 실제 할인가 계산 및 저장은 서버(EVENT_PRODUCT.EVENT_DISCOUNT_RATE)에서 처리한다.
-     */
-    function updateDiscountPreview() {
-
-        const price = Number(selectedProductPriceInput.value);
-        const rate = Number(eventDiscountRateInput.value);
-
-        if (!price || Number.isNaN(rate)) {
-            eventDiscountPreview.textContent = "상품을 선택하면 할인 적용가가 표시됩니다.";
-            return;
-        }
-
-        const discountedPrice = Math.round(price * (100 - rate) / 100);
-
-        eventDiscountPreview.textContent =
-            "원가 " + price.toLocaleString() + "원 → 할인 적용가 "
-            + discountedPrice.toLocaleString() + "원 (할인율 " + rate + "%)";
-    }
-
-    eventDiscountRateInput.addEventListener("input", updateDiscountPreview);
-    updateDiscountPreview();
-
-    productSelectButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            productNoInput.value = button.dataset.productNo;
-            productNameInput.value = button.dataset.productName;
-            selectedProductPriceInput.value = button.dataset.productPrice || "";
-
-            updateDiscountPreview();
-
-            closeProductSearchModal();
-        });
-    });
-
-});
-</script>
 
 </body>
 </html>

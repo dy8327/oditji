@@ -39,6 +39,19 @@ public class EventManageVO {
 
     private Integer eventDiscountRate; // = EVENT_PRODUCT.EVENT_DISCOUNT_RATE (이벤트 할인율 %)
 
+    /*
+     * 관리자 목록/상세보기 전용
+     *
+     * 이벤트 하나에 여러 상품이 연결될 수 있어
+     * 목록 조회 시에는 이벤트 단위로 GROUP BY 하여
+     * productName / price / eventDiscountRate에는 대표값(집계값)만 담긴다.
+     *
+     * 상세보기 팝업에서 상품별 개별 할인율을 그대로 보여주기 위해
+     * "상품명|할인율|가격" 을 상품 단위 구분자 ";;"로 이어붙인
+     * 원본 데이터를 별도로 담아 화면(JS)에서 다시 분리해 사용한다.
+     */
+    private String productDetail;
+
     // ===================== Getter / Setter =====================
 
     public Long getEventNo() {
@@ -135,6 +148,14 @@ public class EventManageVO {
 
     public void setEventDiscountRate(Integer eventDiscountRate) {
         this.eventDiscountRate = eventDiscountRate;
+    }
+
+    public String getProductDetail() {
+        return productDetail;
+    }
+
+    public void setProductDetail(String productDetail) {
+        this.productDetail = productDetail;
     }
 
     /**

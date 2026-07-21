@@ -951,7 +951,7 @@ public class BusinessController {
                  * 별도 검색 JSP를 추가하지 않고 현재 이벤트 등록 화면의
                  * 상품 검색 모달에서 이 목록을 사용한다.
                  */
-                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(
                                 business.getBusinessNo());
 
                 model.addAttribute(
@@ -988,31 +988,33 @@ public class BusinessController {
          */
         @PostMapping("/event/register")
         public String eventRegisterProcess(
-                        @RequestParam("eventTitle") String eventTitle,
 
-                        @RequestParam(value = "eventContent", required = false) String eventContent,
+                @RequestParam("eventTitle") String eventTitle,
 
-                        @RequestParam("startDate") LocalDate startDate,
+                @RequestParam(value = "eventContent", required = false) String eventContent,
 
-                        @RequestParam("endDate") LocalDate endDate,
+                @RequestParam("startDate") LocalDate startDate,
 
-                        /*
-                         * 상품 검색 모달에서 선택한 실제 상품 번호
-                         */
-                        @RequestParam(value = "productNo", required = false) Long productNo,
+                @RequestParam("endDate") LocalDate endDate,
 
-                        @RequestParam(value = "productName", required = false) String productName,
 
-                        /*
-                         * 이벤트 진행 시 연결 상품에 적용할 특별 할인율(%).
-                         * 입력이 없으면 0으로 처리한다.
-                         */
-                        @RequestParam(value = "eventDiscountRate", required = false, defaultValue = "0") int eventDiscountRate,
+                /*
+                * 선택한 연결 상품 목록
+                */
+                @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
 
-                        @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                /*
+                * 상품별 할인율 목록
+                */
+                @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+
+
+                @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
+
+                HttpSession session,
+
+                RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(
                                 session);
@@ -1049,14 +1051,21 @@ public class BusinessController {
                         return "redirect:/business/main";
                 }
 
-                if (eventDiscountRate < 0
-                                || eventDiscountRate > 100) {
+                if (discountRateList != null) {
+
+                for(Integer rate : discountRateList) {
+
+                        if(rate < 0 || rate > 100) {
 
                         redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                                "errorMessage",
+                                "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                         return "redirect:/business/event/register";
+                        }
+
+                }
+
                 }
 
                 EventManageVO eventManageVO = new EventManageVO();
@@ -1078,54 +1087,60 @@ public class BusinessController {
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
                 eventManageVO.setStatus(
-                                "WAITING");
+                        "WAITING");
 
-                eventManageVO.setProductNo(
-                                productNo);
 
-                eventManageVO.setEventDiscountRate(
-                                eventDiscountRate);
+                eventManageVO.setProductNoList(
+                        productNoList);
+
+
+                eventManageVO.setDiscountRateList(
+                        discountRateList);
+
 
                 try {
 
                         System.out.println(
-                                        "===== 이벤트 등록 요청 =====");
+                                "===== 이벤트 등록 요청 =====");
+
 
                         System.out.println(
-                                        "사업자 번호: "
-                                                        + business.getBusinessNo());
+                                "사업자 번호: "
+                                + business.getBusinessNo());
+
 
                         System.out.println(
-                                        "이벤트명: "
-                                                        + eventTitle);
+                                "이벤트명: "
+                                + eventTitle);
+
 
                         System.out.println(
-                                        "이벤트 설명: "
-                                                        + eventContent);
+                                "이벤트 설명: "
+                                + eventContent);
+
 
                         System.out.println(
-                                        "이벤트 시작일: "
-                                                        + startDate);
+                                "이벤트 시작일: "
+                                + startDate);
+
 
                         System.out.println(
-                                        "이벤트 종료일: "
-                                                        + endDate);
+                                "이벤트 종료일: "
+                                + endDate);
+
 
                         System.out.println(
-                                        "연결 상품 번호: "
-                                                        + productNo);
+                                "연결 상품 번호 목록: "
+                                + productNoList);
+
 
                         System.out.println(
-                                        "연결 상품명: "
-                                                        + productName);
+                                "상품별 할인율 목록: "
+                                + discountRateList);
+
 
                         System.out.println(
-                                        "이벤트 할인율: "
-                                                        + eventDiscountRate
-                                                        + "%");
-
-                        System.out.println(
-                                        "이벤트 상태: WAITING");
+                                "이벤트 상태: WAITING");
 
                         long eventNo = businessService.registerEvent(
                                         eventManageVO,
@@ -1218,7 +1233,7 @@ public class BusinessController {
                                         eventNo,
                                         business.getBusinessNo());
 
-                        List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                        List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(
                                         business.getBusinessNo());
 
                         model.addAttribute(
@@ -1267,21 +1282,22 @@ public class BusinessController {
 
                         @RequestParam("eventTitle") String eventTitle,
 
+                        @RequestParam(value = "eventContent", required = false) String eventContent,
+
                         @RequestParam("startDate") LocalDate startDate,
 
                         @RequestParam("endDate") LocalDate endDate,
 
-                        @RequestParam("productNo") Long productNo,
-
-                        @RequestParam(value = "productName", required = false) String productName,
-
-                        @RequestParam(value = "eventContent", required = false) String eventContent,
+                        /*
+                         * 선택한 연결 상품 목록 (수정 화면도 등록 화면과 동일하게
+                         * +버튼으로 여러 개의 상품을 연결할 수 있다.)
+                         */
+                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
 
                         /*
-                         * 이벤트 진행 시 연결 상품에 적용할 특별 할인율(%).
-                         * 입력이 없으면 0으로 처리한다.
+                         * 상품별 할인율 목록
                          */
-                        @RequestParam(value = "eventDiscountRate", required = false, defaultValue = "0") int eventDiscountRate,
+                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
 
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
 
@@ -1313,14 +1329,19 @@ public class BusinessController {
                         return "redirect:/";
                 }
 
-                if (eventDiscountRate < 0
-                                || eventDiscountRate > 100) {
+                if (discountRateList != null) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                        for (Integer rate : discountRateList) {
 
-                        return "redirect:/business/event/update?eventNo=" + eventNo;
+                                if (rate < 0 || rate > 100) {
+
+                                        redirectAttributes.addFlashAttribute(
+                                                        "errorMessage",
+                                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+
+                                        return "redirect:/business/event/update?eventNo=" + eventNo;
+                                }
+                        }
                 }
 
                 EventManageVO eventManageVO = new EventManageVO();
@@ -1340,9 +1361,6 @@ public class BusinessController {
                 eventManageVO.setEndDate(
                                 endDate);
 
-                eventManageVO.setProductNo(
-                                productNo);
-
                 /*
                  * 이벤트 수정 요청은 반드시 관리자 재승인을 거치므로
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
@@ -1350,8 +1368,11 @@ public class BusinessController {
                 eventManageVO.setStatus(
                                 "WAITING");
 
-                eventManageVO.setEventDiscountRate(
-                                eventDiscountRate);
+                eventManageVO.setProductNoList(
+                                productNoList);
+
+                eventManageVO.setDiscountRateList(
+                                discountRateList);
 
                 try {
 
@@ -1371,8 +1392,12 @@ public class BusinessController {
                                                         + eventContent);
 
                         System.out.println(
-                                        "연결 상품명: "
-                                                        + productName);
+                                        "연결 상품 번호 목록: "
+                                                        + productNoList);
+
+                        System.out.println(
+                                        "상품별 할인율 목록: "
+                                                        + discountRateList);
 
                         businessService.updateApprovedEvent(
                                         eventManageVO,
