@@ -43,11 +43,66 @@
             parameterType="String"
             resultType="int">
 
-        SELECT COUNT(*)
-        FROM BUSINESS
-        WHERE BUSINESS_NUMBER = #{businessNumber}
+         SELECT COUNT(*)
+            FROM BUSINESS
+            WHERE REPLACE(BUSINESS_NUMBER, '-', '')
+                = REPLACE(#{businessNumber}, '-', '')
 
     </select>
+
+    <!-- =====================================================
+     사업자 회원가입 정보 등록
+====================================================== -->
+<insert id="insertBusiness"
+        parameterType="com.project.oditji.business.vo.BusinessVO">
+
+    <selectKey keyProperty="businessNo"
+               resultType="long"
+               order="BEFORE">
+
+        SELECT SEQ_BUSINESS_NO.NEXTVAL
+        FROM DUAL
+
+    </selectKey>
+
+    INSERT INTO BUSINESS (
+        BUSINESS_NO,
+        MEMBER_NO,
+        BUSINESS_NAME,
+        BUSINESS_NUMBER,
+        REPRESENTATIVE_NAME,
+        OPEN_DATE,
+        LICENSE_FILE_PATH,
+        NTS_BUSINESS_STATUS,
+        NTS_CHECKED_AT,
+        BANK_NAME,
+        ACCOUNT_NUMBER,
+        ACCOUNT_HOLDER,
+        GRADE_NAME,
+        CUSTOM_RATE,
+        STATUS,
+        CREATED_AT
+    )
+    VALUES (
+        #{businessNo},
+        #{memberNo},
+        #{businessName},
+        #{businessNumber},
+        #{representativeName},
+        #{openDate},
+        #{licenseFilePath},
+        #{ntsBusinessStatus},
+        SYSDATE,
+        #{bankName},
+        #{accountNumber},
+        #{accountHolder},
+        'BRONZE',
+        NULL,
+        'WAITING',
+        SYSDATE
+    )
+
+</insert>
 
     <!-- =====================================================
          상품 등록
