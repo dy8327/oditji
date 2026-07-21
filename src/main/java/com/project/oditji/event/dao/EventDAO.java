@@ -6,9 +6,9 @@ import com.project.oditji.event.vo.EventVO;
 
 public interface EventDAO {
 
-    /* 사용자 이벤트 목록 조회 */
-    List<EventVO> selectEventList();
+    /** 승인된 이벤트를 날짜 구분에 따라 조회합니다. */
+    List<EventVO> selectEventList(String period);
 
-    /* 이벤트 상세 조회 */
+    /** 이벤트 상세를 조회합니다. */
     EventVO selectEventDetail(Long eventNo);
 }

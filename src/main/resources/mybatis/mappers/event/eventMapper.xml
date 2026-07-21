@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.oditji.event.dao.EventDAO">
 
-
-    <!-- =========================
-         사용자 이벤트 목록
-         ========================= -->
-
+    <!-- 승인된 이벤트를 시작일과 종료일 기준으로 분류합니다. -->
     <select id="selectEventList"
+            parameterType="string"
             resultType="com.project.oditji.event.vo.EventVO">
 
         SELECT
@@ -28,21 +23,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
         WHERE STATUS = 'APPROVED'
 
-        ORDER BY EVENT_NO DESC
+        <choose>
+            <when test="_parameter == 'upcoming'">
+                AND START_DATE > SYSDATE
+            </when>
+
+            <when test="_parameter == 'ended'">
+                AND END_DATE < SYSDATE
+            </when>
+
+            <otherwise>
+                AND START_DATE <![CDATA[ <= ]]> SYSDATE
+                AND END_DATE <![CDATA[ >= ]]> SYSDATE
+            </otherwise>
+        </choose>
+
+        ORDER BY
+            CASE WHEN START_DATE IS NULL THEN 1 ELSE 0 END,
+            START_DATE DESC,
+            EVENT_NO DESC
 
     </select>
-
-
-
-    <!-- =========================
-         사용자 이벤트 상세
-         ========================= -->
 
     <select id="selectEventDetail"
             resultMap="eventDetailResult">
 
         SELECT
-
             E.EVENT_NO,
             E.TITLE,
             E.BANNER_IMAGE,
@@ -50,98 +56,49 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             E.END_DATE,
             E.STATUS,
             E.CREATED_AT,
-
             P.PRODUCT_NO,
             P.PRODUCT_NAME,
             P.PRICE,
-
             PI.IMAGE_PATH,
-
             EP.EVENT_DISCOUNT_RATE
 
         FROM EVENT E
 
         JOIN EVENT_PRODUCT EP
-        ON E.EVENT_NO = EP.EVENT_NO
+            ON E.EVENT_NO = EP.EVENT_NO
 
         JOIN PRODUCT P
-        ON EP.PRODUCT_NO = P.PRODUCT_NO
+            ON EP.PRODUCT_NO = P.PRODUCT_NO
 
         LEFT JOIN PRODUCT_IMAGE PI
-        ON P.PRODUCT_NO = PI.PRODUCT_NO
-        AND PI.IS_MAIN = 'Y'
+            ON P.PRODUCT_NO = PI.PRODUCT_NO
+           AND PI.IS_MAIN = 'Y'
 
         WHERE E.EVENT_NO = #{eventNo}
+          AND E.STATUS = 'APPROVED'
 
     </select>
-
-
-
-    <!-- =========================
-         이벤트 상세 ResultMap
-         ========================= -->
 
     <resultMap id="eventDetailResult"
                type="com.project.oditji.event.vo.EventVO">
 
-
-        <id property="eventNo"
-            column="EVENT_NO"/>
-
-
-        <result property="title"
-                column="TITLE"/>
-
-
-        <result property="bannerImage"
-                column="BANNER_IMAGE"/>
-
-
-        <result property="startDate"
-                column="START_DATE"/>
-
-
-        <result property="endDate"
-                column="END_DATE"/>
-
-
-        <result property="status"
-                column="STATUS"/>
-
-
-        <result property="createdAt"
-                column="CREATED_AT"/>
-
-
+        <id property="eventNo" column="EVENT_NO"/>
+        <result property="title" column="TITLE"/>
+        <result property="bannerImage" column="BANNER_IMAGE"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="status" column="STATUS"/>
+        <result property="createdAt" column="CREATED_AT"/>
 
         <collection property="products"
                     ofType="com.project.oditji.event.vo.EventProductVO">
-
-
-            <result property="productNo"
-                    column="PRODUCT_NO"/>
-
-
-            <result property="productName"
-                    column="PRODUCT_NAME"/>
-
-
-            <result property="price"
-                    column="PRICE"/>
-
-
-            <result property="eventDiscountRate"
-                    column="EVENT_DISCOUNT_RATE"/>
-
-
-            <result property="imagePath"
-                    column="IMAGE_PATH"/>
-
-
+            <id property="productNo" column="PRODUCT_NO"/>
+            <result property="productName" column="PRODUCT_NAME"/>
+            <result property="price" column="PRICE"/>
+            <result property="eventDiscountRate" column="EVENT_DISCOUNT_RATE"/>
+            <result property="imagePath" column="IMAGE_PATH"/>
         </collection>
 
-
     </resultMap>
-
 
 </mapper>

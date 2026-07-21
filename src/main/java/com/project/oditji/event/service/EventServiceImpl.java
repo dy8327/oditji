@@ -1,6 +1,7 @@
 package com.project.oditji.event.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,36 +16,32 @@ public class EventServiceImpl implements EventService {
     private final EventDAO eventDAO;
 
     public EventServiceImpl(EventDAO eventDAO) {
-
         this.eventDAO = eventDAO;
-
     }
 
-    /* 사용자 이벤트 목록 */
+    /** 승인된 이벤트를 날짜 구분에 따라 조회합니다. */
     @Override
-    public List<EventVO> getEventList() {
-
-        List<EventVO> eventList = eventDAO.selectEventList();
-
-        if(eventList == null) {
-            return List.of();
-        }
-
-        return eventList;
+    public List<EventVO> getEventList(String period) {
+        String normalizedPeriod = normalizePeriod(period);
+        List<EventVO> eventList = eventDAO.selectEventList(normalizedPeriod);
+        return eventList == null ? List.of() : eventList;
     }
 
-    /* 이벤트 상세 */
     @Override
     public EventVO getEventDetail(Long eventNo) {
-
-        if (eventNo == null || eventNo <= 0) {
-
-            return null;
-
-        }
-
+        if (eventNo == null || eventNo <= 0) return null;
         return eventDAO.selectEventDetail(eventNo);
-
     }
 
+    private String normalizePeriod(String period) {
+        String normalized = period == null
+                ? "ongoing"
+                : period.trim().toLowerCase(Locale.ROOT);
+
+        if ("upcoming".equals(normalized) || "ended".equals(normalized)) {
+            return normalized;
+        }
+
+        return "ongoing";
+    }
 }
