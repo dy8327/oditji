@@ -16,7 +16,9 @@
     <title>ODITJI | ${pageTitle}</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content.css?v=22">
+      <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/component.css">
+      href="${pageContext.request.contextPath}/css/content.css?v=22">
 
 
 <script>

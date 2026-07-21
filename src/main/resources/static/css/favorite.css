@@ -1,3 +1,7 @@
+/* [리팩터링] content.css/goods.css/favorite.css에 완전 동일하게 중복 정의되어 있던
+   no-img, fav-btn:hover, empty-state, price-original 등 공용 스타일을
+   css/component.css 로 통합 이동했습니다. (내용 변경 없음, 위치만 이동) */
+
 
 /* =========================================================
    CONTAINER
@@ -161,19 +165,7 @@
 }
 
 /* fallback */
-.no-img{
 
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:12px;
-    color:#666;
-    background:#0F0F0F;
-
-}
 
 /* 할인율 뱃지 (상품 탭) */
 .discount-badge{
@@ -234,13 +226,7 @@
 
 }
 
-.price-original{
 
-    color:#777;
-    font-size:12px;
-    text-decoration:line-through;
-
-}
 
 .price-final{
 
@@ -275,12 +261,7 @@
 
 }
 
-.fav-btn:hover{
 
-    background:rgba(255,255,255,0.15);
-    transform:scale(1.05);
-
-}
 
 .fav-btn.active{
 
@@ -292,14 +273,7 @@
    EMPTY STATE
 ========================================================= */
 
-.empty-state{
 
-    padding:80px 0;
-    text-align:center;
-    color:#777;
-    font-size:14px;
-
-}
 
 /* =========================================================
    RESPONSIVE (content.css / goods.css와 동일 breakpoint 유지)

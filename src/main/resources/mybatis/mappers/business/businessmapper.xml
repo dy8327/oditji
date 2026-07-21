@@ -354,6 +354,15 @@
         WHERE P.BUSINESS_NO = #{businessNo}
           AND P.STATUS = 'APPROVED'
 
+          AND NOT EXISTS (
+                SELECT 1
+                FROM EVENT_PRODUCT EP
+                JOIN EVENT E
+                  ON E.EVENT_NO = EP.EVENT_NO
+                WHERE EP.PRODUCT_NO = P.PRODUCT_NO
+                  AND E.STATUS IN ('WAITING', 'APPROVED')
+          )
+
         ORDER BY P.PRODUCT_NO DESC
 
     </select>

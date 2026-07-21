@@ -1,3 +1,7 @@
+/* [리팩터링] content.css/goods.css/favorite.css에 완전 동일하게 중복 정의되어 있던
+   list-header, card-*, detail-*, pagination, empty-state 등 공용 카드/리스트 스타일을
+   css/component.css 로 통합 이동했습니다. (내용 변경 없음, 위치만 이동) */
+
 /* =========================================================
    CONTENT COMMON WRAPPER
 ========================================================= */
@@ -22,70 +26,31 @@
 
 }
 
-.list-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    margin-bottom:20px;
-}
 
-.list-title{
-    font-size:22px;
-    font-weight:700;
-}
 
-.result-count{
 
-    font-size:14px;
-    color:#A0A0A0;
 
-}
+
 
 /* =========================================================
    LIST GRID (ODITJI STYLE - 5 GRID 유지)
 ========================================================= */
 
-.card-list{
 
-    display:grid;
-    grid-template-columns:repeat(5, 1fr);
-    gap:22px;
-    margin-top:30px;
-
-}
 
 /* =========================================================
    CONTENT CARD
 ========================================================= */
 
-.card-item{
 
-    position:relative;
-    background:#1E1E1E;
-    border-radius:14px;
-    overflow:hidden;
 
-    transition:transform .25s ease, box-shadow .25s ease;
 
-}
-
-.card-item:hover{
-
-    transform:translateY(-6px);
-    box-shadow:0 12px 28px rgba(0,0,0,0.45);
-
-}
 
 /* =========================================================
    LINK AREA
 ========================================================= */
 
-.card-link{
 
-    display:block;
-    color:inherit;
-
-}
 
 /* =========================================================
    POSTER AREA (ODITJI 핵심 느낌)
@@ -118,29 +83,13 @@
 }
 
 /* fallback */
-.no-img{
 
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:12px;
-    color:#666;
-    background:#0F0F0F;
-
-}
 
 /* =========================================================
    INFO AREA
 ========================================================= */
 
-.card-info{
 
-    padding:12px 14px;
-
-}
 
 .card-title{
 
@@ -164,13 +113,7 @@
 
 }
 
-.card-sub{
 
-    margin-top:6px;
-    font-size:12px;
-    color:#777;
-
-}
 
 /* =========================================================
    FAVORITE BUTTON (ODITJI ICON STYLE)
@@ -198,41 +141,19 @@
 
 }
 
-.fav-btn:hover{
 
-    background:rgba(255,255,255,0.15);
-    transform:scale(1.05);
-
-}
 
 /* =========================================================
    DETAIL LAYOUT (WIRE FRAME 기반 핵심 구조)
 ========================================================= */
 
-.detail-header{
 
-    display:flex;
-    gap:40px;
-    margin-bottom:50px;
-
-}
 
 /* poster */
-.detail-poster{
 
-    width:280px;
-    flex-shrink:0;
-    border-radius:14px;
-    overflow:hidden;
-
-}
 
 /* info */
-.detail-info{
 
-    flex:1;
-
-}
 
 /* meta */
 .detail-meta,
@@ -245,12 +166,7 @@
 }
 
 /* title */
-.detail-title{
 
-    font-size:28px;
-    font-weight:800;
-
-}
 
 /* overview */
 .detail-desc,
@@ -394,35 +310,17 @@
    PAGINATION
 ========================================================= */
 
-.pagination{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-top:30px;
-}
 
-.page-btn{
-    padding:6px 12px;
-    background:#222;
-    border-radius:6px;
-    color:#fff;
-}
 
-.page-now{
-    padding:6px 12px;
-    font-weight:600;
-}
+
+
+
 
 /* =========================================================
    EMPTY STATE
 ========================================================= */
 
-.empty-state{
-    padding:80px 0;
-    text-align:center;
-    color:#777;
-    font-size:14px;
-}
+
 
 /* =========================================================
    RESPONSIVE (필수 유지)
@@ -453,13 +351,9 @@
         grid-template-columns:repeat(2,1fr);
     }
 
-    .detail-header{
-        flex-direction:column;
-    }
+    
 
-    .detail-poster{
-        width:100%;
-    }
+    
 
 }
 
@@ -486,12 +380,7 @@
     color: #ffffff;
 }
 
-.review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 20px;
-}
+
 
 /* =========================
    REVIEW ITEM CARD

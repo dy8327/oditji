@@ -266,33 +266,8 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
-<script>
-function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
-
-function openOrderStatusModal(orderNo, productName, status) {
-    document.getElementById('statusOrderNo').value = orderNo;
-    document.getElementById('statusOrderNoText').textContent = orderNo;
-    document.getElementById('statusProductName').textContent = productName;
-    document.getElementById('statusCurrent').textContent = status;
-
-    var radios = document.getElementsByName('orderStatus');
-    for (var i = 0; i < radios.length; i++) {
-        radios[i].checked = (radios[i].value === status);
-    }
-
-    document.getElementById('orderStatusModal').classList.add('open');
-}
-
-function openRefundModal(cancelNo, orderItemNo, productName, memberId, reason) {
-    document.getElementById('refundCancelNo').value = cancelNo;
-    document.getElementById('refundOrderItemNo').textContent = orderItemNo;
-    document.getElementById('refundProductName').textContent = productName;
-    document.getElementById('refundMemberId').textContent = memberId;
-    document.getElementById('refundReason').value = reason;
-    document.getElementById('refundModal').classList.add('open');
-}
+<script defer
+        src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
 </body>

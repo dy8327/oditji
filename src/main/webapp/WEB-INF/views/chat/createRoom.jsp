@@ -12,70 +12,7 @@
 
 <title>채팅방 생성</title>
 
-<style>
-
-body{
-
-    font-family: Arial;
-
-    width:700px;
-
-    margin:50px auto;
-
-}
-
-table{
-
-    width:100%;
-
-    border-collapse:collapse;
-
-}
-
-td{
-
-    padding:10px;
-
-}
-
-input[type=text]{
-
-    width:100%;
-
-    height:35px;
-
-}
-
-textarea{
-
-    width:100%;
-
-    height:120px;
-
-    resize:none;
-
-}
-
-select{
-
-    width:200px;
-
-    height:35px;
-
-}
-
-button{
-
-    width:120px;
-
-    height:40px;
-
-    cursor:pointer;
-
-}
-
-</style>
-
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/chat-create-room.css">
 </head>
 
 <body>

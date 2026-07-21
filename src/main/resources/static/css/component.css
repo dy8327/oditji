@@ -1,0 +1,103 @@
+/* component.css
+ * content.css / goods.css / favorite.css 에 완전히 동일한 내용으로 중복 정의되어 있던
+ * 카드/리스트/페이지네이션 공용 컴포넌트 스타일을 이 파일로 통합했습니다.
+ * (리팩터링 시 자동 추출 - 기존 스타일 값 변경 없음)
+ */
+
+.list-header {    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:20px;}
+
+.list-title {    font-size:22px;
+    font-weight:700;}
+
+.result-count {    font-size:14px;
+    color:#A0A0A0;}
+
+.card-list {    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:22px;
+    margin-top:30px;}
+
+.card-item {    position:relative;
+    background:#1E1E1E;
+    border-radius:14px;
+    overflow:hidden;
+
+    transition:transform .25s ease, box-shadow .25s ease;}
+
+.card-item:hover {    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);}
+
+.card-link {    display:block;
+    color:inherit;}
+
+.no-img {    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:12px;
+    color:#666;
+    background:#0F0F0F;}
+
+.card-info {    padding:12px 14px;}
+
+.card-sub {    margin-top:6px;
+    font-size:12px;
+    color:#777;}
+
+.fav-btn:hover {    background:rgba(255,255,255,0.15);
+    transform:scale(1.05);}
+
+.detail-header {    display:flex;
+    gap:40px;
+    margin-bottom:50px;}
+
+.detail-poster {    width:280px;
+    flex-shrink:0;
+    border-radius:14px;
+    overflow:hidden;}
+
+.detail-info {    flex:1;}
+
+.detail-title {    font-size:28px;
+    font-weight:800;}
+
+.pagination {    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:30px;}
+
+.page-btn {    padding:6px 12px;
+    background:#222;
+    border-radius:6px;
+    color:#fff;}
+
+.page-now {    padding:6px 12px;
+    font-weight:600;}
+
+.empty-state {    padding:80px 0;
+    text-align:center;
+    color:#777;
+    font-size:14px;}
+
+.review-list {    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;}
+
+.price-original {    color:#777;
+    font-size:12px;
+    text-decoration:line-through;}
+
+@media (max-width:768px) {
+  .detail-header {        flex-direction:column;
+    }
+
+  .detail-poster {        width:100%;
+    }
+
+}

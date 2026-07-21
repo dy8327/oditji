@@ -22,9 +22,6 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/business.css">
 
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/productDelete.css">
-
 </head>
 
 <body>

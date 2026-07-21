@@ -950,3 +950,17 @@
     flex-direction: column;
   }
 }
+
+/* =====================================================
+   [리팩터링 추가] admin-message
+   admin/goods/productManage.jsp 에서 사용 중이었으나
+   CSS 정의가 없어 스타일이 적용되지 않던 클래스 (rule 5)
+   ===================================================== */
+.admin-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--adm-danger-bg);
+  color: var(--adm-danger);
+}
