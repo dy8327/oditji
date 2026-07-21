@@ -1195,8 +1195,8 @@ public class SearchContentPageCacheService {
     }
 
     private boolean matchesContentCategory(
-            CachedContentVO content,
-            String category) {
+                CachedContentVO content,
+                String category) {
 
         String contentType =
                 safeText(
@@ -1220,36 +1220,32 @@ public class SearchContentPageCacheService {
 
         if (CATEGORY_MOVIE.equals(category)) {
 
-            return MOVIE.equals(contentType)
-                    && !animation
-                    && !documentary;
+                return MOVIE.equals(contentType)
+                        && !animation
+                        && !documentary;
         }
 
         if (CATEGORY_DRAMA.equals(category)) {
 
-            return TV.equals(contentType)
-                    && genreText.contains("드라마")
-                    && !animation
-                    && !documentary
-                    && !variety;
+                return TV.equals(contentType)
+                        && genreText.contains("드라마")
+                        && !animation
+                        && !documentary
+                        && !variety;
         }
 
         if (CATEGORY_ANIMATION.equals(category)) {
-            return animation;
+                return animation;
         }
 
         if (CATEGORY_VARIETY.equals(category)) {
 
-            return TV.equals(contentType)
-                    && variety;
+                return TV.equals(contentType)
+                        && variety;
         }
-
-        if (CATEGORY_DOCUMENTARY.equals(category)) {
-            return documentary;
+        return CATEGORY_DOCUMENTARY.equals(category)
+                && documentary;
         }
-
-        return false;
-    }
 
     private boolean matchesGenreCodes(
             CachedContentVO content,
