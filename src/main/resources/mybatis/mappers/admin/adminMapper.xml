@@ -431,13 +431,20 @@
             E.CREATED_AT AS createdAt,
             E.STATUS AS status,
 
-            B.BUSINESS_NAME AS businessName,
+            MIN(B.BUSINESS_NAME) AS businessName,
 
-            P.PRODUCT_NO AS productNo,
-            P.PRODUCT_NAME AS productName,
-            P.PRICE AS price,
+            LISTAGG(P.PRODUCT_NAME, ', ')
+                WITHIN GROUP (ORDER BY EP.EVENT_PROD_NO) AS productName,
+            MIN(P.PRICE) AS price,
 
-            EP.EVENT_DISCOUNT_RATE AS eventDiscountRate
+            MAX(EP.EVENT_DISCOUNT_RATE) AS eventDiscountRate,
+
+            LISTAGG(
+                P.PRODUCT_NAME || '|' || EP.EVENT_DISCOUNT_RATE
+                    || '|' || P.PRICE
+                    || '|' || ROUND(P.PRICE * (100 - EP.EVENT_DISCOUNT_RATE) / 100),
+                ';'
+            ) WITHIN GROUP (ORDER BY EP.EVENT_PROD_NO) AS productDetail
 
         FROM EVENT E
 
@@ -486,6 +493,15 @@
         </if>
 
 
+        GROUP BY
+            E.EVENT_NO,
+            E.TITLE,
+            E.START_DATE,
+            E.END_DATE,
+            E.CREATED_AT,
+            E.STATUS
+
+
         ORDER BY E.EVENT_NO DESC
 
     </select>
@@ -500,6 +516,11 @@
     <!--
         이벤트 승인 시 연결 상품의 할인율에 이벤트 할인율을 반영하기 위해
         연결된 PRODUCT_NO / EVENT_DISCOUNT_RATE를 조회한다.
+
+        하나의 이벤트에 여러 상품이 연결될 수 있으므로
+        selectOne이 아닌 selectList로 조회해야 한다.
+        (연결 상품이 2건 이상이면 selectOne은
+        TooManyResultsException을 던진다.)
     -->
     <select id="selectEventProductByEventNo"
             resultType="com.project.oditji.admin.vo.EventManageVO">
