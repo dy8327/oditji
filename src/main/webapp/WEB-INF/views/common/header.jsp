@@ -107,7 +107,7 @@
                     </c:if>
                     <div class="profile-menu">
                         <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
-                            👤 <span>${sessionScope.loginMember.nickname}</span>
+                            👤 <span>${sessionScope.loginDisplayName}</span>
                         </button>
                         <div class="profile-dropdown">
                             <a href="${pageContext.request.contextPath}/member/mypage">마이페이지</a>
