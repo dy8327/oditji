@@ -1159,21 +1159,26 @@ public class BusinessController {
                 } catch (IllegalArgumentException
                                 | IllegalStateException e) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                System.out.println("===== catch 실행 =====");
+                System.out.println("에러 메시지 : " + e.getMessage());
+                e.printStackTrace();
 
-                        return "redirect:/business/event/register";
+                redirectAttributes.addFlashAttribute(
+                                "errorMessage",
+                                e.getMessage());
+
+                return "redirect:/business/event/register";
 
                 } catch (Exception e) {
 
-                        e.printStackTrace();
+                System.out.println("===== Exception catch 실행 =====");
+                e.printStackTrace();
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
+                redirectAttributes.addFlashAttribute(
+                                "errorMessage",
+                                "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
 
-                        return "redirect:/business/event/register";
+                return "redirect:/business/event/register";
                 }
         }
 

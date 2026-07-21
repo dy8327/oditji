@@ -468,10 +468,20 @@
             resultType="int">
 
         SELECT COUNT(*)
-        FROM PRODUCT
-        WHERE PRODUCT_NO = #{productNo}
-          AND BUSINESS_NO = #{businessNo}
-          AND STATUS != 'DELETE_REQUESTED'
+        FROM PRODUCT P
+
+        WHERE P.PRODUCT_NO = #{productNo}
+        AND P.BUSINESS_NO = #{businessNo}
+        AND P.STATUS != 'DELETE_REQUESTED'
+
+        AND NOT EXISTS (
+            SELECT 1
+            FROM EVENT_PRODUCT EP
+            JOIN EVENT E
+                ON E.EVENT_NO = EP.EVENT_NO
+            WHERE EP.PRODUCT_NO = P.PRODUCT_NO
+                AND E.STATUS IN ('WAITING', 'APPROVED')
+        )
 
     </select>
 
