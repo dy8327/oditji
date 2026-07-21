@@ -25,11 +25,11 @@
 
         <choose>
             <when test="_parameter == 'upcoming'">
-                AND START_DATE > SYSDATE
+                AND START_DATE &gt; SYSDATE
             </when>
 
             <when test="_parameter == 'ended'">
-                AND END_DATE < SYSDATE
+                AND END_DATE &lt; SYSDATE
             </when>
 
             <otherwise>
