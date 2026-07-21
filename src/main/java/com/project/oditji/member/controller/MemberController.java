@@ -298,19 +298,67 @@ public class MemberController {
                                 return "redirect:/member/login";
                         }
 
+                        /*
+                        * =========================================================
+                        * 사업자 회원 승인 상태 확인
+                        *
+                        * BUSINESS 행이 존재하면 사업자 회원으로 판단한다.
+                        * 관리자 승인(APPROVED) 전에는 로그인시키지 않는다.
+                        * =========================================================
+                        */
+                        BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
+
+                        if (business != null) {
+                                String businessStatus = business.getStatus();
+
+                        /* 승인 대기*/
+                        if ("WAITING".equals(businessStatus)) {
+                                 redirectAttributes.addFlashAttribute("message", "관리자 승인 대기 중인 사업자 계정입니다.");
+
+                                return "redirect:/member/login";
+                        }
+
+                        /* 승인 거절 */
+                        if ("REJECTED".equals(businessStatus)) {
+                                String message = "사업자 승인이 거절되었습니다.";
+
+                                if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
+                                         message += "\n사유: "+ business.getRejectReason();
+                                }
+                                redirectAttributes.addFlashAttribute("message", message);
+
+                                 return "redirect:/member/login";
+                        }
+
+                        /* 승인된 사업자만 로그인 허용 */
+                        if (!"APPROVED".equals(businessStatus)) {
+                                redirectAttributes.addFlashAttribute("message", "현재 사업자 계정 상태로는 로그인할 수 없습니다.");
+
+                                return "redirect:/member/login";
+                        }
+                        }
+
                         session.setAttribute("loginMember", loginMember);
                         session.setAttribute("memberNo", loginMember.getMemberNo());
                         session.setAttribute("memberId", loginMember.getMemberId());
                         session.setAttribute("memberName", loginMember.getMemberName());
                         session.setAttribute("nickname", loginMember.getNickname());
                         session.setAttribute("role", loginMember.getRole());
-
+                        
+                        if (business != null) {
+                                session.setAttribute("businessNo", business.getBusinessNo());
+                                session.setAttribute("businessName",business.getBusinessName());
+                                session.setAttribute("businessStatus", business.getStatus());           
+                                }
                         String displayName = loginMember.getMemberName();
-
-                        if (displayName == null || displayName.isBlank()) {
-                                displayName = loginMember.getNickname();
+                        if (business != null) {
+                                displayName = business.getBusinessName();
                         }
-
+                         else{
+                                if (displayName == null || displayName.isBlank()) {
+                                displayName = loginMember.getNickname();
+                                }
+                        }
                         if (displayName == null || displayName.isBlank()) {
                                 displayName = "회원";
                         }
