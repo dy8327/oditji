@@ -2,8 +2,10 @@ package com.project.oditji.content.controller;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,7 @@ import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ContentReviewVO;
 import com.project.oditji.review.vo.ReviewVO;
 import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
@@ -39,15 +42,18 @@ public class ContentController {
     private final ContentService contentService;
     private final ReviewService reviewService;
     private final FavoriteService favoriteService;
+    private final TmdbDAO tmdbDAO;
 
     public ContentController(
             ContentService contentService,
             ReviewService reviewService,
-            FavoriteService favoriteService) {
+            FavoriteService favoriteService,
+            TmdbDAO tmdbDAO) {
 
         this.contentService = contentService;
         this.reviewService = reviewService;
         this.favoriteService = favoriteService;
+        this.tmdbDAO = tmdbDAO;
     }
 
     @GetMapping("/prepare")
@@ -104,15 +110,23 @@ public class ContentController {
         /*
          * 우측 추천 콘텐츠도 현재 선택한
          * 콘텐츠 종류, 장르, OTT 조건을 함께 반영합니다.
-         *
-         * 목록과 추천 모두 JSONL 공용 저장소를 사용하므로
-         * 별도의 TMDB API 호출은 발생하지 않습니다.
          */
         List<SearchResultVO> recommendedList =
                 contentService.getContentRecommendedList(
                         safeCategories,
                         safeGenres,
                         safeProviders);
+
+        /*
+         * 검색 결과 화면과 동일하게 OTT_PLATFORM 테이블의
+         * 활성 플랫폼 로고 주소를 Map으로 만들어 JSP에 전달합니다.
+         *
+         * Map 키:
+         * netflix, tving, wavve, disney, watcha, coupang
+         */
+        Map<String, String> ottLogoMap =
+                createOttLogoMap(
+                        tmdbDAO.selectActivePlatformList());
 
         model.addAttribute(
                 "contentList",
@@ -157,6 +171,14 @@ public class ContentController {
         model.addAttribute(
                 "pageTitle",
                 makePageTitle(normalizedType));
+
+        /*
+         * contentLeftSidebar.jsp의 ${ottLogoMap[...]}가
+         * 실제 이미지 URL을 사용할 수 있도록 전달합니다.
+         */
+        model.addAttribute(
+                "ottLogoMap",
+                ottLogoMap);
 
         return "content/contentList";
     }
@@ -359,6 +381,91 @@ public class ContentController {
                 person);
 
         return "content/personFilmography";
+    }
+
+    /**
+     * OTT_PLATFORM 테이블에서 조회한 플랫폼 목록을
+     * JSP에서 사용하기 편한 로고 URL Map으로 변환합니다.
+     */
+    private Map<String, String> createOttLogoMap(
+            List<OttPlatformVO> platformList) {
+
+        Map<String, String> logoMap =
+                new LinkedHashMap<String, String>();
+
+        if (platformList == null) {
+            return logoMap;
+        }
+
+        for (OttPlatformVO platform : platformList) {
+
+            if (platform == null
+                    || platform.getPlatformName() == null
+                    || platform.getLogoImage() == null
+                    || platform.getLogoImage().isBlank()) {
+
+                continue;
+            }
+
+            String platformKey =
+                    normalizePlatformName(
+                            platform.getPlatformName());
+
+            if (!platformKey.isEmpty()) {
+
+                logoMap.put(
+                        platformKey,
+                        platform.getLogoImage());
+            }
+        }
+
+        return logoMap;
+    }
+
+    /**
+     * DB의 플랫폼 이름 표기가 조금 달라도
+     * JSP에서 사용하는 공통 키로 맞춥니다.
+     */
+    private String normalizePlatformName(
+            String platformName) {
+
+        if (platformName == null) {
+            return "";
+        }
+
+        String normalized =
+                platformName
+                        .trim()
+                        .toLowerCase(Locale.ROOT)
+                        .replaceAll(
+                                "[^a-z0-9]",
+                                "");
+
+        if (normalized.contains("netflix")) {
+            return "netflix";
+        }
+
+        if (normalized.contains("tving")) {
+            return "tving";
+        }
+
+        if (normalized.contains("wavve")) {
+            return "wavve";
+        }
+
+        if (normalized.contains("disney")) {
+            return "disney";
+        }
+
+        if (normalized.contains("watcha")) {
+            return "watcha";
+        }
+
+        if (normalized.contains("coupang")) {
+            return "coupang";
+        }
+
+        return normalized;
     }
 
     private String normalizeListType(
