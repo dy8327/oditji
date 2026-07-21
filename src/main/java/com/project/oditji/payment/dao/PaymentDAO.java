@@ -35,6 +35,12 @@ public interface PaymentDAO {
                         PaymentVO paymentVO);
 
         /**
+         * [부분 환불 기능 추가] 누적 취소 금액과 결제 상태를 변경한다.
+         */
+        int updatePaymentPartialCanceled(
+                        PaymentVO paymentVO);
+
+        /**
          * 전체 결제내역 조회
          */
         List<PaymentVO> selectPaymentList();

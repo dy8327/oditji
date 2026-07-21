@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.refund.dao.OrderCancelRefundDAO">
+
+    <resultMap id="cancelRequestResultMap" type="com.project.oditji.refund.vo.OrderCancelRefundVO">
+        <id property="cancelNo" column="CANCEL_NO"/>
+        <result property="orderItemNo" column="ORDER_ITEM_NO"/>
+        <result property="orderNo" column="ORDER_NO"/>
+        <result property="memberNo" column="MEMBER_NO"/>
+        <result property="businessNo" column="BUSINESS_NO"/>
+        <result property="productNo" column="PRODUCT_NO"/>
+        <result property="productName" column="PRODUCT_NAME"/>
+        <result property="productPrice" column="PRODUCT_PRICE"/>
+        <result property="quantity" column="QUANTITY"/>
+        <result property="cancelAmount" column="CANCEL_AMOUNT"/>
+        <result property="reason" column="REASON"/>
+        <result property="status" column="STATUS"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="processedAt" column="PROCESSED_AT"/>
+        <result property="rejectReason" column="REJECT_REASON"/>
+    </resultMap>
+
+    <select id="selectCancelableItemsByOrder" resultType="com.project.oditji.order.vo.OrderItemVO">
+        SELECT OI.ORDER_ITEM_NO AS orderItemNo,
+               OI.ORDER_NO AS orderNo,
+               OI.PRODUCT_NO AS productNo,
+               OI.BUSINESS_NO AS businessNo,
+               OI.PRODUCT_PRICE AS productPrice,
+               OI.QUANTITY AS quantity,
+               OI.STATUS AS status
+          FROM ORDER_ITEM OI
+          JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+         WHERE O.MEMBER_NO = #{memberNo}
+           AND O.ORDER_NO = #{orderNo}
+           AND OI.STATUS IN ('ORDERED', 'PAID', 'PREPARING')
+           AND NOT EXISTS (
+               SELECT 1
+                 FROM DELIVERY D
+                WHERE D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND D.STATUS IN ('SHIPPING', 'DELIVERED')
+           )
+         ORDER BY OI.ORDER_ITEM_NO
+    </select>
+
+    <select id="countWaitingCancelByOrderItemNo" resultType="int">
+        SELECT COUNT(*)
+          FROM CANCEL_REQUEST
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS = 'WAITING'
+    </select>
+
+    <insert id="insertCancelRequest" parameterType="com.project.oditji.refund.vo.OrderCancelRefundVO">
+        <selectKey keyProperty="cancelNo" resultType="long" order="BEFORE">
+            SELECT SEQ_CANCEL_NO.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CANCEL_REQUEST (
+            CANCEL_NO, ORDER_ITEM_NO, MEMBER_NO, REASON, STATUS, CREATED_AT
+        ) VALUES (
+            #{cancelNo}, #{orderItemNo}, #{memberNo}, #{reason}, 'WAITING', SYSDATE
+        )
+    </insert>
+
+    <update id="updateOrderItemCancelRequested">
+        UPDATE ORDER_ITEM
+           SET STATUS = 'CANCEL_REQUEST'
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS IN ('ORDERED', 'PAID', 'PREPARING')
+    </update>
+
+    <select id="selectCancelListByBusiness" resultMap="cancelRequestResultMap">
+        SELECT CR.CANCEL_NO,
+               CR.ORDER_ITEM_NO,
+               OI.ORDER_NO,
+               CR.MEMBER_NO,
+               OI.BUSINESS_NO,
+               OI.PRODUCT_NO,
+               P.PRODUCT_NAME,
+               OI.PRODUCT_PRICE,
+               OI.QUANTITY,
+               (OI.PRODUCT_PRICE * OI.QUANTITY) AS CANCEL_AMOUNT,
+               CR.REASON,
+               CR.STATUS,
+               CR.CREATED_AT,
+               CR.PROCESSED_AT,
+               CR.REJECT_REASON
+          FROM CANCEL_REQUEST CR
+          JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+          JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+         WHERE OI.BUSINESS_NO = #{businessNo}
+           <if test="status != null and status != ''">
+             AND CR.STATUS = #{status}
+           </if>
+         ORDER BY CASE CR.STATUS WHEN 'WAITING' THEN 1 ELSE 2 END,
+                  CR.CREATED_AT DESC,
+                  CR.CANCEL_NO DESC
+    </select>
+
+    <select id="selectCancelRequestForBusiness" resultMap="cancelRequestResultMap">
+        SELECT CR.CANCEL_NO,
+               CR.ORDER_ITEM_NO,
+               OI.ORDER_NO,
+               CR.MEMBER_NO,
+               OI.BUSINESS_NO,
+               OI.PRODUCT_NO,
+               P.PRODUCT_NAME,
+               OI.PRODUCT_PRICE,
+               OI.QUANTITY,
+               (OI.PRODUCT_PRICE * OI.QUANTITY) AS CANCEL_AMOUNT,
+               CR.REASON,
+               CR.STATUS,
+               CR.CREATED_AT,
+               CR.PROCESSED_AT,
+               CR.REJECT_REASON
+          FROM CANCEL_REQUEST CR
+          JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+          JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+         WHERE CR.CANCEL_NO = #{cancelNo}
+           AND OI.BUSINESS_NO = #{businessNo}
+    </select>
+
+    <update id="approveCancelRequest">
+        UPDATE CANCEL_REQUEST
+           SET STATUS = 'APPROVED',
+               PROCESSED_AT = SYSDATE,
+               REJECT_REASON = NULL
+         WHERE CANCEL_NO = #{cancelNo}
+           AND STATUS = 'WAITING'
+    </update>
+
+    <update id="rejectCancelRequest">
+        UPDATE CANCEL_REQUEST
+           SET STATUS = 'REJECTED',
+               PROCESSED_AT = SYSDATE,
+               REJECT_REASON = #{rejectReason}
+         WHERE CANCEL_NO = #{cancelNo}
+           AND STATUS = 'WAITING'
+    </update>
+
+    <update id="restoreOrderItemStatus">
+        UPDATE ORDER_ITEM
+           SET STATUS = 'PAID'
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS = 'CANCEL_REQUEST'
+    </update>
+
+    <update id="cancelOrderItem">
+        UPDATE ORDER_ITEM
+           SET STATUS = 'CANCELED'
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS = 'CANCEL_REQUEST'
+    </update>
+
+    <update id="restoreProductStock">
+        UPDATE PRODUCT
+           SET STOCK = STOCK + #{quantity}
+         WHERE PRODUCT_NO = #{productNo}
+    </update>
+
+    <update id="updateOrderStatusByItems">
+        UPDATE ORDERS O
+           SET O.ORDER_STATUS = (
+               SELECT CASE
+                        WHEN COUNT(*) = SUM(CASE WHEN OI.STATUS = 'CANCELED' THEN 1 ELSE 0 END)
+                            THEN 'CANCELED'
+                        WHEN SUM(CASE WHEN OI.STATUS = 'CANCEL_REQUEST' THEN 1 ELSE 0 END) > 0
+                            THEN 'CANCEL_REQUEST'
+                        WHEN SUM(CASE WHEN OI.STATUS = 'CANCELED' THEN 1 ELSE 0 END) > 0
+                            THEN 'PARTIAL_CANCELED'
+                        WHEN SUM(CASE WHEN OI.STATUS = 'SHIPPING' THEN 1 ELSE 0 END) > 0
+                            THEN 'SHIPPING'
+                        WHEN SUM(CASE WHEN OI.STATUS = 'PREPARING' THEN 1 ELSE 0 END) > 0
+                            THEN 'PREPARING'
+                        ELSE 'PAID'
+                      END
+                 FROM ORDER_ITEM OI
+                WHERE OI.ORDER_NO = #{orderNo}
+           )
+         WHERE O.ORDER_NO = #{orderNo}
+    </update>
+
+</mapper>
