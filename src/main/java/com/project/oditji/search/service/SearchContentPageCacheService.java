@@ -1,12 +1,14 @@
 package com.project.oditji.search.service;
 
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +45,263 @@ public class SearchContentPageCacheService {
 
         this.tmdbDAO =
                 tmdbDAO;
+    }
+
+    /**
+     * 메인 우측 인기 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+     */
+    public List<SearchResultVO> getMainPopularContent(
+            int limit) {
+
+        return limitList(
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                ),
+                limit
+        );
+    }
+
+    /**
+     * 오늘의 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+     *
+     * 최근 30일 이내 공개작을 우선 사용하고,
+     * 목록이 부족하면 최근 90일 이내 공개작,
+     * 이후 전체 인기 콘텐츠 순으로 보충합니다.
+     */
+    public List<SearchResultVO> getMainTodayContent(
+            int limit) {
+
+        int normalizedLimit =
+                Math.max(limit, 0);
+
+        if (normalizedLimit == 0) {
+            return new ArrayList<SearchResultVO>();
+        }
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        LocalDate today =
+                LocalDate.now();
+
+        Map<String, SearchResultVO> selectedMap =
+                new LinkedHashMap<String, SearchResultVO>();
+
+        appendReleasedContent(
+                selectedMap,
+                allContentList,
+                today.minusDays(30),
+                today,
+                normalizedLimit
+        );
+
+        appendReleasedContent(
+                selectedMap,
+                allContentList,
+                today.minusDays(90),
+                today,
+                normalizedLimit
+        );
+
+        appendAllContent(
+                selectedMap,
+                allContentList,
+                normalizedLimit
+        );
+
+        return new ArrayList<SearchResultVO>(
+                selectedMap.values()
+        );
+    }
+
+    /**
+     * 추천 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+     *
+     * 선택 OTT가 있으면 해당 OTT 콘텐츠만 사용하고,
+     * 선택 OTT가 없으면 지원 OTT 전체를 사용합니다.
+     */
+    /**
+         * 추천 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+         *
+         * 선택 OTT가 있으면 해당 OTT 콘텐츠만 사용하고,
+         * 선택 OTT가 없으면 지원 OTT 전체를 사용합니다.
+         *
+         * 추천 우선순위:
+         * 1. 인기도 높은 순
+         * 2. 평점 높은 순
+         */
+        public List<SearchResultVO> getMainRecommendedContent(
+                List<String> providerValues,
+                int limit) {
+
+        List<SearchResultVO> resultList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        providerValues
+                );
+
+        resultList.sort(
+                Comparator
+                        .comparing(
+                                SearchResultVO::getPopularity,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                        .thenComparing(
+                                SearchResultVO::getTmdbScore,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+        );
+
+        return limitList(
+                resultList,
+                limit
+        );
+        }
+
+    private void appendReleasedContent(
+            Map<String, SearchResultVO> selectedMap,
+            List<SearchResultVO> sourceList,
+            LocalDate startDate,
+            LocalDate endDate,
+            int limit) {
+
+        if (selectedMap.size() >= limit
+                || sourceList == null) {
+
+            return;
+        }
+
+        for (SearchResultVO content : sourceList) {
+
+            if (selectedMap.size() >= limit) {
+                break;
+            }
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content == null
+                                    ? null
+                                    : content.getReleaseDate()
+                    );
+
+            if (releaseDate == null
+                    || releaseDate.isBefore(startDate)
+                    || releaseDate.isAfter(endDate)) {
+
+                continue;
+            }
+
+            putDistinctContent(
+                    selectedMap,
+                    content
+            );
+        }
+    }
+
+    private void appendAllContent(
+            Map<String, SearchResultVO> selectedMap,
+            List<SearchResultVO> sourceList,
+            int limit) {
+
+        if (selectedMap.size() >= limit
+                || sourceList == null) {
+
+            return;
+        }
+
+        for (SearchResultVO content : sourceList) {
+
+            if (selectedMap.size() >= limit) {
+                break;
+            }
+
+            putDistinctContent(
+                    selectedMap,
+                    content
+            );
+        }
+    }
+
+    private void putDistinctContent(
+            Map<String, SearchResultVO> selectedMap,
+            SearchResultVO content) {
+
+        if (content == null
+                || content.getTmdbId() == null
+                || content.getContentType() == null) {
+
+            return;
+        }
+
+        String key =
+                content.getContentType()
+                + ":"
+                + content.getTmdbId();
+
+        selectedMap.putIfAbsent(
+                key,
+                content
+        );
+    }
+
+    private LocalDate parseReleaseDate(
+            String releaseDate) {
+
+        if (releaseDate == null
+                || releaseDate.isBlank()) {
+
+            return null;
+        }
+
+        try {
+
+            return LocalDate.parse(
+                    releaseDate.trim()
+            );
+
+        } catch (Exception e) {
+
+            return null;
+        }
+    }
+
+    private List<SearchResultVO> limitList(
+            List<SearchResultVO> sourceList,
+            int limit) {
+
+        if (sourceList == null
+                || sourceList.isEmpty()
+                || limit <= 0) {
+
+            return new ArrayList<SearchResultVO>();
+        }
+
+        if (sourceList.size() <= limit) {
+            return new ArrayList<SearchResultVO>(
+                    sourceList
+            );
+        }
+
+        return new ArrayList<SearchResultVO>(
+                sourceList.subList(
+                        0,
+                        limit
+                )
+        );
     }
 
     public SearchResultPageVO getContentPage(
@@ -703,8 +962,7 @@ public class SearchContentPageCacheService {
             return result;
         }
 
-        for (String providerId
-                : providerIds) {
+        for (String providerId : providerIds) {
 
             if (providerId == null
                     || providerId.isBlank()) {
@@ -712,41 +970,57 @@ public class SearchContentPageCacheService {
                 continue;
             }
 
-            String normalized =
-                    providerId.trim()
-                            .toLowerCase(Locale.ROOT);
+            String rawValue =
+                    providerId.trim();
 
-            if ("netflix".equals(normalized)
-                    || "8".equals(normalized)) {
+            String normalizedValue =
+                    rawValue.toLowerCase(
+                            Locale.ROOT
+                    );
 
+            if ("8".equals(normalizedValue)) {
                 result.add("netflix");
+                continue;
+            }
 
-            } else if ("tving".equals(normalized)
-                    || "1883".equals(normalized)) {
-
+            if ("1883".equals(normalizedValue)) {
                 result.add("tving");
+                continue;
+            }
 
-            } else if ("wavve".equals(normalized)
-                    || "356".equals(normalized)) {
-
+            if ("356".equals(normalizedValue)) {
                 result.add("wavve");
+                continue;
+            }
 
-            } else if ("disney".equals(normalized)
-                    || "disney+".equals(normalized)
-                    || "337".equals(normalized)) {
-
+            if ("337".equals(normalizedValue)) {
                 result.add("disney");
+                continue;
+            }
 
-            } else if ("watcha".equals(normalized)
-                    || "97".equals(normalized)) {
-
+            if ("97".equals(normalizedValue)) {
                 result.add("watcha");
+                continue;
+            }
 
-            } else if ("coupang".equals(normalized)
-                    || "coupangplay".equals(normalized)
-                    || "283".equals(normalized)) {
-
+            if ("283".equals(normalizedValue)) {
                 result.add("coupang");
+                continue;
+            }
+
+            String platformKey =
+                    normalizePlatformName(
+                            rawValue
+                    );
+
+            if ("netflix".equals(platformKey)
+                    || "tving".equals(platformKey)
+                    || "wavve".equals(platformKey)
+                    || "disney".equals(platformKey)
+                    || "watcha".equals(platformKey)
+                    || "coupang".equals(platformKey)) {
+
+                result.add(platformKey);
             }
         }
 
