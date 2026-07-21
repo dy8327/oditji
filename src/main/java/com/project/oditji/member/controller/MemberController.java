@@ -22,6 +22,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
+import com.project.oditji.business.service.BusinessService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -34,18 +35,42 @@ public class MemberController {
 
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
+        private final BusinessService businessService;
 
         public MemberController(
-                        MemberService memberService,
-                        MemberPlatformService memberPlatformService) {
+                MemberService memberService,
+                MemberPlatformService memberPlatformService,
+                BusinessService businessService) {
 
                 this.memberService = memberService;
                 this.memberPlatformService = memberPlatformService;
-        }
+                this.businessService = businessService;
+                }
 
         @GetMapping("/join")
         public String joinForm() {
                 return "member/join";
+        }
+
+        /*
+        * =========================================================
+        * 사업자등록번호 중복 확인
+        *
+        * Y : 등록 가능
+        * N : 이미 등록된 번호
+        * =========================================================
+        */
+        @GetMapping("/checkBusinessNumber")
+        @ResponseBody
+        public String checkBusinessNumber(
+                @RequestParam("businessNumber")
+                String businessNumber) {
+
+        boolean available =
+                businessService.isBusinessNumberAvailable(
+                        businessNumber);
+
+        return available ? "Y" : "N";
         }
 
         @PostMapping("/join")
