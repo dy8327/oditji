@@ -16,9 +16,9 @@
 <title>ODITJI | 상품 상세</title>
 
 <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/goods.css">
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
-      href="${pageContext.request.contextPath}/css/goods.css">
 
 <script defer
         src="${pageContext.request.contextPath}/js/goods.js">

@@ -11,9 +11,10 @@
 <title>ODITJI | 콘텐츠 상세</title>
 
 <link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/content.css">
+
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
-      href="${pageContext.request.contextPath}/css/content.css">
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/report.css">
