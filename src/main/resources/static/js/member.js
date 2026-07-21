@@ -71,7 +71,6 @@ async function checkId() {
   try {
     const contextPath = getContextPath();
     const url = `${contextPath}/member/checkId?memberId=${encodeURIComponent(memberId)}`;
-
     const response = await fetch(url);
     const result = await response.text();
 
@@ -187,7 +186,6 @@ async function checkBusinessNumber() {
   try {
     const contextPath = getContextPath();
     const url = `${contextPath}/member/checkBusinessNumber?businessNumber=${encodeURIComponent(businessNumber)}`;
-
     const response = await fetch(url);
     const result = await response.text();
 
@@ -231,7 +229,6 @@ async function checkBusinessNumber() {
 ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("joinForm");
-
   const memberName = document.getElementById("memberName");
   const memberId = document.getElementById("memberId");
   const memberPw = document.getElementById("memberPw");
@@ -241,10 +238,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const phone = document.getElementById("phone");
   const joinType = document.getElementById("joinType");
   const businessNumber = document.getElementById("businessNumber");
-
   const ottCheckboxes = document.querySelectorAll("input[name='ottList']");
-  const fileInput = document.getElementById("profileImageFile");
-  const fileName = document.querySelector(".file-name");
+  const profileImageFile = document.getElementById("profileImageFile");
+  const profileFileName = document.querySelector("label[for='profileImageFile']")?.parentElement.querySelector(".file-name");
+  const licenseFile = document.getElementById("licenseFile");
+  const licenseFileName = document.getElementById("licenseFileName");
 
   if (!form) {
     return;
@@ -378,10 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (businessNumber) {
 
       businessNumber.addEventListener("input", () => {
-
           businessNumberChecked = false;
           checkedBusinessNumberValue = "";
-
           let value = businessNumber.value.replace(/\D/g, "");
 
           if (value.length <= 3) {
@@ -402,17 +398,67 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-
-
   /* =========================
-     파일명 표시
+    개업일 숫자만 입력
   ========================= */
-  if (fileInput && fileName) {
-    fileInput.addEventListener("change", () => {
-      fileName.textContent = fileInput.files.length ? fileInput.files[0].name : "선택된 파일 없음";
+  const openDate = document.getElementById("openDate");
+
+  if (openDate) {
+    openDate.addEventListener("input", () => {
+      openDate.value = openDate.value
+        .replace(/\D/g, "")
+        .slice(0, 8);
+
+      if (openDate.value.length === 0) {
+        setBorder("openDate", true);
+      } else {
+        setBorder(
+          "openDate",
+          regex.openDate.test(openDate.value)
+        );
+      }
     });
   }
 
+  /* =========================
+    프로필 이미지 파일명 표시
+  ========================= */
+  if (profileImageFile && profileFileName) {
+    profileImageFile.addEventListener("change", () => {
+      profileFileName.textContent = profileImageFile.files.length > 0 ? profileImageFile.files[0].name: "선택된 파일 없음";
+    });
+  }
+
+  /* =========================
+    사업자등록증 파일명 표시
+  ========================= */
+  if (licenseFile && licenseFileName) {
+    licenseFile.addEventListener("change", () => {
+
+      if (licenseFile.files.length === 0) {
+        licenseFileName.textContent = "선택된 파일 없음";
+        return;
+      }
+
+      const file = licenseFile.files[0];
+      const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+      const extension = file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+      if (!allowedExtensions.includes(extension)) {
+        alert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+
+        licenseFile.value = "";
+        licenseFileName.textContent = "선택된 파일 없음";
+
+        return;
+      }
+
+      licenseFileName.textContent = file.name;
+    });
+  }
   /* =========================
      최종 회원가입 유효성 검사
   ========================= */
@@ -516,45 +562,93 @@ document.addEventListener("DOMContentLoaded", () => {
   ========================= */
   function validateBusinessFields() {
     const businessName = document.getElementById("businessName");
+    const representativeName = document.getElementById("representativeName");
+    const openDate = document.getElementById("openDate");
+    const licenseFile = document.getElementById("licenseFile");
     const bankName = document.getElementById("bankName");
     const accountNumber = document.getElementById("accountNumber");
     const accountHolder = document.getElementById("accountHolder");
-
     const businessNumberValue = businessNumber ? businessNumber.value.trim() : "";
 
+    /* 상호명 */
     if (!businessName || businessName.value.trim().length === 0) {
       alert("상호명을 입력해주세요.");
       focusInput("businessName");
+
       return false;
     }
 
+    /* 대표자명 */
+    if (!representativeName || representativeName.value.trim().length === 0) {
+      alert("대표자명을 입력해주세요.");
+      focusInput("representativeName");
+
+      return false;
+    }
+
+    /* 개업일 */
+    if (!openDate || !regex.openDate.test(openDate.value.trim())) {
+      alert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.");
+      focusInput("openDate");
+
+      return false;
+    }
+
+    /* 사업자등록번호 */
     if (!regex.businessNumber.test(businessNumberValue)) {
       alert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.");
       focusInput("businessNumber");
+
       return false;
     }
 
+    /* 사업자번호 중복 확인 */
     if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumberValue) {
       alert("사업자등록번호 중복확인을 해주세요.");
       focusInput("businessNumber");
+
       return false;
     }
 
+    /* 사업자등록증 */
+    if (!licenseFile || licenseFile.files.length === 0) {
+      alert("사업자등록증을 첨부해주세요.");
+      focusInput("licenseFile");
+
+      return false;
+    }
+
+    const license = licenseFile.files[0];
+    const extension = license.name.split(".").pop().toLowerCase();
+    const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+
+    if (!allowedExtensions.includes(extension)) {
+      alert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+
+      return false;
+    }
+
+    /* 은행명 */
     if (!bankName || bankName.value.trim().length === 0) {
       alert("은행명을 입력해주세요.");
       focusInput("bankName");
+
       return false;
     }
 
+    /* 계좌번호 */
     if (!accountNumber || accountNumber.value.trim().length === 0) {
       alert("계좌번호를 입력해주세요.");
       focusInput("accountNumber");
+
       return false;
     }
 
+    /* 예금주 */
     if (!accountHolder || accountHolder.value.trim().length === 0) {
       alert("예금주를 입력해주세요.");
       focusInput("accountHolder");
+
       return false;
     }
 
