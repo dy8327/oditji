@@ -58,6 +58,17 @@ public interface OrderService {
         // );
 
         /**
+         * 로그인 회원이 결제한 주문을 포트원에서 전액 취소한다.
+         *
+         * 포트원 취소가 확인되면 주문·주문상품·결제 상태를
+         * CANCELED로 변경하고 상품 재고를 복구한다.
+         */
+        void cancelPaidOrder(
+                        Long memberNo,
+                        Long orderNo,
+                        String reason);
+
+        /**
          * 로그인 회원의 주문 목록 (각 주문에 속한 상품 목록 포함)
          */
         List<OrderVO> getOrderList(

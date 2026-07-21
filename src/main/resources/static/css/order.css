@@ -454,6 +454,55 @@
   outline-offset: 2px;
 }
 
+#cancelBtn {
+  display: block;
+
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+
+  /* 🔴 1. 배경색을 빨간색으로 변경 */
+  background: #ff4d4d;
+
+  /* ⚪ 2. 빨간 배경에서 가독성을 높이기 위해 글자색을 흰색으로 변경 */
+  color: #0d1f0e;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+#cancelBtn:hover {
+  /* 🔴 3. 마우스 올렸을 때 더 진한 빨간색 */
+  background: #d93636;
+}
+
+#cancelBtn:active {
+  transform: scale(0.99);
+}
+
+#cancelBtn:disabled {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+#cancelBtn:focus-visible {
+  /* 🔴 4. 키보드 포커스 테두리도 빨간색으로 변경 */
+  outline: 2px solid #ff4d4d;
+  outline-offset: 2px;
+}
+
 /* =====================================================
    ORDER LIST
    orderList.jsp

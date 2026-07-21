@@ -185,6 +185,11 @@
             결제하기
         </button>
 
+        <button id="cancelBtn"
+                type="button">
+            취소하기
+        </button>
+
     </section>
 
 </main>
@@ -211,6 +216,9 @@
 
     var orderBtn =
         document.getElementById("orderBtn");
+
+    var cancelBtn =
+        document.getElementById("cancelBtn");
 
     var addressSearchBtn =
         document.getElementById("addressSearchBtn");
@@ -564,6 +572,86 @@
         .then(readJsonResponse);
     }
 
+    /*
+     * =========================================================
+     * 주문서 취소 및 이전 페이지 이동
+     *
+     * 결제 요청 전 단순히 주문서를 벗어나는 기능이다.
+     * 이전 방문 페이지가 있으면 해당 페이지로 돌아가고,
+     * 직접 주문서 주소로 접근한 경우 장바구니로 이동한다.
+     * =========================================================
+     */
+    function cancelOrder() {
+
+        clearError();
+
+        /*
+         * 결제 처리가 진행 중일 때는 중복 동작을 방지한다.
+         */
+        if (orderBtn.disabled) {
+
+            showError(
+                "현재 결제가 진행 중입니다."
+            );
+
+            return;
+        }
+
+        var currentUrl =
+            window.location.href;
+
+        var previousUrl =
+            document.referrer;
+
+        /*
+         * 같은 사이트의 이전 페이지가 존재하고
+         * 이전 페이지가 현재 주문서 페이지가 아닌 경우
+         */
+        if (previousUrl) {
+
+            try {
+
+                var previousLocation =
+                    new URL(previousUrl);
+
+                var currentLocation =
+                    new URL(currentUrl);
+
+                var isSameOrigin =
+                    previousLocation.origin
+                    === currentLocation.origin;
+
+                var isOrderPage =
+                    previousLocation.pathname
+                    === contextPath + "/order";
+
+                if (isSameOrigin && !isOrderPage) {
+
+                    window.history.back();
+
+                    return;
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "이전 페이지 주소 확인 실패:",
+                    error
+                );
+            }
+        }
+
+        /*
+         * 이전 페이지가 없거나 주문서 자체인 경우
+         * 장바구니 페이지로 이동한다.
+         *
+         * 실제 장바구니 주소가 /cart라면
+         * 아래 /cart/list를 /cart로 변경하면 된다.
+         */
+        window.location.href =
+            contextPath + "/cart/list";
+    }
+
     addressSearchBtn.addEventListener(
         "click",
         openAddressSearch
@@ -583,6 +671,16 @@
 
     /*
      * =========================================================
+     * 주문 취소 버튼 처리
+     * =========================================================
+     */
+    cancelBtn.addEventListener(
+        "click",
+        cancelOrder
+    );
+
+    /*
+     * =========================================================
      * 최종 결제 처리
      * =========================================================
      */
@@ -593,6 +691,8 @@
             clearError();
 
             orderBtn.disabled = true;
+            cancelBtn.disabled = true;
+
             orderBtn.textContent =
                 "결제 준비 중...";
 
@@ -692,6 +792,7 @@
                 );
 
                 restoreOrderButton();
+                cancelBtn.disabled = false;
             }
         }
     );
