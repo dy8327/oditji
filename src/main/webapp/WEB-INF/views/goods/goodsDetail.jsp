@@ -23,6 +23,9 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/favorite.css">
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/report.css">
+
 <script>
     const contextPath = "${pageContext.request.contextPath}";
 </script>

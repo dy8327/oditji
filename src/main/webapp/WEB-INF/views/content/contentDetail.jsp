@@ -3,6 +3,9 @@
 <%@ taglib prefix="c"
            uri="jakarta.tags.core" %>
 
+<%@ taglib prefix="fmt"
+           uri="jakarta.tags.fmt" %>
+
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -108,7 +111,10 @@
                 <c:choose>
 
                     <c:when test="${not empty avgRating}">
-                        오딧지 평점 ⭐ ${avgRating}
+                        오딧지 평점 ⭐
+                        <fmt:formatNumber
+                            value="${avgRating}"
+                            pattern="0.0"/>
                         (${reviewCount}건)
                     </c:when>
 
@@ -757,11 +763,16 @@
                                 </span>
 
                                 <span class="rating">
-                                    ⭐ ${r.rating}
+                                    ⭐
+                                    <fmt:formatNumber
+                                        value="${r.rating}"
+                                        pattern="0.0"/>
                                 </span>
 
                                 <span class="date">
-                                    ${r.createdAt}
+                                    <fmt:formatDate
+                                        value="${r.createdAt}"
+                                        pattern="yyyy-MM-dd"/>
                                 </span>
 
                                 <c:choose>
@@ -791,9 +802,7 @@
 
                             </div>
 
-                            <p class="review-content">
-                                ${r.reviewText}
-                            </p>
+                            <p class="review-content"><c:out value="${r.reviewText}"/></p>
 
                         </div>
 

@@ -35,9 +35,9 @@ pageEncoding="UTF-8"%>
                     </h1>
 
                     <p>
-                        ${event.startDate}
+                        <fmt:formatDate value="${event.startDate}" pattern="yyyy.MM.dd"/>
                         ~
-                        ${event.endDate}
+                        <fmt:formatDate value="${event.endDate}" pattern="yyyy.MM.dd"/>
                     </p>
 
                 </div>

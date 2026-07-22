@@ -108,6 +108,86 @@
     font-size:12px;
     text-decoration:line-through;}
 
+/* =========================
+   REVIEW ITEM CARD
+   content.css / goods.css 에 서로 다르게 중복 정의되어 있던
+   리뷰 카드 스타일을 통합 (contentDetail.jsp / goodsDetail.jsp 공용)
+========================= */
+
+.review-item {
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #1e1e1e;
+}
+
+.review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+    color: #a9a9a9;
+    font-size: 12px;
+}
+
+.review-meta .writer {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.review-meta .rating {
+    color: #ffd54a;
+    font-weight: 700;
+}
+
+.review-meta .date {
+    color: #8f8f8f;
+}
+
+.review-item .review-content {
+    display: block;
+    margin: 0;
+    color: #f2f2f2 !important;
+    font-size: 14px;
+    line-height: 1.7;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-text-fill-color: #f2f2f2;
+}
+
+/* =========================
+   SCORE BOX (평점 요약)
+   goods.css 에만 있던 스타일을 기준으로 통합.
+   contentDetail.jsp 는 score-tmdb / score-divider 를 추가로 쓰므로 함께 정의.
+   (contentDetail.jsp 헤더, goodsDetail.jsp 리뷰 섹션 양쪽 공용)
+========================= */
+
+.score-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #DADADA;
+}
+
+.score-box .score-tmdb {
+    color: #DADADA;
+}
+
+.score-box .score-user {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.score-box .score-divider {
+    color: #555555;
+}
+
 @media (max-width:768px) {
   .detail-header {        flex-direction:column;
     }
