@@ -118,6 +118,41 @@ public class SearchContentCollectorService {
     @Value("${search.content-cache.batch-size:500}")
     private int batchSize;
 
+    /**
+     * 최근 연도 콘텐츠 보완 수집 사용 여부입니다.
+     *
+     * 기존 OTT provider 필터 Discover 결과를 우선 사용한 뒤,
+     * 최근 콘텐츠 중 provider 인덱스 누락 가능성이 있는 후보만
+     * 제한적으로 추가 확인합니다.
+     */
+    @Value("${search.content-cache.supplement-enabled:true}")
+    private boolean supplementEnabled;
+
+    /**
+     * 보완 수집 대상 연도 수입니다.
+     *
+     * 기본값 5는 현재 연도를 포함해 최근 5개 연도를 의미합니다.
+     */
+    @Value("${search.content-cache.supplement-years:5}")
+    private int supplementYears;
+
+    /**
+     * 보완 수집에서 연도별로 확인할 최대 Discover 페이지 수입니다.
+     *
+     * TMDB 전체 500페이지를 다시 순회하지 않고,
+     * 인기순 상위 일부 페이지만 확인해 API 요청량을 제한합니다.
+     */
+    @Value("${search.content-cache.supplement-pages-per-year:10}")
+    private int supplementPagesPerYear;
+
+    /**
+     * 영화와 TV 각각에서 추가할 수 있는 보완 후보의 최대 개수입니다.
+     *
+     * 상세 조회와 watch/providers 호출이 과도하게 늘어나는 것을 막습니다.
+     */
+    @Value("${search.content-cache.supplement-max-candidates-per-type:1000}")
+    private int supplementMaxCandidatesPerType;
+
     private final HttpClient httpClient;
 
     public SearchContentCollectorService() {
@@ -247,6 +282,33 @@ public class SearchContentCollectorService {
                         providerRegistry.getTvProviderIds()
                 )
         );
+
+        /*
+         * 안전한 보완 수집:
+         *
+         * TMDB Discover의 with_watch_providers 인덱스에서 빠진
+         * 최근 콘텐츠를 보완하기 위해 OTT 필터 없는 Discover를
+         * 최근 연도와 소수 페이지만 제한적으로 확인합니다.
+         *
+         * 이 단계에서 바로 저장하지 않고, 기존 enrichCandidate()의
+         * /watch/providers KR flatrate 검증을 반드시 통과한 콘텐츠만
+         * 최종 JSON에 들어갑니다.
+         */
+        if (supplementEnabled) {
+
+            List<CachedContentVO> supplementCandidates =
+                    collectRecentSupplementCandidates();
+
+            candidates.addAll(
+                    supplementCandidates
+            );
+
+            System.out.println(
+                    "검색 콘텐츠 최근 보완 후보 수집 완료: "
+                            + supplementCandidates.size()
+                            + "건"
+            );
+        }
 
         candidates =
                 removeDuplicate(candidates);
@@ -733,6 +795,217 @@ public class SearchContentCollectorService {
         }
 
         return result;
+    }
+
+
+    /**
+     * 최근 콘텐츠 보완 후보를 제한적으로 수집합니다.
+     *
+     * 기존 provider 필터 Discover 결과가 누락시키는 콘텐츠를 찾기 위한
+     * 보완 단계이며, 다음 안전장치를 적용합니다.
+     *
+     * 1. 최근 연도만 확인
+     * 2. 연도별 페이지 수 제한
+     * 3. 영화/TV별 후보 수 제한
+     * 4. 최종 저장 전 watch/providers KR flatrate 재검증
+     */
+    private List<CachedContentVO> collectRecentSupplementCandidates() {
+
+        int normalizedYears =
+                Math.max(
+                        1,
+                        Math.min(
+                                supplementYears,
+                                10
+                        )
+                );
+
+        int normalizedPagesPerYear =
+                Math.max(
+                        1,
+                        Math.min(
+                                supplementPagesPerYear,
+                                30
+                        )
+                );
+
+        int normalizedMaxCandidatesPerType =
+                Math.max(
+                        0,
+                        Math.min(
+                                supplementMaxCandidatesPerType,
+                                5000
+                        )
+                );
+
+        if (normalizedMaxCandidatesPerType == 0) {
+            return new ArrayList<CachedContentVO>();
+        }
+
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
+
+        result.addAll(
+                collectRecentSupplementCandidatesByType(
+                        "movie",
+                        MOVIE,
+                        normalizedYears,
+                        normalizedPagesPerYear,
+                        normalizedMaxCandidatesPerType
+                )
+        );
+
+        result.addAll(
+                collectRecentSupplementCandidatesByType(
+                        "tv",
+                        TV,
+                        normalizedYears,
+                        normalizedPagesPerYear,
+                        normalizedMaxCandidatesPerType
+                )
+        );
+
+        return removeDuplicate(result);
+    }
+
+    /**
+     * 특정 콘텐츠 유형의 최근 보완 후보를 수집합니다.
+     *
+     * OTT provider 필터는 사용하지 않지만, 인기순 상위 일부 페이지로
+     * 범위를 제한하여 TMDB 전체 콘텐츠를 무제한 상세 조회하지 않습니다.
+     */
+    private List<CachedContentVO>
+            collectRecentSupplementCandidatesByType(
+                    String apiType,
+                    String contentType,
+                    int yearCount,
+                    int pagesPerYear,
+                    int maxCandidates) {
+
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
+
+        int currentYear =
+                Year.now().getValue() + 1;
+
+        int lastYear =
+                Math.max(
+                        startYear,
+                        currentYear - yearCount + 1
+                );
+
+        for (int year = currentYear;
+             year >= lastYear
+                     && result.size() < maxCandidates;
+             year--) {
+
+            for (int page = 1;
+                 page <= pagesPerYear
+                         && result.size() < maxCandidates;
+                 page++) {
+
+                JSONObject root =
+                        callTmdbApi(
+                                buildSupplementDiscoverUrl(
+                                        apiType,
+                                        year,
+                                        page
+                                )
+                        );
+
+                int totalPages =
+                        Math.min(
+                                root.optInt(
+                                        "total_pages",
+                                        0
+                                ),
+                                pagesPerYear
+                        );
+
+                if (totalPages <= 0
+                        || page > totalPages) {
+
+                    break;
+                }
+
+                JSONArray items =
+                        root.optJSONArray(
+                                "results"
+                        );
+
+                if (items == null
+                        || items.isEmpty()) {
+
+                    break;
+                }
+
+                for (int index = 0;
+                     index < items.length()
+                             && result.size() < maxCandidates;
+                     index++) {
+
+                    JSONObject item =
+                            items.optJSONObject(index);
+
+                    if (item == null
+                            || shouldExcludeContent(item)) {
+
+                        continue;
+                    }
+
+                    CachedContentVO content =
+                            convertDiscoverItem(
+                                    item,
+                                    contentType
+                            );
+
+                    if (content.getTmdbId() != null) {
+                        result.add(content);
+                    }
+                }
+            }
+        }
+
+        return removeDuplicate(result);
+    }
+
+    /**
+     * 최근 보완 수집용 Discover URL을 생성합니다.
+     *
+     * provider 필터는 사용하지 않지만 인기순, 성인 제외, 연도 조건을
+     * 적용하여 후보 범위를 안전하게 제한합니다.
+     */
+    private String buildSupplementDiscoverUrl(
+            String apiType,
+            int year,
+            int page) {
+
+        StringBuilder url =
+                new StringBuilder(baseUrl)
+                        .append("/discover/")
+                        .append(apiType)
+                        .append("?language=")
+                        .append(encode(language))
+                        .append("&include_adult=false")
+                        .append("&sort_by=popularity.desc")
+                        .append("&page=")
+                        .append(page);
+
+        if ("movie".equals(apiType)) {
+
+            url.append("&region=")
+                    .append(encode(region))
+                    .append("&primary_release_year=")
+                    .append(year)
+                    .append("&include_video=false");
+
+        } else {
+
+            url.append("&first_air_date_year=")
+                    .append(year);
+        }
+
+        return url.toString();
     }
 
     /**
