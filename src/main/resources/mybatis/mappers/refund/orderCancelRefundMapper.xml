@@ -19,6 +19,10 @@
         <result property="createdAt" column="CREATED_AT"/>
         <result property="processedAt" column="PROCESSED_AT"/>
         <result property="rejectReason" column="REJECT_REASON"/>
+        <result property="cancelType" column="CANCEL_TYPE"/>
+        <result property="cancelGroupNo" column="CANCEL_GROUP_NO"/>
+        <result property="refundAmount" column="REFUND_AMOUNT"/>
+        <result property="itemCount" column="ITEM_COUNT"/>
     </resultMap>
 
     <select id="selectCancelableItemsByOrder" resultType="com.project.oditji.order.vo.OrderItemVO">
@@ -34,13 +38,22 @@
          WHERE O.MEMBER_NO = #{memberNo}
            AND O.ORDER_NO = #{orderNo}
            AND OI.STATUS IN ('ORDERED', 'PAID', 'PREPARING')
-           AND NOT EXISTS (
-               SELECT 1
-                 FROM DELIVERY D
-                WHERE D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
-                  AND D.STATUS IN ('SHIPPING', 'DELIVERED')
-           )
          ORDER BY OI.ORDER_ITEM_NO
+    </select>
+
+    <select id="selectCancelableItem" resultType="com.project.oditji.order.vo.OrderItemVO">
+        SELECT OI.ORDER_ITEM_NO AS orderItemNo,
+               OI.ORDER_NO AS orderNo,
+               OI.PRODUCT_NO AS productNo,
+               OI.BUSINESS_NO AS businessNo,
+               OI.PRODUCT_PRICE AS productPrice,
+               OI.QUANTITY AS quantity,
+               OI.STATUS AS status
+          FROM ORDER_ITEM OI
+          JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+         WHERE O.MEMBER_NO = #{memberNo}
+           AND OI.ORDER_ITEM_NO = #{orderItemNo}
+           AND OI.STATUS IN ('ORDERED', 'PAID', 'PREPARING')
     </select>
 
     <select id="countWaitingCancelByOrderItemNo" resultType="int">
@@ -50,14 +63,25 @@
            AND STATUS = 'WAITING'
     </select>
 
+    <select id="selectNextCancelGroupNo" resultType="long">
+        SELECT SEQ_CANCEL_GROUP_NO.NEXTVAL FROM DUAL
+    </select>
+
+    <!-- =========================================================
+         [전체/부분 취소 저장 컬럼 추가]
+    ========================================================== -->
     <insert id="insertCancelRequest" parameterType="com.project.oditji.refund.vo.OrderCancelRefundVO">
         <selectKey keyProperty="cancelNo" resultType="long" order="BEFORE">
             SELECT SEQ_CANCEL_NO.NEXTVAL FROM DUAL
         </selectKey>
         INSERT INTO CANCEL_REQUEST (
-            CANCEL_NO, ORDER_ITEM_NO, MEMBER_NO, REASON, STATUS, CREATED_AT
+            CANCEL_NO, ORDER_NO, ORDER_ITEM_NO, MEMBER_NO,
+            CANCEL_TYPE, CANCEL_GROUP_NO, REFUND_AMOUNT,
+            REASON, STATUS, CREATED_AT
         ) VALUES (
-            #{cancelNo}, #{orderItemNo}, #{memberNo}, #{reason}, 'WAITING', SYSDATE
+            #{cancelNo}, #{orderNo}, #{orderItemNo}, #{memberNo},
+            #{cancelType}, #{cancelGroupNo}, #{refundAmount},
+            #{reason}, 'WAITING', SYSDATE
         )
     </insert>
 
@@ -68,50 +92,66 @@
            AND STATUS IN ('ORDERED', 'PAID', 'PREPARING')
     </update>
 
+    <!-- =========================================================
+         [사업자 취소 목록 그룹화]
+         FULL 요청은 사업자별 한 건으로 표시하고,
+         PARTIAL 요청은 주문상품별 한 건으로 표시한다.
+    ========================================================== -->
     <select id="selectCancelListByBusiness" resultMap="cancelRequestResultMap">
-        SELECT CR.CANCEL_NO,
-               CR.ORDER_ITEM_NO,
-               OI.ORDER_NO,
-               CR.MEMBER_NO,
+        SELECT MIN(CR.CANCEL_NO) AS CANCEL_NO,
+               MIN(CR.ORDER_ITEM_NO) AS ORDER_ITEM_NO,
+               CR.ORDER_NO,
+               MIN(CR.MEMBER_NO) AS MEMBER_NO,
                OI.BUSINESS_NO,
-               OI.PRODUCT_NO,
-               P.PRODUCT_NAME,
-               OI.PRODUCT_PRICE,
-               OI.QUANTITY,
-               (OI.PRODUCT_PRICE * OI.QUANTITY) AS CANCEL_AMOUNT,
-               CR.REASON,
-               CR.STATUS,
-               CR.CREATED_AT,
-               CR.PROCESSED_AT,
-               CR.REJECT_REASON
+               MIN(OI.PRODUCT_NO) AS PRODUCT_NO,
+               CASE
+                   WHEN CR.CANCEL_TYPE = 'FULL'
+                       THEN LISTAGG(P.PRODUCT_NAME, ', ') WITHIN GROUP (ORDER BY CR.CANCEL_NO)
+                   ELSE MIN(P.PRODUCT_NAME)
+               END AS PRODUCT_NAME,
+               MIN(OI.PRODUCT_PRICE) AS PRODUCT_PRICE,
+               SUM(OI.QUANTITY) AS QUANTITY,
+               SUM(CR.REFUND_AMOUNT) AS CANCEL_AMOUNT,
+               MIN(CR.REASON) AS REASON,
+               CASE
+                   WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                   WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0 THEN 'WAITING'
+                   ELSE 'APPROVED'
+               END AS STATUS,
+               MIN(CR.CREATED_AT) AS CREATED_AT,
+               MAX(CR.PROCESSED_AT) AS PROCESSED_AT,
+               MAX(CR.REJECT_REASON) AS REJECT_REASON,
+               CR.CANCEL_TYPE,
+               CR.CANCEL_GROUP_NO,
+               SUM(CR.REFUND_AMOUNT) AS REFUND_AMOUNT,
+               COUNT(*) AS ITEM_COUNT
           FROM CANCEL_REQUEST CR
           JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
           JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
          WHERE OI.BUSINESS_NO = #{businessNo}
-           <if test="status != null and status != ''">
-             AND CR.STATUS = #{status}
-           </if>
-         ORDER BY CASE CR.STATUS WHEN 'WAITING' THEN 1 ELSE 2 END,
-                  CR.CREATED_AT DESC,
-                  CR.CANCEL_NO DESC
+         GROUP BY CR.ORDER_NO, OI.BUSINESS_NO, CR.CANCEL_TYPE, CR.CANCEL_GROUP_NO
+        <if test="status != null and status != ''">
+        HAVING CASE
+                   WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                   WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0 THEN 'WAITING'
+                   ELSE 'APPROVED'
+               END = #{status}
+        </if>
+         ORDER BY CASE
+                      WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0 THEN 1
+                      ELSE 2
+                  END,
+                  MIN(CR.CREATED_AT) DESC
     </select>
 
     <select id="selectCancelRequestForBusiness" resultMap="cancelRequestResultMap">
-        SELECT CR.CANCEL_NO,
-               CR.ORDER_ITEM_NO,
-               OI.ORDER_NO,
-               CR.MEMBER_NO,
-               OI.BUSINESS_NO,
-               OI.PRODUCT_NO,
-               P.PRODUCT_NAME,
-               OI.PRODUCT_PRICE,
-               OI.QUANTITY,
-               (OI.PRODUCT_PRICE * OI.QUANTITY) AS CANCEL_AMOUNT,
-               CR.REASON,
-               CR.STATUS,
-               CR.CREATED_AT,
-               CR.PROCESSED_AT,
-               CR.REJECT_REASON
+        SELECT CR.CANCEL_NO, CR.ORDER_ITEM_NO, CR.ORDER_NO, CR.MEMBER_NO,
+               OI.BUSINESS_NO, OI.PRODUCT_NO, P.PRODUCT_NAME,
+               OI.PRODUCT_PRICE, OI.QUANTITY,
+               CR.REFUND_AMOUNT AS CANCEL_AMOUNT,
+               CR.REASON, CR.STATUS, CR.CREATED_AT, CR.PROCESSED_AT,
+               CR.REJECT_REASON, CR.CANCEL_TYPE, CR.CANCEL_GROUP_NO,
+               CR.REFUND_AMOUNT, 1 AS ITEM_COUNT
           FROM CANCEL_REQUEST CR
           JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
           JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
@@ -121,39 +161,96 @@
 
     <update id="approveCancelRequest">
         UPDATE CANCEL_REQUEST
-           SET STATUS = 'APPROVED',
-               PROCESSED_AT = SYSDATE,
-               REJECT_REASON = NULL
+           SET STATUS = 'APPROVED', PROCESSED_AT = SYSDATE, REJECT_REASON = NULL
          WHERE CANCEL_NO = #{cancelNo}
            AND STATUS = 'WAITING'
+    </update>
+
+    <update id="approveFullGroupForBusiness">
+        UPDATE CANCEL_REQUEST CR
+           SET CR.STATUS = 'APPROVED', CR.PROCESSED_AT = SYSDATE, CR.REJECT_REASON = NULL
+         WHERE CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+           AND CR.CANCEL_TYPE = 'FULL'
+           AND CR.STATUS = 'WAITING'
+           AND EXISTS (
+               SELECT 1 FROM ORDER_ITEM OI
+                WHERE OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+                  AND OI.BUSINESS_NO = #{businessNo}
+           )
     </update>
 
     <update id="rejectCancelRequest">
         UPDATE CANCEL_REQUEST
-           SET STATUS = 'REJECTED',
-               PROCESSED_AT = SYSDATE,
-               REJECT_REASON = #{rejectReason}
+           SET STATUS = 'REJECTED', PROCESSED_AT = SYSDATE, REJECT_REASON = #{rejectReason}
          WHERE CANCEL_NO = #{cancelNo}
            AND STATUS = 'WAITING'
     </update>
 
+    <update id="rejectFullGroup">
+        UPDATE CANCEL_REQUEST
+           SET STATUS = 'REJECTED', PROCESSED_AT = SYSDATE, REJECT_REASON = #{rejectReason}
+         WHERE CANCEL_GROUP_NO = #{cancelGroupNo}
+           AND CANCEL_TYPE = 'FULL'
+           AND STATUS IN ('WAITING', 'APPROVED')
+    </update>
+
+    <select id="countWaitingByGroup" resultType="int">
+        SELECT COUNT(*) FROM CANCEL_REQUEST
+         WHERE CANCEL_GROUP_NO = #{cancelGroupNo} AND STATUS = 'WAITING'
+    </select>
+
+    <select id="countRejectedByGroup" resultType="int">
+        SELECT COUNT(*) FROM CANCEL_REQUEST
+         WHERE CANCEL_GROUP_NO = #{cancelGroupNo} AND STATUS = 'REJECTED'
+    </select>
+
+    <select id="selectRequestsByGroup" resultMap="cancelRequestResultMap">
+        SELECT CR.CANCEL_NO, CR.ORDER_ITEM_NO, CR.ORDER_NO, CR.MEMBER_NO,
+               OI.BUSINESS_NO, OI.PRODUCT_NO, P.PRODUCT_NAME,
+               OI.PRODUCT_PRICE, OI.QUANTITY,
+               CR.REFUND_AMOUNT AS CANCEL_AMOUNT,
+               CR.REASON, CR.STATUS, CR.CREATED_AT, CR.PROCESSED_AT,
+               CR.REJECT_REASON, CR.CANCEL_TYPE, CR.CANCEL_GROUP_NO,
+               CR.REFUND_AMOUNT, 1 AS ITEM_COUNT
+          FROM CANCEL_REQUEST CR
+          JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+          JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+         WHERE CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+         ORDER BY CR.CANCEL_NO
+    </select>
+
     <update id="restoreOrderItemStatus">
-        UPDATE ORDER_ITEM
-           SET STATUS = 'PAID'
-         WHERE ORDER_ITEM_NO = #{orderItemNo}
-           AND STATUS = 'CANCEL_REQUEST'
+        UPDATE ORDER_ITEM SET STATUS = 'PAID'
+         WHERE ORDER_ITEM_NO = #{orderItemNo} AND STATUS = 'CANCEL_REQUEST'
+    </update>
+
+    <update id="restoreOrderItemsByGroup">
+        UPDATE ORDER_ITEM OI SET OI.STATUS = 'PAID'
+         WHERE OI.STATUS = 'CANCEL_REQUEST'
+           AND EXISTS (
+               SELECT 1 FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+           )
     </update>
 
     <update id="cancelOrderItem">
-        UPDATE ORDER_ITEM
-           SET STATUS = 'CANCELED'
-         WHERE ORDER_ITEM_NO = #{orderItemNo}
-           AND STATUS = 'CANCEL_REQUEST'
+        UPDATE ORDER_ITEM SET STATUS = 'CANCELED'
+         WHERE ORDER_ITEM_NO = #{orderItemNo} AND STATUS = 'CANCEL_REQUEST'
+    </update>
+
+    <update id="cancelOrderItemsByGroup">
+        UPDATE ORDER_ITEM OI SET OI.STATUS = 'CANCELED'
+         WHERE OI.STATUS = 'CANCEL_REQUEST'
+           AND EXISTS (
+               SELECT 1 FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+           )
     </update>
 
     <update id="restoreProductStock">
-        UPDATE PRODUCT
-           SET STOCK = STOCK + #{quantity}
+        UPDATE PRODUCT SET STOCK = STOCK + #{quantity}
          WHERE PRODUCT_NO = #{productNo}
     </update>
 

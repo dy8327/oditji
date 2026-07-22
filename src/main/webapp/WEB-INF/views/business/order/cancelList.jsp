@@ -60,9 +60,34 @@
                                 <c:forEach var="item" items="${cancelList}">
                                     <article class="item-card">
                                         <div class="item-info">
-                                            <h3><c:out value="${item.productName}"/></h3>
+                                            <h3>
+                                                <c:choose>
+                                                    <c:when test="${item.cancelType == 'FULL'}">
+                                                        주문 전체 취소 요청
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <c:out value="${item.productName}"/>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </h3>
                                             <div class="meta">
                                                 <span>주문번호 : ${item.orderNo}</span>
+                                                <%--
+                                                    =========================================================
+                                                    [전체/부분 취소 유형 표시 추가]
+                                                    =========================================================
+                                                --%>
+                                                <span>
+                                                    요청 유형 :
+                                                    <c:choose>
+                                                        <c:when test="${item.cancelType == 'FULL'}">전체 취소</c:when>
+                                                        <c:otherwise>상품 부분 취소</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <c:if test="${item.cancelType == 'FULL'}">
+                                                    <span>내 사업자 처리 상품 : ${item.itemCount}건</span>
+                                                    <span>상품 : <c:out value="${item.productName}"/></span>
+                                                </c:if>
                                                 <span>수량 : ${item.quantity}개</span>
                                                 <span>
                                                     환불 예정 금액 :
@@ -95,9 +120,13 @@
                                                 <form action="${pageContext.request.contextPath}/business/cancel/approve"
                                                       method="post"
                                                       style="display:inline-block;"
-                                                      onsubmit="return confirm('취소 요청을 승인하고 환불하시겠습니까?');">
+                                                      onsubmit="return confirm('${item.cancelType == 'FULL' ? '내 사업자 상품 전체를 승인하시겠습니까? 모든 사업자의 승인 완료 후 전액 환불됩니다.' : '부분 취소 요청을 승인하고 환불하시겠습니까?'}');">
                                                     <input type="hidden" name="cancelNo" value="${item.cancelNo}">
-                                                    <button type="submit" class="btn btn-dark">승인 및 환불</button>
+                                                    <button type="submit" class="btn btn-dark"><c:choose>
+                                                        <c:when test="${item.cancelType == 'FULL'}">전체 취소 승인</c:when>
+                                                        <c:otherwise>승인 및 부분 환불</c:otherwise>
+                                                    </c:choose>
+                                                </button>
                                                 </form>
 
                                                 <%--

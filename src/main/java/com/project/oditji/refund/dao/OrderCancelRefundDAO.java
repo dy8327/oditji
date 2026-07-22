@@ -5,49 +5,59 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.project.oditji.refund.vo.OrderCancelRefundVO;
 import com.project.oditji.order.vo.OrderItemVO;
+import com.project.oditji.refund.vo.OrderCancelRefundVO;
 
 @Mapper
 public interface OrderCancelRefundDAO {
 
-    List<OrderItemVO> selectCancelableItemsByOrder(
-            @Param("memberNo") Long memberNo,
-            @Param("orderNo") Long orderNo);
+        List<OrderItemVO> selectCancelableItemsByOrder(@Param("memberNo") Long memberNo,
+                        @Param("orderNo") Long orderNo);
 
-    int countWaitingCancelByOrderItemNo(
-            @Param("orderItemNo") Long orderItemNo);
+        OrderItemVO selectCancelableItem(@Param("memberNo") Long memberNo,
+                        @Param("orderItemNo") Long orderItemNo);
 
-    int insertCancelRequest(OrderCancelRefundVO cancelRequestVO);
+        int countWaitingCancelByOrderItemNo(@Param("orderItemNo") Long orderItemNo);
 
-    int updateOrderItemCancelRequested(
-            @Param("orderItemNo") Long orderItemNo);
+        Long selectNextCancelGroupNo();
 
-    List<OrderCancelRefundVO> selectCancelListByBusiness(
-            @Param("businessNo") Long businessNo,
-            @Param("status") String status);
+        int insertCancelRequest(OrderCancelRefundVO cancelRequestVO);
 
-    OrderCancelRefundVO selectCancelRequestForBusiness(
-            @Param("cancelNo") Long cancelNo,
-            @Param("businessNo") Long businessNo);
+        int updateOrderItemCancelRequested(@Param("orderItemNo") Long orderItemNo);
 
-    int approveCancelRequest(
-            @Param("cancelNo") Long cancelNo);
+        List<OrderCancelRefundVO> selectCancelListByBusiness(@Param("businessNo") Long businessNo,
+                        @Param("status") String status);
 
-    int rejectCancelRequest(
-            @Param("cancelNo") Long cancelNo,
-            @Param("rejectReason") String rejectReason);
+        OrderCancelRefundVO selectCancelRequestForBusiness(@Param("cancelNo") Long cancelNo,
+                        @Param("businessNo") Long businessNo);
 
-    int restoreOrderItemStatus(
-            @Param("orderItemNo") Long orderItemNo);
+        int approveCancelRequest(@Param("cancelNo") Long cancelNo);
 
-    int cancelOrderItem(
-            @Param("orderItemNo") Long orderItemNo);
+        int approveFullGroupForBusiness(@Param("cancelGroupNo") Long cancelGroupNo,
+                        @Param("businessNo") Long businessNo);
 
-    int restoreProductStock(
-            @Param("productNo") Long productNo,
-            @Param("quantity") Integer quantity);
+        int rejectCancelRequest(@Param("cancelNo") Long cancelNo,
+                        @Param("rejectReason") String rejectReason);
 
-    int updateOrderStatusByItems(
-            @Param("orderNo") Long orderNo);
+        int rejectFullGroup(@Param("cancelGroupNo") Long cancelGroupNo,
+                        @Param("rejectReason") String rejectReason);
+
+        int countWaitingByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
+
+        int countRejectedByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
+
+        List<OrderCancelRefundVO> selectRequestsByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
+
+        int restoreOrderItemStatus(@Param("orderItemNo") Long orderItemNo);
+
+        int restoreOrderItemsByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
+
+        int cancelOrderItem(@Param("orderItemNo") Long orderItemNo);
+
+        int cancelOrderItemsByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
+
+        int restoreProductStock(@Param("productNo") Long productNo,
+                        @Param("quantity") Integer quantity);
+
+        int updateOrderStatusByItems(@Param("orderNo") Long orderNo);
 }

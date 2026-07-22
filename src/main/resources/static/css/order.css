@@ -1086,3 +1086,51 @@
     transition: none;
   }
 }
+
+/* =====================================================
+   [상품별 부분 취소 기능 추가]
+
+   기존 주문 카드 및 상품 카드 레이아웃은 유지하고,
+   부분 취소 버튼과 상태 문구에 필요한 스타일만 추가한다.
+====================================================== */
+.item-cancel-btn {
+  min-width: 118px;
+  padding: 9px 12px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: transparent;
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease);
+}
+
+.item-cancel-btn:hover {
+  border-color: var(--oditji-danger, #ef6b6b);
+  color: var(--oditji-danger, #ef6b6b);
+}
+
+.item-cancel-state {
+  min-width: 118px;
+  padding: 9px 12px;
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.item-cancel-state.canceled {
+  opacity: 0.75;
+}
+
+@media (max-width: 560px) {
+  .item-cancel-btn,
+  .item-cancel-state {
+    width: 100%;
+  }
+}

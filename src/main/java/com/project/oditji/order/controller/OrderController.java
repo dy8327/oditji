@@ -432,6 +432,50 @@ public class OrderController {
                 }
         }
 
+        /*
+         * =========================================================
+         * [상품별 부분 취소 요청 기능 추가]
+         *
+         * 사용자 주문 내역에서 선택한 주문상품 한 건만
+         * 사업자 승인 대기 상태로 등록한다.
+         * =========================================================
+         */
+        @PostMapping("/payment/cancel/item")
+        @ResponseBody
+        public Map<String, Object> cancelOrderItem(
+                        @RequestBody OrderPaymentCancelRequestVO requestVO,
+                        HttpSession session) {
+
+                MemberVO loginMember = getLoginMember(session);
+
+                if (loginMember == null) {
+                        return loginRequiredResponse();
+                }
+
+                if (requestVO == null || requestVO.getOrderItemNo() == null) {
+                        return failResponse("부분 취소 요청 정보가 없습니다.");
+                }
+
+                try {
+                        orderCancelRefundService.requestOrderItemCancel(
+                                        loginMember.getMemberNo(),
+                                        requestVO.getOrderItemNo(),
+                                        requestVO.getReason());
+
+                        Map<String, Object> response = successResponse(
+                                        "상품 부분 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
+                        response.put("redirectUrl", "/order/list");
+                        return response;
+
+                } catch (IllegalArgumentException e) {
+                        return failResponse(e.getMessage());
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return failResponse("상품 부분 취소 요청 처리 중 오류가 발생했습니다.");
+                }
+        }
+
         /**
          * 주문 완료 화면
          */
