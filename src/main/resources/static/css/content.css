@@ -119,7 +119,8 @@
    FAVORITE BUTTON (ODITJI ICON STYLE)
 ========================================================= */
 
-.fav-btn,
+/* [리팩터링] .fav-btn 공통 스타일은 css/component.css 로 이동했습니다.
+   .content-card__fav-btn 은 이 페이지 전용이라 그대로 유지합니다. */
 .content-card__fav-btn{
 
     position:absolute;
