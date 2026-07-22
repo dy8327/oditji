@@ -241,6 +241,105 @@
 }
 
 /* =========================================================
+   GOODS LIST FAVORITE(WISH) BUTTON
+   - component.css의 공용 .fav-btn(top:10px;right:10px)이
+     .card-item .cart-btn(동일 위치)과 겹치던 문제를 해결하기 위해
+     같은 명세(.card-item 하위)로 오버라이드하고, 장바구니 버튼
+     왼쪽(right:54px = 10px 여백 + 36px 버튼 + 8px 간격)에 배치한다.
+   - 콘텐츠 목록의 .content-list-favorite-btn과 동일한 톤/사이즈.
+========================================================= */
+
+.card-item .card-favorite-btn{
+
+    position:absolute;
+    top:10px;
+    right:54px;
+    z-index:3;
+
+    display:inline-flex;
+    width:36px;
+    height:36px;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:50%;
+    background:rgba(0,0,0,0.68);
+    color:#fff;
+
+    font-family:inherit;
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+
+    transition:
+        transform .2s ease,
+        background-color .2s ease,
+        border-color .2s ease,
+        color .2s ease;
+
+}
+
+.card-item .card-favorite-btn:hover{
+
+    border-color:rgba(255,255,255,0.42);
+    background:rgba(35,35,35,0.92);
+    transform:scale(1.07);
+
+}
+
+.card-item .card-favorite-btn.active{
+
+    border-color:rgba(255,92,110,0.6);
+    background:rgba(82,20,29,0.9);
+    color:#ff5c6e;
+
+}
+
+.card-item .card-favorite-btn:focus-visible{
+
+    outline:2px solid #ffffff;
+    outline-offset:3px;
+
+}
+
+/* =========================================================
+   GOODS DETAIL FAVORITE(WISH) BUTTON
+   - 공용 .fav-btn의 원형/36px 강제 스타일을 액션박스 안에서는
+     다른 버튼(cart-btn/buy-btn)과 같은 사각 버튼 형태로 되돌린다.
+========================================================= */
+
+.detail-info .action-box .fav-btn.detail-favorite-btn{
+
+    position:static;
+
+    width:auto;
+    height:auto;
+
+    border-radius:8px;
+    background:#2A2A2A;
+    color:#fff;
+
+    gap:6px;
+
+}
+
+.detail-info .action-box .fav-btn.detail-favorite-btn:hover{
+
+    background:#3A3A3A;
+
+}
+
+.detail-info .action-box .fav-btn.detail-favorite-btn.active{
+
+    border-color:rgba(255,92,110,0.6);
+    background:rgba(82,20,29,0.9);
+    color:#ff5c6e;
+
+}
+
+/* =========================================================
    DETAIL LAYOUT (contentDetail 구조 기준)
 ========================================================= */
 
