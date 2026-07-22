@@ -19,6 +19,8 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.report.service.ReportService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ProductReviewVO;
+import com.project.oditji.wish.service.WishService;
+import com.project.oditji.wish.vo.WishVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -31,15 +33,18 @@ public class GoodsController {
     private final GoodsService goodsService;
     private final ReviewService reviewService;
     private final ReportService reportService;
+    private final WishService wishService;
 
     public GoodsController(
             GoodsService goodsService,
             ReviewService reviewService,
-            ReportService reportService) {
+            ReportService reportService,
+            WishService wishService) {
 
         this.goodsService = goodsService;
         this.reviewService = reviewService;
         this.reportService = reportService;
+        this.wishService = wishService;
     }
 
     /**
@@ -59,6 +64,7 @@ public class GoodsController {
             @RequestParam(required = false, defaultValue = "false") boolean inStockOnly,
             @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(required = false, defaultValue = "1") int page,
+            HttpSession session,
             Model model) {
 
         String normalizedType = normalizeListType(type);
@@ -94,6 +100,10 @@ public class GoodsController {
                 GOODS_PAGE_SIZE
         );
 
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Set<Integer> wishedProductNoSet = wishService.getWishedProductNoSet(loginMemberNo);
+
         model.addAttribute("goodsList", goodsList);
         model.addAttribute("recommendedGoodsList", goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE));
         model.addAttribute("availableProductTypes", goodsService.getSearchProductTypes());
@@ -107,6 +117,7 @@ public class GoodsController {
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("page", normalizedPage);
         model.addAttribute("totalPage", totalPage);
+        model.addAttribute("wishedProductNoSet", wishedProductNoSet);
 
         return "goods/goodsList";
     }
@@ -137,6 +148,17 @@ public class GoodsController {
         Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
         Set<Integer> reportedReviewSet = reportService.getReportedProductReviewSet(loginMemberNo);
 
+        boolean wishActive = false;
+
+        if (loginMemberNo != null) {
+
+            WishVO wishVO = new WishVO();
+            wishVO.setMemberNo(loginMemberNo);
+            wishVO.setProductNo(productNo);
+
+            wishActive = wishService.isWished(wishVO);
+        }
+
         model.addAttribute("goods", goods);
         model.addAttribute("imageList", imageList);
         model.addAttribute("content", content);
@@ -145,6 +167,7 @@ public class GoodsController {
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("reportedReviewSet", reportedReviewSet);
+        model.addAttribute("wishActive", wishActive);
 
         return "goods/goodsDetail";
     }
