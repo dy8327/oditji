@@ -7,17 +7,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.vo.BusinessVO;
-import com.project.oditji.refund.dao.OrderCancelRefundDAO;
-import com.project.oditji.refund.vo.OrderCancelRefundVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.payment.dao.PaymentDAO;
 import com.project.oditji.payment.service.PaymentService;
 import com.project.oditji.payment.vo.PaymentVO;
+import com.project.oditji.refund.dao.OrderCancelRefundDAO;
+import com.project.oditji.refund.vo.OrderCancelRefundVO;
 
 @Service
 public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
     private static final String WAITING = "WAITING";
+    private static final String FULL = "FULL";
+    private static final String PARTIAL = "PARTIAL";
 
     private final OrderCancelRefundDAO orderCancelRefundDAO;
     private final BusinessDAO businessDAO;
@@ -38,82 +40,121 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
     /*
      * =========================================================
-     * [주문 취소 요청 기능 추가]
+     * [주문 전체 취소 요청 기능 수정]
      *
-     * 사용자 주문 한 건에 포함된 취소 가능 주문상품별로
-     * CANCEL_REQUEST를 생성한다.
-     * 이 단계에서는 포트원 환불을 호출하지 않는다.
+     * 사용자 화면에서는 주문 전체 취소를 한 건으로 요청한다.
+     * DB에는 주문상품별 행을 저장하되 동일한 CANCEL_GROUP_NO와
+     * FULL 유형으로 묶어 하나의 전체 취소 요청으로 관리한다.
+     *
+     * 사업자 승인 단계에서는 환불하지 않고 모든 사업자의 승인이
+     * 완료된 마지막 시점에만 포트원 전액 환불을 한 번 호출한다.
      * =========================================================
      */
     @Override
     @Transactional
-    public void requestOrderCancel(
-            Long memberNo,
-            Long orderNo,
-            String reason) {
+    public void requestOrderCancel(Long memberNo, Long orderNo, String reason) {
 
-        if (memberNo == null || memberNo <= 0) {
-            throw new IllegalArgumentException("로그인 회원 정보가 올바르지 않습니다.");
-        }
+        validateMemberNo(memberNo);
 
         if (orderNo == null || orderNo <= 0) {
             throw new IllegalArgumentException("주문 번호가 올바르지 않습니다.");
         }
 
-        String normalizedReason = normalizeReason(reason, "주문 취소 요청");
-
-        List<OrderItemVO> itemList = orderCancelRefundDAO.selectCancelableItemsByOrder(
-                memberNo,
-                orderNo);
+        String normalizedReason = normalizeReason(reason, "주문 전체 취소 요청");
+        List<OrderItemVO> itemList = orderCancelRefundDAO.selectCancelableItemsByOrder(memberNo, orderNo);
 
         if (itemList == null || itemList.isEmpty()) {
             throw new IllegalArgumentException(
-                    "취소 요청할 수 있는 주문상품이 없습니다. 배송이 시작된 상품은 취소할 수 없습니다.");
+                    "전체 취소를 요청할 수 있는 주문상품이 없습니다. 배송이 시작된 상품은 취소할 수 없습니다.");
         }
 
-        int insertedCount = 0;
+        for (OrderItemVO item : itemList) {
+            if (orderCancelRefundDAO.countWaitingCancelByOrderItemNo(item.getOrderItemNo()) > 0) {
+                throw new IllegalArgumentException("이미 취소 요청이 접수된 상품이 포함되어 있습니다.");
+            }
+        }
+
+        Long cancelGroupNo = orderCancelRefundDAO.selectNextCancelGroupNo();
 
         for (OrderItemVO item : itemList) {
+            OrderCancelRefundVO requestVO = createRequestVO(
+                    memberNo,
+                    orderNo,
+                    item,
+                    FULL,
+                    cancelGroupNo,
+                    normalizedReason);
 
-            if (orderCancelRefundDAO.countWaitingCancelByOrderItemNo(item.getOrderItemNo()) > 0) {
-                continue;
-            }
-
-            OrderCancelRefundVO cancelRequestVO = new OrderCancelRefundVO();
-            cancelRequestVO.setOrderItemNo(item.getOrderItemNo());
-            cancelRequestVO.setMemberNo(memberNo);
-            cancelRequestVO.setReason(normalizedReason);
-            cancelRequestVO.setStatus(WAITING);
-
-            if (orderCancelRefundDAO.insertCancelRequest(cancelRequestVO) != 1) {
-                throw new IllegalStateException("취소 요청 저장에 실패했습니다.");
+            if (orderCancelRefundDAO.insertCancelRequest(requestVO) != 1) {
+                throw new IllegalStateException("전체 취소 요청 저장에 실패했습니다.");
             }
 
             if (orderCancelRefundDAO.updateOrderItemCancelRequested(item.getOrderItemNo()) != 1) {
                 throw new IllegalStateException("주문상품 상태 변경에 실패했습니다.");
             }
-
-            insertedCount++;
-        }
-
-        if (insertedCount == 0) {
-            throw new IllegalArgumentException("이미 취소 요청이 접수된 주문입니다.");
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(orderNo);
     }
 
+    /*
+     * =========================================================
+     * [상품별 부분 취소 요청 기능 추가]
+     *
+     * 사용자가 선택한 ORDER_ITEM 한 건만 PARTIAL 유형으로 요청한다.
+     * 해당 상품의 사업자가 승인하면 해당 금액만 부분 환불한다.
+     * =========================================================
+     */
     @Override
-    public List<OrderCancelRefundVO> getBusinessCancelList(
-            Long memberNo,
-            String status) {
+    @Transactional
+    public void requestOrderItemCancel(Long memberNo, Long orderItemNo, String reason) {
+
+        validateMemberNo(memberNo);
+
+        if (orderItemNo == null || orderItemNo <= 0) {
+            throw new IllegalArgumentException("주문상품 번호가 올바르지 않습니다.");
+        }
+
+        if (orderCancelRefundDAO.countWaitingCancelByOrderItemNo(orderItemNo) > 0) {
+            throw new IllegalArgumentException("이미 취소 요청이 접수된 상품입니다.");
+        }
+
+        OrderItemVO item = orderCancelRefundDAO.selectCancelableItem(memberNo, orderItemNo);
+
+        if (item == null) {
+            throw new IllegalArgumentException(
+                    "부분 취소를 요청할 수 없는 상품입니다. 배송이 시작된 상품은 취소할 수 없습니다.");
+        }
+
+        String normalizedReason = normalizeReason(reason, "상품 부분 취소 요청");
+        Long cancelGroupNo = orderCancelRefundDAO.selectNextCancelGroupNo();
+
+        OrderCancelRefundVO requestVO = createRequestVO(
+                memberNo,
+                item.getOrderNo(),
+                item,
+                PARTIAL,
+                cancelGroupNo,
+                normalizedReason);
+
+        if (orderCancelRefundDAO.insertCancelRequest(requestVO) != 1) {
+            throw new IllegalStateException("부분 취소 요청 저장에 실패했습니다.");
+        }
+
+        if (orderCancelRefundDAO.updateOrderItemCancelRequested(orderItemNo) != 1) {
+            throw new IllegalStateException("주문상품 상태 변경에 실패했습니다.");
+        }
+
+        orderCancelRefundDAO.updateOrderStatusByItems(item.getOrderNo());
+    }
+
+    @Override
+    public List<OrderCancelRefundVO> getBusinessCancelList(Long memberNo, String status) {
 
         BusinessVO business = getBusiness(memberNo);
-
-        String normalizedStatus = status == null || status.isBlank()
-                || "ALL".equalsIgnoreCase(status)
-                        ? null
-                        : status.trim().toUpperCase();
+        String normalizedStatus = status == null || status.isBlank() || "ALL".equalsIgnoreCase(status)
+                ? null
+                : status.trim().toUpperCase();
 
         return orderCancelRefundDAO.selectCancelListByBusiness(
                 business.getBusinessNo(),
@@ -122,31 +163,88 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
     /*
      * =========================================================
-     * [사업자 취소 승인 기능 추가]
+     * [전체/부분 취소 승인 처리 분리]
      *
-     * 사업자 소유 주문상품인지 검증한 뒤 포트원 부분 취소를
-     * 먼저 실행한다. 환불 성공 후 주문상품, 재고, 결제,
-     * 취소 요청 상태를 함께 변경한다.
+     * FULL
+     * - 현재 사업자 소유 상품들을 한 번에 승인한다.
+     * - 모든 사업자가 승인한 경우에만 포트원 전액 환불,
+     * 전체 재고 복구, 주문 전체 취소를 처리한다.
+     *
+     * PARTIAL
+     * - 해당 상품 금액만 즉시 포트원 부분 환불한다.
      * =========================================================
      */
     @Override
     @Transactional
-    public void approveCancel(
-            Long memberNo,
-            Long cancelNo) {
+    public void approveCancel(Long memberNo, Long cancelNo) {
 
         BusinessVO business = getBusiness(memberNo);
         OrderCancelRefundVO request = getWaitingRequest(cancelNo, business.getBusinessNo());
 
-        PaymentVO payment = paymentDAO.selectPaymentByOrderNo(request.getOrderNo());
-
-        if (payment == null) {
-            throw new IllegalArgumentException("주문 결제내역을 찾을 수 없습니다.");
+        if (FULL.equals(request.getCancelType())) {
+            approveFullCancel(request, business.getBusinessNo());
+            return;
         }
 
-        long cancelAmount = request.getCancelAmount() == null
+        approvePartialCancel(request);
+    }
+
+    private void approveFullCancel(OrderCancelRefundVO request, Long businessNo) {
+
+        int updatedCount = orderCancelRefundDAO.approveFullGroupForBusiness(
+                request.getCancelGroupNo(),
+                businessNo);
+
+        if (updatedCount <= 0) {
+            throw new IllegalStateException("전체 취소 승인 처리에 실패했습니다.");
+        }
+
+        if (orderCancelRefundDAO.countRejectedByGroup(request.getCancelGroupNo()) > 0) {
+            throw new IllegalArgumentException("이미 반려된 전체 취소 요청입니다.");
+        }
+
+        if (orderCancelRefundDAO.countWaitingByGroup(request.getCancelGroupNo()) > 0) {
+            return;
+        }
+
+        PaymentVO payment = getPayment(request.getOrderNo());
+        PaymentVO canceledPayment = paymentService.cancelPaidPayment(
+                payment,
+                request.getReason());
+
+        List<OrderCancelRefundVO> groupRequests = orderCancelRefundDAO.selectRequestsByGroup(
+                request.getCancelGroupNo());
+
+        for (OrderCancelRefundVO groupItem : groupRequests) {
+            if (orderCancelRefundDAO.restoreProductStock(
+                    groupItem.getProductNo(),
+                    groupItem.getQuantity()) != 1) {
+                throw new IllegalStateException("상품 재고 복구에 실패했습니다.");
+            }
+        }
+
+        int canceledItemCount = orderCancelRefundDAO.cancelOrderItemsByGroup(
+                request.getCancelGroupNo());
+
+        if (canceledItemCount != groupRequests.size()) {
+            throw new IllegalStateException("전체 주문상품 취소 상태 변경에 실패했습니다.");
+        }
+
+        canceledPayment.setCanceledAmount(canceledPayment.getPaymentAmount());
+
+        if (paymentDAO.updatePaymentCanceled(canceledPayment) != 1) {
+            throw new IllegalStateException("결제 전액 취소 정보 저장에 실패했습니다.");
+        }
+
+        orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
+    }
+
+    private void approvePartialCancel(OrderCancelRefundVO request) {
+
+        PaymentVO payment = getPayment(request.getOrderNo());
+        long cancelAmount = request.getRefundAmount() == null
                 ? 0L
-                : request.getCancelAmount();
+                : request.getRefundAmount();
 
         if (cancelAmount <= 0) {
             throw new IllegalArgumentException("환불 금액이 올바르지 않습니다.");
@@ -167,44 +265,89 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
             throw new IllegalStateException("상품 재고 복구에 실패했습니다.");
         }
 
-        if (orderCancelRefundDAO.approveCancelRequest(cancelNo) != 1) {
-            throw new IllegalStateException("취소 요청 승인 처리에 실패했습니다.");
+        if (orderCancelRefundDAO.approveCancelRequest(request.getCancelNo()) != 1) {
+            throw new IllegalStateException("부분 취소 요청 승인 처리에 실패했습니다.");
         }
 
         if (paymentDAO.updatePaymentPartialCanceled(canceledPayment) != 1) {
-            throw new IllegalStateException("결제 취소 정보 저장에 실패했습니다.");
+            throw new IllegalStateException("결제 부분 취소 정보 저장에 실패했습니다.");
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
     }
 
+    /*
+     * =========================================================
+     * [전체 취소 반려 처리 수정]
+     *
+     * 전체 취소 요청은 어느 한 사업자라도 반려하면 그룹 전체를
+     * 반려 처리하고 모든 주문상품 상태를 결제 완료 상태로 복구한다.
+     * 실제 환불과 재고 복구는 실행하지 않는다.
+     * =========================================================
+     */
     @Override
     @Transactional
-    public void rejectCancel(
-            Long memberNo,
-            Long cancelNo,
-            String rejectReason) {
+    public void rejectCancel(Long memberNo, Long cancelNo, String rejectReason) {
 
         BusinessVO business = getBusiness(memberNo);
         OrderCancelRefundVO request = getWaitingRequest(cancelNo, business.getBusinessNo());
         String normalizedReason = normalizeReason(rejectReason, "사업자 사유로 취소 요청 반려");
 
-        if (orderCancelRefundDAO.rejectCancelRequest(cancelNo, normalizedReason) != 1) {
-            throw new IllegalStateException("취소 요청 반려 처리에 실패했습니다.");
-        }
+        if (FULL.equals(request.getCancelType())) {
+            if (orderCancelRefundDAO.rejectFullGroup(
+                    request.getCancelGroupNo(),
+                    normalizedReason) <= 0) {
+                throw new IllegalStateException("전체 취소 요청 반려 처리에 실패했습니다.");
+            }
 
-        if (orderCancelRefundDAO.restoreOrderItemStatus(request.getOrderItemNo()) != 1) {
-            throw new IllegalStateException("주문상품 상태 복구에 실패했습니다.");
+            orderCancelRefundDAO.restoreOrderItemsByGroup(request.getCancelGroupNo());
+        } else {
+            if (orderCancelRefundDAO.rejectCancelRequest(
+                    request.getCancelNo(),
+                    normalizedReason) != 1) {
+                throw new IllegalStateException("부분 취소 요청 반려 처리에 실패했습니다.");
+            }
+
+            if (orderCancelRefundDAO.restoreOrderItemStatus(request.getOrderItemNo()) != 1) {
+                throw new IllegalStateException("주문상품 상태 복구에 실패했습니다.");
+            }
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
     }
 
-    private BusinessVO getBusiness(Long memberNo) {
+    private OrderCancelRefundVO createRequestVO(
+            Long memberNo,
+            Long orderNo,
+            OrderItemVO item,
+            String cancelType,
+            Long cancelGroupNo,
+            String reason) {
 
-        if (memberNo == null || memberNo <= 0) {
-            throw new IllegalArgumentException("로그인 회원 정보를 확인할 수 없습니다.");
+        OrderCancelRefundVO requestVO = new OrderCancelRefundVO();
+        requestVO.setOrderNo(orderNo);
+        requestVO.setOrderItemNo(item.getOrderItemNo());
+        requestVO.setMemberNo(memberNo);
+        requestVO.setCancelType(cancelType);
+        requestVO.setCancelGroupNo(cancelGroupNo);
+        requestVO.setRefundAmount(item.getItemTotalPrice());
+        requestVO.setReason(reason);
+        requestVO.setStatus(WAITING);
+        return requestVO;
+    }
+
+    private PaymentVO getPayment(Long orderNo) {
+        PaymentVO payment = paymentDAO.selectPaymentByOrderNo(orderNo);
+
+        if (payment == null) {
+            throw new IllegalArgumentException("주문 결제내역을 찾을 수 없습니다.");
         }
+
+        return payment;
+    }
+
+    private BusinessVO getBusiness(Long memberNo) {
+        validateMemberNo(memberNo);
 
         BusinessVO business = businessDAO.selectBusinessByMemberNo(memberNo);
 
@@ -215,9 +358,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         return business;
     }
 
-    private OrderCancelRefundVO getWaitingRequest(
-            Long cancelNo,
-            Long businessNo) {
+    private OrderCancelRefundVO getWaitingRequest(Long cancelNo, Long businessNo) {
 
         if (cancelNo == null || cancelNo <= 0) {
             throw new IllegalArgumentException("취소 요청 번호가 올바르지 않습니다.");
@@ -238,10 +379,13 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         return request;
     }
 
-    private String normalizeReason(
-            String reason,
-            String defaultReason) {
+    private void validateMemberNo(Long memberNo) {
+        if (memberNo == null || memberNo <= 0) {
+            throw new IllegalArgumentException("로그인 회원 정보가 올바르지 않습니다.");
+        }
+    }
 
+    private String normalizeReason(String reason, String defaultReason) {
         String normalized = reason == null ? "" : reason.trim();
 
         if (normalized.isEmpty()) {
