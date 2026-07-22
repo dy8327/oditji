@@ -29,7 +29,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="order-list-container">
+<main class="order-list-container" data-context-path="${pageContext.request.contextPath}">
 
     <h1>주문 내역</h1>
 
@@ -94,6 +94,10 @@
 
                         <c:when test="${o.orderStatus eq 'CANCEL_REQUEST'}">
                             취소 요청
+                        </c:when>
+
+                        <c:when test="${o.orderStatus eq 'PARTIAL_CANCELED'}">
+                            부분 취소
                         </c:when>
 
                         <c:when test="${o.orderStatus eq 'CANCELED'}">
@@ -175,6 +179,32 @@
 
                         </c:if>
 
+                        <%--
+                            =========================================================
+                            [상품별 부분 취소 버튼 추가]
+
+                            주문상품이 결제 완료 또는 상품 준비 중 상태일 때만
+                            해당 상품 한 건에 대한 부분 취소 요청을 등록한다.
+                            기존 상품 카드 레이아웃은 유지한다.
+                            =========================================================
+                        --%>
+                        <c:if test="${i.status eq 'PAID' || i.status eq 'ORDERED' || i.status eq 'PREPARING'}">
+                            <button type="button"
+                                    class="item-cancel-btn"
+                                    data-order-item-no="${i.orderItemNo}"
+                                    data-product-name="${i.productName}">
+                                상품 부분 취소
+                            </button>
+                        </c:if>
+
+                        <c:if test="${i.status eq 'CANCEL_REQUEST'}">
+                            <span class="item-cancel-state">취소 승인 대기</span>
+                        </c:if>
+
+                        <c:if test="${i.status eq 'CANCELED'}">
+                            <span class="item-cancel-state canceled">취소 완료</span>
+                        </c:if>
+
                     </div>
 
                 </c:forEach>
@@ -224,6 +254,10 @@
 
                                     <c:when test="${o.orderStatus eq 'CANCEL_REQUEST'}">
                                         취소 요청
+                                    </c:when>
+
+                                    <c:when test="${o.orderStatus eq 'PARTIAL_CANCELED'}">
+                                        부분 취소
                                     </c:when>
 
                                     <c:when test="${o.orderStatus eq 'CANCELED'}">
@@ -334,15 +368,22 @@
 
                 </div>
 
-                <!-- PAID 주문에만 결제 취소 버튼 표시 -->
-                <c:if test="${o.orderStatus eq 'PAID'}">
+                <%--
+                    =========================================================
+                    [주문 전체 취소 버튼 수정]
+
+                    전체 취소는 주문에 포함된 모든 상품을 동일한 그룹으로
+                    묶어 요청하며, 모든 사업자가 승인한 경우에만 전액 환불한다.
+                    =========================================================
+                --%>
+                <c:if test="${o.orderStatus eq 'PAID' || o.orderStatus eq 'ORDERED' || o.orderStatus eq 'PREPARING'}">
 
                     <div class="order-cancel-action">
 
                         <button type="button"
                                 class="payment-cancel-btn"
                                 data-order-no="${o.orderNo}">
-                            결제 취소
+                            주문 전체 취소
                         </button>
 
                     </div>
@@ -456,60 +497,52 @@
     </div>
 
 
-    <!-- 결제 취소 모달 -->
-    <div id="paymentCancelModal"
-         class="payment-cancel-modal"
-         aria-hidden="true">
+    <!-- 주문 취소 요청 모달 -->
+    <div id="orderCancelModal"
+        class="payment-cancel-modal"
+        aria-hidden="true">
 
         <div class="payment-cancel-modal-content"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="paymentCancelModalTitle">
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="orderCancelModalTitle">
 
-            <h2 id="paymentCancelModalTitle"
+            <h2 id="orderCancelModalTitle"
                 class="payment-cancel-modal-title">
-                결제 취소
+                주문 취소 요청
             </h2>
 
-            <p class="payment-cancel-modal-desc">
-
-                주문번호
-
-                <span id="paymentCancelOrderNumber"
-                      class="payment-cancel-order-number">
-                </span>
-
-                의 결제를 전액 취소합니다.
-                취소가 완료되면 상품 재고가 복구됩니다.
-
+            <p id="orderCancelModalDescription"
+            class="payment-cancel-modal-desc">
             </p>
 
-            <label for="paymentCancelReason"
-                   class="payment-cancel-label">
+            <label for="orderCancelReason"
+                class="payment-cancel-label">
                 취소 사유
             </label>
 
-            <textarea id="paymentCancelReason"
-                      class="payment-cancel-reason"
-                      maxlength="500"
-                      placeholder="결제 취소 사유를 입력해주세요."></textarea>
+            <textarea id="orderCancelReason"
+                    class="payment-cancel-reason"
+                    maxlength="500"
+                    placeholder="취소 사유를 입력해주세요."></textarea>
 
-            <p id="paymentCancelError"
-               class="payment-cancel-error">
+            <p id="orderCancelError"
+            class="payment-cancel-error"
+            style="display:none;">
             </p>
 
             <div class="payment-cancel-modal-actions">
 
                 <button type="button"
-                        id="paymentCancelCloseBtn"
+                        id="orderCancelCloseBtn"
                         class="payment-cancel-close-btn">
                     닫기
                 </button>
 
                 <button type="button"
-                        id="paymentCancelSubmitBtn"
+                        id="orderCancelSubmitBtn"
                         class="payment-cancel-submit-btn">
-                    결제 취소
+                    결제 취소 요청
                 </button>
 
             </div>
@@ -523,306 +556,7 @@
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
 <script src="${pageContext.request.contextPath}/js/orderReview.js"></script>
-
-<script>
-
-(function () {
-
-    "use strict";
-
-    var contextPath =
-        "${pageContext.request.contextPath}";
-
-    var modal =
-        document.getElementById(
-            "paymentCancelModal"
-        );
-
-    var orderNumberText =
-        document.getElementById(
-            "paymentCancelOrderNumber"
-        );
-
-    var reasonInput =
-        document.getElementById(
-            "paymentCancelReason"
-        );
-
-    var errorBox =
-        document.getElementById(
-            "paymentCancelError"
-        );
-
-    var closeButton =
-        document.getElementById(
-            "paymentCancelCloseBtn"
-        );
-
-    var submitButton =
-        document.getElementById(
-            "paymentCancelSubmitBtn"
-        );
-
-    var selectedOrderNo = null;
-
-    function showError(message) {
-
-        errorBox.textContent =
-            message;
-
-        errorBox.style.display =
-            "block";
-    }
-
-    function clearError() {
-
-        errorBox.textContent = "";
-
-        errorBox.style.display =
-            "none";
-    }
-
-    function openCancelModal(orderNo) {
-
-        selectedOrderNo =
-            Number(orderNo);
-
-        orderNumberText.textContent =
-            String(orderNo);
-
-        reasonInput.value = "";
-
-        clearError();
-
-        modal.classList.add("open");
-
-        modal.setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-        reasonInput.focus();
-    }
-
-    function closeCancelModal() {
-
-        if (submitButton.disabled) {
-            return;
-        }
-
-        selectedOrderNo = null;
-
-        modal.classList.remove("open");
-
-        modal.setAttribute(
-            "aria-hidden",
-            "true"
-        );
-
-        reasonInput.value = "";
-
-        clearError();
-    }
-
-    function restoreButtons() {
-
-        submitButton.disabled = false;
-        closeButton.disabled = false;
-
-        submitButton.textContent =
-            "결제 취소";
-    }
-
-    function readJsonResponse(response) {
-
-        return response.json()
-            .catch(function () {
-
-                throw new Error(
-                    "서버 응답을 읽을 수 없습니다."
-                );
-            })
-            .then(function (data) {
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.message
-                        || "HTTP 오류: "
-                        + response.status
-                    );
-                }
-
-                return data;
-            });
-    }
-
-    function requestPaymentCancel() {
-
-        clearError();
-
-        var reason =
-            reasonInput.value.trim();
-
-        if (!selectedOrderNo
-                || selectedOrderNo <= 0) {
-
-            showError(
-                "취소할 주문 번호가 올바르지 않습니다."
-            );
-
-            return;
-        }
-
-        if (!reason) {
-
-            showError(
-                "결제 취소 사유를 입력해주세요."
-            );
-
-            reasonInput.focus();
-
-            return;
-        }
-
-        if (reason.length > 500) {
-
-            showError(
-                "결제 취소 사유는 500자 이하로 입력해주세요."
-            );
-
-            return;
-        }
-
-        submitButton.disabled = true;
-        closeButton.disabled = true;
-
-        submitButton.textContent =
-            "취소 처리 중...";
-
-        fetch(
-            contextPath
-                + "/order/payment/cancel",
-            {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    orderNo:
-                        selectedOrderNo,
-
-                    reason:
-                        reason
-                })
-            }
-        )
-        .then(readJsonResponse)
-        .then(function (data) {
-
-            if (!data.success) {
-
-                if (data.loginRequired) {
-
-                    location.href =
-                        contextPath
-                        + "/member/login"
-                        + "?redirect=/order/list";
-
-                    return;
-                }
-
-                throw new Error(
-                    data.message
-                    || "결제 취소에 실패했습니다."
-                );
-            }
-
-            alert(
-                data.message
-                || "결제가 취소되었습니다."
-            );
-
-            location.href =
-                contextPath
-                + (
-                    data.redirectUrl
-                    || "/order/list"
-                );
-        })
-        .catch(function (error) {
-
-            console.error(
-                "결제 취소 오류:",
-                error
-            );
-
-            showError(
-                error.message
-                || "결제 취소 중 오류가 발생했습니다."
-            );
-
-            restoreButtons();
-        });
-    }
-
-    document
-        .querySelectorAll(
-            ".payment-cancel-btn"
-        )
-        .forEach(function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    openCancelModal(
-                        button.dataset.orderNo
-                    );
-                }
-            );
-        });
-
-    closeButton.addEventListener(
-        "click",
-        closeCancelModal
-    );
-
-    submitButton.addEventListener(
-        "click",
-        requestPaymentCancel
-    );
-
-    reasonInput.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (event.key === "Escape") {
-
-                event.preventDefault();
-                closeCancelModal();
-            }
-        }
-    );
-
-    modal.addEventListener(
-        "click",
-        function (event) {
-
-            if (event.target === modal) {
-                closeCancelModal();
-            }
-        }
-    );
-
-}());
-
-</script>
+<script src="${pageContext.request.contextPath}/js/orderCancel.js"></script>
 
 </body>
 
