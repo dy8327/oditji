@@ -310,6 +310,15 @@
   background: rgba(74, 222, 128, 0.2);
 }
 
+.btn-secondary {
+  background: var(--adm-warning-bg);
+  color: var(--adm-warning);
+}
+
+.btn-secondary:hover {
+  background: rgba(250, 204, 21, 0.2);
+}
+
 .btn-outline {
   background: transparent;
   border-color: var(--adm-border);
