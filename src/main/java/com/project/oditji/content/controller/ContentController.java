@@ -312,36 +312,43 @@ public class ContentController {
                         + encodedTitle;
                 break;
 
-            case "tving":
+                case "tving":
                 redirectUrl =
-                        "https://www.tving.com/search/all?keyword="
+                        "https://www.tving.com/search?keyword="
                         + encodedTitle;
                 break;
 
-            case "wavve":
+                case "wavve":
                 redirectUrl =
                         "https://www.wavve.com/search?searchWord="
                         + encodedTitle;
                 break;
 
-            case "disney+":
-            case "disneyplus":
-                redirectUrl =
-                        "https://www.disneyplus.com/ko-kr/browse/search?q="
-                        + encodedTitle;
-                break;
-
-            case "watcha":
+                case "watcha":
                 redirectUrl =
                         "https://watcha.com/search?query="
                         + encodedTitle;
                 break;
+                case "disney+":
+                case "disneyplus":
 
-            case "coupangplay":
-            case "coupang":
+                /*
+                * Disney+는 검색어를 URL로 전달하는 경로가 안정적이지 않아
+                * 잘못된 검색 경로로 인한 404를 방지하기 위해 공식 홈으로 이동합니다.
+                */
                 redirectUrl =
-                        "https://www.coupangplay.com/search?q="
-                        + encodedTitle;
+                        "https://www.disneyplus.com/";
+                break;
+
+                case "coupangplay":
+                case "coupang":
+
+                /*
+                * Coupang Play 역시 외부에서 검색어를 전달할 수 있는
+                * 고정 검색 URL을 사용하지 않고 공식 홈으로 이동합니다.
+                */
+                redirectUrl =
+                        "https://www.coupangplay.com/";
                 break;
 
             default:
