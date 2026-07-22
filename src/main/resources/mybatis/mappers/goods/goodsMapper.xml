@@ -87,9 +87,49 @@
 
 
     <!-- =====================================================
+         진행 중인 이벤트 할인율 조인
+
+         STATUS = 'APPROVED'이고 SYSDATE가 START_DATE ~ END_DATE
+         사이인 이벤트에 연결된 상품에 한해서만 이벤트 할인율을 적용한다.
+
+         승인 시점이 아니라 조회 시점(SYSDATE) 기준으로 매번 계산하므로
+         START_DATE가 되어야 할인이 노출되고 END_DATE가 지나면
+         별도 배치 없이 자동으로 할인이 사라진다.
+
+         하나의 상품이 여러 이벤트에 동시에 연결될 수 있으므로
+         할인율이 가장 큰 값을 사용한다.
+    ====================================================== -->
+    <sql id="activeEventDiscountJoin">
+
+        LEFT JOIN (
+            SELECT
+                EP.PRODUCT_NO,
+                MAX(EP.EVENT_DISCOUNT_RATE) AS ACTIVE_EVENT_DISCOUNT_RATE
+
+            FROM EVENT_PRODUCT EP
+
+            JOIN EVENT E
+                ON E.EVENT_NO = EP.EVENT_NO
+
+            WHERE E.STATUS = 'APPROVED'
+              AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+
+            GROUP BY EP.PRODUCT_NO
+        ) AED
+            ON AED.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
+
+    <!-- =====================================================
          사용자 상품 검색 공통 조건
 
          관리자 승인 완료 상태인 APPROVED 상품만 공개한다.
+
+         가격 범위 / 할인 상품 필터는 상품 자체 할인율이 아니라
+         "지금 노출되는 실제 할인율"(진행 중 이벤트 할인율 우선,
+         없으면 상품 기본 할인율) 기준으로 계산해야
+         목록 화면(selectSearchGoods)과 동일한 기준으로 필터링된다.
     ====================================================== -->
     <sql id="searchGoodsFilterCondition">
 
@@ -138,7 +178,7 @@
                     P.PRICE
                     * (
                         100
-                        - NVL(P.DISCOUNT_RATE, 0)
+                        - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
                     )
                     / 100
                 ) <![CDATA[ >= ]]> #{minPrice}
@@ -152,7 +192,7 @@
                     P.PRICE
                     * (
                         100
-                        - NVL(P.DISCOUNT_RATE, 0)
+                        - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
                     )
                     / 100
                 ) <![CDATA[ <= ]]> #{maxPrice}
@@ -162,7 +202,7 @@
 
         <if test="discountOnly">
 
-            AND NVL(P.DISCOUNT_RATE, 0) > 0
+            AND NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) > 0
 
         </if>
 
@@ -211,7 +251,7 @@
                         END,
                         CASE
                             WHEN #{type} = 'popular'
-                            THEN NVL(P.DISCOUNT_RATE, 0)
+                            THEN NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
                             ELSE 0
                         END DESC,
                         P.CREATED_AT DESC,
@@ -226,8 +266,8 @@
                 P.PRODUCT_TYPE,
                 P.PRICE,
                 NVL(
-                    P.DISCOUNT_RATE,
-                    0
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
                 ) AS DISCOUNT_RATE,
                 NVL(
                     P.STOCK,
@@ -250,6 +290,8 @@
                 ON A.ACTOR_NO = P.ACTOR_NO
 
             <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
 
             <include refid="searchGoodsFilterCondition"/>
 
@@ -282,6 +324,8 @@
 
         LEFT JOIN ACTOR A
             ON A.ACTOR_NO = P.ACTOR_NO
+
+        <include refid="activeEventDiscountJoin"/>
 
         <include refid="searchGoodsFilterCondition"/>
 
@@ -318,7 +362,7 @@
                             THEN 0
                             ELSE 1
                         END,
-                        NVL(P.DISCOUNT_RATE, 0) DESC,
+                        NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
                         P.CREATED_AT DESC,
                         P.PRODUCT_NO DESC
                 ) AS RN,
@@ -331,8 +375,8 @@
                 P.PRODUCT_TYPE,
                 P.PRICE,
                 NVL(
-                    P.DISCOUNT_RATE,
-                    0
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
                 ) AS DISCOUNT_RATE,
                 NVL(
                     P.STOCK,
@@ -349,6 +393,8 @@
                 ON B.BUSINESS_NO = P.BUSINESS_NO
 
             <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
 
             WHERE P.STATUS = 'APPROVED'
 
@@ -398,8 +444,8 @@
             P.PRODUCT_TYPE,
             P.PRICE,
             NVL(
-                P.DISCOUNT_RATE,
-                0
+                AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                NVL(P.DISCOUNT_RATE, 0)
             ) AS DISCOUNT_RATE,
             NVL(
                 P.STOCK,
@@ -416,6 +462,8 @@
             ON B.BUSINESS_NO = P.BUSINESS_NO
 
         <include refid="mainImageJoin"/>
+
+        <include refid="activeEventDiscountJoin"/>
 
         WHERE P.PRODUCT_NO = #{productNo}
           AND P.STATUS = 'APPROVED'

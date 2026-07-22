@@ -230,26 +230,12 @@ public class AdminDAO {
     }
 
     /*
-     * 이벤트 승인 시 연결 상품의 할인율을 갱신하기 위해
-     * EVENT_PRODUCT에서 PRODUCT_NO / EVENT_DISCOUNT_RATE를 조회한다.
-     *
-     * 하나의 이벤트에 여러 상품이 연결될 수 있으므로
-     * selectOne이 아닌 selectList를 사용한다.
+     * [정리됨] selectEventProductByEventNo / applyEventDiscountToProduct는
+     * 이벤트 승인 시점에 PRODUCT.DISCOUNT_RATE를 즉시 덮어쓰던 로직에서만
+     * 쓰였다. 지금은 goodsMapper.xml의 상품 조회 쿼리가 SYSDATE 기준으로
+     * 진행 중인 이벤트를 매번 계산해서 할인율을 실시간으로 반영하므로
+     * 더 이상 필요하지 않아 제거했다.
      */
-    public List<EventManageVO> selectEventProductByEventNo(Long eventNo) {
-        return sqlSession.selectList("selectEventProductByEventNo", eventNo);
-    }
-
-    /*
-     * 이벤트 승인 시 연결 상품의 PRODUCT.DISCOUNT_RATE를
-     * 이벤트 할인율로 갱신한다.
-     */
-    public int applyEventDiscountToProduct(Long productNo, Integer eventDiscountRate) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("productNo", productNo);
-        param.put("eventDiscountRate", eventDiscountRate);
-        return sqlSession.update("applyEventDiscountToProduct", param);
-    }
 
     // ===================== 상품 관리 (PRODUCT) =====================
 
