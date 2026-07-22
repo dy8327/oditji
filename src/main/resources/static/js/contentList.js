@@ -514,7 +514,20 @@ async function toggleContentListFavorite(
 
         if (response.status === 401) {
 
-            alert("로그인이 필요합니다.");
+            const moveLogin = confirm(
+                "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+            );
+
+            if (moveLogin) {
+
+                const currentUrl =
+                    window.location.pathname +
+                    window.location.search;
+
+                window.location.href =
+                    `${contextPath}/member/login?returnUrl=${encodeURIComponent(currentUrl)}`;
+            }
+
             return;
         }
 
