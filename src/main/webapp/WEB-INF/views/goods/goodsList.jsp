@@ -22,9 +22,19 @@
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/favorite.css">
+
+<script>
+    const contextPath = "${pageContext.request.contextPath}";
+</script>
 
 <script defer
         src="${pageContext.request.contextPath}/js/goods.js">
+</script>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/favorite.js">
 </script>
 
 </head>
@@ -116,6 +126,25 @@
                         ${g.stock <= 0
                             ? 'is-soldout'
                             : ''}">
+
+                        <button
+                            type="button"
+                            class="fav-btn card-favorite-btn${wishedProductNoSet.contains(g.productNo) ? ' active' : ''}"
+                            data-type="goods"
+                            data-product-no="${g.productNo}"
+                            aria-pressed="${wishedProductNoSet.contains(g.productNo)}"
+                            aria-label="<c:out value='${g.productName}'/> 찜하기"
+                            title="찜하기">
+
+                            <c:choose>
+
+                                <c:when test="${wishedProductNoSet.contains(g.productNo)}">♥</c:when>
+
+                                <c:otherwise>♡</c:otherwise>
+
+                            </c:choose>
+
+                        </button>
 
                         <a class="card-link"
                            href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}">

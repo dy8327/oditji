@@ -20,12 +20,23 @@
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/favorite.css">
+
+<script>
+    const contextPath = "${pageContext.request.contextPath}";
+</script>
+
 <script defer
         src="${pageContext.request.contextPath}/js/goods.js">
 </script>
 
 <script defer
         src="${pageContext.request.contextPath}/js/report.js">
+</script>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/favorite.js">
 </script>
 
 </head>
@@ -216,6 +227,31 @@
         <p class="detail-desc"><c:out value="${goods.description}"/></p>
 
         <div class="action-box">
+
+            <button type="button"
+                    id="detailWishBtn"
+                    class="btn fav-btn detail-favorite-btn${wishActive ? ' active' : ''}"
+                    data-type="goods"
+                    data-product-no="${goods.productNo}"
+                    aria-pressed="${wishActive}"
+                    aria-label="찜하기"
+                    title="찜하기">
+
+                <span class="fav-icon">
+
+                    <c:choose>
+
+                        <c:when test="${wishActive}">♥</c:when>
+
+                        <c:otherwise>♡</c:otherwise>
+
+                    </c:choose>
+
+                </span>
+
+                찜하기
+
+            </button>
 
             <button type="button"
                     class="btn cart-btn"
