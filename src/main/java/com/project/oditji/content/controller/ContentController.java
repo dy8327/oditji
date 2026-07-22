@@ -312,37 +312,45 @@ public class ContentController {
                         + encodedTitle;
                 break;
 
-            case "tving":
+                case "tving":
                 redirectUrl =
-                        "https://www.tving.com/search/all?keyword="
+                        "https://www.tving.com/search?keyword="
                         + encodedTitle;
                 break;
 
-            case "wavve":
+                case "wavve":
                 redirectUrl =
                         "https://www.wavve.com/search?searchWord="
                         + encodedTitle;
                 break;
 
-            case "disney+":
-            case "disneyplus":
-                redirectUrl =
-                        "https://www.disneyplus.com/ko-kr/browse/search?q="
-                        + encodedTitle;
-                break;
-
-            case "watcha":
+                case "watcha":
                 redirectUrl =
                         "https://watcha.com/search?query="
                         + encodedTitle;
                 break;
-
-            case "coupangplay":
-            case "coupang":
+                
+                case "coupangplay":
+                case "coupang":
+ 
                 redirectUrl =
-                        "https://www.coupangplay.com/search?q="
+                        "https://www.coupangplay.com/query?src=page_search&keyword="
                         + encodedTitle;
                 break;
+                
+                /*
+                * Disney+는 검색어를 URL로 전달하는 경로가 안정적이지 않아
+                * 잘못된 검색 경로로 인한 404를 방지하기 위해 공식 홈으로 이동합니다.
+                */
+
+                case "disney+":
+                case "disneyplus":
+                        
+                        
+                redirectUrl =
+                        "https://www.disneyplus.com/";
+                break;
+
 
             default:
                 String fallbackKeyword =

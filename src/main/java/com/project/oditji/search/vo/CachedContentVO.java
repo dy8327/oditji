@@ -22,6 +22,7 @@ public class CachedContentVO {
     private Double popularity;
 
     private Integer episodeCount;
+    private Integer runtime;
     private String director;
     private String castNames;
 
@@ -167,5 +168,13 @@ public class CachedContentVO {
 
     public void setSearchText(String searchText) {
         this.searchText = searchText;
+    }
+
+    public Integer getRuntime() {
+        return runtime;
+    }
+
+    public void setRuntime(Integer runtime) {
+        this.runtime = runtime;
     }
 }

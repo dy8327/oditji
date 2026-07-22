@@ -39,10 +39,19 @@
 
 <div class="back-area">
 
-    <a href="${pageContext.request.contextPath}/content/list"
-       class="back-btn">
+    <%--
+        기존에는 콘텐츠 목록으로 고정 이동했지만,
+        현재는 사용자가 실제로 보고 있던 이전 화면으로 돌아갑니다.
+
+        JavaScript가 브라우저 방문 기록을 확인해 history.back()을 실행하고,
+        이전 기록이 없는 직접 접근 상황에서는 콘텐츠 목록을 예비 경로로 사용합니다.
+    --%>
+    <button type="button"
+            id="detailBackButton"
+            class="back-btn"
+            data-fallback-url="${pageContext.request.contextPath}/content/list">
         ← 뒤로가기
-    </a>
+    </button>
 
 </div>
 
@@ -85,6 +94,27 @@
                 ${content.releaseDate}
                 |
                 ${content.ageRating}
+
+                <%-- 
+                    콘텐츠 유형별 상세 길이 정보를 연령등급 옆에 표시합니다.
+                    TV는 전체 에피소드 수, MOVIE는 총 러닝타임을 보여주며
+                    값이 없는 경우에는 불필요한 구분자를 출력하지 않습니다.
+                --%>
+                <c:choose>
+
+                    <c:when test="${content.contentType eq 'TV'
+                                  and not empty content.episodeCount}">
+                        |
+                        총 ${content.episodeCount}화
+                    </c:when>
+
+                    <c:when test="${content.contentType eq 'MOVIE'
+                                  and not empty content.runtime}">
+                        |
+                        총 ${content.runtime}분
+                    </c:when>
+
+                </c:choose>
             </p>
 
             <p class="genre">
@@ -150,15 +180,16 @@
 
             </button>
 
-            <a href="${pageContext.request.contextPath}/review/list?contentNo=${content.contentNo}"
-               class="btn">
-                리뷰 보기
-            </a>
-
-            <a href="${pageContext.request.contextPath}/review/write?contentNo=${content.contentNo}"
-               class="btn">
+            <%--
+                별도 리뷰 목록 페이지로 이동하던 '리뷰 보기' 버튼은 제거합니다.
+                리뷰 작성 버튼은 현재 상세 페이지의 리뷰 작성 영역으로
+                부드럽게 이동하도록 JavaScript가 처리합니다.
+            --%>
+            <button type="button"
+                    id="scrollReviewWriteBtn"
+                    class="btn">
                 리뷰 작성
-            </a>
+            </button>
 
         </div>
 
@@ -652,7 +683,8 @@
 
     <h2>리뷰</h2>
 
-    <div class="review-write-box">
+    <div id="reviewWriteBox"
+         class="review-write-box">
 
         <c:choose>
 

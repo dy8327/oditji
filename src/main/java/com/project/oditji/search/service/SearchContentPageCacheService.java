@@ -107,7 +107,7 @@ public class SearchContentPageCacheService {
         appendReleasedContent(
                 selectedMap,
                 allContentList,
-                today.minusDays(90),
+                today.minusDays(30),
                 today,
                 normalizedLimit
         );
@@ -670,13 +670,13 @@ public class SearchContentPageCacheService {
 
             /*
              * 신규 탭은 오늘보다 미래인 콘텐츠를 제외하고,
-             * 최근 90일 이내 공개된 콘텐츠만 표시합니다.
+             * 최근 30일 이내 공개된 콘텐츠만 표시합니다.
              */
             LocalDate today =
                     LocalDate.now();
 
             LocalDate startDate =
-                    today.minusDays(90);
+                    today.minusDays(30);
 
             filteredList.removeIf(
                     content -> {
