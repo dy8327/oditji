@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.wish.dao.WishDAO">
+
+    <!-- 찜 여부 확인 -->
+    <select id="countWish"
+            parameterType="com.project.oditji.wish.vo.WishVO"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PRODUCT_WISH
+        WHERE MEMBER_NO = #{memberNo}
+          AND PRODUCT_NO = #{productNo}
+
+    </select>
+
+
+    <!-- 찜 추가 -->
+    <insert id="insertWish"
+            parameterType="com.project.oditji.wish.vo.WishVO">
+
+        INSERT INTO PRODUCT_WISH (
+            WISH_NO,
+            MEMBER_NO,
+            PRODUCT_NO,
+            CREATE_AT
+        )
+        VALUES (
+            SEQ_PRODUCT_WISH_NO.NEXTVAL,
+            #{memberNo},
+            #{productNo},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- 찜 삭제 -->
+    <delete id="deleteWish"
+            parameterType="com.project.oditji.wish.vo.WishVO">
+
+        DELETE
+        FROM PRODUCT_WISH
+        WHERE MEMBER_NO = #{memberNo}
+          AND PRODUCT_NO = #{productNo}
+
+    </delete>
+
+
+    <!-- 내 상품 찜 목록
+         GoodsDAO 의 goodsResultMap / mainImageJoin 을 그대로 재사용하여
+         goodsList.jsp / favoriteList.jsp 의 상품 카드와 동일한 컬럼셋을 반환한다. -->
+    <select id="selectWishList"
+            parameterType="long"
+            resultMap="com.project.oditji.goods.dao.GoodsDAO.goodsResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(P.STOCK, 0) AS STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+
+        FROM PRODUCT_WISH W
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = W.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <include refid="com.project.oditji.goods.dao.GoodsDAO.mainImageJoin"/>
+
+        WHERE W.MEMBER_NO = #{memberNo}
+          AND P.STATUS = 'APPROVED'
+
+        ORDER BY W.CREATE_AT DESC
+
+    </select>
+
+
+    <!-- 로그인 회원이 찜한 상품번호 목록 (상품 목록/상세 화면의 하트 활성 표시용) -->
+    <select id="selectWishedProductNoList"
+            parameterType="long"
+            resultType="int">
+
+        SELECT PRODUCT_NO
+        FROM PRODUCT_WISH
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+</mapper>
