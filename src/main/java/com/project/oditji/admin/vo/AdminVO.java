@@ -6,8 +6,8 @@ package com.project.oditji.admin.vo;
 public class AdminVO {
 
     private long memberCount;            // 전체 회원 수 (MEMBER)
-    private long contentCount;            // 전체 콘텐츠 수 (CONTENT)
-    private long reviewCount;             // 전체 리뷰 수 (REVIEW + PRODUCT_REVIEW)
+    private long contentReviewCount;      // 콘텐츠 리뷰 수 (REVIEW, STATUS != 'DELETED')
+    private long productReviewCount;      // 상품 리뷰 수 (PRODUCT_REVIEW)
     private long reportCount;             // 처리 대기 신고 수 (REVIEW_REPORT, STATUS='WAITING')
     private long businessRequestCount;    // 사업자 입점 승인 대기 수 (BUSINESS, STATUS='WAITING')
     private long productRequestCount;     // 상품 등록 요청 대기 수 (PRODUCT, STATUS='WAITING')
@@ -23,20 +23,20 @@ public class AdminVO {
         this.memberCount = memberCount;
     }
 
-    public long getContentCount() {
-        return contentCount;
+    public long getContentReviewCount() {
+        return contentReviewCount;
     }
 
-    public void setContentCount(long contentCount) {
-        this.contentCount = contentCount;
+    public void setContentReviewCount(long contentReviewCount) {
+        this.contentReviewCount = contentReviewCount;
     }
 
-    public long getReviewCount() {
-        return reviewCount;
+    public long getProductReviewCount() {
+        return productReviewCount;
     }
 
-    public void setReviewCount(long reviewCount) {
-        this.reviewCount = reviewCount;
+    public void setProductReviewCount(long productReviewCount) {
+        this.productReviewCount = productReviewCount;
     }
 
     public long getReportCount() {
@@ -91,8 +91,8 @@ public class AdminVO {
     public String toString() {
         return "AdminVO{" +
                 "memberCount=" + memberCount +
-                ", contentCount=" + contentCount +
-                ", reviewCount=" + reviewCount +
+                ", contentReviewCount=" + contentReviewCount +
+                ", productReviewCount=" + productReviewCount +
                 ", reportCount=" + reportCount +
                 ", businessRequestCount=" + businessRequestCount +
                 ", productRequestCount=" + productRequestCount +
