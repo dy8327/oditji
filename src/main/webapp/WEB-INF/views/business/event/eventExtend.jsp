@@ -9,6 +9,7 @@
 <meta charset="UTF-8">
 <title>ODITJI | 이벤트 연장</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
+<script defer src="${pageContext.request.contextPath}/js/business.js"></script>
 </head>
 
 <body>
@@ -84,6 +85,7 @@
                            id="extendEndDate"
                            name="extendEndDate"
                            min="<c:out value='${event.endDate}'/>"
+                           data-current-end-date="<c:out value='${event.endDate}'/>"
                            required>
 
                 </div>
@@ -144,39 +146,6 @@
 </div>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const extendEndDateInput =
-        document.getElementById("extendEndDate");
-
-    const currentEndDate =
-        "<c:out value='${event.endDate}'/>";
-
-    /*
-     * 현재 종료일과 같은 날짜가 아닌
-     * 다음 날부터 선택할 수 있도록 설정한다.
-     */
-    if (currentEndDate) {
-
-        const minimumDate =
-            new Date(currentEndDate + "T00:00:00");
-
-        minimumDate.setDate(
-            minimumDate.getDate() + 1
-        );
-
-        const year = minimumDate.getFullYear();
-        const month = String(minimumDate.getMonth() + 1).padStart(2, "0");
-        const day = String(minimumDate.getDate()).padStart(2, "0");
-
-        extendEndDateInput.min =
-            year + "-" + month + "-" + day;
-    }
-
-});
-</script>
 
 </body>
 </html>

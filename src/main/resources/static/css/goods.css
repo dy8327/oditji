@@ -714,59 +714,15 @@
 
 /* =========================================================
    REVIEW SCORE SUMMARY
+   .score-box 스타일은 component.css 로 이동 (contentDetail.jsp 와 통일)
 ========================================================= */
-
-.score-box{
-
-    margin-bottom:16px;
-    font-size:14px;
-    color:#DADADA;
-
-}
-
-.score-box .score-user{
-
-    color:#FFD700;
-
-}
 
 /* =========================================================
    PRODUCT REVIEW (PRODUCT_REVIEW 테이블 기준)
 ========================================================= */
 
-
-
-.review-item{
-    background:#1E1E1E;
-    padding:14px;
-    border-radius:10px;
-
-    border:1px solid rgba(255,255,255,0.05);
-}
-
-.review-meta{
-    display:flex;
-    gap:10px;
-    font-size:12px;
-    color:#999;
-    margin-bottom:8px;
-}
-
-.review-meta .writer{
-    font-weight:600;
-    color:#fff;
-}
-
-.review-meta .rating{
-    color:#FFD700;
-}
-
-.review-content{
-    font-size:13px;
-    line-height:1.6;
-    color:#ddd;
-    white-space:pre-wrap;
-}
+/* .review-item / .review-meta / .review-content 스타일은
+   component.css 로 이동 (contentDetail.jsp 와 통일) */
 
 /* =========================================================
    PAGINATION

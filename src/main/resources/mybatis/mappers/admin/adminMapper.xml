@@ -513,32 +513,15 @@
     </update>
 
     <!--
-        이벤트 승인 시 연결 상품의 할인율에 이벤트 할인율을 반영하기 위해
-        연결된 PRODUCT_NO / EVENT_DISCOUNT_RATE를 조회한다.
+        [정리됨] 이벤트 승인 시 PRODUCT.DISCOUNT_RATE를 즉시 덮어쓰던
+        selectEventProductByEventNo / applyEventDiscountToProduct 쿼리는
+        더 이상 사용하지 않는다.
 
-        하나의 이벤트에 여러 상품이 연결될 수 있으므로
-        selectOne이 아닌 selectList로 조회해야 한다.
-        (연결 상품이 2건 이상이면 selectOne은
-        TooManyResultsException을 던진다.)
+        기존 방식은 START_DATE 도래 여부와 무관하게 승인 즉시 할인이
+        노출되고 END_DATE가 지나도 되돌아가지 않는 문제가 있었다.
+        지금은 goodsMapper.xml의 상품 조회 쿼리가 SYSDATE 기준으로
+        진행 중인 이벤트를 매번 계산해서 할인율을 실시간으로 반영한다.
     -->
-    <select id="selectEventProductByEventNo"
-            resultType="com.project.oditji.admin.vo.EventManageVO">
-        SELECT
-            EP.PRODUCT_NO          AS PRODUCT_NO,
-            EP.EVENT_DISCOUNT_RATE AS EVENT_DISCOUNT_RATE
-        FROM EVENT_PRODUCT EP
-        WHERE EP.EVENT_NO = #{eventNo}
-    </select>
-
-    <!--
-        이벤트 승인 시 연결 상품의 PRODUCT.DISCOUNT_RATE를
-        이벤트 할인율로 갱신한다. (구매자 화면은 PRODUCT.DISCOUNT_RATE 기준으로 노출)
-    -->
-    <update id="applyEventDiscountToProduct">
-        UPDATE PRODUCT
-        SET DISCOUNT_RATE = #{eventDiscountRate}
-        WHERE PRODUCT_NO = #{productNo}
-    </update>
 
     <!-- ===================== 4. 상품 관리 (PRODUCT) ===================== -->
 

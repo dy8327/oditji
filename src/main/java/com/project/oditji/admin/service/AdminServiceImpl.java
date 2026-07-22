@@ -244,33 +244,18 @@ public class AdminServiceImpl implements AdminService {
         }
 
         /*
-         * 이벤트 승인만으로는 EVENT.STATUS만 바뀔 뿐
-         * 실제 판매 화면(goodsDetail/goodsList)이 참조하는
-         * PRODUCT.DISCOUNT_RATE는 갱신되지 않는다.
-         * 승인 시점에 연결된 상품 전체(1건 이상)의 할인율을 함께 반영한다.
+         * [리팩토링] PRODUCT.DISCOUNT_RATE를 승인 시점에 직접 덮어쓰던
+         * 기존 로직을 제거했다.
+         *
+         * 기존 문제점: 이벤트를 승인하면 START_DATE(진행 예정)와 무관하게
+         * 즉시 상품 할인가가 노출되고, END_DATE가 지나도 되돌아가지 않았다.
+         *
+         * 변경 후: goodsMapper.xml의 상품 조회 쿼리가 SYSDATE 기준으로
+         * "지금 진행 중인 이벤트(STATUS='APPROVED' AND SYSDATE BETWEEN
+         * START_DATE AND END_DATE)"를 매번 계산해서 할인율을 실시간으로
+         * 반영한다. 따라서 이 메서드는 EVENT.STATUS만 APPROVED로 바꾸면 되고,
+         * 실제 할인 노출/종료는 별도 배치 없이 날짜에 따라 자동으로 처리된다.
          */
-        List<EventManageVO> eventProducts = adminDAO.selectEventProductByEventNo(eventNo);
-
-        if (eventProducts != null) {
-
-            for (EventManageVO eventProduct : eventProducts) {
-
-                if (eventProduct.getProductNo() == null) {
-                    continue;
-                }
-
-                int discountResult = adminDAO.applyEventDiscountToProduct(
-                        eventProduct.getProductNo(),
-                        eventProduct.getEventDiscountRate()
-                );
-
-                if (discountResult != 1) {
-                    throw new IllegalStateException(
-                            "이벤트 할인율을 상품에 반영하지 못했습니다."
-                    );
-                }
-            }
-        }
     }
 
 

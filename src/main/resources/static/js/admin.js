@@ -1,7 +1,7 @@
 /*
  * ODITJI 관리자 페이지 공통 스크립트
  * 각 admin JSP 파일에 인라인으로 있던 <script> 코드를 이 파일로 통합함.
- * (businessManage, contentManage, eventManage, orderManage, productManage)
+ * (businessManage, eventManage, orderManage, productManage)
  */
 
 /* =========================================================
@@ -38,30 +38,6 @@ function openApprovalModal(businessNo, businessName, memberId, email, businessNu
     document.getElementById('approvalEmail').textContent = email;
     document.getElementById('approvalBusinessNumber').textContent = businessNumber;
     document.getElementById('approvalModal').classList.add('open');
-}
-
-
-/* =========================================================
- * contentManage.jsp - 콘텐츠 관리
- * ========================================================= */
-function openPlatformRegisterModal() {
-    document.getElementById('platformRegisterModal').classList.add('open');
-}
-
-function openPlatformManageModal() {
-    document.getElementById('platformManageModal').classList.add('open');
-}
-
-function openContentEditModal(contentNo, title, contentType, genreText, castNames, overview, runtime, releaseDate) {
-    document.getElementById('editContentNo').value = contentNo;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editContentType').value = contentType;
-    document.getElementById('editGenreText').value = genreText;
-    document.getElementById('editCastNames').value = castNames;
-    document.getElementById('editOverview').value = overview;
-    document.getElementById('editRuntime').value = runtime;
-    document.getElementById('editReleaseDate').value = releaseDate;
-    document.getElementById('contentEditModal').classList.add('open');
 }
 
 

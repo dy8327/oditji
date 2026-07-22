@@ -1,4 +1,59 @@
 /* =========================
+   리뷰 신고 버튼 (트리거)
+   contentDetail.jsp / goodsDetail.jsp 공용
+   - 마크업이 각 페이지의 .review-meta 안에 있으므로
+     상위 스코프를 걸지 않고 .report-btn 자체를 전역으로 스타일링한다.
+========================= */
+
+.report-btn {
+
+    display: inline-flex;
+
+    min-height: 30px;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-left: auto;
+
+    padding: 5px 10px;
+
+    border: 1px solid rgba(255, 105, 105, 0.35);
+    border-radius: 7px;
+
+    background: rgba(255, 80, 80, 0.08);
+    color: #ff9b9b;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+}
+
+button.report-btn:hover {
+
+    border-color: rgba(255, 105, 105, 0.65);
+    background: rgba(255, 80, 80, 0.16);
+
+}
+
+.report-btn.reported {
+
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+
+    color: #777777;
+
+    cursor: default;
+
+}
+
+/* =========================
    리뷰 신고 모달
 ========================= */
 

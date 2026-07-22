@@ -23,18 +23,25 @@
 
         WHERE STATUS = 'APPROVED'
 
+        <!--
+            START_DATE / END_DATE는 DATE 타입이라 시간까지 저장된다.
+            (관리자 입력값은 보통 00:00:00로 저장됨)
+            SYSDATE와 그대로 비교하면 END_DATE 당일 자정이 지나는 순간
+            바로 "종료"로 분류되는 문제가 있어, TRUNC로 날짜만 비교한다.
+            즉 START_DATE ~ END_DATE 를 "그 날짜들 전체"로 취급한다.
+        -->
         <choose>
             <when test="_parameter == 'upcoming'">
-                AND START_DATE &gt; SYSDATE
+                AND TRUNC(START_DATE) &gt; TRUNC(SYSDATE)
             </when>
 
             <when test="_parameter == 'ended'">
-                AND END_DATE &lt; SYSDATE
+                AND TRUNC(END_DATE) &lt; TRUNC(SYSDATE)
             </when>
 
             <otherwise>
-                AND START_DATE <![CDATA[ <= ]]> SYSDATE
-                AND END_DATE <![CDATA[ >= ]]> SYSDATE
+                AND TRUNC(START_DATE) <![CDATA[ <= ]]> TRUNC(SYSDATE)
+                AND TRUNC(END_DATE) <![CDATA[ >= ]]> TRUNC(SYSDATE)
             </otherwise>
         </choose>
 

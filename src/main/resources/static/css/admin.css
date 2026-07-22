@@ -104,8 +104,7 @@
    Layout
    ===================================================== */
 
-.admin-wrap .main-content,
-.admin-wrap .admin-main {
+.admin-wrap .main-content {
   flex: 1;
   padding: 40px;
   min-width: 0;
@@ -144,9 +143,6 @@
    Panel
    ===================================================== */
 
-.admin-wrap .admin-panel,
-.admin-wrap .content-panel,
-.admin-wrap .form-panel,
 .admin-wrap .admin-content-box {
   padding: 32px;
   background: var(--adm-surface-1);
@@ -258,13 +254,6 @@
    Button
    ===================================================== */
 
-.btn-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0;
-}
-
 .btn {
   display: inline-flex;
 
@@ -321,6 +310,15 @@
   background: rgba(74, 222, 128, 0.2);
 }
 
+.btn-secondary {
+  background: var(--adm-warning-bg);
+  color: var(--adm-warning);
+}
+
+.btn-secondary:hover {
+  background: rgba(250, 204, 21, 0.2);
+}
+
 .btn-outline {
   background: transparent;
   border-color: var(--adm-border);
@@ -335,10 +333,6 @@
 .btn:focus-visible {
   outline: 2px solid var(--adm-point);
   outline-offset: 2px;
-}
-
-.btn-block {
-  width: 100%;
 }
 
 /* =====================================================
@@ -427,8 +421,6 @@
 .admin-wrap .badge-blue { background-color: var(--adm-point); color: #fff; }
 .admin-wrap .badge-gray { background-color: var(--adm-border); color: var(--adm-text-dim); }
 .admin-wrap .badge-yellow { background-color: #f59e0b; color: #fff; }
-.admin-wrap .badge-green { background-color: var(--adm-success); color: #10261b; }
-.admin-wrap .badge-red { background-color: var(--adm-danger); color: #2b0e0e; }
 
 /* =====================================================
    Tab Menu
@@ -460,33 +452,6 @@
   background: var(--adm-point);
   color: #fff;
   font-weight: 700;
-}
-
-/* 요청 유형 등 보조 필터 칩 */
-.admin-wrap .filter-chip-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.admin-wrap .filter-chip {
-  padding: 6px 14px;
-  border-radius: var(--adm-radius-pill);
-  border: 1px solid var(--adm-border);
-  color: var(--adm-text-sub);
-  font-size: 13px;
-  transition: var(--adm-transition);
-}
-
-.admin-wrap .filter-chip:hover {
-  border-color: var(--adm-point);
-  color: var(--adm-text);
-}
-
-.admin-wrap .filter-chip.active {
-  background: var(--adm-point);
-  border-color: var(--adm-point);
-  color: #fff;
 }
 
 /* =====================================================
@@ -595,9 +560,7 @@
   color: var(--adm-text-sub);
 }
 
-.form-input,
-.form-textarea,
-.form-select {
+.form-textarea {
   width: 100%;
 
   padding: 14px 16px;
@@ -612,9 +575,7 @@
   transition: var(--adm-transition);
 }
 
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
+.form-textarea:focus {
   border-color: var(--adm-point);
   box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
 }
@@ -630,49 +591,20 @@
   background: var(--adm-surface-3);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.radio-group,
-.checkbox-group {
+.radio-group {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.radio-group label,
-.checkbox-group label {
+.radio-group label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--adm-text-sub);
   font-size: 14px;
   cursor: pointer;
-}
-
-.file-box {
-  display: flex;
-
-  align-items: center;
-
-  gap: 16px;
-
-  padding: 14px 16px;
-
-  background: var(--adm-surface-2);
-
-  border: 1px solid var(--adm-border);
-
-  border-radius: var(--adm-radius-sm);
-}
-
-.file-box .file-name {
-  color: var(--adm-text-dim);
-  font-size: 13px;
 }
 
 /* 회원/사업자 등급 변경 선택 목록 */
@@ -807,10 +739,6 @@
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
 }
 
-.modal-box.modal-wide {
-  max-width: 640px;
-}
-
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -855,17 +783,6 @@
   flex: 1;
 }
 
-.modal-columns {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.modal-columns .modal-box {
-  flex: 1;
-  min-width: 260px;
-}
-
 /* =====================================================
    모니터링 차트 영역
    ===================================================== */
@@ -888,17 +805,6 @@
   text-align: center;
 }
 
-.admin-wrap .stat-summary-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.admin-wrap .stat-summary-row .stat-card {
-  text-align: center;
-}
-
 /* =====================================================
    Responsive
    ===================================================== */
@@ -908,12 +814,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .admin-wrap .stat-summary-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .admin-wrap .main-content,
-  .admin-wrap .admin-main {
+  .admin-wrap .main-content {
     padding: 24px;
   }
 
@@ -932,15 +833,10 @@
     border-right: none;
     border-bottom: 1px solid var(--adm-border);
   }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 600px) {
-  .admin-wrap .stat-grid,
-  .admin-wrap .stat-summary-row {
+  .admin-wrap .stat-grid {
     grid-template-columns: 1fr;
   }
 
@@ -953,10 +849,6 @@
 
   .admin-wrap .item-actions {
     flex-wrap: wrap;
-  }
-
-  .modal-columns {
-    flex-direction: column;
   }
 }
 
