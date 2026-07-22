@@ -88,10 +88,6 @@ public class SearchContentSnapshotService {
                      * 특정 JSONL 한 줄이 손상되어도
                      * 전체 스냅샷 복원을 중단하지 않습니다.
                      */
-                    System.err.println(
-                            "검색 콘텐츠 스냅샷 일부 복원 실패: "
-                                    + e.getMessage()
-                    );
                 }
             }
 
@@ -268,6 +264,16 @@ public class SearchContentSnapshotService {
                 content.getAgeRating()
         );
 
+        /*
+         * 영화 러닝타임 또는 TV 대표 회차 러닝타임을
+         * 분 단위로 스냅샷에 저장합니다.
+         */
+        putNullable(
+                json,
+                "runtime",
+                content.getRuntime()
+        );
+
         putNullable(
                 json,
                 "episodeCount",
@@ -397,6 +403,20 @@ public class SearchContentSnapshotService {
                         "ageRating"
                 )
         );
+
+        /*
+         * 기존 스냅샷에는 runtime 키가 없을 수 있으므로
+         * 값이 존재할 때만 복원합니다.
+         */
+        if (json.has("runtime")
+                && !json.isNull("runtime")) {
+
+            content.setRuntime(
+                    json.getInt(
+                            "runtime"
+                    )
+            );
+        }
 
         if (json.has("episodeCount")
                 && !json.isNull("episodeCount")) {
