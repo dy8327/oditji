@@ -12,188 +12,6 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
 <script defer src="${pageContext.request.contextPath}/js/business.js"></script>
 
-<style>
-/*
- * =========================================================
- * 이벤트 수정 화면 상품 검색 모달
- *
- * 기존 business.css 레이아웃을 유지하면서
- * 현재 페이지에서만 사용하는 추가 스타일이다.
- * =========================================================
- */
-.product-search-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.72);
-}
-
-.product-search-modal.active {
-    display: flex;
-}
-
-.product-search-modal-panel {
-    width: 100%;
-     max-width: 1000px;
-    max-height: 82vh;
-    padding: 28px;
-    border: 1px solid #3b3e46;
-    border-radius: 12px;
-    box-sizing: border-box;
-    overflow: hidden;
-    background: #25272b;
-}
-
-.product-search-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.product-search-modal-title {
-    margin: 0;
-    color: #ffffff;
-    font-size: 24px;
-}
-
-.product-search-modal-close {
-    border: 0;
-    background: transparent;
-    color: #ffffff;
-    font-size: 28px;
-    cursor: pointer;
-}
-
-.product-search-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.product-search-bar .form-input {
-    flex: 1;
-    min-width: 0;
-}
-
-.product-search-result {
-    max-height: 52vh;
-    overflow-y: auto;
-    border: 1px solid #3b3e46;
-    border-radius: 10px;
-}
-
-.product-search-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #202125;
-}
-
-.product-search-table th,
-.product-search-table td {
-    padding: 13px 12px;
-    border-bottom: 1px solid #343740;
-    text-align: left;
-}
-
-.product-search-table th {
-    position: sticky;
-    top: 0;
-    background: #292b30;
-    color: #c8ccd4;
-}
-
-.product-search-table td {
-    color: #f1f2f4;
-}
-
-.product-search-no-result {
-    display: none;
-    padding: 40px 20px;
-    color: #a7acb5;
-    text-align: center;
-}
-
-/*
- * =========================================================
- * 연결 상품 / 할인율 행 레이아웃
- *
- * 상품 검색 행과 할인율 행의 입력창·버튼 박스 크기를
- * 동일하게 맞추고, +/- 버튼을 할인율 입력 오른쪽에 배치한다.
- * 화면에 미리 그려지는 행과 business.js가 동적으로
- * 추가하는 행이 항상 같은 구조/크기를 갖도록 한다.
- * =========================================================
- */
-.product-item {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #3b3e46;
-}
-
-.product-item:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: 0;
-}
-
-.input-with-btn,
-.discount-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.input-with-btn {
-    margin-bottom: 10px;
-}
-
-.input-with-btn .productName {
-    flex: 1;
-    min-width: 0;
-}
-
-.discount-row .form-label {
-    flex-shrink: 0;
-}
-
-.discount-controls .productDiscountRate {
-    flex: 1;
-    min-width: 0;
-}
-
-.input-with-btn .btn,
-.discount-controls .btn {
-    flex-shrink: 0;
-    height: 44px;
-    padding: 0 16px;
-    box-sizing: border-box;
-}
-
-.addProductButton,
-.removeProductButton {
-    width: 44px;
-    padding: 0;
-    text-align: center;
-}
-
-.discount-row .form-hint {
-    margin: 8px 0 0;
-    color: #a7acb5;
-    font-size: 13px;
-}
-
-@media (max-width: 760px) {
-    .input-with-btn,
-    .discount-controls {
-        flex-wrap: wrap;
-    }
-}
-</style>
 </head>
 
 <body>
@@ -310,20 +128,20 @@
 
                         <c:choose>
 
-                            <!-- 기존에 연결되어 있던 상품이 있으면 그대로 다시 그려준다 -->
+                            <%-- 기존에 연결되어 있던 상품이 있으면 그대로 다시 그려준다 --%>
                             <c:when test="${not empty event.connectedProducts}">
 
                                 <c:forEach var="connectedProduct"
                                            items="${event.connectedProducts}">
 
-                                    <div class="product-item">
+                                    <div class="event-product-item">
 
                                         <input type="hidden"
                                             name="productNoList"
                                             class="productNo"
                                             value="<c:out value='${connectedProduct.productNo}'/>">
 
-                                        <div class="input-with-btn">
+                                        <div class="product-row">
 
                                             <input class="form-input productName"
                                                 type="text"
@@ -337,41 +155,33 @@
                                                 상품 검색
                                             </button>
 
-                                        </div>
+                                            <label class="form-label discount-label">
+                                                할인율 (%)
+                                            </label>
 
-                                        <div class="discount-row">
+                                            <input class="form-input productDiscountRate"
+                                                type="number"
+                                                name="discountRateList"
+                                                min="0"
+                                                max="100"
+                                                value="<c:out value='${connectedProduct.discountRate}'/>">
 
-                                            <div class="discount-controls">
+                                            <button class="btn btn-primary addProductButton"
+                                                    type="button">
+                                                +
+                                            </button>
 
-                                                <label class="form-label">
-                                                    할인율 (%)
-                                                </label>
-
-                                                <input class="form-input productDiscountRate"
-                                                    type="number"
-                                                    name="discountRateList"
-                                                    min="0"
-                                                    max="100"
-                                                    value="<c:out value='${connectedProduct.discountRate}'/>">
-
-                                                <button class="btn btn-primary addProductButton"
-                                                        type="button">
-                                                    +
-                                                </button>
-
-                                                <button class="btn btn-dark removeProductButton"
-                                                        type="button">
-                                                    -
-                                                </button>
-
-                                            </div>
-
-                                            <p class="form-hint productDiscountPreview">
-                                                <fmt:formatNumber value="${connectedProduct.price}" pattern="#,###"/>원 →
-                                                할인율 <c:out value="${connectedProduct.discountRate}"/>%
-                                            </p>
+                                            <button class="btn btn-dark removeProductButton"
+                                                    type="button">
+                                                -
+                                            </button>
 
                                         </div>
+
+                                        <p class="form-hint productDiscountPreview">
+                                            <fmt:formatNumber value="${connectedProduct.price}" pattern="#,###"/>원 →
+                                            할인율 <c:out value="${connectedProduct.discountRate}"/>%
+                                        </p>
 
                                     </div>
 
@@ -379,16 +189,16 @@
 
                             </c:when>
 
-                            <!-- 연결된 상품이 없는 경우 빈 행을 하나 보여준다 -->
+                            <%-- 연결된 상품이 없는 경우 빈 행을 하나 보여준다 --%>
                             <c:otherwise>
 
-                                <div class="product-item">
+                                <div class="event-product-item">
 
                                     <input type="hidden"
                                         name="productNoList"
                                         class="productNo">
 
-                                    <div class="input-with-btn">
+                                    <div class="product-row">
 
                                         <input class="form-input productName"
                                             type="text"
@@ -401,35 +211,27 @@
                                             상품 검색
                                         </button>
 
-                                    </div>
+                                        <label class="form-label discount-label">
+                                            할인율 (%)
+                                        </label>
 
-                                    <div class="discount-row">
+                                        <input class="form-input productDiscountRate"
+                                            type="number"
+                                            name="discountRateList"
+                                            min="0"
+                                            max="100"
+                                            value="0">
 
-                                        <div class="discount-controls">
-
-                                            <label class="form-label">
-                                                할인율 (%)
-                                            </label>
-
-                                            <input class="form-input productDiscountRate"
-                                                type="number"
-                                                name="discountRateList"
-                                                min="0"
-                                                max="100"
-                                                value="0">
-
-                                            <button class="btn btn-primary addProductButton"
-                                                    type="button">
-                                                +
-                                            </button>
-
-                                        </div>
-
-                                        <p class="form-hint productDiscountPreview">
-                                            상품을 선택하면 할인 적용가가 표시됩니다.
-                                        </p>
+                                        <button class="btn btn-primary addProductButton"
+                                                type="button">
+                                            +
+                                        </button>
 
                                     </div>
+
+                                    <p class="form-hint productDiscountPreview">
+                                        상품을 선택하면 할인 적용가가 표시됩니다.
+                                    </p>
 
                                 </div>
 

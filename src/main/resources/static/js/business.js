@@ -44,6 +44,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("endDate");
 
 
+    const extendEndDateInput =
+        document.getElementById("extendEndDate");
+
+
     /*
      * 이벤트 등록/수정 화면에서 공통으로 사용하는 폼
      *
@@ -55,6 +59,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     let currentProductItem = null;
+
+
+
+    /*
+     * 등록/수정 처리 결과 알림
+     *
+     * JSP에서 <script>alert("${successMessage}")</script> 형태로
+     * 직접 스크립트를 찍어내던 부분을 옮겨온 것이다.
+     * 서버는 body 태그의 data-success-message / data-error-message
+     * 속성에 c:out으로 이스케이프된 값을 내려주고,
+     * business.js는 그 값이 있을 때만 알림을 띄운다.
+     */
+    const successMessage =
+        document.body.dataset.successMessage;
+
+    if (successMessage) {
+
+        alert(successMessage);
+
+    }
+
+
+    const errorMessage =
+        document.body.dataset.errorMessage;
+
+    if (errorMessage) {
+
+        alert(errorMessage);
+
+    }
 
 
 
@@ -118,6 +152,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /*
+     * 이벤트 연장 - 최소 선택 날짜 설정
+     *
+     * eventExtend.jsp에 있던 인라인 스크립트를 옮겨온 것이다.
+     * 현재 종료일은 input의 data-current-end-date 속성으로 전달받고,
+     * 그 다음 날부터 선택할 수 있도록 min 값을 설정한다.
+     */
+    if (extendEndDateInput) {
+
+        const currentEndDate =
+            extendEndDateInput.dataset.currentEndDate;
+
+        if (currentEndDate) {
+
+            const minimumDate =
+                new Date(currentEndDate + "T00:00:00");
+
+            minimumDate.setDate(
+                minimumDate.getDate() + 1
+            );
+
+            const year =
+                minimumDate.getFullYear();
+
+            const month =
+                String(minimumDate.getMonth() + 1).padStart(2, "0");
+
+            const day =
+                String(minimumDate.getDate()).padStart(2, "0");
+
+            extendEndDateInput.min =
+                year + "-" + month + "-" + day;
+
+        }
+
+    }
+
+
+
+    /*
      * 상품 검색 모달 열기
      */
     document.addEventListener(
@@ -134,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 currentProductItem =
                     event.target.closest(
-                        ".product-item"
+                        ".event-product-item"
                     );
 
 
@@ -183,17 +256,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 productItem.className =
-                    "product-item";
+                    "event-product-item";
 
 
                 productItem.innerHTML = `
 
-                    <div class="input-with-btn">
+                    <input type="hidden"
+                        name="productNoList"
+                        class="productNo">
 
-                        <input type="hidden"
-                            name="productNoList"
-                            class="productNo">
 
+                    <div class="product-row">
 
                         <input class="form-input productName"
                             type="text"
@@ -207,39 +280,31 @@ document.addEventListener("DOMContentLoaded", function () {
                             상품 검색
                         </button>
 
-                    </div>
+
+                        <label class="form-label discount-label">
+                            할인율 (%)
+                        </label>
 
 
-                    <div class="discount-row">
-
-                        <div class="discount-controls">
-
-                            <label class="form-label">
-                                할인율 (%)
-                            </label>
-
-
-                            <input class="form-input productDiscountRate"
-                                type="number"
-                                name="discountRateList"
-                                min="0"
-                                max="100"
-                                value="0">
+                        <input class="form-input productDiscountRate"
+                            type="number"
+                            name="discountRateList"
+                            min="0"
+                            max="100"
+                            value="0">
 
 
-                            <button class="btn btn-dark removeProductButton"
-                                    type="button">
-                                -
-                            </button>
-
-                        </div>
-
-
-                        <p class="form-hint productDiscountPreview">
-                            상품을 선택하면 할인 적용가가 표시됩니다.
-                        </p>
+                        <button class="btn btn-dark removeProductButton"
+                                type="button">
+                            -
+                        </button>
 
                     </div>
+
+
+                    <p class="form-hint productDiscountPreview">
+                        상품을 선택하면 할인 적용가가 표시됩니다.
+                    </p>
 
                 `;
 
@@ -273,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const item =
                     event.target.closest(
-                        ".product-item"
+                        ".event-product-item"
                     );
 
 
@@ -618,7 +683,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const item =
                     event.target.closest(
-                        ".product-item"
+                        ".event-product-item"
                     );
 
 
