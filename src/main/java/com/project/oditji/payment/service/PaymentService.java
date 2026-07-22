@@ -24,6 +24,15 @@ public interface PaymentService {
                         String reason);
 
         /**
+         * [부분 환불 기능 추가]
+         * 주문상품 금액만 포트원에 부분 취소하고 DB 반영용 VO를 반환한다.
+         */
+        PaymentVO cancelPaidPaymentPartially(
+                        PaymentVO paymentVO,
+                        Long cancelAmount,
+                        String reason);
+
+        /**
          * 결제 ID로 DB 결제내역 조회
          */
         PaymentVO getPaymentByPaymentId(

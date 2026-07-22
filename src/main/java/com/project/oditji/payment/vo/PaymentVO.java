@@ -9,6 +9,8 @@ public class PaymentVO {
     private String orderName;
     private String paymentId;
     private Long paymentAmount;
+    /* [부분 환불 기능 추가] 누적 취소 금액 */
+    private Long canceledAmount;
     private String payMethod;
     private String paymentStatus;
     private String pgProvider;
@@ -59,6 +61,14 @@ public class PaymentVO {
 
     public void setPaymentAmount(Long paymentAmount) {
         this.paymentAmount = paymentAmount;
+    }
+
+    public Long getCanceledAmount() {
+        return canceledAmount;
+    }
+
+    public void setCanceledAmount(Long canceledAmount) {
+        this.canceledAmount = canceledAmount;
     }
 
     public String getPayMethod() {

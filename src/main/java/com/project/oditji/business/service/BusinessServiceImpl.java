@@ -809,7 +809,6 @@ public class BusinessServiceImpl
                                 validateEventImage(
                                                 eventImage);
 
-
                                 SavedFileInfo savedFileInfo = saveEventImage(
                                                 eventImage);
 
