@@ -37,6 +37,109 @@
     </select>
 
     <!-- =====================================================
+        사업자 메인 대시보드 핵심 지표
+
+        - 오늘 매출: 취소된 주문상품 제외 오늘 판매 금액
+        - 오늘 판매량: 오늘 판매된 상품 수량 합계
+        - 상품 조회수: 오늘 상품 상세 클릭 로그 수
+        - 구매율: 오늘 구매 건수 / 오늘 상품 클릭수 * 100
+        - 정산 예정: WAITING 정산금 합계
+        - 승인 대기 상품: WAITING 상품 수
+    ====================================================== -->
+    <select id="selectBusinessDashboard"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.BusinessDashboardVO">
+
+        WITH TODAY_SALES_DATA AS (
+            SELECT
+                NVL(SUM(OI.PRODUCT_PRICE * OI.QUANTITY), 0) AS TODAY_SALES,
+                NVL(SUM(OI.QUANTITY), 0) AS TODAY_ORDER_COUNT,
+                COUNT(OI.ORDER_ITEM_NO) AS TODAY_PURCHASE_COUNT
+            FROM ORDER_ITEM OI
+            INNER JOIN ORDERS O
+                ON O.ORDER_NO = OI.ORDER_NO
+            WHERE OI.BUSINESS_NO = #{businessNo}
+            AND O.CREATED_AT &gt;= TRUNC(SYSDATE)
+            AND O.CREATED_AT &lt; TRUNC(SYSDATE) + 1
+            AND OI.STATUS != 'CANCELED'
+        ),
+
+        TODAY_CLICK_DATA AS (
+            SELECT COUNT(*) AS CLICK_COUNT
+            FROM PRODUCT_CLICK_LOG PCL
+            INNER JOIN PRODUCT P
+                ON P.PRODUCT_NO = PCL.PRODUCT_NO
+            WHERE P.BUSINESS_NO = #{businessNo}
+            AND PCL.CLICKED_AT &gt;= TRUNC(SYSDATE)
+            AND PCL.CLICKED_AT &lt; TRUNC(SYSDATE) + 1
+        ),
+
+        WAITING_SETTLEMENT_DATA AS (
+            SELECT NVL(SUM(SETTLED_AMOUNT), 0) AS WAITING_SETTLEMENT
+            FROM SETTLEMENT
+            WHERE BUSINESS_NO = #{businessNo}
+            AND STATUS = 'WAITING'
+        ),
+
+        WAITING_PRODUCT_DATA AS (
+            SELECT COUNT(*) AS WAITING_PRODUCT_COUNT
+            FROM PRODUCT
+            WHERE BUSINESS_NO = #{businessNo}
+            AND STATUS = 'WAITING'
+        )
+
+        SELECT
+            S.TODAY_SALES AS todaySales,
+            S.TODAY_ORDER_COUNT AS todayOrderCount,
+            C.CLICK_COUNT AS clickCount,
+
+            CASE
+                WHEN C.CLICK_COUNT = 0 THEN 0
+                ELSE ROUND(
+                    (S.TODAY_PURCHASE_COUNT / C.CLICK_COUNT) * 100,
+                    1
+                )
+            END AS purchaseRate,
+
+            WS.WAITING_SETTLEMENT AS waitingSettlement,
+            WP.WAITING_PRODUCT_COUNT AS waitingProductCount
+
+        FROM TODAY_SALES_DATA S
+        CROSS JOIN TODAY_CLICK_DATA C
+        CROSS JOIN WAITING_SETTLEMENT_DATA WS
+        CROSS JOIN WAITING_PRODUCT_DATA WP
+
+    </select>
+
+    <!-- 사업자 인기 상품 TOP 5 - 상품 클릭 로그 기준 -->
+    <select id="selectPopularProducts"
+            parameterType="long"
+            resultType="com.project.oditji.business.vo.GoodsManageVO">
+
+        SELECT
+            P.PRODUCT_NO   AS productNo,
+            P.PRODUCT_NAME AS productName,
+            (
+                SELECT PI.IMAGE_PATH
+                FROM PRODUCT_IMAGE PI
+                WHERE PI.PRODUCT_NO = P.PRODUCT_NO
+                AND PI.IS_MAIN = 'Y'
+                FETCH FIRST 1 ROWS ONLY
+            ) AS imagePath,
+            COUNT(PCL.LOG_NO) AS clickCount
+        FROM PRODUCT P
+        INNER JOIN PRODUCT_CLICK_LOG PCL
+            ON P.PRODUCT_NO = PCL.PRODUCT_NO
+        WHERE P.BUSINESS_NO = #{businessNo}
+        GROUP BY
+            P.PRODUCT_NO,
+            P.PRODUCT_NAME
+        ORDER BY COUNT(PCL.LOG_NO) DESC
+        FETCH FIRST 5 ROWS ONLY
+
+    </select>
+
+    <!-- =====================================================
          사업자등록번호 중복 확인
     ====================================================== -->
     <select id="countByBusinessNumber"

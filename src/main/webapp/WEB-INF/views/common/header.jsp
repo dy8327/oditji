@@ -110,7 +110,15 @@
                             👤 <span>${sessionScope.loginDisplayName}</span>
                         </button>
                         <div class="profile-dropdown">
-                            <a href="${pageContext.request.contextPath}/member/mypage">마이페이지</a>
+                            <c:choose>
+                                <c:when test="${not empty sessionScope.businessNo}">
+                                    <a href="${pageContext.request.contextPath}/business/main">마이페이지</a>
+                                </c:when>
+
+                                <c:otherwise>
+                                    <a href="${pageContext.request.contextPath}/member/mypage">마이페이지</a>
+                                </c:otherwise>
+                            </c:choose>
                             <a href="${pageContext.request.contextPath}/favorite/list">찜 목록</a>
                             <a href="${pageContext.request.contextPath}/cart">장바구니</a>
                             <a href="${pageContext.request.contextPath}/order/list">주문 내역</a>

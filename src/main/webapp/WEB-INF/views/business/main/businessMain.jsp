@@ -37,15 +37,15 @@
                         <div class="business-info">
                             <div>
                                 사업자명
-                                <strong>${businessMain.business.businessName}</strong>
+                                <strong>${business.businessName}</strong>
                             </div>
                             <div>
                                 등급
-                                <strong>${businessMain.business.gradeName}</strong>
+                                <strong>${business.gradeName}</strong>
                             </div>
                             <div>
                                 상태
-                                <strong>${businessMain.business.status}</strong>
+                                <strong>${business.status}</strong>
                             </div>
                         </div>
                     </div>
@@ -90,7 +90,7 @@
                             <span>상품 조회수</span>
 
                             <strong>
-                                ${businessMain.productSummary.clickCount}회
+                                ${businessMain.clickCount}회
                             </strong>
 
                         </a>
@@ -102,7 +102,7 @@
                             <span>상품 구매율</span>
 
                             <strong>
-                                ${businessMain.productSummary.purchaseRate}%
+                                ${businessMain.purchaseRate}%
                             </strong>
 
                         </a>
@@ -126,7 +126,7 @@
                             <span>승인 대기 상품</span>
 
                             <strong>
-                                ${businessMain.productSummary.waitingProductCount}
+                                ${businessMain.waitingProductCount}
                             </strong>
 
                         </a>
@@ -138,33 +138,33 @@
                 <!-- 최근 현황 -->
                 <section class="business-content">
 
-                    <div class="panel">
+                   <div class="panel">
                         <h3>최근 주문</h3>
                         <ul>
-                            <c:forEach var="order" items="${businessMain.recentOrders}">
+                          <%--  <c:forEach var="order" items="${businessMain.recentOrders}">
                                 <li>
                                     <span>${order.productName}</span>
                                     <strong>${order.status}</strong>
                                 </li>
                             </c:forEach>
-                            <c:if test="${empty businessMain.recentOrders}">
+                            <c:if test="${empty businessMain.recentOrders}">--%>
                                 <li>최근 주문 내역 없음</li>
-                            </c:if>
+                          <%--  </c:if> --%>
                         </ul>
                     </div>
 
                     <div class="panel">
                         <h3>최근 리뷰</h3>
                         <ul>
-                            <c:forEach var="review" items="${businessMain.recentReviews}">
+                          <%--  <c:forEach var="review" items="${businessMain.recentReviews}">
                                 <li>
                                     <span>${review.content}</span>
                                     <strong>${review.rating}점</strong>
                                 </li>
                             </c:forEach>
-                            <c:if test="${empty businessMain.recentReviews}">
+                            <c:if test="${empty businessMain.recentReviews}"> --%>
                                 <li>리뷰 없음</li>
-                            </c:if>
+                            <%--</c:if> --%>
                         </ul>
                     </div>
 
@@ -177,12 +177,12 @@
                         <h3>상품 분석</h3>
                         <p>
                             총 조회수
-                            <strong>${businessMain.productSummary.clickCount}</strong>
+                            <strong>${businessMain.clickCount}</strong>
                             회
                         </p>
                         <p>
                             평균 리뷰 점수
-                            <strong>${businessMain.productSummary.averageRating}</strong>
+                            <%-- <strong>${businessMain.averageRating}</strong> --%>
                             점
                         </p>
                     </div>
@@ -190,12 +190,61 @@
                     <div class="panel">
                         <h3>인기 상품</h3>
                         <ul>
-                            <c:forEach var="product" items="${businessMain.popularProducts}">
-                                <li>${product.productName}</li>
+                           <div>
+
+                            <c:forEach var="product"
+                                    items="${businessMain.popularProducts}"
+                                    varStatus="status">
+
+                                <div class="item-card">
+
+                                    <!-- 순위 -->
+                                    <span class="badge badge-blue">
+                                        ${status.index + 1}위
+                                    </span>
+
+                                    <!-- 대표 이미지 -->
+                                    <div class="product-thumb">
+
+                                        <c:choose>
+
+                                            <c:when test="${not empty product.imagePath}">
+                                                <img src="${pageContext.request.contextPath}${product.imagePath}"
+                                                    alt="<c:out value='${product.productName}'/>">
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                <span>상품</span>
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                    </div>
+
+                                    <!-- 상품 정보 -->
+                                    <div class="item-info">
+
+                                        <div class="product-name">
+                                            <c:out value="${product.productName}"/>
+                                        </div>
+
+                                        <div class="meta">
+                                            <span>
+                                                조회수 ${product.clickCount}회
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
                             </c:forEach>
+
                             <c:if test="${empty businessMain.popularProducts}">
-                                <li>데이터 없음</li>
+                                <p>인기 상품 데이터가 없습니다.</p>
                             </c:if>
+
+                        </div>
                         </ul>
                     </div>
 

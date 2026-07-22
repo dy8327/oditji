@@ -66,4 +66,7 @@ public interface GoodsService {
     Map<String, Object> getGoodsContent(int productNo);
 
     Map<String, Object> getGoodsActor(int productNo);
+
+    /* 상품 상세 클릭 로그 저장 */
+    void addProductClickLog(int productNo, Long memberNo);
 }

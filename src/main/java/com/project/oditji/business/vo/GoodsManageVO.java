@@ -31,6 +31,9 @@ public class GoodsManageVO {
     private String imagePath;
     private String isMain;
 
+    // 인기 상품 조회용
+    private int clickCount;
+
     public GoodsManageVO() {
     }
 
@@ -177,6 +180,14 @@ public class GoodsManageVO {
     public void setIsMain(String isMain) {
         this.isMain = isMain;
     }
+
+    public int getClickCount() {
+        return clickCount;
+    }
+
+    public void setClickCount(int clickCount) {
+        this.clickCount = clickCount;
+    }    
 
     @Override
     public String toString() {

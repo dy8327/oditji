@@ -172,6 +172,12 @@ public class GoodsServiceImpl implements GoodsService {
         return goodsDAO.selectGoodsActor(productNo);
     }
 
+    /* 상품 상세 클릭 로그 저장 */
+    @Override
+    public void addProductClickLog(int productNo, Long memberNo) {
+        goodsDAO.insertProductClickLog(productNo, memberNo);
+    }
+
     /** 상품 목록 정렬 유형을 안전한 값으로 정규화합니다. */
     private String normalizeListType(String type) {
 

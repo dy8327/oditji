@@ -38,3 +38,4 @@ build/
 
 # 검색 콘텐츠 캐시
 /cache/
+/uploads/

@@ -502,4 +502,27 @@
 
     </select>
 
+    <!-- 상품 상세 클릭 로그 저장 -->
+    <insert id="insertProductClickLog">
+
+        INSERT INTO PRODUCT_CLICK_LOG (
+            LOG_NO,
+            PRODUCT_NO,
+            MEMBER_NO,
+            CONTENT_NO,
+            ACTOR_NO,
+            CLICKED_AT
+        )
+        SELECT
+            SEQ_CLICK_LOG_NO.NEXTVAL,
+            P.PRODUCT_NO,
+            #{memberNo, jdbcType=NUMERIC},
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            SYSDATE
+        FROM PRODUCT P
+        WHERE P.PRODUCT_NO = #{productNo}
+
+    </insert>
+
 </mapper>

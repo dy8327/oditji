@@ -524,17 +524,13 @@ public class MemberController {
                 return "Y";
         }
 
-        /**
-         * 마이페이지
-         */
+        /* 마이페이지 */
         @GetMapping("/mypage")
         public String mypage(
                         HttpSession session,
                         Model model) {
 
-                /*
-                 * 로그인 회원 조회
-                 */
+                /* 로그인 회원 조회 */
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
 
@@ -548,9 +544,15 @@ public class MemberController {
                         return "redirect:/member/login";
                 }
 
-                /*
-                 * SNS 로그인 회원 여부
-                 */
+                /* 사업자 전용 페이지로 이동 */
+                BusinessVO business = businessService.getBusinessByMemberNo(
+                                loginMember.getMemberNo());
+
+                if (business != null) {
+                        return "redirect:/business/main";
+                }
+
+                /* SNS 로그인 회원 여부 */
                 boolean socialMember = session.getAttribute(
                                 "loginProvider") != null;
 
@@ -558,15 +560,11 @@ public class MemberController {
                                 "socialMember",
                                 socialMember);
 
-                /*
-                 * 로그인 회원이 선택한 활성 OTT 목록 조회
-                 */
+                /* 로그인 회원이 선택한 활성 OTT 목록 조회 */
                 List<PlatformVO> ottList = memberPlatformService.findMemberPlatformList(
                                 loginMember.getMemberNo());
 
-                /*
-                 * JSP에서 ${ottList}로 사용할 수 있도록 전달
-                 */
+                /* JSP에서 ${ottList}로 사용할 수 있도록 전달 */
                 model.addAttribute(
                                 "ottList",
                                 ottList);
@@ -587,9 +585,7 @@ public class MemberController {
                 MemberVO loginMember = (MemberVO) session.getAttribute(
                                 "loginMember");
 
-                /*
-                 * 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지한다.
-                 */
+                /* 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지 */
                 if (loginMember == null
                                 || loginMember.getMemberNo() == null) {
 
