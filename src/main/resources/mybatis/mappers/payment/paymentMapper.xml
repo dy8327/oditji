@@ -172,6 +172,7 @@
         UPDATE PAYMENT
 
         SET PAYMENT_STATUS = 'CANCELED',
+            CANCELED_AMOUNT = PAYMENT_AMOUNT,
             CANCELED_AT =
                 #{canceledAt, jdbcType=VARCHAR},
             CANCEL_REASON =
@@ -183,7 +184,7 @@
           AND PAYMENT_ID =
                 #{paymentId, jdbcType=VARCHAR}
 
-          AND PAYMENT_STATUS = 'PAID'
+          AND PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
 
     </update>
 
