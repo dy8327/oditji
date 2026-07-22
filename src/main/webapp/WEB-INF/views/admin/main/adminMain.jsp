@@ -37,16 +37,16 @@
                     <strong>${adminMain.memberCount}명</strong>
                 </a>
 
-                <a href="${pageContext.request.contextPath}/admin/content/list"
-                   class="stat-card">
-                    <span>콘텐츠 수</span>
-                    <strong>${adminMain.contentCount}개</strong>
-                </a>
-
                 <a href="${pageContext.request.contextPath}/admin/review/list"
                    class="stat-card">
-                    <span>리뷰 수</span>
-                    <strong>${adminMain.reviewCount}개</strong>
+                    <span>콘텐츠리뷰 수</span>
+                    <strong>${adminMain.contentReviewCount}개</strong>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/productReview/list"
+                   class="stat-card">
+                    <span>상품리뷰 수</span>
+                    <strong>${adminMain.productReviewCount}개</strong>
                 </a>
 
                 <a href="${pageContext.request.contextPath}/admin/review/list?tab=report"

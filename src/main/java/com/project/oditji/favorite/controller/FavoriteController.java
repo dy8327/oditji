@@ -1,6 +1,5 @@
 package com.project.oditji.favorite.controller;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -21,7 +20,9 @@ import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
+import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.wish.service.WishService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -31,13 +32,16 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
     private final ContentService contentService;
+    private final WishService wishService;
 
     public FavoriteController(
             FavoriteService favoriteService,
-            ContentService contentService) {
+            ContentService contentService,
+            WishService wishService) {
 
         this.favoriteService = favoriteService;
         this.contentService = contentService;
+        this.wishService = wishService;
     }
 
     @GetMapping("/list")
@@ -56,6 +60,10 @@ public class FavoriteController {
                 favoriteService.selectFavoriteList(
                         loginMember.getMemberNo());
 
+        List<GoodsVO> goodsFavoriteList =
+                wishService.selectWishList(
+                        loginMember.getMemberNo());
+
         model.addAttribute(
                 "contentFavoriteList",
                 contentFavoriteList);
@@ -65,16 +73,17 @@ public class FavoriteController {
                 contentFavoriteList.size());
 
         model.addAttribute(
-                "totalFavoriteCount",
-                contentFavoriteList.size());
-
-        model.addAttribute(
                 "goodsFavoriteList",
-                Collections.emptyList());
+                goodsFavoriteList);
 
         model.addAttribute(
                 "goodsCount",
-                0);
+                goodsFavoriteList.size());
+
+        model.addAttribute(
+                "totalFavoriteCount",
+                contentFavoriteList.size()
+                        + goodsFavoriteList.size());
 
         return "favorite/favoriteList";
     }

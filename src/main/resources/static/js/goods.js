@@ -263,16 +263,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (result.loginRequired) {
 
-                        const currentUrl =
-                            window.location.pathname
-                            + window.location.search;
+                        const moveLogin = confirm(
+                            "장바구니는 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+                        );
 
-                        window.location.href =
-                            contextPath
-                            + "/member/login?redirect="
-                            + encodeURIComponent(
-                                currentUrl
-                            );
+                        if (moveLogin) {
+
+                            const currentUrl =
+                                window.location.pathname
+                                + window.location.search;
+
+                            window.location.href =
+                                contextPath
+                                + "/member/login?redirect="
+                                + encodeURIComponent(currentUrl);
+                        }
 
                         return;
                     }
