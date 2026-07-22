@@ -23,6 +23,21 @@ public class OrderCancelRefundVO {
     private Date processedAt;
     private String rejectReason;
 
+    /*
+     * =========================================================
+     * [전체/부분 취소 구분 기능 추가]
+     *
+     * cancelType : FULL(전체 취소), PARTIAL(상품별 부분 취소)
+     * cancelGroupNo : 하나의 전체 취소 요청을 묶는 그룹 번호
+     * refundAmount : 해당 요청의 환불 예정 금액
+     * itemCount : 사업자 화면에 표시할 요청 상품 수
+     * =========================================================
+     */
+    private String cancelType;
+    private Long cancelGroupNo;
+    private Long refundAmount;
+    private Integer itemCount;
+
     public Long getCancelNo() {
         return cancelNo;
     }
@@ -141,5 +156,37 @@ public class OrderCancelRefundVO {
 
     public void setRejectReason(String rejectReason) {
         this.rejectReason = rejectReason;
+    }
+
+    public String getCancelType() {
+        return cancelType;
+    }
+
+    public void setCancelType(String cancelType) {
+        this.cancelType = cancelType;
+    }
+
+    public Long getCancelGroupNo() {
+        return cancelGroupNo;
+    }
+
+    public void setCancelGroupNo(Long cancelGroupNo) {
+        this.cancelGroupNo = cancelGroupNo;
+    }
+
+    public Long getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(Long refundAmount) {
+        this.refundAmount = refundAmount;
+    }
+
+    public Integer getItemCount() {
+        return itemCount;
+    }
+
+    public void setItemCount(Integer itemCount) {
+        this.itemCount = itemCount;
     }
 }
