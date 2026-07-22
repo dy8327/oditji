@@ -7,6 +7,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.time.Duration;
 import java.time.Year;
@@ -153,6 +156,26 @@ public class SearchContentCollectorService {
     @Value("${search.content-cache.supplement-max-candidates-per-type:1000}")
     private int supplementMaxCandidatesPerType;
 
+    /**
+     * TMDB 제공처 정보가 누락된 콘텐츠에 대해
+     * 외부 JSON 파일의 OTT 정보를 추가할지 결정합니다.
+     */
+    @Value("${search.content-cache.manual-platform-override-enabled:false}")
+    private boolean manualPlatformOverrideEnabled;
+
+    /**
+     * 수동 OTT 보완 JSON 파일 경로입니다.
+     */
+    @Value("${search.content-cache.manual-platform-override-path:}")
+    private String manualPlatformOverridePath;
+
+    /**
+     * 키: CONTENT_TYPE:TMDB_ID
+     * 값: 해당 콘텐츠에 추가할 플랫폼 키 집합
+     */
+    private volatile Map<String, Set<String>> manualPlatformOverrideMap =
+            Map.of();
+
     private final HttpClient httpClient;
 
     public SearchContentCollectorService() {
@@ -228,6 +251,13 @@ public class SearchContentCollectorService {
         int tvTarget =
                 normalizedMaxSize
                         - movieTarget;
+
+        /*
+         * 수집을 시작할 때 수동 OTT 보완 파일을 다시 읽습니다.
+         * 다음 서버 재시작 또는 정기 갱신에서 JSON 수정 내용이 반영됩니다.
+         */
+        manualPlatformOverrideMap =
+                loadManualPlatformOverrides();
 
         /*
          * 영화와 TV의 제공처 목록을 각각 조회하여
@@ -310,6 +340,14 @@ public class SearchContentCollectorService {
             );
         }
 
+        /*
+         * 수동 JSON에 등록된 TMDB ID는 Discover 결과에 없어도
+         * 직접 후보로 추가합니다.
+         */
+        candidates.addAll(
+                createManualOverrideCandidates()
+        );
+
         candidates =
                 removeDuplicate(candidates);
 
@@ -371,6 +409,14 @@ public class SearchContentCollectorService {
 
                 copyReusableDetail(
                         previous,
+                        candidate
+                );
+
+                /*
+                 * 이전 스냅샷을 재사용하는 콘텐츠에도
+                 * 최신 수동 OTT 보완값을 적용합니다.
+                 */
+                applyManualPlatformOverrides(
                         candidate
                 );
 
@@ -1217,6 +1263,15 @@ public class SearchContentCollectorService {
         }
 
         /*
+         * 수동 보완 JSON에서 직접 추가한 후보는 Discover 응답을
+         * 거치지 않을 수 있으므로 상세 API에서 기본 화면 정보도 채웁니다.
+         */
+        fillBasicContentDetail(
+                candidate,
+                detail
+        );
+
+        /*
          * Discover 응답에 장르나 평점이 빠진 경우
          * 상세 API 값으로 보완합니다.
          */
@@ -1314,11 +1369,337 @@ public class SearchContentCollectorService {
                 )
         );
 
+        /*
+         * TMDB watch/providers 결과와 수동 보완 JSON을 합칩니다.
+         */
+        applyManualPlatformOverrides(
+                candidate
+        );
+
         candidate.setSearchText(
                 createSearchText(candidate)
         );
 
         return candidate;
+    }
+
+
+    /**
+     * 상세 API 응답에서 제목, 원제, 공개일, 포스터, 인기도 등
+     * 기본 콘텐츠 정보를 보완합니다.
+     */
+    private void fillBasicContentDetail(
+            CachedContentVO candidate,
+            JSONObject detail) {
+
+        if (candidate == null
+                || detail == null) {
+            return;
+        }
+
+        if (MOVIE.equals(candidate.getContentType())) {
+
+            if (!hasText(candidate.getTitle())) {
+                candidate.setTitle(
+                        firstNonBlank(
+                                nullableString(detail, "title"),
+                                nullableString(detail, "original_title")
+                        )
+                );
+            }
+
+            if (!hasText(candidate.getOriginalTitle())) {
+                candidate.setOriginalTitle(
+                        nullableString(detail, "original_title")
+                );
+            }
+
+            if (!hasText(candidate.getReleaseDate())) {
+                candidate.setReleaseDate(
+                        nullableString(detail, "release_date")
+                );
+            }
+
+        } else {
+
+            if (!hasText(candidate.getTitle())) {
+                candidate.setTitle(
+                        firstNonBlank(
+                                nullableString(detail, "name"),
+                                nullableString(detail, "original_name")
+                        )
+                );
+            }
+
+            if (!hasText(candidate.getOriginalTitle())) {
+                candidate.setOriginalTitle(
+                        nullableString(detail, "original_name")
+                );
+            }
+
+            if (!hasText(candidate.getReleaseDate())) {
+                candidate.setReleaseDate(
+                        nullableString(detail, "first_air_date")
+                );
+            }
+        }
+
+        if (!hasText(candidate.getPosterPath())) {
+            candidate.setPosterPath(
+                    nullableString(detail, "poster_path")
+            );
+        }
+
+        if (candidate.getPopularity() == null) {
+            candidate.setPopularity(
+                    nullableDouble(detail, "popularity")
+            );
+        }
+    }
+
+    /**
+     * 수동 OTT 보완 JSON 파일을 읽어 CONTENT_TYPE:TMDB_ID 형식의
+     * Map으로 변환합니다.
+     */
+    private Map<String, Set<String>> loadManualPlatformOverrides() {
+
+        if (!manualPlatformOverrideEnabled) {
+            return Map.of();
+        }
+
+        if (!hasText(manualPlatformOverridePath)) {
+            System.err.println(
+                    "검색 콘텐츠 수동 OTT 보완 경로가 비어 있습니다."
+            );
+            return Map.of();
+        }
+
+        Path path =
+                Paths.get(manualPlatformOverridePath);
+
+        if (!Files.exists(path)
+                || !Files.isRegularFile(path)) {
+
+            System.err.println(
+                    "검색 콘텐츠 수동 OTT 보완 파일을 찾지 못했습니다: "
+                            + path.toAbsolutePath()
+            );
+            return Map.of();
+        }
+
+        try {
+
+            JSONObject root =
+                    new JSONObject(
+                            Files.readString(
+                                    path,
+                                    StandardCharsets.UTF_8
+                            )
+                    );
+
+            Map<String, Set<String>> result =
+                    new LinkedHashMap<String, Set<String>>();
+
+            readManualOverrideSection(
+                    root,
+                    MOVIE,
+                    result
+            );
+
+            readManualOverrideSection(
+                    root,
+                    TV,
+                    result
+            );
+
+            Map<String, Set<String>> immutable =
+                    new LinkedHashMap<String, Set<String>>();
+
+            for (Map.Entry<String, Set<String>> entry
+                    : result.entrySet()) {
+
+                immutable.put(
+                        entry.getKey(),
+                        Set.copyOf(entry.getValue())
+                );
+            }
+
+            System.out.println(
+                    "검색 콘텐츠 수동 OTT 보완 로드 완료: "
+                            + immutable.size()
+                            + "개 콘텐츠"
+            );
+
+            return Map.copyOf(immutable);
+
+        } catch (IOException e) {
+
+            throw new IllegalStateException(
+                    "수동 OTT 보완 파일을 읽지 못했습니다: "
+                            + path.toAbsolutePath(),
+                    e
+            );
+
+        } catch (JSONException e) {
+
+            throw new IllegalStateException(
+                    "수동 OTT 보완 JSON 형식이 올바르지 않습니다: "
+                            + path.toAbsolutePath(),
+                    e
+            );
+        }
+    }
+
+    /**
+     * MOVIE 또는 TV 영역에서 플랫폼별 TMDB ID 배열을 읽습니다.
+     */
+    private void readManualOverrideSection(
+            JSONObject root,
+            String contentType,
+            Map<String, Set<String>> target) {
+
+        JSONObject section =
+                root.optJSONObject(contentType);
+
+        if (section == null) {
+            return;
+        }
+
+        for (String rawPlatformKey
+                : section.keySet()) {
+
+            String platformKey =
+                    normalizePlatformName(rawPlatformKey);
+
+            if (!SUPPORTED_PLATFORM_KEYS.contains(platformKey)) {
+
+                System.err.println(
+                        "검색 콘텐츠 수동 OTT 보완에서 지원하지 않는 플랫폼을 무시합니다: "
+                                + rawPlatformKey
+                );
+                continue;
+            }
+
+            JSONArray tmdbIds =
+                    section.optJSONArray(rawPlatformKey);
+
+            if (tmdbIds == null) {
+                continue;
+            }
+
+            for (int index = 0;
+                 index < tmdbIds.length();
+                 index++) {
+
+                long tmdbId =
+                        tmdbIds.optLong(index, 0L);
+
+                if (tmdbId <= 0) {
+                    continue;
+                }
+
+                String key =
+                        createManualOverrideKey(
+                                contentType,
+                                tmdbId
+                        );
+
+                target.computeIfAbsent(
+                        key,
+                        ignored -> new LinkedHashSet<String>()
+                ).add(platformKey);
+            }
+        }
+    }
+
+    /**
+     * 수동 보완 JSON의 모든 ID를 Discover 결과와 별개로 후보에 추가합니다.
+     */
+    private List<CachedContentVO> createManualOverrideCandidates() {
+
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
+
+        for (String key
+                : manualPlatformOverrideMap.keySet()) {
+
+            String[] parts =
+                    key.split(":", 2);
+
+            if (parts.length != 2) {
+                continue;
+            }
+
+            try {
+
+                long tmdbId =
+                        Long.parseLong(parts[1]);
+
+                CachedContentVO candidate =
+                        new CachedContentVO();
+
+                candidate.setContentType(parts[0]);
+                candidate.setTmdbId(tmdbId);
+
+                result.add(candidate);
+
+            } catch (NumberFormatException e) {
+                /* 잘못된 수동 ID는 무시합니다. */
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 기존 플랫폼 목록에 수동 보완 플랫폼을 중복 없이 합칩니다.
+     */
+    private void applyManualPlatformOverrides(
+            CachedContentVO content) {
+
+        if (content == null
+                || content.getTmdbId() == null
+                || !hasText(content.getContentType())) {
+            return;
+        }
+
+        Set<String> manualPlatforms =
+                manualPlatformOverrideMap.get(
+                        createManualOverrideKey(
+                                content.getContentType(),
+                                content.getTmdbId()
+                        )
+                );
+
+        if (manualPlatforms == null
+                || manualPlatforms.isEmpty()) {
+            return;
+        }
+
+        LinkedHashSet<String> merged =
+                new LinkedHashSet<String>();
+
+        if (content.getPlatformKeys() != null) {
+            merged.addAll(content.getPlatformKeys());
+        }
+
+        merged.addAll(manualPlatforms);
+
+        content.setPlatformKeys(
+                new ArrayList<String>(merged)
+        );
+    }
+
+    /**
+     * 수동 OTT 보완 Map의 공통 키를 생성합니다.
+     */
+    private String createManualOverrideKey(
+            String contentType,
+            long tmdbId) {
+
+        return contentType
+                + ":"
+                + tmdbId;
     }
 
     /**
