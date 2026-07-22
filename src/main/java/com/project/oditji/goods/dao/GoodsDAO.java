@@ -51,4 +51,9 @@ public interface GoodsDAO {
     Map<String, Object> selectGoodsActor(
             @Param("productNo") int productNo
     );
+
+    int insertProductClickLog(
+        @Param("productNo") int productNo,
+        @Param("memberNo") Long memberNo
+);
 }

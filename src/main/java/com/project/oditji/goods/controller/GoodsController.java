@@ -146,6 +146,7 @@ public class GoodsController {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
         Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        goodsService.addProductClickLog(productNo, loginMemberNo);
         Set<Integer> reportedReviewSet = reportService.getReportedProductReviewSet(loginMemberNo);
 
         boolean wishActive = false;
