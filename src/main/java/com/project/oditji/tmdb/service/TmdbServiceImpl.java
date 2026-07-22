@@ -315,8 +315,34 @@ public class TmdbServiceImpl implements TmdbService {
                 + contentType);
     }
 
+    /**
+     * 기존 호출부와 초기 적재 로직을 유지하기 위한 호환 메서드입니다.
+     * 플랫폼 키가 전달되지 않으므로 기존 TMDB watch/providers API를 사용합니다.
+     */
     @Override
     public void saveContentPlatform(ContentVO content) {
+
+        saveContentPlatform(
+                content,
+                Collections.emptyList()
+        );
+    }
+
+    /**
+     * 상세페이지 진입 시 검색 JSON 캐시의 platformKeys를 우선 사용하여
+     * CONTENT_PLATFORM 관계를 저장합니다.
+     *
+     * JSON 캐시는 검색·목록 화면에 실제 노출된 OTT 정보를 이미 보유하므로,
+     * 상세 진입 시 TMDB watch/providers를 다시 호출했을 때 발생할 수 있는
+     * 제공자 응답 시점 차이와 Wavve 누락 문제를 방지할 수 있습니다.
+     *
+     * platformKeys가 null이거나 비어 있는 콘텐츠만 기존 TMDB API 방식으로
+     * 대체하여 초기 적재 및 다른 기존 호출부의 동작을 유지합니다.
+     */
+    @Override
+    public void saveContentPlatform(
+            ContentVO content,
+            List<String> platformKeys) {
 
         if (content == null
                 || content.getContentNo() <= 0
@@ -325,10 +351,172 @@ public class TmdbServiceImpl implements TmdbService {
             return;
         }
 
+        List<String> safePlatformKeys =
+                platformKeys == null
+                        ? Collections.emptyList()
+                        : platformKeys;
+
+        if (!safePlatformKeys.isEmpty()) {
+
+            savePlatformRelationsFromKeys(
+                    content.getContentNo(),
+                    safePlatformKeys
+            );
+
+            return;
+        }
+
         savePlatformRelations(
                 content.getContentNo(),
                 content.getTmdbId(),
-                content.getContentType());
+                content.getContentType()
+        );
+    }
+
+    /**
+     * JSON 캐시에서 전달된 내부 플랫폼 키를 DB 플랫폼명으로 변환하고,
+     * 기존 관계가 없는 OTT만 CONTENT_PLATFORM에 추가합니다.
+     *
+     * 지원 키:
+     * netflix, tving, wavve, disney, watcha, coupang
+     */
+    private int savePlatformRelationsFromKeys(
+            Integer contentNo,
+            List<String> platformKeys) {
+
+        if (contentNo == null
+                || contentNo <= 0
+                || platformKeys == null
+                || platformKeys.isEmpty()) {
+
+            return 0;
+        }
+
+        Set<String> normalizedKeys =
+                new LinkedHashSet<String>();
+
+        for (String platformKey : platformKeys) {
+
+            String normalizedKey =
+                    normalizePlatformKey(platformKey);
+
+            if (!normalizedKey.isEmpty()) {
+                normalizedKeys.add(normalizedKey);
+            }
+        }
+
+        int saveCount = 0;
+
+        for (String normalizedKey : normalizedKeys) {
+
+            String platformName =
+                    convertPlatformKeyToDbName(
+                            normalizedKey
+                    );
+
+            if (platformName == null) {
+                continue;
+            }
+
+            Integer platformNo =
+                    tmdbDAO.findPlatformNo(
+                            platformName
+                    );
+
+            if (platformNo == null
+                    || tmdbDAO.existsContentPlatform(
+                            contentNo,
+                            platformNo
+                    ) > 0) {
+
+                continue;
+            }
+
+            tmdbDAO.insertContentPlatform(
+                    contentNo,
+                    platformNo
+            );
+
+            saveCount++;
+        }
+
+        return saveCount;
+    }
+
+    /**
+     * JSON 플랫폼 키의 대소문자, 공백, 특수문자 차이를 제거합니다.
+     */
+    private String normalizePlatformKey(
+            String platformKey) {
+
+        if (platformKey == null) {
+            return "";
+        }
+
+        String normalized =
+                platformKey.trim()
+                        .toLowerCase(Locale.ROOT)
+                        .replaceAll("[^a-z0-9]", "");
+
+        if (normalized.contains("netflix")) {
+            return "netflix";
+        }
+
+        if (normalized.contains("tving")) {
+            return "tving";
+        }
+
+        if (normalized.contains("wavve")) {
+            return "wavve";
+        }
+
+        if (normalized.contains("disney")) {
+            return "disney";
+        }
+
+        if (normalized.contains("watcha")) {
+            return "watcha";
+        }
+
+        if (normalized.contains("coupang")) {
+            return "coupang";
+        }
+
+        return "";
+    }
+
+    /**
+     * 검색 JSON 내부 키를 현재 OTT_PLATFORM 테이블의 플랫폼명으로 변환합니다.
+     * Mapper에서도 대소문자를 무시하므로 DB 표기 변경에도 안전하게 조회됩니다.
+     */
+    private String convertPlatformKeyToDbName(
+            String platformKey) {
+
+        if ("netflix".equals(platformKey)) {
+            return "Netflix";
+        }
+
+        if ("tving".equals(platformKey)) {
+            return "TVING";
+        }
+
+        if ("wavve".equals(platformKey)) {
+            return "wavve";
+        }
+
+        if ("disney".equals(platformKey)) {
+            return "Disney Plus";
+        }
+
+        if ("watcha".equals(platformKey)) {
+            return "Watcha";
+        }
+
+        if ("coupang".equals(platformKey)) {
+            return "Coupangplay";
+        }
+
+        return null;
     }
 
     private int savePlatformRelations(

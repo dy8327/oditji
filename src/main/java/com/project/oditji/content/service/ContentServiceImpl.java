@@ -127,8 +127,16 @@ public class ContentServiceImpl implements ContentService {
                         );
             }
 
+            /*
+             * 검색 JSON에 저장된 플랫폼 키를 우선 사용합니다.
+             * TMDB watch/providers의 시점별 응답 차이로
+             * Wavve 등 일부 OTT가 누락되는 문제를 방지합니다.
+             */
             tmdbService.saveContentPlatform(
-                    existingContent
+                    existingContent,
+                    cachedContent == null
+                            ? Collections.emptyList()
+                            : cachedContent.getPlatformKeys()
             );
 
             tmdbService.saveContentPeople(
@@ -175,8 +183,16 @@ public class ContentServiceImpl implements ContentService {
             );
         }
 
+        /*
+         * 신규 콘텐츠도 동일하게 JSON 플랫폼 키를 우선 저장합니다.
+         * JSON에 플랫폼 키가 없는 경우에는 TmdbServiceImpl에서
+         * 기존 TMDB API 방식으로 자동 대체합니다.
+         */
         tmdbService.saveContentPlatform(
-                savedContent
+                savedContent,
+                cachedContent == null
+                        ? Collections.emptyList()
+                        : cachedContent.getPlatformKeys()
         );
 
         tmdbService.saveContentPeople(

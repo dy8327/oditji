@@ -123,7 +123,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
         SELECT PLATFORM_NO
         FROM OTT_PLATFORM
-        WHERE PLATFORM_NAME = #{platformName}
+        WHERE UPPER(TRIM(PLATFORM_NAME))
+                = UPPER(TRIM(#{platformName}))
           AND IS_ACTIVE = 'Y'
 
     </select>
