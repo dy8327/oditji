@@ -10,6 +10,10 @@ package com.project.oditji.order.vo;
 public class OrderPaymentCancelRequestVO {
 
     private Long orderNo;
+
+    /* [상품별 부분 취소 기능 추가] */
+    private Long orderItemNo;
+
     private String reason;
 
     public OrderPaymentCancelRequestVO() {
@@ -21,6 +25,14 @@ public class OrderPaymentCancelRequestVO {
 
     public void setOrderNo(Long orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public Long getOrderItemNo() {
+        return orderItemNo;
+    }
+
+    public void setOrderItemNo(Long orderItemNo) {
+        this.orderItemNo = orderItemNo;
     }
 
     public String getReason() {
