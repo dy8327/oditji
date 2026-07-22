@@ -2,7 +2,15 @@
    ODITJI BUSINESS COMMON CSS
    ===================================================== */
 
-.business-wrap {
+/*
+ * [수정] --biz-* 변수를 .business-wrap 안에서 정의하면 .business-wrap의
+ * "자손" 요소에서만 상속된다. eventRegister/eventUpdate의 상품 검색
+ * 모달은 business-wrap 바깥에 형제로 있고, contentSearch.jsp(window.open으로
+ * 뜨는 별도 팝업창)는 애초에 이 문서 안에 .business-wrap 자체가 없어서
+ * 변수가 전혀 상속되지 않는다. 페이지 전역에서 쓰이는 디자인 토큰이므로
+ * :root로 옮겨 어디서든 상속되게 한다.
+ */
+:root {
   /* ---- Surface (배경 단계) ---- */
   --biz-surface-1: var(--color-bg2, #202020); /* 패널/히어로 등 상승된 표면 */
   --biz-surface-2: var(--color-bg, #181818); /* 카드/인풋 등 기본 표면 */
@@ -30,7 +38,9 @@
   --biz-radius-lg: 16px;
   --biz-radius-pill: 999px;
   --biz-transition: var(--transition, 0.2s ease);
+}
 
+.business-wrap {
   display: flex;
   align-items: flex-start;
   min-height: calc(100vh - var(--header-height, 80px) - 80px);
@@ -350,7 +360,7 @@
   margin: 20px 0;
 }
 
-.business-wrap .btn {
+.btn {
   display: inline-flex;
 
   justify-content: center;
@@ -367,48 +377,48 @@
   transition: var(--biz-transition);
 }
 
-.business-wrap .btn-primary {
+.btn-primary {
   background: var(--biz-point);
   color: #fff;
 
   box-shadow: 0 4px 12px rgba(94, 163, 255, 0.25);
 }
 
-.business-wrap .btn-primary:hover {
+.btn-primary:hover {
   background: #7bb5ff;
 }
 
-.business-wrap .btn-dark {
+.btn-dark {
   background: var(--biz-surface-1);
   border-color: var(--biz-border);
   color: var(--biz-text);
 }
 
-.business-wrap .btn-dark:hover {
+.btn-dark:hover {
   border-color: var(--biz-point);
 }
 
-.business-wrap .btn-danger {
+.btn-danger {
   background: var(--biz-danger-bg);
   color: var(--biz-danger);
 }
 
-.business-wrap .btn-danger:hover {
+.btn-danger:hover {
   background: rgba(255, 107, 107, 0.2);
 }
 
-.business-wrap .btn-outline {
+.btn-outline {
   background: transparent;
   border-color: var(--biz-border);
   color: var(--biz-text-sub);
 }
 
-.business-wrap .btn-outline:hover {
+.btn-outline:hover {
   border-color: var(--biz-point);
   color: var(--biz-text);
 }
 
-.business-wrap .btn:focus-visible {
+.btn:focus-visible {
   outline: 2px solid var(--biz-point);
   outline-offset: 2px;
 }
@@ -543,11 +553,11 @@
    Form
    ===================================================== */
 
-.business-wrap .form-group {
+.form-group {
   margin-bottom: 24px;
 }
 
-.business-wrap .form-label {
+.form-label {
   display: block;
 
   margin-bottom: 10px;
@@ -566,8 +576,8 @@
   width: 100%;
 }
 
-.business-wrap .form-input,
-.business-wrap .form-textarea {
+.form-input,
+.form-textarea {
   width: 100%;
 
   padding: 14px 16px;
@@ -582,29 +592,29 @@
   transition: var(--biz-transition);
 }
 
-.business-wrap .form-input:focus,
-.business-wrap .form-textarea:focus {
+.form-input:focus,
+.form-textarea:focus {
   border-color: var(--biz-point);
   box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
 }
 
-.business-wrap .form-textarea {
+.form-textarea {
   min-height: 160px;
 
   resize: vertical;
 }
 
-.business-wrap .input-with-btn {
+.input-with-btn {
   display: flex;
 
   gap: 12px;
 }
 
-.business-wrap .input-with-btn .form-input {
+.input-with-btn .form-input {
   flex: 1;
 }
 
-.business-wrap .file-box {
+.file-box {
   display: flex;
 
   align-items: center;
@@ -965,18 +975,6 @@
 }
 
 /* 4. 기타 유틸리티 */
-.btn-danger {
-  background-color: #ef4444;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-danger:hover {
-  background-color: #dc2626;
-}
 
 .product-name {
   color: var(--biz-text);

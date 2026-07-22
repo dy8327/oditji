@@ -575,6 +575,8 @@
 
     transform:translateY(0);
 
+    animation:fadeUp .25s ease;
+
 }
 
 .profile-dropdown a{
@@ -903,12 +905,6 @@
         transform:translateY(0);
 
     }
-
-}
-
-.profile-dropdown.open{
-
-    animation:fadeUp .25s ease;
 
 }
 

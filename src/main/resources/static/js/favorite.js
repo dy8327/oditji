@@ -66,7 +66,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.status === 401) {
 
-                alert("로그인이 필요합니다.");
+                const moveLogin = confirm(
+                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+                );
+
+                if (moveLogin) {
+
+                    const currentUrl =
+                        window.location.pathname
+                        + window.location.search;
+
+                    window.location.href =
+                        `${contextPath}/member/login`
+                        + `?returnUrl=${encodeURIComponent(currentUrl)}`;
+                }
+
                 return;
 
             }
@@ -80,14 +94,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.active) {
 
                 btn.classList.add("active");
-                btn.textContent = "♥";
+                setFavIcon(btn, "♥");
 
                 updateCount(type, 1);
 
             } else {
 
                 btn.classList.remove("active");
-                btn.textContent = "♡";
+                setFavIcon(btn, "♡");
 
                 updateCount(type, -1);
 
@@ -129,6 +143,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
     });
+
+
+    // 버튼 안에 아이콘 전용 span(.fav-icon)이 있으면 그 부분만 바꾸고,
+    // 없으면 (favoriteList.jsp 카드처럼 아이콘이 버튼 텍스트 전부인 경우) 버튼 전체 텍스트를 바꾼다.
+    function setFavIcon(btn, icon) {
+
+        const iconEl = btn.querySelector(".fav-icon");
+
+        if (iconEl) {
+            iconEl.textContent = icon;
+        } else {
+            btn.textContent = icon;
+        }
+
+    }
 
 
     // ================= COUNT =================
