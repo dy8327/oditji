@@ -24,6 +24,7 @@ import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.business.vo.BusinessDashboardVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -42,305 +43,178 @@ public class BusinessController {
                 this.orderCancelRefundService = orderCancelRefundService;
         }
 
-        /*
-         * =========================================================
-         * 사업자 메인
-         * =========================================================
-         */
+        /*사업자 메인 */
         @GetMapping("/main")
-        public String main(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String main(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. "
                                                         + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
-
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
-
-                model.addAttribute(
-                                "business",
-                                business);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "main");
+                model.addAttribute("business", business);
+                /* 사업자 메인 대시보드 통계 */
+                BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
+                /* 사업자 인기 상품 */
+                businessMain.setPopularProducts(businessService.getPopularProducts(business.getBusinessNo()));
+                model.addAttribute("businessMain", businessMain);
+                model.addAttribute("activeMenu", "main");
 
                 return "business/main/businessMain";
         }
 
-        /*
-         * =========================================================
-         * 상품 목록
-         * =========================================================
-         */
+        /* 상품 목록 */
         @GetMapping("/product/list")
-        public String productList(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String productList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
-
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. "
                                                         + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
-                                business.getBusinessNo());
-
-                model.addAttribute(
-                                "business",
-                                business);
-
-                model.addAttribute(
-                                "productList",
-                                productList);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "product");
+                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(business.getBusinessNo());
+                model.addAttribute("business", business);
+                model.addAttribute("productList", productList);
+                model.addAttribute("activeMenu", "product");
 
                 return "business/goods/productList";
         }
 
-        /*
-         * =========================================================
-         * 상품 등록 화면
-         * =========================================================
-         */
+        /* 상품 등록 화면 */
         @GetMapping("/product/register")
-        public String productRegister(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String productRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. "
                                                         + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 상품을 등록할 수 있습니다.");
+                if (!"APPROVED".equals(business.getStatus())) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "승인된 사업자만 상품을 등록할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
 
-                /*
-                 * 상품 등록 실패 후 다시 진입한 경우에는
-                 * RedirectAttributes로 전달된 productForm을 유지한다.
-                 */
-                if (!model.containsAttribute(
-                                "productForm")) {
+                /*  상품 등록 실패 후 다시 진입한 경우 RedirectAttributes로 전달된 productForm을 유지. */
+                if (!model.containsAttribute("productForm")) {
 
-                        model.addAttribute(
-                                        "productForm",
-                                        new GoodsManageVO());
+                        model.addAttribute("productForm", new GoodsManageVO());
                 }
 
-                model.addAttribute(
-                                "business",
-                                business);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "productRegister");
+                model.addAttribute("business", business);
+                model.addAttribute("activeMenu", "productRegister");
 
                 return "business/goods/productRegister";
         }
 
-        /*
-         * =========================================================
-         * 상품 등록 처리
-         * =========================================================
-         */
+        /* 상품 등록 처리 */
         @PostMapping("/product/register")
         public String productRegisterProcess(
                         @ModelAttribute("productForm") GoodsManageVO goodsManageVO,
 
                         @RequestParam(value = "productImage", required = false) MultipartFile productImage,
-
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. "
                                                         + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 상품을 등록할 수 있습니다.");
+                if (!"APPROVED".equals( business.getStatus())) {
+                        redirectAttributes.addFlashAttribute( "errorMessage", "승인된 사업자만 상품을 등록할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
 
                 /*
-                 * 화면에서 BUSINESS_NO가 전달되더라도 사용하지 않는다.
-                 * 현재 로그인 회원과 연결된 사업자 번호를 서버에서 설정한다.
+                 * 화면에서 BUSINESS_NO가 전달되더라도 사용하지 않음.
+                 * 현재 로그인 회원과 연결된 사업자 번호를 서버에서 설정.
                  */
-                goodsManageVO.setBusinessNo(
-                                business.getBusinessNo());
+                goodsManageVO.setBusinessNo(business.getBusinessNo());
 
-                /*
-                 * 배우 선택값이 없거나 0 이하이면
-                 * PRODUCT.ACTOR_NO에 NULL이 저장되도록 처리한다.
-                 */
-                if (goodsManageVO.getActorNo() != null
-                                && goodsManageVO.getActorNo() <= 0) {
+                /* 배우 선택값이 없거나 0 이하이면 PRODUCT.ACTOR_NO에 NULL이 저장되도록 처리. */
+                if (goodsManageVO.getActorNo() != null && goodsManageVO.getActorNo() <= 0) {
 
-                        goodsManageVO.setActorNo(
-                                        null);
+                        goodsManageVO.setActorNo(null);
                 }
 
                 try {
+                        long productNo = businessService.registerProduct(goodsManageVO, productImage);
 
-                        long productNo = businessService.registerProduct(
-                                        goodsManageVO,
-                                        productImage);
-
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "상품 등록 요청이 완료되었습니다. "
+                        redirectAttributes.addFlashAttribute("successMessage","상품 등록 요청이 완료되었습니다. "
                                                         + "관리자 승인 후 판매됩니다.");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "registeredProductNo",
-                                        productNo);
+                        redirectAttributes.addFlashAttribute("registeredProductNo", productNo);
 
                         return "redirect:/business/product/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
-
-                        redirectAttributes.addFlashAttribute(
-                                        "productForm",
-                                        goodsManageVO);
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
 
                         return "redirect:/business/product/register";
 
                 } catch (Exception e) {
-
                         e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "상품 등록 중 오류가 발생했습니다.");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "productForm",
-                                        goodsManageVO);
+                        redirectAttributes.addFlashAttribute("errorMessage", "상품 등록 중 오류가 발생했습니다.");
+                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
 
                         return "redirect:/business/product/register";
                 }
         }
 
-        /*
-         * =========================================================
-         * 콘텐츠 검색 팝업 화면
-         * =========================================================
-         */
+        /* 콘텐츠 검색 팝업 화면 */
         @GetMapping("/content/search")
-        public String contentSearch(
-                        @RequestParam(value = "keyword", required = false) String keyword,
-                        Model model) {
+        public String contentSearch( @RequestParam(value = "keyword", required = false) String keyword,Model model) {
+                List<ContentSearchVO> contentList = businessService.getContentList(keyword);
 
-                List<ContentSearchVO> contentList = businessService.getContentList(
-                                keyword);
-
-                model.addAttribute(
-                                "keyword",
-                                keyword);
-
-                model.addAttribute(
-                                "contentList",
-                                contentList);
+                model.addAttribute("keyword", keyword);
+                model.addAttribute("contentList", contentList);
 
                 return "business/goods/contentSearch";
         }
@@ -355,11 +229,8 @@ public class BusinessController {
          */
         @GetMapping("/api/content/list")
         @ResponseBody
-        public List<ContentSearchVO> contentListApi(
-                        @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword) {
-
-                List<ContentSearchVO> contentList = businessService.getContentList(
-                                keyword);
+        public List<ContentSearchVO> contentListApi(@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword) {
+                List<ContentSearchVO> contentList = businessService.getContentList(keyword);
 
                 if (contentList == null) {
                         return Collections.emptyList();
@@ -378,11 +249,9 @@ public class BusinessController {
          */
         @GetMapping("/api/content/detail")
         @ResponseBody
-        public ContentSearchVO contentDetailApi(
-                        @RequestParam("contentNo") long contentNo) {
+        public ContentSearchVO contentDetailApi(@RequestParam("contentNo") long contentNo) {
 
-                return businessService.getContentByNo(
-                                contentNo);
+                return businessService.getContentByNo(contentNo);
         }
 
         /*
@@ -395,34 +264,21 @@ public class BusinessController {
          */
         @GetMapping("/api/actor/list")
         @ResponseBody
-        public List<ActorSearchVO> actorListByContentApi(
-                        @RequestParam("contentNo") long contentNo) {
+        public List<ActorSearchVO> actorListByContentApi(@RequestParam("contentNo") long contentNo) {
 
-                System.out.println(
-                                "===== 콘텐츠별 배우 조회 API =====");
-
-                System.out.println(
-                                "contentNo: "
-                                                + contentNo);
+                System.out.println("===== 콘텐츠별 배우 조회 API =====");
+                System.out.println("contentNo: "+ contentNo);
 
                 if (contentNo <= 0) {
                         return Collections.emptyList();
                 }
 
-                List<ActorSearchVO> actorList = businessService.getActorListByContentNo(
-                                contentNo);
-
-                System.out.println(
-                                "조회된 배우 수: "
-                                                + actorList.size());
+                List<ActorSearchVO> actorList = businessService.getActorListByContentNo(contentNo);
+                System.out.println("조회된 배우 수: " + actorList.size());
 
                 for (ActorSearchVO actor : actorList) {
 
-                        System.out.println(
-                                        "배우: "
-                                                        + actor.getActorName()
-                                                        + ", 배역: "
-                                                        + actor.getCharacterName());
+                        System.out.println("배우: " + actor.getActorName()+ ", 배역: " + actor.getCharacterName());
                 }
 
                 return actorList;
@@ -433,48 +289,32 @@ public class BusinessController {
          * 상품 수정 화면
          *
          * 상품 번호 없이 직접 접근한 경우에는
-         * 상품 목록으로 이동한다.
+         * 상품 목록으로 이동.
          * =========================================================
          */
         @GetMapping("/product/update")
-        public String productUpdate(
-                        @RequestParam(value = "productNo", required = false) Long productNo,
+        public String productUpdate(@RequestParam(value = "productNo", required = false) Long productNo,
+                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
-
-                if (productNo == null
-                                || productNo <= 0) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "수정할 상품을 선택해주세요.");
+                if (productNo == null || productNo <= 0) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "수정할 상품을 선택해주세요.");
 
                         return "redirect:/business/product/list";
                 }
 
-                Long memberNo = getLoginMemberNo(
-                                session);
+                Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. "
                                                         + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }

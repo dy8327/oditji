@@ -11,50 +11,34 @@ import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.EventProductVO;
 import com.project.oditji.business.vo.GoodsManageVO;
+import com.project.oditji.business.vo.BusinessDashboardVO;
 
 @Mapper
 public interface BusinessDAO {
 
-        /*
-         * =========================================================
-         * 로그인 회원과 연결된 사업자 조회
-         * =========================================================
-         */
+        /* 로그인 회원과 연결된 사업자 조회 */
+        
         BusinessVO selectBusinessByMemberNo(@Param("memberNo") long memberNo);
 
-        /*
-        * =========================================================
-        * 사업자등록번호 중복 확인
-        * =========================================================
-        */
+        /* 사업자 마이페이지 대시보드 통계 조회 */
+        BusinessDashboardVO selectBusinessDashboard(@Param("businessNo") long businessNo);
+
+        /* 사업자 인기 상품 TOP 5 조회 - 상품 클릭 로그 기준 */
+        List<GoodsManageVO> selectPopularProducts(@Param("businessNo") long businessNo);
+
+        /* 사업자등록번호 중복 확인 */
         int countByBusinessNumber(@Param("businessNumber") String businessNumber);
 
-        /*
-        * =========================================================
-        * 사업자 회원가입 정보 등록
-        * =========================================================
-        */
+        /* 사업자 회원가입 정보 등록 */
         int insertBusiness(BusinessVO businessVO);
 
-        /*
-         * =========================================================
-         * 상품 등록
-         * =========================================================
-         */
+        /* 상품 등록 */
         int insertProduct(GoodsManageVO goodsManageVO);
 
-        /*
-         * =========================================================
-         * 상품 대표 이미지 등록
-         * =========================================================
-         */
+        /* 상품 대표 이미지 등록 */
         int insertProductImage(GoodsManageVO goodsManageVO);
 
-        /*
-         * =========================================================
-         * 콘텐츠 검색 목록
-         * =========================================================
-         */
+        /* 콘텐츠 검색 목록 */
         List<ContentSearchVO> selectBusinessContentList(@Param("keyword") String keyword);
 
         /*
@@ -67,18 +51,10 @@ public interface BusinessDAO {
          */
         ContentSearchVO selectContentByNo(@Param("contentNo") long contentNo);
 
-        /*
-         * =========================================================
-         * 선택한 콘텐츠에 연결된 배우 목록
-         * =========================================================
-         */
+        /* 선택한 콘텐츠에 연결된 배우 목록 */
         List<ActorSearchVO> selectActorListByContentNo(@Param("contentNo") long contentNo);
 
-        /*
-         * =========================================================
-         * 선택한 콘텐츠와 배우의 연결 여부 확인
-         * =========================================================
-         */
+        /* 선택한 콘텐츠와 배우의 연결 여부 확인 */
         int countContentActor(@Param("contentNo") long contentNo, @Param("actorNo") long actorNo);
 
         /*
@@ -93,11 +69,7 @@ public interface BusinessDAO {
         List<GoodsManageVO> selectApprovedProductListByBusinessNo(
                         @Param("businessNo") long businessNo);
 
-        /*
-         * =========================================================
-         * 사업자가 등록한 상품 목록
-         * =========================================================
-         */
+        /* 사업자가 등록한 상품 목록 */
         List<GoodsManageVO> selectProductListByBusinessNo(@Param("businessNo") long businessNo);
 
         /*
@@ -110,18 +82,10 @@ public interface BusinessDAO {
          */
         GoodsManageVO selectProductForUpdate(@Param("productNo") long productNo, @Param("businessNo") long businessNo);
 
-        /*
-         * =========================================================
-         * 상품 기본 정보 수정
-         * =========================================================
-         */
+        /* 상품 기본 정보 수정 */
         int updateProduct(GoodsManageVO goodsManageVO);
 
-        /*
-         * =========================================================
-         * 기존 대표 이미지 수정
-         * =========================================================
-         */
+        /* 기존 대표 이미지 수정 */
         int updateProductMainImage(GoodsManageVO goodsManageVO);
 
         /*
@@ -143,11 +107,7 @@ public interface BusinessDAO {
          */
         int countProductByBusinessNo(@Param("productNo") long productNo, @Param("businessNo") long businessNo);
 
-        /*
-         * =========================================================
-         * 이벤트 등록
-         * =========================================================
-         */
+        /* 이벤트 등록 */
         int insertEvent(EventManageVO eventManageVO);
 
         /*
@@ -203,17 +163,9 @@ public interface BusinessDAO {
          */
         EventManageVO selectApprovedEventForBusiness(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo);
 
-        /*
-         * =========================================================
-         * 승인된 이벤트 기본 정보 수정
-         * =========================================================
-         */
+        /* 승인된 이벤트 기본 정보 수정 */
         int updateApprovedEvent(EventManageVO eventManageVO);
 
-        /*
-         * =========================================================
-         * 승인된 이벤트 종료일 연장
-         * =========================================================
-         */
+        /* 승인된 이벤트 종료일 연장 */
         int extendApprovedEvent(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo, @Param("extendEndDate") java.time.LocalDate extendEndDate);
 }
