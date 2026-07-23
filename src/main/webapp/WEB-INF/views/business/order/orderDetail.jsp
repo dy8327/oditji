@@ -31,7 +31,6 @@
                     <h3>주문번호 : ${order.orderNo}</h3>
                     <div class="meta">
                         <span>주문일 : <fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></span>
-                        <span>주문상태 : ${order.orderStatus}</span>
                     </div>
                 </div>
             </article>
