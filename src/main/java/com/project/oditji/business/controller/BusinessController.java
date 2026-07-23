@@ -25,6 +25,7 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.business.vo.BusinessDashboardVO;
+import com.project.oditji.order.vo.OrderVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -1488,63 +1489,86 @@ public class BusinessController {
                 return "business/community/businessChat";
         }
 
-        /*
-         * =========================================================
-         * 주문 현황
-         * =========================================================
-         */
+        /* 사업자 주문 현황 */
         @GetMapping("/order/list")
-        public String orderList(
-                        Model model) {
+        public String orderList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                model.addAttribute(
-                                "activeMenu",
-                                "order");
+        Long memberNo = getLoginMemberNo(session);
 
-                return "business/order/orderList";
+        if (memberNo == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+
+                return "redirect:/member/login";
         }
 
-        /*
-         * =========================================================
-         * 배송 관리
-         * =========================================================
-         */
+        /* 로그인 회원과 연결된 사업자 조회 */
+        BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+
+        if (business == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
+
+                return "redirect:/";
+        }
+
+        /* 해당 사업자의 주문 목록 조회 */
+        List<OrderVO> orderList = businessService.getBusinessOrderList(business.getBusinessNo());
+
+        model.addAttribute("business", business);
+        model.addAttribute("orderList", orderList);
+        model.addAttribute("activeMenu", "order");
+
+        return "business/order/orderList";
+        }
+
+    
+
+        // 사업자 주문 상세
         @GetMapping("/order/detail")
-        public String orderDetail(
-                        Model model) {
-
-                model.addAttribute(
-                                "activeMenu",
-                                "delivery");
-
-                return "business/order/orderDetail";
-        }
-
-        /*
-         * =========================================================
-         * 취소 및 환불 관리
-         * =========================================================
-         */
-        @GetMapping("/cancel/list")
-        public String cancelList(
-                        @RequestParam(name = "status", required = false) String status,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String orderDetail(@RequestParam("orderNo") long orderNo, HttpSession session, Model model,
+                RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인이 필요합니다.");
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+
+                if (business == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "사업자 정보를 확인할 수 없습니다.");
+                        return "redirect:/";
+                }
+
+                OrderVO order = businessService.getBusinessOrderDetail(business.getBusinessNo(), orderNo);
+
+                if (order == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "해당 주문을 확인할 수 없습니다.");
+                        return "redirect:/business/order/list";
+                }
+
+                model.addAttribute("business", business);
+                model.addAttribute("order", order);
+                model.addAttribute("activeMenu", "order");
+
+                return "business/order/orderDetail";
+        }
+
+        /* 취소 및 환불 관리 */
+        @GetMapping("/cancel/list")
+        public String cancelList(@RequestParam(name = "status", required = false) String status, HttpSession session,
+                        Model model, RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(session);
+
+                if (memberNo == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다.");
                         return "redirect:/member/login";
                 }
 
                 try {
-                        model.addAttribute(
-                                        "cancelList",
-                                        orderCancelRefundService.getBusinessCancelList(memberNo, status));
+                        model.addAttribute("cancelList", orderCancelRefundService.getBusinessCancelList(memberNo, status));
                         model.addAttribute("activeMenu", "cancel");
                         return "business/order/cancelList";
 
