@@ -21,9 +21,11 @@ import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
+import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.VisitorTrendVO;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -464,6 +466,16 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<MonitoringVO> getMonitoringList() {
         return adminDAO.selectMonitoringList();
+    }
+
+    @Override
+    public List<VisitorTrendVO> getVisitorTrend() {
+        return adminDAO.selectVisitorTrend();
+    }
+
+    @Override
+    public List<PopularClickVO> getPopularProductClicks() {
+        return adminDAO.selectPopularProductClicks();
     }
 
     // ===================== 콘텐츠 관리 =====================

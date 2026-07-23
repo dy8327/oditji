@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.oditji.common.dao.AccessLogDAO">
+
+    <!-- 요청마다 접속 기록 적재 (AccessLogInterceptor) -->
+    <insert id="insertAccessLog" parameterType="com.project.oditji.common.vo.AccessLogVO">
+        INSERT INTO ACCESS_LOG (
+            ACCESS_LOG_NO,
+            MEMBER_NO,
+            ACCESS_IP,
+            USER_AGENT,
+            ACCESS_URL,
+            CREATED_AT
+        ) VALUES (
+            SEQ_ACCESS_LOG_NO.NEXTVAL,
+            #{memberNo},
+            #{accessIp},
+            #{userAgent},
+            #{accessUrl},
+            SYSDATE
+        )
+    </insert>
+
+</mapper>

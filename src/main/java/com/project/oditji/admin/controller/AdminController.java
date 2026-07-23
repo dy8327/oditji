@@ -2,6 +2,8 @@ package com.project.oditji.admin.controller;
 
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
+import com.project.oditji.admin.vo.PopularClickVO;
+import com.project.oditji.admin.vo.VisitorTrendVO;
 
 @Controller
 @RequestMapping("/admin")
@@ -386,6 +390,33 @@ public class AdminController {
     public String monitoring(Model model) {
         model.addAttribute("activeMenu", "monitoring");
         model.addAttribute("monitoringList", adminService.getMonitoringList());
+
+        List<VisitorTrendVO> visitorTrend = adminService.getVisitorTrend();
+        List<PopularClickVO> popularClicks = adminService.getPopularProductClicks();
+
+        model.addAttribute("visitorTrend", visitorTrend);
+        model.addAttribute("popularClicks", popularClicks);
+
+        // admin.js는 정적 파일이라 JSTL/EL을 쓸 수 없으므로,
+        // 차트에 필요한 데이터를 여기서 JSON 문자열로 만들어 JSP의 data-* 속성으로 넘긴다.
+        JSONArray visitorJson = new JSONArray();
+        for (VisitorTrendVO v : visitorTrend) {
+            JSONObject o = new JSONObject();
+            o.put("date", v.getAccessDate());
+            o.put("count", v.getVisitorCount());
+            visitorJson.put(o);
+        }
+        model.addAttribute("visitorTrendJson", visitorJson.toString());
+
+        JSONArray popularJson = new JSONArray();
+        for (PopularClickVO p : popularClicks) {
+            JSONObject o = new JSONObject();
+            o.put("name", p.getProductName());
+            o.put("count", p.getClickCount());
+            popularJson.put(o);
+        }
+        model.addAttribute("popularClicksJson", popularJson.toString());
+
         return "admin/monitoring/monitoring";
     }
 

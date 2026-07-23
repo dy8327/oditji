@@ -856,20 +856,19 @@
     </update>
 
     <!-- ===================== 8. 시스템 관리 (모니터링) ===================== -->
-    <!-- 콘텐츠 이용 수 / 상품 클릭 수는 PRODUCT_CLICK_LOG 를 집계하고,
+    <!-- 상품 클릭 수는 PRODUCT_CLICK_LOG 를 집계하고,
          최근 접속일/IP는 ACCESS_LOG 의 최신 로그를 사용한다. -->
 
     <select id="selectMonitoringList" resultType="com.project.oditji.admin.vo.MonitoringVO">
         SELECT
-            M.MEMBER_NO                      AS MEMBER_NO,
-            M.NICKNAME                        AS NICKNAME,
-            LOG.LAST_ACCESS_AT                AS LAST_ACCESS_AT,
+            M.MEMBER_NO                        AS MEMBER_NO,
+            M.NICKNAME                         AS NICKNAME,
+            LOG.LAST_ACCESS_AT                 AS LAST_ACCESS_AT,
             LOG.ACCESS_IP                      AS ACCESS_IP,
-            NVL(CLICK.CONTENT_USE_COUNT, 0)    AS CONTENT_USE_COUNT,
             NVL(CLICK.PRODUCT_CLICK_COUNT, 0)  AS PRODUCT_CLICK_COUNT
         FROM MEMBER M
         LEFT JOIN (
-            SELECT MEMBER_NO, COUNT(DISTINCT CONTENT_NO) AS CONTENT_USE_COUNT, COUNT(*) AS PRODUCT_CLICK_COUNT
+            SELECT MEMBER_NO, COUNT(*) AS PRODUCT_CLICK_COUNT
             FROM PRODUCT_CLICK_LOG
             WHERE MEMBER_NO IS NOT NULL
             GROUP BY MEMBER_NO
@@ -883,6 +882,33 @@
         ) LOG ON LOG.MEMBER_NO = M.MEMBER_NO
         WHERE M.ROLE = 'USER'
         ORDER BY LOG.LAST_ACCESS_AT DESC NULLS LAST
+    </select>
+
+    <!-- 최근 7일 일자별 방문자 수 (ACCESS_LOG, DISTINCT MEMBER_NO) -->
+    <select id="selectVisitorTrend" resultType="com.project.oditji.admin.vo.VisitorTrendVO">
+        SELECT
+            TO_CHAR(TRUNC(A.CREATED_AT), 'YYYY-MM-DD') AS ACCESS_DATE,
+            COUNT(DISTINCT A.MEMBER_NO)                AS VISITOR_COUNT
+        FROM ACCESS_LOG A
+        WHERE A.MEMBER_NO IS NOT NULL
+          AND A.CREATED_AT >= TRUNC(SYSDATE) - 6
+        GROUP BY TRUNC(A.CREATED_AT)
+        ORDER BY TRUNC(A.CREATED_AT)
+    </select>
+
+    <!-- 상품 클릭 수 TOP 5 (PRODUCT_CLICK_LOG + PRODUCT) -->
+    <select id="selectPopularProductClicks" resultType="com.project.oditji.admin.vo.PopularClickVO">
+        SELECT *
+        FROM (
+            SELECT
+                P.PRODUCT_NAME  AS PRODUCT_NAME,
+                COUNT(*)        AS CLICK_COUNT
+            FROM PRODUCT_CLICK_LOG L
+            JOIN PRODUCT P ON P.PRODUCT_NO = L.PRODUCT_NO
+            GROUP BY P.PRODUCT_NAME
+            ORDER BY COUNT(*) DESC
+        )
+        WHERE ROWNUM <![CDATA[<=]]> 5
     </select>
 
     <!-- ===================== 콘텐츠 관리 (CONTENT) ===================== -->

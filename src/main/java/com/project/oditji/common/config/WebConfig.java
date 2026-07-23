@@ -5,22 +5,28 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.project.oditji.common.interceptor.AccessLogInterceptor;
 import com.project.oditji.common.interceptor.AdminCheckInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     private final AdminCheckInterceptor adminCheckInterceptor;
+    private final AccessLogInterceptor accessLogInterceptor;
 
     public WebConfig(
-            AdminCheckInterceptor adminCheckInterceptor) {
+            AdminCheckInterceptor adminCheckInterceptor,
+            AccessLogInterceptor accessLogInterceptor) {
 
         this.adminCheckInterceptor =
                 adminCheckInterceptor;
+
+        this.accessLogInterceptor =
+                accessLogInterceptor;
     }
 
     /*
-     * 관리자 페이지 접근 권한 체크
+     * 관리자 페이지 접근 권한 체크 + 전체 접속 로그(ACCESS_LOG) 기록
      */
     @Override
     public void addInterceptors(
@@ -29,6 +35,18 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(
                     adminCheckInterceptor)
                 .addPathPatterns("/admin/**");
+
+        registry.addInterceptor(
+                    accessLogInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/uploads/**",
+                        "/favicon.ico",
+                        "/error"
+                );
     }
 
         @Override

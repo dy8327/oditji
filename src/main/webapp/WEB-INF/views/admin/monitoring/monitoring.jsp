@@ -9,6 +9,8 @@
 <meta charset="UTF-8">
 <title>ODITJI | 모니터링</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="${pageContext.request.contextPath}/js/admin.js"></script>
 </head>
 
 <body>
@@ -30,16 +32,39 @@
             <h1 class="admin-page-title">모니터링</h1>
 
             <p class="admin-page-desc">
-                회원별 콘텐츠 이용 현황을 차트와 표로 확인할 수 있습니다.
+                회원별 접속 현황과 상품 클릭 통계를 차트와 표로 확인할 수 있습니다.
             </p>
 
         </div>
 
         <section class="admin-content-box">
 
-            <div class="chart-box">
-                사용자 별 콘텐츠 이용 차트, 표<br>
-                (콘텐츠 조회수 / 상품 클릭수 / 방문자 추이 등 통계 영역)
+            <div class="chart-row">
+
+                <div class="chart-box <c:if test='${empty visitorTrend}'>empty</c:if>">
+                    <c:choose>
+                        <c:when test="${not empty visitorTrend}">
+                            <h3 class="chart-box-title">최근 7일 방문자 추이</h3>
+                            <canvas id="visitorTrendChart" data-chart='<c:out value="${visitorTrendJson}"/>'></canvas>
+                        </c:when>
+                        <c:otherwise>
+                            최근 7일간 방문자 데이터가 없습니다.
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
+                <div class="chart-box <c:if test='${empty popularClicks}'>empty</c:if>">
+                    <c:choose>
+                        <c:when test="${not empty popularClicks}">
+                            <h3 class="chart-box-title">상품 클릭 TOP 5</h3>
+                            <canvas id="popularClickChart" data-chart='<c:out value="${popularClicksJson}"/>'></canvas>
+                        </c:when>
+                        <c:otherwise>
+                            상품 클릭 데이터가 없습니다.
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
             </div>
 
             <table class="data-table">
@@ -48,7 +73,6 @@
                     <tr>
                         <th>회원</th>
                         <th>최근 접속일</th>
-                        <th>콘텐츠 이용 수</th>
                         <th>상품 클릭 수</th>
                         <th>접속 IP</th>
                     </tr>
@@ -64,7 +88,6 @@
                                 <tr>
                                     <td>${row.nickname}</td>
                                     <td>${row.lastAccessAt}</td>
-                                    <td>${row.contentUseCount}</td>
                                     <td>${row.productClickCount}</td>
                                     <td>${row.accessIp}</td>
                                 </tr>
@@ -73,7 +96,7 @@
                         </c:when>
 
                         <c:otherwise>
-                            <tr><td colspan="5">모니터링 데이터가 없습니다.</td></tr>
+                            <tr><td colspan="4">모니터링 데이터가 없습니다.</td></tr>
                         </c:otherwise>
 
                     </c:choose>

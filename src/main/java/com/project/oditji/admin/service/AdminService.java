@@ -10,9 +10,11 @@ import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
+import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.VisitorTrendVO;
 
 public interface AdminService {
 
@@ -96,6 +98,10 @@ public interface AdminService {
 
     // 모니터링
     List<MonitoringVO> getMonitoringList();
+
+    List<VisitorTrendVO> getVisitorTrend();
+
+    List<PopularClickVO> getPopularProductClicks();
 
     // 콘텐츠 관리
     List<ContentManageVO> getContentList(String keyword);

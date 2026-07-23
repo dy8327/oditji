@@ -185,3 +185,68 @@ function confirmProductReject() {
 
     return confirm('이 상품 요청을 반려하시겠습니까?');
 }
+
+
+/* =========================================================
+ * monitoring.jsp - 모니터링 (방문자 추이 / 상품 클릭 TOP5 차트)
+ *
+ * admin.js는 정적 파일이라 JSTL EL을 쓸 수 없다.
+ * 컨트롤러(AdminController)가 org.json으로 미리 만든 JSON 문자열을
+ * JSP의 canvas data-chart 속성에 실어 보내면, 여기서 JSON.parse 해서 사용한다.
+ * ========================================================= */
+function initMonitoringCharts() {
+
+    var visitorCanvas = document.getElementById('visitorTrendChart');
+
+    if (visitorCanvas) {
+
+        var visitorData = JSON.parse(visitorCanvas.dataset.chart || '[]');
+
+        new Chart(visitorCanvas, {
+            type: 'line',
+            data: {
+                labels: visitorData.map(function (d) { return d.date; }),
+                datasets: [{
+                    label: '방문자 수',
+                    data: visitorData.map(function (d) { return d.count; }),
+                    borderColor: '#4f8dfd',
+                    backgroundColor: 'rgba(79,141,253,0.15)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    var popularCanvas = document.getElementById('popularClickChart');
+
+    if (popularCanvas) {
+
+        var popularData = JSON.parse(popularCanvas.dataset.chart || '[]');
+
+        new Chart(popularCanvas, {
+            type: 'bar',
+            data: {
+                labels: popularData.map(function (d) { return d.name; }),
+                datasets: [{
+                    label: '클릭 수',
+                    data: popularData.map(function (d) { return d.count; }),
+                    backgroundColor: '#4f8dfd'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initMonitoringCharts);
