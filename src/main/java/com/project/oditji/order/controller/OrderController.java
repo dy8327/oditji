@@ -13,10 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.project.oditji.refund.service.OrderCancelRefundService;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.order.vo.OrderCheckoutRequestVO;
@@ -526,6 +528,7 @@ public class OrderController {
          */
         @GetMapping("/list")
         public String orderList(
+                        @RequestParam(name = "page", defaultValue = "1") int page,
                         HttpSession session,
                         Model model) {
 
@@ -535,21 +538,55 @@ public class OrderController {
                         return "redirect:/member/login?redirect=/order/list";
                 }
 
-                List<OrderVO> orderList = orderService.getOrderList(
+                final int pageSize = 3;
+                final int pageBlockSize = 5;
+
+                int totalCount = orderService.getOrderCount(
                                 loginMember.getMemberNo());
+
+                int totalPage = Math.max(
+                                1,
+                                (int) Math.ceil((double) totalCount / pageSize));
+
+                int currentPage = Math.max(
+                                1,
+                                Math.min(page, totalPage));
+
+                int startRow = (currentPage - 1) * pageSize + 1;
+                int endRow = currentPage * pageSize;
+
+                List<OrderVO> orderList = orderService.getOrderList(
+                                loginMember.getMemberNo(),
+                                startRow,
+                                endRow);
+
+                int startPage = ((currentPage - 1) / pageBlockSize)
+                                * pageBlockSize
+                                + 1;
+
+                int endPage = Math.min(
+                                startPage + pageBlockSize - 1,
+                                totalPage);
+
+                PageVO pageVO = new PageVO();
+
+                pageVO.setCurrentPage(currentPage);
+                pageVO.setPageSize(pageSize);
+                pageVO.setTotalCount(totalCount);
+                pageVO.setTotalPage(totalPage);
+                pageVO.setStartPage(startPage);
+                pageVO.setEndPage(endPage);
+                pageVO.setPrev(startPage > 1);
+                pageVO.setNext(endPage < totalPage);
 
                 model.addAttribute(
                                 "orderList",
                                 orderList);
 
-                /*
-                 * =========================================================
-                 * [포트원 테스트 채널 여부 전달 추가]
-                 *
-                 * 사용자 화면에서 테스트 채널의 간편결제 주문에 대해
-                 * 상품 부분 취소 요청을 사전에 안내하기 위해 사용한다.
-                 * =========================================================
-                 */
+                model.addAttribute(
+                                "pageVO",
+                                pageVO);
+
                 model.addAttribute(
                                 "portOneTestMode",
                                 portOneTestMode);

@@ -620,67 +620,49 @@ public class OrderServiceImpl implements OrderService {
         @Override
         @Transactional(readOnly = true)
         public List<OrderVO> getOrderList(
-                        Long memberNo) {
+                        Long memberNo,
+                        int startRow,
+                        int endRow) {
 
                 validateMemberNo(memberNo);
 
-                /*
-                 * 회원 전체 주문 헤더 목록 조회
-                 */
+                if (startRow <= 0 || endRow < startRow) {
+                        throw new IllegalArgumentException(
+                                        "주문내역 페이지 범위가 올바르지 않습니다.");
+                }
+
                 List<OrderVO> orderList = orderDAO.selectOrderListByMember(
-                                memberNo);
+                                memberNo,
+                                startRow,
+                                endRow);
 
                 if (orderList == null) {
                         orderList = new ArrayList<OrderVO>();
                 }
 
-                /*
-                 * 회원 전체 주문 상세 아이템 목록 조회
-                 */
-                List<OrderItemVO> orderItemList = orderDAO.selectOrderItemListByMember(
-                                memberNo);
-
-                if (orderItemList == null) {
-                        orderItemList = new ArrayList<OrderItemVO>();
-                }
-
-                /*
-                 * 주문 번호(orderNo)를 Key로 주문 상세 목록 그룹핑
-                 */
-                Map<Long, List<OrderItemVO>> itemsByOrderNo = new LinkedHashMap<Long, List<OrderItemVO>>();
-
-                for (OrderItemVO orderItem : orderItemList) {
-
-                        List<OrderItemVO> groupedItems = itemsByOrderNo.get(
-                                        orderItem.getOrderNo());
-
-                        if (groupedItems == null) {
-
-                                groupedItems = new ArrayList<OrderItemVO>();
-
-                                itemsByOrderNo.put(
-                                                orderItem.getOrderNo(),
-                                                groupedItems);
-                        }
-
-                        groupedItems.add(orderItem);
-                }
-
-                /*
-                 * 각 주문 VO 객체에 매핑된 주문 상세 목록 바인딩
-                 */
                 for (OrderVO order : orderList) {
 
-                        List<OrderItemVO> groupedItems = itemsByOrderNo.get(
+                        List<OrderItemVO> itemList = orderDAO.selectOrderItemListByOrderNo(
                                         order.getOrderNo());
 
                         order.setItems(
-                                        groupedItems == null
+                                        itemList == null
                                                         ? new ArrayList<OrderItemVO>()
-                                                        : groupedItems);
+                                                        : itemList);
                 }
 
                 return orderList;
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public int getOrderCount(
+                        Long memberNo) {
+
+                validateMemberNo(memberNo);
+
+                return orderDAO.countOrderListByMember(
+                                memberNo);
         }
 
         /**

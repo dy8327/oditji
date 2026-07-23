@@ -49,495 +49,448 @@
 
         <section class="order-card">
 
-            <!-- 주문 기본 정보 -->
-            <div class="order-card-header">
+            <div class="order-card-main">
 
-                <div>
+                <!-- 왼쪽: 주문번호, 주문일시, 상품 목록 -->
+                <div class="order-product-section">
 
-                    <strong>주문번호</strong>
+                    <div class="order-card-header">
 
-                    <span>
-                        ${o.orderNo}
-                    </span>
+                        <div>
 
-                </div>
+                            <strong>주문번호</strong>
 
-                <div>
+                            <span>
+                                ${o.orderNo}
+                            </span>
 
-                    <fmt:formatDate
-                        value="${o.createdAt}"
-                        pattern="yyyy.MM.dd HH:mm"/>
+                        </div>
 
-                </div>
+                        <div>
 
-                <div class="order-status">
+                            <fmt:formatDate
+                                value="${o.createdAt}"
+                                pattern="yyyy.MM.dd HH:mm"/>
 
-                    <c:choose>
+                        </div>
 
-                        <c:when test="${o.orderStatus eq 'ORDERED'}">
-                            주문 완료
-                        </c:when>
+                    </div>
 
-                        <c:when test="${o.orderStatus eq 'PAID'}">
-                            결제 완료
-                        </c:when>
+                    <div class="order-items">
 
-                        <c:when test="${o.orderStatus eq 'PREPARING'}">
-                            상품 준비 중
-                        </c:when>
+                        <c:forEach var="i"
+                                   items="${o.items}">
 
-                        <c:when test="${o.orderStatus eq 'SHIPPING'}">
-                            배송 중
-                        </c:when>
+                            <div class="order-item">
 
-                        <c:when test="${o.orderStatus eq 'DELIVERED'}">
-                            배송 완료
-                        </c:when>
+                                <a href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
 
-                        <c:when test="${o.orderStatus eq 'CANCEL_REQUEST'}">
-                            취소 요청
-                        </c:when>
+                                    <c:choose>
 
-                        <c:when test="${o.orderStatus eq 'PARTIAL_CANCELED'}">
-                            부분 취소
-                        </c:when>
+                                        <c:when test="${empty i.mainImage}">
 
-                        <c:when test="${o.orderStatus eq 'CANCELED'}">
-                            주문 취소
-                        </c:when>
+                                            <div class="no-image">
+                                                NO IMAGE
+                                            </div>
 
-                        <c:otherwise>
-                            ${o.orderStatus}
-                        </c:otherwise>
+                                        </c:when>
 
-                    </c:choose>
+                                        <c:otherwise>
 
-                </div>
+                                            <img src="${pageContext.request.contextPath}${i.mainImage}"
+                                                 alt="${i.productName}">
 
-            </div>
+                                        </c:otherwise>
 
-            <!-- 주문 상품 목록 -->
-            <div class="order-items">
+                                    </c:choose>
 
-                <c:forEach var="i"
-                           items="${o.items}">
+                                    <div class="order-item-info">
 
-                    <div class="order-item">
+                                        <div>
+                                            <c:out value="${i.productName}"/>
+                                        </div>
 
-                        <a href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
+                                        <div>
+                                            수량: ${i.quantity}
+                                        </div>
 
-                            <c:choose>
+                                        <div>
 
-                                <c:when test="${empty i.mainImage}">
+                                            ₩
 
-                                    <div class="no-image">
-                                        NO IMAGE
+                                            <fmt:formatNumber
+                                                value="${i.itemTotalPrice}"
+                                                pattern="#,###"/>
+
+                                        </div>
+
                                     </div>
 
-                                </c:when>
+                                </a>
 
-                                <c:otherwise>
+                                <div class="order-item-actions">
 
-                                    <img src="${pageContext.request.contextPath}${i.mainImage}"
-                                         alt="${i.productName}">
+                                    <c:if test="${o.orderStatus ne 'CANCELED'}">
 
-                                </c:otherwise>
+                                        <button type="button"
+                                                class="review-btn"
+                                                data-order-item="${i.orderItemNo}"
+                                                data-product="${i.productNo}">
+                                            리뷰 작성
+                                        </button>
 
-                            </c:choose>
+                                    </c:if>
 
-                            <div class="order-item-info">
+                                    <%--
+                                        =========================================================
+                                        [상품별 부분 취소 버튼 추가]
 
-                                <div>
-                                    ${i.productName}
-                                </div>
+                                        주문상품이 결제 완료 또는 상품 준비 중 상태일 때만
+                                        해당 상품 한 건에 대한 부분 취소 요청을 등록한다.
+                                        기존 상품 카드 레이아웃은 유지한다.
+                                        =========================================================
+                                    --%>
+                                    <c:if test="${i.status eq 'PAID'
+                                            || i.status eq 'ORDERED'
+                                            || i.status eq 'PREPARING'}">
 
-                                <div>
-                                    수량: ${i.quantity}
-                                </div>
+                                        <button type="button"
+                                                class="item-cancel-btn"
+                                                data-order-item-no="${i.orderItemNo}"
+                                                data-product-name="${i.productName}">
+                                            상품 부분 취소
+                                        </button>
 
-                                <div>
+                                    </c:if>
 
-                                    ₩
+                                    <c:if test="${i.status eq 'CANCEL_REQUEST'}">
 
-                                    <fmt:formatNumber
-                                        value="${i.itemTotalPrice}"
-                                        pattern="#,###"/>
+                                        <span class="item-cancel-state">
+                                            취소 승인 대기
+                                        </span>
+
+                                    </c:if>
+
+                                    <c:if test="${i.status eq 'CANCELED'}">
+
+                                        <span class="item-cancel-state canceled">
+                                            취소 완료
+                                        </span>
+
+                                    </c:if>
 
                                 </div>
 
                             </div>
 
-                        </a>
-
-                        <!-- 취소 주문에서는 리뷰 작성 버튼을 노출하지 않는다. -->
-                        <c:if test="${o.orderStatus ne 'CANCELED'}">
-
-                            <button type="button"
-                                    class="review-btn"
-                                    data-order-item="${i.orderItemNo}"
-                                    data-product="${i.productNo}">
-                                리뷰 작성
-                            </button>
-
-                        </c:if>
-
-                        <%--
-                            =========================================================
-                            [상품별 부분 취소 버튼 추가]
-
-                            주문상품이 결제 완료 또는 상품 준비 중 상태일 때만
-                            해당 상품 한 건에 대한 부분 취소 요청을 등록한다.
-                            기존 상품 카드 레이아웃은 유지한다.
-                            =========================================================
-                        --%>
-                        <c:if test="${i.status eq 'PAID'
-                                || i.status eq 'ORDERED'
-                                || i.status eq 'PREPARING'}">
-
-                            <button type="button"
-                                    class="item-cancel-btn"
-                                    data-order-item-no="${i.orderItemNo}"
-                                    data-product-name="${i.productName}">
-                                상품 부분 취소
-                            </button>
-
-                        </c:if>
-
-                        <c:if test="${i.status eq 'CANCEL_REQUEST'}">
-
-                            <span class="item-cancel-state">
-                                취소 승인 대기
-                            </span>
-
-                        </c:if>
-
-                        <c:if test="${i.status eq 'CANCELED'}">
-
-                            <span class="item-cancel-state canceled">
-                                취소 완료
-                            </span>
-
-                        </c:if>
+                        </c:forEach>
 
                     </div>
 
-                </c:forEach>
+                </div>
+
+                <!-- 오른쪽: 주문 상태와 주문 정보 -->
+                <aside class="order-info-section">
+
+                    <h2 class="order-info-title">
+                        주문 정보
+                    </h2>
+
+                    <div class="order-info-list">
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">
+                                주문 상태
+                            </div>
+
+                            <div class="order-info-value">
+
+                                <span class="order-info-status">
+
+                                    <c:choose>
+
+                                        <c:when test="${o.orderStatus eq 'ORDERED'}">주문 완료</c:when>
+                                        <c:when test="${o.orderStatus eq 'PAID'}">결제 완료</c:when>
+                                        <c:when test="${o.orderStatus eq 'PREPARING'}">상품 준비 중</c:when>
+                                        <c:when test="${o.orderStatus eq 'SHIPPING'}">배송 중</c:when>
+                                        <c:when test="${o.orderStatus eq 'DELIVERED'}">배송 완료</c:when>
+                                        <c:when test="${o.orderStatus eq 'CANCEL_REQUEST'}">취소 요청</c:when>
+                                        <c:when test="${o.orderStatus eq 'PARTIAL_CANCELED'}">부분 취소</c:when>
+                                        <c:when test="${o.orderStatus eq 'CANCELED'}">주문 취소</c:when>
+                                        <c:otherwise>${o.orderStatus}</c:otherwise>
+
+                                    </c:choose>
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">
+                                주문자 이름
+                            </div>
+
+                            <div class="order-info-value">
+                                <c:out value="${empty o.receiverName ? '-' : o.receiverName}"/>
+                            </div>
+
+                        </div>
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">
+                                주문자 전화번호
+                            </div>
+
+                            <div class="order-info-value">
+                                <c:out value="${empty o.receiverPhone ? '-' : o.receiverPhone}"/>
+                            </div>
+
+                        </div>
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">
+                                배송지 주소
+                            </div>
+
+                            <div class="order-info-value">
+                                <c:out value="${empty o.address ? '-' : o.address}"/>
+                            </div>
+
+                        </div>
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">
+                                결제 금액
+                            </div>
+
+                            <div class="order-info-value order-info-price">
+
+                                ₩
+
+                                <fmt:formatNumber
+                                    value="${o.totalAmount}"
+                                    pattern="#,###"/>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </aside>
 
             </div>
 
-            <!-- 주문자 및 배송 정보 -->
-            <div class="order-info-section">
+            <%--
+                =========================================================
+                [주문 전체 취소 처리 상태 및 반려 사유 표시 추가]
 
-                <h2 class="order-info-title">
-                    주문 정보
-                </h2>
+                가장 최근 FULL 취소 그룹의 처리 상태를 주문 단위로
+                표시한다.
 
-                <div class="order-info-list">
+                WAITING
+                - 전체 취소 승인 대기 상태를 표시한다.
+                - 전체 취소 버튼은 숨긴다.
 
-                    <div class="order-info-row">
+                REJECTED
+                - 전체 취소 반려 상태와 반려 사유를 표시한다.
+                - 전체 취소 버튼은 숨긴다.
 
-                        <div class="order-info-label">
-                            주문 상태
-                        </div>
+                APPROVED
+                - 전체 취소 완료 상태를 표시한다.
 
-                        <div class="order-info-value">
+                취소 요청 없음
+                - 기존 주문 전체 취소 버튼을 표시한다.
+                =========================================================
+            --%>
+            <c:choose>
 
-                            <span class="order-info-status">
+                <c:when test="${o.fullCancelStatus eq 'WAITING'}">
 
-                                <c:choose>
+                    <div class="full-cancel-status-box waiting">
 
-                                    <c:when test="${o.orderStatus eq 'ORDERED'}">
-                                        주문 완료
-                                    </c:when>
+                        <strong class="full-cancel-status-title">
+                            전체 주문 취소 승인 대기
+                        </strong>
 
-                                    <c:when test="${o.orderStatus eq 'PAID'}">
-                                        결제 완료
-                                    </c:when>
+                        <p class="full-cancel-status-message">
+                            주문에 포함된 사업자의 승인을 기다리고 있습니다.
+                        </p>
 
-                                    <c:when test="${o.orderStatus eq 'PREPARING'}">
-                                        상품 준비 중
-                                    </c:when>
+                    </div>
 
-                                    <c:when test="${o.orderStatus eq 'SHIPPING'}">
-                                        배송 중
-                                    </c:when>
+                </c:when>
 
-                                    <c:when test="${o.orderStatus eq 'DELIVERED'}">
-                                        배송 완료
-                                    </c:when>
+                <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
 
-                                    <c:when test="${o.orderStatus eq 'CANCEL_REQUEST'}">
-                                        취소 요청
-                                    </c:when>
+                    <div class="full-cancel-status-box rejected">
 
-                                    <c:when test="${o.orderStatus eq 'PARTIAL_CANCELED'}">
-                                        부분 취소
-                                    </c:when>
+                        <strong class="full-cancel-status-title">
+                            전체 주문 취소 반려
+                        </strong>
 
-                                    <c:when test="${o.orderStatus eq 'CANCELED'}">
-                                        주문 취소
-                                    </c:when>
+                        <p class="full-cancel-status-message">
 
-                                    <c:otherwise>
-                                        ${o.orderStatus}
-                                    </c:otherwise>
-
-                                </c:choose>
-
+                            <span class="full-cancel-reject-label">
+                                반려 사유:
                             </span>
 
-                        </div>
-
-                    </div>
-
-                    <div class="order-info-row">
-
-                        <div class="order-info-label">
-                            주문자 이름
-                        </div>
-
-                        <div class="order-info-value">
-
                             <c:choose>
 
-                                <c:when test="${empty o.receiverName}">
-                                    -
+                                <c:when test="${not empty o.fullCancelRejectReason}">
+                                    <c:out value="${o.fullCancelRejectReason}"/>
                                 </c:when>
 
                                 <c:otherwise>
-                                    <c:out value="${o.receiverName}"/>
+                                    사업자가 전체 주문 취소 요청을 반려했습니다.
                                 </c:otherwise>
 
                             </c:choose>
 
-                        </div>
+                        </p>
 
                     </div>
 
-                    <div class="order-info-row">
+                </c:when>
 
-                        <div class="order-info-label">
-                            주문자 전화번호
-                        </div>
+                <c:when test="${o.fullCancelStatus eq 'APPROVED'}">
 
-                        <div class="order-info-value">
+                    <div class="full-cancel-status-box approved">
 
-                            <c:choose>
+                        <strong class="full-cancel-status-title">
+                            전체 주문 취소 완료
+                        </strong>
 
-                                <c:when test="${empty o.receiverPhone}">
-                                    -
-                                </c:when>
-
-                                <c:otherwise>
-                                    <c:out value="${o.receiverPhone}"/>
-                                </c:otherwise>
-
-                            </c:choose>
-
-                        </div>
+                        <p class="full-cancel-status-message">
+                            주문 전체 취소와 결제 환불 처리가 완료되었습니다.
+                        </p>
 
                     </div>
 
-                    <div class="order-info-row">
+                </c:when>
 
-                        <div class="order-info-label">
-                            배송지 주소
-                        </div>
+            </c:choose>
 
-                        <div class="order-info-value">
+            <div class="ticket-divider"
+                 aria-hidden="true">
+            </div>
 
-                            <c:choose>
+            <div class="order-card-footer">
 
-                                <c:when test="${empty o.address}">
-                                    -
-                                </c:when>
+                <div class="order-total">
 
-                                <c:otherwise>
-                                    <c:out value="${o.address}"/>
-                                </c:otherwise>
+                    <span>
+                        총 결제금액
+                    </span>
 
-                            </c:choose>
+                    <span class="order-total-price">
 
-                        </div>
+                        ₩
 
-                    </div>
+                        <fmt:formatNumber
+                            value="${o.totalAmount}"
+                            pattern="#,###"/>
 
-                    <div class="order-info-row">
-
-                        <div class="order-info-label">
-                            결제 금액
-                        </div>
-
-                        <div class="order-info-value order-info-price">
-
-                            ₩
-
-                            <fmt:formatNumber
-                                value="${o.totalAmount}"
-                                pattern="#,###"/>
-
-                        </div>
-
-                    </div>
+                    </span>
 
                 </div>
 
                 <%--
                     =========================================================
-                    [주문 전체 취소 처리 상태 및 반려 사유 표시 추가]
+                    [전체 취소 반려 후 재요청 버튼 유지]
 
-                    가장 최근 FULL 취소 그룹의 처리 상태를 주문 단위로
-                    표시한다.
-
-                    WAITING
-                    - 전체 취소 승인 대기 상태를 표시한다.
-                    - 전체 취소 버튼은 숨긴다.
-
-                    REJECTED
-                    - 전체 취소 반려 상태와 반려 사유를 표시한다.
-                    - 전체 취소 버튼은 숨긴다.
-
-                    APPROVED
-                    - 전체 취소 완료 상태를 표시한다.
-
-                    취소 요청 없음
-                    - 기존 주문 전체 취소 버튼을 표시한다.
+                    전체 취소 요청이 반려됐더라도 주문상품 상태가
+                    취소 가능한 상태라면 사용자가 다시 전체 취소를
+                    요청할 수 있도록 기존 버튼을 표시한다.
                     =========================================================
                 --%>
-                <c:choose>
+                <c:if test="${(empty o.fullCancelStatus || o.fullCancelStatus eq 'REJECTED')
+                        && (o.orderStatus eq 'PAID'
+                        || o.orderStatus eq 'ORDERED'
+                        || o.orderStatus eq 'PREPARING')}">
 
-                    <c:when test="${o.fullCancelStatus eq 'WAITING'}">
+                    <div class="order-cancel-action">
 
-                        <div class="full-cancel-status-box waiting">
+                        <button type="button"
+                                class="payment-cancel-btn"
+                                data-order-no="${o.orderNo}">
+                            주문 전체 취소
+                        </button>
 
-                            <strong class="full-cancel-status-title">
-                                전체 주문 취소 승인 대기
-                            </strong>
+                    </div>
 
-                            <p class="full-cancel-status-message">
-                                주문에 포함된 사업자의 승인을 기다리고 있습니다.
-                            </p>
-
-                        </div>
-
-                    </c:when>
-
-                    <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
-
-                        <div class="full-cancel-status-box rejected">
-
-                            <strong class="full-cancel-status-title">
-                                전체 주문 취소 반려
-                            </strong>
-
-                            <p class="full-cancel-status-message">
-
-                                <span class="full-cancel-reject-label">
-                                    반려 사유:
-                                </span>
-
-                                <c:choose>
-
-                                    <c:when test="${not empty o.fullCancelRejectReason}">
-                                        <c:out value="${o.fullCancelRejectReason}"/>
-                                    </c:when>
-
-                                    <c:otherwise>
-                                        사업자가 전체 주문 취소 요청을 반려했습니다.
-                                    </c:otherwise>
-
-                                </c:choose>
-
-                            </p>
-
-                        </div>
-
-                        <%--
-                            =========================================================
-                            [전체 취소 반려 후 재요청 버튼 유지]
-
-                            전체 취소 요청이 반려됐더라도 주문상품 상태가
-                            취소 가능한 상태라면 사용자가 다시 전체 취소를
-                            요청할 수 있도록 기존 버튼을 표시한다.
-                            =========================================================
-                        --%>
-                        <c:if test="${o.orderStatus eq 'PAID'
-                                || o.orderStatus eq 'ORDERED'
-                                || o.orderStatus eq 'PREPARING'}">
-
-                            <div class="order-cancel-action">
-
-                                <button type="button"
-                                        class="payment-cancel-btn"
-                                        data-order-no="${o.orderNo}">
-                                    주문 전체 취소
-                                </button>
-
-                            </div>
-
-                        </c:if>
-
-                    </c:when>
-
-                    <c:otherwise>
-
-                        <%--
-                            =========================================================
-                            [기존 주문 전체 취소 버튼 유지]
-
-                            최근 전체 취소 요청이 없는 경우에만
-                            주문 전체 취소 버튼을 표시한다.
-                            =========================================================
-                        --%>
-                        <c:if test="${o.orderStatus eq 'PAID'
-                                || o.orderStatus eq 'ORDERED'
-                                || o.orderStatus eq 'PREPARING'}">
-
-                            <div class="order-cancel-action">
-
-                                <button type="button"
-                                        class="payment-cancel-btn"
-                                        data-order-no="${o.orderNo}">
-                                    주문 전체 취소
-                                </button>
-
-                            </div>
-
-                        </c:if>
-
-                    </c:otherwise>
-
-                </c:choose>
-
-            </div>
-
-            <!-- 티켓 구분선 -->
-            <div class="ticket-divider"
-                 aria-hidden="true">
-            </div>
-
-            <!-- 총 결제금액 -->
-            <div class="order-total">
-
-                <span>
-                    총 결제금액
-                </span>
-
-                <span class="order-total-price">
-
-                    ₩
-
-                    <fmt:formatNumber
-                        value="${o.totalAmount}"
-                        pattern="#,###"/>
-
-                </span>
+                </c:if>
 
             </div>
 
         </section>
 
     </c:forEach>
+
+    <!-- 주문 3건 단위 페이지 번호 -->
+    <c:if test="${not empty orderList && pageVO.totalPage > 1}">
+
+        <nav class="order-pagination"
+             aria-label="주문내역 페이지">
+
+            <c:if test="${pageVO.prev}">
+
+                <a class="order-page-link order-page-arrow"
+                   href="${pageContext.request.contextPath}/order/list?page=${pageVO.startPage - 1}"
+                   aria-label="이전 페이지 묶음">
+                    ‹
+                </a>
+
+            </c:if>
+
+            <c:forEach var="pageNo"
+                       begin="${pageVO.startPage}"
+                       end="${pageVO.endPage}">
+
+                <c:choose>
+
+                    <c:when test="${pageNo eq pageVO.currentPage}">
+
+                        <span class="order-page-link active"
+                              aria-current="page">
+                            ${pageNo}
+                        </span>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <a class="order-page-link"
+                           href="${pageContext.request.contextPath}/order/list?page=${pageNo}">
+                            ${pageNo}
+                        </a>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </c:forEach>
+
+            <c:if test="${pageVO.next}">
+
+                <a class="order-page-link order-page-arrow"
+                   href="${pageContext.request.contextPath}/order/list?page=${pageVO.endPage + 1}"
+                   aria-label="다음 페이지 묶음">
+                    ›
+                </a>
+
+            </c:if>
+
+        </nav>
+
+    </c:if>
 
     <!-- 리뷰 작성 모달 -->
     <div id="reviewModal"

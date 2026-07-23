@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -83,7 +82,8 @@
                 column="CREATED_AT"/>
 
         <!-- =====================================================
-             [결제수단별 부분 취소 제한 표시용 매핑 추가]
+             [결제수단별 부분 취소 제한 표시용 매핑]
+             PAYMENT 테이블과 조인하여 결제 수단 및 PG사 정보 매핑
         ====================================================== -->
         <result property="payMethod"
                 column="PAY_METHOD"/>
@@ -92,7 +92,8 @@
                 column="PG_PROVIDER"/>
 
         <!-- =====================================================
-             [주문 전체 취소 상태 및 반려 사유 매핑 추가]
+             [주문 전체 취소 상태 및 반려 사유 매핑]
+             CANCEL_REQUEST 테이블 기반 전체 취소 상태 및 사유 매핑
         ====================================================== -->
         <result property="fullCancelStatus"
                 column="FULL_CANCEL_STATUS"/>
@@ -141,8 +142,10 @@
 
         <result property="businessName"
                 column="BUSINESS_NAME"/>
+
         <!-- =====================================================
-             [부분 취소 반려 사유 표시용 매핑 추가]
+             [부분 취소 요청 상태 및 반려 사유 표시용 매핑]
+             가장 최근 진행된 PARTIAL 요청 한 건의 상태/타입/사유 매핑
         ====================================================== -->
         <result property="cancelRequestStatus"
                 column="CANCEL_REQUEST_STATUS"/>
@@ -339,8 +342,8 @@
 
     <!-- =====================================================
          주문 확정 시 재고 차감
-         WHERE 절에 재고 조건을 포함해 동시성 문제로 인한
-         재고 초과 차감(음수 재고)을 방지한다.
+         WHERE 절에 재고 조건(STOCK >= #{quantity})을 포함해
+         동시성 문제로 인한 재고 초과 차감(음수 재고)을 방지한다.
     ====================================================== -->
     <update id="decreaseProductStock">
 
@@ -353,7 +356,8 @@
 
     </update>
 
-     <!-- =====================================================
+
+    <!-- =====================================================
          해당 주문의 배송 시작 여부 확인
 
          DELIVERY 행이 없거나 PREPARING 상태이면 취소 가능.
@@ -376,6 +380,7 @@
           )
 
     </select>
+
 
     <!-- =====================================================
          결제 취소 시 상품 재고 복구
@@ -410,6 +415,7 @@
 
     </update>
 
+
     <!-- =====================================================
          주문상품 취소 상태 변경
     ====================================================== -->
@@ -423,6 +429,7 @@
           AND STATUS = 'PAID'
 
     </update>
+
 
     <!-- =====================================================
          주문 취소 상태 변경
@@ -444,84 +451,111 @@
 
 
     <!-- =====================================================
-         로그인 회원의 주문 목록 (헤더)
+         로그인 회원의 주문 목록 (헤더 및 취소 요청 상태 포함 페이징 조회)
     ====================================================== -->
     <select id="selectOrderListByMember"
             resultMap="orderResultMap">
 
         SELECT
-            O.ORDER_NO,
-            O.MEMBER_NO,
-            O.TOTAL_AMOUNT,
-            O.ORDER_STATUS,
-            O.RECEIVER_NAME,
-            O.RECEIVER_PHONE,
-            O.ADDRESS,
-            O.CREATED_AT,
-            P.PAY_METHOD,
-            P.PG_PROVIDER,
-
-            /* =====================================================
-               [최근 주문 전체 취소 그룹 상태 조회 추가]
-
-               하나의 전체 취소 요청은 주문상품별 여러 행으로
-               저장되므로 가장 최근 CANCEL_GROUP_NO를 기준으로
-               그룹 상태를 계산한다.
-            ====================================================== */
-            (
+            ORDER_PAGE.ORDER_NO,
+            ORDER_PAGE.MEMBER_NO,
+            ORDER_PAGE.TOTAL_AMOUNT,
+            ORDER_PAGE.ORDER_STATUS,
+            ORDER_PAGE.RECEIVER_NAME,
+            ORDER_PAGE.RECEIVER_PHONE,
+            ORDER_PAGE.ADDRESS,
+            ORDER_PAGE.CREATED_AT,
+            ORDER_PAGE.PAY_METHOD,
+            ORDER_PAGE.PG_PROVIDER,
+            ORDER_PAGE.FULL_CANCEL_STATUS,
+            ORDER_PAGE.FULL_CANCEL_REJECT_REASON
+        FROM (
+            SELECT
+                ORDER_DATA.*,
+                ROW_NUMBER() OVER (
+                    ORDER BY ORDER_DATA.CREATED_AT DESC,
+                             ORDER_DATA.ORDER_NO DESC
+                ) AS RN
+            FROM (
                 SELECT
-                    CASE
-                        WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
-                            THEN 'REJECTED'
-                        WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
-                            THEN 'WAITING'
-                        WHEN COUNT(*) > 0
-                             AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
-                            THEN 'APPROVED'
-                        ELSE NULL
-                    END
-                FROM CANCEL_REQUEST CR
-                WHERE CR.ORDER_NO = O.ORDER_NO
-                  AND CR.CANCEL_TYPE = 'FULL'
-                  AND CR.CANCEL_GROUP_NO = (
-                      SELECT MAX(CR2.CANCEL_GROUP_NO)
-                      FROM CANCEL_REQUEST CR2
-                      WHERE CR2.ORDER_NO = O.ORDER_NO
-                        AND CR2.CANCEL_TYPE = 'FULL'
-                  )
-            ) AS FULL_CANCEL_STATUS,
+                    O.ORDER_NO,
+                    O.MEMBER_NO,
+                    O.TOTAL_AMOUNT,
+                    O.ORDER_STATUS,
+                    O.RECEIVER_NAME,
+                    O.RECEIVER_PHONE,
+                    O.ADDRESS,
+                    O.CREATED_AT,
+                    P.PAY_METHOD,
+                    P.PG_PROVIDER,
 
-            /* =====================================================
-               [최근 주문 전체 취소 반려 사유 조회 추가]
+                     /* =====================================================
+                        [최근 주문 전체 취소 그룹 상태 조회 추가]
 
-               전체 취소 그룹이 반려된 경우 해당 그룹에 저장된
-               반려 사유 한 건을 사용자 주문내역에 표시한다.
-            ====================================================== */
-            (
-                SELECT MAX(CR.REJECT_REASON)
-                FROM CANCEL_REQUEST CR
-                WHERE CR.ORDER_NO = O.ORDER_NO
-                  AND CR.CANCEL_TYPE = 'FULL'
-                  AND CR.STATUS = 'REJECTED'
-                  AND CR.CANCEL_GROUP_NO = (
-                      SELECT MAX(CR2.CANCEL_GROUP_NO)
-                      FROM CANCEL_REQUEST CR2
-                      WHERE CR2.ORDER_NO = O.ORDER_NO
-                        AND CR2.CANCEL_TYPE = 'FULL'
-                  )
-            ) AS FULL_CANCEL_REJECT_REASON
-        FROM ORDERS O
+                        하나의 전체 취소 요청은 주문상품별 여러 행으로
+                        저장되므로 가장 최근 CANCEL_GROUP_NO를 기준으로
+                        그룹 상태를 계산한다.
+                        ====================================================== */
 
-        /* =====================================================
-           [결제수단별 부분 취소 제한 표시용 조인 추가]
-        ====================================================== */
-        LEFT JOIN PAYMENT P
-          ON P.ORDER_NO = O.ORDER_NO
+                    (
+                        SELECT
+                            CASE
+                                WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
+                                    THEN 'REJECTED'
+                                WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
+                                    THEN 'WAITING'
+                                WHEN COUNT(*) > 0
+                                     AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
+                                    THEN 'APPROVED'
+                                ELSE NULL
+                            END
+                        FROM CANCEL_REQUEST CR
+                        WHERE CR.ORDER_NO = O.ORDER_NO
+                          AND CR.CANCEL_TYPE = 'FULL'
+                          AND CR.CANCEL_GROUP_NO = (
+                              SELECT MAX(CR2.CANCEL_GROUP_NO)
+                              FROM CANCEL_REQUEST CR2
+                              WHERE CR2.ORDER_NO = O.ORDER_NO
+                                AND CR2.CANCEL_TYPE = 'FULL'
+                          )
+                    ) AS FULL_CANCEL_STATUS,
 
-        WHERE O.MEMBER_NO = #{memberNo}
-        ORDER BY
-            O.CREATED_AT DESC,
-            O.ORDER_NO DESC
+                    (
+                        SELECT MAX(CR.REJECT_REASON)
+                        FROM CANCEL_REQUEST CR
+                        WHERE CR.ORDER_NO = O.ORDER_NO
+                          AND CR.CANCEL_TYPE = 'FULL'
+                          AND CR.STATUS = 'REJECTED'
+                          AND CR.CANCEL_GROUP_NO = (
+                              SELECT MAX(CR2.CANCEL_GROUP_NO)
+                              FROM CANCEL_REQUEST CR2
+                              WHERE CR2.ORDER_NO = O.ORDER_NO
+                                AND CR2.CANCEL_TYPE = 'FULL'
+                          )
+                    ) AS FULL_CANCEL_REJECT_REASON
+                FROM ORDERS O
+
+                LEFT JOIN PAYMENT P
+                  ON P.ORDER_NO = O.ORDER_NO
+
+                WHERE O.MEMBER_NO = #{memberNo}
+            ) ORDER_DATA
+        ) ORDER_PAGE
+        WHERE ORDER_PAGE.RN BETWEEN #{startRow} AND #{endRow}
+        ORDER BY ORDER_PAGE.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         로그인 회원의 전체 주문 건수
+    ====================================================== -->
+    <select id="countOrderListByMember"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM ORDERS
+        WHERE MEMBER_NO = #{memberNo}
 
     </select>
 
@@ -547,7 +581,7 @@
             PI.MAIN_IMAGE,
 
             /* =====================================================
-               [최근 부분 취소 요청 상태 및 반려 사유 조회 추가]
+               [최근 부분 취소 요청 상태 및 반려 사유 조회]
 
                반려 후 주문상품 상태가 PAID로 복구되더라도
                사용자 화면에서 반려 사유를 확인할 수 있도록
@@ -612,6 +646,7 @@
 
     </select>
 
+
     <!-- =====================================================
          주문 단건 조회 (로그인 회원 소유 검증 포함)
     ====================================================== -->
@@ -631,7 +666,7 @@
             P.PG_PROVIDER,
 
             /* =====================================================
-               [주문 단건 조회의 전체 취소 상태 및 반려 사유 추가]
+               [주문 단건 조회의 전체 취소 상태 및 반려 사유 조회]
             ====================================================== */
             (
                 SELECT
@@ -700,7 +735,7 @@
             PI.MAIN_IMAGE,
 
             /* =====================================================
-               [최근 부분 취소 요청 상태 및 반려 사유 조회 추가]
+               [최근 부분 취소 요청 상태 및 반려 사유 조회]
 
                반려 후 주문상품 상태가 PAID로 복구되더라도
                사용자 화면에서 반려 사유를 확인할 수 있도록

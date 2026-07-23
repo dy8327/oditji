@@ -1277,3 +1277,301 @@
     width: 100%;
   }
 }
+
+/* =====================================================
+   ORDER LIST LAYOUT UPDATE
+   - 주문 카드 좌우 2단 구성
+   - 주문 상태는 오른쪽 주문 정보에서만 표시
+   - 주문 전체 취소 결과는 카드 공통 영역에 표시
+   - 주문 3건 단위 페이지 번호
+====================================================== */
+
+.order-card-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  align-items: stretch;
+  gap: 24px;
+}
+
+.order-product-section {
+  min-width: 0;
+}
+
+.order-card-header {
+  justify-content: flex-start;
+  gap: 18px;
+  min-height: 28px;
+  margin-bottom: 16px;
+}
+
+.order-card-header > div:last-child {
+  margin-left: auto;
+}
+
+.order-card .order-items {
+  margin-top: 0;
+}
+
+.order-card .order-item {
+  align-items: stretch;
+}
+
+.order-item-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 118px;
+  gap: 8px;
+}
+
+.order-item-actions .review-btn,
+.order-item-actions .item-cancel-btn {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.order-item-actions .item-cancel-state {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.order-info-section {
+  min-width: 0;
+  margin-top: 0;
+  padding: 20px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: rgba(18, 18, 20, 0.28);
+}
+
+.order-info-title {
+  margin-bottom: 16px;
+}
+
+.order-info-row {
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding: 13px 0;
+}
+
+.full-cancel-status-box {
+  margin-top: 20px;
+}
+
+.order-card .ticket-divider {
+  margin-top: 20px;
+}
+
+.order-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.order-card-footer .order-total {
+  margin-right: auto;
+}
+
+.order-card-footer .order-cancel-action {
+  margin: 0;
+}
+
+.order-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 30px 0 10px;
+}
+
+.order-page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--oditji-border);
+  border-radius: 10px;
+  background: var(--oditji-surface);
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    background-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.order-page-link:hover {
+  border-color: var(--oditji-accent);
+  color: var(--oditji-text);
+}
+
+.order-page-link:active {
+  transform: scale(0.96);
+}
+
+.order-page-link:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+.order-page-link.active {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+  color: #181818;
+  cursor: default;
+}
+
+.order-page-arrow {
+  font-size: 22px;
+  line-height: 1;
+}
+
+@media (max-width: 1100px) {
+  .order-card-main {
+    grid-template-columns: 1fr;
+  }
+
+  .order-info-section {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .order-card .order-item {
+    flex-direction: column;
+  }
+
+  .order-item-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .order-item-actions .review-btn,
+  .order-item-actions .item-cancel-btn,
+  .order-item-actions .item-cancel-state {
+    flex: 1;
+  }
+
+  .order-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-card-footer .order-total {
+    justify-content: space-between;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .order-card-footer .order-cancel-action,
+  .order-card-footer .payment-cancel-btn {
+    width: 100%;
+  }
+}
+
+/* =====================================================
+   ORDER LIST WIDTH REFINEMENT
+   - 주문내역 전용 화면 폭 확장
+   - 제목과 주문 카드의 왼쪽 기준선 통일
+   - 상품 영역이 눌리지 않도록 좌우 비율 조정
+====================================================== */
+
+.order-list-container {
+  width: min(1180px, calc(100% - 48px));
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 40px 0 80px;
+}
+
+.order-list-container > h1 {
+  margin: 0 0 26px;
+  text-align: left;
+}
+
+.order-list-container .order-card {
+  padding: 24px;
+}
+
+.order-list-container .order-card-main {
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 28px;
+}
+
+.order-list-container .order-product-section {
+  min-width: 0;
+}
+
+.order-list-container .order-card .order-item {
+  gap: 18px;
+  padding: 16px;
+}
+
+.order-list-container .order-card .order-item > a {
+  gap: 16px;
+}
+
+.order-list-container .order-card .order-item > a > img,
+.order-list-container .order-card .order-item > a > .no-image {
+  width: 84px;
+  height: 84px;
+}
+
+.order-list-container .order-item-info > div:first-child {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.order-list-container .order-info-row {
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+
+.order-list-container .order-card .ticket-divider {
+  margin-right: -24px;
+  margin-left: -24px;
+}
+
+.order-list-container .order-card-footer .order-total {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .order-list-container {
+    width: min(760px, calc(100% - 40px));
+  }
+
+  .order-list-container .order-card-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .order-list-container {
+    width: calc(100% - 28px);
+    padding-top: 28px;
+  }
+
+  .order-list-container .order-card {
+    padding: 18px;
+  }
+
+  .order-list-container .order-card .ticket-divider {
+    margin-right: -18px;
+    margin-left: -18px;
+  }
+}

@@ -90,6 +90,11 @@ public interface OrderDAO {
          * 로그인 회원의 주문 목록 (주문 헤더만, 최신순)
          */
         List<OrderVO> selectOrderListByMember(
+                        @Param("memberNo") Long memberNo,
+                        @Param("startRow") int startRow,
+                        @Param("endRow") int endRow);
+
+        int countOrderListByMember(
                         @Param("memberNo") Long memberNo);
 
         /**
