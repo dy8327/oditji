@@ -523,6 +523,10 @@
   border: 1px solid var(--biz-border);
 }
 
+.business-wrap .product-item {
+  align-items: flex-start;
+}
+
 .business-wrap .thumb,
 .business-wrap .product-thumb {
   display: flex;
@@ -976,19 +980,62 @@
 
 /* 4. 기타 유틸리티 */
 
+.product-info {
+  display: flex;
+  flex-direction: column;
+
+  flex: 1;
+
+  gap: 10px;
+}
+
+.product-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
 .product-name {
   color: var(--biz-text);
   font-size: 1.1rem;
   font-weight: bold;
 }
 
-.product-meta span {
-  color: var(--biz-text-sub);
-  margin-right: 15px;
+.product-type {
+  color: var(--biz-text-dim);
+  font-size: 13px;
 }
 
-.product-status-text {
-  color: var(--biz-text-dim);
+.product-meta {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.meta-row {
+  color: var(--biz-text-sub);
+  font-size: 14px;
+}
+
+.meta-row span {
+  margin-right: 20px;
+}
+
+.meta-row span:last-child {
+  margin-right: 0;
+}
+
+.product-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
   margin-top: 8px;
 }
 

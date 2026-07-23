@@ -44,17 +44,6 @@
                 상품 등록
             </a>
 
-
-            <a href="${pageContext.request.contextPath}/business/product/update"
-               class="${activeMenu == 'productUpdate' ? 'active' : ''}">
-                상품 수정
-            </a>
-
-                <a href="${pageContext.request.contextPath}/business/product/delete"
-               class="${activeMenu == 'productDelete' ? 'active' : ''}">
-                상품 삭제
-            </a>
-
         </div>
 
 
@@ -73,17 +62,6 @@
             <a href="${pageContext.request.contextPath}/business/event/register"
                class="${activeMenu == 'eventRegister' ? 'active' : ''}">
                 이벤트 등록
-            </a>
-
-
-            <a href="${pageContext.request.contextPath}/business/event/update"
-               class="${activeMenu == 'eventUpdate' ? 'active' : ''}">
-                이벤트 수정
-            </a>
-
-            <a href="${pageContext.request.contextPath}/business/event/extend"
-               class="${activeMenu == 'eventExtend' ? 'active' : ''}">
-                이벤트 연장
             </a>
 
         </div>
@@ -111,21 +89,6 @@
             <a href="${pageContext.request.contextPath}/business/cancel/list"
                class="${activeMenu == 'cancel' ? 'active' : ''}">
                 취소/환불 관리
-            </a>
-
-        </div>
-
-
-
-        <!-- 승인 관리 -->
-        <div class="menu-group">
-
-            <h3>승인 관리</h3>
-
-
-            <a href="${pageContext.request.contextPath}/business/approval?type=product"
-               class="${activeMenu == 'approval' ? 'active' : ''}">
-                승인 상태 확인
             </a>
 
         </div>
