@@ -62,10 +62,20 @@
 
         <div class="recommend-card-meta">
 
-            <%-- 공개일 표시 --%>
+            <%--
+                일반 영역은 기존 공개일을 표시합니다.
+                신작 영역에서 showRecentEpisodeDate=true이고 TV 콘텐츠이면
+                최근 회차 공개일을 표시합니다.
+            --%>
             <span>
 
                 <c:choose>
+
+                    <c:when test="${showRecentEpisodeDate
+                                  and content.contentType eq 'TV'
+                                  and not empty content.lastAirDate}">
+                        최근 회차 ${content.lastAirDate}
+                    </c:when>
 
                     <c:when test="${not empty content.releaseDate}">
                         ${content.releaseDate}

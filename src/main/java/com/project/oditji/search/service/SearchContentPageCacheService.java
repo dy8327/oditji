@@ -1360,6 +1360,10 @@ public class SearchContentPageCacheService {
                 content.getReleaseDate()
         );
 
+        result.setLastAirDate(
+                content.getLastAirDate()
+        );
+
         result.setGenreText(
                 content.getGenreText()
         );

@@ -252,6 +252,16 @@ public class SearchContentSnapshotService {
                 content.getReleaseDate()
         );
 
+        /*
+         * TV 콘텐츠의 최근 회차 공개일을 별도 저장합니다.
+         * 영화 콘텐츠에서는 null로 기록됩니다.
+         */
+        putNullable(
+                json,
+                "lastAirDate",
+                content.getLastAirDate()
+        );
+
         putNullable(
                 json,
                 "genreText",
@@ -387,6 +397,17 @@ public class SearchContentSnapshotService {
                 nullableString(
                         json,
                         "releaseDate"
+                )
+        );
+
+        /*
+         * 이전 스냅샷에는 lastAirDate가 없을 수 있으므로
+         * nullableString으로 안전하게 복원합니다.
+         */
+        content.setLastAirDate(
+                nullableString(
+                        json,
+                        "lastAirDate"
                 )
         );
 

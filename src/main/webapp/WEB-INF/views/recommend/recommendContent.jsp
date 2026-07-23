@@ -331,7 +331,7 @@
                 </h2>
 
                 <p>
-                    최근 공개된 영화와 TV 콘텐츠예요.
+                    영화는 최근 개봉일, TV는 최근 회차 공개일을 기준으로 보여드려요.
                 </p>
 
             </div>
@@ -355,12 +355,23 @@
 
                     <c:when test="${not empty newContentList}">
 
+                        <%--
+                            신작 영역에서만 TV 카드 날짜를 최근 회차 공개일로 표시합니다.
+                            다른 추천 영역은 기존 최초 공개일 표시를 그대로 유지합니다.
+                        --%>
+                        <c:set var="showRecentEpisodeDate"
+                               value="true"
+                               scope="page"/>
+
                         <c:forEach var="content"
                                    items="${newContentList}">
 
                             <%@ include file="/WEB-INF/views/recommend/recommendCard.jsp" %>
 
                         </c:forEach>
+
+                        <c:remove var="showRecentEpisodeDate"
+                                  scope="page"/>
 
                     </c:when>
 

@@ -66,7 +66,12 @@ public class SearchContentEnrichmentService {
         }
 
         if (TV.equals(previous.getContentType())
-                && previous.getEpisodeCount() == null) {
+                && (previous.getEpisodeCount() == null
+                || !hasText(previous.getLastAirDate()))) {
+            /*
+             * 기존 스냅샷에 최근 회차 공개일이 없으면
+             * TV 상세 API를 다시 호출하여 한 번 보강합니다.
+             */
             return false;
         }
 
@@ -89,6 +94,7 @@ public class SearchContentEnrichmentService {
         target.setOriginalTitle(source.getOriginalTitle());
         target.setPosterPath(source.getPosterPath());
         target.setReleaseDate(source.getReleaseDate());
+        target.setLastAirDate(source.getLastAirDate());
         target.setGenreText(source.getGenreText());
         target.setTmdbScore(source.getTmdbScore());
         target.setPopularity(source.getPopularity());
@@ -404,6 +410,14 @@ public class SearchContentEnrichmentService {
                         nullableString(detail, "first_air_date")
                 );
             }
+
+            /*
+             * TV 상세 응답의 last_episode_to_air.air_date를 가장 우선 사용합니다.
+             * 최근 회차 객체가 없거나 날짜가 비어 있으면 last_air_date로 대체합니다.
+             */
+            candidate.setLastAirDate(
+                    resolveTvLastAirDate(detail)
+            );
 
             /*
              * TV 상세 API는 대표 회차 러닝타임을 배열로 반환하므로
@@ -1118,6 +1132,41 @@ public class SearchContentEnrichmentService {
                 || value.isBlank()
                 ? null
                 : value;
+    }
+
+    /**
+     * TV 상세정보에서 최근 회차 공개일을 추출합니다.
+     *
+     * @param detail TMDB TV 상세 응답
+     * @return 최근 회차 공개일 또는 null
+     */
+    private String resolveTvLastAirDate(
+            JSONObject detail) {
+
+        if (detail == null) {
+            return null;
+        }
+
+        JSONObject lastEpisode =
+                detail.optJSONObject(
+                        "last_episode_to_air"
+                );
+
+        String episodeAirDate =
+                lastEpisode == null
+                        ? null
+                        : nullableString(
+                                lastEpisode,
+                                "air_date"
+                        );
+
+        return firstNonBlank(
+                episodeAirDate,
+                nullableString(
+                        detail,
+                        "last_air_date"
+                )
+        );
     }
 
     private Integer nullablePositiveInteger(
