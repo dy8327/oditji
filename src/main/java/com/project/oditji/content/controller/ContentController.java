@@ -35,6 +35,9 @@ import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * 콘텐츠 목록, 상세페이지, 인물 필모그래피 등을 처리하는 Controller입니다.
+ */
 @Controller
 @RequestMapping("/content")
 public class ContentController {
@@ -107,23 +110,12 @@ public class ContentController {
                         safeGenres,
                         safeProviders);
 
-        /*
-         * 우측 추천 콘텐츠도 현재 선택한
-         * 콘텐츠 종류, 장르, OTT 조건을 함께 반영합니다.
-         */
         List<SearchResultVO> recommendedList =
                 contentService.getContentRecommendedList(
                         safeCategories,
                         safeGenres,
                         safeProviders);
 
-        /*
-         * 검색 결과 화면과 동일하게 OTT_PLATFORM 테이블의
-         * 활성 플랫폼 로고 주소를 Map으로 만들어 JSP에 전달합니다.
-         *
-         * Map 키:
-         * netflix, tving, wavve, disney, watcha, coupang
-         */
         Map<String, String> ottLogoMap =
                 createOttLogoMap(
                         tmdbDAO.selectActivePlatformList());
@@ -172,10 +164,6 @@ public class ContentController {
                 "pageTitle",
                 makePageTitle(normalizedType));
 
-        /*
-         * contentLeftSidebar.jsp의 ${ottLogoMap[...]}가
-         * 실제 이미지 URL을 사용할 수 있도록 전달합니다.
-         */
         model.addAttribute(
                 "ottLogoMap",
                 ottLogoMap);
@@ -183,6 +171,15 @@ public class ContentController {
         return "content/contentList";
     }
 
+    /**
+     * 콘텐츠 상세페이지를 표시합니다.
+     *
+     * 로그인 회원이 상세페이지에 진입한 경우
+     * CONTENT_VIEW_HISTORY에 오늘 조회 이력을 저장합니다.
+     *
+     * 비로그인 사용자의 조회는 개인 OTT 추천 대상이 아니므로
+     * 조회 이력 테이블에는 저장하지 않습니다.
+     */
     @GetMapping("/contentDetail/{contentNo}")
     public String detail(
             @PathVariable int contentNo,
@@ -197,34 +194,57 @@ public class ContentController {
                     "존재하지 않는 콘텐츠입니다.");
         }
 
-        List<ActorVO> actorList =
-                contentService.getActorListByContentNo(contentNo);
-
-        List<DirectorVO> directorList =
-                contentService.getDirectorListByContentNo(contentNo);
-
-        List<OttPlatformVO> ottList =
-                contentService.getOttPlatformListByContentNo(contentNo);
-
-        List<SearchResultVO> relatedContentList =
-                contentService.getRelatedContentList(contentNo);
-
-        List<ContentReviewVO> reviewList =
-                reviewService.getContentReviewList(contentNo);
-
-        Double avgRating =
-                reviewService.getAvgRating(contentNo);
-
-        int reviewCount =
-                reviewService.getReviewCount(contentNo);
-
         MemberVO loginMember =
-                (MemberVO) session.getAttribute("loginMember");
+                (MemberVO) session.getAttribute(
+                        "loginMember");
 
         Long loginMemberNo =
                 loginMember == null
                         ? null
                         : loginMember.getMemberNo();
+
+        /*
+         * 콘텐츠가 실제로 존재하는 것이 확인된 뒤
+         * 로그인 회원의 조회 이력을 저장합니다.
+         *
+         * 같은 날 동일 콘텐츠를 다시 조회하면
+         * 새로운 행이 아니라 VIEW_COUNT가 증가합니다.
+         */
+        if (loginMemberNo != null) {
+
+            contentService.recordContentViewHistory(
+                    loginMemberNo,
+                    contentNo
+            );
+        }
+
+        List<ActorVO> actorList =
+                contentService.getActorListByContentNo(
+                        contentNo);
+
+        List<DirectorVO> directorList =
+                contentService.getDirectorListByContentNo(
+                        contentNo);
+
+        List<OttPlatformVO> ottList =
+                contentService.getOttPlatformListByContentNo(
+                        contentNo);
+
+        List<SearchResultVO> relatedContentList =
+                contentService.getRelatedContentList(
+                        contentNo);
+
+        List<ContentReviewVO> reviewList =
+                reviewService.getContentReviewList(
+                        contentNo);
+
+        Double avgRating =
+                reviewService.getAvgRating(
+                        contentNo);
+
+        int reviewCount =
+                reviewService.getReviewCount(
+                        contentNo);
 
         ReviewVO myReview =
                 reviewService.getMyReview(
@@ -242,25 +262,53 @@ public class ContentController {
             FavoriteVO favoriteVO =
                     new FavoriteVO();
 
-            favoriteVO.setMemberNo(loginMemberNo);
-            favoriteVO.setContentNo((long) contentNo);
+            favoriteVO.setMemberNo(
+                    loginMemberNo);
+
+            favoriteVO.setContentNo(
+                    (long) contentNo);
 
             favoriteActive =
-                    favoriteService.isFavorite(favoriteVO);
+                    favoriteService.isFavorite(
+                            favoriteVO);
         }
 
-        model.addAttribute("content", content);
-        model.addAttribute("actorList", actorList);
-        model.addAttribute("directorList", directorList);
-        model.addAttribute("ottList", ottList);
+        model.addAttribute(
+                "content",
+                content);
+
+        model.addAttribute(
+                "actorList",
+                actorList);
+
+        model.addAttribute(
+                "directorList",
+                directorList);
+
+        model.addAttribute(
+                "ottList",
+                ottList);
+
         model.addAttribute(
                 "relatedContentList",
                 relatedContentList);
 
-        model.addAttribute("reviewList", reviewList);
-        model.addAttribute("avgRating", avgRating);
-        model.addAttribute("reviewCount", reviewCount);
-        model.addAttribute("myReview", myReview);
+        model.addAttribute(
+                "reviewList",
+                reviewList);
+
+        model.addAttribute(
+                "avgRating",
+                avgRating);
+
+        model.addAttribute(
+                "reviewCount",
+                reviewCount);
+
+        model.addAttribute(
+                "myReview",
+                myReview);
+
         model.addAttribute(
                 "reportedReviewSet",
                 reportedReviewSet);
@@ -306,68 +354,83 @@ public class ContentController {
         String redirectUrl;
 
         switch (normalizedPlatformName) {
+
             case "netflix":
+
                 redirectUrl =
                         "https://www.netflix.com/search?q="
                         + encodedTitle;
+
                 break;
 
-                case "tving":
+            case "tving":
+
                 redirectUrl =
                         "https://www.tving.com/search?keyword="
                         + encodedTitle;
+
                 break;
 
-                case "wavve":
+            case "wavve":
+
                 redirectUrl =
                         "https://www.wavve.com/search?searchWord="
                         + encodedTitle;
+
                 break;
 
-                case "watcha":
+            case "watcha":
+
                 redirectUrl =
                         "https://watcha.com/search?query="
                         + encodedTitle;
-                break;
-                
-                case "coupangplay":
-                case "coupang":
- 
-                redirectUrl =
-                        "https://www.coupangplay.com/query?src=page_search&keyword="
-                        + encodedTitle;
-                break;
-                
-                /*
-                * Disney+는 검색어를 URL로 전달하는 경로가 안정적이지 않아
-                * 잘못된 검색 경로로 인한 404를 방지하기 위해 공식 홈으로 이동합니다.
-                */
 
-                case "disney+":
-                case "disneyplus":
-                        
-                        
+                break;
+
+            case "coupangplay":
+            case "coupang":
+
+                redirectUrl =
+                        "https://www.coupangplay.com/query"
+                        + "?src=page_search&keyword="
+                        + encodedTitle;
+
+                break;
+
+            /*
+             * Disney+는 검색어 전달 URL이 안정적이지 않아
+             * 공식 홈페이지로 이동합니다.
+             */
+            case "disney+":
+            case "disneyplus":
+
                 redirectUrl =
                         "https://www.disneyplus.com/";
+
                 break;
 
-
             default:
+
                 String fallbackKeyword =
-                        safeTitle + " " + safePlatformName;
+                        safeTitle
+                        + " "
+                        + safePlatformName;
 
                 redirectUrl =
                         "https://www.google.com/search?q="
                         + UriUtils.encodeQueryParam(
                                 fallbackKeyword,
                                 StandardCharsets.UTF_8);
+
                 break;
         }
 
         RedirectView redirectView =
-                new RedirectView(redirectUrl);
+                new RedirectView(
+                        redirectUrl);
 
-        redirectView.setExposeModelAttributes(false);
+        redirectView.setExposeModelAttributes(
+                false);
 
         return redirectView;
     }
@@ -483,7 +546,8 @@ public class ContentController {
                 type == null
                         ? "all"
                         : type.trim()
-                                .toLowerCase(Locale.ROOT);
+                                .toLowerCase(
+                                        Locale.ROOT);
 
         if ("popular".equals(value)
                 || "new".equals(value)) {
