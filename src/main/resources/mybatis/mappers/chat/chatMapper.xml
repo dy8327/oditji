@@ -220,6 +220,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     </select>
 
+    <!-- 현재 채팅방 참여 인원 수 조회 -->
+    <select id="countChatRoomMembers"
+            parameterType="String"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM CHAT_ROOM_MEMBER
+        WHERE ROOM_ID = #{roomId}
+
+    </select>
+
     <!-- 채팅방 ID 생성용 시퀀스 조회 -->
     <select id="getNextRoomSequence"
             resultType="int">

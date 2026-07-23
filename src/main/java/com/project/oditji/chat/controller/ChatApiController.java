@@ -1,11 +1,14 @@
 package com.project.oditji.chat.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.oditji.chat.common.ChatResult;
@@ -66,7 +69,7 @@ public class ChatApiController {
      */
     @PostMapping("/join")
     public ChatResponseVO joinRoom(
-            String roomId,
+            @RequestParam("roomId") String roomId,
             HttpSession session) {
 
         Integer businessNo = getLoginBusinessNo(session);
@@ -115,12 +118,68 @@ public class ChatApiController {
     }
 
     /**
+     * 나가기 버튼을 누른 사용자가 마지막 참여자인지 확인합니다.
+     * 마지막 참여자라면 화면에서 채팅방 삭제 안내를 한 번 더 표시합니다.
+     */
+    @GetMapping("/leave/check")
+    public Map<String, Object> checkLeaveRoom(
+            @RequestParam("roomId") String roomId,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            response.put("success", false);
+            response.put("message", "로그인한 사업자 정보를 확인할 수 없습니다.");
+            response.put("willDeleteRoom", false);
+            return response;
+        }
+
+        ChatRoomVO room = chatService.getChatRoom(roomId);
+
+        if (room == null) {
+            response.put("success", false);
+            response.put("message", "존재하지 않는 채팅방입니다.");
+            response.put("willDeleteRoom", false);
+            return response;
+        }
+
+        if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+            response.put("success", false);
+            response.put("message", "공지방에서는 나가기 기능을 사용할 수 없습니다.");
+            response.put("willDeleteRoom", false);
+            return response;
+        }
+
+        if (!chatService.isChatRoomMember(roomId, businessNo)) {
+            response.put("success", false);
+            response.put("message", "채팅방 참여 정보를 찾을 수 없습니다.");
+            response.put("willDeleteRoom", false);
+            return response;
+        }
+
+        boolean willDeleteRoom =
+                chatService.willRoomBeEmptyAfterLeave(roomId, businessNo);
+
+        response.put("success", true);
+        response.put("willDeleteRoom", willDeleteRoom);
+        response.put(
+                "message",
+                willDeleteRoom
+                        ? "나가면 참여자가 없어 채팅방이 삭제됩니다."
+                        : "채팅방에서 나갈 수 있습니다.");
+
+        return response;
+    }
+
+    /**
      * 자유방 나가기 API입니다.
-     * 공지방은 전체 사업자가 열람하는 방이므로 나가기 처리를 허용하지 않습니다.
+     * 마지막 참여자가 나가면 Service 트랜잭션에서 방을 비활성화합니다.
      */
     @PostMapping("/leave")
     public ChatResponseVO leaveRoom(
-            String roomId,
+            @RequestParam("roomId") String roomId,
             HttpSession session) {
 
         Integer businessNo = getLoginBusinessNo(session);
@@ -148,13 +207,18 @@ public class ChatApiController {
                     "공지방에서는 나가기 기능을 사용할 수 없습니다.");
         }
 
+        boolean roomWillBeDeleted =
+                chatService.willRoomBeEmptyAfterLeave(roomId, businessNo);
+
         boolean result = chatService.leaveChatRoom(roomId, businessNo);
 
         if (result) {
             return new ChatResponseVO(
                     true,
                     ChatResult.SUCCESS,
-                    "채팅방에서 나갔습니다.");
+                    roomWillBeDeleted
+                            ? "채팅방에서 나갔으며, 참여자가 없어 채팅방이 삭제되었습니다."
+                            : "채팅방에서 나갔습니다.");
         }
 
         return new ChatResponseVO(

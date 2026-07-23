@@ -62,7 +62,8 @@ public class ChatServiceImpl implements ChatService {
                     chatRoom.getCreatedBy());
 
             if (memberInsertResult <= 0) {
-                throw new IllegalStateException("채팅방 생성자 참가 정보 저장에 실패했습니다.");
+                throw new IllegalStateException(
+                        "채팅방 생성자 참가 정보 저장에 실패했습니다.");
             }
         }
 
@@ -128,7 +129,41 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * 자유방 참가 기록만 삭제합니다.
+     * 현재 로그인 사업자가 자유방의 마지막 참여자인지 확인합니다.
+     *
+     * 방이 없거나 공지방이거나, 현재 사용자가 참여 중이 아니라면
+     * 마지막 참여자로 판단하지 않습니다.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public boolean willRoomBeEmptyAfterLeave(
+            String roomId,
+            int businessNo) {
+
+        ChatRoomVO room = chatDAO.selectChatRoom(roomId);
+
+        if (room == null
+                || ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+
+            return false;
+        }
+
+        int membershipCount =
+                chatDAO.existsChatRoomMember(roomId, businessNo);
+
+        if (membershipCount <= 0) {
+            return false;
+        }
+
+        return chatDAO.countChatRoomMembers(roomId) <= 1;
+    }
+
+    /**
+     * 자유방 참가 기록을 삭제합니다.
+     *
+     * 삭제 후 참여 인원이 0명이 되면 방을 물리 삭제하지 않고
+     * STATUS를 INACTIVE로 변경합니다. Firestore 메시지 기록은
+     * 현재 단계에서는 유지되며, 방 목록과 상세 조회에서는 제외됩니다.
      */
     @Override
     @Transactional
@@ -142,7 +177,28 @@ public class ChatServiceImpl implements ChatService {
             return false;
         }
 
-        return chatDAO.deleteChatRoomMember(roomId, businessNo) > 0;
+        int deleteMemberResult =
+                chatDAO.deleteChatRoomMember(roomId, businessNo);
+
+        if (deleteMemberResult <= 0) {
+            return false;
+        }
+
+        int remainingMemberCount =
+                chatDAO.countChatRoomMembers(roomId);
+
+        if (remainingMemberCount == 0) {
+
+            int deactivateRoomResult =
+                    chatDAO.deleteChatRoom(roomId);
+
+            if (deactivateRoomResult <= 0) {
+                throw new IllegalStateException(
+                        "참여자가 없는 채팅방 비활성화에 실패했습니다.");
+            }
+        }
+
+        return true;
     }
 
     @Override
