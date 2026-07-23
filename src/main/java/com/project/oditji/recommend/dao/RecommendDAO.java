@@ -36,6 +36,30 @@ public interface RecommendDAO {
             Long memberNo);
 
     /**
+     * 최종 추천 대상으로 선택된 OTT들이 제공하는
+     * 회원의 관심 콘텐츠 수를 중복 없이 계산합니다.
+     *
+     * 공동 추천일 때 같은 콘텐츠가 두 OTT 모두에 있어도
+     * 한 번만 집계하기 위해 플랫폼 번호 목록을 전달합니다.
+     */
+    int countDistinctInterestContentByPlatforms(
+            @Param("memberNo") Long memberNo,
+            @Param("platformNoList")
+            List<Integer> platformNoList);
+
+    /**
+     * 최종 추천 대상으로 선택된 OTT들이 제공하는
+     * 회원의 찜 콘텐츠 수를 중복 없이 계산합니다.
+     *
+     * 공동 추천된 두 OTT에 같은 찜 콘텐츠가 있더라도
+     * 화면에는 한 개로 표시되도록 합집합 기준으로 집계합니다.
+     */
+    int countDistinctFavoriteContentByPlatforms(
+            @Param("memberNo") Long memberNo,
+            @Param("platformNoList")
+            List<Integer> platformNoList);
+
+    /**
      * 추천 OTT에서 볼 수 있는 회원의 찜 콘텐츠를
      * 최근 찜한 순서로 최대 2개 조회합니다.
      */

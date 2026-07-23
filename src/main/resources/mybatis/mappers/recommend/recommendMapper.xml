@@ -200,6 +200,105 @@
     </select>
 
 
+    <!--
+        최종 추천 OTT들이 제공하는 회원의 관심 콘텐츠 수를 계산합니다.
+
+        단독 추천이면 한 개의 플랫폼 번호가 전달되고,
+        공동 추천이면 1위와 2위 플랫폼 번호가 함께 전달됩니다.
+
+        COUNT(DISTINCT)를 사용하므로 같은 콘텐츠가 두 OTT에 모두 있어도
+        한 번만 집계되어 실제 합집합 개수가 반환됩니다.
+    -->
+    <select id="countDistinctInterestContentByPlatforms"
+            resultType="int">
+
+        SELECT
+            COUNT(
+                DISTINCT MIC.CONTENT_NO
+            )
+
+        FROM (
+
+            SELECT
+                CVH.CONTENT_NO
+
+            FROM CONTENT_VIEW_HISTORY CVH
+
+            WHERE CVH.MEMBER_NO = #{memberNo}
+              AND CVH.VIEW_DATE
+                    &gt;= TRUNC(SYSDATE) - 29
+
+            GROUP BY
+                CVH.CONTENT_NO
+
+            UNION
+
+            SELECT
+                F.CONTENT_NO
+
+            FROM FAVORITE F
+
+            WHERE F.MEMBER_NO = #{memberNo}
+
+        ) MIC
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = MIC.CONTENT_NO
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+
+        WHERE OP.IS_ACTIVE = 'Y'
+          AND CP.PLATFORM_NO IN
+
+        <foreach collection="platformNoList"
+                 item="platformNo"
+                 open="("
+                 separator=","
+                 close=")">
+            #{platformNo}
+        </foreach>
+
+    </select>
+
+
+    <!--
+        최종 추천 OTT들이 제공하는 회원의 찜 콘텐츠 수를 계산합니다.
+
+        공동 추천된 두 OTT에 같은 찜 콘텐츠가 있어도
+        COUNT(DISTINCT)를 사용해 한 번만 집계합니다.
+    -->
+    <select id="countDistinctFavoriteContentByPlatforms"
+            resultType="int">
+
+        SELECT
+            COUNT(
+                DISTINCT F.CONTENT_NO
+            )
+
+        FROM FAVORITE F
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = F.CONTENT_NO
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+
+        WHERE F.MEMBER_NO = #{memberNo}
+          AND OP.IS_ACTIVE = 'Y'
+          AND CP.PLATFORM_NO IN
+
+        <foreach collection="platformNoList"
+                 item="platformNo"
+                 open="("
+                 separator=","
+                 close=")">
+            #{platformNo}
+        </foreach>
+
+    </select>
+
+
     <!-- 추천 OTT에서 볼 수 있는 회원의 찜 콘텐츠를 최대 2개 조회합니다. -->
     <select id="selectFavoriteContentList"
             resultType="com.project.oditji.recommend.vo.RecommendOttContentVO">

@@ -63,7 +63,8 @@ public class RecommendServiceImpl
      * 2. OTT별 조회 점수와 찜 점수 계산
      * 3. 최소 추천 조건 검사
      * 4. 단독 추천 또는 공동 추천 판정
-     * 5. 화면에서 사용할 추천 이유 생성
+     * 5. 최종 추천 OTT 전체의 콘텐츠 제공 범위를 합집합으로 계산
+     * 6. 화면에서 사용할 추천 이유 생성
      */
     @Override
     @Transactional(readOnly = true)
@@ -275,50 +276,206 @@ public class RecommendServiceImpl
         result.setRecommendedPlatformList(
                 recommendedPlatformList);
 
+        /*
+         * 단독 추천이면 1개 OTT, 공동 추천이면 2개 OTT의 번호를 모읍니다.
+         * 이후 SQL의 IN 조건에서 사용해 추천 OTT 전체가 제공하는
+         * 관심 콘텐츠와 찜 콘텐츠를 합집합 기준으로 계산합니다.
+         */
+        List<Integer> recommendedPlatformNoList =
+                extractPlatformNoList(
+                        recommendedPlatformList);
+
+        int providedInterestContentCount =
+                firstPlatform.getInterestContentCount();
+
+        int providedFavoriteContentCount =
+                firstPlatform.getFavoriteContentCount();
+
+        if (!recommendedPlatformNoList.isEmpty()) {
+
+            providedInterestContentCount =
+                    recommendDAO
+                            .countDistinctInterestContentByPlatforms(
+                                    memberNo,
+                                    recommendedPlatformNoList);
+
+            providedFavoriteContentCount =
+                    recommendDAO
+                            .countDistinctFavoriteContentByPlatforms(
+                                    memberNo,
+                                    recommendedPlatformNoList);
+        }
+
         result.setRecommendationReasons(
                 createRecommendationReasons(
-                        firstPlatform,
+                        recommendedPlatformList,
+                        totalInterestContentCount,
+                        providedInterestContentCount,
+                        providedFavoriteContentCount,
                         result.isJointRecommendation()));
 
         return result;
     }
 
     /**
-     * 1위 OTT 점수 정보를 바탕으로
+     * 최종 추천 OTT 목록에서 플랫폼 번호만 추출합니다.
+     *
+     * 공동 추천 콘텐츠 수를 계산하는 Mapper의 IN 조건에
+     * 안전하게 전달하기 위해 null 플랫폼 번호는 제외합니다.
+     */
+    private List<Integer> extractPlatformNoList(
+            List<RecommendOttScoreVO>
+                    recommendedPlatformList) {
+
+        if (recommendedPlatformList == null
+                || recommendedPlatformList.isEmpty()) {
+
+            return Collections.emptyList();
+        }
+
+        List<Integer> platformNoList =
+                new ArrayList<Integer>();
+
+        for (RecommendOttScoreVO platform
+                : recommendedPlatformList) {
+
+            if (platform != null
+                    && platform.getPlatformNo() != null) {
+
+                platformNoList.add(
+                        platform.getPlatformNo());
+            }
+        }
+
+        return platformNoList;
+    }
+
+    /**
+     * 추천 이유 문구에 사용할 OTT 이름을 생성합니다.
+     *
+     * 단독 추천이면 "Netflix",
+     * 공동 추천이면 "Netflix와 TVING" 형태로 반환합니다.
+     */
+    private String createRecommendedPlatformNameText(
+            List<RecommendOttScoreVO>
+                    recommendedPlatformList) {
+
+        if (recommendedPlatformList == null
+                || recommendedPlatformList.isEmpty()) {
+
+            return "추천 OTT";
+        }
+
+        StringBuilder platformNameText =
+                new StringBuilder();
+
+        for (RecommendOttScoreVO platform
+                : recommendedPlatformList) {
+
+            if (platform == null
+                    || platform.getPlatformName() == null
+                    || platform.getPlatformName().isBlank()) {
+
+                continue;
+            }
+
+            if (platformNameText.length() > 0) {
+                platformNameText.append("와 ");
+            }
+
+            platformNameText.append(
+                    platform.getPlatformName());
+        }
+
+        if (platformNameText.length() == 0) {
+            return "추천 OTT";
+        }
+
+        return platformNameText.toString();
+    }
+
+    /**
+     * 최종 추천 OTT 전체의 계산 결과를 바탕으로
      * 화면에 표시할 추천 이유를 생성합니다.
+     *
+     * 공동 추천일 때는 1위 OTT의 개수만 사용하지 않고,
+     * 1위와 2위가 제공하는 콘텐츠를 합친 뒤
+     * 중복 콘텐츠를 제거한 개수를 사용합니다.
      */
     private List<String> createRecommendationReasons(
-            RecommendOttScoreVO firstPlatform,
+            List<RecommendOttScoreVO>
+                    recommendedPlatformList,
+            int totalInterestContentCount,
+            int providedInterestContentCount,
+            int providedFavoriteContentCount,
             boolean jointRecommendation) {
 
-        if (firstPlatform == null) {
+        if (recommendedPlatformList == null
+                || recommendedPlatformList.isEmpty()) {
+
             return Collections.emptyList();
         }
 
         List<String> reasonList =
                 new ArrayList<String>();
 
-        reasonList.add(
-                "최근 관심 콘텐츠 "
-                + firstPlatform.getInterestContentCount()
-                + "개를 제공해요.");
+        String recommendedPlatformNameText =
+                createRecommendedPlatformNameText(
+                        recommendedPlatformList);
 
-        if (firstPlatform.getFavoriteContentCount() > 0) {
+        /*
+         * 전체 관심 콘텐츠 수와 추천 OTT 제공 수를 함께 표시해
+         * 화면의 숫자가 무엇을 의미하는지 명확하게 보여줍니다.
+         *
+         * 공동 추천이면 "Netflix와 TVING에서"처럼 두 OTT 이름을
+         * 함께 표시하고, 제공 개수는 중복을 제거한 합집합 개수입니다.
+         */
+        reasonList.add(
+                recommendedPlatformNameText
+                + "에서 최근 관심 콘텐츠 "
+                + totalInterestContentCount
+                + "개 중 "
+                + providedInterestContentCount
+                + "개를 볼 수 있어요.");
+
+        if (providedFavoriteContentCount > 0) {
 
             reasonList.add(
-                    "찜한 콘텐츠 "
-                    + firstPlatform.getFavoriteContentCount()
+                    recommendedPlatformNameText
+                    + "에서 찜한 콘텐츠 "
+                    + providedFavoriteContentCount
                     + "개를 볼 수 있어요.");
         }
 
-        if (firstPlatform.getViewScore()
-                > firstPlatform.getFavoriteScore()) {
+        int combinedViewScore = 0;
+        int combinedFavoriteScore = 0;
+
+        /*
+         * 추천 이유가 공동 추천된 두 OTT 모두를 설명하도록
+         * 최종 추천 OTT들의 조회 점수와 찜 점수를 합산합니다.
+         */
+        for (RecommendOttScoreVO platform
+                : recommendedPlatformList) {
+
+            if (platform == null) {
+                continue;
+            }
+
+            combinedViewScore +=
+                    platform.getViewScore();
+
+            combinedFavoriteScore +=
+                    platform.getFavoriteScore();
+        }
+
+        if (combinedViewScore
+                > combinedFavoriteScore) {
 
             reasonList.add(
                     "최근 자주 확인한 콘텐츠의 조회 기록이 "
                     + "추천에 가장 크게 반영됐어요.");
 
-        } else if (firstPlatform.getFavoriteScore() > 0) {
+        } else if (combinedFavoriteScore > 0) {
 
             reasonList.add(
                     "현재 찜한 콘텐츠가 추천 결과에 반영됐어요.");
