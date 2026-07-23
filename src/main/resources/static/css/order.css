@@ -1134,3 +1134,44 @@
     width: 100%;
   }
 }
+
+/* =====================================================
+   [부분 취소 반려 사유 표시 추가]
+
+   기존 주문상품 카드 레이아웃은 유지하고, 반려 상태와
+   반려 사유 문구에 필요한 스타일만 추가한다.
+====================================================== */
+.item-cancel-reject-box {
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.item-cancel-state.rejected {
+  color: var(--oditji-danger, #ef6b6b);
+}
+
+.item-cancel-reject-reason {
+  max-width: 260px;
+  margin: 0;
+  color: var(--oditji-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .item-cancel-reject-box {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .item-cancel-reject-reason {
+    max-width: none;
+    text-align: left;
+  }
+}
