@@ -14,70 +14,83 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.project.oditji.chat.service.ChatService;
 import com.project.oditji.chat.vo.ChatRoomVO;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/chat")
 public class ChatController {
 
-    private final ChatService chatService;
+    private static final long ADMIN_MEMBER_NO = 1L;
+    private static final int ADMIN_BUSINESS_NO = 1;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROOM_TYPE_NOTICE = "NOTICE";
+    private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
 
-    /*
-     * 임시 로그인 사업자 정보
-     * 나중에 로그인/세션 기능이 완성되면 이 부분을 제거하고
-     * HttpSession에서 로그인 사용자의 businessNo, businessName을 가져오면 됩니다.
-     */
-    private static final int TEMP_BUSINESS_NO = 1;
-    private static final String TEMP_BUSINESS_NAME = "테스트사업자";
+    private final ChatService chatService;
 
     public ChatController(ChatService chatService) {
         this.chatService = chatService;
     }
 
     /**
-     * 전체 채팅방 목록
+     * 전체 채팅방 목록 화면입니다.
+     * 로그인한 관리자 또는 승인된 사업자만 접근할 수 있습니다.
      */
     @GetMapping("/list")
-    public String roomList(Model model) {
+    public String roomList(HttpSession session, Model model) {
+
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            return "redirect:/member/login";
+        }
 
         List<ChatRoomVO> roomList = chatService.getChatRoomList();
 
+        addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
-
-        /*
-         * roomList.jsp에서 AJAX 참가, 채팅방 입장 시 사용할 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
 
         return "chat/roomList";
     }
 
     /**
-     * 내가 참여한 채팅방 목록
-     *
-     * 현재는 임시 사업자 번호 사용
-     * 나중에 로그인 세션에서 businessNo를 가져오도록 변경 예정
+     * 현재 로그인 사업자가 참여 중인 자유방 목록입니다.
+     * 공지방은 참가 개념이 없으므로 전체 목록 화면에서 확인합니다.
      */
     @GetMapping("/my")
-    public String myRoomList(Model model) {
+    public String myRoomList(HttpSession session, Model model) {
+
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            return "redirect:/member/login";
+        }
 
         List<ChatRoomVO> roomList =
-                chatService.getMyChatRoomList(TEMP_BUSINESS_NO);
+                chatService.getMyChatRoomList(businessNo);
 
+        addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
-
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
 
         return "chat/roomList";
     }
 
     /**
-     * 채팅방 상세 화면
+     * 채팅방 상세 화면입니다.
+     * 공지방은 로그인 사업자라면 누구나 열람할 수 있고,
+     * 자유방은 CHAT_ROOM_MEMBER에 참가 기록이 있는 사용자만 입장할 수 있습니다.
      */
     @GetMapping("/room/{roomId}")
     public String room(
             @PathVariable("roomId") String roomId,
+            HttpSession session,
             Model model) {
+
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            return "redirect:/member/login";
+        }
 
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
@@ -85,54 +98,74 @@ public class ChatController {
             return "redirect:/chat/list";
         }
 
-        model.addAttribute("room", room);
+        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        boolean joined = chatService.isChatRoomMember(roomId, businessNo);
 
-        /*
-         * room.jsp에서 Firebase 메시지 전송 시 사용할 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
+        if (!noticeRoom && !joined) {
+            return "redirect:/chat/list";
+        }
+
+        addLoginChatAttributes(session, model);
+        model.addAttribute("room", room);
+        model.addAttribute("isNoticeRoom", noticeRoom);
+        model.addAttribute("isJoined", joined);
 
         return "chat/room";
     }
 
     /**
-     * 채팅방 생성 화면
+     * 채팅방 생성 화면입니다.
+     * 관리자는 공지방과 자유방을 만들 수 있고,
+     * 일반 사업자는 자유방만 만들 수 있습니다.
      */
     @GetMapping("/create")
-    public String createForm(Model model) {
+    public String createForm(HttpSession session, Model model) {
 
-        /*
-         * createRoom.jsp에서 필요할 수 있는 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            return "redirect:/member/login";
+        }
+
+        addLoginChatAttributes(session, model);
 
         return "chat/createRoom";
     }
 
     /**
-     * 채팅방 생성
+     * 채팅방을 생성합니다.
+     * 브라우저가 전달한 createdBy 값은 사용하지 않고 로그인 세션의 사업자 번호를 사용합니다.
      */
     @PostMapping("/create")
-    public String create(ChatRoomVO chatRoom) {
+    public String create(
+            ChatRoomVO chatRoom,
+            HttpSession session) {
 
-        /*
-         * 현재는 로그인 기능이 없으므로 임시 사업자 번호를 생성자로 지정
-         * 나중에 Session에서 가져온 businessNo로 교체하면 됩니다.
-         */
-        chatRoom.setCreatedBy(TEMP_BUSINESS_NO);
+        Integer businessNo = getLoginBusinessNo(session);
 
-        if (chatRoom.getRoomType() == null || chatRoom.getRoomType().trim().equals("")) {
-            chatRoom.setRoomType("PUBLIC");
+        if (businessNo == null) {
+            return "redirect:/member/login";
         }
 
-        if (chatRoom.getMaxMember() <= 0) {
-            chatRoom.setMaxMember(100);
+        boolean admin = isAdmin(session);
+        String requestedRoomType = normalizeRoomType(chatRoom.getRoomType());
+
+        if (ROOM_TYPE_NOTICE.equals(requestedRoomType) && !admin) {
+            return "redirect:/chat/list";
         }
 
-        if (chatRoom.getIsDefault() == null || chatRoom.getIsDefault().trim().equals("")) {
+        chatRoom.setCreatedBy(businessNo);
+        chatRoom.setRoomType(requestedRoomType);
+
+        if (ROOM_TYPE_NOTICE.equals(requestedRoomType)) {
+            chatRoom.setIsDefault("Y");
+            chatRoom.setMaxMember(9999);
+        } else {
             chatRoom.setIsDefault("N");
+
+            if (chatRoom.getMaxMember() <= 0) {
+                chatRoom.setMaxMember(100);
+            }
         }
 
         String roomId = chatService.createChatRoom(chatRoom);
@@ -145,11 +178,33 @@ public class ChatController {
     }
 
     /**
-     * 채팅방 삭제
+     * 채팅방을 비활성화합니다.
+     * 기본 공지방은 서비스에서 삭제가 차단됩니다.
      */
     @PostMapping("/delete")
     public String delete(
-            @RequestParam("roomId") String roomId) {
+            @RequestParam("roomId") String roomId,
+            HttpSession session) {
+
+        Integer businessNo = getLoginBusinessNo(session);
+
+        if (businessNo == null) {
+            return "redirect:/member/login";
+        }
+
+        ChatRoomVO room = chatService.getChatRoom(roomId);
+
+        if (room == null) {
+            return "redirect:/chat/list";
+        }
+
+        boolean canDelete =
+                isAdmin(session)
+                || room.getCreatedBy() == businessNo;
+
+        if (!canDelete) {
+            return "redirect:/chat/room/" + roomId;
+        }
 
         boolean result = chatService.deleteChatRoom(roomId);
 
@@ -164,5 +219,101 @@ public class ChatController {
     @ResponseBody
     public String test() {
         return "chat controller ok";
+    }
+
+    /**
+     * JSP에서 공통으로 사용하는 로그인 채팅 정보를 전달합니다.
+     */
+    private void addLoginChatAttributes(
+            HttpSession session,
+            Model model) {
+
+        model.addAttribute("memberNo", getLongSessionValue(session, "memberNo"));
+        model.addAttribute("businessNo", getLoginBusinessNo(session));
+        model.addAttribute("businessName", getBusinessDisplayName(session));
+        model.addAttribute("role", session.getAttribute("role"));
+        model.addAttribute("isAdmin", isAdmin(session));
+    }
+
+    /**
+     * 관리자 여부를 MEMBER_NO=1, BUSINESS_NO=1, ROLE=ADMIN 기준으로 확인합니다.
+     */
+    private boolean isAdmin(HttpSession session) {
+
+        Long memberNo = getLongSessionValue(session, "memberNo");
+        Integer businessNo = getLoginBusinessNo(session);
+        Object role = session.getAttribute("role");
+
+        return memberNo != null
+                && memberNo == ADMIN_MEMBER_NO
+                && businessNo != null
+                && businessNo == ADMIN_BUSINESS_NO
+                && ROLE_ADMIN.equals(String.valueOf(role));
+    }
+
+    /**
+     * 로그인 세션의 사업자 번호를 안전하게 변환합니다.
+     */
+    private Integer getLoginBusinessNo(HttpSession session) {
+
+        Object value = session.getAttribute("businessNo");
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * 세션의 숫자 값을 Long으로 변환합니다.
+     */
+    private Long getLongSessionValue(
+            HttpSession session,
+            String attributeName) {
+
+        Object value = session.getAttribute(attributeName);
+
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * 채팅 화면에 보여줄 이름을 사업자명 우선으로 가져옵니다.
+     */
+    private String getBusinessDisplayName(HttpSession session) {
+
+        Object businessName = session.getAttribute("businessName");
+
+        if (businessName != null
+                && !String.valueOf(businessName).isBlank()) {
+
+            return String.valueOf(businessName);
+        }
+
+        Object displayName = session.getAttribute("loginDisplayName");
+
+        if (displayName != null
+                && !String.valueOf(displayName).isBlank()) {
+
+            return String.valueOf(displayName);
+        }
+
+        return "사업자";
+    }
+
+    /**
+     * 허용되지 않은 방 유형은 자유방으로 강제합니다.
+     */
+    private String normalizeRoomType(String roomType) {
+
+        if (ROOM_TYPE_NOTICE.equals(roomType)) {
+            return ROOM_TYPE_NOTICE;
+        }
+
+        return ROOM_TYPE_PUBLIC;
     }
 }
