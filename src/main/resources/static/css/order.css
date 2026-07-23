@@ -1175,3 +1175,60 @@
     text-align: left;
   }
 }
+
+/* =====================================================
+   [주문 전체 취소 상태 및 반려 사유 표시 추가]
+
+   기존 주문 정보 영역의 레이아웃은 유지하면서
+   전체 취소 승인 대기, 반려, 완료 상태만 표시한다.
+====================================================== */
+.full-cancel-status-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+}
+
+.full-cancel-status-title {
+  display: block;
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.full-cancel-status-message {
+  margin: 7px 0 0;
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.full-cancel-status-box.waiting {
+  border-color: rgba(255, 193, 7, 0.45);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+.full-cancel-status-box.waiting .full-cancel-status-title {
+  color: #f0c75e;
+}
+
+.full-cancel-status-box.rejected {
+  border-color: var(--oditji-danger);
+  background: var(--oditji-danger-soft);
+}
+
+.full-cancel-status-box.rejected .full-cancel-status-title {
+  color: var(--oditji-danger);
+}
+
+.full-cancel-status-box.approved {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+}
+
+.full-cancel-status-box.approved .full-cancel-status-title {
+  color: var(--oditji-accent);
+}
