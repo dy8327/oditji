@@ -7,8 +7,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
+
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,8 @@ import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.EventProductVO;
 import com.project.oditji.business.vo.GoodsManageVO;
+import com.project.oditji.order.vo.OrderItemVO;
+import com.project.oditji.order.vo.OrderVO;
 
 @Service
 public class BusinessServiceImpl
@@ -115,9 +121,7 @@ public class BusinessServiceImpl
                 long waitingSettlement = businessDAO.selectWaitingSettlementAmountByBusinessNo(businessNo);
                 int waitingProductCount = businessDAO.selectWaitingProductCountByBusinessNo(businessNo);
 
-                double purchaseRate = clickCount <= 0
-                                ? 0.0
-                                : (todayOrderCount * 100.0) / clickCount;
+                double purchaseRate = clickCount <= 0 ? 0.0 : todayOrderCount * 100.0 / clickCount;
 
                 BusinessDashboardVO dashboard = new BusinessDashboardVO();
 
@@ -155,9 +159,56 @@ public class BusinessServiceImpl
 
         /*
         * =========================================================
-        * 사업자등록번호 사용 가능 여부 확인
+        * 사업자 주문 현황 - 주문 목록 조회
+        * 해당 사업자의 주문과 주문 상품을 조회한 뒤
+        * ORDER_NO 기준으로 상품 목록을 각 주문에 묶어서 반환.
         * =========================================================
         */
+        @Override
+        public List<OrderVO> getBusinessOrderList(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                List<OrderVO> orderList = businessDAO.selectBusinessOrderList(businessNo);
+                if (orderList == null || orderList.isEmpty()) {
+
+                        return Collections.emptyList();
+                }
+
+                List<OrderItemVO> itemList =getBusinessOrderItemList(businessNo);
+
+                /* ORDER_NO별 주문 상품 묶기 */
+                Map<Long, List<OrderItemVO>> itemMap =new HashMap<>();
+                for (OrderItemVO item : itemList) {
+
+                        itemMap.computeIfAbsent(item.getOrderNo(), key -> new java.util.ArrayList<>())
+                                        .add(item);
+                }
+
+                /* 각 주문에 해당 상품 목록 연결 */
+                for (OrderVO order : orderList) {
+                        order.setItems(itemMap.getOrDefault(order.getOrderNo(),Collections.emptyList()));
+                }
+
+                return orderList;
+        }
+
+
+        /* 사업자 주문 현황 - 주문 상품 목록 조회 */
+        @Override
+        public List<OrderItemVO> getBusinessOrderItemList(long businessNo) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                List<OrderItemVO> itemList =businessDAO.selectBusinessOrderItemList(businessNo);
+
+                return itemList == null? Collections.emptyList() : itemList;
+        }
+
+        /* 사업자등록번호 사용 가능 여부 확인 */
         @Override
         public boolean isBusinessNumberAvailable(String businessNumber) {
 
@@ -1350,7 +1401,7 @@ public class BusinessServiceImpl
                 }
 
                 productType = productType.trim()
-                                .toUpperCase();
+                                .toUpperCase(Locale.ROOT);
 
                 if (!ALLOWED_PRODUCT_TYPES.contains(
                                 productType)) {
@@ -1580,7 +1631,7 @@ public class BusinessServiceImpl
 
                 return filename
                                 .substring(dotIndex + 1)
-                                .toLowerCase();
+                                .toLowerCase(Locale.ROOT);
         }
 
         /*

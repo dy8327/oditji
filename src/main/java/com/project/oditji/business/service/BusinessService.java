@@ -10,6 +10,8 @@ import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.BusinessDashboardVO;
+import com.project.oditji.order.vo.OrderItemVO;
+import com.project.oditji.order.vo.OrderVO;
 
 public interface BusinessService {
 
@@ -111,4 +113,10 @@ public interface BusinessService {
         void extendApprovedEvent(long eventNo, long businessNo, java.time.LocalDate extendEndDate, String extendReason);
 
         List<GoodsManageVO> getPopularProducts(long businessNo);
+
+        /*사업자 주문 현황 - 주문 목록 조회 */
+        List<OrderVO> getBusinessOrderList(long businessNo);
+
+        /* 사업자 주문 현황 - 주문 상품 목록 조회 */
+        List<OrderItemVO> getBusinessOrderItemList(long businessNo);
 }
