@@ -29,7 +29,8 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="order-list-container" data-context-path="${pageContext.request.contextPath}">
+<main class="order-list-container"
+      data-context-path="${pageContext.request.contextPath}">
 
     <h1>주문 내역</h1>
 
@@ -43,7 +44,8 @@
     </c:if>
 
     <!-- 주문 목록 -->
-    <c:forEach var="o" items="${orderList}">
+    <c:forEach var="o"
+               items="${orderList}">
 
         <section class="order-card">
 
@@ -188,21 +190,33 @@
                             기존 상품 카드 레이아웃은 유지한다.
                             =========================================================
                         --%>
-                        <c:if test="${i.status eq 'PAID' || i.status eq 'ORDERED' || i.status eq 'PREPARING'}">
+                        <c:if test="${i.status eq 'PAID'
+                                || i.status eq 'ORDERED'
+                                || i.status eq 'PREPARING'}">
+
                             <button type="button"
                                     class="item-cancel-btn"
                                     data-order-item-no="${i.orderItemNo}"
                                     data-product-name="${i.productName}">
                                 상품 부분 취소
                             </button>
+
                         </c:if>
 
                         <c:if test="${i.status eq 'CANCEL_REQUEST'}">
-                            <span class="item-cancel-state">취소 승인 대기</span>
+
+                            <span class="item-cancel-state">
+                                취소 승인 대기
+                            </span>
+
                         </c:if>
 
                         <c:if test="${i.status eq 'CANCELED'}">
-                            <span class="item-cancel-state canceled">취소 완료</span>
+
+                            <span class="item-cancel-state canceled">
+                                취소 완료
+                            </span>
+
                         </c:if>
 
                     </div>
@@ -370,25 +384,130 @@
 
                 <%--
                     =========================================================
-                    [주문 전체 취소 버튼 수정]
+                    [주문 전체 취소 처리 상태 및 반려 사유 표시 추가]
 
-                    전체 취소는 주문에 포함된 모든 상품을 동일한 그룹으로
-                    묶어 요청하며, 모든 사업자가 승인한 경우에만 전액 환불한다.
+                    가장 최근 FULL 취소 그룹의 처리 상태를 주문 단위로
+                    표시한다.
+
+                    WAITING
+                    - 전체 취소 승인 대기 상태를 표시한다.
+                    - 전체 취소 버튼은 숨긴다.
+
+                    REJECTED
+                    - 전체 취소 반려 상태와 반려 사유를 표시한다.
+                    - 전체 취소 버튼은 숨긴다.
+
+                    APPROVED
+                    - 전체 취소 완료 상태를 표시한다.
+
+                    취소 요청 없음
+                    - 기존 주문 전체 취소 버튼을 표시한다.
                     =========================================================
                 --%>
-                <c:if test="${o.orderStatus eq 'PAID' || o.orderStatus eq 'ORDERED' || o.orderStatus eq 'PREPARING'}">
+                <c:choose>
 
-                    <div class="order-cancel-action">
+                    <c:when test="${o.fullCancelStatus eq 'WAITING'}">
 
-                        <button type="button"
-                                class="payment-cancel-btn"
-                                data-order-no="${o.orderNo}">
-                            주문 전체 취소
-                        </button>
+                        <div class="full-cancel-status-box waiting">
 
-                    </div>
+                            <strong class="full-cancel-status-title">
+                                전체 주문 취소 승인 대기
+                            </strong>
 
-                </c:if>
+                            <p class="full-cancel-status-message">
+                                주문에 포함된 사업자의 승인을 기다리고 있습니다.
+                            </p>
+
+                        </div>
+
+                    </c:when>
+
+                    <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
+
+                        <div class="full-cancel-status-box rejected">
+
+                            <strong class="full-cancel-status-title">
+                                전체 주문 취소 반려
+                            </strong>
+
+                            <p class="full-cancel-status-message">
+
+                                <span class="full-cancel-reject-label">
+                                    반려 사유:
+                                </span>
+
+                                <c:choose>
+
+                                    <c:when test="${not empty o.fullCancelRejectReason}">
+                                        <c:out value="${o.fullCancelRejectReason}"/>
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        사업자가 전체 주문 취소 요청을 반려했습니다.
+                                    </c:otherwise>
+
+                                </c:choose>
+
+                            </p>
+
+                        </div>
+
+                        <%--
+                            =========================================================
+                            [전체 취소 반려 후 재요청 버튼 유지]
+
+                            전체 취소 요청이 반려됐더라도 주문상품 상태가
+                            취소 가능한 상태라면 사용자가 다시 전체 취소를
+                            요청할 수 있도록 기존 버튼을 표시한다.
+                            =========================================================
+                        --%>
+                        <c:if test="${o.orderStatus eq 'PAID'
+                                || o.orderStatus eq 'ORDERED'
+                                || o.orderStatus eq 'PREPARING'}">
+
+                            <div class="order-cancel-action">
+
+                                <button type="button"
+                                        class="payment-cancel-btn"
+                                        data-order-no="${o.orderNo}">
+                                    주문 전체 취소
+                                </button>
+
+                            </div>
+
+                        </c:if>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <%--
+                            =========================================================
+                            [기존 주문 전체 취소 버튼 유지]
+
+                            최근 전체 취소 요청이 없는 경우에만
+                            주문 전체 취소 버튼을 표시한다.
+                            =========================================================
+                        --%>
+                        <c:if test="${o.orderStatus eq 'PAID'
+                                || o.orderStatus eq 'ORDERED'
+                                || o.orderStatus eq 'PREPARING'}">
+
+                            <div class="order-cancel-action">
+
+                                <button type="button"
+                                        class="payment-cancel-btn"
+                                        data-order-no="${o.orderNo}">
+                                    주문 전체 취소
+                                </button>
+
+                            </div>
+
+                        </c:if>
+
+                    </c:otherwise>
+
+                </c:choose>
 
             </div>
 
@@ -496,16 +615,15 @@
 
     </div>
 
-
     <!-- 주문 취소 요청 모달 -->
     <div id="orderCancelModal"
-        class="payment-cancel-modal"
-        aria-hidden="true">
+         class="payment-cancel-modal"
+         aria-hidden="true">
 
         <div class="payment-cancel-modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="orderCancelModalTitle">
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="orderCancelModalTitle">
 
             <h2 id="orderCancelModalTitle"
                 class="payment-cancel-modal-title">
@@ -513,22 +631,22 @@
             </h2>
 
             <p id="orderCancelModalDescription"
-            class="payment-cancel-modal-desc">
+               class="payment-cancel-modal-desc">
             </p>
 
             <label for="orderCancelReason"
-                class="payment-cancel-label">
+                   class="payment-cancel-label">
                 취소 사유
             </label>
 
             <textarea id="orderCancelReason"
-                    class="payment-cancel-reason"
-                    maxlength="500"
-                    placeholder="취소 사유를 입력해주세요."></textarea>
+                      class="payment-cancel-reason"
+                      maxlength="500"
+                      placeholder="취소 사유를 입력해주세요."></textarea>
 
             <p id="orderCancelError"
-            class="payment-cancel-error"
-            style="display:none;">
+               class="payment-cancel-error"
+               style="display:none;">
             </p>
 
             <div class="payment-cancel-modal-actions">
