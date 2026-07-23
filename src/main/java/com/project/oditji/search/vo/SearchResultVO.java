@@ -39,6 +39,20 @@ public class SearchResultVO {
     private String matchedPersonName;
     private String matchedPersonRole;
 
+    /**
+     * 콘텐츠 상세 페이지의 관련 콘텐츠 카드에 표시할 추천 이유입니다.
+     * 현재 콘텐츠와 후보 콘텐츠의 장르, 감독, 출연진을 비교하여
+     * SearchContentPageCacheService에서 동적으로 생성합니다.
+     */
+    private String recommendationReason;
+
+    /**
+     * 추천 이유의 대표 유형입니다.
+     * JSP에서는 이 값을 기준으로 장르·감독·출연진 등
+     * 추천 근거별 색상 클래스를 적용합니다.
+     */
+    private String recommendationReasonType;
+
     private List<OttPlatformVO> platformList =
             new ArrayList<OttPlatformVO>();
 
@@ -249,6 +263,28 @@ public class SearchResultVO {
 
         this.matchedPersonRole =
                 matchedPersonRole;
+    }
+
+    public String getRecommendationReason() {
+        return recommendationReason;
+    }
+
+    public void setRecommendationReason(
+            String recommendationReason) {
+
+        this.recommendationReason =
+                recommendationReason;
+    }
+
+    public String getRecommendationReasonType() {
+        return recommendationReasonType;
+    }
+
+    public void setRecommendationReasonType(
+            String recommendationReasonType) {
+
+        this.recommendationReasonType =
+                recommendationReasonType;
     }
 
     public List<OttPlatformVO> getPlatformList() {
