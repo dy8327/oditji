@@ -18,12 +18,14 @@
                 <br><br>
 
                 This product uses the TMDB API but is not endorsed or certified by TMDB.
-                
-                <br>
+                <br><br>
                 
                 시청 가능 정보는 TMDB 및 JustWatch 데이터를 기반으로 제공되며,
-                실제 제공 여부는 각 OTT 플랫폼에서 확인해주세요.
                 <br>
+                실제 제공 여부는 각 OTT 플랫폼에서 확인해주세요.
+                <br><br>
+                
+                TMDB 및 JustWatch에서 제공하지 않는 정보는 표출되지 않을 수 있습니다.
             </div>
 
             <!-- 오른쪽 -->
