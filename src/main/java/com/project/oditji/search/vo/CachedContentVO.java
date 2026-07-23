@@ -16,6 +16,13 @@ public class CachedContentVO {
     private String originalTitle;
     private String posterPath;
     private String releaseDate;
+
+    /**
+     * TV 콘텐츠의 가장 최근 방영 회차 공개일입니다.
+     * 영화 콘텐츠에서는 null을 유지합니다.
+     */
+    private String lastAirDate;
+
     private String genreText;
     private String ageRating;
     private Double tmdbScore;
@@ -93,6 +100,14 @@ public class CachedContentVO {
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public String getLastAirDate() {
+        return lastAirDate;
+    }
+
+    public void setLastAirDate(String lastAirDate) {
+        this.lastAirDate = lastAirDate;
     }
 
     public String getGenreText() {

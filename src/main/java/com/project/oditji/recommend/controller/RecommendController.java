@@ -28,6 +28,7 @@ public class RecommendController {
 
     private static final int SECTION_CONTENT_LIMIT = 10;
     private static final int CACHE_FETCH_SIZE = 100;
+    private static final int NEW_CONTENT_MONTHS = 1;
 
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final MemberPlatformService memberPlatformService;
@@ -76,16 +77,16 @@ public class RecommendController {
         /*
          * 1. 평점이 높은 콘텐츠
          */
-        List<SearchResultVO> highRatedContentList =
+        List<SearchResultVO> highRatedCandidateList =
                 searchContentPageCacheService
                         .getMainRecommendedContent(
                                 selectedPlatformNames,
                                 CACHE_FETCH_SIZE
                         );
 
-        highRatedContentList =
+        List<SearchResultVO> highRatedContentList =
                 sortAndLimitByScore(
-                        highRatedContentList,
+                        highRatedCandidateList,
                         SECTION_CONTENT_LIMIT
                 );
 
@@ -97,14 +98,14 @@ public class RecommendController {
         /*
          * 2. 지금 인기 있는 콘텐츠
          */
-        List<SearchResultVO> popularContentList =
+        List<SearchResultVO> popularCandidateList =
                 getCachedPopularContent(
                         selectedPlatformNames
                 );
 
-        popularContentList =
+        List<SearchResultVO> popularContentList =
                 sortAndLimitByPopularity(
-                        popularContentList,
+                        popularCandidateList,
                         SECTION_CONTENT_LIMIT
                 );
 
@@ -116,13 +117,16 @@ public class RecommendController {
         /*
          * 3. 최근 공개된 콘텐츠
          *
-         * 추천 목록과 인기 목록을 합친 뒤,
-         * 공개일이 오늘 이하인 콘텐츠만 최신순으로 정렬한다.
+         * 영화는 개봉일, TV는 최근 회차 공개일을 기준으로
+         * 오늘부터 최근 한 달 이내 콘텐츠만 신작으로 표시합니다.
+         *
+         * 화면용 10건으로 먼저 줄이면 최근 콘텐츠가 누락될 수 있으므로
+         * 원본 100건 후보 목록을 합쳐 신작 목록을 만듭니다.
          */
         List<SearchResultVO> newContentList =
                 createNewContentList(
-                        highRatedContentList,
-                        popularContentList,
+                        highRatedCandidateList,
+                        popularCandidateList,
                         SECTION_CONTENT_LIMIT
                 );
 
@@ -299,6 +303,13 @@ public class RecommendController {
         return limitList(resultList, limit);
     }
 
+    /**
+     * 추천 화면의 신작 콘텐츠 목록을 생성합니다.
+     *
+     * 영화는 최초 개봉일을 사용하고,
+     * TV는 마지막으로 방영된 회차의 공개일을 사용합니다.
+     * 기준일이 최근 한 달 범위를 벗어나거나 미래인 콘텐츠는 제외합니다.
+     */
     private List<SearchResultVO> createNewContentList(
             List<SearchResultVO> highRatedContentList,
             List<SearchResultVO> popularContentList,
@@ -318,29 +329,36 @@ public class RecommendController {
         List<SearchResultVO> resultList =
                 distinctContentList(mergedList);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today =
+                LocalDate.now();
+
+        LocalDate startDate =
+                today.minusMonths(
+                        NEW_CONTENT_MONTHS
+                );
 
         resultList.removeIf(content -> {
 
-            LocalDate releaseDate =
-                    parseReleaseDate(
-                            content.getReleaseDate()
+            LocalDate recentDate =
+                    resolveRecentContentDate(
+                            content
                     );
 
-            return releaseDate == null
-                    || releaseDate.isAfter(today);
+            return recentDate == null
+                    || recentDate.isBefore(startDate)
+                    || recentDate.isAfter(today);
         });
 
         resultList.sort((first, second) -> {
 
             LocalDate firstDate =
-                    parseReleaseDate(
-                            first.getReleaseDate()
+                    resolveRecentContentDate(
+                            first
                     );
 
             LocalDate secondDate =
-                    parseReleaseDate(
-                            second.getReleaseDate()
+                    resolveRecentContentDate(
+                            second
                     );
 
             int dateCompare =
@@ -356,7 +374,35 @@ public class RecommendController {
             );
         });
 
-        return limitList(resultList, limit);
+        return limitList(
+                resultList,
+                limit
+        );
+    }
+
+    /**
+     * 신작 판단에 사용할 날짜를 콘텐츠 유형별로 반환합니다.
+     *
+     * 영화는 개봉일, TV는 최근 회차 공개일을 사용합니다.
+     * 최근 회차 날짜가 아직 없는 TV는 신작 목록에서 제외하기 위해 null을 반환합니다.
+     */
+    private LocalDate resolveRecentContentDate(
+            SearchResultVO content) {
+
+        if (content == null) {
+            return null;
+        }
+
+        String dateText =
+                "TV".equalsIgnoreCase(
+                        content.getContentType()
+                )
+                        ? content.getLastAirDate()
+                        : content.getReleaseDate();
+
+        return parseReleaseDate(
+                dateText
+        );
     }
 
     private List<RecommendPlatformSectionVO> createPlatformSectionList(

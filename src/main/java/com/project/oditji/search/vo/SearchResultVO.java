@@ -17,6 +17,13 @@ public class SearchResultVO {
     private String posterPath;
     private String backdropPath;
     private String releaseDate;
+
+    /**
+     * TV 콘텐츠의 최근 회차 공개일입니다.
+     * 추천 신작 영역에서 TV 카드 날짜와 정렬 기준으로 사용합니다.
+     */
+    private String lastAirDate;
+
     private String genreText;
     private String ageRating;
 
@@ -120,6 +127,16 @@ public class SearchResultVO {
             String releaseDate) {
 
         this.releaseDate = releaseDate;
+    }
+
+    public String getLastAirDate() {
+        return lastAirDate;
+    }
+
+    public void setLastAirDate(
+            String lastAirDate) {
+
+        this.lastAirDate = lastAirDate;
     }
 
     public String getGenreText() {
