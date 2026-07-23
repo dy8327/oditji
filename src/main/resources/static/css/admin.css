@@ -787,21 +787,45 @@
    모니터링 차트 영역
    ===================================================== */
 
-.admin-wrap .chart-box {
-  margin-top: 20px;
-  padding: 40px;
+.admin-wrap .chart-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
 
+.admin-wrap .chart-box {
+  flex: 1 1 360px;
+  min-width: 300px;
+
+  padding: 28px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+}
+
+.admin-wrap .chart-box-title {
+  margin: 0 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--adm-text-sub);
+}
+
+.admin-wrap .chart-box canvas {
+  max-width: 100%;
+}
+
+.admin-wrap .chart-box.empty {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 320px;
+  min-height: 260px;
 
-  background: var(--adm-surface-2);
-  border: 1px dashed var(--adm-border);
-  border-radius: var(--adm-radius-md);
+  border-style: dashed;
 
   color: var(--adm-text-dim);
-  font-size: 15px;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -841,7 +865,8 @@
   }
 
   .admin-wrap .toolbar,
-  .admin-wrap .item-card {
+  .admin-wrap .item-card,
+  .admin-wrap .chart-row {
     flex-direction: column;
 
     align-items: stretch;

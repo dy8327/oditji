@@ -119,18 +119,6 @@
 
                         </a>
 
-                        <!-- 승인 -->
-                        <a href="${pageContext.request.contextPath}/business/approvalManage"
-                        class="dashboard-card">
-
-                            <span>승인 대기 상품</span>
-
-                            <strong>
-                                ${businessMain.waitingProductCount}
-                            </strong>
-
-                        </a>
-
                     </div>
 
                 </section>

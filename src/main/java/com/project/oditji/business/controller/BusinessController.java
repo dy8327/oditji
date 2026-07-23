@@ -1442,27 +1442,6 @@ public class BusinessController {
 
         /*
          * =========================================================
-         * 승인 관리
-         * =========================================================
-         */
-        @GetMapping("/approval")
-        public String approvalList(
-                        @RequestParam(defaultValue = "product") String type,
-                        Model model) {
-
-                model.addAttribute(
-                                "currentType",
-                                type);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "approval");
-
-                return "business/approval/approvalList";
-        }
-
-        /*
-         * =========================================================
          * 정산 관리
          * =========================================================
          */

@@ -15,9 +15,11 @@ import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
+import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.VisitorTrendVO;
 
 @Repository
 public class AdminDAO {
@@ -391,6 +393,14 @@ public class AdminDAO {
 
     public List<MonitoringVO> selectMonitoringList() {
         return sqlSession.selectList("selectMonitoringList");
+    }
+
+    public List<VisitorTrendVO> selectVisitorTrend() {
+        return sqlSession.selectList("selectVisitorTrend");
+    }
+
+    public List<PopularClickVO> selectPopularProductClicks() {
+        return sqlSession.selectList("selectPopularProductClicks");
     }
 
     // ===================== 콘텐츠 관리 (CONTENT) =====================

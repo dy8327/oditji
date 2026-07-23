@@ -143,89 +143,11 @@
 
                                 <div class="product-info">
 
-                                    <div class="product-type">
+                                    <div class="product-header">
 
-                                        <c:choose>
-
-                                            <c:when test="${product.productType == 'CLOTHES'}">
-                                                의상
-                                            </c:when>
-
-                                            <c:when test="${product.productType == 'PROP'}">
-                                                소품
-                                            </c:when>
-
-                                            <c:when test="${product.productType == 'GOODS'}">
-                                                굿즈
-                                            </c:when>
-
-                                            <c:when test="${product.productType == 'OST'}">
-                                                OST
-                                            </c:when>
-
-                                            <c:when test="${product.productType == 'BOOK'}">
-                                                도서
-                                            </c:when>
-
-                                            <c:when test="${product.productType == 'FIGURE'}">
-                                                피규어
-                                            </c:when>
-
-                                            <c:otherwise>
-                                                기타
-                                            </c:otherwise>
-
-                                        </c:choose>
-
-                                    </div>
-
-
-                                    <div class="product-name">
-                                        <c:out value="${product.productName}"/>
-                                    </div>
-
-
-                                    <div class="product-meta">
-
-                                        <span>
-                                            관련 콘텐츠:
-                                            <c:out value="${product.contentTitle}"/>
-                                        </span>
-
-                                        <c:if test="${not empty product.actorName}">
-
-                                            <span>
-                                                관련 배우:
-                                                <c:out value="${product.actorName}"/>
-                                            </span>
-
-                                        </c:if>
-
-                                        <span>
-                                            수량:
-                                            <c:out value="${product.stock}"/>개
-                                        </span>
-
-                                        <span>
-                                            가격:
-                                            <c:out value="${product.price}"/>원
-                                        </span>
-
-                                        <c:if test="${product.discountRate > 0}">
-
-                                            <span>
-                                                할인율:
-                                                <c:out value="${product.discountRate}"/>%
-                                            </span>
-
-                                        </c:if>
-
-                                    </div>
-
-
-                                    <div class="product-status-text">
-
-                                        승인 상태:
+                                        <div class="product-name">
+                                            <c:out value="${product.productName}"/>
+                                        </div>
 
                                         <c:choose>
 
@@ -265,36 +187,110 @@
 
                                     </div>
 
+
+                                    <div class="product-type">
+
+                                        <c:choose>
+
+                                            <c:when test="${product.productType == 'CLOTHES'}">
+                                                의상
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'PROP'}">
+                                                소품
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'GOODS'}">
+                                                굿즈
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'OST'}">
+                                                OST
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'BOOK'}">
+                                                도서
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'FIGURE'}">
+                                                피규어
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                기타
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                    </div>
+
+
+                                    <div class="product-meta">
+
+                                        <div class="meta-row">
+                                            관련 콘텐츠 :
+                                            <c:out value="${product.contentTitle}"/>
+                                        </div>
+
+                                        <c:if test="${not empty product.actorName}">
+
+                                            <div class="meta-row">
+                                                관련 배우 :
+                                                <c:out value="${product.actorName}"/>
+                                            </div>
+
+                                        </c:if>
+
+                                        <div class="meta-row">
+
+                                            <span>
+                                                수량 :
+                                                <c:out value="${product.stock}"/>개
+                                            </span>
+
+                                            <span>
+                                                가격 :
+                                                <c:out value="${product.price}"/>원
+                                            </span>
+
+                                        </div>
+
+                                        <c:if test="${product.discountRate > 0}">
+
+                                            <div class="meta-row">
+                                                할인율 :
+                                                <c:out value="${product.discountRate}"/>%
+                                            </div>
+
+                                        </c:if>
+
+                                    </div>
+
+
+                                    <div class="product-actions">
+
+                                        <button type="button"
+                                                class="product-action-btn"
+                                                onclick="location.href='${pageContext.request.contextPath}/business/product/update?productNo=${product.productNo}'">
+                                            수정 요청
+                                        </button>
+
+                                        <button type="button"
+                                                class="product-action-btn delete"
+                                                onclick="location.href='${pageContext.request.contextPath}/business/product/delete?productNo=${product.productNo}'">
+                                            삭제 요청
+                                        </button>
+
+                                        <button type="button"
+                                                class="product-action-btn"
+                                                onclick="location.href='${pageContext.request.contextPath}/business/settlement/sales?productNo=${product.productNo}'">
+                                            판매 현황
+                                        </button>
+
+                                    </div>
+
                                 </div>
 
-
-                                <div class="product-actions">
-
-                                    <button type="button"
-                                            class="product-action-btn"
-                                            onclick="location.href='${pageContext.request.contextPath}/business/product/update?productNo=${product.productNo}'">
-                                        수정 요청
-                                    </button>
-
-                                    <button type="button"
-                                            class="product-action-btn delete"
-                                            onclick="location.href='${pageContext.request.contextPath}/business/product/delete?productNo=${product.productNo}'">
-                                        삭제 요청
-                                    </button>
-
-                                    <button type="button"
-                                            class="product-action-btn"
-                                            onclick="location.href='${pageContext.request.contextPath}/business/settlement/sales?productNo=${product.productNo}'">
-                                        판매 현황
-                                    </button>
-
-                                    <button type="button"
-                                            class="product-action-btn"
-                                            onclick="location.href='${pageContext.request.contextPath}/business/approval?type=product&productNo=${product.productNo}'">
-                                        승인 상태
-                                    </button>
-
-                                </div>
 
                             </div>
 
