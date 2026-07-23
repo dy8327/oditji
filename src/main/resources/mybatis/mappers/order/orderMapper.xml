@@ -91,6 +91,15 @@
         <result property="pgProvider"
                 column="PG_PROVIDER"/>
 
+        <!-- =====================================================
+             [주문 전체 취소 상태 및 반려 사유 매핑 추가]
+        ====================================================== -->
+        <result property="fullCancelStatus"
+                column="FULL_CANCEL_STATUS"/>
+
+        <result property="fullCancelRejectReason"
+                column="FULL_CANCEL_REJECT_REASON"/>
+
     </resultMap>
 
 
@@ -450,7 +459,57 @@
             O.ADDRESS,
             O.CREATED_AT,
             P.PAY_METHOD,
-            P.PG_PROVIDER
+            P.PG_PROVIDER,
+
+            /* =====================================================
+               [최근 주문 전체 취소 그룹 상태 조회 추가]
+
+               하나의 전체 취소 요청은 주문상품별 여러 행으로
+               저장되므로 가장 최근 CANCEL_GROUP_NO를 기준으로
+               그룹 상태를 계산한다.
+            ====================================================== */
+            (
+                SELECT
+                    CASE
+                        WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
+                            THEN 'REJECTED'
+                        WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
+                            THEN 'WAITING'
+                        WHEN COUNT(*) > 0
+                             AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
+                            THEN 'APPROVED'
+                        ELSE NULL
+                    END
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_STATUS,
+
+            /* =====================================================
+               [최근 주문 전체 취소 반려 사유 조회 추가]
+
+               전체 취소 그룹이 반려된 경우 해당 그룹에 저장된
+               반려 사유 한 건을 사용자 주문내역에 표시한다.
+            ====================================================== */
+            (
+                SELECT MAX(CR.REJECT_REASON)
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.STATUS = 'REJECTED'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_REJECT_REASON
         FROM ORDERS O
 
         /* =====================================================
@@ -560,17 +619,63 @@
             resultMap="orderResultMap">
 
         SELECT
-            ORDER_NO,
-            MEMBER_NO,
-            TOTAL_AMOUNT,
-            ORDER_STATUS,
-            RECEIVER_NAME,
-            RECEIVER_PHONE,
-            ADDRESS,
-            CREATED_AT
-        FROM ORDERS
-        WHERE MEMBER_NO = #{memberNo}
-          AND ORDER_NO = #{orderNo}
+            O.ORDER_NO,
+            O.MEMBER_NO,
+            O.TOTAL_AMOUNT,
+            O.ORDER_STATUS,
+            O.RECEIVER_NAME,
+            O.RECEIVER_PHONE,
+            O.ADDRESS,
+            O.CREATED_AT,
+            P.PAY_METHOD,
+            P.PG_PROVIDER,
+
+            /* =====================================================
+               [주문 단건 조회의 전체 취소 상태 및 반려 사유 추가]
+            ====================================================== */
+            (
+                SELECT
+                    CASE
+                        WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
+                            THEN 'REJECTED'
+                        WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
+                            THEN 'WAITING'
+                        WHEN COUNT(*) > 0
+                             AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
+                            THEN 'APPROVED'
+                        ELSE NULL
+                    END
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_STATUS,
+
+            (
+                SELECT MAX(CR.REJECT_REASON)
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.STATUS = 'REJECTED'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_REJECT_REASON
+        FROM ORDERS O
+
+        LEFT JOIN PAYMENT P
+          ON P.ORDER_NO = O.ORDER_NO
+
+        WHERE O.MEMBER_NO = #{memberNo}
+          AND O.ORDER_NO = #{orderNo}
 
     </select>
 
