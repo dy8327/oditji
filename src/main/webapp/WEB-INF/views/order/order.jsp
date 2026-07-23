@@ -100,14 +100,14 @@
                placeholder="받는 사람"
                value="${defaultReceiverName}"
                maxlength="50"
-               readonly>
+              >
 
         <input type="text"
                id="phone"
                placeholder="연락처"
                value="${defaultReceiverPhone}"
                maxlength="20"
-               readonly>
+               >
 
         <div class="address-search-row">
 
