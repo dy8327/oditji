@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     modalTitle.textContent = "상품 부분 취소 요청";
 
-    modalDescription.textContent = "'" + safeProductName + "' 상품만 부분 취소 요청합니다. " + "해당 상품을 판매한 사업자가 승인하면 " + "부분 환불됩니다.";
+    modalDescription.textContent = "'" + safeProductName + "' 상품을 부분 취소 요청합니다. " + "해당 상품을 판매한 사업자가 승인하면 " + "부분 환불됩니다.";
 
     reasonInput.placeholder = safeProductName + "의 취소 사유를 입력해주세요.";
 
