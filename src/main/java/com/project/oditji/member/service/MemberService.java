@@ -7,7 +7,7 @@ import com.project.oditji.business.vo.BusinessVO;
 
 public interface MemberService {
 
-    void joinMember(MemberVO memberVO, List<String> ottList);
+    void joinMember(MemberVO memberVO, List<String> ottList, String noOtt);
 
     void joinBusinessMember(MemberVO memberVO, BusinessVO businessVO);
 
@@ -51,6 +51,8 @@ public interface MemberService {
     MemberVO getMemberByNo(Long memberNo);
 
     boolean checkUpdateNickname(Long memberNo, String nickname);
+
+    boolean checkUpdateEmail(Long memberNo, String email);
 
     MemberVO findId(MemberVO memberVO);
 
