@@ -1771,6 +1771,81 @@
     -webkit-box-orient: vertical;
 }
 
+/*
+ * 관련 콘텐츠 추천 이유 영역
+ * 장르 정보와 시각적으로 구분하면서도 카드 높이가 지나치게 커지지 않도록
+ * 최대 세 줄까지만 표시합니다.
+ */
+.related-content-reason {
+    --reason-color: #9b9b9b;
+    --reason-background: rgba(155, 155, 155, 0.10);
+
+    margin-top: 11px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.related-content-reason-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 6px;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--reason-color) 38%,
+        transparent
+    );
+    border-radius: 999px;
+    background: var(--reason-background);
+    color: var(--reason-color);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.related-content-reason p {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 6px 0 0;
+    color: var(--reason-color);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.45;
+    opacity: 0.88;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+/* 같은 감독이 추천 근거인 경우: 보라색 */
+.related-content-reason.reason-director {
+    --reason-color: #c4a7ff;
+    --reason-background: rgba(196, 167, 255, 0.10);
+}
+
+/* 같은 출연진이 추천 근거인 경우: 주황색 */
+.related-content-reason.reason-cast {
+    --reason-color: #ffbd7a;
+    --reason-background: rgba(255, 189, 122, 0.10);
+}
+
+/* 주 장르까지 같은 경우: 청록색 */
+.related-content-reason.reason-main-genre {
+    --reason-color: #78ddd2;
+    --reason-background: rgba(120, 221, 210, 0.10);
+}
+
+/* 일부 장르가 일치하는 경우: 연두색 */
+.related-content-reason.reason-genre {
+    --reason-color: #a9d985;
+    --reason-background: rgba(169, 217, 133, 0.10);
+}
+
+/* 콘텐츠 분류만 유사한 기본 추천: 회색 */
+.related-content-reason.reason-category {
+    --reason-color: #a9adb5;
+    --reason-background: rgba(169, 173, 181, 0.10);
+}
+
 .related-content-empty {
     padding: 38px 20px;
     border: 1px solid rgba(255, 255, 255, 0.07);

@@ -59,6 +59,180 @@
 
     </section>
 
+    <!-- =====================================================
+         최근 관심 기록 기반 맞춤 OTT 추천
+
+         추천 활성화 조건을 충족하면 단독 또는 공동 추천을 표시하고,
+         아직 기록이 부족하면 RecommendService의 안내 문구를 표시합니다.
+    ====================================================== -->
+    <section class="ott-recommendation-section">
+
+        <div class="ott-recommendation-heading">
+
+            <div>
+                <p class="ott-recommendation-kicker">
+                    MY OTT MATCH
+                </p>
+
+                <h2>
+                    나에게 맞는 OTT
+                </h2>
+
+                <p>
+                    최근 둘러본 콘텐츠를 기준으로 분석했어요.
+                </p>
+            </div>
+
+        </div>
+
+        <c:choose>
+
+            <%-- 추천 기준을 충족한 회원 --%>
+            <c:when test="${ottRecommendation.recommendationAvailable}">
+
+                <div class="ott-recommendation-result">
+
+                    <div class="ott-recommendation-summary">
+
+                        <span class="ott-recommendation-badge">
+                            <c:choose>
+                                <c:when test="${ottRecommendation.jointRecommendation}">
+                                    공동 추천
+                                </c:when>
+                                <c:otherwise>
+                                    1순위 추천
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
+
+                        <h3>
+                            ${ottRecommendation.statusMessage}
+                        </h3>
+
+                        <ul class="ott-recommendation-reasons">
+                            <c:forEach var="reason"
+                                       items="${ottRecommendation.recommendationReasons}">
+                                <li>${reason}</li>
+                            </c:forEach>
+                        </ul>
+
+                    </div>
+
+                    <div class="ott-recommendation-platform-list">
+
+                        <c:forEach var="platform"
+                                   items="${ottRecommendation.recommendedPlatformList}"
+                                   varStatus="status">
+
+                            <article class="ott-recommendation-platform-card">
+
+                                <div class="ott-recommendation-platform-rank">
+                                    ${status.index + 1}
+                                </div>
+
+                                <div class="ott-recommendation-platform-logo">
+                                    <c:choose>
+                                        <c:when test="${not empty platform.logoImage}">
+                                            <img src="${platform.logoImage}"
+                                                 alt="${platform.platformName}">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span>OTT</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
+                                <div class="ott-recommendation-platform-info">
+                                    <h4>${platform.platformName}</h4>
+
+                                    <p class="ott-recommendation-platform-caption">
+                                        회원님의 최근 관심 흐름과 잘 맞는 OTT예요.
+                                    </p>
+
+                                    <div class="ott-recommendation-content-summary">
+
+                                        <div class="ott-recommendation-content-row">
+                                            <strong>찜한 콘텐츠</strong>
+
+                                            <span>
+                                                <c:choose>
+                                                    <c:when test="${not empty platform.favoriteContentList}">
+                                                        <c:forEach var="content"
+                                                                   items="${platform.favoriteContentList}"
+                                                                   varStatus="contentStatus">
+                                                            <a href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">${content.title}</a><c:if test="${not contentStatus.last}">, </c:if>
+                                                        </c:forEach>
+                                                    </c:when>
+                                                    <c:otherwise>없음</c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+
+                                        <div class="ott-recommendation-content-row">
+                                            <strong>둘러본 콘텐츠</strong>
+
+                                            <span>
+                                                <c:choose>
+                                                    <c:when test="${not empty platform.viewedContentList}">
+                                                        <c:forEach var="content"
+                                                                   items="${platform.viewedContentList}"
+                                                                   varStatus="contentStatus">
+                                                            <a href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">${content.title}</a><c:if test="${not contentStatus.last}">, </c:if>
+                                                        </c:forEach>
+                                                    </c:when>
+                                                    <c:otherwise>없음</c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </article>
+
+                        </c:forEach>
+
+                    </div>
+
+                </div>
+
+            </c:when>
+
+            <%-- 비로그인 또는 추천 데이터가 아직 부족한 상태 --%>
+            <c:otherwise>
+
+                <div class="ott-recommendation-empty">
+
+                    <div class="ott-recommendation-empty-icon">
+                        ?
+                    </div>
+
+                    <div>
+                        <h3>
+                            아직 추천 결과를 준비하고 있어요
+                        </h3>
+
+                        <p>
+                            최근 둘러본 콘텐츠가 조금 더 쌓이면
+                            회원님에게 잘 맞는 OTT를 추천해드릴게요.
+                        </p>
+                    </div>
+
+                    <c:if test="${not loggedIn}">
+                        <a href="${pageContext.request.contextPath}/member/login">
+                            로그인하기
+                        </a>
+                    </c:if>
+
+                </div>
+
+            </c:otherwise>
+
+        </c:choose>
+
+    </section>
+
+
     <c:choose>
 
         <%-- 로그인했고 OTT를 선택한 회원 --%>

@@ -75,7 +75,8 @@
                     <c:when test="${showRecentEpisodeDate
                                   and content.contentType eq 'TV'
                                   and not empty content.lastAirDate}">
-                        &#52572;&#44540; &#54924;&#52264; ${content.lastAirDate}
+                        &#52572;&#44540; &#54924;&#52264; <br>
+                        ${content.lastAirDate}
                     </c:when>
 
                     <c:when test="${not empty content.releaseDate}">

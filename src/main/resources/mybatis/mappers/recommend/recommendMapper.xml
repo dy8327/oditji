@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.recommend.dao.RecommendDAO">
+
+    <!--
+        회원의 최근 콘텐츠 조회와 현재 찜 목록을 이용해
+        OTT별 관심도 점수를 계산합니다.
+
+        조회 점수:
+        - 최근 7일: 하루 최대 3회 × 2점
+        - 최근 8~30일: 하루 최대 3회 × 1점
+
+        찜 점수:
+        - 현재 찜 콘텐츠 한 개당 3점
+
+        하나의 콘텐츠가 여러 OTT에서 제공되면
+        해당 콘텐츠 점수는 각 OTT에 모두 반영됩니다.
+    -->
+    <select id="selectOttInterestScoreList"
+            parameterType="long"
+            resultType="com.project.oditji.recommend.vo.RecommendOttScoreVO">
+
+        WITH VIEW_CONTENT_SCORE AS (
+
+            /*
+             * 회원의 최근 30일 조회 이력을
+             * 콘텐츠 단위 점수로 먼저 합산합니다.
+             *
+             * VIEW_COUNT 자체는 실제 조회 횟수를 저장하지만
+             * 추천 계산에서는 LEAST를 사용해
+             * 같은 콘텐츠의 하루 조회를 최대 3회까지만 반영합니다.
+             */
+            SELECT
+                CVH.CONTENT_NO,
+
+                SUM(
+                    CASE
+                        WHEN CVH.VIEW_DATE
+                                >= TRUNC(SYSDATE) - 6
+                        THEN LEAST(CVH.VIEW_COUNT, 3) * 2
+
+                        ELSE LEAST(CVH.VIEW_COUNT, 3)
+                    END
+                ) AS VIEW_SCORE
+
+            FROM CONTENT_VIEW_HISTORY CVH
+
+            WHERE CVH.MEMBER_NO = #{memberNo}
+              AND CVH.VIEW_DATE
+                    >= TRUNC(SYSDATE) - 29
+
+            GROUP BY
+                CVH.CONTENT_NO
+        ),
+
+        FAVORITE_CONTENT_SCORE AS (
+
+            /*
+             * 현재 찜 목록은 콘텐츠당 3점으로 계산합니다.
+             *
+             * 찜 생성 날짜와 관계없이
+             * 현재 찜 상태인 콘텐츠를 반영합니다.
+             */
+            SELECT
+                F.CONTENT_NO,
+                3 AS FAVORITE_SCORE,
+                1 AS FAVORITE_CONTENT_COUNT
+
+            FROM FAVORITE F
+
+            WHERE F.MEMBER_NO = #{memberNo}
+        ),
+
+        MEMBER_INTEREST_CONTENT AS (
+
+            /*
+             * 조회 콘텐츠와 찜 콘텐츠를 합칩니다.
+             *
+             * 한 콘텐츠가 조회와 찜 모두에 해당해도
+             * FULL OUTER JOIN을 통해 한 행으로 유지합니다.
+             */
+            SELECT
+                NVL(
+                    VCS.CONTENT_NO,
+                    FCS.CONTENT_NO
+                ) AS CONTENT_NO,
+
+                NVL(
+                    VCS.VIEW_SCORE,
+                    0
+                ) AS VIEW_SCORE,
+
+                NVL(
+                    FCS.FAVORITE_SCORE,
+                    0
+                ) AS FAVORITE_SCORE,
+
+                NVL(
+                    FCS.FAVORITE_CONTENT_COUNT,
+                    0
+                ) AS FAVORITE_CONTENT_COUNT
+
+            FROM VIEW_CONTENT_SCORE VCS
+
+            FULL OUTER JOIN FAVORITE_CONTENT_SCORE FCS
+              ON FCS.CONTENT_NO = VCS.CONTENT_NO
+        )
+
+        SELECT
+            OP.PLATFORM_NO AS platformNo,
+            OP.PLATFORM_NAME AS platformName,
+            OP.LOGO_IMAGE AS logoImage,
+            OP.SITE_URL AS siteUrl,
+
+            SUM(
+                MIC.VIEW_SCORE
+            ) AS viewScore,
+
+            SUM(
+                MIC.FAVORITE_SCORE
+            ) AS favoriteScore,
+
+            SUM(
+                MIC.VIEW_SCORE
+                + MIC.FAVORITE_SCORE
+            ) AS totalScore,
+
+            COUNT(
+                DISTINCT MIC.CONTENT_NO
+            ) AS interestContentCount,
+
+            SUM(
+                MIC.FAVORITE_CONTENT_COUNT
+            ) AS favoriteContentCount
+
+        FROM MEMBER_INTEREST_CONTENT MIC
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = MIC.CONTENT_NO
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+
+        WHERE OP.IS_ACTIVE = 'Y'
+
+        GROUP BY
+            OP.PLATFORM_NO,
+            OP.PLATFORM_NAME,
+            OP.LOGO_IMAGE,
+            OP.SITE_URL
+
+        ORDER BY
+            totalScore DESC,
+            interestContentCount DESC,
+            favoriteContentCount DESC,
+            OP.PLATFORM_NO
+
+    </select>
+
+
+    <!--
+        회원의 서로 다른 전체 관심 콘텐츠 수를 계산합니다.
+
+        최근 30일 조회 콘텐츠와 현재 찜 콘텐츠를
+        UNION으로 합쳐 중복 콘텐츠를 제거합니다.
+    -->
+    <select id="countDistinctInterestContent"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM (
+
+            SELECT
+                CVH.CONTENT_NO
+
+            FROM CONTENT_VIEW_HISTORY CVH
+
+            WHERE CVH.MEMBER_NO = #{memberNo}
+              AND CVH.VIEW_DATE
+                    >= TRUNC(SYSDATE) - 29
+
+            GROUP BY
+                CVH.CONTENT_NO
+
+            UNION
+
+            SELECT
+                F.CONTENT_NO
+
+            FROM FAVORITE F
+
+            WHERE F.MEMBER_NO = #{memberNo}
+        )
+
+    </select>
+
+
+    <!--
+        최종 추천 OTT들이 제공하는 회원의 관심 콘텐츠 수를 계산합니다.
+
+        단독 추천이면 한 개의 플랫폼 번호가 전달되고,
+        공동 추천이면 1위와 2위 플랫폼 번호가 함께 전달됩니다.
+
+        COUNT(DISTINCT)를 사용하므로 같은 콘텐츠가 두 OTT에 모두 있어도
+        한 번만 집계되어 실제 합집합 개수가 반환됩니다.
+    -->
+    <select id="countDistinctInterestContentByPlatforms"
+            resultType="int">
+
+        SELECT
+            COUNT(
+                DISTINCT MIC.CONTENT_NO
+            )
+
+        FROM (
+
+            SELECT
+                CVH.CONTENT_NO
+
+            FROM CONTENT_VIEW_HISTORY CVH
+
+            WHERE CVH.MEMBER_NO = #{memberNo}
+              AND CVH.VIEW_DATE
+                    &gt;= TRUNC(SYSDATE) - 29
+
+            GROUP BY
+                CVH.CONTENT_NO
+
+            UNION
+
+            SELECT
+                F.CONTENT_NO
+
+            FROM FAVORITE F
+
+            WHERE F.MEMBER_NO = #{memberNo}
+
+        ) MIC
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = MIC.CONTENT_NO
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+
+        WHERE OP.IS_ACTIVE = 'Y'
+          AND CP.PLATFORM_NO IN
+
+        <foreach collection="platformNoList"
+                 item="platformNo"
+                 open="("
+                 separator=","
+                 close=")">
+            #{platformNo}
+        </foreach>
+
+    </select>
+
+
+    <!--
+        최종 추천 OTT들이 제공하는 회원의 찜 콘텐츠 수를 계산합니다.
+
+        공동 추천된 두 OTT에 같은 찜 콘텐츠가 있어도
+        COUNT(DISTINCT)를 사용해 한 번만 집계합니다.
+    -->
+    <select id="countDistinctFavoriteContentByPlatforms"
+            resultType="int">
+
+        SELECT
+            COUNT(
+                DISTINCT F.CONTENT_NO
+            )
+
+        FROM FAVORITE F
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = F.CONTENT_NO
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = CP.PLATFORM_NO
+
+        WHERE F.MEMBER_NO = #{memberNo}
+          AND OP.IS_ACTIVE = 'Y'
+          AND CP.PLATFORM_NO IN
+
+        <foreach collection="platformNoList"
+                 item="platformNo"
+                 open="("
+                 separator=","
+                 close=")">
+            #{platformNo}
+        </foreach>
+
+    </select>
+
+
+    <!-- 추천 OTT에서 볼 수 있는 회원의 찜 콘텐츠를 최대 2개 조회합니다. -->
+    <select id="selectFavoriteContentList"
+            resultType="com.project.oditji.recommend.vo.RecommendOttContentVO">
+
+        SELECT
+            C.CONTENT_NO AS contentNo,
+            C.TITLE AS title
+
+        FROM FAVORITE F
+
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = F.CONTENT_NO
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = C.CONTENT_NO
+
+        WHERE F.MEMBER_NO = #{memberNo}
+          AND CP.PLATFORM_NO = #{platformNo}
+
+        ORDER BY
+            F.CREATED_AT DESC,
+            C.VIEW_COUNT DESC,
+            C.CONTENT_NO DESC
+
+        FETCH FIRST 2 ROWS ONLY
+
+    </select>
+
+
+    <!--
+        추천 OTT에서 볼 수 있는 최근 7일 조회 콘텐츠를 최대 2개 조회합니다.
+
+        1순위: 최근 7일 누적 방문 횟수
+        2순위: 콘텐츠 전체 인기 조회 수
+        3순위: 가장 최근 방문 시각
+    -->
+    <select id="selectRecentViewedContentList"
+            resultType="com.project.oditji.recommend.vo.RecommendOttContentVO">
+
+        SELECT
+            C.CONTENT_NO AS contentNo,
+            C.TITLE AS title
+
+        FROM CONTENT_VIEW_HISTORY CVH
+
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = CVH.CONTENT_NO
+
+        INNER JOIN CONTENT_PLATFORM CP
+            ON CP.CONTENT_NO = C.CONTENT_NO
+
+        WHERE CVH.MEMBER_NO = #{memberNo}
+          AND CP.PLATFORM_NO = #{platformNo}
+          AND CVH.VIEW_DATE >= TRUNC(SYSDATE) - 6
+
+        GROUP BY
+            C.CONTENT_NO,
+            C.TITLE,
+            C.VIEW_COUNT
+
+        ORDER BY
+            SUM(CVH.VIEW_COUNT) DESC,
+            C.VIEW_COUNT DESC,
+            MAX(CVH.LAST_VIEWED_AT) DESC,
+            C.CONTENT_NO DESC
+
+        FETCH FIRST 2 ROWS ONLY
+
+    </select>
+
+</mapper>

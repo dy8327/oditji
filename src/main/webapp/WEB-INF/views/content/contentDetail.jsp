@@ -14,7 +14,7 @@
 <title>ODITJI | 콘텐츠 상세</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/content.css">
+      href="${pageContext.request.contextPath}/css/content.css?v=20260723-2">
 
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
@@ -617,6 +617,58 @@
                                 </c:choose>
 
                             </p>
+
+                            <c:if test="${not empty related.recommendationReason}">
+
+                                <%--
+                                    추천 정렬에 사용한 장르·감독·출연진 일치 근거를
+                                    카드 하단에 짧은 문장으로 표시합니다.
+                                --%>
+                                <%--
+                                    추천 이유의 대표 유형에 따라 색상 클래스를 적용합니다.
+                                    EL에서 문자열을 직접 CSS 클래스로 변환하지 않고
+                                    c:choose로 제한된 클래스만 선택하여 안전하게 출력합니다.
+                                --%>
+                                <c:set var="reasonColorClass"
+                                       value="reason-category" />
+
+                                <c:choose>
+
+                                    <c:when test="${related.recommendationReasonType eq 'DIRECTOR'}">
+                                        <c:set var="reasonColorClass"
+                                               value="reason-director" />
+                                    </c:when>
+
+                                    <c:when test="${related.recommendationReasonType eq 'CAST'}">
+                                        <c:set var="reasonColorClass"
+                                               value="reason-cast" />
+                                    </c:when>
+
+                                    <c:when test="${related.recommendationReasonType eq 'MAIN_GENRE'}">
+                                        <c:set var="reasonColorClass"
+                                               value="reason-main-genre" />
+                                    </c:when>
+
+                                    <c:when test="${related.recommendationReasonType eq 'GENRE'}">
+                                        <c:set var="reasonColorClass"
+                                               value="reason-genre" />
+                                    </c:when>
+
+                                </c:choose>
+
+                                <div class="related-content-reason ${reasonColorClass}">
+
+                                    <span class="related-content-reason-label">
+                                        추천 이유
+                                    </span>
+
+                                    <p>
+                                        ${related.recommendationReason}
+                                    </p>
+
+                                </div>
+
+                            </c:if>
 
                         </div>
 

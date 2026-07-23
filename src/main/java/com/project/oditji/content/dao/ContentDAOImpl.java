@@ -7,10 +7,17 @@ import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.ContentViewHistoryVO;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
+/**
+ * ContentDAO 구현체입니다.
+ *
+ * MyBatis SqlSession을 이용해
+ * 콘텐츠 정보와 콘텐츠 조회 이력을 처리합니다.
+ */
 @Repository
 public class ContentDAOImpl implements ContentDAO {
 
@@ -79,6 +86,33 @@ public class ContentDAOImpl implements ContentDAO {
         return sqlSession.update(
                 NAMESPACE + "increaseViewCount",
                 contentNo
+        );
+    }
+
+    /**
+     * 회원의 오늘 상세페이지 조회 이력을
+     * Oracle MERGE 문으로 등록 또는 갱신합니다.
+     */
+    @Override
+    public int mergeContentViewHistory(
+            ContentViewHistoryVO historyVO) {
+
+        return sqlSession.update(
+                NAMESPACE + "mergeContentViewHistory",
+                historyVO
+        );
+    }
+
+    /**
+     * 추천 및 관리자 통계의 분석 범위를 벗어난
+     * 30일 초과 조회 이력을 삭제합니다.
+     */
+    @Override
+    public int deleteExpiredContentViewHistory() {
+
+        return sqlSession.delete(
+                NAMESPACE
+                        + "deleteExpiredContentViewHistory"
         );
     }
 
