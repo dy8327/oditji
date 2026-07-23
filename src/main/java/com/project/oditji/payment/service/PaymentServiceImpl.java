@@ -286,7 +286,30 @@ public class PaymentServiceImpl implements PaymentService {
                     .body(new ParameterizedTypeReference<Map<String, Object>>() {
                     });
         } catch (RestClientResponseException e) {
-            throw createPortOneException("포트원 부분 환불에 실패했습니다.", e);
+
+            /*
+             * =========================================================
+             * [포트원 간편결제 부분취소 제한 오류 처리]
+             *
+             * 테스트 채널의 간편결제 부분취소 제한 오류인 경우
+             * PG사 원문 대신 사용자가 이해할 수 있는 메시지를 반환한다.
+             * =========================================================
+             */
+            String responseBody = e.getResponseBodyAsString();
+
+            if (responseBody != null
+                    && responseBody.contains(
+                            "\"pgCode\":\"500503\"")) {
+
+                throw new IllegalStateException(
+                        "해당 간편결제는 부분 환불을 지원하지 않습니다. "
+                                + "전체 주문 취소를 이용해주세요.",
+                        e);
+            }
+
+            throw createPortOneException(
+                    "포트원 부분 환불에 실패했습니다.",
+                    e);
         }
 
         long canceledTotal = alreadyCanceled + cancelAmount;
