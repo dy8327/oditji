@@ -212,7 +212,7 @@
 
 
                                     <td>
-                                        ${req.startDate} ~ ${req.endDate}
+                                        <fmt:formatDate value="${req.startDate}" pattern="yyyy-MM-dd"/> ~ <fmt:formatDate value="${req.endDate}" pattern="yyyy-MM-dd"/>
                                     </td>
 
 
@@ -264,7 +264,7 @@
                                                     '${req.eventNo}',
                                                     '${req.businessName}',
                                                     '${req.title}',
-                                                    '${req.startDate} ~ ${req.endDate}',
+                                                    '<fmt:formatDate value="${req.startDate}" pattern="yyyy-MM-dd"/> ~ <fmt:formatDate value="${req.endDate}" pattern="yyyy-MM-dd"/>',
                                                     '${req.productDetail}'
                                                 )">
                                             상세보기
