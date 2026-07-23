@@ -16,6 +16,8 @@ import com.project.oditji.common.service.MainContentPlatformService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
+import com.project.oditji.recommend.service.RecommendService;
+import com.project.oditji.recommend.vo.RecommendOttResultVO;
 import com.project.oditji.recommend.vo.RecommendPlatformSectionVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
@@ -33,15 +35,18 @@ public class RecommendController {
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final MemberPlatformService memberPlatformService;
     private final MainContentPlatformService mainContentPlatformService;
+    private final RecommendService recommendService;
 
     public RecommendController(
             SearchContentPageCacheService searchContentPageCacheService,
             MemberPlatformService memberPlatformService,
-            MainContentPlatformService mainContentPlatformService) {
+            MainContentPlatformService mainContentPlatformService,
+            RecommendService recommendService) {
 
         this.searchContentPageCacheService = searchContentPageCacheService;
         this.memberPlatformService = memberPlatformService;
         this.mainContentPlatformService = mainContentPlatformService;
+        this.recommendService = recommendService;
     }
 
     @GetMapping("/recommend")
@@ -73,6 +78,18 @@ public class RecommendController {
 
         boolean personalizedRecommendation =
                 !selectedPlatformNames.isEmpty();
+
+        /*
+         * 최근 30일 상세 조회 이력과 현재 찜 콘텐츠를 기준으로
+         * 회원에게 가장 적합한 OTT를 계산합니다.
+         *
+         * 비로그인 사용자는 RecommendService에서
+         * 로그인 안내 상태를 담은 결과를 반환합니다.
+         */
+        RecommendOttResultVO ottRecommendation =
+                recommendService.getOttRecommendation(
+                        memberNo
+                );
 
         /*
          * 1. 평점이 높은 콘텐츠
@@ -150,6 +167,14 @@ public class RecommendController {
         model.addAttribute(
                 "loggedIn",
                 loggedIn
+        );
+
+        /*
+         * 추천 콘텐츠 페이지 상단의 맞춤 OTT 영역에서 사용합니다.
+         */
+        model.addAttribute(
+                "ottRecommendation",
+                ottRecommendation
         );
 
         model.addAttribute(
