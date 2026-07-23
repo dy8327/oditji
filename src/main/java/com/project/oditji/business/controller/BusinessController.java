@@ -1520,10 +1520,37 @@ public class BusinessController {
         return "business/order/orderList";
         }
 
-        /* 배송 관리 */
+    
+
+        // 사업자 주문 상세
         @GetMapping("/order/detail")
-        public String orderDetail(Model model) {
-                model.addAttribute("activeMenu", "delivery");
+        public String orderDetail(@RequestParam("orderNo") long orderNo, HttpSession session, Model model,
+                RedirectAttributes redirectAttributes) {
+
+                Long memberNo = getLoginMemberNo(session);
+
+                if (memberNo == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인이 필요합니다.");
+                        return "redirect:/member/login";
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+
+                if (business == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "사업자 정보를 확인할 수 없습니다.");
+                        return "redirect:/";
+                }
+
+                OrderVO order = businessService.getBusinessOrderDetail(business.getBusinessNo(), orderNo);
+
+                if (order == null) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "해당 주문을 확인할 수 없습니다.");
+                        return "redirect:/business/order/list";
+                }
+
+                model.addAttribute("business", business);
+                model.addAttribute("order", order);
+                model.addAttribute("activeMenu", "order");
 
                 return "business/order/orderDetail";
         }

@@ -208,6 +208,25 @@ public class BusinessServiceImpl
                 return itemList == null? Collections.emptyList() : itemList;
         }
 
+        // 사업자 주문 상세 조회
+        @Override
+        public OrderVO getBusinessOrderDetail(long businessNo, long orderNo) {
+                if (businessNo <= 0 || orderNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 주문 정보입니다.");
+                }
+
+        OrderVO order = businessDAO.selectBusinessOrderDetail(businessNo, orderNo);
+
+                if (order == null) {
+                        return null;
+                }
+
+        List<OrderItemVO> itemList = businessDAO.selectBusinessOrderItemDetailList(businessNo, orderNo);
+        order.setItems(itemList == null ? Collections.emptyList() : itemList);
+
+        return order;
+        }
+
         /* 사업자등록번호 사용 가능 여부 확인 */
         @Override
         public boolean isBusinessNumberAvailable(String businessNumber) {
