@@ -72,6 +72,11 @@ public interface OrderService {
          * 로그인 회원의 주문 목록 (각 주문에 속한 상품 목록 포함)
          */
         List<OrderVO> getOrderList(
+                        Long memberNo,
+                        int startRow,
+                        int endRow);
+
+        int getOrderCount(
                         Long memberNo);
 
         /**
