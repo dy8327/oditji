@@ -1,91 +1,114 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
 <!DOCTYPE html>
-
 <html>
-
 <head>
-
 <meta charset="UTF-8">
-
 <title>${room.roomName}</title>
-
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/chat-room.css">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-room.css">
 </head>
-
 <body>
 
-<div class="chat-container">
+<div class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
 
-    <div class="chat-header">
+    <div class="chat-header ${isNoticeRoom ? 'notice-header' : ''}">
 
-        <h2>${room.roomName}</h2>
+        <div class="chat-title-line">
+            <h2><c:out value="${room.roomName}" /></h2>
 
-        <p>${room.roomDescription}</p>
+            <span class="header-room-badge">
+                <c:choose>
+                    <c:when test="${isNoticeRoom}">공지방</c:when>
+                    <c:otherwise>자유방</c:otherwise>
+                </c:choose>
+            </span>
+        </div>
+
+        <p>
+            <c:choose>
+                <c:when test="${empty room.roomDescription}">
+                    <c:choose>
+                        <c:when test="${isNoticeRoom}">
+                            관리자 공지 전용 채팅방입니다.
+                        </c:when>
+                        <c:otherwise>
+                            자유롭게 대화할 수 있는 사업자 채팅방입니다.
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
+                <c:otherwise>
+                    <c:out value="${room.roomDescription}" />
+                </c:otherwise>
+            </c:choose>
+        </p>
 
         <div class="top-btn-area">
-
             <button type="button"
                     onclick="location.href='${pageContext.request.contextPath}/chat/list'">
                 목록으로
             </button>
-
         </div>
 
     </div>
 
     <div class="chat-info">
-
-        <span>
-            참여 사업자 :
-            ${businessName}
-        </span>
-
-        <span>
-            ROOM ID :
-            ${room.roomId}
-        </span>
-
+        <span>접속 사업자: <c:out value="${businessName}" /></span>
+        <span>ROOM ID: <c:out value="${room.roomId}" /></span>
     </div>
+
+    <c:if test="${isNoticeRoom and not isAdmin}">
+        <div class="readonly-notice">
+            이 방은 관리자 공지 전용입니다. 사업자는 공지를 읽을 수만 있습니다.
+        </div>
+    </c:if>
 
     <div id="messageArea"
          class="message-area">
-
         <div id="emptyMessage"
              class="empty-message">
-
             아직 메시지가 없습니다.
-
         </div>
-
     </div>
 
-    <div class="input-area">
+    <c:choose>
 
-        <textarea id="messageInput"
-                  placeholder="메시지를 입력하세요."></textarea>
+        <c:when test="${isNoticeRoom and not isAdmin}">
+            <div class="readonly-footer">
+                관리자만 공지 메시지를 작성할 수 있습니다.
+            </div>
+        </c:when>
 
-        <button type="button"
-                class="send-btn"
-                id="sendBtn">
+        <c:otherwise>
+            <div class="input-area">
 
-            전송
+                <textarea id="messageInput"
+                          placeholder="${isNoticeRoom ? '공지 내용을 입력하세요.' : '메시지를 입력하세요.'}"></textarea>
 
-        </button>
+                <button type="button"
+                        class="send-btn"
+                        id="sendBtn">
+                    전송
+                </button>
 
-        <button type="button"
-                class="leave-btn"
-                id="leaveBtn">
+                <c:if test="${not isNoticeRoom}">
+                    <button type="button"
+                            class="leave-btn"
+                            id="leaveBtn">
+                        나가기
+                    </button>
+                </c:if>
 
-            나가기
+            </div>
+        </c:otherwise>
 
-        </button>
-
-    </div>
+    </c:choose>
 
 </div>
-
 
 <script type="module">
 
@@ -96,28 +119,26 @@ import {
 } from "${pageContext.request.contextPath}/js/chat.js";
 
 const contextPath = "${pageContext.request.contextPath}";
-
 const roomId = "${room.roomId}";
-
+const roomType = "${room.roomType}";
 const businessNo = Number("${businessNo}");
-
 const businessName = "${businessName}";
+const isAdmin = "${isAdmin}" === "true";
 
 const messageArea = document.getElementById("messageArea");
-
 const emptyMessage = document.getElementById("emptyMessage");
-
 const messageInput = document.getElementById("messageInput");
-
 const sendBtn = document.getElementById("sendBtn");
-
 const leaveBtn = document.getElementById("leaveBtn");
 
-
-/*
-    메시지 전송
-*/
+/**
+ * 현재 방의 권한을 확인한 후 메시지를 전송합니다.
+ */
 async function handleSendMessage() {
+
+    if (!messageInput) {
+        return;
+    }
 
     const message = messageInput.value;
 
@@ -125,58 +146,62 @@ async function handleSendMessage() {
         return;
     }
 
-    await sendMessage(
+    const sent = await sendMessage(
         roomId,
         businessNo,
         businessName,
-        message
+        message,
+        roomType,
+        isAdmin
     );
+
+    if (!sent) {
+        return;
+    }
 
     messageInput.value = "";
     messageInput.focus();
-
 }
 
-
-/*
-    메시지 화면 출력
-*/
+/**
+ * Firestore에서 받은 메시지를 화면에 출력합니다.
+ */
 function renderMessages(messageList) {
 
     messageArea.innerHTML = "";
 
     if (!messageList || messageList.length === 0) {
-
         messageArea.appendChild(emptyMessage);
         return;
-
     }
 
-    messageList.forEach(message => {
+    messageList.forEach(function(message) {
 
         if (message.type === "SYSTEM") {
-
             const systemDiv = document.createElement("div");
             systemDiv.className = "system-message";
             systemDiv.textContent = message.message;
-
             messageArea.appendChild(systemDiv);
-
             return;
-
         }
 
-        const isMine =
-            Number(message.senderBusinessNo) === businessNo;
-
+        const mine = Number(message.senderBusinessNo) === businessNo;
         const row = document.createElement("div");
-        row.className = isMine
+        const noticeMessage = message.type === "NOTICE";
+
+        row.className = mine
             ? "message-row mine"
             : "message-row other";
 
+        if (noticeMessage) {
+            row.classList.add("notice-message-row");
+        }
+
         const sender = document.createElement("div");
         sender.className = "sender";
-        sender.textContent = message.senderName;
+        sender.textContent = noticeMessage
+            ? "[관리자] " + message.senderName
+            : message.senderName;
 
         const bubble = document.createElement("div");
         bubble.className = "bubble";
@@ -189,29 +214,16 @@ function renderMessages(messageList) {
         row.appendChild(sender);
         row.appendChild(bubble);
         row.appendChild(time);
-
         messageArea.appendChild(row);
-
     });
 
-    scrollToBottom();
-
-}
-
-
-/*
-    스크롤 맨 아래로 이동
-*/
-function scrollToBottom() {
-
     messageArea.scrollTop = messageArea.scrollHeight;
-
 }
 
-
-/*
-    채팅방 나가기
-*/
+/**
+ * 자유방 참가 기록을 삭제하고 목록으로 이동합니다.
+ * 사업자 번호는 서버 세션에서 확인하므로 요청에 포함하지 않습니다.
+ */
 function leaveRoom() {
 
     if (!confirm("채팅방에서 나가시겠습니까?")) {
@@ -221,62 +233,59 @@ function leaveRoom() {
     fetch(contextPath + "/chat/api/leave", {
         method: "POST",
         headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         },
-        body:
-            "roomId=" + encodeURIComponent(roomId) +
-            "&businessNo=" + encodeURIComponent(businessNo)
+        body: "roomId=" + encodeURIComponent(roomId)
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(async function(response) {
 
-        if (data.message) {
-            alert(data.message);
-        } else {
-            alert("채팅방 나가기 처리가 완료되었습니다.");
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            throw new Error(
+                "채팅방 나가기 요청 실패: "
+                + response.status
+                + " / "
+                + responseText
+            );
         }
+
+        return JSON.parse(responseText);
+    })
+    .then(function(data) {
+
+        alert(data.message || "채팅방 나가기 처리가 완료되었습니다.");
 
         if (data.success) {
             location.href = contextPath + "/chat/list";
         }
-
     })
-    .catch(error => {
-
-        console.error(error);
+    .catch(function(error) {
+        console.error("채팅방 나가기 중 오류:", error);
         alert("채팅방 나가기 중 오류가 발생했습니다.");
-
     });
-
 }
 
+if (sendBtn && messageInput) {
 
-/*
-    이벤트 연결
-*/
-sendBtn.addEventListener("click", handleSendMessage);
+    sendBtn.addEventListener("click", handleSendMessage);
 
-messageInput.addEventListener("keydown", function(event) {
+    messageInput.addEventListener("keydown", function(event) {
 
-    if (event.key === "Enter" && !event.shiftKey) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            handleSendMessage();
+        }
+    });
+}
 
-        event.preventDefault();
-        handleSendMessage();
+if (leaveBtn) {
+    leaveBtn.addEventListener("click", leaveRoom);
+}
 
-    }
-
-});
-
-leaveBtn.addEventListener("click", leaveRoom);
-
-
-/*
-    Firebase 실시간 메시지 수신 시작
-*/
 listenMessages(roomId, renderMessages);
 
 </script>
 
 </body>
-
 </html>
