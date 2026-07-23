@@ -17,18 +17,21 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.vo.ActorSearchVO;
+import com.project.oditji.business.vo.BusinessDashboardVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.EventProductVO;
 import com.project.oditji.business.vo.GoodsManageVO;
-import com.project.oditji.business.vo.BusinessDashboardVO;
 
 @Service
 public class BusinessServiceImpl
                 implements BusinessService {
 
         private static final long MAX_IMAGE_SIZE = 10L * 1024L * 1024L;
+
+        /* 마이페이지 대시보드에 노출할 인기 상품 개수 */
+        private static final int POPULAR_PRODUCT_LIMIT = 5;
 
         private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
                         "jpg",
@@ -72,7 +75,11 @@ public class BusinessServiceImpl
                                 .normalize();
         }
 
-        /* 로그인 회원과 연결된 사업자 조회 */
+        /*
+         * =========================================================
+         * 로그인 회원과 연결된 사업자 조회
+         * =========================================================
+         */
         @Override
         public BusinessVO getBusinessByMemberNo(long memberNo) {
 
@@ -83,19 +90,74 @@ public class BusinessServiceImpl
                 return businessDAO.selectBusinessByMemberNo(memberNo);
         }
 
-        /* 사업자 대쉬보드 */
+        /*
+        * =========================================================
+        * 마이페이지 대시보드 통계 조회
+        *
+        * 오늘 매출/주문 건수/클릭 수/입금 대기 정산액/승인 대기 상품 수와
+        * 인기 상품 TOP N을 한 번에 모아서 내려준다.
+        *
+        * purchaseRate(구매전환율)는 별도 저장 컬럼이 없어
+        * "오늘 주문 건수 / 오늘 클릭 수 * 100"으로 매 요청마다 계산한다.
+        * 클릭 수가 0이면 나눗셈 자체가 불가능하므로 0.0으로 처리한다.
+        * =========================================================
+        */
         @Override
         public BusinessDashboardVO getBusinessDashboard(long businessNo) {
-        return businessDAO.selectBusinessDashboard(businessNo);
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                long todaySales = businessDAO.selectTodaySalesByBusinessNo(businessNo);
+                int todayOrderCount = businessDAO.selectTodayOrderCountByBusinessNo(businessNo);
+                int clickCount = businessDAO.selectTodayClickCountByBusinessNo(businessNo);
+                long waitingSettlement = businessDAO.selectWaitingSettlementAmountByBusinessNo(businessNo);
+                int waitingProductCount = businessDAO.selectWaitingProductCountByBusinessNo(businessNo);
+
+                double purchaseRate = clickCount <= 0
+                                ? 0.0
+                                : (todayOrderCount * 100.0) / clickCount;
+
+                BusinessDashboardVO dashboard = new BusinessDashboardVO();
+
+                dashboard.setTodaySales(todaySales);
+                dashboard.setTodayOrderCount(todayOrderCount);
+                dashboard.setClickCount(clickCount);
+                dashboard.setPurchaseRate(purchaseRate);
+                dashboard.setWaitingSettlement(waitingSettlement);
+                dashboard.setWaitingProductCount(waitingProductCount);
+                dashboard.setPopularProducts(getPopularProducts(businessNo));
+
+                return dashboard;
         }
 
-        /* 사업자 인기 상품 조회 */
+        /*
+        * =========================================================
+        * 인기 상품 목록 조회 (클릭수 내림차순 TOP N)
+        * =========================================================
+        */
         @Override
         public List<GoodsManageVO> getPopularProducts(long businessNo) {
-        return businessDAO.selectPopularProducts(businessNo);
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                List<GoodsManageVO> popularProducts = businessDAO.selectPopularProductsByBusinessNo(
+                                businessNo,
+                                POPULAR_PRODUCT_LIMIT);
+
+                return popularProducts == null
+                                ? Collections.emptyList()
+                                : popularProducts;
         }
 
-        /* 사업자등록번호 사용 가능 여부 확인 */
+        /*
+        * =========================================================
+        * 사업자등록번호 사용 가능 여부 확인
+        * =========================================================
+        */
         @Override
         public boolean isBusinessNumberAvailable(String businessNumber) {
 
@@ -114,7 +176,11 @@ public class BusinessServiceImpl
         return count == 0;
         }
 
-        /* 상품 등록 */
+        /*
+         * =========================================================
+         * 상품 등록
+         * =========================================================
+         */
         @Override
         @Transactional
         public long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage) {
@@ -158,7 +224,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 콘텐츠 검색 */
+        /*
+         * =========================================================
+         * 콘텐츠 검색
+         * =========================================================
+         */
         @Override
         public List<ContentSearchVO> getContentList(
                         String keyword) {
@@ -184,7 +254,11 @@ public class BusinessServiceImpl
                 return contentList;
         }
 
-        /* 콘텐츠 단건 조회 */
+        /*
+         * =========================================================
+         * 콘텐츠 단건 조회
+         * =========================================================
+         */
         @Override
         public ContentSearchVO getContentByNo(
                         long contentNo) {
@@ -207,7 +281,11 @@ public class BusinessServiceImpl
                 return content;
         }
 
-        /* 선택한 콘텐츠에 연결된 배우 목록 조회 */
+        /*
+         * =========================================================
+         * 선택한 콘텐츠에 연결된 배우 목록 조회
+         * =========================================================
+         */
         @Override
         public List<ActorSearchVO> getActorListByContentNo(
                         long contentNo) {
@@ -240,7 +318,8 @@ public class BusinessServiceImpl
         /*
          * =========================================================
          * 사업자가 등록한 상품 목록 조회 (승인된 상품만)
-         * 이벤트 등록/수정 화면의 상품 검색 모달 전용
+         *
+         * 이벤트 등록/수정 화면의 상품 검색 모달 전용이다.
          * =========================================================
          */
         @Override
@@ -263,7 +342,11 @@ public class BusinessServiceImpl
                 return productList;
         }
 
-        /* 사업자가 등록한 상품 목록 조회 */
+        /*
+         * =========================================================
+         * 사업자가 등록한 상품 목록 조회
+         * =========================================================
+         */
         @Override
         public List<GoodsManageVO> getProductListByBusinessNo(
                         long businessNo) {
@@ -284,7 +367,11 @@ public class BusinessServiceImpl
                 return productList;
         }
 
-        /* 상품 수정 화면용 상품 단건 조회 */
+        /*
+         * =========================================================
+         * 상품 수정 화면용 상품 단건 조회
+         * =========================================================
+         */
         @Override
         public GoodsManageVO getProductForUpdate(
                         long productNo,
@@ -319,9 +406,10 @@ public class BusinessServiceImpl
         /*
          * =========================================================
          * 상품 수정 요청
-         * 새 이미지가 없으면 기존 상품 이미지를 유지
-         * 새 이미지가 있으면 기존 대표 이미지의 경로를 변경
-         * 대표 이미지 행이 없다면 새 대표 이미지 행을 등록
+         *
+         * 새 이미지가 없으면 기존 상품 이미지를 유지한다.
+         * 새 이미지가 있으면 기존 대표 이미지의 경로를 변경한다.
+         * 대표 이미지 행이 없다면 새 대표 이미지 행을 등록한다.
          * =========================================================
          */
         @Override
@@ -369,7 +457,10 @@ public class BusinessServiceImpl
                 validateContentActor(
                                 goodsManageVO);
 
-                /* 수정 요청이 들어오면 관리자 재승인을 받을 수 있도록 승인 상태를 WAITING으로 변경 */
+                /*
+                 * 수정 요청이 들어오면 관리자 재승인을 받을 수 있도록
+                 * 승인 상태를 WAITING으로 변경한다.
+                 */
                 goodsManageVO.setStatus(
                                 "WAITING");
 
@@ -386,7 +477,9 @@ public class BusinessServiceImpl
                                                 "상품 수정에 실패했습니다.");
                         }
 
-                        /* 새 이미지가 선택된 경우에만 이미지 정보를 변경 */
+                        /*
+                         * 새 이미지가 선택된 경우에만 이미지 정보를 변경한다.
+                         */
                         if (productImage != null
                                         && !productImage.isEmpty()) {
 
@@ -407,7 +500,10 @@ public class BusinessServiceImpl
                                 int imageUpdateResult = businessDAO.updateProductMainImage(
                                                 goodsManageVO);
 
-                                /* 기존 대표 이미지가 없는 상품이면 새로운 대표 이미지 행을 등록 */
+                                /*
+                                 * 기존 대표 이미지가 없는 상품이면
+                                 * 새로운 대표 이미지 행을 등록한다.
+                                 */
                                 if (imageUpdateResult == 0) {
 
                                         int imageInsertResult = businessDAO.insertProductImage(
@@ -423,7 +519,10 @@ public class BusinessServiceImpl
 
                 } catch (RuntimeException e) {
 
-                        /* DB 작업이 실패하면 이번 수정 과정에서 새로 저장한 이미지 파일만 삭제 */
+                        /*
+                         * DB 작업이 실패하면 이번 수정 과정에서
+                         * 새로 저장한 이미지 파일만 삭제한다.
+                         */
                         deleteSavedFileQuietly(
                                         savedPhysicalPath);
 
@@ -434,10 +533,12 @@ public class BusinessServiceImpl
         /*
          * =========================================================
          * 상품 삭제 요청
+         *
          * 실제 상품과 이미지를 즉시 삭제하지 않고
-         * PRODUCT.STATUS를 DELETE_REQUESTED로 변경
+         * PRODUCT.STATUS를 DELETE_REQUESTED로 변경한다.
+         *
          * 현재 PRODUCT 테이블에는 삭제 사유 컬럼이 없으므로
-         * 삭제 사유는 검증 후 개발 로그에만 출력
+         * 삭제 사유는 검증 후 개발 로그에만 출력한다.
          * =========================================================
          */
         @Override
@@ -474,7 +575,10 @@ public class BusinessServiceImpl
                                         "삭제 요청 사유는 1000자 이하로 입력해주세요.");
                 }
 
-                /* PRODUCT_NO와 BUSINESS_NO를 함께 조회하여 로그인한 사업자가 등록한 상품인지 검증 */
+                /*
+                 * PRODUCT_NO와 BUSINESS_NO를 함께 조회하여
+                 * 로그인한 사업자가 등록한 상품인지 검증한다.
+                 */
                 GoodsManageVO existingProduct = businessDAO.selectProductForUpdate(
                                 productNo,
                                 businessNo);
@@ -493,7 +597,10 @@ public class BusinessServiceImpl
                                         "이미 삭제 요청이 접수된 상품입니다.");
                 }
 
-                /* PRODUCT 테이블에 삭제 사유를 저장할 컬럼이 없으므로 현재 단계에서는 서버 로그로 확인 */
+                /*
+                 * PRODUCT 테이블에 삭제 사유를 저장할 컬럼이 없으므로
+                 * 현재 단계에서는 서버 로그로 확인한다.
+                 */
                 System.out.println(
                                 "===== 상품 삭제 요청 =====");
 
@@ -527,9 +634,11 @@ public class BusinessServiceImpl
         /*
          * =========================================================
          * 이벤트 등록
+         *
          * EVENT 테이블에 이벤트 기본 정보를 먼저 저장하고,
-         * 상품이 선택된 경우 EVENT_PRODUCT 테이블에도 연결 정보를 저장
-         * 두 DB 작업은 하나의 트랜잭션으로 처리
+         * 상품이 선택된 경우 EVENT_PRODUCT 테이블에도 연결 정보를 저장한다.
+         *
+         * 두 DB 작업은 하나의 트랜잭션으로 처리한다.
          * =========================================================
          */
         @Override
@@ -544,18 +653,25 @@ public class BusinessServiceImpl
                                         "이벤트 등록 정보가 없습니다.");
                 }
 
-                /* 이벤트 등록 요청은 반드시 관리자 승인을 거치므로 화면 전달값과 무관하게 WAITING 상태로 저장 */
+                /*
+                 * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
+                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
+                 */
                 eventManageVO.setStatus(
                                 "WAITING");
 
                 validateEvent(
-                                eventManageVO);
+                                eventManageVO,
+                                null);
 
                 Path savedPhysicalPath = null;
 
                 try {
 
-                        /* 이벤트 이미지는 선택 항목. 선택한 경우에만 검증 후 외부 폴더에 저장 */
+                        /*
+                         * 이벤트 이미지는 선택 항목이다.
+                         * 선택한 경우에만 검증 후 외부 폴더에 저장한다.
+                         */
                         if (eventImage != null
                                         && !eventImage.isEmpty()) {
 
@@ -587,7 +703,7 @@ public class BusinessServiceImpl
                         }
 
                         /*
-                         * 선택된 상품 수만큼 EVENT_PRODUCT에 연결 정보를 저장.
+                         * 선택된 상품 수만큼 EVENT_PRODUCT에 연결 정보를 저장한다.
                          * productNoList / discountRateList는 validateEvent에서
                          * 이미 같은 길이로 검증되었다.
                          */
@@ -612,7 +728,10 @@ public class BusinessServiceImpl
 
                 } catch (RuntimeException e) {
 
-                        /* DB 작업이 실패하면 이번 등록 과정에서 새로 저장한 이벤트 이미지 파일을 삭제 */
+                        /*
+                         * DB 작업이 실패하면 이번 등록 과정에서
+                         * 새로 저장한 이벤트 이미지 파일을 삭제한다.
+                         */
                         deleteSavedFileQuietly(
                                         savedPhysicalPath);
 
@@ -620,7 +739,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 사업자 이벤트 목록 조회 */
+        /*
+         * =========================================================
+         * 사업자 이벤트 목록 조회
+         * =========================================================
+         */
         @Override
         public List<EventManageVO> getEventListByBusinessNo(
                         long businessNo,
@@ -654,7 +777,11 @@ public class BusinessServiceImpl
                 return eventList;
         }
 
-        /* 승인된 이벤트 단건 조회 */
+        /*
+         * =========================================================
+         * 승인된 이벤트 단건 조회
+         * =========================================================
+         */
         @Override
         public EventManageVO getApprovedEventForBusiness(
                         long eventNo,
@@ -699,11 +826,13 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 승인된 이벤트 수정 요청.
+         * 승인된 이벤트 수정 요청
+         *
          * 별도 수정 요청 테이블이 없으므로
          * EVENT와 EVENT_PRODUCT의 값을 먼저 변경하고
-         * EVENT.STATUS를 WAITING으로 변경.
-         * 관리자 승인 전에는 사용자 화면에서 노출 금지.
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않는다.
          * =========================================================
          */
         @Override
@@ -722,14 +851,26 @@ public class BusinessServiceImpl
                                 eventManageVO.getEventNo(),
                                 eventManageVO.getBusinessNo());
 
+                /*
+                 * 상품 소유권 검증 시 "지금 수정 중인 이벤트 자신과의 연결"은
+                 * 중복 연결로 취급하지 않도록 eventNo를 함께 전달한다.
+                 * (이 값을 안 넘기면 기존에 연결돼 있던 상품을 그대로 두고
+                 * 저장하는 것만으로도 항상 검증에 실패하는 버그가 있었다.)
+                 */
                 validateEvent(
-                                eventManageVO);
+                                eventManageVO,
+                                eventManageVO.getEventNo());
 
-                /* 수정된 내용은 관리자 재승인을 받아야 하므로 승인 대기 상태로 변경. */
+                /*
+                 * 수정된 내용은 관리자 재승인을 받아야 하므로
+                 * 승인 대기 상태로 변경한다.
+                 */
                 eventManageVO.setStatus(
                                 "WAITING");
 
-                /* 새 이미지를 선택하지 않은 경우 기존 이미지를 유지. */
+                /*
+                 * 새 이미지를 선택하지 않은 경우 기존 이미지를 유지한다.
+                 */
                 eventManageVO.setBannerImage(
                                 existingEvent.getBannerImage());
 
@@ -764,10 +905,10 @@ public class BusinessServiceImpl
                         /*
                          * 연결 상품을 개별적으로 수정/추가/삭제하지 않고
                          * 기존 연결을 모두 지운 뒤 새로 선택된 목록을
-                         * 다시 등록하는 방식으로 처리.
+                         * 다시 등록하는 방식으로 처리한다.
                          * 등록 화면과 동일한 +버튼 다중 선택 UI를 그대로
                          * 재사용할 수 있고, 상품 추가/삭제 케이스를
-                         * 따로 분기하지 않아도 되어 단순.
+                         * 따로 분기하지 않아도 되어 단순하다.
                          */
                         int deletedCount = businessDAO.deleteEventProductByEventNo(
                                         eventManageVO.getEventNo());
@@ -807,11 +948,13 @@ public class BusinessServiceImpl
         /*
          * =========================================================
          * 승인된 이벤트 연장 요청
+         *
          * 별도 연장 요청 테이블이 없으므로
          * EVENT.END_DATE를 먼저 변경하고
-         * EVENT.STATUS를 WAITING으로 변경.
-         * 관리자 승인 전에는 사용자 화면에서 노출 금지.
-         * 연장 사유는 서버 로그로만 확인.
+         * EVENT.STATUS를 WAITING으로 변경한다.
+         *
+         * 관리자 승인 전에는 사용자 화면에서 노출되지 않는다.
+         * 연장 사유는 서버 로그로만 확인한다.
          * =========================================================
          */
         @Override
@@ -889,9 +1032,14 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 이벤트 입력값 검증 */
+        /*
+         * =========================================================
+         * 이벤트 입력값 검증
+         * =========================================================
+         */
         private void validateEvent(
-                        EventManageVO eventManageVO) {
+                        EventManageVO eventManageVO,
+                        Long excludeEventNo) {
 
                 if (eventManageVO.getBusinessNo() <= 0) {
 
@@ -939,13 +1087,14 @@ public class BusinessServiceImpl
                 }
 
                 /*
-                 * 이벤트 등록/수정은 항상 관리자 승인 대기 상태로 저장되어야 함.
+                 * 이벤트 등록/수정은 항상 관리자 승인 대기 상태로 저장되어야 한다.
                  * registerEvent/updateApprovedEvent에서 이미 "WAITING"으로
                  * 강제 설정하지만, 화면이나 다른 호출 경로에서 잘못된 값이
-                 * 넘어오는 경우를 대비해 여기서도 한 번 더 방어.
+                 * 넘어오는 경우를 대비해 여기서도 한 번 더 방어한다.
+                 *
                  * EVENT.STATUS는 CK_EVENT_STATUS 제약조건에 의해
                  * WAITING / APPROVED / END / REJECTED / DELETED 값만 허용되며,
-                 * 사업자가 직접 지정할 수 있는 값은 WAITING뿐임.
+                 * 사업자가 직접 지정할 수 있는 값은 WAITING뿐이다.
                  */
                 if (!"WAITING".equals(
                                 eventManageVO.getStatus())) {
@@ -955,10 +1104,12 @@ public class BusinessServiceImpl
                 }
 
                 /*
-                 * EVENT 테이블에는 BUSINESS_NO가 없으므로 사업자별 이벤트 소유권 확인을 위해 연결 상품은 최소 1개 필수.
+                 * EVENT 테이블에는 BUSINESS_NO가 없으므로
+                 * 사업자별 이벤트 소유권 확인을 위해 연결 상품은 최소 1개 필수이다.
+                 *
                  * 화면(business.js)에서 addProductButton으로 여러 개의
                  * 상품 행을 추가하므로 productNoList / discountRateList가
-                 * 여러 건 전달될 수 있음.
+                 * 여러 건 전달될 수 있다.
                  */
                 List<Long> productNoList = eventManageVO.getProductNoList();
                 List<Integer> discountRateList = eventManageVO.getDiscountRateList();
@@ -997,10 +1148,14 @@ public class BusinessServiceImpl
                                                 "이벤트 할인율은 0부터 100 사이여야 합니다.");
                         }
 
-                        /* 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인. */
+                        /*
+                         * 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고
+                         * 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인한다.
+                         */
                         int productCount = businessDAO.countProductByBusinessNo(
                                         productNo,
-                                        eventManageVO.getBusinessNo());
+                                        eventManageVO.getBusinessNo(),
+                                        excludeEventNo);
                         System.out.println("productCount = " + productCount);
 
                         if (productCount == 0) {
@@ -1011,7 +1166,9 @@ public class BusinessServiceImpl
                         }
                 }
 
-                /* 같은 상품을 중복 선택한 경우 방지. */
+                /*
+                 * 같은 상품을 중복 선택한 경우도 방지한다.
+                 */
                 long distinctProductCount = productNoList.stream()
                                 .distinct()
                                 .count();
@@ -1023,7 +1180,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 이벤트 이미지 검증 */
+        /*
+         * =========================================================
+         * 이벤트 이미지 검증
+         * =========================================================
+         */
         private void validateEventImage(
                         MultipartFile eventImage) {
 
@@ -1065,7 +1226,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 이벤트 이미지 저장 */
+        /*
+         * =========================================================
+         * 이벤트 이미지 저장
+         * =========================================================
+         */
         private SavedFileInfo saveEventImage(
                         MultipartFile eventImage) {
 
@@ -1126,7 +1291,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 상품 입력값 검증 */
+        /*
+         * =========================================================
+         * 상품 입력값 검증
+         * =========================================================
+         */
         private void validateProduct(
                         GoodsManageVO goodsManageVO) {
 
@@ -1231,7 +1400,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 배우 번호 정규화 */
+        /*
+         * =========================================================
+         * 배우 번호 정규화
+         * =========================================================
+         */
         private void normalizeActorNo(
                         GoodsManageVO goodsManageVO) {
 
@@ -1245,7 +1418,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 콘텐츠와 배우 연결 관계 검증 */
+        /*
+         * =========================================================
+         * 콘텐츠와 배우 연결 관계 검증
+         * =========================================================
+         */
         private void validateContentActor(
                         GoodsManageVO goodsManageVO) {
 
@@ -1267,7 +1444,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 상품 이미지 검증 */
+        /*
+         * =========================================================
+         * 상품 이미지 검증
+         * =========================================================
+         */
         private void validateProductImage(
                         MultipartFile productImage) {
 
@@ -1316,7 +1497,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 상품 이미지 저장 */
+        /*
+         * =========================================================
+         * 상품 이미지 저장
+         * =========================================================
+         */
         private SavedFileInfo saveProductImage(
                         MultipartFile productImage) {
 
@@ -1377,7 +1562,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 파일 확장자 추출 */
+        /*
+         * =========================================================
+         * 파일 확장자 추출
+         * =========================================================
+         */
         private String getFileExtension(
                         String filename) {
 
@@ -1394,7 +1583,11 @@ public class BusinessServiceImpl
                                 .toLowerCase();
         }
 
-        /* 상품 등록 또는 수정 실패 시 저장된 이미지 삭제 */
+        /*
+         * =========================================================
+         * 상품 등록 또는 수정 실패 시 저장된 이미지 삭제
+         * =========================================================
+         */
         private void deleteSavedFileQuietly(
                         Path savedPhysicalPath) {
 
@@ -1415,7 +1608,11 @@ public class BusinessServiceImpl
                 }
         }
 
-        /* 이미지 저장 결과 */
+        /*
+         * =========================================================
+         * 이미지 저장 결과
+         * =========================================================
+         */
         private record SavedFileInfo(
                         String webPath,
                         Path physicalPath) {
