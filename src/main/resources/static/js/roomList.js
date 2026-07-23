@@ -20,8 +20,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const contextPath = contextPathElement.value;
+    const createRoomBtn = document.getElementById("createRoomBtn");
     const actionButtons = document.querySelectorAll(".room-action-btn");
     const roomCards = document.querySelectorAll(".room-card");
+
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener("click", function() {
+            location.href = contextPath + "/chat/create";
+        });
+    }
 
     actionButtons.forEach(function(button) {
 

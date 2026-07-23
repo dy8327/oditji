@@ -14,6 +14,15 @@
 </head>
 <body>
 
+<div id="chatPageData"
+     data-context-path="${pageContext.request.contextPath}"
+     data-room-id="${room.roomId}"
+     data-room-type="${room.roomType}"
+     data-business-no="${businessNo}"
+     data-business-name="${businessName}"
+     data-admin="${isAdmin}">
+</div>
+
 <div class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
 
     <div class="chat-header ${isNoticeRoom ? 'notice-header' : ''}">
@@ -49,7 +58,7 @@
 
         <div class="top-btn-area">
             <button type="button"
-                    onclick="location.href='${pageContext.request.contextPath}/chat/list'">
+                    id="roomListBtn">
                 목록으로
             </button>
         </div>
@@ -110,182 +119,8 @@
 
 </div>
 
-<script type="module">
-
-import {
-    sendMessage,
-    listenMessages,
-    formatTime
-} from "${pageContext.request.contextPath}/js/chat.js";
-
-const contextPath = "${pageContext.request.contextPath}";
-const roomId = "${room.roomId}";
-const roomType = "${room.roomType}";
-const businessNo = Number("${businessNo}");
-const businessName = "${businessName}";
-const isAdmin = "${isAdmin}" === "true";
-
-const messageArea = document.getElementById("messageArea");
-const emptyMessage = document.getElementById("emptyMessage");
-const messageInput = document.getElementById("messageInput");
-const sendBtn = document.getElementById("sendBtn");
-const leaveBtn = document.getElementById("leaveBtn");
-
-/**
- * 현재 방의 권한을 확인한 후 메시지를 전송합니다.
- */
-async function handleSendMessage() {
-
-    if (!messageInput) {
-        return;
-    }
-
-    const message = messageInput.value;
-
-    if (!message || message.trim() === "") {
-        return;
-    }
-
-    const sent = await sendMessage(
-        roomId,
-        businessNo,
-        businessName,
-        message,
-        roomType,
-        isAdmin
-    );
-
-    if (!sent) {
-        return;
-    }
-
-    messageInput.value = "";
-    messageInput.focus();
-}
-
-/**
- * Firestore에서 받은 메시지를 화면에 출력합니다.
- */
-function renderMessages(messageList) {
-
-    messageArea.innerHTML = "";
-
-    if (!messageList || messageList.length === 0) {
-        messageArea.appendChild(emptyMessage);
-        return;
-    }
-
-    messageList.forEach(function(message) {
-
-        if (message.type === "SYSTEM") {
-            const systemDiv = document.createElement("div");
-            systemDiv.className = "system-message";
-            systemDiv.textContent = message.message;
-            messageArea.appendChild(systemDiv);
-            return;
-        }
-
-        const mine = Number(message.senderBusinessNo) === businessNo;
-        const row = document.createElement("div");
-        const noticeMessage = message.type === "NOTICE";
-
-        row.className = mine
-            ? "message-row mine"
-            : "message-row other";
-
-        if (noticeMessage) {
-            row.classList.add("notice-message-row");
-        }
-
-        const sender = document.createElement("div");
-        sender.className = "sender";
-        sender.textContent = noticeMessage
-            ? "[관리자] " + message.senderName
-            : message.senderName;
-
-        const bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = message.message;
-
-        const time = document.createElement("div");
-        time.className = "time";
-        time.textContent = formatTime(message.sendTime);
-
-        row.appendChild(sender);
-        row.appendChild(bubble);
-        row.appendChild(time);
-        messageArea.appendChild(row);
-    });
-
-    messageArea.scrollTop = messageArea.scrollHeight;
-}
-
-/**
- * 자유방 참가 기록을 삭제하고 목록으로 이동합니다.
- * 사업자 번호는 서버 세션에서 확인하므로 요청에 포함하지 않습니다.
- */
-function leaveRoom() {
-
-    if (!confirm("채팅방에서 나가시겠습니까?")) {
-        return;
-    }
-
-    fetch(contextPath + "/chat/api/leave", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-        },
-        body: "roomId=" + encodeURIComponent(roomId)
-    })
-    .then(async function(response) {
-
-        const responseText = await response.text();
-
-        if (!response.ok) {
-            throw new Error(
-                "채팅방 나가기 요청 실패: "
-                + response.status
-                + " / "
-                + responseText
-            );
-        }
-
-        return JSON.parse(responseText);
-    })
-    .then(function(data) {
-
-        alert(data.message || "채팅방 나가기 처리가 완료되었습니다.");
-
-        if (data.success) {
-            location.href = contextPath + "/chat/list";
-        }
-    })
-    .catch(function(error) {
-        console.error("채팅방 나가기 중 오류:", error);
-        alert("채팅방 나가기 중 오류가 발생했습니다.");
-    });
-}
-
-if (sendBtn && messageInput) {
-
-    sendBtn.addEventListener("click", handleSendMessage);
-
-    messageInput.addEventListener("keydown", function(event) {
-
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            handleSendMessage();
-        }
-    });
-}
-
-if (leaveBtn) {
-    leaveBtn.addEventListener("click", leaveRoom);
-}
-
-listenMessages(roomId, renderMessages);
-
-</script>
+<script type="module"
+        src="${pageContext.request.contextPath}/js/room.js"></script>
 
 </body>
 </html>

@@ -24,7 +24,7 @@
 
         <button type="button"
                 class="create-btn"
-                onclick="location.href='${pageContext.request.contextPath}/chat/create'">
+                id="createRoomBtn">
             <c:choose>
                 <c:when test="${isAdmin}">
                     채팅방 생성

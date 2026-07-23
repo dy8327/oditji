@@ -32,7 +32,8 @@
 
     <form action="${pageContext.request.contextPath}/chat/create"
           method="post"
-          class="create-room-form">
+          class="create-room-form"
+          id="createRoomForm">
 
         <div class="form-group">
             <label for="roomName">채팅방 이름</label>
@@ -94,7 +95,7 @@
 
             <button type="button"
                     class="cancel-btn"
-                    onclick="history.back()">
+                    id="cancelBtn">
                 취소
             </button>
         </div>
@@ -103,33 +104,8 @@
 
 </div>
 
-<script>
-/**
- * 공지방은 전체 사업자가 열람하는 방이므로 최대 인원 입력을 숨깁니다.
- */
-document.addEventListener("DOMContentLoaded", function() {
-
-    const roomType = document.getElementById("roomType");
-    const maxMemberGroup = document.getElementById("maxMemberGroup");
-    const maxMember = document.getElementById("maxMember");
-    const roomTypeHelp = document.getElementById("roomTypeHelp");
-
-    function updateRoomTypeView() {
-
-        const noticeRoom = roomType.value === "NOTICE";
-
-        maxMemberGroup.hidden = noticeRoom;
-        maxMember.disabled = noticeRoom;
-
-        roomTypeHelp.textContent = noticeRoom
-            ? "공지방은 관리자만 메시지를 작성하고 모든 사업자가 열람합니다."
-            : "자유방은 사업자들이 참가하여 자유롭게 대화하는 공간입니다.";
-    }
-
-    roomType.addEventListener("change", updateRoomTypeView);
-    updateRoomTypeView();
-});
-</script>
+<script type="module"
+        src="${pageContext.request.contextPath}/js/createRoom.js"></script>
 
 </body>
 </html>
