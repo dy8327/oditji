@@ -1232,3 +1232,48 @@
 .full-cancel-status-box.approved .full-cancel-status-title {
   color: var(--oditji-accent);
 }
+
+/* =====================================================
+   [주문 전체 취소 반려 사유 라벨 보완]
+
+   기존 전체 취소 상태 박스 디자인은 유지하면서
+   반려 사유 라벨만 구분하여 가독성을 높인다.
+====================================================== */
+.full-cancel-reject-label {
+  margin-right: 4px;
+  color: var(--oditji-danger);
+  font-weight: 700;
+}
+
+/* =====================================================
+   [주문 전체 취소 버튼 영역 정렬 유지]
+
+   기존 주문 정보 영역의 우측 정렬을 유지한다.
+====================================================== */
+.order-cancel-action {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 18px;
+}
+
+/* =====================================================
+   [모바일 전체 취소 상태 영역 보완]
+====================================================== */
+@media (max-width: 560px) {
+  .full-cancel-status-box {
+    padding: 13px 14px;
+  }
+
+  .full-cancel-status-message {
+    font-size: 12px;
+  }
+
+  .order-cancel-action {
+    justify-content: stretch;
+  }
+
+  .order-cancel-action .payment-cancel-btn {
+    width: 100%;
+  }
+}
