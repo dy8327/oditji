@@ -18,12 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (body.dataset.openOttModal === "true") {
     openModal(modals.ott);
 
-    document
-      .getElementById("mypageOttSection")
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    document.getElementById("mypageOttSection")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   }
 
   if (body.dataset.openDeleteModal === "true") {
@@ -35,9 +33,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
   const memberForm = document.getElementById("memberUpdateForm");
+  const nicknameInput = document.getElementById("updateNickname");
+  const emailInput = document.getElementById("updateEmail");
+  const nicknameMessage = document.getElementById("nicknameMessage");
+  const emailMessage = document.getElementById("emailMessage");
+
+  const originalNickname = document.getElementById("originalNickname")?.value.trim() ?? "";
+
+  const originalEmail = document.getElementById("originalEmail")?.value.trim() ?? "";
 
   let nicknameChecked = true;
-  let checkedNickname = "";
+  let checkedNickname = originalNickname;
+  let emailChecked = true;
+  let checkedEmail = originalEmail;
 
   /* =========================================================
        OPEN
@@ -82,90 +90,128 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* =========================================================
-       닉네임 변경 시 다시 중복확인
+       입력값 변경 시 중복확인 상태 초기화
     ========================================================= */
 
-  const nicknameInput =
-    document.getElementById("updateNickname");
-
   nicknameInput?.addEventListener("input", () => {
-    if (nicknameInput.value !== checkedNickname) {
+    const nickname = nicknameInput.value.trim();
+
+    if (nickname === originalNickname) {
+      nicknameChecked = true;
+      checkedNickname = originalNickname;
+      setMessage(nicknameMessage, "", "");
+      return;
+    }
+
+    if (nickname !== checkedNickname) {
       nicknameChecked = false;
+      checkedNickname = "";
+      setMessage(nicknameMessage, "닉네임 중복확인이 필요합니다.", "invalid");
+    }
+  });
+
+  emailInput?.addEventListener("input", () => {
+    const email = emailInput.value.trim();
+
+    if (email === originalEmail) {
+      emailChecked = true;
+      checkedEmail = originalEmail;
+      setMessage(emailMessage, "", "");
+      return;
+    }
+
+    if (email !== checkedEmail) {
+      emailChecked = false;
+      checkedEmail = "";
+      setMessage(emailMessage, "이메일 중복확인이 필요합니다.", "invalid");
     }
   });
 
   /* =========================================================
-       닉네임 중복확인 버튼
+       중복확인 버튼
     ========================================================= */
 
-  document
-    .getElementById("checkUpdateNicknameBtn")
-    ?.addEventListener(
-      "click",
-      checkUpdateNickname
-    );
+  document.getElementById("checkUpdateNicknameBtn")?.addEventListener("click", checkUpdateNickname);
+
+  document.getElementById("checkUpdateEmailBtn")?.addEventListener("click", checkUpdateEmail);
+
+  /* =========================================================
+       비밀번호 보기 / 숨기기
+    ========================================================= */
+
+  document.querySelectorAll(".password-toggle-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.target;
+      const input = document.getElementById(targetId);
+
+      if (!input) {
+        return;
+      }
+
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      button.textContent = showing ? "보기" : "숨기기";
+      button.setAttribute("aria-label", showing ? "비밀번호 표시" : "비밀번호 숨기기");
+    });
+  });
 
   /* =========================================================
        MEMBER UPDATE VALIDATION
     ========================================================= */
 
   memberForm?.addEventListener("submit", (e) => {
-    const nickname =
-      memberForm.nickname.value.trim();
+    const nickname = nicknameInput?.value.trim() ?? "";
+    const email = emailInput?.value.trim() ?? "";
+    const socialMember = memberForm.socialMember.value === "true";
 
-    const email =
-      memberForm.email?.value.trim() ?? "";
-
-    const socialMember =
-      memberForm.socialMember.value === "true";
-
-    // 닉네임
-    if (nickname === "") {
-      alert("닉네임을 입력해주세요.");
-
+    if (!isValidNickname(nickname)) {
+      alert("닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.");
+      nicknameInput?.focus();
       e.preventDefault();
       return;
     }
 
-    // 닉네임 중복확인
-    if (!nicknameChecked) {
-      alert("닉네임 중복확인을 해주세요.");
-
+    if (nickname !== originalNickname && (!nicknameChecked || checkedNickname !== nickname)) {
+      alert("변경한 닉네임의 중복확인을 해주세요.");
+      nicknameInput?.focus();
       e.preventDefault();
       return;
     }
 
-    // 일반 회원 이메일 검증
-    if (!socialMember && email === "") {
-      alert("이메일을 입력해주세요.");
-
-      e.preventDefault();
-      return;
-    }
-
-    // 일반 회원만 비밀번호 변경 검증
     if (!socialMember) {
-      const currentPw =
-        memberForm.currentPw?.value.trim() ?? "";
+      if (!isValidEmail(email)) {
+        alert("올바른 이메일 형식으로 입력해주세요.");
+        emailInput?.focus();
+        e.preventDefault();
+        return;
+      }
 
-      const newPw =
-        memberForm.newPw?.value.trim() ?? "";
+      if (email !== originalEmail && (!emailChecked || checkedEmail !== email)) {
+        alert("변경한 이메일의 중복확인을 해주세요.");
+        emailInput?.focus();
+        e.preventDefault();
+        return;
+      }
 
-      const newPwCheck =
-        memberForm.newPwCheck?.value.trim() ?? "";
+      const currentPw = memberForm.currentPw?.value.trim() ?? "";
+      const newPw = memberForm.newPw?.value.trim() ?? "";
+      const newPwCheck = memberForm.newPwCheck?.value.trim() ?? "";
 
-      // 비밀번호 변경 시
       if (newPw !== "" || newPwCheck !== "") {
         if (currentPw === "") {
           alert("현재 비밀번호를 입력해주세요.");
+          e.preventDefault();
+          return;
+        }
 
+        if (!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$/.test(newPw)) {
+          alert("새 비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자로 입력해주세요.");
           e.preventDefault();
           return;
         }
 
         if (newPw !== newPwCheck) {
           alert("새 비밀번호가 일치하지 않습니다.");
-
           e.preventDefault();
           return;
         }
@@ -177,33 +223,20 @@ document.addEventListener("DOMContentLoaded", () => {
        DELETE VALIDATION
     ========================================================= */
 
-  const deleteForm =
-    document.getElementById("deleteForm");
-
-  const deleteConfirmInput =
-    document.getElementById("deleteConfirmInput");
+  const deleteForm = document.getElementById("deleteForm");
+  const deleteConfirmInput = document.getElementById("deleteConfirmInput");
 
   deleteForm?.addEventListener("submit", (e) => {
-    const confirmText =
-      deleteConfirmInput?.value.trim() ?? "";
+    const confirmText = deleteConfirmInput?.value.trim() ?? "";
 
-    // 1. 탈퇴 문구 일치 체크
     if (confirmText !== "탈퇴하겠습니다") {
-      alert(
-        "탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요."
-      );
-
+      alert("탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요.");
       deleteConfirmInput?.focus();
-
       e.preventDefault();
       return;
     }
 
-    // 2. 최종 확인
-    const confirmed = confirm(
-      "정말 회원을 탈퇴하시겠습니까?\n" +
-      "탈퇴 후에는 모든 데이터가 삭제되며 복구할 수 없습니다."
-    );
+    const confirmed = confirm("정말 회원을 탈퇴하시겠습니까?\n" + "탈퇴 후 7일 동안 복구할 수 있으며, 이후 데이터가 삭제됩니다.");
 
     if (!confirmed) {
       e.preventDefault();
@@ -219,74 +252,115 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const nickname =
-      nicknameInput.value.trim();
+    const nickname = nicknameInput.value.trim();
 
-    const originalNickname =
-      document
-        .getElementById("originalNickname")
-        ?.value ?? "";
-
-    if (nickname === "") {
-      alert("닉네임을 입력해주세요.");
+    if (!isValidNickname(nickname)) {
+      nicknameChecked = false;
+      checkedNickname = "";
+      setMessage(nicknameMessage, "한글, 영문, 숫자 2~10자로 입력해주세요.", "invalid");
+      nicknameInput.focus();
       return;
     }
 
     if (nickname === originalNickname) {
-      alert("현재 사용 중인 닉네임입니다.");
-
       nicknameChecked = true;
       checkedNickname = nickname;
-
+      setMessage(nicknameMessage, "현재 사용 중인 닉네임입니다.", "valid");
       return;
     }
 
+    const result = await requestDuplicateCheck("/member/checkUpdateNickname", "nickname", nickname, "닉네임");
+
+    if (result === null) {
+      return;
+    }
+
+    nicknameChecked = result;
+    checkedNickname = result ? nickname : "";
+
+    setMessage(nicknameMessage, result ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다.", result ? "valid" : "invalid");
+  }
+
+  /* =========================================================
+       이메일 중복확인
+    ========================================================= */
+
+  async function checkUpdateEmail() {
+    if (!emailInput) {
+      return;
+    }
+
+    const email = emailInput.value.trim();
+
+    if (!isValidEmail(email)) {
+      emailChecked = false;
+      checkedEmail = "";
+      setMessage(emailMessage, "올바른 이메일 형식으로 입력해주세요.", "invalid");
+      emailInput.focus();
+      return;
+    }
+
+    if (email === originalEmail) {
+      emailChecked = true;
+      checkedEmail = email;
+      setMessage(emailMessage, "현재 사용 중인 이메일입니다.", "valid");
+      return;
+    }
+
+    const result = await requestDuplicateCheck("/member/checkUpdateEmail", "email", email, "이메일");
+
+    if (result === null) {
+      return;
+    }
+
+    emailChecked = result;
+    checkedEmail = result ? email : "";
+
+    setMessage(emailMessage, result ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.", result ? "valid" : "invalid");
+  }
+
+  async function requestDuplicateCheck(path, parameterName, value, label) {
     try {
-      const contextPath =
-        body.dataset.contextPath ?? "";
-
-      const memberNo =
-        document
-          .getElementById("memberNo")
-          ?.value ?? "";
-
-      const response = await fetch(
-        `${contextPath}/member/checkUpdateNickname` +
-        `?nickname=${encodeURIComponent(nickname)}` +
-        `&memberNo=${encodeURIComponent(memberNo)}`
-      );
+      const contextPath = body.dataset.contextPath ?? "";
+      const params = new URLSearchParams({ [parameterName]: value });
+      const response = await fetch(`${contextPath}${path}?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error(
-          `HTTP 오류: ${response.status}`
-        );
+        throw new Error(`HTTP 오류: ${response.status}`);
       }
 
-      const result =
-        await response.text();
+      const result = (await response.text()).trim();
+      return result === "Y";
+    } catch (error) {
+      console.error(error);
+      alert(`${label} 중복확인 중 오류가 발생했습니다.`);
+      return null;
+    }
+  }
 
-      if (result.trim() === "Y") {
-        alert("사용 가능한 닉네임입니다.");
+  function isValidNickname(nickname) {
+    return /^[a-zA-Z0-9가-힣]{2,10}$/.test(nickname);
+  }
 
-        nicknameChecked = true;
-        checkedNickname = nickname;
-      } else {
-        alert("이미 사용 중인 닉네임입니다.");
+  function isValidEmail(email) {
+    return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
+  }
 
-        nicknameChecked = false;
-        checkedNickname = "";
-      }
-    } catch (e) {
-      console.error(e);
+  function setMessage(element, message, stateClass) {
+    if (!element) {
+      return;
+    }
 
-      alert(
-        "닉네임 중복확인 중 오류가 발생했습니다."
-      );
+    element.textContent = message;
+    element.classList.remove("valid", "invalid");
+
+    if (stateClass) {
+      element.classList.add(stateClass);
     }
   }
 
   /* =========================================================
-       FUNCTION
+       MODAL FUNCTION
     ========================================================= */
 
   function openModal(modal) {
@@ -295,7 +369,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     closeAllModals();
-
     modal.classList.remove("hidden");
     body.style.overflow = "hidden";
   }
@@ -307,12 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     modal.classList.add("hidden");
 
-    const openedModal =
-      Object.values(modals).some(
-        (item) =>
-          item &&
-          !item.classList.contains("hidden")
-      );
+    const openedModal = Object.values(modals).some((item) => item && !item.classList.contains("hidden"));
 
     if (!openedModal) {
       body.style.overflow = "";
@@ -328,18 +396,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function bindOpen(buttonId, modal) {
-    document
-      .getElementById(buttonId)
-      ?.addEventListener("click", () => {
-        openModal(modal);
-      });
+    document.getElementById(buttonId)?.addEventListener("click", () => {
+      openModal(modal);
+    });
   }
 
   function bindClose(buttonId, modal) {
-    document
-      .getElementById(buttonId)
-      ?.addEventListener("click", () => {
-        closeModal(modal);
-      });
+    document.getElementById(buttonId)?.addEventListener("click", () => {
+      closeModal(modal);
+    });
   }
 });
