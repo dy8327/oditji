@@ -35,6 +35,7 @@
 
     </select>
 
+
     <select id="selectContentByContentNo"
             parameterType="int"
             resultType="com.project.oditji.content.vo.ContentVO">
@@ -63,6 +64,7 @@
         WHERE CONTENT_NO = #{contentNo}
 
     </select>
+
 
     <insert id="insertContent"
             parameterType="com.project.oditji.content.vo.ContentVO">
@@ -110,10 +112,10 @@
 
     </insert>
 
+
     <!--
         검색 JSON 캐시 값을 기존 CONTENT 행에 반영합니다.
-        캐시에 존재하는 핵심 검색 값만 갱신하며,
-        overview, backdropPath, runtime 등 기존 상세 전용 값은 유지합니다.
+        상세페이지 전용 값은 유지하고 검색 기준 값만 갱신합니다.
     -->
     <update id="updateContentFromSearchCache"
             parameterType="com.project.oditji.content.vo.ContentVO">
@@ -135,23 +137,99 @@
 
     </update>
 
+
+    <!-- 기존 CONTENT 전체 조회수 증가 -->
     <update id="increaseViewCount"
             parameterType="int">
 
         UPDATE CONTENT
-        SET VIEW_COUNT = VIEW_COUNT + 1,
+        SET
+            VIEW_COUNT = VIEW_COUNT + 1,
             UPDATED_AT = SYSDATE
         WHERE CONTENT_NO = #{contentNo}
 
     </update>
-    
-    <!-- =========================
-     메인 화면 콘텐츠 리스트 조회
-     - TMDB 평점 + 조회수 기준 정렬
-     - 메인 페이지 콘텐츠 카드 / 슬라이더 데이터용
-     ========================= -->
+
+
+    <!--
+        로그인 회원의 오늘 콘텐츠 상세 조회 이력을 저장합니다.
+
+        같은 회원 + 같은 콘텐츠 + 같은 날짜의 기록이 있으면:
+        - VIEW_COUNT 증가
+        - LAST_VIEWED_AT 갱신
+
+        오늘 기록이 없으면:
+        - 새로운 행 등록
+    -->
+    <update id="mergeContentViewHistory"
+            parameterType="com.project.oditji.content.vo.ContentViewHistoryVO">
+
+        MERGE INTO CONTENT_VIEW_HISTORY TARGET
+        USING (
+            SELECT
+                #{memberNo} AS MEMBER_NO,
+                #{contentNo} AS CONTENT_NO,
+                TRUNC(SYSDATE) AS VIEW_DATE
+            FROM DUAL
+        ) SOURCE
+        ON (
+            TARGET.MEMBER_NO = SOURCE.MEMBER_NO
+            AND TARGET.CONTENT_NO = SOURCE.CONTENT_NO
+            AND TARGET.VIEW_DATE = SOURCE.VIEW_DATE
+        )
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                TARGET.VIEW_COUNT =
+                    TARGET.VIEW_COUNT + 1,
+                TARGET.LAST_VIEWED_AT =
+                    SYSDATE
+
+        WHEN NOT MATCHED THEN
+            INSERT (
+                VIEW_HISTORY_NO,
+                MEMBER_NO,
+                CONTENT_NO,
+                VIEW_COUNT,
+                VIEW_DATE,
+                FIRST_VIEWED_AT,
+                LAST_VIEWED_AT
+            )
+            VALUES (
+                SEQ_CONTENT_VIEW_HISTORY_NO.NEXTVAL,
+                SOURCE.MEMBER_NO,
+                SOURCE.CONTENT_NO,
+                1,
+                SOURCE.VIEW_DATE,
+                SYSDATE,
+                SYSDATE
+            )
+
+    </update>
+
+
+    <!--
+        오늘을 포함한 최근 30일 기록만 유지합니다.
+
+        예:
+        오늘이 7월 23일이면
+        6월 24일부터 7월 23일까지의 기록을 유지합니다.
+    -->
+    <delete id="deleteExpiredContentViewHistory">
+
+        DELETE FROM CONTENT_VIEW_HISTORY
+        WHERE VIEW_DATE <![CDATA[<]]>
+              TRUNC(SYSDATE) - 29
+
+    </delete>
+
+
+    <!--
+        메인 화면 콘텐츠 리스트 조회
+        TMDB 평점과 전체 조회수를 기준으로 정렬합니다.
+    -->
     <select id="selectMainContentList"
-        resultType="com.project.oditji.content.vo.ContentVO">
+            resultType="com.project.oditji.content.vo.ContentVO">
 
         SELECT
             CONTENT_NO AS contentNo,
@@ -174,11 +252,15 @@
             CREATED_AT AS createdAt,
             UPDATED_AT AS updatedAt
         FROM CONTENT
-        ORDER BY TMDB_SCORE DESC, VIEW_COUNT DESC
+        ORDER BY
+            TMDB_SCORE DESC,
+            VIEW_COUNT DESC
         FETCH FIRST 200 ROWS ONLY
 
     </select>
- <select id="selectContentListByType"
+
+
+    <select id="selectContentListByType"
             parameterType="map"
             resultType="com.project.oditji.content.vo.ContentVO">
 
@@ -196,7 +278,8 @@
             </when>
 
             <otherwise>
-                TMDB_SCORE DESC, VIEW_COUNT DESC
+                TMDB_SCORE DESC,
+                VIEW_COUNT DESC
             </otherwise>
         </choose>
 
@@ -209,6 +292,7 @@
     <select id="selectActorListByContentNo"
             parameterType="int"
             resultType="com.project.oditji.tmdb.vo.ActorVO">
+
         SELECT
             A.ACTOR_NO AS actorNo,
             A.TMDB_ACTOR_ID AS tmdbActorId,
@@ -217,14 +301,20 @@
             CA.CHARACTER_NAME AS characterName,
             CA.DISPLAY_ORDER AS displayOrder
         FROM CONTENT_ACTOR CA
-        JOIN ACTOR A ON A.ACTOR_NO = CA.ACTOR_NO
+        JOIN ACTOR A
+          ON A.ACTOR_NO = CA.ACTOR_NO
         WHERE CA.CONTENT_NO = #{contentNo}
-        ORDER BY CA.DISPLAY_ORDER, A.ACTOR_NO
+        ORDER BY
+            CA.DISPLAY_ORDER,
+            A.ACTOR_NO
+
     </select>
+
 
     <select id="selectDirectorListByContentNo"
             parameterType="int"
             resultType="com.project.oditji.tmdb.vo.DirectorVO">
+
         SELECT
             D.DIRECTOR_NO AS directorNo,
             D.TMDB_DIRECTOR_ID AS tmdbDirectorId,
@@ -233,16 +323,17 @@
             CD.DIRECTOR_TYPE AS directorType,
             CD.DISPLAY_ORDER AS displayOrder
         FROM CONTENT_DIRECTOR CD
-        JOIN DIRECTOR D ON D.DIRECTOR_NO = CD.DIRECTOR_NO
+        JOIN DIRECTOR D
+          ON D.DIRECTOR_NO = CD.DIRECTOR_NO
         WHERE CD.CONTENT_NO = #{contentNo}
-        ORDER BY CD.DISPLAY_ORDER, D.DIRECTOR_NO
+        ORDER BY
+            CD.DISPLAY_ORDER,
+            D.DIRECTOR_NO
+
     </select>
 
-    <!-- =========================
-         콘텐츠별 시청 가능 OTT 조회
-         - CONTENT_PLATFORM과 OTT_PLATFORM 연결
-         - 활성화된 플랫폼만 상세페이지에 노출
-         ========================= -->
+
+    <!-- 활성화된 콘텐츠별 시청 가능 OTT 조회 -->
     <select id="selectOttPlatformListByContentNo"
             parameterType="int"
             resultType="com.project.oditji.tmdb.vo.OttPlatformVO">

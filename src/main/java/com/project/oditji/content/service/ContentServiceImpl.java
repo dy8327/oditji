@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.project.oditji.content.dao.ContentDAO;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
+import com.project.oditji.content.vo.ContentViewHistoryVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.service.SearchContentStore;
@@ -22,14 +23,21 @@ import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.tmdb.vo.DirectorVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
+/**
+ * 콘텐츠 관련 비즈니스 로직 구현체입니다.
+ *
+ * 기존 콘텐츠 상세 준비, 목록, 관련 콘텐츠 기능과 함께
+ * 로그인 회원의 상세페이지 조회 이력을 관리합니다.
+ */
 @Service
 public class ContentServiceImpl implements ContentService {
 
     private final ContentDAO contentDAO;
     private final TmdbService tmdbService;
+
     /*
      * 콘텐츠 목록 화면은 외부 TMDB API가 아니라
-     * JSONL에서 적재된 공용 검색 캐시를 사용합니다.
+     * JSONL에 적재된 공용 검색 캐시를 사용합니다.
      */
     private final SearchContentPageCacheService
             searchContentPageCacheService;
@@ -52,19 +60,11 @@ public class ContentServiceImpl implements ContentService {
     }
 
     /**
-     * 검색 결과에서 상세페이지로 진입할 때 콘텐츠를 DB에 준비합니다.
+     * 검색 결과에서 상세페이지로 진입할 때
+     * 콘텐츠 데이터를 DB에 준비합니다.
      *
-     * 기존 콘텐츠:
-     * - JSON 공용 캐시 값을 기존 CONTENT 행에 UPDATE
-     * - 플랫폼과 인물 관계 저장
-     * - 조회수 증가
-     *
-     * 신규 콘텐츠:
-     * - TMDB 상세 저장용 데이터를 생성
-     * - JSON 공용 캐시 값을 우선 반영
-     * - CONTENT INSERT
-     * - 플랫폼과 인물 관계 저장
-     * - 조회수 증가
+     * 기존 CONTENT.VIEW_COUNT 증가 로직은 그대로 유지합니다.
+     * 회원별 조회 이력은 상세페이지 Controller에서 별도로 저장합니다.
      */
     @Override
     @Transactional
@@ -129,8 +129,8 @@ public class ContentServiceImpl implements ContentService {
 
             /*
              * 검색 JSON에 저장된 플랫폼 키를 우선 사용합니다.
-             * TMDB watch/providers의 시점별 응답 차이로
-             * Wavve 등 일부 OTT가 누락되는 문제를 방지합니다.
+             * TMDB watch/providers의 응답 차이로
+             * 일부 OTT가 누락되는 문제를 방지합니다.
              */
             tmdbService.saveContentPlatform(
                     existingContent,
@@ -152,8 +152,7 @@ public class ContentServiceImpl implements ContentService {
 
         /*
          * DB에 없는 콘텐츠는 기존 TMDB 상세 저장 로직으로
-         * overview, backdrop, runtime 등의 값을 만든 뒤
-         * 검색 JSON 값을 우선 적용합니다.
+         * 상세 데이터를 만든 뒤 JSON 캐시 값을 우선 반영합니다.
          */
         ContentVO contentForSave =
                 tmdbService.getDetailForSave(
@@ -183,11 +182,6 @@ public class ContentServiceImpl implements ContentService {
             );
         }
 
-        /*
-         * 신규 콘텐츠도 동일하게 JSON 플랫폼 키를 우선 저장합니다.
-         * JSON에 플랫폼 키가 없는 경우에는 TmdbServiceImpl에서
-         * 기존 TMDB API 방식으로 자동 대체합니다.
-         */
         tmdbService.saveContentPlatform(
                 savedContent,
                 cachedContent == null
@@ -207,10 +201,61 @@ public class ContentServiceImpl implements ContentService {
     }
 
     /**
+     * 로그인 회원의 콘텐츠 상세페이지 조회 이력을 저장합니다.
+     *
+     * CONTENT_VIEW_HISTORY는 회원·콘텐츠·날짜별로
+     * 한 행만 유지합니다.
+     *
+     * 동일 날짜의 기록이 이미 있으면
+     * Mapper의 MERGE 문이 VIEW_COUNT를 증가시킵니다.
+     */
+    @Override
+    @Transactional
+    public void recordContentViewHistory(
+            Long memberNo,
+            int contentNo) {
+
+        if (memberNo == null
+                || memberNo <= 0) {
+
+            return;
+        }
+
+        if (contentNo <= 0) {
+
+            throw new IllegalArgumentException(
+                    "올바르지 않은 콘텐츠 번호입니다."
+            );
+        }
+
+        ContentViewHistoryVO historyVO =
+                new ContentViewHistoryVO();
+
+        historyVO.setMemberNo(memberNo);
+        historyVO.setContentNo(contentNo);
+
+        contentDAO.mergeContentViewHistory(
+                historyVO
+        );
+    }
+
+    /**
+     * 오늘을 포함한 최근 30일을 초과한
+     * 콘텐츠 조회 이력을 삭제합니다.
+     */
+    @Override
+    @Transactional
+    public int deleteExpiredContentViewHistory() {
+
+        return contentDAO
+                .deleteExpiredContentViewHistory();
+    }
+
+    /**
      * 검색 JSON 캐시 값을 DB 저장용 ContentVO에 반영합니다.
      *
      * 캐시에 값이 있을 때만 반영하므로
-     * TMDB 상세 API에서 이미 가져온 정상값을 null로 덮어쓰지 않습니다.
+     * TMDB 상세 API의 정상값을 null로 덮어쓰지 않습니다.
      *
      * @return 한 개 이상의 값이 반영됐으면 true
      */
@@ -383,10 +428,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     /**
-     * 콘텐츠 상세 페이지의 관련 콘텐츠를 JSONL 공용 캐시에서 조회합니다.
-     *
-     * 현재 상세 콘텐츠 자체는 DB에서 조회하지만,
-     * 추천 후보는 DB 적재 여부와 관계없이 JSONL 전체 콘텐츠를 사용합니다.
+     * 콘텐츠 상세 페이지의 관련 콘텐츠를
+     * JSONL 공용 캐시에서 조회합니다.
      */
     @Override
     public List<SearchResultVO> getRelatedContentList(
@@ -433,10 +476,6 @@ public class ContentServiceImpl implements ContentService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        /*
-         * 기존 ContentListTmdbService의 discover API 호출 대신
-         * SearchContentStore에 적재된 JSONL 콘텐츠를 사용합니다.
-         */
         return searchContentPageCacheService
                 .getContentListPage(
                         type,
@@ -453,10 +492,6 @@ public class ContentServiceImpl implements ContentService {
             List<String> genreCodes,
             List<String> providerIds) {
 
-        /*
-         * 현재 목록 필터를 반영한 인기 콘텐츠 중
-         * 상위 5개를 우측 추천 영역에 표시합니다.
-         */
         return searchContentPageCacheService
                 .getContentRecommendedList(
                         contentCategories,
