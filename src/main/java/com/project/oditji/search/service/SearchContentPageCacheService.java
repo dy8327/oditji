@@ -426,10 +426,316 @@ public class SearchContentPageCacheService {
                         )
         );
 
-        return limitList(
-                candidateList,
-                limit
-        );
+        List<SearchResultVO> relatedContentList =
+                limitList(
+                        candidateList,
+                        limit
+                );
+
+        /*
+         * 정렬에 사용한 동일한 비교 기준으로 추천 이유를 생성합니다.
+         * 점수 기준과 화면 문구가 서로 어긋나지 않도록
+         * 최종 반환 대상에만 이유를 설정합니다.
+         */
+        for (SearchResultVO relatedContent : relatedContentList) {
+
+            relatedContent.setRecommendationReason(
+                    createRelatedRecommendationReason(
+                            currentContent,
+                            relatedContent,
+                            currentGenres,
+                            currentMainGenre,
+                            currentDirectors,
+                            currentCast
+                    )
+            );
+
+            /*
+             * 추천 문구의 핵심 근거를 별도 유형으로 내려줍니다.
+             * JSP는 이 값을 CSS 클래스에 연결하여 추천 이유별로
+             * 서로 다른 강조 색상을 적용합니다.
+             */
+            relatedContent.setRecommendationReasonType(
+                    resolveRelatedRecommendationReasonType(
+                            currentContent,
+                            relatedContent,
+                            currentMainGenre
+                    )
+            );
+        }
+
+        return relatedContentList;
+    }
+
+    /**
+     * 관련 콘텐츠 한 건에 표시할 추천 이유를 생성합니다.
+     *
+     * 추천 점수 우선순위와 동일하게 주 장르를 먼저 설명하고,
+     * 추가 장르·감독·출연진 중 의미 있는 일치 정보를 덧붙입니다.
+     * 카드가 복잡해지지 않도록 최대 두 가지 핵심 근거만 사용합니다.
+     */
+    private String createRelatedRecommendationReason(
+            com.project.oditji.content.vo.ContentVO currentContent,
+            SearchResultVO candidate,
+            Set<String> currentGenres,
+            String currentMainGenre,
+            Set<String> currentDirectors,
+            Set<String> currentCast) {
+
+        if (candidate == null) {
+            return "비슷한 콘텐츠로 추천했어요.";
+        }
+
+        List<String> candidateGenreList =
+                splitRelatedValues(
+                        candidate.getGenreText()
+                );
+
+        Set<String> candidateGenres =
+                new HashSet<String>(
+                        candidateGenreList
+                );
+
+        String candidateMainGenre =
+                resolveRelatedMainGenre(
+                        candidateGenreList
+                );
+
+        String matchedGenre =
+                findFirstOriginalMatchedValue(
+                        currentContent.getGenreText(),
+                        candidate.getGenreText()
+                );
+
+        String matchedDirector =
+                findFirstOriginalMatchedValue(
+                        currentContent.getDirector(),
+                        candidate.getDirector()
+                );
+
+        String matchedCast =
+                findFirstOriginalMatchedValue(
+                        currentContent.getCastNames(),
+                        candidate.getCastNames()
+                );
+
+        StringBuilder reason =
+                new StringBuilder();
+
+        boolean mainGenreMatched =
+                !currentMainGenre.isEmpty()
+                && currentMainGenre.equals(
+                        candidateMainGenre
+                );
+
+        if (mainGenreMatched) {
+
+            String originalMainGenre =
+                    findOriginalValue(
+                            currentContent.getGenreText(),
+                            currentMainGenre
+                    );
+
+            reason.append("같은 ")
+                    .append(
+                            originalMainGenre.isEmpty()
+                                    ? currentMainGenre
+                                    : originalMainGenre
+                    )
+                    .append(" 장르의 작품이에요.");
+
+        } else if (!matchedGenre.isEmpty()) {
+
+            reason.append(matchedGenre)
+                    .append(" 장르가 비슷한 작품이에요.");
+
+        } else if (!candidateGenres.isEmpty()
+                && !currentGenres.isEmpty()) {
+
+            reason.append("비슷한 장르 구성을 가진 작품이에요.");
+
+        } else {
+
+            reason.append("같은 콘텐츠 분류에서 추천한 작품이에요.");
+        }
+
+        if (!matchedDirector.isEmpty()
+                && currentDirectors.contains(
+                        normalizeRelatedValue(
+                                matchedDirector
+                        )
+                )) {
+
+            reason.append(" ")
+                    .append(matchedDirector)
+                    .append(" 감독의 작품이에요.");
+
+        } else if (!matchedCast.isEmpty()
+                && currentCast.contains(
+                        normalizeRelatedValue(
+                                matchedCast
+                        )
+                )) {
+
+            reason.append(" 출연진 " )
+                    .append(matchedCast)
+                    .append("이(가) 함께해요.");
+        }
+
+        return reason.toString();
+    }
+
+    /**
+     * 추천 이유에서 가장 구체적인 핵심 근거를 유형으로 반환합니다.
+     *
+     * 한 카드에서 장르와 인물 정보가 함께 일치할 수 있으므로
+     * 감독 > 출연진 > 주 장르 > 일반 장르 > 콘텐츠 분류 순서로
+     * 대표 유형을 결정합니다.
+     */
+    private String resolveRelatedRecommendationReasonType(
+            com.project.oditji.content.vo.ContentVO currentContent,
+            SearchResultVO candidate,
+            String currentMainGenre) {
+
+        if (currentContent == null || candidate == null) {
+            return "CATEGORY";
+        }
+
+        String matchedDirector =
+                findFirstOriginalMatchedValue(
+                        currentContent.getDirector(),
+                        candidate.getDirector()
+                );
+
+        if (!matchedDirector.isEmpty()) {
+            return "DIRECTOR";
+        }
+
+        String matchedCast =
+                findFirstOriginalMatchedValue(
+                        currentContent.getCastNames(),
+                        candidate.getCastNames()
+                );
+
+        if (!matchedCast.isEmpty()) {
+            return "CAST";
+        }
+
+        List<String> candidateGenreList =
+                splitRelatedValues(
+                        candidate.getGenreText()
+                );
+
+        String candidateMainGenre =
+                resolveRelatedMainGenre(
+                        candidateGenreList
+                );
+
+        if (currentMainGenre != null
+                && !currentMainGenre.isEmpty()
+                && currentMainGenre.equals(
+                        candidateMainGenre
+                )) {
+
+            return "MAIN_GENRE";
+        }
+
+        String matchedGenre =
+                findFirstOriginalMatchedValue(
+                        currentContent.getGenreText(),
+                        candidate.getGenreText()
+                );
+
+        if (!matchedGenre.isEmpty()) {
+            return "GENRE";
+        }
+
+        return "CATEGORY";
+    }
+
+    /**
+     * 쉼표로 구분된 두 문자열에서 처음 일치하는 값을 찾습니다.
+     * 비교는 소문자로 정규화하지만, 화면에는 후보 콘텐츠의 원래 표기를 반환합니다.
+     */
+    private String findFirstOriginalMatchedValue(
+            String currentValue,
+            String candidateValue) {
+
+        Set<String> currentNormalizedValues =
+                new HashSet<String>(
+                        splitRelatedValues(
+                                currentValue
+                        )
+                );
+
+        if (currentNormalizedValues.isEmpty()
+                || candidateValue == null
+                || candidateValue.isBlank()) {
+
+            return "";
+        }
+
+        String[] candidateTokens =
+                candidateValue.split(",");
+
+        for (String candidateToken : candidateTokens) {
+
+            String originalValue =
+                    candidateToken == null
+                            ? ""
+                            : candidateToken.trim();
+
+            String normalizedValue =
+                    normalizeRelatedValue(
+                            originalValue
+                    );
+
+            if (!normalizedValue.isEmpty()
+                    && currentNormalizedValues.contains(
+                            normalizedValue
+                    )) {
+
+                return originalValue;
+            }
+        }
+
+        return "";
+    }
+
+    /**
+     * 정규화된 비교값에 대응하는 원래 표기를 반환합니다.
+     */
+    private String findOriginalValue(
+            String originalValues,
+            String normalizedTarget) {
+
+        if (originalValues == null
+                || originalValues.isBlank()
+                || normalizedTarget == null
+                || normalizedTarget.isBlank()) {
+
+            return "";
+        }
+
+        String[] tokens =
+                originalValues.split(",");
+
+        for (String token : tokens) {
+
+            String originalValue =
+                    token == null
+                            ? ""
+                            : token.trim();
+
+            if (normalizeRelatedValue(
+                    originalValue
+            ).equals(normalizedTarget)) {
+
+                return originalValue;
+            }
+        }
+
+        return "";
     }
 
     /**
