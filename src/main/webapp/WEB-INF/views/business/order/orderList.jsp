@@ -394,25 +394,94 @@
 
                 <%--
                     =========================================================
-                    [주문 전체 취소 버튼 수정]
+                    [주문 전체 취소 처리 상태 및 반려 사유 표시 추가]
 
-                    전체 취소는 주문에 포함된 모든 상품을 동일한 그룹으로
-                    묶어 요청하며, 모든 사업자가 승인한 경우에만 전액 환불한다.
+                    가장 최근 FULL 취소 그룹의 처리 상태를 주문 단위로
+                    표시한다. 사업자가 전체 취소 요청을 반려한 경우에는
+                    사용자가 주문내역에서 반려 사유를 확인할 수 있다.
                     =========================================================
                 --%>
-                <c:if test="${o.orderStatus eq 'PAID' || o.orderStatus eq 'ORDERED' || o.orderStatus eq 'PREPARING'}">
+                <c:choose>
 
-                    <div class="order-cancel-action">
+                    <c:when test="${o.fullCancelStatus eq 'WAITING'}">
 
-                        <button type="button"
-                                class="payment-cancel-btn"
-                                data-order-no="${o.orderNo}">
-                            주문 전체 취소
-                        </button>
+                        <div class="full-cancel-status-box waiting">
 
-                    </div>
+                            <strong class="full-cancel-status-title">
+                                전체 주문 취소 승인 대기
+                            </strong>
 
-                </c:if>
+                            <p class="full-cancel-status-message">
+                                주문에 포함된 사업자의 승인을 기다리고 있습니다.
+                            </p>
+
+                        </div>
+
+                    </c:when>
+
+                    <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
+
+                        <div class="full-cancel-status-box rejected">
+
+                            <strong class="full-cancel-status-title">
+                                전체 주문 취소 반려
+                            </strong>
+
+                            <p class="full-cancel-status-message">
+                                반려 사유:
+                                <c:choose>
+                                    <c:when test="${not empty o.fullCancelRejectReason}">
+                                        <c:out value="${o.fullCancelRejectReason}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        사업자가 전체 주문 취소 요청을 반려했습니다.
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
+
+                        </div>
+
+                    </c:when>
+
+                    <c:when test="${o.fullCancelStatus eq 'APPROVED' || o.orderStatus eq 'CANCELED'}">
+
+                        <div class="full-cancel-status-box approved">
+
+                            <strong class="full-cancel-status-title">
+                                전체 주문 취소 완료
+                            </strong>
+
+                        </div>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <%--
+                            =========================================================
+                            [주문 전체 취소 버튼 유지]
+
+                            전체 취소 요청이 없는 정상 주문에서만 버튼을
+                            표시한다. 간편결제 주문도 전체 취소 요청은 가능하다.
+                            =========================================================
+                        --%>
+                        <c:if test="${o.orderStatus eq 'PAID' || o.orderStatus eq 'ORDERED' || o.orderStatus eq 'PREPARING'}">
+
+                            <div class="order-cancel-action">
+
+                                <button type="button"
+                                        class="payment-cancel-btn"
+                                        data-order-no="${o.orderNo}">
+                                    주문 전체 취소
+                                </button>
+
+                            </div>
+
+                        </c:if>
+
+                    </c:otherwise>
+
+                </c:choose>
 
             </div>
 
