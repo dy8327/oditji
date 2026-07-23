@@ -18,6 +18,18 @@ public class OrderItemVO {
     private String mainImage;
     private String businessName;
 
+    /*
+     * =========================================================
+     * [부분 취소 처리 결과 표시용 필드 추가]
+     *
+     * 사용자 주문내역에서 최근 부분 취소 요청의 상태와
+     * 사업자 반려 사유를 표시하기 위한 조회 전용 필드이다.
+     * =========================================================
+     */
+    private String cancelRequestStatus;
+    private String cancelType;
+    private String cancelRejectReason;
+
     public OrderItemVO() {
     }
 
@@ -107,6 +119,30 @@ public class OrderItemVO {
 
     public void setBusinessName(String businessName) {
         this.businessName = businessName;
+    }
+
+    public String getCancelRequestStatus() {
+        return cancelRequestStatus;
+    }
+
+    public void setCancelRequestStatus(String cancelRequestStatus) {
+        this.cancelRequestStatus = cancelRequestStatus;
+    }
+
+    public String getCancelType() {
+        return cancelType;
+    }
+
+    public void setCancelType(String cancelType) {
+        this.cancelType = cancelType;
+    }
+
+    public String getCancelRejectReason() {
+        return cancelRejectReason;
+    }
+
+    public void setCancelRejectReason(String cancelRejectReason) {
+        this.cancelRejectReason = cancelRejectReason;
     }
 
     public long getItemTotalPrice() {

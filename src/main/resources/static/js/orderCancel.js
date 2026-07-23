@@ -29,6 +29,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const contextPath = orderListContainer.dataset.contextPath || "";
 
+  /*
+   * =========================================================
+   * [포트원 테스트 채널 여부 확인 추가]
+   * =========================================================
+   */
+  const portOneTestMode = orderListContainer.dataset.portoneTestMode === "true";
+
   const modal = document.getElementById("orderCancelModal");
 
   const modalTitle = document.getElementById("orderCancelModalTitle");
@@ -142,11 +149,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /*
    * =========================================================
+   * [테스트 채널 간편결제 부분 취소 사전 안내 추가]
+   *
+   * 서버에서도 동일하게 검증하지만, 사용자가 요청을 제출하기 전에
+   * 테스트 채널의 간편결제 제한을 바로 확인할 수 있도록 한다.
+   * =========================================================
+   */
+
+  function isEasyPay(payMethod) {
+    const normalized = String(payMethod || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s_-]/g, "");
+
+    return (
+      normalized.includes("EASYPAY") ||
+      normalized.includes("KAKAOPAY") ||
+      normalized.includes("NAVERPAY") ||
+      normalized.includes("TOSSPAY") ||
+      normalized.includes("PAYCO") ||
+      normalized.includes("SAMSUNGPAY") ||
+      normalized.includes("SSGPAY") ||
+      normalized.includes("LPAY")
+    );
+  }
+
+  /*
+   * =========================================================
    * 상품 부분 취소 모달 열기
    * =========================================================
    */
 
-  function openItemCancelModal(orderItemNo, productName) {
+  function openItemCancelModal(orderItemNo, productName, payMethod) {
+    if (portOneTestMode && isEasyPay(payMethod)) {
+      alert("테스트 채널의 간편결제 주문은 상품 부분 취소를 지원하지 않습니다.\n" + "주문 전체 취소를 이용해주세요.");
+      return;
+    }
     const parsedOrderItemNo = Number(orderItemNo);
 
     if (!Number.isInteger(parsedOrderItemNo) || parsedOrderItemNo <= 0) {
@@ -162,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     modalTitle.textContent = "상품 부분 취소 요청";
 
-    modalDescription.textContent = "'" + safeProductName + "' 상품만 부분 취소 요청합니다. " + "해당 상품을 판매한 사업자가 승인하면 " + "부분 환불됩니다.";
+    modalDescription.textContent = "'" + safeProductName + "' 상품을 부분 취소 요청합니다. " + "해당 상품을 판매한 사업자가 승인하면 " + "부분 환불됩니다.";
 
     reasonInput.placeholder = safeProductName + "의 취소 사유를 입력해주세요.";
 
@@ -369,7 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll(".item-cancel-btn").forEach(function (button) {
     button.addEventListener("click", function () {
-      openItemCancelModal(button.dataset.orderItemNo, button.dataset.productName);
+      openItemCancelModal(button.dataset.orderItemNo, button.dataset.productName, button.dataset.payMethod);
     });
   });
 

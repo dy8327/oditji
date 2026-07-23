@@ -1134,3 +1134,146 @@
     width: 100%;
   }
 }
+
+/* =====================================================
+   [부분 취소 반려 사유 표시 추가]
+
+   기존 주문상품 카드 레이아웃은 유지하고, 반려 상태와
+   반려 사유 문구에 필요한 스타일만 추가한다.
+====================================================== */
+.item-cancel-reject-box {
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.item-cancel-state.rejected {
+  color: var(--oditji-danger, #ef6b6b);
+}
+
+.item-cancel-reject-reason {
+  max-width: 260px;
+  margin: 0;
+  color: var(--oditji-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .item-cancel-reject-box {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .item-cancel-reject-reason {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+/* =====================================================
+   [주문 전체 취소 상태 및 반려 사유 표시 추가]
+
+   기존 주문 정보 영역의 레이아웃은 유지하면서
+   전체 취소 승인 대기, 반려, 완료 상태만 표시한다.
+====================================================== */
+.full-cancel-status-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+}
+
+.full-cancel-status-title {
+  display: block;
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.full-cancel-status-message {
+  margin: 7px 0 0;
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.full-cancel-status-box.waiting {
+  border-color: rgba(255, 193, 7, 0.45);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+.full-cancel-status-box.waiting .full-cancel-status-title {
+  color: #f0c75e;
+}
+
+.full-cancel-status-box.rejected {
+  border-color: var(--oditji-danger);
+  background: var(--oditji-danger-soft);
+}
+
+.full-cancel-status-box.rejected .full-cancel-status-title {
+  color: var(--oditji-danger);
+}
+
+.full-cancel-status-box.approved {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+}
+
+.full-cancel-status-box.approved .full-cancel-status-title {
+  color: var(--oditji-accent);
+}
+
+/* =====================================================
+   [주문 전체 취소 반려 사유 라벨 보완]
+
+   기존 전체 취소 상태 박스 디자인은 유지하면서
+   반려 사유 라벨만 구분하여 가독성을 높인다.
+====================================================== */
+.full-cancel-reject-label {
+  margin-right: 4px;
+  color: var(--oditji-danger);
+  font-weight: 700;
+}
+
+/* =====================================================
+   [주문 전체 취소 버튼 영역 정렬 유지]
+
+   기존 주문 정보 영역의 우측 정렬을 유지한다.
+====================================================== */
+.order-cancel-action {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 18px;
+}
+
+/* =====================================================
+   [모바일 전체 취소 상태 영역 보완]
+====================================================== */
+@media (max-width: 560px) {
+  .full-cancel-status-box {
+    padding: 13px 14px;
+  }
+
+  .full-cancel-status-message {
+    font-size: 12px;
+  }
+
+  .order-cancel-action {
+    justify-content: stretch;
+  }
+
+  .order-cancel-action .payment-cancel-btn {
+    width: 100%;
+  }
+}

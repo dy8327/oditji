@@ -51,6 +51,14 @@ public class OrderController {
         @Value("${portone.payment.channel-key}")
         private String paymentChannelKey;
 
+        /*
+         * =========================================================
+         * [포트원 테스트 채널 부분 취소 제한 화면 전달 추가]
+         * =========================================================
+         */
+        @Value("${portone.payment.test-mode:true}")
+        private boolean portOneTestMode;
+
         /**
          * 의존성 주입을 위한 생성자.
          */
@@ -533,6 +541,18 @@ public class OrderController {
                 model.addAttribute(
                                 "orderList",
                                 orderList);
+
+                /*
+                 * =========================================================
+                 * [포트원 테스트 채널 여부 전달 추가]
+                 *
+                 * 사용자 화면에서 테스트 채널의 간편결제 주문에 대해
+                 * 상품 부분 취소 요청을 사전에 안내하기 위해 사용한다.
+                 * =========================================================
+                 */
+                model.addAttribute(
+                                "portOneTestMode",
+                                portOneTestMode);
 
                 return "order/orderList";
         }

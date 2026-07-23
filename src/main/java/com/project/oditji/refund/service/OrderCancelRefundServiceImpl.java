@@ -2,6 +2,7 @@ package com.project.oditji.refund.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,14 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     private final BusinessDAO businessDAO;
     private final PaymentDAO paymentDAO;
     private final PaymentService paymentService;
+
+    /*
+     * =========================================================
+     * [포트원 테스트 채널 간편결제 부분 취소 제한 설정]
+     * =========================================================
+     */
+    @Value("${portone.payment.test-mode:true}")
+    private boolean portOneTestMode;
 
     public OrderCancelRefundServiceImpl(
             OrderCancelRefundDAO orderCancelRefundDAO,
@@ -124,6 +133,23 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         if (item == null) {
             throw new IllegalArgumentException(
                     "부분 취소를 요청할 수 없는 상품입니다. 배송이 시작된 상품은 취소할 수 없습니다.");
+        }
+
+        /*
+         * =========================================================
+         * [간편결제 부분 취소 요청 서버 차단 추가]
+         *
+         * 화면에서 버튼을 안내하더라도 요청 URL을 직접 호출할 수 있으므로
+         * Service 계층에서 결제수단을 다시 확인한다.
+         * 테스트 채널의 간편결제 주문은 전체 취소만 허용한다.
+         * =========================================================
+         */
+        PaymentVO payment = getPayment(item.getOrderNo());
+
+        if (portOneTestMode && isEasyPay(payment)) {
+            throw new IllegalArgumentException(
+                    "테스트 채널의 간편결제 주문은 상품 부분 취소를 지원하지 않습니다. "
+                            + "주문 전체 취소를 이용해주세요.");
         }
 
         String normalizedReason = normalizeReason(reason, "상품 부분 취소 요청");
@@ -377,6 +403,42 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         return request;
+    }
+
+    /*
+     * =========================================================
+     * [간편결제 여부 판별 추가]
+     *
+     * 포트원 결제 조회 시 PAYMENT.PAY_METHOD에 저장된 값을 기준으로
+     * 일반 카드(CARD)와 간편결제(EASY_PAY 등)를 구분한다.
+     * =========================================================
+     */
+    private boolean isEasyPay(PaymentVO payment) {
+
+        if (payment == null) {
+            return false;
+        }
+
+        String payMethod = payment.getPayMethod();
+
+        if (payMethod == null || payMethod.isBlank()) {
+            return false;
+        }
+
+        String normalized = payMethod.trim()
+                .toUpperCase()
+                .replace("-", "")
+                .replace("_", "")
+                .replace(" ", "");
+
+        return normalized.contains("EASYPAY")
+                || normalized.contains("KAKAOPAY")
+                || normalized.contains("NAVERPAY")
+                || normalized.contains("TOSSPAY")
+                || normalized.contains("PAYCO")
+                || normalized.contains("SAMSUNGPAY")
+                || normalized.contains("SSGPAY")
+                || normalized.contains("LPAY");
     }
 
     private void validateMemberNo(Long memberNo) {
