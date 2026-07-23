@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="monitoring"/>
 
@@ -87,7 +88,7 @@
                             <c:forEach var="row" items="${monitoringList}">
                                 <tr>
                                     <td>${row.nickname}</td>
-                                    <td>${row.lastAccessAt}</td>
+                                    <td><fmt:formatDate value="${row.lastAccessAt}" pattern="yyyy-MM-dd"/></td>
                                     <td>${row.productClickCount}</td>
                                     <td>${row.accessIp}</td>
                                 </tr>

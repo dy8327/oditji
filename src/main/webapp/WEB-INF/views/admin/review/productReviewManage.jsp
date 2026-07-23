@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="productReview"/>
 <c:set var="currentTab" value="${empty param.tab ? 'all' : param.tab}"/>
@@ -68,7 +69,7 @@
 
                                     <h3>
                                         ${review.nickname}
-                                        <span class="meta" style="display:inline;">| ${review.createdAt}</span>
+                                        <span class="meta" style="display:inline;">| <fmt:formatDate value="${review.createdAt}" pattern="yyyy-MM-dd"/></span>
                                     </h3>
 
                                     <div class="meta">

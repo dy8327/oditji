@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="settlement"/>
 
@@ -66,7 +67,7 @@
                             <c:forEach var="s" items="${settlementList}">
                                 <tr>
                                     <td>${s.businessName}</td>
-                                    <td>${s.createdAt}</td>
+                                    <td><fmt:formatDate value="${s.createdAt}" pattern="yyyy-MM-dd"/></td>
                                     <td>${s.settledAmount}원</td>
                                     <td>${s.bankName} ${s.accountNumber} (${s.accountHolder})</td>
                                     <td>
