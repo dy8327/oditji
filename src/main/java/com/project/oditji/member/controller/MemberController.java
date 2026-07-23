@@ -298,7 +298,14 @@ public class MemberController {
                         MemberVO loginMember = memberService.loginMember(memberVO);
 
                         if (loginMember == null) {
-                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
+
+                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 틀렸습니다.");
+
+                                /*
+                                 * 로그인에 실패해도 사용자가 입력한 아이디는 유지한다.
+                                 * 비밀번호는 보안상 다시 전달하지 않는다.
+                                 */
+                                redirectAttributes.addFlashAttribute("loginMemberId", memberVO.getMemberId());
 
                                 return "redirect:/member/login";
                         }
