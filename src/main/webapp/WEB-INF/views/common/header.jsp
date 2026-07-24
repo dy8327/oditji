@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=6">
-<script defer src="${pageContext.request.contextPath}/js/common.js?v=6"></script>
+<script defer src="${pageContext.request.contextPath}/js/common.js?v=7"></script>
 
 <header class="header">
     <div class="header-container">
@@ -111,7 +111,6 @@
                 </button>
             </form>
         </div>
-
         <div class="header-right">
             <c:choose>
                 <c:when test="${empty sessionScope.loginMember}">
@@ -119,28 +118,40 @@
                     <a href="${pageContext.request.contextPath}/member/login" class="login-btn">로그인</a>
                 </c:when>
                 <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/cart" class="icon-btn" title="장바구니" aria-label="장바구니">🛒</a>
-                    <c:if test="${sessionScope.loginMember.role eq 'ADMIN'}">
-                        <a href="${pageContext.request.contextPath}/admin/main" class="icon-btn" title="관리자" aria-label="관리자">⚙</a>
+                    <%-- 일반 사용자 장바구니 --%>
+                    <c:if test="${sessionScope.loginMember.role ne 'ADMIN' and empty sessionScope.businessNo}">
+                        <a href="${pageContext.request.contextPath}/cart" class="icon-btn" title="장바구니" aria-label="장바구니">🛒</a>
                     </c:if>
+
                     <div class="profile-menu">
                         <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
                             👤 <span>${sessionScope.loginDisplayName}</span>
                         </button>
+
                         <div class="profile-dropdown">
                             <c:choose>
-                                <c:when test="${not empty sessionScope.businessNo}">
-                                    <a href="${pageContext.request.contextPath}/business/main">마이페이지</a>
+                                <%-- 관리자 메뉴 --%>
+                                <c:when test="${sessionScope.loginMember.role eq 'ADMIN'}">
+                                    <a href="${pageContext.request.contextPath}/admin/main">사이트 관리</a>
                                 </c:when>
 
+                                <%-- 사업자 메뉴 --%>
+                                <c:when test="${not empty sessionScope.businessNo}">
+                                    <a href="${pageContext.request.contextPath}/business/main">대시보드</a>
+                                    <a href="${pageContext.request.contextPath}/business/product/list">상품관리</a>
+                                    <a href="${pageContext.request.contextPath}/business/order/list">주문관리</a>
+                                </c:when>
+
+                                <%-- 일반 사용자 메뉴 --%>
                                 <c:otherwise>
                                     <a href="${pageContext.request.contextPath}/member/mypage">마이페이지</a>
+                                    <a href="${pageContext.request.contextPath}/favorite/list">찜 목록</a>
+                                    <a href="${pageContext.request.contextPath}/cart">장바구니</a>
+                                    <a href="${pageContext.request.contextPath}/order/list">주문 내역</a>
+                                    <a href="${pageContext.request.contextPath}/review/myReviewList">내 리뷰</a>
                                 </c:otherwise>
                             </c:choose>
-                            <a href="${pageContext.request.contextPath}/favorite/list">찜 목록</a>
-                            <a href="${pageContext.request.contextPath}/cart">장바구니</a>
-                            <a href="${pageContext.request.contextPath}/order/list">주문 내역</a>
-                            <a href="${pageContext.request.contextPath}/review/myReviewList">내 리뷰</a>
+
                             <hr>
                             <a href="${pageContext.request.contextPath}/member/logout" class="logout-link">로그아웃</a>
                         </div>
@@ -148,5 +159,6 @@
                 </c:otherwise>
             </c:choose>
         </div>
+        
     </div>
 </header>

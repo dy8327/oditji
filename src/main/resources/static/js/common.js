@@ -177,3 +177,11 @@ function initHeaderSearch() {
         searchInput.parentElement?.classList.remove("focus");
     });
 }
+// 브라우저 뒤로가기로 이전 페이지가 표시되면 서버 상태 다시 확인
+    window.addEventListener("pageshow", function(event) {
+        const navigation = performance.getEntriesByType("navigation")[0];
+
+        if (event.persisted || (navigation && navigation.type === "back_forward")) {
+            window.location.reload();
+        }
+    });
