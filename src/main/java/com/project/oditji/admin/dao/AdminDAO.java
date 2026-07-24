@@ -138,6 +138,10 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteAdminLogByAdmin", memberNo);
     }
 
+    public int deleteContentViewHistoryByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteContentViewHistoryByMember", memberNo);
+    }
+
     public int deleteMemberPlatformByMemberNo(Long memberNo) {
         return sqlSession.delete("adminDeleteMemberPlatformByMember", memberNo);
     }
