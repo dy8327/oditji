@@ -252,11 +252,9 @@ public class MemberController {
                         return "member/join";
 
                 } catch (Exception e) {
-                        e.printStackTrace();
-                        model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다: " + e.getClass().getName()
-                                        + " / " + e.getMessage());
-
-                        return "member/join";
+                e.printStackTrace();
+                model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                return "member/join";
                 }
         }
 
