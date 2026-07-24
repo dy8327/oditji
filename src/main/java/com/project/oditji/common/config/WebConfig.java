@@ -7,22 +7,23 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.project.oditji.common.interceptor.AccessLogInterceptor;
 import com.project.oditji.common.interceptor.AdminCheckInterceptor;
+import com.project.oditji.common.interceptor.BusinessCheckInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     private final AdminCheckInterceptor adminCheckInterceptor;
+    private final BusinessCheckInterceptor businessCheckInterceptor;
     private final AccessLogInterceptor accessLogInterceptor;
 
     public WebConfig(
             AdminCheckInterceptor adminCheckInterceptor,
+            BusinessCheckInterceptor businessCheckInterceptor,
             AccessLogInterceptor accessLogInterceptor) {
 
-        this.adminCheckInterceptor =
-                adminCheckInterceptor;
-
-        this.accessLogInterceptor =
-                accessLogInterceptor;
+        this.adminCheckInterceptor = adminCheckInterceptor;
+        this.businessCheckInterceptor = businessCheckInterceptor;
+        this.accessLogInterceptor = accessLogInterceptor;
     }
 
     /*
@@ -32,12 +33,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(
             InterceptorRegistry registry) {
 
-        registry.addInterceptor(
-                    adminCheckInterceptor)
+        registry.addInterceptor(adminCheckInterceptor)
                 .addPathPatterns("/admin/**");
 
-        registry.addInterceptor(
-                    accessLogInterceptor)
+        registry.addInterceptor(businessCheckInterceptor)
+                .addPathPatterns("/business/**");
+
+        registry.addInterceptor(accessLogInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         "/css/**",
