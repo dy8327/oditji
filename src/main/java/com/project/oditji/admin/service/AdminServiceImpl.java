@@ -95,6 +95,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.deleteFavoriteByMemberNo(memberNo);
 
         adminDAO.deleteReviewByMemberNo(memberNo);
+        adminDAO.deleteContentViewHistoryByMemberNo(memberNo);
 
         adminDAO.deleteProductClickLogByMemberNo(memberNo);
         adminDAO.deleteAccessLogByMemberNo(memberNo);

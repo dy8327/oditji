@@ -61,4 +61,12 @@ public interface MemberDAO {
     MemberVO findId(MemberVO memberVO);
 
     MemberVO findPw(MemberVO memberVO);
+
+    /**
+     * SNS(카카오) 자동가입 회원의 이메일을 등록/수정한다.
+     * 카카오 가입 시 EMAIL이 NULL로 저장되므로,
+     * OTT 선택 화면에서 이메일을 입력받아 이 메서드로 채워 넣는다.
+     */
+    int updateMemberEmail(@Param("memberNo") Long memberNo,
+            @Param("email") String email);
 }

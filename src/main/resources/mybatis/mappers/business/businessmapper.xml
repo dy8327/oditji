@@ -360,7 +360,10 @@
                 JOIN EVENT E
                   ON E.EVENT_NO = EP.EVENT_NO
                 WHERE EP.PRODUCT_NO = P.PRODUCT_NO
-                  AND E.STATUS IN ('WAITING', 'APPROVED')
+                  AND (
+                        E.STATUS = 'WAITING'
+                        OR (E.STATUS = 'APPROVED' AND E.END_DATE >= TRUNC(SYSDATE))
+                      )
           )
 
         ORDER BY P.PRODUCT_NO DESC
@@ -567,7 +570,10 @@
             JOIN EVENT E
                 ON E.EVENT_NO = EP.EVENT_NO
             WHERE EP.PRODUCT_NO = P.PRODUCT_NO
-                AND E.STATUS IN ('WAITING', 'APPROVED')
+                AND (
+                      E.STATUS = 'WAITING'
+                      OR (E.STATUS = 'APPROVED' AND E.END_DATE >= TRUNC(SYSDATE))
+                    )
                 <if test="excludeEventNo != null">
                     AND E.EVENT_NO != #{excludeEventNo}
                 </if>
@@ -865,6 +871,22 @@
                 WHERE EP.EVENT_NO = E.EVENT_NO
                   AND P.BUSINESS_NO = #{businessNo}
           )
+
+    </update>
+
+
+    <!-- =====================================================
+         종료일이 지난 승인 이벤트 일괄 종료 처리
+         EventStatusScheduler에서 매일 배치로 호출.
+         END_DATE < 오늘 이면서 STATUS가 APPROVED인 이벤트를
+         END로 전환한다.
+    ====================================================== -->
+    <update id="updateExpiredEventStatus">
+
+        UPDATE EVENT
+        SET STATUS = 'END'
+        WHERE STATUS = 'APPROVED'
+          AND END_DATE &lt; TRUNC(SYSDATE)
 
     </update>
 

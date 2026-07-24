@@ -46,10 +46,24 @@ public class PlatformSelectController {
             return "redirect:/member/login";
         }
 
+        Long memberNo =
+                pendingMemberNo != null ? pendingMemberNo : loginMemberNo;
+
+        /*
+         * 카카오 자동가입 회원은 EMAIL이 NULL로 저장되어 있으므로
+         * 아직 이메일이 없는 경우 OTT 선택 화면에서 함께 입력받는다.
+         */
+        MemberVO member = memberService.getMemberByNo(memberNo);
+        boolean needEmailInput =
+                member == null
+                        || member.getEmail() == null
+                        || member.getEmail().isBlank();
+
         List<PlatformVO> platformList =
                 memberPlatformService.findPlatformList();
 
         model.addAttribute("platformList", platformList);
+        model.addAttribute("needEmailInput", needEmailInput);
 
         return "member/selectOtt";
     }
@@ -58,6 +72,10 @@ public class PlatformSelectController {
     public String savePlatform(
             @RequestParam(value = "platformNoList", required = false)
             List<Long> platformNoList,
+            @RequestParam(value = "noOtt", required = false)
+            String noOtt,
+            @RequestParam(value = "email", required = false)
+            String email,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
@@ -77,7 +95,21 @@ public class PlatformSelectController {
 
         try {
 
-            memberPlatformService.saveMemberPlatforms(memberNo, platformNoList);
+            /*
+             * 아직 이메일이 없는 SNS 자동가입 회원이면 이 화면에서 함께 등록한다.
+             * 이미 이메일이 있는 회원은 여기서 값을 보내더라도 건드리지 않는다.
+             */
+            MemberVO currentMember = memberService.getMemberByNo(memberNo);
+            boolean needEmailInput =
+                    currentMember == null
+                            || currentMember.getEmail() == null
+                            || currentMember.getEmail().isBlank();
+
+            if (needEmailInput) {
+                memberService.updateSnsMemberEmail(memberNo, email);
+            }
+
+            memberPlatformService.saveMemberPlatforms(memberNo, platformNoList, noOtt);
 
             // 신규 SNS 회원이면 로그인 세션 생성
             if (pendingMemberNo != null) {
