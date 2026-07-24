@@ -385,6 +385,14 @@ public class OrderServiceImpl implements OrderService {
                 List<Long> usedCartItemNos = new ArrayList<Long>();
 
                 /*
+                 * =========================================================
+                 * [정산 예정 데이터 생성을 위한 주문상품 번호 보관]
+                 * 결제내역 저장이 완료된 뒤 각 주문상품별 정산 데이터를 생성한다.
+                 * =========================================================
+                 */
+                List<Long> createdOrderItemNos = new ArrayList<Long>();
+
+                /*
                  * 주문 상세(Order_Items) 저장 및 상품 재고 차감 처리
                  */
                 for (OrderSheetItemVO item : preparedItems) {
@@ -415,6 +423,9 @@ public class OrderServiceImpl implements OrderService {
                                 throw new IllegalStateException(
                                                 "주문 상세 생성에 실패했습니다.");
                         }
+
+                        /* [정산 예정 데이터 생성을 위해 생성된 주문상품 번호 저장] */
+                        createdOrderItemNos.add(orderItem.getOrderItemNo());
 
                         /*
                          * DB 상품 재고 감소 (동시성 방지를 위한 조건부 차감)
@@ -453,6 +464,24 @@ public class OrderServiceImpl implements OrderService {
 
                         throw new IllegalStateException(
                                         "결제내역 저장에 실패했습니다.");
+                }
+
+                /*
+                 * =========================================================
+                 * [결제 완료 주문상품 정산 예정 데이터 생성 추가]
+                 * 결제내역 저장까지 성공한 뒤 주문상품별 정산 데이터를 생성한다.
+                 * 메서드 전체가 @Transactional이므로 실패 시 주문/결제도 함께 롤백된다.
+                 * =========================================================
+                 */
+                for (Long orderItemNo : createdOrderItemNos) {
+
+                        int settlementInsertResult = orderDAO.insertWaitingSettlement(
+                                        orderItemNo);
+
+                        if (settlementInsertResult <= 0) {
+                                throw new IllegalStateException(
+                                                "정산 예정 데이터 생성에 실패했습니다.");
+                        }
                 }
 
                 /*
@@ -584,6 +613,15 @@ public class OrderServiceImpl implements OrderService {
                         throw new IllegalStateException(
                                         "주문상품 취소 상태 변경에 실패했습니다.");
                 }
+
+                /*
+                 * =========================================================
+                 * [사용자 즉시 전액 취소 정산 제외 추가]
+                 * 실제 결제 취소와 주문상품 취소가 성공한 주문의
+                 * WAITING 정산을 REJECTED로 변경한다.
+                 * =========================================================
+                 */
+                orderDAO.rejectSettlementsByOrderNo(orderNo);
 
                 /*
                  * 주문 메인 상태 업데이트 (CANCELED)
