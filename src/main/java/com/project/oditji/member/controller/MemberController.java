@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -199,14 +200,13 @@ public class MemberController {
                                         throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
                                 }
 
-                                String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
-                                                .toLowerCase();
+                               String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
+                                                        .toLowerCase(Locale.ROOT);
 
-                                if (!licenseExt.equals(".pdf")
-                                                && !licenseExt.equals(".jpg")
-                                                && !licenseExt.equals(".jpeg")
-                                                && !licenseExt.equals(".png")) {
-
+                                if (!".pdf".equals(licenseExt)
+                                                        && !".jpg".equals(licenseExt)
+                                                        && !".jpeg".equals(licenseExt)
+                                                        && !".png".equals(licenseExt)) {
                                         throw new IllegalArgumentException(
                                                         "사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
                                 }
@@ -290,7 +290,7 @@ public class MemberController {
                  * 로그인, 회원가입 등 회원 관련 화면 자체는
                  * 복귀 주소로 저장하지 않는다.
                  */
-                if (isUsableRedirectUrl(redirectUrl, request)) {
+                if (!isUsableRedirectUrl(redirectUrl)) {
 
                         session.setAttribute(LOGIN_REDIRECT_SESSION_KEY, redirectUrl);
                 }
@@ -503,9 +503,7 @@ public class MemberController {
                  */
                 session.invalidate();
 
-                if (!isUsableRedirectUrl(
-                                redirectUrl,
-                                request)) {
+                if (!isUsableRedirectUrl(redirectUrl)) {
 
                         return "redirect:/";
                 }
@@ -586,15 +584,18 @@ public class MemberController {
                  * 로그인하지 않은 사용자가 마이페이지에 접근하면
                  * 로그인 화면으로 이동한다.
                  */
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
+                if (loginMember == null || loginMember.getMemberNo() == null) {
 
                         return "redirect:/member/login";
                 }
 
+                // 관리자는 관리자 페이지로 이동
+                if ("ADMIN".equals(loginMember.getRole())) {
+                        return "redirect:/admin/main";
+                }
+
                 /* 사업자 전용 페이지로 이동 */
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                loginMember.getMemberNo());
+                BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
 
                 if (business != null) {
                         return "redirect:/business/main";
@@ -1209,33 +1210,24 @@ public class MemberController {
          * 로그인, 로그아웃, 회원가입 등으로 다시 이동하는
          * 반복 리다이렉트를 방지한다.
          */
-        private boolean isUsableRedirectUrl(
-                        String redirectUrl,
-                        HttpServletRequest request) {
+        private boolean isUsableRedirectUrl(String redirectUrl) {
 
-                if (redirectUrl == null
-                                || redirectUrl.isBlank()) {
-
+                if (redirectUrl == null || redirectUrl.isBlank()) {
                         return false;
                 }
 
                 String path = redirectUrl;
-
                 int queryIndex = path.indexOf("?");
 
                 if (queryIndex >= 0) {
-
-                        path = path.substring(
-                                        0,
-                                        queryIndex);
+                        path = path.substring(0, queryIndex);
                 }
 
                 if ("/member/login".equals(path)
-                                || "/member/logout".equals(path)
-                                || "/member/join".equals(path)
-                                || "/member/findId".equals(path)
-                                || "/member/findPw".equals(path)) {
-
+                        || "/member/logout".equals(path)
+                        || "/member/join".equals(path)
+                        || "/member/findId".equals(path)
+                        || "/member/findPw".equals(path)) {
                         return false;
                 }
 
