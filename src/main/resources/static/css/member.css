@@ -615,79 +615,140 @@ h2 {
 }
 
 .oditji-modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
 }
 
 .oditji-modal-overlay.active {
-    display: flex;
+  display: flex;
 }
 
 .oditji-modal-box {
-    background: #fff;
-    border-radius: 8px;
-    padding: 24px;
-    width: 320px;
-    max-width: 90%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 320px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .oditji-modal-box h3 {
-    margin: 0 0 12px;
-    font-size: 17px;
+  margin: 0 0 12px;
+  font-size: 17px;
 }
 
 .oditji-modal-box p {
-    font-size: 13px;
-    color: #555;
-    line-height: 1.5;
-    margin-bottom: 14px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 14px;
 }
 
 .oditji-modal-box input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 14px;
-    font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  font-size: 14px;
 }
 
 .oditji-modal-btn-row {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .oditji-modal-btn-row button {
-    flex: 1;
-    padding: 10px 0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .oditji-btn-cancel {
-    background: #eee;
-    color: #333;
+  background: #eee;
+  color: #333;
 }
 
 .oditji-btn-restore {
-    background: #cfcfcf;
-    color: #fff;
-    cursor: not-allowed;
+  background: #cfcfcf;
+  color: #fff;
+  cursor: not-allowed;
 }
 
 .oditji-btn-restore.enabled {
-    background: #333;
-    cursor: pointer;
+  background: #333;
+  cursor: pointer;
+}
+
+/* =========================================================
+   회원가입 필수/선택 항목 표시
+========================================================= */
+.required-mark {
+  margin-left: 3px;
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.optional-mark {
+  margin-left: 4px;
+  color: #9d9d9d;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* =========================================================
+   비밀번호 표시/숨김 버튼
+
+   기존 입력창의 크기와 디자인은 유지하고
+   입력창 오른쪽에 버튼만 배치한다.
+========================================================= */
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrap input:not([type="checkbox"]) {
+  width: 100%;
+  padding-right: 62px;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+
+  min-width: 42px;
+  padding: 5px 7px;
+
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+
+  color: #bdbdbd;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.password-toggle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
 }

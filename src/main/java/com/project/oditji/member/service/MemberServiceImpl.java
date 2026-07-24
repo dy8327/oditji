@@ -26,11 +26,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void joinMember(MemberVO memberVO, List<String> ottList) {
+    public void joinMember(MemberVO memberVO, List<String> ottList, String noOtt) {
 
         validateCommonMember(memberVO);
         validateUserMember(memberVO);
-        validateOttList(ottList);
+        validateOttSelection(ottList, noOtt);
 
         if (memberDAO.countByMemberId(memberVO.getMemberId()) > 0) {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
@@ -58,6 +58,18 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("회원 번호 생성에 실패했습니다.");
         }
 
+        /*
+         * =========================================================
+         * 일반회원 OTT 없음 처리
+         *
+         * OTT 없음이 선택된 경우 ottList가 비어 있으므로
+         * MEMBER_PLATFORM에는 별도 데이터를 저장하지 않는다.
+         * =========================================================
+         */
+        if (ottList == null || ottList.isEmpty()) {
+            return;
+        }
+
         for (String platformCode : ottList) {
             System.out.println("선택된 OTT 코드 = [" + platformCode + "]");
 
@@ -73,7 +85,7 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    /*사업자 가입 */
+    /* 사업자 가입 */
     @Override
     @Transactional
     public void joinBusinessMember(MemberVO memberVO, BusinessVO businessVO) {
@@ -111,9 +123,9 @@ public class MemberServiceImpl implements MemberService {
         }
 
         /*
-        * 사업자는 닉네임을 사용하지 않으므로
-        * countByNickname() 검사하지 않음
-        */
+         * 사업자는 닉네임을 사용하지 않으므로
+         * countByNickname() 검사하지 않음
+         */
 
         /* 사업자등록번호 중복 재검사 */
         if (businessDAO.countByBusinessNumber(businessVO.getBusinessNumber()) > 0) {
@@ -141,11 +153,11 @@ public class MemberServiceImpl implements MemberService {
         businessVO.setMemberNo(memberNo);
 
         /*
-        * 서버에서 국세청 검증 후 설정할 값
-        *
-        * 최종적으로는 Controller에서 받은 값을 믿지 않고
-        * 서버 검증 결과를 사용한다.
-        */
+         * 서버에서 국세청 검증 후 설정할 값
+         *
+         * 최종적으로는 Controller에서 받은 값을 믿지 않고
+         * 서버 검증 결과를 사용한다.
+         */
         businessVO.setGradeName("BRONZE");
         businessVO.setStatus("WAITING");
 
@@ -190,9 +202,26 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    private void validateOttList(List<String> ottList) {
-        if (ottList == null || ottList.isEmpty()) {
-            throw new IllegalArgumentException("사용 중인 OTT를 1개 이상 선택해주세요.");
+    /*
+     * =========================================================
+     * 일반회원 OTT 선택 검증
+     *
+     * 실제 OTT를 1개 이상 선택하거나 OTT 없음을 선택해야 한다.
+     * =========================================================
+     */
+    private void validateOttSelection(List<String> ottList, String noOtt) {
+
+        boolean hasOtt = ottList != null && !ottList.isEmpty();
+        boolean selectedNoOtt = "Y".equalsIgnoreCase(noOtt);
+
+        if (!hasOtt && !selectedNoOtt) {
+            throw new IllegalArgumentException(
+                    "사용 중인 OTT를 선택하거나 OTT 없음을 선택해주세요.");
+        }
+
+        if (hasOtt && selectedNoOtt) {
+            throw new IllegalArgumentException(
+                    "OTT 없음과 다른 OTT는 동시에 선택할 수 없습니다.");
         }
     }
 
@@ -241,7 +270,54 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void updateMember(MemberVO memberVO) {
-        memberDAO.updateMember(memberVO);
+
+        if (memberVO == null || memberVO.getMemberNo() == null) {
+            throw new IllegalArgumentException("회원 정보가 올바르지 않습니다.");
+        }
+
+        String nickname = memberVO.getNickname();
+
+        if (nickname == null || nickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임을 입력해주세요.");
+        }
+
+        nickname = nickname.trim();
+
+        if (!nickname.matches("^[a-zA-Z0-9가-힣]{2,10}$")) {
+            throw new IllegalArgumentException("닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.");
+        }
+
+        memberVO.setNickname(nickname);
+
+        if (memberDAO.countByNicknameExceptMe(nickname, memberVO.getMemberNo()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        String email = memberVO.getEmail();
+
+        if (email != null) {
+            email = email.trim();
+
+            if (email.isBlank()) {
+                throw new IllegalArgumentException("이메일을 입력해주세요.");
+            }
+
+            if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                throw new IllegalArgumentException("올바른 이메일 형식으로 입력해주세요.");
+            }
+
+            memberVO.setEmail(email);
+
+            if (memberDAO.countByEmailExceptMe(email, memberVO.getMemberNo()) > 0) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
+        }
+
+        int updated = memberDAO.updateMember(memberVO);
+
+        if (updated != 1) {
+            throw new IllegalStateException("회원정보 수정에 실패했습니다.");
+        }
     }
 
     @Override
@@ -311,9 +387,16 @@ public class MemberServiceImpl implements MemberService {
 
         return memberDAO.countByNicknameExceptMe(
                 nickname,
-                memberNo
-        ) == 0;
+                memberNo) == 0;
 
+    }
+
+    @Override
+    public boolean checkUpdateEmail(Long memberNo, String email) {
+
+        return memberDAO.countByEmailExceptMe(
+                email,
+                memberNo) == 0;
     }
 
     @Override

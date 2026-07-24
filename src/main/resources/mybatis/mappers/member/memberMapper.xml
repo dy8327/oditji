@@ -239,6 +239,15 @@
 
     </select>
 
+    <select id="countByEmailExceptMe" resultType="int">
+
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE EMAIL = #{email}
+        AND MEMBER_NO != #{memberNo}
+
+    </select>
+
     <update id="updateMember"
             parameterType="com.project.oditji.member.vo.MemberVO">
 
