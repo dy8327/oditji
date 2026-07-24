@@ -46,8 +46,19 @@
             <div class="toolbar">
                 <form method="get" action="${pageContext.request.contextPath}/admin/order/list">
                     <input type="hidden" name="tab" value="${currentTab}">
-                    <input type="text" class="page-search" name="keyword"
-                           value="${param.keyword}" placeholder="상품명 검색">
+
+                    <%-- 검색 input에 id를 부여하고 숨김 label과 연결한다. --%>
+                    <label for="orderManageKeyword"
+                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        주문 상품명 검색
+                    </label>
+
+                    <input type="text"
+                           id="orderManageKeyword"
+                           class="page-search"
+                           name="keyword"
+                           value="${param.keyword}"
+                           placeholder="상품명 검색">
                 </form>
             </div>
 
@@ -193,7 +204,14 @@
 
         <div class="modal-header">
             <h3>주문 상태 변경</h3>
-            <span class="modal-close" onclick="closeModal('orderStatusModal')">&times;</span>
+            <%-- 클릭 가능한 span을 키보드 접근 가능한 button으로 변경한다. --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="주문 상태 변경 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('orderStatusModal')">
+                &times;
+            </button>
         </div>
 
         <form action="${pageContext.request.contextPath}/admin/order/status-update" method="post">
@@ -207,8 +225,11 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">상태 변경</label>
-                <div class="radio-group">
+                <%-- 여러 라디오 버튼을 설명하는 제목이므로 label 대신 그룹 설명으로 연결한다. --%>
+                <p class="form-label" id="orderStatusLabel">상태 변경</p>
+                <div class="radio-group"
+                     role="radiogroup"
+                     aria-labelledby="orderStatusLabel">
                     <label><input type="radio" name="orderStatus" value="PREPARING">상품준비중</label>
                     <label><input type="radio" name="orderStatus" value="SHIPPING">배송중</label>
                     <label><input type="radio" name="orderStatus" value="DELIVERED">배송완료</label>
@@ -234,7 +255,14 @@
 
         <div class="modal-header">
             <h3>환불</h3>
-            <span class="modal-close" onclick="closeModal('refundModal')">&times;</span>
+            <%-- 환불 팝업 닫기 요소도 기본 button으로 변경한다. --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="환불 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('refundModal')">
+                &times;
+            </button>
         </div>
 
         <div class="target-info-box">
@@ -244,7 +272,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">환불 사유</label>
+            <label class="form-label" for="refundReason">환불 사유</label>
             <textarea class="form-textarea" id="refundReason" readonly></textarea>
         </div>
 

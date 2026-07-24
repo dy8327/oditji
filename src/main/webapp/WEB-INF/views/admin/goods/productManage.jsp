@@ -57,8 +57,19 @@
             <div class="toolbar">
                 <form method="get" action="${pageContext.request.contextPath}/admin/product/list">
                     <input type="hidden" name="tab" value="${currentTab}">
-                    <input type="text" class="page-search" name="keyword"
-                           value="${param.keyword}" placeholder="사업자명, 상품명 검색">
+
+                    <%-- 검색 input과 숨김 label을 명시적으로 연결한다. --%>
+                    <label for="productManageKeyword"
+                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        상품 요청 검색어
+                    </label>
+
+                    <input type="text"
+                           id="productManageKeyword"
+                           class="page-search"
+                           name="keyword"
+                           value="${param.keyword}"
+                           placeholder="사업자명, 상품명 검색">
                 </form>
             </div>
 
@@ -179,7 +190,14 @@
 
         <div class="modal-header">
             <h3>상품 요청 상세</h3>
-            <span class="modal-close" onclick="closeModal('productRequestModal')">&times;</span>
+            <%-- 비표준 클릭 요소인 span을 기본 상호작용 요소인 button으로 변경한다. --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="상품 요청 상세 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('productRequestModal')">
+                &times;
+            </button>
         </div>
 
         <div class="target-info-box">
@@ -189,7 +207,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">요청 내용</label>
+            <label class="form-label" for="reqProductDescription">요청 내용</label>
             <textarea class="form-textarea" id="reqProductDescription" readonly></textarea>
         </div>
 

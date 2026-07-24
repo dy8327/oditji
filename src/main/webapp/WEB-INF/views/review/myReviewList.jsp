@@ -5,7 +5,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 
 <head>
 
@@ -84,6 +84,7 @@
 						</div>
 
 						<h3 class="mypage-filter-empty-title">
+							선택한 유형의 리뷰가 없습니다.
 						</h3>
 
 						<p class="mypage-filter-empty-message">
@@ -111,9 +112,13 @@
 
 							<div class="mypage-review-card"
 								data-type="${review.reviewType}">
-
-								<div class="mypage-review-clickable"
-									onclick="location.href='${reviewLinkUrl}'">
+								<%--
+									상세 페이지 이동은 탐색 기능이므로 클릭 이벤트를 가진 div 대신
+									기본 키보드 탐색과 링크 의미를 제공하는 a 요소를 사용한다.
+								--%>
+								<a class="mypage-review-clickable"
+								   href="${reviewLinkUrl}"
+								   style="display:block;color:inherit;text-decoration:none;">
 
 									<div class="mypage-review-top">
 
@@ -160,7 +165,7 @@
 
 									</p>
 
-								</div>
+								</a>
 
 								<div class="mypage-review-actions">
 

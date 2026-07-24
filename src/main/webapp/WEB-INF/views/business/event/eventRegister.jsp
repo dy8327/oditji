@@ -124,17 +124,7 @@
                 <!-- 연결 상품 -->
                 <div class="form-group">
 
-                    <%--
-                        SonarQube 접근성 이슈 대응:
-
-                        첫 번째 연결 상품 입력창에 고유한 id를 부여하고
-                        label의 for 속성과 연결합니다.
-
-                        이를 통해 화면 낭독기 사용자가 해당 입력창이
-                        연결 상품을 표시하는 영역임을 인식할 수 있습니다.
-                    --%>
-                    <label class="form-label"
-                           for="productName_0">
+                    <label class="form-label">
                         연결 상품
                     </label>
 
@@ -148,16 +138,8 @@
 
                             <div class="product-row">
 
-                                <%--
-                                    readonly 입력창도 접근성 검사에서는
-                                    라벨과 연결된 입력 요소로 처리해야 합니다.
-
-                                    연결 상품 라벨의 for 값과 동일한 id를
-                                    입력창에 부여합니다.
-                                --%>
                                 <input class="form-input productName"
                                        type="text"
-                                       id="productName_0"
                                        name="productNameList"
                                        placeholder="연결할 상품을 선택하세요."
                                        readonly>
@@ -167,20 +149,12 @@
                                     상품 검색
                                 </button>
 
-                                <%--
-                                    SonarQube 접근성 이슈 대응:
-
-                                    할인율 라벨과 숫자 입력창을
-                                    for/id 속성으로 명시적으로 연결합니다.
-                                --%>
-                                <label class="form-label discount-label"
-                                       for="productDiscountRate_0">
+                                <label class="form-label discount-label">
                                     할인율 (%)
                                 </label>
 
                                 <input class="form-input productDiscountRate"
                                        type="number"
-                                       id="productDiscountRate_0"
                                        name="discountRateList"
                                        min="0"
                                        max="100"
@@ -205,13 +179,9 @@
 
                 <!--
                     이벤트 상태는 사업자가 직접 지정할 수 없다.
-
-                    등록 및 수정 요청은 항상 서버에서
-                    WAITING 상태로 저장되며 관리자가 승인,
-                    반려 또는 종료 처리를 한다.
-
-                    EVENT.STATUS CHECK 제약:
-                    WAITING / APPROVED / END / REJECTED / DELETED
+                    등록/수정 요청은 항상 서버에서 WAITING(관리자 승인 대기)으로
+                    저장되고, 관리자가 승인/반려/종료 처리를 한다.
+                    (EVENT.STATUS CHECK 제약: WAITING/APPROVED/END/REJECTED/DELETED)
                 -->
 
                 <!-- 이벤트 이미지 -->
@@ -237,7 +207,7 @@
 
                 </div>
 
-                <!-- 이벤트 요청 및 취소 버튼 -->
+                <!-- 버튼 -->
                 <div class="submit-stack">
 
                     <button class="btn btn-primary"
@@ -264,7 +234,7 @@
      이벤트 연결 상품 검색 모달
 
      신규 JSP를 만들지 않고 현재 이벤트 등록 화면 내부에서
-     로그인 사업자가 등록한 상품을 검색하고 선택합니다.
+     로그인 사업자가 등록한 상품을 검색하고 선택한다.
 ========================================================= -->
 <div class="product-search-modal"
      id="productSearchModal">
@@ -290,8 +260,25 @@
 
         </div>
 
-        <!-- 상품 검색어 입력 영역 -->
+        <!-- 상품 검색어 -->
         <div class="product-search-bar">
+
+            <%--
+                상품 검색 input의 id와 label을 명시적으로 연결한다.
+                모달 디자인은 유지하면서 보조 기술에 검색 목적을 제공한다.
+            --%>
+            <label for="productSearchKeyword"
+                   style="position:absolute;
+                          width:1px;
+                          height:1px;
+                          padding:0;
+                          margin:-1px;
+                          overflow:hidden;
+                          clip:rect(0, 0, 0, 0);
+                          white-space:nowrap;
+                          border:0;">
+                이벤트 연결 상품 검색어
+            </label>
 
             <input class="form-input"
                    type="text"
@@ -306,7 +293,7 @@
 
         </div>
 
-        <!-- 로그인 사업자가 등록한 상품 목록 -->
+        <!-- 사업자 상품 목록 -->
         <div class="product-search-result">
 
             <c:choose>
@@ -324,7 +311,6 @@
                     <table class="product-search-table">
 
                         <thead>
-
                             <tr>
                                 <th>상품명</th>
                                 <th>작품</th>
@@ -335,7 +321,6 @@
                                 <th>상태</th>
                                 <th>선택</th>
                             </tr>
-
                         </thead>
 
                         <tbody id="productSearchTableBody">
@@ -344,8 +329,8 @@
                                        items="${productList}">
 
                                 <!--
-                                    삭제 요청 중인 상품은 이벤트 연결 대상에서
-                                    제외하여 사용자가 선택할 수 없도록 합니다.
+                                    삭제 요청 중인 상품은
+                                    이벤트 연결 대상에서 제외한다.
                                 -->
                                 <c:if test="${product.status ne 'DELETE_REQUESTED'}">
 
@@ -364,7 +349,7 @@
 
                                         </td>
 
-                                        <!-- 연결 작품명 -->
+                                        <!-- 작품명 -->
                                         <td>
 
                                             <c:choose>
@@ -381,7 +366,7 @@
 
                                         </td>
 
-                                        <!-- 연결 배우명 -->
+                                        <!-- 배우명 -->
                                         <td>
 
                                             <c:choose>
@@ -403,25 +388,19 @@
                                             <c:out value="${product.productType}"/>
                                         </td>
 
-                                        <!-- 상품 가격 -->
+                                        <!-- 가격 -->
                                         <td>
-
-                                            <fmt:formatNumber
-                                                    value="${product.price}"
-                                                    pattern="#,###"/>원
-
+                                            <fmt:formatNumber value="${product.price}"
+                                                              pattern="#,###"/>원
                                         </td>
 
-                                        <!-- 상품 재고 -->
+                                        <!-- 재고 -->
                                         <td>
-
-                                            <fmt:formatNumber
-                                                    value="${product.stock}"
-                                                    pattern="#,###"/>개
-
+                                            <fmt:formatNumber value="${product.stock}"
+                                                              pattern="#,###"/>개
                                         </td>
 
-                                        <!-- 상품 승인 및 판매 상태 -->
+                                        <!-- 상태 -->
                                         <td>
 
                                             <c:choose>
@@ -454,7 +433,7 @@
 
                                         </td>
 
-                                        <!-- 이벤트 연결 상품 선택 버튼 -->
+                                        <!-- 선택 -->
                                         <td>
 
                                             <button class="btn btn-primary product-select-button"
@@ -477,7 +456,7 @@
 
                     </table>
 
-                    <!-- 검색 조건에 맞는 상품이 없는 경우 표시합니다. -->
+                    <!-- 검색 결과가 없는 경우 -->
                     <div class="product-search-no-result"
                          id="productSearchNoResult">
                         검색 결과가 없습니다.

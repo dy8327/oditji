@@ -24,11 +24,14 @@
 
         <div class="admin-page-header">
 
-            <a href="${pageContext.request.contextPath}/admin/main" class="back-link">
+            <a href="${pageContext.request.contextPath}/admin/main"
+               class="back-link">
                 ← 뒤로가기
             </a>
 
-            <h1 class="admin-page-title">정산 관리</h1>
+            <h1 class="admin-page-title">
+                정산 관리
+            </h1>
 
             <p class="admin-page-desc">
                 사업자가 입금 확인을 요청한 정산 건을 확인하고 확인 처리 또는 반려할 수 있습니다.
@@ -39,15 +42,42 @@
         <section class="admin-content-box">
 
             <div class="toolbar">
-                <form method="get" action="${pageContext.request.contextPath}/admin/settlement/main">
-                    <input type="text" class="page-search" name="keyword"
-                           value="${param.keyword}" placeholder="사업자명 검색">
+
+                <form method="get"
+                      action="${pageContext.request.contextPath}/admin/settlement/main">
+
+                    <%--
+                        검색 input에 고유 id를 부여하고
+                        label의 for 속성과 연결한다.
+                    --%>
+                    <label for="settlementKeyword"
+                           style="position:absolute;
+                                  width:1px;
+                                  height:1px;
+                                  padding:0;
+                                  margin:-1px;
+                                  overflow:hidden;
+                                  clip:rect(0, 0, 0, 0);
+                                  white-space:nowrap;
+                                  border:0;">
+                        사업자명 검색
+                    </label>
+
+                    <input type="text"
+                           id="settlementKeyword"
+                           class="page-search"
+                           name="keyword"
+                           value="${param.keyword}"
+                           placeholder="사업자명 검색">
+
                 </form>
+
             </div>
 
             <table class="data-table">
 
                 <thead>
+
                     <tr>
                         <th>사업자명</th>
                         <th>신청일</th>
@@ -56,6 +86,7 @@
                         <th>정산 상태</th>
                         <th>관리</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
@@ -64,51 +95,113 @@
 
                         <c:when test="${not empty settlementList}">
 
-                            <c:forEach var="s" items="${settlementList}">
+                            <c:forEach var="settlement"
+                                       items="${settlementList}">
+
                                 <tr>
-                                    <td>${s.businessName}</td>
-                                    <td><fmt:formatDate value="${s.createdAt}" pattern="yyyy-MM-dd"/></td>
-                                    <td>${s.settledAmount}원</td>
-                                    <td>${s.bankName} ${s.accountNumber} (${s.accountHolder})</td>
+
+                                    <td>
+                                        ${settlement.businessName}
+                                    </td>
+
+                                    <td>
+                                        <fmt:formatDate value="${settlement.createdAt}"
+                                                        pattern="yyyy-MM-dd"/>
+                                    </td>
+
+                                    <td>
+                                        ${settlement.settledAmount}원
+                                    </td>
+
+                                    <td>
+                                        ${settlement.bankName}
+                                        ${settlement.accountNumber}
+                                        (${settlement.accountHolder})
+                                    </td>
+
                                     <td>
 
                                         <c:choose>
-                                            <c:when test="${s.status == 'DONE'}">
-                                                <span class="status-ok">입금 완료</span>
+
+                                            <c:when test="${settlement.status == 'DONE'}">
+
+                                                <span class="status-ok">
+                                                    입금 완료
+                                                </span>
+
                                             </c:when>
-                                            <c:when test="${s.status == 'REJECTED'}">
-                                                <span class="status-reject">반려</span>
+
+                                            <c:when test="${settlement.status == 'REJECTED'}">
+
+                                                <span class="status-reject">
+                                                    반려
+                                                </span>
+
                                             </c:when>
+
                                             <c:otherwise>
-                                                <span class="status-waiting">대기</span>
+
+                                                <span class="status-waiting">
+                                                    대기
+                                                </span>
+
                                             </c:otherwise>
+
                                         </c:choose>
 
                                     </td>
+
                                     <td>
 
-                                        <div class="item-actions" style="justify-content:center;">
+                                        <div class="item-actions"
+                                             style="justify-content:center;">
 
-                                            <form action="${pageContext.request.contextPath}/admin/settlement/confirm" method="post">
-                                                <input type="hidden" name="settlementNo" value="${s.settlementNo}">
-                                                <button type="submit" class="btn btn-success">입금 확인</button>
+                                            <form action="${pageContext.request.contextPath}/admin/settlement/confirm"
+                                                  method="post">
+
+                                                <input type="hidden"
+                                                       name="settlementNo"
+                                                       value="${settlement.settlementNo}">
+
+                                                <button type="submit"
+                                                        class="btn btn-success">
+                                                    입금 확인
+                                                </button>
+
                                             </form>
 
-                                            <form action="${pageContext.request.contextPath}/admin/settlement/reject" method="post">
-                                                <input type="hidden" name="settlementNo" value="${s.settlementNo}">
-                                                <button type="submit" class="btn btn-danger">반려</button>
+                                            <form action="${pageContext.request.contextPath}/admin/settlement/reject"
+                                                  method="post">
+
+                                                <input type="hidden"
+                                                       name="settlementNo"
+                                                       value="${settlement.settlementNo}">
+
+                                                <button type="submit"
+                                                        class="btn btn-danger">
+                                                    반려
+                                                </button>
+
                                             </form>
 
                                         </div>
 
                                     </td>
+
                                 </tr>
+
                             </c:forEach>
 
                         </c:when>
 
                         <c:otherwise>
-                            <tr><td colspan="6">입금 확인 요청 내역이 없습니다.</td></tr>
+
+                            <tr>
+                                <td colspan="6">
+                                    입금 확인 요청 내역이 없습니다.
+                                </td>
+                            </tr>
+
                         </c:otherwise>
 
                     </c:choose>
@@ -119,13 +212,26 @@
 
             <div class="pagination">
 
-                <a href="?page=${pagination.currentPage-1}">‹</a>
+                <a href="?page=${pagination.currentPage - 1}">
+                    ‹
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
-                    <a href="?page=${p}" class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+                <c:forEach var="p"
+                           begin="1"
+                           end="${empty pagination.totalPages
+                               ? 1
+                               : pagination.totalPages}">
+
+                    <a href="?page=${p}"
+                       class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?page=${pagination.currentPage+1}">›</a>
+                <a href="?page=${pagination.currentPage + 1}">
+                    ›
+                </a>
 
             </div>
 

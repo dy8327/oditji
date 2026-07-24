@@ -31,8 +31,21 @@
         </p>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">인증 요청 고유 ID</label>
-            <input type="text" id="identityVerificationId" class="form-control form-control-sm text-center bg-light" value="-" readonly>
+            <%--
+                읽기 전용 입력창도 label의 for와 input의 id를 연결하여
+                인증 요청 고유 ID라는 의미를 보조 기술에 전달한다.
+            --%>
+            <label for="identityVerificationId"
+                   class="form-label fw-semibold text-secondary"
+                   style="font-size: 13px;">
+                인증 요청 고유 ID
+            </label>
+
+            <input type="text"
+                   id="identityVerificationId"
+                   class="form-control form-control-sm text-center bg-light"
+                   value="-"
+                   readonly>
         </div>
 
         <div class="standard-box">

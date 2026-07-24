@@ -111,8 +111,26 @@ function chooseContent(button) {
           action="${pageContext.request.contextPath}/business/content/search"
           method="get">
 
+        <%--
+            콘텐츠 검색 input에 고유 id를 부여하고 label의 for와 연결한다.
+            label은 화면에는 표시하지 않지만 스크린 리더에는 전달된다.
+        --%>
+        <label for="contentKeyword"
+               style="position:absolute;
+                      width:1px;
+                      height:1px;
+                      padding:0;
+                      margin:-1px;
+                      overflow:hidden;
+                      clip:rect(0, 0, 0, 0);
+                      white-space:nowrap;
+                      border:0;">
+            관련 콘텐츠 작품명 검색
+        </label>
+
         <input class="form-input"
                type="text"
+               id="contentKeyword"
                name="keyword"
                value="<c:out value='${keyword}'/>"
                placeholder="작품명을 입력하세요">

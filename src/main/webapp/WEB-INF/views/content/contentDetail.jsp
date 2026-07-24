@@ -762,9 +762,10 @@
 
                     <div class="rating-box">
 
-                        <label>평점</label>
+                        <label for="updateReviewRating">평점</label>
 
                         <input type="number"
+                               id="updateReviewRating"
                                name="rating"
                                min="0"
                                max="5"
@@ -773,7 +774,25 @@
 
                     </div>
 
-                    <textarea name="reviewText"
+                    <%--
+                        리뷰 수정 textarea에 id와 label을 연결한다.
+                        label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
+                    --%>
+                    <label for="updateReviewText"
+                           style="position:absolute;
+                                  width:1px;
+                                  height:1px;
+                                  padding:0;
+                                  margin:-1px;
+                                  overflow:hidden;
+                                  clip:rect(0, 0, 0, 0);
+                                  white-space:nowrap;
+                                  border:0;">
+                        리뷰 수정 내용
+                    </label>
+
+                    <textarea id="updateReviewText"
+                              name="reviewText"
                               required>${myReview.reviewText}</textarea>
 
                     <button type="submit"
@@ -797,11 +816,12 @@
 
                     <div class="rating-box">
 
-                        <label>
+                        <label for="writeReviewRating">
                             평점 (0 ~ 5)
                         </label>
 
                         <input type="number"
+                               id="writeReviewRating"
                                name="rating"
                                min="0"
                                max="5"
@@ -810,7 +830,25 @@
 
                     </div>
 
-                    <textarea name="reviewText"
+                    <%--
+                        신규 리뷰 textarea에 id와 label을 연결한다.
+                        label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
+                    --%>
+                    <label for="writeReviewText"
+                           style="position:absolute;
+                                  width:1px;
+                                  height:1px;
+                                  padding:0;
+                                  margin:-1px;
+                                  overflow:hidden;
+                                  clip:rect(0, 0, 0, 0);
+                                  white-space:nowrap;
+                                  border:0;">
+                        리뷰 작성 내용
+                    </label>
+
+                    <textarea id="writeReviewText"
+                              name="reviewText"
                               placeholder="이 작품에 대한 리뷰를 작성하세요"
                               required></textarea>
 

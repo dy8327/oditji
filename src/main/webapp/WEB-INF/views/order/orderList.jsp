@@ -23,6 +23,25 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/payment.css">
 
+    <style>
+    /*
+     * SonarQube 접근성 이슈 대응:
+     * 리뷰 작성 textarea의 label은 화면 배치에 영향을 주지 않으면서
+     * 스크린 리더에는 입력 목적을 전달한다.
+     */
+    .review-accessibility-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    </style>
+
 </head>
 
 <body>
@@ -547,7 +566,17 @@
 
                 <div>
 
-                    <textarea name="content"
+                    <%--
+                        상품 리뷰 내용 입력창에 고유 id를 부여하고
+                        label의 for 속성과 연결한다.
+                    --%>
+                    <label for="productReviewContent"
+                           class="review-accessibility-label">
+                        상품 리뷰 내용
+                    </label>
+
+                    <textarea id="productReviewContent"
+                              name="content"
                               rows="6"
                               placeholder="리뷰를 작성해주세요."></textarea>
 

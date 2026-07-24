@@ -19,6 +19,24 @@
         <meta charset="UTF-8">
         <title>ODITJI | 취소/환불 관리</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
+
+        <style>
+        /*
+         * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있는
+         * 접근성 전용 라벨에 사용하는 공통 스타일입니다.
+         */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        </style>
     </head>
 
     <body>
@@ -48,30 +66,60 @@
 
                     <%-- 상태별 필터 탭 --%>
                     <nav class="tab-menu" style="margin-bottom: 24px;">
-                        <a href="?status=ALL" class="${empty param.status || param.status == 'ALL' ? 'active' : ''}">전체</a>
-                        <a href="?status=WAITING" class="${param.status == 'WAITING' ? 'active' : ''}">처리 대기</a>
-                        <a href="?status=APPROVED" class="${param.status == 'APPROVED' ? 'active' : ''}">승인 완료</a>
-                        <a href="?status=REJECTED" class="${param.status == 'REJECTED' ? 'active' : ''}">반려</a>
+                        <a href="?status=ALL"
+                           class="${empty param.status || param.status == 'ALL' ? 'active' : ''}">
+                            전체
+                        </a>
+
+                        <a href="?status=WAITING"
+                           class="${param.status == 'WAITING' ? 'active' : ''}">
+                            처리 대기
+                        </a>
+
+                        <a href="?status=APPROVED"
+                           class="${param.status == 'APPROVED' ? 'active' : ''}">
+                            승인 완료
+                        </a>
+
+                        <a href="?status=REJECTED"
+                           class="${param.status == 'REJECTED' ? 'active' : ''}">
+                            반려
+                        </a>
                     </nav>
 
                     <div class="card-list">
+
                         <c:choose>
+
                             <c:when test="${not empty cancelList}">
-                                <c:forEach var="item" items="${cancelList}">
+
+                                <c:forEach var="item"
+                                           items="${cancelList}">
+
                                     <article class="item-card">
+
                                         <div class="item-info">
+
                                             <h3>
                                                 <c:choose>
+
                                                     <c:when test="${item.cancelType == 'FULL'}">
                                                         주문 전체 취소 요청
                                                     </c:when>
+
                                                     <c:otherwise>
                                                         <c:out value="${item.productName}"/>
                                                     </c:otherwise>
+
                                                 </c:choose>
                                             </h3>
+
                                             <div class="meta">
-                                                <span>주문번호 : ${item.orderNo}</span>
+
+                                                <span>
+                                                    주문번호 : ${item.orderNo}
+                                                </span>
+
                                                 <%--
                                                     =========================================================
                                                     [전체/부분 취소 유형 표시 추가]
@@ -79,41 +127,97 @@
                                                 --%>
                                                 <span>
                                                     요청 유형 :
+
                                                     <c:choose>
-                                                        <c:when test="${item.cancelType == 'FULL'}">전체 취소</c:when>
-                                                        <c:otherwise>상품 부분 취소</c:otherwise>
+                                                        <c:when test="${item.cancelType == 'FULL'}">
+                                                            전체 취소
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            상품 부분 취소
+                                                        </c:otherwise>
                                                     </c:choose>
                                                 </span>
+
                                                 <c:if test="${item.cancelType == 'FULL'}">
-                                                    <span>내 사업자 처리 상품 : ${item.itemCount}건</span>
-                                                    <span>상품 : <c:out value="${item.productName}"/></span>
+
+                                                    <span>
+                                                        내 사업자 처리 상품 : ${item.itemCount}건
+                                                    </span>
+
+                                                    <span>
+                                                        상품 :
+                                                        <c:out value="${item.productName}"/>
+                                                    </span>
+
                                                 </c:if>
-                                                <span>수량 : ${item.quantity}개</span>
+
+                                                <span>
+                                                    수량 : ${item.quantity}개
+                                                </span>
+
                                                 <span>
                                                     환불 예정 금액 :
-                                                    <fmt:formatNumber value="${item.cancelAmount}" pattern="#,###"/>원
+                                                    <fmt:formatNumber
+                                                            value="${item.cancelAmount}"
+                                                            pattern="#,###"/>원
                                                 </span>
-                                                <span>요청 사유 : <c:out value="${item.reason}"/></span>
-                                                <span>요청일 : <fmt:formatDate value="${item.createdAt}" pattern="yyyy-MM-dd HH:mm"/></span>
+
+                                                <span>
+                                                    요청 사유 :
+                                                    <c:out value="${item.reason}"/>
+                                                </span>
+
+                                                <span>
+                                                    요청일 :
+                                                    <fmt:formatDate
+                                                            value="${item.createdAt}"
+                                                            pattern="yyyy-MM-dd HH:mm"/>
+                                                </span>
+
                                                 <c:if test="${not empty item.rejectReason}">
-                                                    <span>반려 사유 : <c:out value="${item.rejectReason}"/></span>
+                                                    <span>
+                                                        반려 사유 :
+                                                        <c:out value="${item.rejectReason}"/>
+                                                    </span>
                                                 </c:if>
+
                                                 <span class="badge ${item.status == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
+
                                                     <c:choose>
-                                                        <c:when test="${item.status == 'WAITING'}">처리 대기</c:when>
-                                                        <c:when test="${item.status == 'APPROVED'}">승인 완료</c:when>
-                                                        <c:when test="${item.status == 'REJECTED'}">반려</c:when>
-                                                        <c:otherwise>${item.status}</c:otherwise>
+
+                                                        <c:when test="${item.status == 'WAITING'}">
+                                                            처리 대기
+                                                        </c:when>
+
+                                                        <c:when test="${item.status == 'APPROVED'}">
+                                                            승인 완료
+                                                        </c:when>
+
+                                                        <c:when test="${item.status == 'REJECTED'}">
+                                                            반려
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            ${item.status}
+                                                        </c:otherwise>
+
                                                     </c:choose>
+
                                                 </span>
+
                                             </div>
+
                                         </div>
 
                                         <div class="item-actions">
+
                                             <c:if test="${item.status == 'WAITING'}">
+
                                                 <%--
                                                     =========================================================
                                                     [취소 승인 기능 추가]
+
                                                     승인 시 서버에서 포트원 부분 환불을 실행한다.
                                                     =========================================================
                                                 --%>
@@ -121,17 +225,34 @@
                                                       method="post"
                                                       style="display:inline-block;"
                                                       onsubmit="return confirm('${item.cancelType == 'FULL' ? '내 사업자 상품 전체를 승인하시겠습니까? 모든 사업자의 승인 완료 후 전액 환불됩니다.' : '부분 취소 요청을 승인하고 환불하시겠습니까?'}');">
-                                                    <input type="hidden" name="cancelNo" value="${item.cancelNo}">
-                                                    <button type="submit" class="btn btn-dark"><c:choose>
-                                                        <c:when test="${item.cancelType == 'FULL'}">전체 취소 승인</c:when>
-                                                        <c:otherwise>승인 및 부분 환불</c:otherwise>
-                                                    </c:choose>
-                                                </button>
+
+                                                    <input type="hidden"
+                                                           name="cancelNo"
+                                                           value="${item.cancelNo}">
+
+                                                    <button type="submit"
+                                                            class="btn btn-dark">
+
+                                                        <c:choose>
+
+                                                            <c:when test="${item.cancelType == 'FULL'}">
+                                                                전체 취소 승인
+                                                            </c:when>
+
+                                                            <c:otherwise>
+                                                                승인 및 부분 환불
+                                                            </c:otherwise>
+
+                                                        </c:choose>
+
+                                                    </button>
+
                                                 </form>
 
                                                 <%--
                                                     =========================================================
                                                     [취소 반려 사유 추가]
+
                                                     반려 사유를 CANCEL_REQUEST.REJECT_REASON에 저장한다.
                                                     =========================================================
                                                 --%>
@@ -139,24 +260,56 @@
                                                       method="post"
                                                       style="display:inline-block; margin-left: 8px;"
                                                       onsubmit="return confirm('취소 요청을 반려하시겠습니까?');">
-                                                    <input type="hidden" name="cancelNo" value="${item.cancelNo}">
+
+                                                    <input type="hidden"
+                                                           name="cancelNo"
+                                                           value="${item.cancelNo}">
+
+                                                    <%--
+                                                        SonarQube 접근성 이슈 대응:
+
+                                                        반복 출력되는 반려 사유 입력창마다
+                                                        취소 번호를 사용한 고유 id를 부여하고
+                                                        label의 for 속성과 연결합니다.
+                                                    --%>
+                                                    <label for="rejectReason_${item.cancelNo}"
+                                                           class="sr-only">
+                                                        주문 ${item.orderNo} 취소 반려 사유
+                                                    </label>
+
                                                     <input type="text"
+                                                           id="rejectReason_${item.cancelNo}"
                                                            name="rejectReason"
                                                            maxlength="500"
                                                            placeholder="반려 사유"
                                                            required
                                                            style="min-width: 220px; margin-right: 8px;">
-                                                    <button type="submit" class="btn btn-danger">반려</button>
+
+                                                    <button type="submit"
+                                                            class="btn btn-danger">
+                                                        반려
+                                                    </button>
+
                                                 </form>
+
                                             </c:if>
+
                                         </div>
+
                                     </article>
+
                                 </c:forEach>
+
                             </c:when>
+
                             <c:otherwise>
-                                <article class="item-card empty">취소/환불 요청 내역이 없습니다.</article>
+                                <article class="item-card empty">
+                                    취소/환불 요청 내역이 없습니다.
+                                </article>
                             </c:otherwise>
+
                         </c:choose>
+
                     </div>
 
                 </section>
@@ -168,4 +321,5 @@
         <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
     </body>
+
 </html>

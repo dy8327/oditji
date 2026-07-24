@@ -5,7 +5,14 @@ pageEncoding="UTF-8"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
-<html>
+
+<%--
+    SonarQube 접근성 이슈 대응:
+
+    문서의 기본 언어가 한국어임을
+    브라우저와 화면 낭독기에 알립니다.
+--%>
+<html lang="ko">
 
     <head>
 
@@ -16,7 +23,7 @@ pageEncoding="UTF-8"%>
         </title>
 
         <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/event.css">
+              href="${pageContext.request.contextPath}/css/event.css">
 
     </head>
 
@@ -35,9 +42,13 @@ pageEncoding="UTF-8"%>
                     </h1>
 
                     <p>
-                        <fmt:formatDate value="${event.startDate}" pattern="yyyy.MM.dd"/>
+                        <fmt:formatDate
+                                value="${event.startDate}"
+                                pattern="yyyy.MM.dd"/>
                         ~
-                        <fmt:formatDate value="${event.endDate}" pattern="yyyy.MM.dd"/>
+                        <fmt:formatDate
+                                value="${event.endDate}"
+                                pattern="yyyy.MM.dd"/>
                     </p>
 
                 </div>
@@ -49,7 +60,7 @@ pageEncoding="UTF-8"%>
                         <c:when test="${not empty event.bannerImage}">
 
                             <img src="${pageContext.request.contextPath}${event.bannerImage}"
-                            alt="${event.title}">
+                                 alt="${event.title}">
 
                         </c:when>
 
@@ -73,10 +84,11 @@ pageEncoding="UTF-8"%>
 
                     <div class="product-grid">
 
-                        <c:forEach var="product" items="${event.products}">
+                        <c:forEach var="product"
+                                   items="${event.products}">
 
                             <a href="${pageContext.request.contextPath}/goods/goodsDetail/${product.productNo}"
-                            class="product-card">
+                               class="product-card">
 
                                 <div class="product-image">
 
@@ -85,10 +97,9 @@ pageEncoding="UTF-8"%>
                                         <c:when test="${not empty product.imagePath}">
 
                                             <img src="${pageContext.request.contextPath}${product.imagePath}"
-                                            alt="${product.productName}">
+                                                 alt="${product.productName}">
 
                                         </c:when>
-
 
                                         <c:otherwise>
 
@@ -113,14 +124,21 @@ pageEncoding="UTF-8"%>
                                         <c:when test="${product.eventDiscountRate > 0}">
 
                                             <p class="price-original">
-                                                <fmt:formatNumber value="${product.price}" pattern="#,###"/>원
+                                                <fmt:formatNumber
+                                                        value="${product.price}"
+                                                        pattern="#,###"/>원
                                             </p>
 
                                             <p class="price-discounted">
-                                                <fmt:formatNumber value="${product.discountPrice}" pattern="#,###"/>원
+
+                                                <fmt:formatNumber
+                                                        value="${product.discountPrice}"
+                                                        pattern="#,###"/>원
+
                                                 <span class="discount-rate">
                                                     ${product.eventDiscountRate}%
                                                 </span>
+
                                             </p>
 
                                         </c:when>
@@ -128,7 +146,9 @@ pageEncoding="UTF-8"%>
                                         <c:otherwise>
 
                                             <p>
-                                                <fmt:formatNumber value="${product.price}" pattern="#,###"/>원
+                                                <fmt:formatNumber
+                                                        value="${product.price}"
+                                                        pattern="#,###"/>원
                                             </p>
 
                                         </c:otherwise>

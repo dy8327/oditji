@@ -4,7 +4,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>ODITJI - 로그인</title>
@@ -33,13 +33,22 @@
         <form action="${pageContext.request.contextPath}/member/login" method="post">
 
             <div class="form-group">
-                <label>아이디</label>
-                <input type="text" name="memberId" value="<c:out value='${loginMemberId}'/>" autocomplete="username" required>
+                <label for="loginMemberId">아이디</label>
+                <input type="text"
+                       id="loginMemberId"
+                       name="memberId"
+                       value="<c:out value='${loginMemberId}'/>"
+                       autocomplete="username"
+                       required>
             </div>
 
             <div class="form-group">
-                <label>비밀번호</label>
-                <input type="password" name="memberPw" required>
+                <label for="loginMemberPw">비밀번호</label>
+                <input type="password"
+                       id="loginMemberPw"
+                       name="memberPw"
+                       autocomplete="current-password"
+                       required>
             </div>
 
             <c:if test="${not empty error}">
@@ -57,9 +66,21 @@
 
             <div class="sns-icon-row">
 
-                <a href="${pageContext.request.contextPath}/member/kakao/login" class="sns-icon kakao"></a>
-                <a href="${pageContext.request.contextPath}/member/naver/login" class="sns-icon naver"></a>
-                <a href="${pageContext.request.contextPath}/member/google/login" class="sns-icon google"></a>
+                <%--
+                    아이콘 배경만 표시되는 빈 링크이므로 aria-label을 통해
+                    스크린 리더가 각 SNS 로그인 목적을 인식하도록 한다.
+                --%>
+                <a href="${pageContext.request.contextPath}/member/kakao/login"
+                   class="sns-icon kakao"
+                   aria-label="카카오 계정으로 로그인"></a>
+
+                <a href="${pageContext.request.contextPath}/member/naver/login"
+                   class="sns-icon naver"
+                   aria-label="네이버 계정으로 로그인"></a>
+
+                <a href="${pageContext.request.contextPath}/member/google/login"
+                   class="sns-icon google"
+                   aria-label="구글 계정으로 로그인"></a>
 
             </div>
 
@@ -109,7 +130,16 @@
 
         <form action="${pageContext.request.contextPath}/member/restore" method="post">
 
-            <input type="text" id="restoreConfirmInput" placeholder="복구" autocomplete="off">
+            <%-- 복구 확인 입력창에 접근 가능한 이름을 제공한다. --%>
+            <label for="restoreConfirmInput"
+                   style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                계정 복구 확인 문구
+            </label>
+
+            <input type="text"
+                   id="restoreConfirmInput"
+                   placeholder="복구"
+                   autocomplete="off">
 
             <div class="oditji-modal-btn-row">
                 <button type="button" class="oditji-btn-cancel" onclick="closeRestoreModal()">취소</button>

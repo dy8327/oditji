@@ -49,12 +49,18 @@
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%--
+                        읽기 전용 입력창도 label의 for와 input의 id를 연결해
+                        스크린 리더가 입력값의 의미를 정확히 인식하도록 한다.
+                    --%>
+                    <label class="form-label"
+                           for="eventTitleDisplay">
                         이벤트명
                     </label>
 
                     <input class="form-input"
                            type="text"
+                           id="eventTitleDisplay"
                            value="<c:out value='${event.title}'/>"
                            readonly>
 
@@ -62,12 +68,18 @@
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%--
+                        현재 이벤트 기간 입력창에 고유 id를 부여하고
+                        label의 for 속성과 연결한다.
+                    --%>
+                    <label class="form-label"
+                           for="currentEventPeriod">
                         현재 이벤트 기간
                     </label>
 
                     <input class="form-input"
                            type="text"
+                           id="currentEventPeriod"
                            value="<c:out value='${event.startDate}'/> ~ <c:out value='${event.endDate}'/>"
                            readonly>
 
@@ -112,12 +124,17 @@
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%--
+                        요청 상태 입력창에도 명시적인 label 연결을 적용한다.
+                    --%>
+                    <label class="form-label"
+                           for="requestStatus">
                         요청 상태
                     </label>
 
                     <input class="form-input"
                            type="text"
+                           id="requestStatus"
                            value="승인 대기"
                            readonly>
 

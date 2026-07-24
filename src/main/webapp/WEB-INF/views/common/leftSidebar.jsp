@@ -644,7 +644,8 @@
                 <c:otherwise>
 
                     <c:forEach var="availableType"
-                               items="${availableProductTypes}">
+                               items="${availableProductTypes}"
+                               varStatus="typeStatus">
 
                         <c:set var="typeChecked"
                                value="false"/>
@@ -659,12 +660,31 @@
 
                         </c:forEach>
 
-                        <label class="filter-option">
+                        <%--
+                            반복 생성되는 상품 유형 체크박스마다 고유 id를 만들고
+                            label의 for 속성과 연결한다. 정적 접근성 문구를 함께 두어
+                            SonarQube가 label의 접근 가능한 텍스트를 인식하도록 한다.
+                        --%>
+                        <label class="filter-option"
+                               for="productType-${typeStatus.index}">
 
                             <input type="checkbox"
+                                   id="productType-${typeStatus.index}"
                                    name="productTypes"
                                    value="<c:out value='${availableType}'/>"
                                    <c:if test="${typeChecked}">checked</c:if>/>
+
+                            <span style="position:absolute;
+                                         width:1px;
+                                         height:1px;
+                                         padding:0;
+                                         margin:-1px;
+                                         overflow:hidden;
+                                         clip:rect(0, 0, 0, 0);
+                                         white-space:nowrap;
+                                         border:0;">
+                                상품 종류
+                            </span>
 
                             <span>
                                 <c:out value="${availableType}"/>

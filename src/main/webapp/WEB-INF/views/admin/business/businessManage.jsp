@@ -47,8 +47,22 @@
 
                 <form method="get" action="${pageContext.request.contextPath}/admin/business/list">
                     <input type="hidden" name="tab" value="${currentTab}">
-                    <input type="text" class="page-search" name="keyword"
-                           value="${param.keyword}" placeholder="이름, 아이디, 이메일 검색">
+
+                    <%--
+                        검색 입력창에 고유 id를 부여하고 label의 for와 연결한다.
+                        label은 기존 화면 배치에 영향을 주지 않도록 시각적으로 숨긴다.
+                    --%>
+                    <label for="businessKeyword"
+                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        사업자 검색어
+                    </label>
+
+                    <input type="text"
+                           id="businessKeyword"
+                           class="page-search"
+                           name="keyword"
+                           value="${param.keyword}"
+                           placeholder="이름, 아이디, 이메일 검색">
                 </form>
 
             </div>
@@ -217,7 +231,17 @@
 
         <div class="modal-header">
             <h3>사업자 등급 관리</h3>
-            <span class="modal-close" onclick="closeModal('gradeModal')">&times;</span>
+            <%--
+                클릭 가능한 span 대신 기본 키보드 동작을 제공하는 button을 사용한다.
+                기존 .modal-close 디자인을 유지하도록 버튼 기본 스타일을 제거한다.
+            --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="사업자 등급 관리 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('gradeModal')">
+                &times;
+            </button>
         </div>
 
         <form action="${pageContext.request.contextPath}/admin/business/grade" method="post">
@@ -262,7 +286,17 @@
 
         <div class="modal-header">
             <h3>사업자 승인</h3>
-            <span class="modal-close" onclick="closeModal('approvalModal')">&times;</span>
+            <%--
+                마우스 클릭뿐 아니라 키보드 Enter/Space 입력도 기본 지원하도록
+                닫기 요소를 button으로 변경한다.
+            --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="사업자 승인 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('approvalModal')">
+                &times;
+            </button>
         </div>
 
         <div class="target-info-box">
