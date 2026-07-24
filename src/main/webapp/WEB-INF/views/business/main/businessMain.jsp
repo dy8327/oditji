@@ -119,6 +119,24 @@
 
                         </a>
 
+                        <%--
+                            =====================================================
+                            [오늘 구매 고객 수 카드 추가]
+                            기존 dashboard-card 구조와 CSS를 그대로 사용하여
+                            페이지 레이아웃과 디자인을 변경하지 않는다.
+                            =====================================================
+                        --%>
+                        <a href="${pageContext.request.contextPath}/business/order/list"
+                        class="dashboard-card">
+
+                            <span>오늘 구매 고객 수</span>
+
+                            <strong>
+                                ${businessMain.todayCustomerCount}명
+                            </strong>
+
+                        </a>
+
                     </div>
 
                 </section>
