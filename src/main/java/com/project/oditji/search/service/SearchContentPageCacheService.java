@@ -979,13 +979,13 @@ public class SearchContentPageCacheService {
      * 상단 영화·시리즈, 인기, 신규 탭의 콘텐츠 목록을
      * JSONL 공용 저장소에서 조회합니다.
      *
-     * type별 정렬 기준:
-     * - all: 평점 내림차순, 인기도 내림차순
-     * - popular: 인기도 내림차순, 평점 내림차순
-     * - new: 최근 90일 이내 공개작을 공개일 내림차순으로 정렬
+     * type은 전체·인기·신규 목록 범위를 결정하고,
+     * sort는 인기순·평점순·최신순·가나다순 정렬을 결정합니다.
+     * 신규 탭은 기존 정책대로 최근 30일 공개작만 사용합니다.
      */
     public ContentListPageVO getContentListPage(
             String type,
+            String sort,
             int displayPage,
             List<String> contentCategories,
             List<String> genreCodes,
@@ -995,6 +995,12 @@ public class SearchContentPageCacheService {
 
         String normalizedType =
                 normalizeContentListType(type);
+
+        String normalizedSort =
+                normalizeContentListSort(
+                        sort,
+                        normalizedType
+                );
 
         int normalizedPage =
                 Math.max(displayPage, 1);
@@ -1036,9 +1042,10 @@ public class SearchContentPageCacheService {
             );
         }
 
-        sortContentListByType(
+        sortContentList(
                 filteredList,
-                normalizedType
+                normalizedType,
+                normalizedSort
         );
 
         int totalResults =
@@ -1106,7 +1113,7 @@ public class SearchContentPageCacheService {
     }
 
     /**
-     * 콘텐츠 목록 우측의 추천 캐러셀을 JSONL에서 조회합니다.
+     * 콘텐츠 목록 하단의 가로형 추천 영역을 JSONL에서 조회합니다.
      *
      * 현재 선택된 콘텐츠 종류, 장르, OTT 필터를 반영한 뒤
      * 인기도 내림차순, 평점 내림차순으로 정렬합니다.
@@ -1148,15 +1155,40 @@ public class SearchContentPageCacheService {
     }
 
     /**
-     * 콘텐츠 목록 탭에 따라 정렬 기준을 적용합니다.
+     * 사용자가 선택한 정렬 기준을 전체 필터 결과에 적용한 뒤
+     * 페이징하도록 정렬합니다.
      */
-    private void sortContentListByType(
+    private void sortContentList(
             List<SearchResultVO> contentList,
-            String type) {
+            String type,
+            String sort) {
+
+        String normalizedSort =
+                normalizeContentListSort(
+                        sort,
+                        type
+                );
 
         Comparator<SearchResultVO> comparator;
 
-        if ("new".equals(type)) {
+        if ("rating".equals(normalizedSort)) {
+
+            comparator =
+                    Comparator
+                            .comparing(
+                                    SearchResultVO::getTmdbScore,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            )
+                            .thenComparing(
+                                    SearchResultVO::getPopularity,
+                                    Comparator.nullsLast(
+                                            Comparator.reverseOrder()
+                                    )
+                            );
+
+        } else if ("latest".equals(normalizedSort)) {
 
             comparator =
                     Comparator
@@ -1179,15 +1211,13 @@ public class SearchContentPageCacheService {
                                     )
                             );
 
-        } else if ("all".equals(type)) {
+        } else if ("title".equals(normalizedSort)) {
 
             comparator =
                     Comparator
                             .comparing(
-                                    SearchResultVO::getTmdbScore,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
+                                    SearchResultVO::getTitle,
+                                    String.CASE_INSENSITIVE_ORDER
                             )
                             .thenComparing(
                                     SearchResultVO::getPopularity,
@@ -1214,9 +1244,40 @@ public class SearchContentPageCacheService {
                             );
         }
 
-        contentList.sort(
-                comparator
-        );
+        contentList.sort(comparator);
+    }
+
+    /**
+     * 허용하지 않은 정렬값이 들어오면 탭에 맞는 기본값을 사용합니다.
+     */
+    private String normalizeContentListSort(
+            String sort,
+            String type) {
+
+        String defaultSort =
+                "new".equals(type)
+                        ? "latest"
+                        : "popular";
+
+        if (sort == null
+                || sort.isBlank()) {
+
+            return defaultSort;
+        }
+
+        String normalized =
+                sort.trim()
+                        .toLowerCase(Locale.ROOT);
+
+        if ("popular".equals(normalized)
+                || "rating".equals(normalized)
+                || "latest".equals(normalized)
+                || "title".equals(normalized)) {
+
+            return normalized;
+        }
+
+        return defaultSort;
     }
 
     /**

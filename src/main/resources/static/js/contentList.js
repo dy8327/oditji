@@ -3,11 +3,11 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeContentFilters();
     initializeContentGenreToggle();
     initializeContentOttPlatformModal();
-    initializeRecommendCarousel();
     initializeContentListFavorites();
+    initializeContentSort();
+    initializeContentSelectedFilterChips();
 
 });
-
 
 function initializeContentFilters() {
 
@@ -175,202 +175,103 @@ function initializeContentGenreToggle() {
     );
 }
 
+/**
+ * 정렬 선택값이 변경되면 현재 필터 조건을 유지한 채
+ * 첫 페이지부터 다시 조회합니다.
+ */
+function initializeContentSort() {
 
-function initializeRecommendCarousel() {
-
-    const carousels =
-        document.querySelectorAll(
-            "[data-recommend-carousel]"
+    const select =
+        document.querySelector(
+            "[data-content-sort-select]"
         );
 
-    carousels.forEach(function (carousel) {
+    if (!select || !select.form) {
+        return;
+    }
 
-        const viewport =
-            carousel.querySelector(
-                "[data-recommend-viewport]"
-            );
+    select.addEventListener(
+        "change",
+        function () {
 
-        const slides =
-            Array.from(
-                carousel.querySelectorAll(
-                    "[data-recommend-slide]"
-                )
-            );
-
-        const previousButton =
-            carousel.querySelector(
-                "[data-recommend-previous]"
-            );
-
-        const nextButton =
-            carousel.querySelector(
-                "[data-recommend-next]"
-            );
-
-        const currentElement =
-            carousel.querySelector(
-                "[data-recommend-current]"
-            );
-
-        const totalElement =
-            carousel.querySelector(
-                "[data-recommend-total]"
-            );
-
-        if (!viewport || slides.length === 0) {
-            return;
-        }
-
-        let currentIndex = 0;
-        let scrollTimer = null;
-
-        if (totalElement) {
-            totalElement.textContent =
-                String(slides.length);
-        }
-
-        function updateCurrentSlide(index) {
-
-            currentIndex =
-                Math.max(
-                    0,
-                    Math.min(
-                        index,
-                        slides.length - 1
-                    )
+            const pageInput =
+                select.form.querySelector(
+                    "input[name='page']"
                 );
 
-            slides.forEach(
-                function (slide, slideIndex) {
-
-                    const isActive =
-                        slideIndex === currentIndex;
-
-                    slide.setAttribute(
-                        "aria-hidden",
-                        isActive ? "false" : "true"
-                    );
-
-                    const link =
-                        slide.querySelector("a");
-
-                    if (link) {
-                        link.tabIndex =
-                            isActive ? 0 : -1;
-                    }
-                }
-            );
-
-            if (currentElement) {
-                currentElement.textContent =
-                    String(currentIndex + 1);
-            }
-        }
-
-        function scrollToSlide(index) {
-
-            let nextIndex = index;
-
-            if (nextIndex < 0) {
-                nextIndex =
-                    slides.length - 1;
+            if (pageInput) {
+                pageInput.value = "1";
             }
 
-            if (nextIndex >= slides.length) {
-                nextIndex = 0;
-            }
-
-            viewport.scrollTo({
-                left: viewport.clientWidth
-                        * nextIndex,
-                behavior: "smooth"
-            });
-
-            updateCurrentSlide(nextIndex);
+            select.form.submit();
         }
+    );
+}
 
-        if (previousButton) {
 
-            previousButton.addEventListener(
-                "click",
-                function () {
+/**
+ * 목록 상단의 선택 필터 칩을 누르면 해당 값만 URL에서 제거하고
+ * 나머지 필터와 정렬 조건은 그대로 유지합니다.
+ */
+function initializeContentSelectedFilterChips() {
 
-                    scrollToSlide(
-                        currentIndex - 1
-                    );
-                }
-            );
-        }
+    const chips =
+        document.querySelectorAll(
+            "[data-content-filter-chip]"
+        );
 
-        if (nextButton) {
+    chips.forEach(function (chip) {
 
-            nextButton.addEventListener(
-                "click",
-                function () {
-
-                    scrollToSlide(
-                        currentIndex + 1
-                    );
-                }
-            );
-        }
-
-        viewport.addEventListener(
-            "scroll",
+        chip.addEventListener(
+            "click",
             function () {
 
-                window.clearTimeout(
-                    scrollTimer
+                const parameterName =
+                    chip.dataset.filterName;
+
+                const parameterValue =
+                    chip.dataset.filterValue;
+
+                if (!parameterName) {
+                    return;
+                }
+
+                const currentUrl =
+                    new URL(
+                        window.location.href
+                    );
+
+                const nextParameters =
+                    new URLSearchParams();
+
+                currentUrl.searchParams.forEach(
+                    function (value, name) {
+
+                        const isTarget =
+                            name === parameterName
+                            && value === parameterValue;
+
+                        if (!isTarget) {
+                            nextParameters.append(
+                                name,
+                                value
+                            );
+                        }
+                    }
                 );
 
-                scrollTimer =
-                    window.setTimeout(
-                        function () {
+                nextParameters.set("page", "1");
 
-                            const width =
-                                viewport.clientWidth;
+                const queryString =
+                    nextParameters.toString();
 
-                            if (width <= 0) {
-                                return;
-                            }
-
-                            const index =
-                                Math.round(
-                                    viewport.scrollLeft
-                                    / width
-                                );
-
-                            updateCurrentSlide(index);
-                        },
-                        80
-                    );
+                window.location.href =
+                    currentUrl.pathname
+                    + (queryString
+                        ? "?" + queryString
+                        : "");
             }
         );
-
-        carousel.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (event.key === "ArrowLeft") {
-
-                    event.preventDefault();
-
-                    scrollToSlide(
-                        currentIndex - 1
-                    );
-
-                } else if (event.key === "ArrowRight") {
-
-                    event.preventDefault();
-
-                    scrollToSlide(
-                        currentIndex + 1
-                    );
-                }
-            }
-        );
-
-        updateCurrentSlide(0);
     });
 }
 
@@ -739,4 +640,3 @@ function updateContentOttSelectedSummary() {
         + (selectedNames.length - 1)
         + "개";
 }
-

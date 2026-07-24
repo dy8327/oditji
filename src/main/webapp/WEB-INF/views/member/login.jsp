@@ -59,29 +59,52 @@
 
         </form>
 
-        <!-- SNS 로그인 (하나만 유지) -->
+        <!-- SNS 로그인 -->
         <div class="sns-login-box">
 
             <div class="sns-title">SNS 로그인</div>
 
             <div class="sns-icon-row">
 
-                <%--
-                    아이콘 배경만 표시되는 빈 링크이므로 aria-label을 통해
-                    스크린 리더가 각 SNS 로그인 목적을 인식하도록 한다.
-                --%>
+                <!-- 카카오 로그인 -->
                 <a href="${pageContext.request.contextPath}/member/kakao/login"
                    class="sns-icon kakao"
                    aria-label="카카오 계정으로 로그인"></a>
 
+                <!--
+                    네이버 로그인
+
+                    기존 네이버 로그인 링크 안에 다운받은
+                    네이버 이미지만 추가한다.
+                -->
                 <a href="${pageContext.request.contextPath}/member/naver/login"
                    class="sns-icon naver"
-                   aria-label="네이버 계정으로 로그인"></a>
+                   aria-label="네이버 계정으로 로그인"
+                   style="overflow: hidden;">
 
+                    <img src="${pageContext.request.contextPath}/images/naver-login.png"
+                         alt=""
+                         width="36"
+                         height="36"
+                         style="display: block;
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                border-radius: 50%;">
+
+                </a>
+
+                <!-- 구글 로그인 -->
                 <a href="${pageContext.request.contextPath}/member/google/login"
-                   class="sns-icon google"
-                   aria-label="구글 계정으로 로그인"></a>
+                class="sns-icon google"
+                aria-label="Google 계정으로 로그인"
+                title="Google 로그인">
 
+                    <img src="${pageContext.request.contextPath}/images/google-g-logo.png"
+                        alt=""
+                        aria-hidden="true">
+
+                </a>
             </div>
 
         </div>
@@ -108,7 +131,10 @@
                 <span>아직 회원이 아니신가요?</span>
             </div>
 
-            <a href="${pageContext.request.contextPath}/member/join" class="cta-btn">회원가입</a>
+            <a href="${pageContext.request.contextPath}/member/join"
+               class="cta-btn">
+                회원가입
+            </a>
 
         </div>
 
@@ -118,6 +144,7 @@
 
 <!-- 탈퇴 회원 복구 모달 -->
 <div class="oditji-modal-overlay" id="restoreModal">
+
     <div class="oditji-modal-box">
 
         <h3>계정 복구</h3>
@@ -128,11 +155,20 @@
             계정을 다시 활성화할 수 있습니다.
         </p>
 
-        <form action="${pageContext.request.contextPath}/member/restore" method="post">
+        <form action="${pageContext.request.contextPath}/member/restore"
+              method="post">
 
             <%-- 복구 확인 입력창에 접근 가능한 이름을 제공한다. --%>
             <label for="restoreConfirmInput"
-                   style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                   style="position:absolute;
+                          width:1px;
+                          height:1px;
+                          padding:0;
+                          margin:-1px;
+                          overflow:hidden;
+                          clip:rect(0, 0, 0, 0);
+                          white-space:nowrap;
+                          border:0;">
                 계정 복구 확인 문구
             </label>
 
@@ -142,13 +178,26 @@
                    autocomplete="off">
 
             <div class="oditji-modal-btn-row">
-                <button type="button" class="oditji-btn-cancel" onclick="closeRestoreModal()">취소</button>
-                <button type="submit" class="oditji-btn-restore" id="restoreSubmitBtn" disabled>복구하기</button>
+
+                <button type="button"
+                        class="oditji-btn-cancel"
+                        onclick="closeRestoreModal()">
+                    취소
+                </button>
+
+                <button type="submit"
+                        class="oditji-btn-restore"
+                        id="restoreSubmitBtn"
+                        disabled>
+                    복구하기
+                </button>
+
             </div>
 
         </form>
 
     </div>
+
 </div>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

@@ -77,6 +77,8 @@ public class ContentController {
     public String list(
             @RequestParam(defaultValue = "all")
             String type,
+            @RequestParam(required = false)
+            String sort,
             @RequestParam(defaultValue = "1")
             int page,
             @RequestParam(required = false)
@@ -89,6 +91,11 @@ public class ContentController {
 
         String normalizedType =
                 normalizeListType(type);
+
+        String normalizedSort =
+                normalizeListSort(
+                        sort,
+                        normalizedType);
 
         int safePage =
                 page <= 0 ? 1 : page;
@@ -105,6 +112,7 @@ public class ContentController {
         ContentListPageVO pageVO =
                 contentService.getContentListByType(
                         normalizedType,
+                        normalizedSort,
                         safePage,
                         safeCategories,
                         safeGenres,
@@ -135,6 +143,10 @@ public class ContentController {
         model.addAttribute(
                 "type",
                 normalizedType);
+
+        model.addAttribute(
+                "sort",
+                normalizedSort);
 
         model.addAttribute(
                 "page",
@@ -556,6 +568,42 @@ public class ContentController {
         }
 
         return "all";
+    }
+
+
+    /**
+     * 콘텐츠 목록에서 허용하는 정렬값만 사용합니다.
+     * 신규 탭은 정렬값이 없을 때 최신순을 기본으로 사용하고,
+     * 나머지 탭은 인기순을 기본으로 사용합니다.
+     */
+    private String normalizeListSort(
+            String sort,
+            String type) {
+
+        String defaultSort =
+                "new".equals(type)
+                        ? "latest"
+                        : "popular";
+
+        if (sort == null
+                || sort.isBlank()) {
+
+            return defaultSort;
+        }
+
+        String normalized =
+                sort.trim()
+                        .toLowerCase(Locale.ROOT);
+
+        if ("popular".equals(normalized)
+                || "rating".equals(normalized)
+                || "latest".equals(normalized)
+                || "title".equals(normalized)) {
+
+            return normalized;
+        }
+
+        return defaultSort;
     }
 
     private List<String> safeList(

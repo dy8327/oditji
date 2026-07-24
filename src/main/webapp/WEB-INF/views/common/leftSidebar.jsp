@@ -4,6 +4,17 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%--
+    검색 결과 왼쪽 필터
+
+    변경 사항
+    1. 본문 탭과 중복되던 전체/콘텐츠/상품 탭을 제거했습니다.
+    2. 현재 활성 본문 탭에 맞춰 콘텐츠 필터와 상품 필터만 표시합니다.
+    3. 필터 제목과 설명을 추가해 사이드바의 역할을 명확히 했습니다.
+    4. 기존 필터 파라미터와 OTT 선택 모달 동작은 그대로 유지합니다.
+--%>
+
+<%-- 콘텐츠 종류 선택 상태 계산 --%>
 <c:set var="movieChecked" value="false"/>
 <c:set var="dramaChecked" value="false"/>
 <c:set var="animationChecked" value="false"/>
@@ -11,27 +22,21 @@
 <c:set var="documentaryChecked" value="false"/>
 
 <c:forEach var="category" items="${contentCategories}">
-
     <c:if test="${category eq 'MOVIE'}">
         <c:set var="movieChecked" value="true"/>
     </c:if>
-
     <c:if test="${category eq 'DRAMA'}">
         <c:set var="dramaChecked" value="true"/>
     </c:if>
-
     <c:if test="${category eq 'ANIMATION'}">
         <c:set var="animationChecked" value="true"/>
     </c:if>
-
     <c:if test="${category eq 'VARIETY'}">
         <c:set var="varietyChecked" value="true"/>
     </c:if>
-
     <c:if test="${category eq 'DOCUMENTARY'}">
         <c:set var="documentaryChecked" value="true"/>
     </c:if>
-
 </c:forEach>
 
 <c:set var="categorySelected"
@@ -41,6 +46,7 @@
                 or varietyChecked
                 or documentaryChecked}"/>
 
+<%-- 장르 선택 상태 계산 --%>
 <c:set var="actionChecked" value="false"/>
 <c:set var="comedyChecked" value="false"/>
 <c:set var="thrillerChecked" value="false"/>
@@ -58,67 +64,51 @@
 <c:set var="westernChecked" value="false"/>
 
 <c:forEach var="genre" items="${genreCodes}">
-
     <c:if test="${genre eq 'ACTION'}">
         <c:set var="actionChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'COMEDY'}">
         <c:set var="comedyChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'THRILLER'}">
         <c:set var="thrillerChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'ROMANCE'}">
         <c:set var="romanceChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'CRIME'}">
         <c:set var="crimeChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'ADVENTURE'}">
         <c:set var="adventureChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'FAMILY'}">
         <c:set var="familyChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'FANTASY'}">
         <c:set var="fantasyChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'HISTORY'}">
         <c:set var="historyChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'HORROR'}">
         <c:set var="horrorChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'MUSIC'}">
         <c:set var="musicChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'MYSTERY'}">
         <c:set var="mysteryChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'SCI_FI'}">
         <c:set var="sciFiChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'WAR'}">
         <c:set var="warChecked" value="true"/>
     </c:if>
-
     <c:if test="${genre eq 'WESTERN'}">
         <c:set var="westernChecked" value="true"/>
     </c:if>
-
 </c:forEach>
 
 <c:set var="extraGenreSelected"
@@ -133,6 +123,7 @@
                 or warChecked
                 or westernChecked}"/>
 
+<%-- OTT 플랫폼 선택 상태 계산 --%>
 <c:set var="netflixChecked" value="false"/>
 <c:set var="tvingChecked" value="false"/>
 <c:set var="wavveChecked" value="false"/>
@@ -141,71 +132,50 @@
 <c:set var="coupangChecked" value="false"/>
 
 <c:forEach var="provider" items="${providerIds}">
-
     <c:if test="${provider eq '8'}">
         <c:set var="netflixChecked" value="true"/>
     </c:if>
-
     <c:if test="${provider eq '1883'}">
         <c:set var="tvingChecked" value="true"/>
     </c:if>
-
     <c:if test="${provider eq '356'}">
         <c:set var="wavveChecked" value="true"/>
     </c:if>
-
     <c:if test="${provider eq '337'}">
         <c:set var="disneyChecked" value="true"/>
     </c:if>
-
     <c:if test="${provider eq '97'}">
         <c:set var="watchaChecked" value="true"/>
     </c:if>
-
     <c:if test="${provider eq '283'}">
         <c:set var="coupangChecked" value="true"/>
     </c:if>
-
 </c:forEach>
 
 <c:set var="providerSelectedCount" value="0"/>
-
 <c:if test="${netflixChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
-
 <c:if test="${tvingChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
-
 <c:if test="${wavveChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
-
 <c:if test="${disneyChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
-
 <c:if test="${watchaChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
-
 <c:if test="${coupangChecked}">
-    <c:set var="providerSelectedCount"
-           value="${providerSelectedCount + 1}"/>
+    <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
 
 <c:set var="sidebarTab"
        value="${searchTab eq 'GOODS'
                 ? 'GOODS'
-                : (searchTab eq 'CONTENT'
-                    ? 'CONTENT'
-                    : 'ALL')}"/>
+                : (searchTab eq 'CONTENT' ? 'CONTENT' : 'ALL')}"/>
 
 <form id="searchFilterForm"
       class="search-filter-form"
@@ -229,153 +199,94 @@
            name="searchTab"
            value="${empty searchTab ? 'ALL' : searchTab}"/>
 
-    <div class="sidebar-filter-tabs"
-         role="tablist"
-         aria-label="검색 필터 종류">
+    <header class="search-filter-header">
+        <div>
+            <h2>검색 필터</h2>
+            <span class="search-filter-eyebrow">SEARCH FILTER</span> 
+        </div>
+        <p>원하는 조건을 선택해 결과를 좁혀보세요.</p>
+    </header>
 
-        <button type="button"
-                class="sidebar-filter-tab ${sidebarTab eq 'ALL' ? 'is-active' : ''}"
-                data-sidebar-filter-tab="ALL"
-                role="tab"
-                aria-selected="${sidebarTab eq 'ALL' ? 'true' : 'false'}">
-            전체
-        </button>
-
-        <button type="button"
-                class="sidebar-filter-tab ${sidebarTab eq 'CONTENT' ? 'is-active' : ''}"
-                data-sidebar-filter-tab="CONTENT"
-                role="tab"
-                aria-selected="${sidebarTab eq 'CONTENT' ? 'true' : 'false'}">
-            콘텐츠
-        </button>
-
-        <button type="button"
-                class="sidebar-filter-tab ${sidebarTab eq 'GOODS' ? 'is-active' : ''}"
-                data-sidebar-filter-tab="GOODS"
-                role="tab"
-                aria-selected="${sidebarTab eq 'GOODS' ? 'true' : 'false'}">
-            상품
-        </button>
-
-    </div>
-
+    <%-- 콘텐츠 탭과 전체 탭에서 표시되는 필터 --%>
     <div class="sidebar-filter-panel"
          data-sidebar-filter-panel="CONTENT"
          <c:if test="${sidebarTab eq 'GOODS'}">hidden</c:if>>
 
-        <section class="filter-group">
+        <div class="sidebar-filter-section-title">
+            콘텐츠
+        </div>
 
-            <h2 class="filter-group-title">
-                콘텐츠 종류
-            </h2>
+        <section class="filter-group">
+            <h3 class="filter-group-title">콘텐츠 종류</h3>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        data-filter-all
                        data-filter-group="contentCategory"
                        <c:if test="${not categorySelected}">checked</c:if>/>
-
-                <span>
-                    전체
-                </span>
-
+                <span>전체</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="contentCategories"
                        value="MOVIE"
                        data-filter-checkbox
                        data-filter-group="contentCategory"
                        <c:if test="${movieChecked}">checked</c:if>/>
-
-                <span>
-                    영화
-                </span>
-
+                <span>영화</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="contentCategories"
                        value="DRAMA"
                        data-filter-checkbox
                        data-filter-group="contentCategory"
                        <c:if test="${dramaChecked}">checked</c:if>/>
-
-                <span>
-                    드라마
-                </span>
-
+                <span>드라마</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="contentCategories"
                        value="ANIMATION"
                        data-filter-checkbox
                        data-filter-group="contentCategory"
                        <c:if test="${animationChecked}">checked</c:if>/>
-
-                <span>
-                    애니메이션
-                </span>
-
+                <span>애니메이션</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="contentCategories"
                        value="VARIETY"
                        data-filter-checkbox
                        data-filter-group="contentCategory"
                        <c:if test="${varietyChecked}">checked</c:if>/>
-
-                <span>
-                    예능
-                </span>
-
+                <span>예능</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="contentCategories"
                        value="DOCUMENTARY"
                        data-filter-checkbox
                        data-filter-group="contentCategory"
                        <c:if test="${documentaryChecked}">checked</c:if>/>
-
-                <span>
-                    다큐멘터리
-                </span>
-
+                <span>다큐멘터리</span>
             </label>
-
         </section>
 
         <section class="filter-group">
-
-            <h2 class="filter-group-title">
-                장르
-            </h2>
+            <h3 class="filter-group-title">장르</h3>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        data-filter-all
                        data-filter-group="genre"
                        <c:if test="${empty genreCodes}">checked</c:if>/>
-
-                <span>
-                    전체
-                </span>
-
+                <span>전체</span>
             </label>
 
             <label class="filter-option">
@@ -531,12 +442,7 @@
                            <c:if test="${westernChecked}">checked</c:if>/>
                     <span>서부</span>
                 </label>
-
             </div>
-
-        </section>
-
-        <div class="filter-secondary-action-box">
 
             <button type="button"
                     id="genreToggleButton"
@@ -544,28 +450,15 @@
                     aria-controls="genreExtraOptions"
                     aria-expanded="${extraGenreSelected ? 'true' : 'false'}"
                     data-expanded="${extraGenreSelected ? 'true' : 'false'}">
-
                 <c:choose>
-
-                    <c:when test="${extraGenreSelected}">
-                        장르 접기
-                    </c:when>
-
-                    <c:otherwise>
-                        장르 전체보기
-                    </c:otherwise>
-
+                    <c:when test="${extraGenreSelected}">장르 접기</c:when>
+                    <c:otherwise>장르 전체보기</c:otherwise>
                 </c:choose>
-
             </button>
-
-        </div>
+        </section>
 
         <section class="filter-group filter-provider-group">
-
-            <h2 class="filter-group-title">
-                OTT 플랫폼
-            </h2>
+            <h3 class="filter-group-title">OTT 플랫폼</h3>
 
             <button type="button"
                     id="ottModalOpenButton"
@@ -578,241 +471,134 @@
             <p id="ottSelectedSummary"
                class="filter-provider-summary"
                aria-live="polite">
-
                 <c:choose>
-
-                    <c:when test="${providerSelectedCount == 0}">
-                        전체 플랫폼
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and netflixChecked}">
-                        Netflix
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and tvingChecked}">
-                        Tving
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and wavveChecked}">
-                        Wavve
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and disneyChecked}">
-                        Disney+
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and watchaChecked}">
-                        Watcha
-                    </c:when>
-
-                    <c:when test="${providerSelectedCount == 1 and coupangChecked}">
-                        Coupangplay
-                    </c:when>
-
-                    <c:otherwise>
-                        <c:out value="${providerSelectedCount}"/>개 플랫폼 선택됨
-                    </c:otherwise>
-
+                    <c:when test="${providerSelectedCount == 0}">전체 플랫폼</c:when>
+                    <c:when test="${providerSelectedCount == 1 and netflixChecked}">Netflix</c:when>
+                    <c:when test="${providerSelectedCount == 1 and tvingChecked}">Tving</c:when>
+                    <c:when test="${providerSelectedCount == 1 and wavveChecked}">Wavve</c:when>
+                    <c:when test="${providerSelectedCount == 1 and disneyChecked}">Disney+</c:when>
+                    <c:when test="${providerSelectedCount == 1 and watchaChecked}">Watcha</c:when>
+                    <c:when test="${providerSelectedCount == 1 and coupangChecked}">Coupangplay</c:when>
+                    <c:otherwise>${providerSelectedCount}개 플랫폼 선택됨</c:otherwise>
                 </c:choose>
-
             </p>
-
         </section>
-
     </div>
 
+    <%-- 상품 탭과 전체 탭에서 표시되는 필터 --%>
     <div class="sidebar-filter-panel"
          data-sidebar-filter-panel="GOODS"
          <c:if test="${sidebarTab eq 'CONTENT'}">hidden</c:if>>
 
-        <section class="filter-group">
+        <div class="sidebar-filter-section-title">
+            상품
+        </div>
 
-            <h2 class="filter-group-title">
-                상품 유형
-            </h2>
+        <section class="filter-group">
+            <h3 class="filter-group-title">상품 유형</h3>
 
             <c:choose>
-
                 <c:when test="${empty availableProductTypes}">
-
                     <p class="filter-empty-message">
                         등록된 상품 유형이 없습니다.
                     </p>
-
                 </c:when>
-
                 <c:otherwise>
-
                     <c:forEach var="availableType"
                                items="${availableProductTypes}"
                                varStatus="typeStatus">
 
-                        <c:set var="typeChecked"
-                               value="false"/>
+                        <c:set var="typeChecked" value="false"/>
 
-                        <c:forEach var="selectedType"
-                                   items="${productTypes}">
-
+                        <c:forEach var="selectedType" items="${productTypes}">
                             <c:if test="${selectedType eq availableType}">
-                                <c:set var="typeChecked"
-                                       value="true"/>
+                                <c:set var="typeChecked" value="true"/>
                             </c:if>
-
                         </c:forEach>
 
-                        <%--
-                            반복 생성되는 상품 유형 체크박스마다 고유 id를 만들고
-                            label의 for 속성과 연결한다. 정적 접근성 문구를 함께 두어
-                            SonarQube가 label의 접근 가능한 텍스트를 인식하도록 한다.
-                        --%>
                         <label class="filter-option"
                                for="productType-${typeStatus.index}">
-
                             <input type="checkbox"
                                    id="productType-${typeStatus.index}"
                                    name="productTypes"
                                    value="<c:out value='${availableType}'/>"
                                    <c:if test="${typeChecked}">checked</c:if>/>
-
-                            <span style="position:absolute;
-                                         width:1px;
-                                         height:1px;
-                                         padding:0;
-                                         margin:-1px;
-                                         overflow:hidden;
-                                         clip:rect(0, 0, 0, 0);
-                                         white-space:nowrap;
-                                         border:0;">
-                                상품 종류
-                            </span>
-
-                            <span>
-                                <c:out value="${availableType}"/>
-                            </span>
-
+                            <span><c:out value="${availableType}"/></span>
                         </label>
-
                     </c:forEach>
-
                 </c:otherwise>
-
             </c:choose>
-
         </section>
 
         <section class="filter-group">
-
-            <h2 class="filter-group-title">
-                가격 범위
-            </h2>
+            <h3 class="filter-group-title">가격 범위</h3>
 
             <div class="goods-price-filter">
-
                 <label class="goods-price-field">
-
-                    <span>
-                        최소 가격
-                    </span>
-
+                    <span>최소 가격</span>
                     <input type="number"
                            name="minPrice"
                            min="0"
                            step="1000"
                            value="<c:out value='${minPrice}'/>"
                            placeholder="0"/>
-
                 </label>
 
-                <span class="goods-price-divider">
-                    ~
-                </span>
+                <span class="goods-price-divider">~</span>
 
                 <label class="goods-price-field">
-
-                    <span>
-                        최대 가격
-                    </span>
-
+                    <span>최대 가격</span>
                     <input type="number"
                            name="maxPrice"
                            min="0"
                            step="1000"
                            value="<c:out value='${maxPrice}'/>"
                            placeholder="제한 없음"/>
-
                 </label>
-
             </div>
-
         </section>
 
         <section class="filter-group">
-
-            <h2 class="filter-group-title">
-                판매 조건
-            </h2>
+            <h3 class="filter-group-title">판매 조건</h3>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="discountOnly"
                        value="true"
                        <c:if test="${discountOnly}">checked</c:if>/>
-
-                <span>
-                    할인 상품만
-                </span>
-
+                <span>할인 상품만</span>
             </label>
 
             <label class="filter-option">
-
                 <input type="checkbox"
                        name="inStockOnly"
                        value="true"
                        <c:if test="${inStockOnly}">checked</c:if>/>
-
-                <span>
-                    품절 상품 제외
-                </span>
-
+                <span>품절 상품 제외</span>
             </label>
-
         </section>
-
     </div>
 
     <div class="filter-action-box">
-
         <button type="submit"
                 class="filter-submit-btn">
             필터 적용
         </button>
 
-        <c:url var="resetFilterUrl"
-               value="/search">
-
-            <c:param name="keyword"
-                     value="${keyword}"/>
-
-            <c:param name="contentPage"
-                     value="1"/>
-
-            <c:param name="goodsPage"
-                     value="1"/>
-
-            <c:param name="searchTab"
-                     value="${sidebarTab}"/>
-
+        <c:url var="resetFilterUrl" value="/search">
+            <c:param name="keyword" value="${keyword}"/>
+            <c:param name="contentPage" value="1"/>
+            <c:param name="goodsPage" value="1"/>
+            <c:param name="searchTab" value="${sidebarTab}"/>
         </c:url>
 
         <a class="filter-reset-btn"
            href="${resetFilterUrl}">
             필터 초기화
         </a>
-
     </div>
 
+    <%-- OTT 선택값을 저장하는 모달 --%>
     <div id="ottPlatformModal"
          class="ott-modal"
          role="dialog"
@@ -821,17 +607,14 @@
          hidden>
 
         <div class="ott-modal-backdrop"
-             data-ott-modal-close>
-        </div>
+             data-ott-modal-close></div>
 
-        <div class="ott-modal-dialog"
-             role="document">
-
+        <div class="ott-modal-dialog" role="document">
             <header class="ott-modal-header">
-
-                <h2 id="ottModalTitle">
-                    OTT 플랫폼 선택
-                </h2>
+                <div>
+                    <span class="search-filter-eyebrow">PLATFORM</span>
+                    <h2 id="ottModalTitle">OTT 플랫폼 선택</h2>
+                </div>
 
                 <button type="button"
                         class="ott-modal-close-btn"
@@ -839,29 +622,20 @@
                         aria-label="닫기">
                     ×
                 </button>
-
             </header>
 
             <div class="ott-modal-body">
-
                 <label class="ott-modal-option ott-modal-all-option">
-
                     <input type="checkbox"
                            id="ottProviderAll"
                            data-filter-all
                            data-filter-group="provider"
                            <c:if test="${providerSelectedCount == 0}">checked</c:if>/>
-
-                    <span class="ott-modal-option-text">
-                        전체 플랫폼
-                    </span>
-
+                    <span class="ott-modal-option-text">전체 플랫폼</span>
                 </label>
 
                 <div class="ott-modal-option-grid">
-
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="8"
@@ -870,24 +644,16 @@
                                data-filter-group="provider"
                                data-provider-name="Netflix"
                                <c:if test="${netflixChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['netflix']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["netflix"]}'/>"
                                  alt="Netflix 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Netflix
-                        </span>
-
+                        <span class="ott-modal-option-text">Netflix</span>
                     </label>
 
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="1883"
@@ -896,24 +662,16 @@
                                data-filter-group="provider"
                                data-provider-name="Tving"
                                <c:if test="${tvingChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['tving']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["tving"]}'/>"
                                  alt="Tving 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Tving
-                        </span>
-
+                        <span class="ott-modal-option-text">Tving</span>
                     </label>
 
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="356"
@@ -922,24 +680,16 @@
                                data-filter-group="provider"
                                data-provider-name="Wavve"
                                <c:if test="${wavveChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['wavve']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["wavve"]}'/>"
                                  alt="Wavve 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Wavve
-                        </span>
-
+                        <span class="ott-modal-option-text">Wavve</span>
                     </label>
 
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="337"
@@ -948,24 +698,16 @@
                                data-filter-group="provider"
                                data-provider-name="Disney+"
                                <c:if test="${disneyChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['disney']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["disney"]}'/>"
                                  alt="Disney+ 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Disney+
-                        </span>
-
+                        <span class="ott-modal-option-text">Disney+</span>
                     </label>
 
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="97"
@@ -974,24 +716,16 @@
                                data-filter-group="provider"
                                data-provider-name="Watcha"
                                <c:if test="${watchaChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['watcha']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["watcha"]}'/>"
                                  alt="Watcha 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Watcha
-                        </span>
-
+                        <span class="ott-modal-option-text">Watcha</span>
                     </label>
 
                     <label class="ott-modal-option">
-
                         <input type="checkbox"
                                name="providerIds"
                                value="283"
@@ -1000,28 +734,18 @@
                                data-filter-group="provider"
                                data-provider-name="Coupangplay"
                                <c:if test="${coupangChecked}">checked</c:if>/>
-
                         <c:if test="${not empty ottLogoMap['coupang']}">
-
                             <img class="ott-modal-option-logo"
                                  src="<c:out value='${ottLogoMap["coupang"]}'/>"
                                  alt="Coupangplay 로고"
                                  loading="lazy">
-
                         </c:if>
-
-                        <span class="ott-modal-option-text">
-                            Coupangplay
-                        </span>
-
+                        <span class="ott-modal-option-text">Coupangplay</span>
                     </label>
-
                 </div>
-
             </div>
 
             <footer class="ott-modal-footer">
-
                 <button type="button"
                         id="ottModalCancelButton"
                         class="ott-modal-cancel-btn">
@@ -1033,11 +757,7 @@
                         class="ott-modal-confirm-btn">
                     선택 완료
                 </button>
-
             </footer>
-
         </div>
-
     </div>
-
 </form>

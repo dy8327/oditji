@@ -3,152 +3,120 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<section class="recommend-sidebar"
-         data-recommend-carousel>
+<!--
+    기존 우측 세로 캐러셀을 본문 하단의 가로형 추천 섹션으로 변경했습니다.
+    목록 폭을 넓게 유지하면서도 추천 콘텐츠 5개를 한 번에 비교할 수 있습니다.
+-->
+<section class="content-recommend-section"
+         aria-labelledby="contentRecommendTitle">
 
-    <div class="recommend-sidebar-header">
+    <header class="content-recommend-header">
 
-        <h2>추천 콘텐츠</h2>
+        <div>
+            <span class="content-recommend-eyebrow">
+                RECOMMEND
+            </span>
 
-        <c:if test="${not empty recommendedList}">
+            <h2 id="contentRecommendTitle">
+                함께 보기 좋은 콘텐츠
+            </h2>
 
-            <div class="recommend-carousel-controls">
+            <p>
+                현재 선택한 콘텐츠 종류, 장르, OTT 조건을 반영했습니다.
+            </p>
+        </div>
 
-                <button type="button"
-                        class="recommend-carousel-button"
-                        data-recommend-previous
-                        aria-label="이전 추천 콘텐츠">
-                    ‹
-                </button>
-
-                <button type="button"
-                        class="recommend-carousel-button"
-                        data-recommend-next
-                        aria-label="다음 추천 콘텐츠">
-                    ›
-                </button>
-
-            </div>
-
-        </c:if>
-
-    </div>
+    </header>
 
     <c:choose>
 
         <c:when test="${empty recommendedList}">
 
-            <div class="recommend-empty">
-                추천 콘텐츠가 없습니다.
+            <div class="content-recommend-empty">
+                현재 조건으로 추천할 콘텐츠가 없습니다.
             </div>
 
         </c:when>
 
         <c:otherwise>
 
-            <div class="recommend-carousel-viewport"
-                 data-recommend-viewport>
+            <div class="content-recommend-grid">
 
-                <div class="recommend-carousel-track"
-                     data-recommend-track>
+                <c:forEach var="recommend"
+                           items="${recommendedList}"
+                           begin="0"
+                           end="4">
 
-                    <c:forEach var="recommend"
-                               items="${recommendedList}"
-                               begin="0"
-                               end="4"
-                               varStatus="status">
+                    <c:url var="recommendDetailUrl"
+                           value="/content/prepare">
+                        <c:param name="tmdbId"
+                                 value="${recommend.tmdbId}"/>
+                        <c:param name="contentType"
+                                 value="${recommend.contentType}"/>
+                    </c:url>
 
-                        <c:url var="recommendDetailUrl"
-                               value="/content/prepare">
+                    <article class="content-recommend-card">
 
-                            <c:param name="tmdbId"
-                                     value="${recommend.tmdbId}"/>
+                        <a href="${recommendDetailUrl}"
+                           class="content-recommend-link">
 
-                            <c:param name="contentType"
-                                     value="${recommend.contentType}"/>
+                            <div class="content-recommend-poster">
 
-                        </c:url>
+                                <c:choose>
+                                    <c:when test="${not empty recommend.posterPath}">
+                                        <img src="https://image.tmdb.org/t/p/w342${recommend.posterPath}"
+                                             alt="<c:out value='${recommend.title}'/>"
+                                             loading="lazy">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="content-recommend-no-image">
+                                            NO IMAGE
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
 
-                        <article class="recommend-slide"
-                                 data-recommend-slide
-                                 aria-hidden="${status.first ? 'false' : 'true'}">
-
-                            <a class="recommend-item"
-                               href="${recommendDetailUrl}">
-
-                                <div class="recommend-poster">
-
+                                <span class="content-recommend-type">
                                     <c:choose>
-
-                                        <c:when test="${not empty recommend.posterPath}">
-
-                                            <img src="https://image.tmdb.org/t/p/w342${recommend.posterPath}"
-                                                 alt="<c:out value='${recommend.title}'/>"
-                                                 loading="lazy">
-
+                                        <c:when test="${recommend.contentType eq 'MOVIE'}">
+                                            영화
                                         </c:when>
-
                                         <c:otherwise>
-
-                                            <div class="recommend-no-image">
-                                                NO IMAGE
-                                            </div>
-
+                                            시리즈
                                         </c:otherwise>
-
                                     </c:choose>
+                                </span>
 
-                                </div>
+                                <c:if test="${not empty recommend.tmdbScore}">
+                                    <span class="content-recommend-score">
+                                        <span aria-hidden="true">★</span>
+                                        <fmt:formatNumber value="${recommend.tmdbScore}"
+                                                          pattern="0.0"/>
+                                    </span>
+                                </c:if>
 
-                                <div class="recommend-info">
+                            </div>
 
-                                    <strong class="recommend-title">
-                                        <c:out value="${recommend.title}"/>
-                                    </strong>
+                            <div class="content-recommend-info">
 
-                                    <div class="recommend-meta">
+                                <strong>
+                                    <c:out value="${recommend.title}"/>
+                                </strong>
 
-                                        <span>
+                                <c:if test="${not empty recommend.genreText}">
+                                    <span>
+                                        <c:out value="${recommend.genreText}"/>
+                                    </span>
+                                </c:if>
 
-                                            <c:choose>
+                            </div>
 
-                                                <c:when test="${recommend.contentType eq 'MOVIE'}">
-                                                    영화
-                                                </c:when>
+                        </a>
 
-                                                <c:otherwise>
-                                                    시리즈
-                                                </c:otherwise>
+                    </article>
 
-                                            </c:choose>
-
-                                        </span>
-
-                                        <c:if test="${not empty recommend.tmdbScore}">
-                                            <span>⭐ ${recommend.tmdbScore}</span>
-                                        </c:if>
-
-                                    </div>
-
-                                </div>
-
-                            </a>
-
-                        </article>
-
-                    </c:forEach>
-
-                </div>
-
-            </div>
-
-            <div class="recommend-carousel-status"
-                 aria-live="polite">
-
-                <span data-recommend-current>1</span>
-                <span aria-hidden="true">/</span>
-                <span data-recommend-total>1</span>
+                </c:forEach>
 
             </div>
 

@@ -197,6 +197,17 @@
     <c:set var="providerSelectedCount" value="${providerSelectedCount + 1}"/>
 </c:if>
 
+<c:url var="resetUrl"
+       value="/content/list">
+
+    <c:param name="type"
+             value="${type}"/>
+
+    <c:param name="sort"
+             value="${sort}"/>
+
+</c:url>
+
 <form id="contentFilterForm"
       class="content-filter-form"
       action="${pageContext.request.contextPath}/content/list"
@@ -209,6 +220,28 @@
     <input type="hidden"
            name="page"
            value="1">
+
+    <!-- 정렬을 유지한 상태로 필터를 적용하기 위한 숨김 값입니다. -->
+    <input type="hidden"
+           name="sort"
+           value="${sort}">
+
+    <!--
+        필터의 한글 제목과 영문 보조 제목을 위아래로 분리합니다.
+        초기화 기능은 사용자가 버튼으로 인식할 수 있도록 하단 동작 영역으로 이동합니다.
+    -->
+    <header class="content-filter-header">
+
+        <div class="content-filter-title-area">
+            <h2>콘텐츠 필터</h2>
+            <span>CONTENT FILTER</span>
+        </div>
+
+        <p>
+            원하는 조건을 선택해 콘텐츠를 좁혀보세요.
+        </p>
+
+    </header>
 
     <section class="content-filter-group">
 
@@ -499,6 +532,10 @@
 
     </section>
 
+    <!--
+        주요 동작인 필터 적용과 보조 동작인 전체 초기화를 세로 버튼으로 구분합니다.
+        기존 resetUrl을 그대로 사용하므로 선택 조건만 초기화되고 목록 유형과 정렬은 유지됩니다.
+    -->
     <div class="content-filter-actions">
 
         <button type="submit"
@@ -506,17 +543,12 @@
             필터 적용
         </button>
 
-        <c:url var="resetUrl"
-               value="/content/list">
-
-            <c:param name="type"
-                     value="${type}"/>
-
-        </c:url>
-
-        <a class="content-filter-reset-btn"
-           href="${resetUrl}">
-            필터 초기화
+        <a href="${resetUrl}"
+           class="content-filter-reset-btn"
+           aria-label="선택한 콘텐츠 필터 전체 초기화">
+            <span class="content-filter-reset-icon"
+                  aria-hidden="true">↻</span>
+            <span>전체 초기화</span>
         </a>
 
     </div>

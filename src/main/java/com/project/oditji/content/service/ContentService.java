@@ -69,6 +69,7 @@ public interface ContentService {
      */
     ContentListPageVO getContentListByType(
             String type,
+            String sort,
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
@@ -76,7 +77,7 @@ public interface ContentService {
 
     /**
      * 현재 목록의 카테고리, 장르, OTT 조건을 반영하여
-     * 우측 추천 콘텐츠를 JSONL에서 조회합니다.
+     * 본문 하단 추천 콘텐츠를 JSONL에서 조회합니다.
      */
     List<SearchResultVO> getContentRecommendedList(
             List<String> contentCategories,
