@@ -290,9 +290,10 @@ public class MemberController {
                  * 로그인, 회원가입 등 회원 관련 화면 자체는
                  * 복귀 주소로 저장하지 않는다.
                  */
-                if (!isUsableRedirectUrl(redirectUrl)) {
-
+               if (isUsableRedirectUrl(redirectUrl)) {
                         session.setAttribute(LOGIN_REDIRECT_SESSION_KEY, redirectUrl);
+                        } else {
+                        session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
                 }
 
                 return "member/login";
