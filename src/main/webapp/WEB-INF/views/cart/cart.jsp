@@ -127,7 +127,26 @@
 
                             <div class="cart-item-checkbox">
 
+                                <%--
+                                    반복되는 상품 선택 체크박스마다 고유 id를 만들고
+                                    상품명을 포함한 label과 연결한다. label은 화면에는
+                                    보이지 않지만 스크린 리더에는 선택 대상을 알려준다.
+                                --%>
+                                <label for="cartItemCheck-${item.cartItemNo}"
+                                       style="position:absolute;
+                                              width:1px;
+                                              height:1px;
+                                              padding:0;
+                                              margin:-1px;
+                                              overflow:hidden;
+                                              clip:rect(0, 0, 0, 0);
+                                              white-space:nowrap;
+                                              border:0;">
+                                    <c:out value="${item.productName}"/> 상품 선택
+                                </label>
+
                                 <input type="checkbox"
+                                       id="cartItemCheck-${item.cartItemNo}"
                                        class="cart-item-check"
                                        value="${item.cartItemNo}"
                                        ${item.available ? 'checked' : 'disabled'}>
@@ -266,7 +285,25 @@
 
                                     </button>
 
+                                    <%--
+                                        수량 입력창도 상품별 고유 id와 label을 연결한다.
+                                        수량 조절 버튼 사이의 기존 레이아웃은 유지한다.
+                                    --%>
+                                    <label for="quantity-${item.cartItemNo}"
+                                           style="position:absolute;
+                                                  width:1px;
+                                                  height:1px;
+                                                  padding:0;
+                                                  margin:-1px;
+                                                  overflow:hidden;
+                                                  clip:rect(0, 0, 0, 0);
+                                                  white-space:nowrap;
+                                                  border:0;">
+                                        <c:out value="${item.productName}"/> 상품 수량
+                                    </label>
+
                                     <input type="number"
+                                           id="quantity-${item.cartItemNo}"
                                            class="quantity-input"
                                            value="${item.quantity}"
                                            min="1"

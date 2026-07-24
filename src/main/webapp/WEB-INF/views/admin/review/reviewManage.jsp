@@ -25,11 +25,14 @@
 
         <div class="admin-page-header">
 
-            <a href="${pageContext.request.contextPath}/admin/main" class="back-link">
+            <a href="${pageContext.request.contextPath}/admin/main"
+               class="back-link">
                 ← 뒤로가기
             </a>
 
-            <h1 class="admin-page-title">콘텐츠 리뷰 관리</h1>
+            <h1 class="admin-page-title">
+                콘텐츠 리뷰 관리
+            </h1>
 
             <p class="admin-page-desc">
                 작품(콘텐츠)에 등록된 전체 리뷰를 조회하고, 신고 접수된 리뷰를 확인하여
@@ -41,16 +44,54 @@
         <section class="admin-content-box">
 
             <nav class="tab-menu">
-                <a href="?tab=all" class="${currentTab == 'all' ? 'active' : ''}">전체 리뷰</a>
-                <a href="?tab=report" class="${currentTab == 'report' ? 'active' : ''}">신고 내역</a>
+
+                <a href="?tab=all"
+                   class="${currentTab == 'all' ? 'active' : ''}">
+                    전체 리뷰
+                </a>
+
+                <a href="?tab=report"
+                   class="${currentTab == 'report' ? 'active' : ''}">
+                    신고 내역
+                </a>
+
             </nav>
 
             <div class="toolbar">
-                <form method="get" action="${pageContext.request.contextPath}/admin/review/list">
-                    <input type="hidden" name="tab" value="${currentTab}">
-                    <input type="text" class="page-search" name="keyword"
-                           value="${param.keyword}" placeholder="작성자, 콘텐츠명 검색">
+
+                <form method="get"
+                      action="${pageContext.request.contextPath}/admin/review/list">
+
+                    <input type="hidden"
+                           name="tab"
+                           value="${currentTab}">
+
+                    <%--
+                        검색 input에 고유 id를 부여하고
+                        label의 for 속성과 연결한다.
+                    --%>
+                    <label for="contentReviewKeyword"
+                           style="position:absolute;
+                                  width:1px;
+                                  height:1px;
+                                  padding:0;
+                                  margin:-1px;
+                                  overflow:hidden;
+                                  clip:rect(0, 0, 0, 0);
+                                  white-space:nowrap;
+                                  border:0;">
+                        작성자 및 콘텐츠명 검색
+                    </label>
+
+                    <input type="text"
+                           id="contentReviewKeyword"
+                           class="page-search"
+                           name="keyword"
+                           value="${param.keyword}"
+                           placeholder="작성자, 콘텐츠명 검색">
+
                 </form>
+
             </div>
 
             <div class="card-list">
@@ -59,57 +100,135 @@
 
                     <c:when test="${not empty reviewList}">
 
-                        <c:forEach var="review" items="${reviewList}">
+                        <c:forEach var="review"
+                                   items="${reviewList}">
 
                             <article class="item-card">
 
                                 <div class="item-info">
 
                                     <h3>
+
                                         ${review.nickname}
-                                        <span class="meta" style="display:inline;">| <fmt:formatDate value="${review.createdAt}" pattern="yyyy-MM-dd"/></span>
+
+                                        <span class="meta"
+                                              style="display:inline;">
+
+                                            |
+
+                                            <fmt:formatDate value="${review.createdAt}"
+                                                            pattern="yyyy-MM-dd"/>
+
+                                        </span>
+
                                     </h3>
 
                                     <div class="meta">
-                                        <span>별점 ${review.rating}점</span>
+
+                                        <span>
+                                            별점 ${review.rating}점
+                                        </span>
+
                                         <c:if test="${currentTab == 'report'}">
-                                            <span class="badge badge-yellow">신고 ${review.reportCount}건</span>
+
+                                            <span class="badge badge-yellow">
+                                                신고 ${review.reportCount}건
+                                            </span>
+
                                         </c:if>
+
                                     </div>
 
-                                    <p style="margin-top:10px; color:var(--adm-text-sub);">
+                                    <p style="margin-top:10px;
+                                              color:var(--adm-text-sub);">
                                         ${review.content}
                                     </p>
 
-                                    <div class="meta" style="margin-top:10px;">
-                                        <span>👍 추천 ${review.likeCount}</span>
-                                        <span>💬 댓글 ${review.commentCount}</span>
+                                    <div class="meta"
+                                         style="margin-top:10px;">
+
+                                        <span>
+                                            👍 추천 ${review.likeCount}
+                                        </span>
+
+                                        <span>
+                                            💬 댓글 ${review.commentCount}
+                                        </span>
+
                                     </div>
 
                                 </div>
 
                                 <div class="item-actions">
+
                                     <c:choose>
+
                                         <c:when test="${currentTab == 'report'}">
-                                            <form action="${pageContext.request.contextPath}/admin/review/report/approve" method="post" style="display:inline;">
-                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                <input type="hidden" name="tab" value="${currentTab}">
-                                                <button type="submit" class="btn btn-danger">승인 (리뷰 삭제)</button>
+
+                                            <form action="${pageContext.request.contextPath}/admin/review/report/approve"
+                                                  method="post"
+                                                  style="display:inline;">
+
+                                                <input type="hidden"
+                                                       name="reviewNo"
+                                                       value="${review.reviewNo}">
+
+                                                <input type="hidden"
+                                                       name="tab"
+                                                       value="${currentTab}">
+
+                                                <button type="submit"
+                                                        class="btn btn-danger">
+                                                    승인 (리뷰 삭제)
+                                                </button>
+
                                             </form>
-                                            <form action="${pageContext.request.contextPath}/admin/review/report/reject" method="post" style="display:inline;">
-                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                <input type="hidden" name="tab" value="${currentTab}">
-                                                <button type="submit" class="btn btn-secondary">반려</button>
+
+                                            <form action="${pageContext.request.contextPath}/admin/review/report/reject"
+                                                  method="post"
+                                                  style="display:inline;">
+
+                                                <input type="hidden"
+                                                       name="reviewNo"
+                                                       value="${review.reviewNo}">
+
+                                                <input type="hidden"
+                                                       name="tab"
+                                                       value="${currentTab}">
+
+                                                <button type="submit"
+                                                        class="btn btn-secondary">
+                                                    반려
+                                                </button>
+
                                             </form>
+
                                         </c:when>
+
                                         <c:otherwise>
-                                            <form action="${pageContext.request.contextPath}/admin/review/delete" method="post">
-                                                <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                <input type="hidden" name="tab" value="${currentTab}">
-                                                <button type="submit" class="btn btn-danger">리뷰 삭제</button>
+
+                                            <form action="${pageContext.request.contextPath}/admin/review/delete"
+                                                  method="post">
+
+                                                <input type="hidden"
+                                                       name="reviewNo"
+                                                       value="${review.reviewNo}">
+
+                                                <input type="hidden"
+                                                       name="tab"
+                                                       value="${currentTab}">
+
+                                                <button type="submit"
+                                                        class="btn btn-danger">
+                                                    리뷰 삭제
+                                                </button>
+
                                             </form>
+
                                         </c:otherwise>
+
                                     </c:choose>
+
                                 </div>
 
                             </article>
@@ -119,9 +238,13 @@
                     </c:when>
 
                     <c:otherwise>
+
                         <article class="item-card empty">
-                            ${currentTab == 'report' ? '신고 접수된 리뷰가 없습니다.' : '등록된 리뷰가 없습니다.'}
+                            ${currentTab == 'report'
+                                ? '신고 접수된 리뷰가 없습니다.'
+                                : '등록된 리뷰가 없습니다.'}
                         </article>
+
                     </c:otherwise>
 
                 </c:choose>
@@ -130,14 +253,26 @@
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage-1}">‹</a>
+                <a href="?tab=${currentTab}&page=${pagination.currentPage - 1}">
+                    ‹
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
+                <c:forEach var="p"
+                           begin="1"
+                           end="${empty pagination.totalPages
+                               ? 1
+                               : pagination.totalPages}">
+
                     <a href="?tab=${currentTab}&page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+                       class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage+1}">›</a>
+                <a href="?tab=${currentTab}&page=${pagination.currentPage + 1}">
+                    ›
+                </a>
 
             </div>
 

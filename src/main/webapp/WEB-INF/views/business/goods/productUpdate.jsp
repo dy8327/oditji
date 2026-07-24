@@ -671,7 +671,12 @@ document.addEventListener(
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%--
+                        관련 콘텐츠 설명을 실제 화면에 표시되는 읽기 전용
+                        콘텐츠명 입력창과 연결하여 접근 가능한 이름을 제공한다.
+                    --%>
+                    <label class="form-label"
+                           for="contentTitle">
                         관련 콘텐츠
                     </label>
 
@@ -753,13 +758,19 @@ document.addEventListener(
 
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%--
+                        사업자명 입력창에 고유 id를 부여하고 label과 연결한다.
+                        읽기 전용 필드도 보조 기술에서 의미를 알 수 있어야 한다.
+                    --%>
+                    <label class="form-label"
+                           for="businessName">
                         사업자명
                     </label>
 
 
                     <input class="form-input"
                            type="text"
+                           id="businessName"
                            value="<c:out value='${business.businessName}'/>"
                            readonly>
 

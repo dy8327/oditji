@@ -45,16 +45,34 @@
         </c:if>
 
         <section class="content-panel">
-        
+
             <div class="product-control-row">
-                
+
                 <div></div>
 
-                <form action="${pageContext.request.contextPath}/business/event/list" 
-                      method="get" 
+                <form action="${pageContext.request.contextPath}/business/event/list"
+                      method="get"
                       class="product-search-form">
 
+                    <%--
+                        검색 입력창에 고유 id를 부여하고 label의 for와 연결한다.
+                        label은 화면 배치에 영향을 주지 않도록 시각적으로만 숨긴다.
+                    --%>
+                    <label for="eventKeyword"
+                           style="position:absolute;
+                                  width:1px;
+                                  height:1px;
+                                  padding:0;
+                                  margin:-1px;
+                                  overflow:hidden;
+                                  clip:rect(0, 0, 0, 0);
+                                  white-space:nowrap;
+                                  border:0;">
+                        이벤트명, 상태 및 상품명 검색
+                    </label>
+
                     <input type="text"
+                           id="eventKeyword"
                            name="keyword"
                            value="<c:out value='${keyword}'/>"
                            placeholder="이벤트명, 상태, 상품명 검색">
@@ -62,6 +80,7 @@
                     <button type="submit">
                         검색
                     </button>
+
                 </form>
 
                 <button type="button"
@@ -95,7 +114,8 @@
 
                         <c:when test="${not empty eventList}">
 
-                            <c:forEach var="event" items="${eventList}">
+                            <c:forEach var="event"
+                                       items="${eventList}">
 
                                 <tr>
 
@@ -112,20 +132,37 @@
                                     </td>
 
                                     <td>
+
                                         <c:choose>
+
                                             <c:when test="${event.eventDiscountRate > 0 and not empty event.price}">
+
                                                 <span class="discount-rate">
                                                     <c:out value="${event.eventDiscountRate}"/>%
                                                 </span>
+
                                                 <br>
-                                                <s><fmt:formatNumber value="${event.price}" pattern="#,###"/>원</s>
+
+                                                <s>
+                                                    <fmt:formatNumber value="${event.price}"
+                                                                      pattern="#,###"/>원
+                                                </s>
+
                                                 →
-                                                <strong><fmt:formatNumber value="${event.discountedPrice}" pattern="#,###"/>원</strong>
+
+                                                <strong>
+                                                    <fmt:formatNumber value="${event.discountedPrice}"
+                                                                      pattern="#,###"/>원
+                                                </strong>
+
                                             </c:when>
+
                                             <c:otherwise>
                                                 할인 없음
                                             </c:otherwise>
+
                                         </c:choose>
+
                                     </td>
 
                                     <td>
@@ -255,10 +292,14 @@
 
                 <c:forEach var="p"
                            begin="1"
-                           end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
+                           end="${empty pagination.totalPages
+                               ? 1
+                               : pagination.totalPages}">
 
                     <a href="?page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">
+                       class="${pagination.currentPage == p
+                           ? 'active'
+                           : ''}">
                         ${p}
                     </a>
 

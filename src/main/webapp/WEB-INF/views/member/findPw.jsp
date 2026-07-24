@@ -4,7 +4,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>ODITJI - 비밀번호 찾기</title>
@@ -12,7 +12,9 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/member.css">
 
-<script defer src="${pageContext.request.contextPath}/js/member.js"></script>
+<script defer
+        src="${pageContext.request.contextPath}/js/member.js">
+</script>
 
 </head>
 
@@ -30,25 +32,52 @@
               method="post">
 
             <div class="form-group">
-                <label>아이디</label>
+
+                <%--
+                    아이디 입력창의 id와 label의 for를 연결한다.
+                --%>
+                <label for="findPwMemberId">
+                    아이디
+                </label>
+
                 <input type="text"
+                       id="findPwMemberId"
                        name="memberId"
                        required>
+
             </div>
 
             <div class="form-group">
-                <label>이름</label>
+
+                <%--
+                    이름 입력창의 id와 label의 for를 연결한다.
+                --%>
+                <label for="findPwMemberName">
+                    이름
+                </label>
+
                 <input type="text"
+                       id="findPwMemberName"
                        name="memberName"
                        required>
+
             </div>
 
             <div class="form-group">
-                <label>이메일</label>
+
+                <%--
+                    이메일 입력창의 id와 label의 for를 연결한다.
+                --%>
+                <label for="findPwEmail">
+                    이메일
+                </label>
+
                 <input type="email"
+                       id="findPwEmail"
                        name="email"
                        placeholder="example@email.com"
                        required>
+
             </div>
 
             <button type="submit"
@@ -75,9 +104,11 @@
         </c:if>
 
         <c:if test="${not empty errorMessage}">
+
             <div class="error-text">
                 ${errorMessage}
             </div>
+
         </c:if>
 
         <div class="auth-links">

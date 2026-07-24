@@ -138,7 +138,6 @@
                      id="filmography-panel-cast"
                      role="tabpanel"
                      aria-labelledby="filmography-tab-cast"
-                     tabindex="0"
                      data-tab-panel="cast">
 
                 <c:choose>
@@ -229,7 +228,6 @@
                      id="filmography-panel-director"
                      role="tabpanel"
                      aria-labelledby="filmography-tab-director"
-                     tabindex="0"
                      data-tab-panel="director"
                      hidden>
 
@@ -321,7 +319,6 @@
                      id="filmography-panel-production"
                      role="tabpanel"
                      aria-labelledby="filmography-tab-production"
-                     tabindex="0"
                      data-tab-panel="production"
                      hidden>
 

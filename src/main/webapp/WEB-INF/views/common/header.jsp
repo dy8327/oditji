@@ -80,7 +80,25 @@
 
         <div class="header-search">
             <form id="headerSearchForm" action="${pageContext.request.contextPath}/search" method="get">
+                <%--
+                    공통 검색창에 고유 id와 label을 연결하여
+                    검색 입력 목적을 보조 기술에 제공한다.
+                --%>
+                <label for="headerSearchKeyword"
+                       style="position:absolute;
+                              width:1px;
+                              height:1px;
+                              padding:0;
+                              margin:-1px;
+                              overflow:hidden;
+                              clip:rect(0, 0, 0, 0);
+                              white-space:nowrap;
+                              border:0;">
+                    통합 검색어
+                </label>
+
                 <input type="text"
+                       id="headerSearchKeyword"
                        name="keyword"
                        value="<c:out value='${keyword}'/>"
                        placeholder="작품, 배우, 감독, 상품 검색"

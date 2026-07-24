@@ -39,15 +39,28 @@
         <section class="admin-content-box">
 
             <div class="toolbar">
-                <form method="get" action="${pageContext.request.contextPath}/admin/member/list">
-                    <input type="text"
-                           class="page-search"
-                           name="keyword"
-                           value="${param.keyword}"
-                           placeholder="이름, 아이디, 닉네임, 이메일 검색">
-                </form>
-            </div>
 
+                <form method="get"
+                    action="${pageContext.request.contextPath}/admin/member/list">
+
+                    <%--
+                        화면에는 검색 설명을 별도로 노출하지 않으면서
+                        보조 기술에는 입력창의 목적이 전달되도록 한다.
+                    --%>
+                    <label for="memberKeyword" class="sr-only">
+                        회원 검색어
+                    </label>
+
+                    <input type="text"
+                        id="memberKeyword"
+                        class="page-search"
+                        name="keyword"
+                        value="${param.keyword}"
+                        placeholder="이름, 아이디, 닉네임, 이메일 검색">
+
+                </form>
+
+            </div>
             <table class="data-table">
 
                 <thead>

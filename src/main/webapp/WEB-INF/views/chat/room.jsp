@@ -5,7 +5,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>${room.roomName}</title>
@@ -94,6 +94,24 @@
 
         <c:otherwise>
             <div class="input-area">
+
+                <%--
+                    메시지 입력창에 명시적인 label을 연결한다.
+                    화면 디자인에는 영향을 주지 않으면서 스크린 리더에는
+                    입력 목적이 전달되도록 label을 시각적으로만 숨긴다.
+                --%>
+                <label for="messageInput"
+                       style="position:absolute;
+                              width:1px;
+                              height:1px;
+                              padding:0;
+                              margin:-1px;
+                              overflow:hidden;
+                              clip:rect(0, 0, 0, 0);
+                              white-space:nowrap;
+                              border:0;">
+                    채팅 메시지 또는 공지 내용 입력
+                </label>
 
                 <textarea id="messageInput"
                           placeholder="${isNoticeRoom ? '공지 내용을 입력하세요.' : '메시지를 입력하세요.'}"></textarea>

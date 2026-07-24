@@ -60,7 +60,14 @@
                       method="get"
                       class="product-search-form">
 
+                    <%-- 상품 검색 input에 고유 id를 부여하고 숨김 label과 연결한다. --%>
+                    <label for="businessProductKeyword"
+                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        상품명, 관련 콘텐츠 및 배우명 검색
+                    </label>
+
                     <input type="text"
+                           id="businessProductKeyword"
                            name="keyword"
                            value="<c:out value='${param.keyword}'/>"
                            placeholder="상품명, 관련 콘텐츠, 배우명 검색">
@@ -327,10 +334,16 @@
 
                             <c:otherwise>
 
-                                <a href="#"
-                                   onclick="return false;">
+                                <%--
+                                    이동할 이전 페이지가 없으므로 링크처럼 동작시키지 않고
+                                    비활성화된 기본 button을 사용한다.
+                                --%>
+                                <button type="button"
+                                        disabled
+                                        aria-label="이전 페이지 없음"
+                                        style="display:flex;justify-content:center;align-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--biz-radius-sm);background:var(--biz-surface-1);color:var(--biz-text-dim);opacity:0.45;cursor:not-allowed;">
                                     &lt;
-                                </a>
+                                </button>
 
                             </c:otherwise>
 
@@ -366,10 +379,13 @@
 
                             <c:otherwise>
 
-                                <a href="#"
-                                   onclick="return false;">
+                                <%-- 이동할 다음 페이지가 없는 경우 비활성화된 button을 표시한다. --%>
+                                <button type="button"
+                                        disabled
+                                        aria-label="다음 페이지 없음"
+                                        style="display:flex;justify-content:center;align-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--biz-radius-sm);background:var(--biz-surface-1);color:var(--biz-text-dim);opacity:0.45;cursor:not-allowed;">
                                     &gt;
-                                </a>
+                                </button>
 
                             </c:otherwise>
 

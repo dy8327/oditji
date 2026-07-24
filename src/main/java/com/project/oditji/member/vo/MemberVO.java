@@ -1,8 +1,21 @@
 package com.project.oditji.member.vo;
 
 import java.util.Date;
+import java.io.Serial;
+import java.io.Serializable;
 
-public class MemberVO {
+/**
+ * 회원 정보를 전달하는 VO 클래스입니다.
+ *
+ * 로그인한 회원 객체가 HttpSession에 저장되며,
+ * 인터셉터와 여러 컨트롤러에서 재사용되므로
+ * 세션 직렬화를 지원하기 위해 Serializable을 구현합니다.
+ */
+
+public class MemberVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private Long memberNo;
     private String memberId;

@@ -16,6 +16,24 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/order.css">
 
+    <style>
+    /*
+     * SonarQube 접근성 이슈 대응:
+     * 화면 디자인은 유지하면서 label을 보조 기술에 제공한다.
+     */
+    .order-accessibility-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    </style>
+
 </head>
 
 <body>
@@ -95,12 +113,26 @@
 
         <h2>배송 정보</h2>
 
+        <%--
+            받는 사람 입력창의 id와 label의 for를 연결하여
+            입력 목적을 스크린 리더가 인식할 수 있도록 한다.
+        --%>
+        <label for="receiver"
+               class="order-accessibility-label">
+            받는 사람
+        </label>
+
         <input type="text"
                id="receiver"
                placeholder="받는 사람"
                value="${defaultReceiverName}"
                maxlength="50"
               >
+
+        <label for="phone"
+               class="order-accessibility-label">
+            연락처
+        </label>
 
         <input type="text"
                id="phone"
@@ -110,6 +142,11 @@
                >
 
         <div class="address-search-row">
+
+            <label for="zipcode"
+                   class="order-accessibility-label">
+                우편번호
+            </label>
 
             <input type="text"
                    id="zipcode"
@@ -124,10 +161,20 @@
 
         </div>
 
+        <label for="address1"
+               class="order-accessibility-label">
+            기본 주소
+        </label>
+
         <input type="text"
                id="address1"
                placeholder="기본 주소"
                readonly>
+
+        <label for="address2"
+               class="order-accessibility-label">
+            상세 주소
+        </label>
 
         <input type="text"
                id="address2"

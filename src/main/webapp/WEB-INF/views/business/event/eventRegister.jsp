@@ -17,8 +17,10 @@
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/business.css">
-<script defer src="${pageContext.request.contextPath}/js/business.js"></script>
 
+<script defer
+        src="${pageContext.request.contextPath}/js/business.js">
+</script>
 
 </head>
 
@@ -126,66 +128,52 @@
                         연결 상품
                     </label>
 
-
                     <div id="productList">
-
 
                         <div class="event-product-item">
 
-
                             <input type="hidden"
-                                name="productNoList"
-                                class="productNo">
-
+                                   name="productNoList"
+                                   class="productNo">
 
                             <div class="product-row">
 
-
                                 <input class="form-input productName"
-                                    type="text"
-                                    name="productNameList"
-                                    placeholder="연결할 상품을 선택하세요."
-                                    readonly>
-
+                                       type="text"
+                                       name="productNameList"
+                                       placeholder="연결할 상품을 선택하세요."
+                                       readonly>
 
                                 <button class="btn btn-dark productSearchButton"
                                         type="button">
                                     상품 검색
                                 </button>
 
-
                                 <label class="form-label discount-label">
                                     할인율 (%)
                                 </label>
 
-
                                 <input class="form-input productDiscountRate"
-                                    type="number"
-                                    name="discountRateList"
-                                    min="0"
-                                    max="100"
-                                    value="0">
-
+                                       type="number"
+                                       name="discountRateList"
+                                       min="0"
+                                       max="100"
+                                       value="0">
 
                                 <button class="btn btn-primary addProductButton"
                                         type="button">
                                     +
                                 </button>
 
-
                             </div>
-
 
                             <p class="form-hint productDiscountPreview">
                                 상품을 선택하면 할인 적용가가 표시됩니다.
                             </p>
 
-
                         </div>
 
-
                     </div>
-
 
                 </div>
 
@@ -275,6 +263,23 @@
         <!-- 상품 검색어 -->
         <div class="product-search-bar">
 
+            <%--
+                상품 검색 input의 id와 label을 명시적으로 연결한다.
+                모달 디자인은 유지하면서 보조 기술에 검색 목적을 제공한다.
+            --%>
+            <label for="productSearchKeyword"
+                   style="position:absolute;
+                          width:1px;
+                          height:1px;
+                          padding:0;
+                          margin:-1px;
+                          overflow:hidden;
+                          clip:rect(0, 0, 0, 0);
+                          white-space:nowrap;
+                          border:0;">
+                이벤트 연결 상품 검색어
+            </label>
+
             <input class="form-input"
                    type="text"
                    id="productSearchKeyword"
@@ -337,33 +342,45 @@
 
                                         <!-- 상품명 -->
                                         <td>
+
                                             <span class="product-search-name">
                                                 <c:out value="${product.productName}"/>
                                             </span>
+
                                         </td>
 
                                         <!-- 작품명 -->
                                         <td>
+
                                             <c:choose>
+
                                                 <c:when test="${not empty product.contentTitle}">
                                                     <c:out value="${product.contentTitle}"/>
                                                 </c:when>
+
                                                 <c:otherwise>
                                                     -
                                                 </c:otherwise>
+
                                             </c:choose>
+
                                         </td>
 
                                         <!-- 배우명 -->
                                         <td>
+
                                             <c:choose>
+
                                                 <c:when test="${not empty product.actorName}">
                                                     <c:out value="${product.actorName}"/>
                                                 </c:when>
+
                                                 <c:otherwise>
                                                     -
                                                 </c:otherwise>
+
                                             </c:choose>
+
                                         </td>
 
                                         <!-- 상품 종류 -->
@@ -385,6 +402,7 @@
 
                                         <!-- 상태 -->
                                         <td>
+
                                             <c:choose>
 
                                                 <c:when test="${product.status eq 'WAITING'}">
@@ -412,6 +430,7 @@
                                                 </c:otherwise>
 
                                             </c:choose>
+
                                         </td>
 
                                         <!-- 선택 -->

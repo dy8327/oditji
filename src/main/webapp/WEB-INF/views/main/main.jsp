@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>ODITJI MAIN</title>
@@ -69,7 +69,11 @@
 
     <div class="slider">
 
-        <button class="btn" type="button" onclick="moveSlider('today','left')">‹</button>
+        <button class="btn"
+                type="button"
+                onclick="moveSlider('today','left')">
+            ‹
+        </button>
 
         <div class="track" id="todaySlider">
 
@@ -89,6 +93,7 @@
                                             <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
                                                  alt="${content.title}">
                                         </c:when>
+
                                         <c:otherwise>
                                             <div class="no-img"></div>
                                         </c:otherwise>
@@ -110,7 +115,11 @@
 
         </div>
 
-        <button class="btn" type="button" onclick="moveSlider('today','right')">›</button>
+        <button class="btn"
+                type="button"
+                onclick="moveSlider('today','right')">
+            ›
+        </button>
 
     </div>
 
@@ -122,7 +131,11 @@
 
     <div class="slider">
 
-        <button class="btn" type="button" onclick="moveSlider('rec','left')">‹</button>
+        <button class="btn"
+                type="button"
+                onclick="moveSlider('rec','left')">
+            ‹
+        </button>
 
         <div class="track" id="recSlider">
 
@@ -142,6 +155,7 @@
                                             <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
                                                  alt="${content.title}">
                                         </c:when>
+
                                         <c:otherwise>
                                             <div class="no-img"></div>
                                         </c:otherwise>
@@ -163,7 +177,11 @@
 
         </div>
 
-        <button class="btn" type="button" onclick="moveSlider('rec','right')">›</button>
+        <button class="btn"
+                type="button"
+                onclick="moveSlider('rec','right')">
+            ›
+        </button>
 
     </div>
 
