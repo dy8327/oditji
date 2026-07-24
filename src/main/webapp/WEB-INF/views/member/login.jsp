@@ -96,9 +96,15 @@
 
                 <!-- 구글 로그인 -->
                 <a href="${pageContext.request.contextPath}/member/google/login"
-                   class="sns-icon google"
-                   aria-label="구글 계정으로 로그인"></a>
+                class="sns-icon google"
+                aria-label="Google 계정으로 로그인"
+                title="Google 로그인">
 
+                    <img src="${pageContext.request.contextPath}/images/google-g-logo.png"
+                        alt=""
+                        aria-hidden="true">
+
+                </a>
             </div>
 
         </div>
