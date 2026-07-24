@@ -892,38 +892,101 @@
 
 
     <!-- =====================================================
-         마이페이지 대시보드 - 오늘 매출
+        마이페이지 대시보드 - 오늘 매출
 
-         ORDER_ITEM에는 생성일이 없어 ORDERS.CREATED_AT 기준으로
-         "오늘"을 판단한다. (환불/취소된 주문도 매출로 집계됨 - 필요시
-         CANCEL_REQUEST 승인건 제외 조건 추가 검토)
+        수정:
+        오늘 생성된 주문상품 중 PAYMENT 테이블에
+        결제 완료(PAID) 상태가 존재하는 주문만 매출로 집계한다.
+
+        PAYMENT를 직접 JOIN하면 동일 주문의 결제 시도 데이터가
+        여러 건 존재할 경우 매출이 중복 합산될 수 있으므로
+        EXISTS 조건을 사용한다.
     ====================================================== -->
     <select id="selectTodaySalesByBusinessNo"
             parameterType="long"
             resultType="long">
 
-        SELECT NVL(SUM(OI.PRODUCT_PRICE * OI.QUANTITY), 0)
+        SELECT NVL(
+                SUM(OI.PRODUCT_PRICE * OI.QUANTITY),
+                0
+            )
         FROM ORDER_ITEM OI
         JOIN ORDERS O
-          ON O.ORDER_NO = OI.ORDER_NO
+        ON O.ORDER_NO = OI.ORDER_NO
         WHERE OI.BUSINESS_NO = #{businessNo}
+        AND TRUNC(O.CREATED_AT) = TRUNC(SYSDATE)
+
+        <!-- 수정: 결제가 실제로 완료된 주문만 매출에 포함 -->
+        AND EXISTS (
+                SELECT 1
+                FROM PAYMENT PAY
+                WHERE PAY.ORDER_NO = O.ORDER_NO
+                AND PAY.PAYMENT_STATUS = 'PAID'
+        )
+
+    </select>
+
+
+    <!-- =====================================================
+        마이페이지 대시보드 - 오늘 판매량
+
+        오늘 결제가 완료된 주문상품의 판매 수량을 조회한다.
+
+        구매 취소 요청 또는 결제 취소가 완료된 상품이
+        판매량 및 구매전환율에 포함되지 않도록
+        정상 판매 상태의 주문상품만 집계한다.
+
+        COUNT(*)가 아닌 SUM(QUANTITY)를 사용하므로
+        상품 1종을 3개 구매한 경우 오늘 판매량은 3건으로 집계한다.
+    ====================================================== -->
+    <select id="selectTodayOrderCountByBusinessNo"
+            parameterType="long"
+            resultType="int">
+
+        SELECT NVL(SUM(OI.QUANTITY), 0)
+        FROM ORDER_ITEM OI
+
+        JOIN ORDERS O
+          ON O.ORDER_NO = OI.ORDER_NO
+
+        WHERE OI.BUSINESS_NO = #{businessNo}
+
+          AND OI.STATUS IN (
+              'PAID',
+              'PREPARING',
+              'SHIPPING',
+              'DELIVERED'
+          )
+
           AND TRUNC(O.CREATED_AT) = TRUNC(SYSDATE)
 
     </select>
 
 
     <!-- =====================================================
-         마이페이지 대시보드 - 오늘 주문 건수
+         마이페이지 대시보드 - 오늘 구매 고객 수
+
+         오늘 해당 사업자의 상품을 정상 구매한 회원 수를 조회한다.
+         한 회원이 여러 상품을 구매하거나 여러 번 주문하더라도
+         DISTINCT MEMBER_NO를 사용하여 한 명으로 집계한다.
+
+         취소 요청 및 결제 취소 완료 상품은 고객 수에서 제외한다.
     ====================================================== -->
-    <select id="selectTodayOrderCountByBusinessNo"
+    <select id="selectTodayCustomerCountByBusinessNo"
             parameterType="long"
             resultType="int">
 
-        SELECT COUNT(*)
+        SELECT COUNT(DISTINCT O.MEMBER_NO)
         FROM ORDER_ITEM OI
         JOIN ORDERS O
           ON O.ORDER_NO = OI.ORDER_NO
         WHERE OI.BUSINESS_NO = #{businessNo}
+          AND OI.STATUS IN (
+              'PAID',
+              'PREPARING',
+              'SHIPPING',
+              'DELIVERED'
+          )
           AND TRUNC(O.CREATED_AT) = TRUNC(SYSDATE)
 
     </select>
