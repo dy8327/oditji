@@ -141,6 +141,15 @@ public interface BusinessDAO {
         // 승인된 이벤트 종료일 연장  
         int extendApprovedEvent(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo, @Param("extendEndDate") java.time.LocalDate extendEndDate);
 
+        /*
+         * =========================================================
+         * 종료일이 지난 승인 이벤트 일괄 종료 처리
+         * END_DATE < 오늘 이면서 STATUS = 'APPROVED'인 이벤트를
+         * 'END'로 전환한다. (EventStatusScheduler에서 매일 호출)
+         * =========================================================
+        */
+        int updateExpiredEventStatus();
+
         // 마이페이지 대시보드 - 오늘 매출 합계  
         long selectTodaySalesByBusinessNo(@Param("businessNo") long businessNo);
 
