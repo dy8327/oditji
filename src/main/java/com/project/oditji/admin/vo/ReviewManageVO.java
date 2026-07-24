@@ -6,9 +6,6 @@ import java.util.Date;
  * 리뷰 관리 VO
  * 콘텐츠 리뷰(REVIEW)와 상품 리뷰(PRODUCT_REVIEW) 조회에 공용으로 사용한다.
  * productName은 상품 리뷰 조회 시에만 값이 채워진다.
- *
- * 주의: 좋아요 수(likeCount), 댓글 수(commentCount)는 관련 테이블이 존재하지 않아
- * 항상 0으로 반환한다. (추후 REVIEW_LIKE, REVIEW_COMMENT 테이블 추가 필요)
  */
 public class ReviewManageVO {
 
@@ -22,8 +19,6 @@ public class ReviewManageVO {
     private String content;
     private String status;         // 콘텐츠 리뷰에만 존재 (ACTIVE/HIDDEN/DELETED)
     private Long reportCount;       // REVIEW_REPORT 집계 (신고 탭에서만 사용)
-    private Long likeCount;        // DB 미지원 (항상 0)
-    private Long commentCount;     // DB 미지원 (항상 0)
     private Date createdAt;
 
     public Long getReviewNo() {
@@ -104,22 +99,6 @@ public class ReviewManageVO {
 
     public void setReportCount(Long reportCount) {
         this.reportCount = reportCount;
-    }
-
-    public Long getLikeCount() {
-        return likeCount;
-    }
-
-    public void setLikeCount(Long likeCount) {
-        this.likeCount = likeCount;
-    }
-
-    public Long getCommentCount() {
-        return commentCount;
-    }
-
-    public void setCommentCount(Long commentCount) {
-        this.commentCount = commentCount;
     }
 
     public Date getCreatedAt() {
