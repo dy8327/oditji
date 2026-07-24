@@ -17,9 +17,13 @@
 .mypage-section-header {
   display: flex;
 
+  flex-wrap: wrap;
+
   justify-content: space-between;
 
-  align-items: flex-end;
+  align-items: center;
+
+  gap: 14px;
 
   margin-bottom: 25px;
 }
@@ -89,9 +93,13 @@
 .mypage-profile {
   display: flex;
 
+  flex-wrap: wrap;
+
   justify-content: space-between;
 
   align-items: center;
+
+  gap: 20px;
 
   background: #232323;
 
@@ -217,7 +225,13 @@
 }
 
 .mypage-ott-chip {
-  padding: 11px 22px;
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px 22px 9px 12px;
 
   border-radius: 30px;
 
@@ -231,7 +245,27 @@
 
   font-weight: 600;
 
+  text-decoration: none;
+
+  cursor: pointer;
+
   transition: 0.2s;
+}
+
+.mypage-ott-chip-logo {
+  width: 26px;
+
+  height: 26px;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  padding: 3px;
+
+  flex-shrink: 0;
 }
 
 .mypage-ott-chip:hover {
@@ -611,6 +645,24 @@
     width: 100%;
   }
 
+  .mypage-profile-right {
+    width: 100%;
+  }
+
+  .mypage-profile-right button {
+    width: 100%;
+  }
+
+  .mypage-section-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .mypage-ott button {
+    width: 100%;
+  }
+
   .mypage-business-banner {
     flex-direction: column;
 
@@ -833,19 +885,6 @@
   height: auto;
   min-height: 46px;
   padding: 8px 10px;
-}
-
-/* =========================
-   OTT CHECKBOX
-========================= */
-.modal-box label input[type="checkbox"] {
-  margin-right: 6px;
-}
-
-.modal-box .ott-label {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
 }
 
 /* =========================

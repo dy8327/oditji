@@ -43,7 +43,7 @@
    TITLE
 ========================================================= */
 
-h2 {
+.auth-box h2 {
   text-align: center;
 
   margin-bottom: 26px;
@@ -245,6 +245,28 @@ h2 {
   background: #b20710;
 }
 
+.ott-box-logo {
+  width: 20px;
+
+  height: 20px;
+
+  object-fit: contain;
+
+  border-radius: 4px;
+
+  background: #ffffff;
+
+  padding: 2px;
+
+  flex-shrink: 0;
+}
+
+.ott-box-none {
+  grid-column: 1 / -1;
+
+  justify-content: center;
+}
+
 /* =========================================================
    SNS 로그인 후 최초 OTT 선택 화면
    기존 회원가입 .ott-box와 충돌 방지
@@ -252,90 +274,320 @@ h2 {
 
 .sns-ott-page {
   min-height: 100vh;
-  background: #262626;
+  background: radial-gradient(circle at 50% 0%, #262626 0%, #181818 65%);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .sns-ott-container {
-  width: 405px;
-  padding: 28px;
-  background: #262626;
+  width: 460px;
+  padding: 40px 36px;
+  background: #232323;
+  border: 1px solid #343434;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   color: #ffffff;
+}
+
+/* 브랜드 로고 / 스텝 표시 */
+
+.sns-ott-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.sns-ott-logo {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  background: #3b82f6;
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.sns-ott-eyebrow {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #6ea8ff;
+  margin-bottom: 8px;
 }
 
 .sns-ott-title {
   text-align: center;
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 700;
-  margin: 0 0 16px;
+  margin: 0 0 10px;
+  letter-spacing: -0.3px;
 }
 
 .sns-ott-desc {
   text-align: center;
-  color: #cfcfcf;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0 0 26px;
+  color: #b8b8b8;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 28px;
 }
 
 .sns-ott-error {
-  padding: 12px;
-  margin-bottom: 16px;
-  border-radius: 8px;
-  background: rgba(255, 80, 80, 0.14);
-  border: 1px solid rgba(255, 80, 80, 0.45);
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.4);
   color: #ff9b9b;
   font-size: 13px;
 }
+
+/* 이메일 입력 */
+
+.sns-ott-email-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22px;
+}
+
+.sns-ott-email-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cfcfcf;
+  margin-bottom: 7px;
+}
+
+.sns-ott-email-input {
+  padding: 13px 14px;
+  background: #2c2c2c;
+  border: 1px solid #454545;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.sns-ott-email-input::placeholder {
+  color: #7d7d7d;
+}
+
+.sns-ott-email-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* 이메일 중복확인 */
+
+.sns-ott-email-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sns-ott-email-row .sns-ott-email-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.sns-ott-check-btn {
+  flex-shrink: 0;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #343434;
+  border: 1px solid #4a4a4a;
+  color: #ededed;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sns-ott-check-btn:hover {
+  background: #454545;
+}
+
+.sns-ott-check-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* OTT 선택 영역 헤더 */
+
+.sns-ott-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sns-ott-section-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cfcfcf;
+}
+
+.sns-ott-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ea8ff;
+}
+
+/* OTT 카드 리스트 */
 
 .sns-ott-option-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  padding: 14px;
-  border-radius: 12px;
-  background: #262626;
-  border: 1px solid #3a3a3a;
+  padding: 16px;
+  border-radius: 14px;
+  background: #1e1e1e;
+  border: 1px solid #343434;
 }
 
 .sns-ott-option {
+  position: relative;
   font-size: 13px;
+  font-weight: 500;
   color: #d1d1d1;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 66px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  background: #2b2b2b;
+  border: 1px solid #3a3a3a;
   cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.sns-ott-option:hover {
+  background: #333333;
+  border-color: #4a4a4a;
+}
+
+.sns-ott-option:has(input:checked) {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: #3b82f6;
+  color: #ffffff;
 }
 
 .sns-ott-option input {
-  width: 14px;
-  height: 14px;
-  accent-color: #3b82f6;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sns-ott-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 4px;
+}
+
+.sns-ott-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #5a5a5a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.15s ease;
+}
+
+.sns-ott-mark::after {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translateY(-1px);
+  opacity: 0;
+  transition: 0.15s ease;
+}
+
+.sns-ott-option:has(input:checked) .sns-ott-mark {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.sns-ott-option:has(input:checked) .sns-ott-mark::after {
+  opacity: 1;
 }
 
 .sns-ott-option span {
   white-space: nowrap;
 }
 
+/* OTT 없음 옵션 */
+
+.sns-ott-option--none {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  min-height: 46px;
+  border-style: dashed;
+}
+
+.sns-ott-option.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sns-ott-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #8a8a8a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 제출 버튼 */
+
 .sns-ott-submit-btn {
   width: 100%;
-  height: 48px;
-  margin-top: 26px;
+  height: 50px;
+  margin-top: 28px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #3b82f6;
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;
+  letter-spacing: -0.2px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .sns-ott-submit-btn:hover {
   background: #2563eb;
+}
+
+.sns-ott-footnote {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11.5px;
+  color: #757575;
+}
+
+@media (max-width: 520px) {
+  .sns-ott-container {
+    width: 100%;
+    padding: 30px 22px;
+  }
+
+  .sns-ott-option-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* =========================================================

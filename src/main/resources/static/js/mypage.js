@@ -1,6 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
   const body = document.body;
 
+  /* =========================================================
+       플래시 메시지 알림
+
+       JSTL EL은 정적 .js 파일 안에서 동작하지 않으므로
+       JSP에서 body의 data-* 속성으로 값을 내려주고 여기서 읽는다.
+    ========================================================= */
+
+  if (body.dataset.errorMessage) {
+    alert(body.dataset.errorMessage);
+  }
+
+  if (body.dataset.message) {
+    alert(body.dataset.message);
+  }
+
   const modals = {
     member: document.getElementById("memberModal"),
     ott: document.getElementById("ottModal"),
@@ -218,6 +233,91 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  /* =========================================================
+       OTT 정보 수정 (마이페이지)
+
+       selectOtt.jsp의 initSnsOttSelect()와 동일한 패턴:
+       "이용 중인 OTT 없음"을 선택하면 실제 OTT 선택은
+       모두 해제/비활성화되고, OTT를 1개 이상 선택하거나
+       "없음"을 선택해야 제출할 수 있다.
+    ========================================================= */
+
+  initMypageOttSelect();
+
+  function initMypageOttSelect() {
+    const form = document.getElementById("mypageOttForm");
+
+    if (!form) {
+      return;
+    }
+
+    const optionList = document.getElementById("mypageOttOptionList");
+    const countEl = document.getElementById("mypageOttCount");
+    const noOttCheckbox = document.getElementById("mypageNoOtt");
+
+    const platformCheckboxes = optionList ? optionList.querySelectorAll('input[name="ottList"]') : [];
+
+    function updateMypageOttCount() {
+      if (!optionList || !countEl) {
+        return;
+      }
+
+      const checked = optionList.querySelectorAll('input[name="ottList"]:checked').length;
+
+      countEl.textContent = checked + "개 선택";
+    }
+
+    function setMypagePlatformsDisabled(disabled) {
+      platformCheckboxes.forEach((checkbox) => {
+        if (disabled) {
+          checkbox.checked = false;
+        }
+
+        checkbox.disabled = disabled;
+
+        const option = checkbox.closest(".sns-ott-option");
+
+        if (option) {
+          option.classList.toggle("is-disabled", disabled);
+        }
+      });
+    }
+
+    if (noOttCheckbox) {
+      noOttCheckbox.addEventListener("change", () => {
+        setMypagePlatformsDisabled(noOttCheckbox.checked);
+        updateMypageOttCount();
+      });
+
+      if (noOttCheckbox.checked) {
+        setMypagePlatformsDisabled(true);
+      }
+    }
+
+    platformCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked && noOttCheckbox) {
+          noOttCheckbox.checked = false;
+        }
+
+        updateMypageOttCount();
+      });
+    });
+
+    updateMypageOttCount();
+
+    form.addEventListener("submit", (e) => {
+      const checkedCount = optionList ? optionList.querySelectorAll('input[name="ottList"]:checked').length : 0;
+
+      const selectedNoOtt = !!(noOttCheckbox && noOttCheckbox.checked);
+
+      if (checkedCount === 0 && !selectedNoOtt) {
+        alert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.");
+        e.preventDefault();
+      }
+    });
+  }
 
   /* =========================================================
        DELETE VALIDATION

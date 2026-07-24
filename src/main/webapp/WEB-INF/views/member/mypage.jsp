@@ -3,6 +3,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -12,6 +13,9 @@
 <meta charset="UTF-8">
 
 <title>ODITJI - 마이페이지</title>
+
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/member.css">
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/mypage.css">
@@ -28,28 +32,12 @@
     data-context-path="${pageContext.request.contextPath}"
     data-open-member-modal="${openMemberModal}"
     data-open-delete-modal="${openDeleteModal}"
-    data-open-ott-modal="${param.openOttModal}">
+    data-open-ott-modal="${param.openOttModal}"
+    data-error-message="${errorMessage}"
+    data-message="${message}">
 
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
-
-
-<c:if test="${not empty errorMessage}">
-
-    <script>
-        alert("${errorMessage}");
-    </script>
-
-</c:if>
-
-
-<c:if test="${not empty message}">
-
-    <script>
-        alert("${message}");
-    </script>
-
-</c:if>
 
 
 <main class="mypage-container">
@@ -150,7 +138,7 @@
 
             <p class="mypage-created-at">
                 가입일 :
-                ${loginMember.createdAt}
+                <fmt:formatDate value="${loginMember.createdAt}" pattern="yyyy-MM-dd"/>
             </p>
 
         </div>
@@ -210,11 +198,51 @@
                 <c:forEach var="ott"
                            items="${ottList}">
 
-                    <div class="mypage-ott-chip">
+                    <a class="mypage-ott-chip"
+                       href="${ott.siteUrl}"
+                       target="_blank"
+                       rel="noopener noreferrer">
 
-                        ${ott.platformName}
+                        <img class="mypage-ott-chip-logo"
+                             src="${ott.logoImage}"
+                             alt="${ott.platformName}">
 
-                    </div>
+                        <span>
+                            <c:choose>
+                                <c:when test="${ott.platformName eq 'Netflix'}">
+                                    넷플릭스
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Disney Plus'}">
+                                    디즈니+
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Disney+'}">
+                                    디즈니+
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Tving'}">
+                                    티빙
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'TVING'}">
+                                    티빙
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Wavve'}">
+                                    웨이브
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Watcha'}">
+                                    왓챠
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Coupangplay'}">
+                                    쿠팡플레이
+                                </c:when>
+                                <c:when test="${ott.platformName eq 'Coupang Play'}">
+                                    쿠팡플레이
+                                </c:when>
+                                <c:otherwise>
+                                    ${ott.platformName}
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
+
+                    </a>
 
                 </c:forEach>
 
@@ -713,7 +741,8 @@
         </h2>
 
 
-        <form action="${pageContext.request.contextPath}/member/updateOtt"
+        <form id="mypageOttForm"
+              action="${pageContext.request.contextPath}/member/updateOtt"
               method="post">
 
 
@@ -722,77 +751,105 @@
                    value="${loginMember.memberNo}">
 
 
-
-            <label>
-
-                <input type="checkbox"
-                       name="ottList"
-                       value="Netflix">
-
-                넷플릭스
-
-            </label>
+            <div class="sns-ott-section-head">
+                <span class="sns-ott-section-label">이용 중인 OTT (중복 선택 가능)</span>
+                <span class="sns-ott-count" id="mypageOttCount">0개 선택</span>
+            </div>
 
 
+            <div class="sns-ott-option-list" id="mypageOttOptionList">
 
-            <label>
+                <c:forEach var="platform" items="${platformList}">
 
-                <input type="checkbox"
-                       name="ottList"
-                       value="Disney Plus">
+                    <%--
+                        =========================================================
+                        현재 회원이 이용 중인 OTT는 체크된 상태로 표시한다.
+                        =========================================================
+                    --%>
+                    <c:set var="isSelected" value="false"/>
 
-                디즈니+
+                    <c:forEach var="myOtt" items="${ottList}">
+                        <c:if test="${myOtt.platformName eq platform.platformName}">
+                            <c:set var="isSelected" value="true"/>
+                        </c:if>
+                    </c:forEach>
 
-            </label>
+                    <label class="sns-ott-option">
+                        <input type="checkbox"
+                               name="ottList"
+                               value="${platform.platformName}"
+                               ${isSelected ? 'checked' : ''}>
 
+                        <img class="sns-ott-logo-img"
+                             src="${platform.logoImage}"
+                             alt="${platform.platformName}">
 
+                        <span class="sns-ott-mark"></span>
 
-            <label>
+                        <span>
+                            <c:choose>
+                                <c:when test="${platform.platformName eq 'Netflix'}">
+                                    넷플릭스
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Disney Plus'}">
+                                    디즈니+
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Disney+'}">
+                                    디즈니+
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Tving'}">
+                                    티빙
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'TVING'}">
+                                    티빙
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Wavve'}">
+                                    웨이브
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Watcha'}">
+                                    왓챠
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Coupangplay'}">
+                                    쿠팡플레이
+                                </c:when>
+                                <c:when test="${platform.platformName eq 'Coupang Play'}">
+                                    쿠팡플레이
+                                </c:when>
+                                <c:otherwise>
+                                    ${platform.platformName}
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
+                    </label>
 
-                <input type="checkbox"
-                       name="ottList"
-                       value="Tving">
+                </c:forEach>
 
-                티빙
+                <%--
+                    =========================================================
+                    OTT 미사용 선택 (selectOtt.jsp / join.jsp 와 동일한 패턴)
 
-            </label>
+                    체크 시 다른 OTT 선택은 모두 해제/비활성화되며
+                    ottList는 비워진 채로 제출된다.
+                    =========================================================
+                --%>
+                <label class="sns-ott-option sns-ott-option--none">
 
+                    <input type="checkbox"
+                           name="noOtt"
+                           id="mypageNoOtt"
+                           value="Y"
+                           ${empty ottList ? 'checked' : ''}>
 
+                    <span class="sns-ott-mark"></span>
 
-            <label>
+                    <span>이용 중인 OTT 없음</span>
+                </label>
 
-                <input type="checkbox"
-                       name="ottList"
-                       value="Wavve">
+            </div>
 
-                웨이브
-
-            </label>
-
-
-
-            <label>
-
-                <input type="checkbox"
-                       name="ottList"
-                       value="Watcha">
-
-                왓챠
-
-            </label>
-
-
-
-            <label>
-
-                <input type="checkbox"
-                       name="ottList"
-                       value="Coupangplay">
-
-                쿠팡플레이
-
-            </label>
-
+            <p class="sns-ott-hint">
+                이용 중인 OTT가 없다면 '이용 중인 OTT 없음'을 선택해주세요.
+            </p>
 
 
             <div class="modal-btns">

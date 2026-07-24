@@ -1152,3 +1152,153 @@ function switchJoinType(type) {
     switchJoinType("BUSINESS");
   }
 })();
+
+/*
+ * =========================================================
+ * SNS 로그인 최초 OTT 선택 화면 (selectOtt.jsp)
+ *
+ * - 아직 이메일이 없는 SNS 자동가입 회원에게만 서버가
+ *   #email 입력창을 렌더링해준다. 존재 여부로 필요성을 판단한다.
+ * - 이메일 입력이 있는 경우, join.jsp와 동일하게
+ *   checkEmail() 중복확인을 완료해야 제출할 수 있다.
+ * - "이용 중인 OTT 없음"(#snsNoOtt)을 선택하면 실제 OTT 선택은
+ *   모두 해제/비활성화된다. OTT를 1개 이상 선택하거나
+ *   "없음"을 선택해야 제출할 수 있다 (join.jsp의 noOtt와 동일한 정책).
+ * =========================================================
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  initSnsOttSelect();
+});
+
+function initSnsOttSelect() {
+  const form = document.getElementById("snsOttForm");
+
+  if (!form) {
+    return;
+  }
+
+  const optionList = document.getElementById("snsOttOptionList");
+  const countEl = document.getElementById("snsOttCount");
+  const noOttCheckbox = document.getElementById("snsNoOtt");
+  const emailInput = document.getElementById("email");
+
+  const platformCheckboxes = optionList
+    ? optionList.querySelectorAll('input[name="platformNoList"]')
+    : [];
+
+  /* 이메일 변경 시 중복확인 상태 초기화 (join.jsp와 동일한 방식) */
+  if (emailInput) {
+    emailInput.addEventListener("input", () => {
+      emailChecked = false;
+      checkedEmailValue = "";
+
+      const value = emailInput.value.trim();
+
+      if (value.length === 0) {
+        setBorder("email", true);
+      } else {
+        setBorder("email", regex.email.test(value));
+      }
+    });
+  }
+
+  /* 선택 개수 카운터 갱신 */
+  function updateSnsOttCount() {
+    if (!optionList || !countEl) {
+      return;
+    }
+
+    const checked = optionList.querySelectorAll(
+      'input[name="platformNoList"]:checked',
+    ).length;
+
+    countEl.textContent = checked + "개 선택";
+  }
+
+  /* "이용 중인 OTT 없음" 선택 시 나머지 OTT 선택 해제/비활성화 */
+  function setSnsPlatformsDisabled(disabled) {
+    platformCheckboxes.forEach((checkbox) => {
+      if (disabled) {
+        checkbox.checked = false;
+      }
+
+      checkbox.disabled = disabled;
+
+      const option = checkbox.closest(".sns-ott-option");
+
+      if (option) {
+        option.classList.toggle("is-disabled", disabled);
+      }
+    });
+  }
+
+  if (noOttCheckbox) {
+    noOttCheckbox.addEventListener("change", () => {
+      setSnsPlatformsDisabled(noOttCheckbox.checked);
+      updateSnsOttCount();
+    });
+  }
+
+  platformCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked && noOttCheckbox) {
+        noOttCheckbox.checked = false;
+      }
+
+      updateSnsOttCount();
+    });
+  });
+
+  updateSnsOttCount();
+
+  form.addEventListener("submit", (event) => {
+    if (!validateSnsOttSelect()) {
+      event.preventDefault();
+    }
+  });
+}
+
+function validateSnsOttSelect() {
+  const emailInput = document.getElementById("email");
+
+  if (emailInput) {
+    const email = emailInput.value.trim();
+
+    if (email === "") {
+      alert("이메일을 입력해주세요.");
+      emailInput.focus();
+      return false;
+    }
+
+    if (!regex.email.test(email)) {
+      alert("올바른 이메일 형식으로 입력해주세요.");
+      emailInput.focus();
+      return false;
+    }
+
+    /*
+     * 이메일 중복확인 여부 검사
+     * join.jsp와 동일하게, 중복확인을 완료하지 않았거나
+     * 중복확인 후 이메일을 변경한 경우 진행하지 않는다.
+     */
+    if (!emailChecked || checkedEmailValue !== email) {
+      alert("이메일 중복확인을 해주세요.");
+      emailInput.focus();
+      return false;
+    }
+  }
+
+  const checkedList = document.querySelectorAll(
+    'input[name="platformNoList"]:checked',
+  );
+
+  const noOttCheckbox = document.getElementById("snsNoOtt");
+  const selectedNoOtt = !!(noOttCheckbox && noOttCheckbox.checked);
+
+  if (checkedList.length === 0 && !selectedNoOtt) {
+    alert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.");
+    return false;
+  }
+
+  return true;
+}
