@@ -1,6 +1,7 @@
 package com.project.oditji.business.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
-
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,9 @@ import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.EventProductVO;
+import com.project.oditji.business.vo.DeliveryManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
+import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
 
@@ -97,17 +99,17 @@ public class BusinessServiceImpl
         }
 
         /*
-        * =========================================================
-        * 마이페이지 대시보드 통계 조회
-        *
-        * 오늘 매출/주문 건수/클릭 수/입금 대기 정산액/승인 대기 상품 수와
-        * 인기 상품 TOP N을 한 번에 모아서 내려준다.
-        *
-        * purchaseRate(구매전환율)는 별도 저장 컬럼이 없어
-        * "오늘 주문 건수 / 오늘 클릭 수 * 100"으로 매 요청마다 계산한다.
-        * 클릭 수가 0이면 나눗셈 자체가 불가능하므로 0.0으로 처리한다.
-        * =========================================================
-        */
+         * =========================================================
+         * 마이페이지 대시보드 통계 조회
+         *
+         * 오늘 매출/주문 건수/클릭 수/입금 대기 정산액/승인 대기 상품 수와
+         * 인기 상품 TOP N을 한 번에 모아서 내려준다.
+         *
+         * purchaseRate(구매전환율)는 별도 저장 컬럼이 없어
+         * "오늘 주문 건수 / 오늘 클릭 수 * 100"으로 매 요청마다 계산한다.
+         * 클릭 수가 0이면 나눗셈 자체가 불가능하므로 0.0으로 처리한다.
+         * =========================================================
+         */
         @Override
         public BusinessDashboardVO getBusinessDashboard(long businessNo) {
 
@@ -137,10 +139,10 @@ public class BusinessServiceImpl
         }
 
         /*
-        * =========================================================
-        * 인기 상품 목록 조회 (클릭수 내림차순 TOP N)
-        * =========================================================
-        */
+         * =========================================================
+         * 인기 상품 목록 조회 (클릭수 내림차순 TOP N)
+         * =========================================================
+         */
         @Override
         public List<GoodsManageVO> getPopularProducts(long businessNo) {
 
@@ -158,12 +160,12 @@ public class BusinessServiceImpl
         }
 
         /*
-        * =========================================================
-        * 사업자 주문 현황 - 주문 목록 조회
-        * 해당 사업자의 주문과 주문 상품을 조회한 뒤
-        * ORDER_NO 기준으로 상품 목록을 각 주문에 묶어서 반환.
-        * =========================================================
-        */
+         * =========================================================
+         * 사업자 주문 현황 - 주문 목록 조회
+         * 해당 사업자의 주문과 주문 상품을 조회한 뒤
+         * ORDER_NO 기준으로 상품 목록을 각 주문에 묶어서 반환.
+         * =========================================================
+         */
         @Override
         public List<OrderVO> getBusinessOrderList(long businessNo) {
                 if (businessNo <= 0) {
@@ -176,10 +178,10 @@ public class BusinessServiceImpl
                         return Collections.emptyList();
                 }
 
-                List<OrderItemVO> itemList =getBusinessOrderItemList(businessNo);
+                List<OrderItemVO> itemList = getBusinessOrderItemList(businessNo);
 
                 /* ORDER_NO별 주문 상품 묶기 */
-                Map<Long, List<OrderItemVO>> itemMap =new HashMap<>();
+                Map<Long, List<OrderItemVO>> itemMap = new HashMap<>();
                 for (OrderItemVO item : itemList) {
 
                         itemMap.computeIfAbsent(item.getOrderNo(), key -> new java.util.ArrayList<>())
@@ -188,12 +190,11 @@ public class BusinessServiceImpl
 
                 /* 각 주문에 해당 상품 목록 연결 */
                 for (OrderVO order : orderList) {
-                        order.setItems(itemMap.getOrDefault(order.getOrderNo(),Collections.emptyList()));
+                        order.setItems(itemMap.getOrDefault(order.getOrderNo(), Collections.emptyList()));
                 }
 
                 return orderList;
         }
-
 
         /* 사업자 주문 현황 - 주문 상품 목록 조회 */
         @Override
@@ -203,9 +204,9 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                List<OrderItemVO> itemList =businessDAO.selectBusinessOrderItemList(businessNo);
+                List<OrderItemVO> itemList = businessDAO.selectBusinessOrderItemList(businessNo);
 
-                return itemList == null? Collections.emptyList() : itemList;
+                return itemList == null ? Collections.emptyList() : itemList;
         }
 
         // 사업자 주문 상세 조회
@@ -215,16 +216,221 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("올바르지 않은 주문 정보입니다.");
                 }
 
-        OrderVO order = businessDAO.selectBusinessOrderDetail(businessNo, orderNo);
+                OrderVO order = businessDAO.selectBusinessOrderDetail(businessNo, orderNo);
 
                 if (order == null) {
                         return null;
                 }
 
-        List<OrderItemVO> itemList = businessDAO.selectBusinessOrderItemDetailList(businessNo, orderNo);
-        order.setItems(itemList == null ? Collections.emptyList() : itemList);
+                List<OrderItemVO> itemList = businessDAO.selectBusinessOrderItemDetailList(businessNo, orderNo);
+                order.setItems(itemList == null ? Collections.emptyList() : itemList);
 
-        return order;
+                return order;
+        }
+
+        /*
+         * =========================================================
+         * 사업자 판매 현황 요약 조회
+         *
+         * 조회 기간과 사업자 번호를 검증한 뒤 매출 합계,
+         * 판매량 1위 상품, 주문 건수를 반환한다.
+         * =========================================================
+         */
+        @Override
+        public SettlementManageVO getBusinessSalesStatus(
+                        long businessNo,
+                        LocalDate startDate,
+                        LocalDate endDate) {
+
+                validateSalesSearchCondition(businessNo, startDate, endDate);
+
+                SettlementManageVO salesStatus = businessDAO.selectBusinessSalesStatus(
+                                businessNo, startDate, endDate);
+
+                if (salesStatus == null) {
+                        salesStatus = new SettlementManageVO();
+                        salesStatus.setProductName("판매 상품 없음");
+                } else if (salesStatus.getProductName() == null
+                                || salesStatus.getProductName().isBlank()) {
+                        salesStatus.setProductName("판매 상품 없음");
+                }
+
+                return salesStatus;
+        }
+
+        /* 날짜별 판매 내역 조회. */
+        @Override
+        public List<SettlementManageVO> getBusinessSalesHistory(
+                        long businessNo,
+                        LocalDate startDate,
+                        LocalDate endDate) {
+
+                validateSalesSearchCondition(businessNo, startDate, endDate);
+
+                List<SettlementManageVO> salesHistory = businessDAO.selectBusinessSalesHistory(
+                                businessNo, startDate, endDate);
+
+                return salesHistory == null ? Collections.emptyList() : salesHistory;
+        }
+
+        /* 판매 현황 검색 기간과 사업자 번호 공통 검증. */
+        private void validateSalesSearchCondition(
+                        long businessNo,
+                        LocalDate startDate,
+                        LocalDate endDate) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                if (startDate == null || endDate == null) {
+                        throw new IllegalArgumentException("조회 시작일과 종료일을 입력해주세요.");
+                }
+
+                if (startDate.isAfter(endDate)) {
+                        throw new IllegalArgumentException("조회 시작일은 종료일보다 늦을 수 없습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * 사업자 배송 관리 목록 조회
+         *
+         * 허용된 상태값만 Mapper에 전달하여 임의 문자열이 SQL 조건으로
+         * 사용되지 않게 하고, 검색어 앞뒤 공백도 제거한다.
+         * =========================================================
+         */
+        @Override
+        public List<DeliveryManageVO> getBusinessDeliveryList(
+                        long businessNo,
+                        String status,
+                        String keyword) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                String normalizedStatus = normalizeDeliveryStatusFilter(status);
+                String normalizedKeyword = keyword == null ? null : keyword.trim();
+
+                if (normalizedKeyword != null && normalizedKeyword.isEmpty()) {
+                        normalizedKeyword = null;
+                }
+
+                List<DeliveryManageVO> deliveryList = businessDAO.selectBusinessDeliveryList(
+                                businessNo, normalizedStatus, normalizedKeyword);
+
+                return deliveryList == null ? Collections.emptyList() : deliveryList;
+        }
+
+        /*
+         * =========================================================
+         * 사업자 운송장/배송 상태 변경
+         *
+         * 1. ORDER_ITEM_NO와 BUSINESS_NO로 소유권을 확인한다.
+         * 2. 취소 관련 상태의 주문상품은 배송 처리하지 않는다.
+         * 3. 배송 중/배송 완료는 택배사와 운송장 번호를 필수로 검사한다.
+         * 4. DELIVERY 저장, ORDER_ITEM 상태 변경, ORDERS 상태 재계산을
+         * 하나의 트랜잭션으로 처리한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void updateBusinessDelivery(
+                        long businessNo,
+                        long orderItemNo,
+                        String courier,
+                        String trackingNumber,
+                        String status) {
+
+                if (businessNo <= 0 || orderItemNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 배송 정보입니다.");
+                }
+
+                DeliveryManageVO currentItem = businessDAO.selectBusinessDeliveryItem(
+                                businessNo, orderItemNo);
+
+                if (currentItem == null) {
+                        throw new IllegalArgumentException("해당 주문상품을 확인할 수 없습니다.");
+                }
+
+                String currentStatus = currentItem.getStatus();
+                if ("CANCEL_REQUESTED".equals(currentStatus)
+                                || "CANCELED".equals(currentStatus)
+                                || "REFUNDED".equals(currentStatus)) {
+                        throw new IllegalStateException("취소 또는 환불 처리 중인 상품은 배송 상태를 변경할 수 없습니다.");
+                }
+
+                String normalizedStatus = normalizeDeliveryUpdateStatus(status);
+                String normalizedCourier = courier == null ? null : courier.trim();
+                String normalizedTrackingNumber = trackingNumber == null ? null : trackingNumber.trim();
+
+                if (("SHIPPING".equals(normalizedStatus) || "DELIVERED".equals(normalizedStatus))
+                                && (normalizedCourier == null || normalizedCourier.isEmpty())) {
+                        throw new IllegalArgumentException("배송 중 또는 배송 완료 처리 시 택배사를 선택해주세요.");
+                }
+
+                if (("SHIPPING".equals(normalizedStatus) || "DELIVERED".equals(normalizedStatus))
+                                && (normalizedTrackingNumber == null || normalizedTrackingNumber.isEmpty())) {
+                        throw new IllegalArgumentException("배송 중 또는 배송 완료 처리 시 운송장 번호를 입력해주세요.");
+                }
+
+                if (normalizedTrackingNumber != null && normalizedTrackingNumber.length() > 100) {
+                        throw new IllegalArgumentException("운송장 번호는 100자 이하로 입력해주세요.");
+                }
+
+                if (normalizedCourier != null && normalizedCourier.length() > 50) {
+                        throw new IllegalArgumentException("택배사명은 50자 이하로 입력해주세요.");
+                }
+
+                DeliveryManageVO delivery = new DeliveryManageVO();
+                delivery.setBusinessNo(businessNo);
+                delivery.setOrderItemNo(orderItemNo);
+                delivery.setOrderNo(currentItem.getOrderNo());
+                delivery.setCourier(normalizedCourier);
+                delivery.setTrackingNumber(normalizedTrackingNumber);
+                delivery.setStatus(normalizedStatus);
+
+                int deliveryResult = businessDAO.mergeDelivery(delivery);
+                if (deliveryResult != 1) {
+                        throw new IllegalStateException("배송 정보 저장에 실패했습니다.");
+                }
+
+                int itemResult = businessDAO.updateOrderItemDeliveryStatus(
+                                businessNo, orderItemNo, normalizedStatus);
+                if (itemResult != 1) {
+                        throw new IllegalStateException("주문상품 배송 상태 변경에 실패했습니다.");
+                }
+
+                businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
+        }
+
+        /* 배송 목록 검색에 사용할 상태값을 검증하고 정규화. */
+        private String normalizeDeliveryStatusFilter(String status) {
+                if (status == null || status.isBlank() || "ALL".equalsIgnoreCase(status)) {
+                        return null;
+                }
+
+                String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
+                if (!Set.of("PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
+                        throw new IllegalArgumentException("올바르지 않은 배송 상태 검색 조건입니다.");
+                }
+
+                return normalizedStatus;
+        }
+
+        /* 화면에서 변경 가능한 배송 상태만 허용. */
+        private String normalizeDeliveryUpdateStatus(String status) {
+                if (status == null || status.isBlank()) {
+                        throw new IllegalArgumentException("변경할 배송 상태를 선택해주세요.");
+                }
+
+                String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
+                if (!Set.of("PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
+                        throw new IllegalArgumentException("변경할 수 없는 배송 상태입니다.");
+                }
+
+                return normalizedStatus;
         }
 
         /* 사업자등록번호 사용 가능 여부 확인 */
@@ -235,15 +441,15 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("사업자등록번호를 입력해주세요.");
                 }
 
-        String normalizedBusinessNumber = businessNumber.trim();
+                String normalizedBusinessNumber = businessNumber.trim();
 
                 if (!normalizedBusinessNumber.matches("\\d{3}-\\d{2}-\\d{5}")) {
                         throw new IllegalArgumentException("사업자등록번호 형식이 올바르지 않습니다.");
                 }
 
-        int count = businessDAO.countByBusinessNumber(normalizedBusinessNumber);
+                int count = businessDAO.countByBusinessNumber(normalizedBusinessNumber);
 
-        return count == 0;
+                return count == 0;
         }
 
         /*
@@ -273,18 +479,18 @@ public class BusinessServiceImpl
                         goodsManageVO.setStatus("WAITING");
 
                         int productResult = businessDAO.insertProduct(goodsManageVO);
-                                if (productResult != 1) {
-                                        throw new IllegalStateException("상품 등록에 실패했습니다.");
-                                }
-                                if (goodsManageVO.getProductNo() <= 0) {
-                                        throw new IllegalStateException("등록된 상품 번호를 확인할 수 없습니다.");
-                                }
+                        if (productResult != 1) {
+                                throw new IllegalStateException("상품 등록에 실패했습니다.");
+                        }
+                        if (goodsManageVO.getProductNo() <= 0) {
+                                throw new IllegalStateException("등록된 상품 번호를 확인할 수 없습니다.");
+                        }
 
                         int imageResult = businessDAO.insertProductImage(goodsManageVO);
 
-                                if (imageResult != 1) {
-                                        throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
-                                }
+                        if (imageResult != 1) {
+                                throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
+                        }
                         return goodsManageVO.getProductNo();
 
                 } catch (RuntimeException e) {

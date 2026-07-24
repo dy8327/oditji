@@ -1,7 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<c:set var="activeMenu" value="settlement"/>
+<c:set var="activeMenu" value="sales"/>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -32,17 +33,23 @@
 
                 <section class="content-panel">
 
+                    <%-- 판매 현황 조회 실패 메시지를 기존 패널 안에서 표시. --%>
+                    <c:if test="${not empty errorMessage}">
+                        <p class="form-message error-message">
+                            ${errorMessage}
+                        </p>
+                    </c:if>
 
                     <div class="info-list">
 
                         <div class="info-row">
 
                             <strong>
-                                일일 매출 :
+                                조회 기간 매출 :
                             </strong>
 
                             <span>
-                                ${salesStatus.dailySales}원
+                                <fmt:formatNumber value="${salesStatus.dailySales}" pattern="#,##0"/>원
                             </span>
 
                         </div>
@@ -51,7 +58,7 @@
                         <div class="info-row">
 
                             <strong>
-                                판매 상품 :
+                                최다 판매 상품 :
                             </strong>
 
                             <span>
@@ -80,13 +87,13 @@
 
                     <input type="date"
                         name="startDate"
-                        value="${param.startDate}">
+                        value="${startDate}">
 
                     <span>~</span>
 
                     <input type="date"
                         name="endDate"
-                        value="${param.endDate}">
+                        value="${endDate}">
 
                     <button class="btn btn-primary"
                         type="submit">
@@ -132,7 +139,7 @@
                                         </td>
 
                                         <td>
-                                            ${row.amount}원
+                                            <fmt:formatNumber value="${row.amount}" pattern="#,##0"/>원
                                         </td>
 
                                     </tr>
