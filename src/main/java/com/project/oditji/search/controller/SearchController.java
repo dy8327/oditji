@@ -298,17 +298,19 @@ public class SearchController {
         }
 
         /*
-         * 화면에 실제로 표시되는 카드 개수
+         * 검색 조건에 일치하는 전체 건수
+         *
+         * JSONL 검색은 전체 데이터를 메모리에서 필터링한 뒤
+         * SearchResultPageVO.totalResults에 전체 일치 건수를 저장한다.
+         * 따라서 현재 페이지에 표시된 카드 수가 아니라
+         * 실제 검색 결과 전체 건수를 화면에 전달한다.
          */
-        int contentDisplayCount =
-                contentResults.size();
+        int contentTotalCount =
+                contentPageVO.getTotalResults();
 
-        int goodsDisplayCount =
-                goodsResults.size();
-
-        int combinedDisplayCount =
-                allContentResults.size()
-                        + allGoodsResults.size();
+        int combinedTotalCount =
+                contentTotalCount
+                        + goodsTotalCount;
 
         /*
          * 활성 OTT 플랫폼 로고
@@ -395,22 +397,22 @@ public class SearchController {
 
         model.addAttribute(
                 "contentTotalCount",
-                contentDisplayCount
+                contentTotalCount
         );
 
         model.addAttribute(
                 "goodsTotalCount",
-                goodsDisplayCount
+                goodsTotalCount
         );
 
         model.addAttribute(
                 "combinedTotalCount",
-                combinedDisplayCount
+                combinedTotalCount
         );
 
         model.addAttribute(
                 "totalResults",
-                contentDisplayCount
+                contentTotalCount
         );
 
         model.addAttribute(
@@ -486,6 +488,9 @@ public class SearchController {
         return "search/searchResult";
     }
 
+    /**
+     * 활성 OTT 플랫폼 목록을 플랫폼명-로고 주소 Map으로 변환합니다.
+     */
     private Map<String, String> createOttLogoMap(
             List<OttPlatformVO> platformList) {
 
@@ -523,6 +528,12 @@ public class SearchController {
         return logoMap;
     }
 
+    /**
+     * DB와 JSONL에서 서로 다르게 표기될 수 있는 플랫폼명을
+     * 화면에서 사용하는 공통 키로 정규화합니다.
+     *
+     * 시스템 기본 언어에 영향을 받지 않도록 Locale.ROOT를 사용합니다.
+     */
     private String normalizePlatformName(
             String platformName) {
 
@@ -566,6 +577,12 @@ public class SearchController {
         return normalized;
     }
 
+    /**
+     * 콘텐츠 분류 필터에서 허용하는 값만 남깁니다.
+     *
+     * 시스템 기본 언어에 따라 대문자 변환 결과가 달라지지 않도록
+     * Locale.ROOT를 명시합니다.
+     */
     private List<String> normalizeContentCategories(
             List<String> sourceList) {
 
@@ -583,7 +600,7 @@ public class SearchController {
             }
 
             String normalized =
-                    value.trim().toUpperCase();
+                    value.trim().toUpperCase(Locale.ROOT);
 
             if (("MOVIE".equals(normalized)
                     || "DRAMA".equals(normalized)
@@ -599,6 +616,9 @@ public class SearchController {
         return safeList;
     }
 
+    /**
+     * null, 빈 문자열, 중복값을 제거한 안전한 필터 목록을 만듭니다.
+     */
     private List<String> createSafeList(
             List<String> sourceList) {
 
@@ -628,6 +648,9 @@ public class SearchController {
         return safeList;
     }
 
+    /**
+     * 가격 필터는 0원 미만이 되지 않도록 보정합니다.
+     */
     private Integer normalizePrice(
             Integer price) {
 
@@ -638,6 +661,9 @@ public class SearchController {
         return Math.max(price, 0);
     }
 
+    /**
+     * 전체 검색 건수와 페이지 크기로 전체 페이지 수를 계산합니다.
+     */
     private int calculateTotalPages(
             int totalCount,
             int pageSize) {
@@ -652,6 +678,9 @@ public class SearchController {
                 / pageSize;
     }
 
+    /**
+     * 페이지 번호가 1보다 작으면 첫 페이지로 보정합니다.
+     */
     private int normalizePage(
             int page) {
 
@@ -660,6 +689,9 @@ public class SearchController {
                 : page;
     }
 
+    /**
+     * 검색어 앞뒤의 공백을 제거하고 null을 빈 문자열로 바꿉니다.
+     */
     private String normalizeKeyword(
             String keyword) {
 
@@ -668,6 +700,11 @@ public class SearchController {
                 : keyword.trim();
     }
 
+    /**
+     * 전체, 콘텐츠, 상품 탭 이외의 값은 전체 탭으로 처리합니다.
+     *
+     * 시스템 기본 언어에 영향을 받지 않도록 Locale.ROOT를 사용합니다.
+     */
     private String normalizeSearchTab(
             String searchTab) {
 
@@ -678,7 +715,7 @@ public class SearchController {
         String normalized =
                 searchTab
                         .trim()
-                        .toUpperCase();
+                        .toUpperCase(Locale.ROOT);
 
         if ("CONTENT".equals(normalized)) {
             return "CONTENT";
@@ -691,6 +728,9 @@ public class SearchController {
         return "ALL";
     }
 
+    /**
+     * 검색어와 필터 선택 상태에 맞는 화면 제목을 생성합니다.
+     */
     private String makeSearchTitle(
             SearchVO searchVO) {
 
