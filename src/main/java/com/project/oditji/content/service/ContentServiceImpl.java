@@ -471,6 +471,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public ContentListPageVO getContentListByType(
             String type,
+            String sort,
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
@@ -479,6 +480,7 @@ public class ContentServiceImpl implements ContentService {
         return searchContentPageCacheService
                 .getContentListPage(
                         type,
+                        sort,
                         page,
                         contentCategories,
                         genreCodes,
