@@ -249,6 +249,35 @@
            )
     </update>
 
+    <!-- =========================================================
+         [부분 결제 취소 완료 정산 제외 추가]
+         실제 부분 환불이 완료된 주문상품의 WAITING 정산을
+         REJECTED 상태로 변경한다.
+    ========================================================== -->
+    <update id="rejectSettlementByOrderItemNo">
+        UPDATE SETTLEMENT
+           SET STATUS = 'REJECTED'
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS = 'WAITING'
+    </update>
+
+    <!-- =========================================================
+         [전체 결제 취소 완료 정산 제외 추가]
+         전체 취소 그룹에 포함된 주문상품의 WAITING 정산을
+         REJECTED 상태로 일괄 변경한다.
+    ========================================================== -->
+    <update id="rejectSettlementsByCancelGroupNo">
+        UPDATE SETTLEMENT S
+           SET S.STATUS = 'REJECTED'
+         WHERE S.STATUS = 'WAITING'
+           AND EXISTS (
+               SELECT 1
+                 FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                  AND CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+           )
+    </update>
+
     <update id="restoreProductStock">
         UPDATE PRODUCT SET STOCK = STOCK + #{quantity}
          WHERE PRODUCT_NO = #{productNo}
