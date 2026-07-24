@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=6">
-<script defer src="${pageContext.request.contextPath}/js/common.js?v=6"></script>
+<script defer src="${pageContext.request.contextPath}/js/common.js?v=7"></script>
 
 <header class="header">
     <div class="header-container">
