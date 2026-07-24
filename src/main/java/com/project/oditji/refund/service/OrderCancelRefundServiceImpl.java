@@ -256,6 +256,16 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
             throw new IllegalStateException("전체 주문상품 취소 상태 변경에 실패했습니다.");
         }
 
+        /*
+         * =========================================================
+         * [전체 취소 완료 상품 정산 제외 추가]
+         * 실제 결제 전액 취소와 주문상품 취소가 완료된 뒤
+         * 그룹에 포함된 WAITING 정산을 REJECTED로 변경한다.
+         * =========================================================
+         */
+        orderCancelRefundDAO.rejectSettlementsByCancelGroupNo(
+                request.getCancelGroupNo());
+
         canceledPayment.setCanceledAmount(canceledPayment.getPaymentAmount());
 
         if (paymentDAO.updatePaymentCanceled(canceledPayment) != 1) {
@@ -284,6 +294,16 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         if (orderCancelRefundDAO.cancelOrderItem(request.getOrderItemNo()) != 1) {
             throw new IllegalStateException("주문상품 취소 상태 변경에 실패했습니다.");
         }
+
+        /*
+         * =========================================================
+         * [부분 취소 완료 상품 정산 제외 추가]
+         * 실제 부분 환불과 주문상품 취소가 완료된 뒤
+         * 해당 WAITING 정산을 REJECTED로 변경한다.
+         * =========================================================
+         */
+        orderCancelRefundDAO.rejectSettlementByOrderItemNo(
+                request.getOrderItemNo());
 
         if (orderCancelRefundDAO.restoreProductStock(
                 request.getProductNo(),
