@@ -80,7 +80,11 @@
             </a>
 
 
-            <a href="${pageContext.request.contextPath}/business/order/detail"
+            <!--
+                [배송 관리 기능 수정]
+                기존 주문 상세 URL이 아니라 사업자 배송 관리 전용 목록으로 이동한다.
+            -->
+            <a href="${pageContext.request.contextPath}/business/delivery/list"
                class="${activeMenu == 'delivery' ? 'active' : ''}">
                 배송 관리
             </a>
