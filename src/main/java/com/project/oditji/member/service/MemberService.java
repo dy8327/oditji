@@ -57,4 +57,13 @@ public interface MemberService {
     MemberVO findId(MemberVO memberVO);
 
     MemberVO findPw(MemberVO memberVO);
+
+    /**
+     * SNS(카카오) 자동가입 회원의 이메일을 등록한다.
+     *
+     * 카카오 가입 시 EMAIL이 NULL로 저장되므로, OTT 선택 화면에서
+     * 최초 1회 이메일을 입력받아 저장할 때 사용한다.
+     * 이미 이메일이 등록되어 있는 회원에게는 사용하지 않는다(컨트롤러에서 분기).
+     */
+    void updateSnsMemberEmail(Long memberNo, String email);
 }

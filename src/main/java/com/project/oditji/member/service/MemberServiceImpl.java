@@ -408,4 +408,33 @@ public class MemberServiceImpl implements MemberService {
     public MemberVO findPw(MemberVO memberVO) {
         return memberDAO.findPw(memberVO);
     }
+
+    @Override
+    @Transactional
+    public void updateSnsMemberEmail(Long memberNo, String email) {
+
+        if (memberNo == null) {
+            throw new IllegalArgumentException("잘못된 요청입니다.");
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
+        String trimmedEmail = email.trim();
+
+        if (!trimmedEmail.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new IllegalArgumentException("올바른 이메일 형식으로 입력해주세요.");
+        }
+
+        if (memberDAO.countByEmailExceptMe(trimmedEmail, memberNo) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        int updated = memberDAO.updateMemberEmail(memberNo, trimmedEmail);
+
+        if (updated != 1) {
+            throw new IllegalStateException("이메일 등록에 실패했습니다.");
+        }
+    }
 }

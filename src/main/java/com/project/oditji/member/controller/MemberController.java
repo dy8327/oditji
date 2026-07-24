@@ -54,7 +54,13 @@ public class MemberController {
         }
 
         @GetMapping("/join")
-        public String joinForm() {
+        public String joinForm(Model model) {
+
+                /* OTT 선택 영역에 로고/목록을 표시하기 위한 플랫폼 목록 */
+                model.addAttribute(
+                                "platformList",
+                                memberPlatformService.findPlatformList());
+
                 return "member/join";
         }
 
@@ -110,6 +116,14 @@ public class MemberController {
                 System.out.println("nickname = " + memberVO.getNickname());
                 System.out.println("email = " + memberVO.getEmail());
                 System.out.println("ottList = " + ottList);
+
+                /*
+                 * 가입 실패로 join.jsp가 다시 렌더링되는 경우에도
+                 * OTT 선택 영역(로고/목록)이 그대로 보이도록 미리 담아둔다.
+                 */
+                model.addAttribute(
+                                "platformList",
+                                memberPlatformService.findPlatformList());
 
                 try {
 
@@ -602,6 +616,11 @@ public class MemberController {
                 model.addAttribute(
                                 "ottList",
                                 ottList);
+
+                /* OTT 정보 수정 모달에서 선택 가능한 전체 플랫폼 목록(로고 포함) */
+                model.addAttribute(
+                                "platformList",
+                                memberPlatformService.findPlatformList());
 
                 return "member/mypage";
         }

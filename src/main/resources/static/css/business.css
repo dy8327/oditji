@@ -1461,3 +1461,159 @@
     flex-basis: 100%;
   }
 }
+
+/* =====================================================
+   [배송 관리 기능 추가]
+   기존 business-wrap, content-panel, form-input, btn 스타일을
+   그대로 사용하면서 배송 관리 화면에 필요한 배치만 추가한다.
+   ===================================================== */
+.delivery-search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.delivery-status-filter {
+  flex: 0 0 170px;
+}
+
+.delivery-keyword-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.delivery-list-panel {
+  margin-top: 18px;
+}
+
+.delivery-card-list {
+  display: grid;
+  gap: 18px;
+}
+
+.delivery-card {
+  padding: 22px;
+  border: 1px solid #3b3e46;
+  border-radius: 12px;
+  background: #25272b;
+}
+
+.delivery-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #3b3e46;
+}
+
+.delivery-card-head > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.delivery-card-head strong {
+  color: #ffffff;
+}
+
+.delivery-card-head span:not(.status) {
+  color: #a7acb5;
+  font-size: 13px;
+}
+
+.delivery-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
+  padding: 20px 0;
+}
+
+.delivery-info-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.delivery-info-grid span {
+  color: #9da3ad;
+  font-size: 12px;
+}
+
+.delivery-info-grid strong {
+  overflow-wrap: anywhere;
+  color: #f1f2f4;
+  font-size: 14px;
+}
+
+.delivery-address {
+  grid-column: 1 / -1;
+}
+
+.delivery-update-form {
+  display: grid;
+  grid-template-columns: 180px minmax(220px, 1fr) 170px auto;
+  gap: 12px;
+  align-items: end;
+  padding-top: 18px;
+  border-top: 1px solid #3b3e46;
+}
+
+.delivery-form-field {
+  min-width: 0;
+}
+
+.delivery-form-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #c8ccd4;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.delivery-save-button {
+  min-width: 76px;
+  height: 44px;
+}
+
+.delivery-empty {
+  padding: 60px 20px;
+  color: #a7acb5;
+  text-align: center;
+}
+
+@media (max-width: 1000px) {
+  .delivery-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .delivery-update-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .delivery-save-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .delivery-search-form,
+  .delivery-card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .delivery-status-filter {
+    flex-basis: auto;
+  }
+
+  .delivery-info-grid,
+  .delivery-update-form {
+    grid-template-columns: 1fr;
+  }
+
+  .delivery-address {
+    grid-column: auto;
+  }
+}

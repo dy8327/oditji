@@ -293,47 +293,30 @@
 
                     <div class="ott-box">
 
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Netflix">
-                            넷플릭스
-                        </label>
+                        <c:forEach var="platform" items="${platformList}">
+                            <label>
+                                <input type="checkbox" name="ottList" value="${platform.platformName}">
 
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Disney Plus">
-                            디즈니+
-                        </label>
+                                <img class="ott-box-logo"
+                                     src="${platform.logoImage}"
+                                     alt="${platform.platformName}">
 
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Tving">
-                            티빙
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Wavve">
-                            웨이브
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Watcha">
-                            왓챠
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                   name="ottList"
-                                   value="Coupangplay">
-                            쿠팡플레이
-                        </label>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${platform.platformName eq 'Netflix'}">넷플릭스</c:when>
+                                        <c:when test="${platform.platformName eq 'Disney Plus'}">디즈니+</c:when>
+                                        <c:when test="${platform.platformName eq 'Disney+'}">디즈니+</c:when>
+                                        <c:when test="${platform.platformName eq 'Tving'}">티빙</c:when>
+                                        <c:when test="${platform.platformName eq 'TVING'}">티빙</c:when>
+                                        <c:when test="${platform.platformName eq 'Wavve'}">웨이브</c:when>
+                                        <c:when test="${platform.platformName eq 'Watcha'}">왓챠</c:when>
+                                        <c:when test="${platform.platformName eq 'Coupangplay'}">쿠팡플레이</c:when>
+                                        <c:when test="${platform.platformName eq 'Coupang Play'}">쿠팡플레이</c:when>
+                                        <c:otherwise>${platform.platformName}</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </label>
+                        </c:forEach>
 
                         <%--
                             =========================================================
