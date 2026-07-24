@@ -6,6 +6,15 @@ public class BusinessDashboardVO {
 
     private long todaySales;
     private int todayOrderCount;
+
+    /*
+     * =========================================================
+     * [오늘 구매 고객 수 추가]
+     * 오늘 정상 판매 상태의 상품을 구매한 중복 회원 수.
+     * =========================================================
+     */
+    private int todayCustomerCount;
+
     private int clickCount;
     private double purchaseRate;
     private long waitingSettlement;
@@ -26,6 +35,19 @@ public class BusinessDashboardVO {
 
     public void setTodayOrderCount(int todayOrderCount) {
         this.todayOrderCount = todayOrderCount;
+    }
+
+    /*
+     * =========================================================
+     * [오늘 구매 고객 수 getter/setter 추가]
+     * =========================================================
+     */
+    public int getTodayCustomerCount() {
+        return todayCustomerCount;
+    }
+
+    public void setTodayCustomerCount(int todayCustomerCount) {
+        this.todayCustomerCount = todayCustomerCount;
     }
 
     public int getClickCount() {
