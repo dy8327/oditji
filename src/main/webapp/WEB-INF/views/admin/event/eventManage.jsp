@@ -17,6 +17,35 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 
 <style>
+/*
+ * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있도록
+ * 입력 요소에 접근 가능한 이름을 제공할 때 사용합니다.
+ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/*
+ * 기존 span 형태의 닫기 요소를 접근성에 적합한 button으로 변경했기 때문에
+ * 브라우저 기본 버튼 스타일이 화면 디자인에 영향을 주지 않도록 초기화합니다.
+ */
+button.modal-close {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
 .event-product-discount-line {
     margin-bottom: 4px;
 }
@@ -61,17 +90,17 @@
             <nav class="tab-menu">
 
                 <a href="?tab=waiting"
-                class="${currentTab == 'waiting' ? 'active' : ''}">
+                   class="${currentTab == 'waiting' ? 'active' : ''}">
                     승인 대기
                 </a>
 
                 <a href="?tab=approved"
-                class="${currentTab == 'approved' ? 'active' : ''}">
+                   class="${currentTab == 'approved' ? 'active' : ''}">
                     승인 완료
                 </a>
 
                 <a href="?tab=end"
-                class="${currentTab == 'end' ? 'active' : ''}">
+                   class="${currentTab == 'end' ? 'active' : ''}">
                     종료 이벤트
                 </a>
 
@@ -87,7 +116,17 @@
                            name="tab"
                            value="${currentTab}">
 
+                    <%--
+                        검색창과 label을 for/id로 연결하여
+                        키보드 사용자와 화면 낭독기가 검색 목적을 명확히 인식하도록 합니다.
+                    --%>
+                    <label for="eventKeyword"
+                           class="sr-only">
+                        사업자명 또는 이벤트명 검색
+                    </label>
+
                     <input type="text"
+                           id="eventKeyword"
                            class="page-search"
                            name="keyword"
                            value="${param.keyword}"
@@ -141,7 +180,8 @@
 
                         <c:when test="${not empty eventRequestList}">
 
-                            <c:forEach var="req" items="${eventRequestList}">
+                            <c:forEach var="req"
+                                       items="${eventRequestList}">
 
                                 <tr>
 
@@ -164,13 +204,16 @@
                                                            items="${fn:split(req.productDetail, ';')}"
                                                            varStatus="productStatus">
 
-                                                    <%-- 빈 값이 섞여 들어오는 경우를 대비한 방어 코드 --%>
+                                                    <%--
+                                                        빈 값이 섞여 들어오는 경우를 대비한 방어 코드입니다.
+                                                    --%>
                                                     <c:if test="${not empty productItem}">
 
                                                         <c:set var="productParts"
                                                                value="${fn:split(productItem, '|')}"/>
 
-                                                        <c:set var="productRate" value="${productParts[1]}"/>
+                                                        <c:set var="productRate"
+                                                               value="${productParts[1]}"/>
 
                                                         <div class="event-product-discount-line">
 
@@ -180,12 +223,20 @@
                                                             <c:choose>
 
                                                                 <c:when test="${productRate > 0}">
-                                                                    <fmt:formatNumber value="${productParts[2]}" pattern="#,###"/>원
+
+                                                                    <fmt:formatNumber
+                                                                            value="${productParts[2]}"
+                                                                            pattern="#,###"/>원
                                                                     →
+
                                                                     <strong>
-                                                                        <fmt:formatNumber value="${productParts[3]}" pattern="#,###"/>원
+                                                                        <fmt:formatNumber
+                                                                                value="${productParts[3]}"
+                                                                                pattern="#,###"/>원
                                                                     </strong>
+
                                                                     (${productRate}%)
+
                                                                 </c:when>
 
                                                                 <c:otherwise>
@@ -212,12 +263,20 @@
 
 
                                     <td>
-                                        <fmt:formatDate value="${req.startDate}" pattern="yyyy-MM-dd"/> ~ <fmt:formatDate value="${req.endDate}" pattern="yyyy-MM-dd"/>
+                                        <fmt:formatDate
+                                                value="${req.startDate}"
+                                                pattern="yyyy-MM-dd"/>
+                                        ~
+                                        <fmt:formatDate
+                                                value="${req.endDate}"
+                                                pattern="yyyy-MM-dd"/>
                                     </td>
 
 
                                     <td>
-                                        <fmt:formatDate value="${req.createdAt}" pattern="yyyy-MM-dd"/>
+                                        <fmt:formatDate
+                                                value="${req.createdAt}"
+                                                pattern="yyyy-MM-dd"/>
                                     </td>
 
 
@@ -278,7 +337,8 @@
 
                         </c:when>
 
-                                                <c:otherwise>
+
+                        <c:otherwise>
 
                             <tr>
 
@@ -338,7 +398,6 @@
 
             </div>
 
-
         </section>
 
     </main>
@@ -346,10 +405,23 @@
 </div>
 
 
-<%-- 이벤트 요청 상세 / 승인·반려 팝업 --%>
+<%--
+    이벤트 요청 상세 및 승인·반려 팝업입니다.
 
+    role="dialog":
+    현재 영역이 일반 콘텐츠가 아닌 대화상자임을 화면 낭독기에 알립니다.
+
+    aria-modal="true":
+    팝업이 열린 동안 배경 영역과 분리된 모달임을 알립니다.
+
+    aria-labelledby:
+    팝업 제목 요소와 모달을 연결합니다.
+--%>
 <div class="modal-overlay"
-     id="eventRequestModal">
+     id="eventRequestModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="eventRequestModalTitle">
 
 
     <div class="modal-box">
@@ -362,10 +434,18 @@
             </h3>
 
 
-            <span class="modal-close"
-                  onclick="closeModal('eventRequestModal')">
+            <%--
+                클릭 가능한 span 대신 기본 키보드 동작을 지원하는 button을 사용합니다.
+
+                aria-label은 화면에 표시된 닫기 기호(×)의 목적을
+                화면 낭독기 사용자에게 명확하게 전달합니다.
+            --%>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="이벤트 요청 상세 팝업 닫기"
+                    onclick="closeModal('eventRequestModal')">
                 &times;
-            </span>
+            </button>
 
         </div>
 
@@ -405,13 +485,17 @@
 
             </p>
 
-
         </div>
 
 
         <div class="form-group">
 
-            <label class="form-label">
+            <%--
+                textarea의 id와 label의 for를 연결하여
+                입력 영역의 이름을 화면 낭독기가 정확히 읽도록 합니다.
+            --%>
+            <label class="form-label"
+                   for="reqDescription">
                 요청 내용
             </label>
 
@@ -460,15 +544,11 @@
                     닫기
                 </button>
 
-
             </div>
-
 
         </form>
 
-
     </div>
-
 
 </div>
 

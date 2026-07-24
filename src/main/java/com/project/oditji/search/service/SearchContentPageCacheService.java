@@ -439,6 +439,15 @@ public class SearchContentPageCacheService {
          */
         for (SearchResultVO relatedContent : relatedContentList) {
 
+            /*
+             * 후보 목록 생성 단계에서 null을 제거하고 있지만,
+             * 외부 데이터나 이후 목록 가공 과정에서도 안전하도록
+             * 최종 반환 대상의 null 여부를 한 번 더 확인합니다.
+             */
+            if (relatedContent == null) {
+                continue;
+            }
+
             relatedContent.setRecommendationReason(
                     createRelatedRecommendationReason(
                             currentContent,
@@ -501,22 +510,32 @@ public class SearchContentPageCacheService {
                         candidateGenreList
                 );
 
+        /*
+         * 일치값 검색 메서드는 기본적으로 빈 문자열을 반환하지만,
+         * 정적 분석과 예외적인 반환값까지 고려해 null을 빈 문자열로 보정합니다.
+         */
         String matchedGenre =
-                findFirstOriginalMatchedValue(
-                        currentContent.getGenreText(),
-                        candidate.getGenreText()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getGenreText(),
+                                candidate.getGenreText()
+                        )
                 );
 
         String matchedDirector =
-                findFirstOriginalMatchedValue(
-                        currentContent.getDirector(),
-                        candidate.getDirector()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getDirector(),
+                                candidate.getDirector()
+                        )
                 );
 
         String matchedCast =
-                findFirstOriginalMatchedValue(
-                        currentContent.getCastNames(),
-                        candidate.getCastNames()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getCastNames(),
+                                candidate.getCastNames()
+                        )
                 );
 
         StringBuilder reason =
@@ -530,10 +549,16 @@ public class SearchContentPageCacheService {
 
         if (mainGenreMatched) {
 
+            /*
+             * 원래 장르 표기를 찾지 못한 경우에도 isEmpty() 호출이 안전하도록
+             * null을 빈 문자열로 변환합니다.
+             */
             String originalMainGenre =
-                    findOriginalValue(
-                            currentContent.getGenreText(),
-                            currentMainGenre
+                    safeText(
+                            findOriginalValue(
+                                    currentContent.getGenreText(),
+                                    currentMainGenre
+                            )
                     );
 
             reason.append("같은 ")
@@ -601,10 +626,16 @@ public class SearchContentPageCacheService {
             return "CATEGORY";
         }
 
+        /*
+         * 추천 이유 유형 판별에서도 일치값을 안전한 문자열로 보정해
+         * SonarQube가 지적한 NullPointerException 가능성을 제거합니다.
+         */
         String matchedDirector =
-                findFirstOriginalMatchedValue(
-                        currentContent.getDirector(),
-                        candidate.getDirector()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getDirector(),
+                                candidate.getDirector()
+                        )
                 );
 
         if (!matchedDirector.isEmpty()) {
@@ -612,9 +643,11 @@ public class SearchContentPageCacheService {
         }
 
         String matchedCast =
-                findFirstOriginalMatchedValue(
-                        currentContent.getCastNames(),
-                        candidate.getCastNames()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getCastNames(),
+                                candidate.getCastNames()
+                        )
                 );
 
         if (!matchedCast.isEmpty()) {
@@ -641,9 +674,11 @@ public class SearchContentPageCacheService {
         }
 
         String matchedGenre =
-                findFirstOriginalMatchedValue(
-                        currentContent.getGenreText(),
-                        candidate.getGenreText()
+                safeText(
+                        findFirstOriginalMatchedValue(
+                                currentContent.getGenreText(),
+                                candidate.getGenreText()
+                        )
                 );
 
         if (!matchedGenre.isEmpty()) {
