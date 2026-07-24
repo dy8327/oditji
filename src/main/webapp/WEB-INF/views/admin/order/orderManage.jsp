@@ -1,14 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="order"/>
 <c:set var="currentTab" value="${empty param.tab ? 'order' : param.tab}"/>
+<c:set var="currentStatus" value="${empty param.status ? 'ALL' : param.status}"/>
 
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>ODITJI | 주문 관리</title>
+<title>ODITJI | 주문 조회</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 </head>
 
@@ -28,10 +30,11 @@
                 ← 뒤로가기
             </a>
 
-            <h1 class="admin-page-title">주문 관리</h1>
+            <h1 class="admin-page-title">주문 조회</h1>
 
             <p class="admin-page-desc">
-                전체 주문 및 배송 현황을 관리하고, 접수된 환불 요청을 처리할 수 있습니다.
+                전체 주문 및 배송 현황, 환불 요청 내역을 조회할 수 있습니다.
+                배송 상태 변경, 주문 취소, 환불 승인/거절 처리는 사업자가 담당합니다.
             </p>
 
         </div>
@@ -39,13 +42,16 @@
         <section class="admin-content-box">
 
             <nav class="tab-menu">
-                <a href="?tab=order" class="${currentTab == 'order' ? 'active' : ''}">주문 관리</a>
-                <a href="?tab=refund" class="${currentTab == 'refund' ? 'active' : ''}">환불 관리</a>
+                <a href="?tab=order" class="${currentTab == 'order' ? 'active' : ''}">주문 조회</a>
+                <a href="?tab=refund" class="${currentTab == 'refund' ? 'active' : ''}">환불 조회</a>
             </nav>
 
             <div class="toolbar">
                 <form method="get" action="${pageContext.request.contextPath}/admin/order/list">
                     <input type="hidden" name="tab" value="${currentTab}">
+                    <c:if test="${currentTab == 'refund'}">
+                        <input type="hidden" name="status" value="${currentStatus}">
+                    </c:if>
 
                     <%-- 검색 input에 id를 부여하고 숨김 label과 연결한다. --%>
                     <label for="orderManageKeyword"
@@ -62,11 +68,25 @@
                 </form>
             </div>
 
+            <%-- 환불 조회 탭 전용 상태 필터. 실제 처리 결과(대기/승인/반려)만 확인하는 용도이다. --%>
+            <c:if test="${currentTab == 'refund'}">
+                <nav class="tab-menu" style="margin-top: 12px;">
+                    <a href="?tab=refund&status=ALL&keyword=${param.keyword}"
+                       class="${currentStatus == 'ALL' ? 'active' : ''}">전체</a>
+                    <a href="?tab=refund&status=WAITING&keyword=${param.keyword}"
+                       class="${currentStatus == 'WAITING' ? 'active' : ''}">처리 대기</a>
+                    <a href="?tab=refund&status=APPROVED&keyword=${param.keyword}"
+                       class="${currentStatus == 'APPROVED' ? 'active' : ''}">승인 완료</a>
+                    <a href="?tab=refund&status=REJECTED&keyword=${param.keyword}"
+                       class="${currentStatus == 'REJECTED' ? 'active' : ''}">반려</a>
+                </nav>
+            </c:if>
+
             <div class="card-list">
 
                 <c:choose>
 
-                    <%-- 주문 관리 탭 --%>
+                    <%-- 주문 조회 탭 --%>
                     <c:when test="${currentTab == 'order'}">
 
                         <c:choose>
@@ -84,9 +104,35 @@
                                             <div class="meta">
                                                 <span>관련 콘텐츠: ${order.contentTitle}</span>
                                                 <span>주문번호: ${order.orderNo}</span>
-                                                <span>가격: ${order.productPrice}원</span>
-                                                <span class="badge ${order.status == 'SHIPPING' ? 'badge-blue' : 'badge-gray'}">
-                                                    ${order.status}
+                                                <span>가격: <fmt:formatNumber value="${order.productPrice}" pattern="#,###"/>원</span>
+                                                <span>
+                                                    주문상태:
+                                                    <span class="badge ${order.orderStatus == 'CANCEL_REQUEST' ? 'badge-yellow' : 'badge-gray'}">
+                                                        <c:choose>
+                                                            <c:when test="${order.orderStatus == 'ORDERED'}">주문 완료</c:when>
+                                                            <c:when test="${order.orderStatus == 'PAID'}">결제 완료</c:when>
+                                                            <c:when test="${order.orderStatus == 'PREPARING'}">상품 준비 중</c:when>
+                                                            <c:when test="${order.orderStatus == 'SHIPPING'}">배송 중</c:when>
+                                                            <c:when test="${order.orderStatus == 'DELIVERED'}">배송 완료</c:when>
+                                                            <c:when test="${order.orderStatus == 'CONFIRMED'}">구매 확정</c:when>
+                                                            <c:when test="${order.orderStatus == 'CANCELED'}">주문 취소</c:when>
+                                                            <c:when test="${order.orderStatus == 'CANCEL_REQUEST'}">취소 요청 중</c:when>
+                                                            <c:when test="${order.orderStatus == 'REFUNDED'}">환불 완료</c:when>
+                                                            <c:otherwise>${order.orderStatus}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                </span>
+                                                <span>
+                                                    배송상태:
+                                                    <span class="badge ${order.status == 'SHIPPING' ? 'badge-blue' : 'badge-gray'}">
+                                                        <c:choose>
+                                                            <c:when test="${order.status == 'PREPARING'}">상품 준비 중</c:when>
+                                                            <c:when test="${order.status == 'SHIPPING'}">배송 중</c:when>
+                                                            <c:when test="${order.status == 'DELIVERED'}">배송 완료</c:when>
+                                                            <c:when test="${order.status == 'CONFIRMED'}">구매 확정</c:when>
+                                                            <c:otherwise>${order.status}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
                                                 </span>
                                             </div>
                                         </div>
@@ -94,18 +140,25 @@
                                         <div class="item-actions">
 
                                             <button type="button" class="btn btn-dark"
-                                                    onclick="openOrderStatusModal(
+                                                    onclick="openOrderDetailModal(
                                                         '${order.orderNo}',
+                                                        '${order.orderItemNo}',
                                                         '${order.productName}',
-                                                        '${order.status}'
+                                                        '${order.contentTitle}',
+                                                        '${order.quantity}',
+                                                        '${order.productPrice}',
+                                                        '${order.totalAmount}',
+                                                        '${order.orderStatus}',
+                                                        '${order.status}',
+                                                        '${order.receiverName}',
+                                                        '${order.receiverPhone}',
+                                                        '${order.address}',
+                                                        '${order.trackingNumber}',
+                                                        '${order.courier}',
+                                                        '<fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>'
                                                     )">
-                                                배송 상태 변경
+                                                상세보기
                                             </button>
-
-                                            <form action="${pageContext.request.contextPath}/admin/order/cancel" method="post">
-                                                <input type="hidden" name="orderItemNo" value="${order.orderItemNo}">
-                                                <button type="submit" class="btn btn-danger">주문 취소</button>
-                                            </form>
 
                                         </div>
 
@@ -123,7 +176,7 @@
 
                     </c:when>
 
-                    <%-- 환불 관리 탭 --%>
+                    <%-- 환불 조회 탭 --%>
                     <c:otherwise>
 
                         <c:choose>
@@ -142,18 +195,34 @@
                                                 <span>관련 콘텐츠: ${refund.contentTitle}</span>
                                                 <span>구매자: ${refund.memberId}</span>
                                                 <span>${refund.reason}</span>
+                                                <span class="badge ${refund.cancelStatus == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
+                                                    <c:choose>
+                                                        <c:when test="${refund.cancelStatus == 'WAITING'}">처리 대기</c:when>
+                                                        <c:when test="${refund.cancelStatus == 'APPROVED'}">승인 완료</c:when>
+                                                        <c:when test="${refund.cancelStatus == 'REJECTED'}">반려</c:when>
+                                                        <c:otherwise>${refund.cancelStatus}</c:otherwise>
+                                                    </c:choose>
+                                                </span>
                                             </div>
                                         </div>
 
                                         <div class="item-actions">
 
                                             <button type="button" class="btn btn-dark"
-                                                    onclick="openRefundModal(
+                                                    onclick="openRefundDetailModal(
                                                         '${refund.cancelNo}',
+                                                        '${refund.orderNo}',
                                                         '${refund.orderItemNo}',
                                                         '${refund.productName}',
                                                         '${refund.memberId}',
-                                                        '${refund.reason}'
+                                                        '${refund.cancelType}',
+                                                        '${refund.quantity}',
+                                                        '${refund.refundAmount}',
+                                                        '${refund.reason}',
+                                                        '${refund.cancelStatus}',
+                                                        '${refund.rejectReason}',
+                                                        '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
+                                                        '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
                                                     )">
                                                 상세보기
                                             </button>
@@ -180,14 +249,14 @@
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage-1}">‹</a>
+                <a href="?tab=${currentTab}&status=${currentStatus}&page=${pagination.currentPage-1}">‹</a>
 
                 <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
-                    <a href="?tab=${currentTab}&page=${p}"
+                    <a href="?tab=${currentTab}&status=${currentStatus}&page=${p}"
                        class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage+1}">›</a>
+                <a href="?tab=${currentTab}&status=${currentStatus}&page=${pagination.currentPage+1}">›</a>
 
             </div>
 
@@ -197,96 +266,99 @@
 
 </div>
 
-<%-- 주문 상태 변경 팝업 --%>
-<div class="modal-overlay" id="orderStatusModal">
+<%-- 주문 상세 조회 팝업 (조회 전용) --%>
+<div class="modal-overlay" id="orderDetailModal">
 
     <div class="modal-box">
 
         <div class="modal-header">
-            <h3>주문 상태 변경</h3>
-            <%-- 클릭 가능한 span을 키보드 접근 가능한 button으로 변경한다. --%>
+            <h3>주문 상세 정보</h3>
             <button type="button"
                     class="modal-close"
-                    aria-label="주문 상태 변경 팝업 닫기"
+                    aria-label="주문 상세 팝업 닫기"
                     style="padding:0;border:0;background:transparent;font-family:inherit;"
-                    onclick="closeModal('orderStatusModal')">
-                &times;
-            </button>
-        </div>
-
-        <form action="${pageContext.request.contextPath}/admin/order/status-update" method="post">
-
-            <input type="hidden" name="orderNo" id="statusOrderNo">
-
-            <div class="target-info-box">
-                <p><span>주문 번호</span><strong id="statusOrderNoText"></strong></p>
-                <p><span>상품 명</span><strong id="statusProductName"></strong></p>
-                <p><span>현재 상태</span><strong id="statusCurrent"></strong></p>
-            </div>
-
-            <div class="form-group">
-                <%-- 여러 라디오 버튼을 설명하는 제목이므로 label 대신 그룹 설명으로 연결한다. --%>
-                <p class="form-label" id="orderStatusLabel">상태 변경</p>
-                <div class="radio-group"
-                     role="radiogroup"
-                     aria-labelledby="orderStatusLabel">
-                    <label><input type="radio" name="orderStatus" value="PREPARING">상품준비중</label>
-                    <label><input type="radio" name="orderStatus" value="SHIPPING">배송중</label>
-                    <label><input type="radio" name="orderStatus" value="DELIVERED">배송완료</label>
-                    <label><input type="radio" name="orderStatus" value="CONFIRMED">구매확정</label>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">저장</button>
-                <button type="button" class="btn btn-outline" onclick="closeModal('orderStatusModal')">닫기</button>
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<%-- 환불 팝업 --%>
-<div class="modal-overlay" id="refundModal">
-
-    <div class="modal-box">
-
-        <div class="modal-header">
-            <h3>환불</h3>
-            <%-- 환불 팝업 닫기 요소도 기본 button으로 변경한다. --%>
-            <button type="button"
-                    class="modal-close"
-                    aria-label="환불 팝업 닫기"
-                    style="padding:0;border:0;background:transparent;font-family:inherit;"
-                    onclick="closeModal('refundModal')">
+                    onclick="closeModal('orderDetailModal')">
                 &times;
             </button>
         </div>
 
         <div class="target-info-box">
-            <p><span>주문 번호</span><strong id="refundOrderItemNo"></strong></p>
-            <p><span>상품 명</span><strong id="refundProductName"></strong></p>
-            <p><span>구매자 아이디</span><strong id="refundMemberId"></strong></p>
+            <p><span>주문 번호</span><strong id="detailOrderNo"></strong></p>
+            <p><span>상품 명</span><strong id="detailProductName"></strong></p>
+            <p><span>관련 콘텐츠</span><strong id="detailContentTitle"></strong></p>
+            <p><span>수량</span><strong id="detailQuantity"></strong></p>
+            <p><span>상품 가격</span><strong id="detailProductPrice"></strong></p>
+            <p><span>주문 총액</span><strong id="detailTotalAmount"></strong></p>
+            <p><span>주문 상태</span><strong id="detailOrderStatus"></strong></p>
+            <p><span>배송 상태</span><strong id="detailDeliveryStatus"></strong></p>
+        </div>
+
+        <div class="target-info-box">
+            <p><span>수령인</span><strong id="detailReceiverName"></strong></p>
+            <p><span>연락처</span><strong id="detailReceiverPhone"></strong></p>
+            <p><span>배송지</span><strong id="detailAddress"></strong></p>
+            <p><span>택배사</span><strong id="detailCourier"></strong></p>
+            <p><span>운송장 번호</span><strong id="detailTrackingNumber"></strong></p>
+            <p><span>주문일</span><strong id="detailCreatedAt"></strong></p>
+        </div>
+
+        <p style="font-size: 13px; color: #888; margin-top: 8px;">
+            ※ 배송 상태 변경 및 주문 취소는 사업자 페이지에서 처리됩니다.
+        </p>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('orderDetailModal')">닫기</button>
+        </div>
+
+    </div>
+
+</div>
+
+<%-- 환불 상세 조회 팝업 (조회 전용) --%>
+<div class="modal-overlay" id="refundDetailModal">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>환불 상세 정보</h3>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="환불 상세 팝업 닫기"
+                    style="padding:0;border:0;background:transparent;font-family:inherit;"
+                    onclick="closeModal('refundDetailModal')">
+                &times;
+            </button>
+        </div>
+
+        <div class="target-info-box">
+            <p><span>주문 번호</span><strong id="refundDetailOrderNo"></strong></p>
+            <p><span>상품 명</span><strong id="refundDetailProductName"></strong></p>
+            <p><span>구매자 아이디</span><strong id="refundDetailMemberId"></strong></p>
+            <p><span>요청 유형</span><strong id="refundDetailType"></strong></p>
+            <p><span>수량</span><strong id="refundDetailQuantity"></strong></p>
+            <p><span>환불 예정 금액</span><strong id="refundDetailAmount"></strong></p>
+            <p><span>처리 상태</span><strong id="refundDetailStatus"></strong></p>
+            <p><span>요청일</span><strong id="refundDetailCreatedAt"></strong></p>
+            <p><span>처리일</span><strong id="refundDetailProcessedAt"></strong></p>
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="refundReason">환불 사유</label>
-            <textarea class="form-textarea" id="refundReason" readonly></textarea>
+            <label class="form-label" for="refundDetailReason">환불 요청 사유</label>
+            <textarea class="form-textarea" id="refundDetailReason" readonly></textarea>
         </div>
 
-        <form id="refundForm" action="${pageContext.request.contextPath}/admin/order/refund-approve" method="post">
+        <div class="form-group">
+            <label class="form-label" for="refundDetailRejectReason">반려 사유</label>
+            <textarea class="form-textarea" id="refundDetailRejectReason" readonly></textarea>
+        </div>
 
-            <input type="hidden" name="cancelNo" id="refundCancelNo">
+        <p style="font-size: 13px; color: #888; margin-top: 8px;">
+            ※ 환불 승인/거절 처리는 사업자 페이지에서 이루어집니다.
+        </p>
 
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-success">환불 승인</button>
-                <button type="submit" formaction="${pageContext.request.contextPath}/admin/order/refund-reject"
-                        class="btn btn-danger">환불 거절</button>
-            </div>
-
-        </form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('refundDetailModal')">닫기</button>
+        </div>
 
     </div>
 

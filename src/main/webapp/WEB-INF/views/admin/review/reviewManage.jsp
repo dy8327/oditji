@@ -144,19 +144,6 @@
                                         ${review.content}
                                     </p>
 
-                                    <div class="meta"
-                                         style="margin-top:10px;">
-
-                                        <span>
-                                            👍 추천 ${review.likeCount}
-                                        </span>
-
-                                        <span>
-                                            💬 댓글 ${review.commentCount}
-                                        </span>
-
-                                    </div>
-
                                 </div>
 
                                 <div class="item-actions">

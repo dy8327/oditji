@@ -50,7 +50,64 @@
 
     <!-- ===================== 1. 회원 관리 (MEMBER) ===================== -->
 
-    <select id="selectMemberList" resultType="com.project.oditji.admin.vo.MemberManageVO">
+    <!--
+        회원 목록/카운트 쿼리 공통 검색 조건.
+        searchType: all(기본,전체) / name / id / nickname / email
+        status가 넘어오면 해당 상태로만 필터링한다 (없으면 전체 상태 조회).
+    -->
+    <sql id="memberSearchCondition">
+        WHERE 1 = 1
+        <choose>
+            <when test="memberType == 'general'">
+                AND ROLE = 'USER'
+                AND NOT EXISTS (
+                    SELECT 1 FROM MEMBER_SOCIAL MS WHERE MS.MEMBER_NO = MEMBER.MEMBER_NO
+                )
+            </when>
+            <when test="memberType == 'sns'">
+                AND ROLE = 'USER'
+                AND EXISTS (
+                    SELECT 1 FROM MEMBER_SOCIAL MS WHERE MS.MEMBER_NO = MEMBER.MEMBER_NO
+                )
+            </when>
+            <when test="memberType == 'business'">
+                AND ROLE = 'BUSINESS'
+            </when>
+            <otherwise>
+                <!-- 전체 유저 탭: 일반 회원 + SNS 로그인 유저 + 사업자 회원 (관리자 계정 제외) -->
+                AND ROLE IN ('USER', 'BUSINESS')
+            </otherwise>
+        </choose>
+        <if test="status != null and status != ''">
+            AND STATUS = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="searchType == 'name'">
+                    AND MEMBER_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'id'">
+                    AND MEMBER_ID LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'nickname'">
+                    AND NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'email'">
+                    AND EMAIL LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        MEMBER_NAME LIKE '%' || #{keyword} || '%'
+                        OR MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+
+    <select id="selectMemberList" parameterType="map" resultType="com.project.oditji.admin.vo.MemberManageVO">
         SELECT
             MEMBER_NO      AS MEMBER_NO,
             MEMBER_ID      AS MEMBER_ID,
@@ -58,19 +115,39 @@
             NICKNAME       AS NICKNAME,
             EMAIL          AS EMAIL,
             PHONE          AS PHONE,
+            ROLE           AS ROLE,
             STATUS         AS STATUS,
-            CREATED_AT     AS CREATED_AT
+            CREATED_AT     AS CREATED_AT,
+            WITHDRAWN_AT   AS WITHDRAWN_AT,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM MEMBER_SOCIAL MS
+                    WHERE MS.MEMBER_NO = MEMBER.MEMBER_NO
+                )
+                THEN 'Y'
+                ELSE 'N'
+            END AS SNS_YN
         FROM MEMBER
-        WHERE ROLE = 'USER'
-        <if test="keyword != null and keyword != ''">
-            AND (
-                MEMBER_NAME LIKE '%' || #{keyword} || '%'
-                OR MEMBER_ID LIKE '%' || #{keyword} || '%'
-                OR NICKNAME LIKE '%' || #{keyword} || '%'
-                OR EMAIL LIKE '%' || #{keyword} || '%'
-            )
-        </if>
+        <include refid="memberSearchCondition"/>
         ORDER BY MEMBER_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectMemberListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        <include refid="memberSearchCondition"/>
+    </select>
+
+    <!-- 회원 관리 상단 통계 카드 (총 / 정상 / 정지 / 탈퇴 회원 수) -->
+    <select id="selectMemberStats" resultType="com.project.oditji.admin.vo.MemberStatVO">
+        SELECT
+            COUNT(*) AS TOTAL_COUNT,
+            SUM(CASE WHEN STATUS = 'ACTIVE' THEN 1 ELSE 0 END) AS ACTIVE_COUNT,
+            SUM(CASE WHEN STATUS = 'BLOCKED' THEN 1 ELSE 0 END) AS BLOCKED_COUNT,
+            SUM(CASE WHEN STATUS = 'WITHDRAWN' THEN 1 ELSE 0 END) AS WITHDRAWN_COUNT
+        FROM MEMBER
+        WHERE ROLE IN ('USER', 'BUSINESS')
     </select>
 
     <update id="updateMemberStatus">
@@ -87,8 +164,26 @@
             END
 
         WHERE MEMBER_NO = #{memberNo}
+        <!-- 회원 본인이 직접 탈퇴(WITHDRAWN)한 계정은 7일 후 자동삭제 대상이므로
+             관리자가 정지/복구로 상태를 바꿀 수 없도록 서버 단에서도 한 번 더 막는다. -->
+        AND STATUS != 'WITHDRAWN'
 
     </update>
+
+    <!--
+        일괄 처리(정지/복구/완전삭제) 요청에 포함된 회원번호 중,
+        이미 본인이 직접 탈퇴하여 자동삭제 대기 중(STATUS = 'WITHDRAWN')인 회원번호만 골라낸다.
+        화면 체크박스에서 이미 선택 자체를 막고 있지만, 우회 요청에 대비한 서버측 방어 로직이다.
+    -->
+    <select id="selectWithdrawnMemberNos" resultType="long">
+        SELECT MEMBER_NO
+        FROM MEMBER
+        WHERE STATUS = 'WITHDRAWN'
+        AND MEMBER_NO IN
+        <foreach collection="list" item="memberNo" open="(" separator="," close=")">
+            #{memberNo}
+        </foreach>
+    </select>
 
     <!--
         1. REVIEW_REPORT: 회원이 신고자(MEMBER_NO)이거나 처리 관리자(ADMIN_NO)인 경우.
@@ -253,8 +348,6 @@
             R.RATING        AS RATING,
             R.REVIEW_TEXT   AS CONTENT,
             R.STATUS        AS STATUS,
-            0               AS LIKE_COUNT,
-            0               AS COMMENT_COUNT,
             R.CREATED_AT    AS CREATED_AT
         FROM REVIEW R
         JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
@@ -286,8 +379,6 @@
         R.REVIEW_TEXT AS CONTENT,
         R.STATUS AS STATUS,
         RC.REPORT_COUNT AS REPORT_COUNT,
-        0 AS LIKE_COUNT,
-        0 AS COMMENT_COUNT,
         R.CREATED_AT AS CREATED_AT
 
     FROM REVIEW R
@@ -350,8 +441,6 @@
             P.PRODUCT_NAME   AS PRODUCT_NAME,
             PR.RATING        AS RATING,
             PR.CONTENT       AS CONTENT,
-            0                AS LIKE_COUNT,
-            0                AS COMMENT_COUNT,
             PR.CREATED_AT    AS CREATED_AT
         FROM PRODUCT_REVIEW PR
         JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
@@ -377,8 +466,6 @@
             PR.RATING         AS RATING,
             PR.CONTENT        AS CONTENT,
             COUNT(RR.REPORT_NO) AS REPORT_COUNT,
-            0                 AS LIKE_COUNT,
-            0                 AS COMMENT_COUNT,
             PR.CREATED_AT     AS CREATED_AT
         FROM PRODUCT_REVIEW PR
         JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
@@ -673,7 +760,9 @@
           AND STATUS = 'DELETE_REQUESTED'
     </delete>
 
-    <!-- ===================== 5. 주문 관리 (ORDER_ITEM / DELIVERY) ===================== -->
+    <!-- ===================== 5. 주문 조회 (ORDER_ITEM / DELIVERY, 조회 전용) =====================
+         배송 상태 변경, 주문 취소 등 실제 처리는 사업자(Business)가 담당한다.
+         관리자는 분쟁 확인 등을 위해 배송지/추적정보를 포함한 상세 내역만 조회한다. -->
 
     <select id="selectOrderList" resultType="com.project.oditji.admin.vo.OrderManageVO">
         SELECT
@@ -686,9 +775,18 @@
             OI.QUANTITY       AS QUANTITY,
             NVL(D.STATUS, 'PREPARING') AS STATUS,
             OI.BUSINESS_NO    AS BUSINESS_NO,
+            M.MEMBER_ID       AS MEMBER_ID,
+            O.TOTAL_AMOUNT    AS TOTAL_AMOUNT,
+            O.ORDER_STATUS    AS ORDER_STATUS,
+            O.RECEIVER_NAME   AS RECEIVER_NAME,
+            O.RECEIVER_PHONE  AS RECEIVER_PHONE,
+            O.ADDRESS         AS ADDRESS,
+            D.TRACKING_NUMBER AS TRACKING_NUMBER,
+            D.COURIER         AS COURIER,
             O.CREATED_AT      AS CREATED_AT
         FROM ORDER_ITEM OI
         JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+        JOIN MEMBER M ON M.MEMBER_NO = O.MEMBER_NO
         JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
         JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
         LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
@@ -699,62 +797,42 @@
         ORDER BY O.ORDER_NO DESC
     </select>
 
-    <update id="updateDeliveryStatusByOrderNo">
-        UPDATE DELIVERY
-        SET STATUS = #{status},
-            UPDATED_AT = SYSDATE
-        WHERE ORDER_ITEM_NO IN (
-            SELECT ORDER_ITEM_NO FROM ORDER_ITEM WHERE ORDER_NO = #{orderNo}
-        )
-    </update>
-
-    <update id="updateOrderItemStatusCancel">
-        UPDATE ORDER_ITEM
-        SET STATUS = 'CANCELED'
-        WHERE ORDER_ITEM_NO = #{orderItemNo}
-    </update>
-
-    <!-- ===================== 5-2. 환불 관리 (CANCEL_REQUEST) ===================== -->
+    <!-- ===================== 5-2. 환불 조회 (CANCEL_REQUEST, 조회 전용) =====================
+         환불 승인/거절은 사업자가 처리한다.
+         관리자는 처리 상태(대기/승인/반려)와 사유, 반려 사유를 조회만 할 수 있다. -->
 
     <select id="selectRefundList" resultType="com.project.oditji.admin.vo.OrderManageVO">
         SELECT
             CR.CANCEL_NO      AS CANCEL_NO,
+            CR.ORDER_NO       AS ORDER_NO,
             OI.ORDER_ITEM_NO  AS ORDER_ITEM_NO,
             OI.PRODUCT_NO     AS PRODUCT_NO,
             P.PRODUCT_NAME    AS PRODUCT_NAME,
             C.TITLE           AS CONTENT_TITLE,
+            OI.QUANTITY       AS QUANTITY,
+            OI.PRODUCT_PRICE  AS PRODUCT_PRICE,
             M.MEMBER_ID       AS MEMBER_ID,
+            CR.CANCEL_TYPE    AS CANCEL_TYPE,
+            CR.REFUND_AMOUNT  AS REFUND_AMOUNT,
             CR.REASON         AS REASON,
+            CR.STATUS         AS CANCEL_STATUS,
+            CR.REJECT_REASON  AS REJECT_REASON,
+            CR.PROCESSED_AT   AS PROCESSED_AT,
             CR.CREATED_AT     AS CREATED_AT
         FROM CANCEL_REQUEST CR
         JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
         JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
         JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
         JOIN MEMBER M ON M.MEMBER_NO = CR.MEMBER_NO
-        WHERE CR.STATUS = 'WAITING'
+        WHERE 1 = 1
+        <if test="status != null and status != '' and status != 'ALL'">
+            AND CR.STATUS = #{status}
+        </if>
         <if test="keyword != null and keyword != ''">
             AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
         </if>
         ORDER BY CR.CREATED_AT DESC
     </select>
-
-    <update id="updateCancelRequestStatus">
-        UPDATE CANCEL_REQUEST
-        SET STATUS = #{status}
-        WHERE CANCEL_NO = #{cancelNo}
-    </update>
-
-    <select id="selectOrderItemNoByCancelNo" resultType="java.lang.Long">
-        SELECT ORDER_ITEM_NO
-        FROM CANCEL_REQUEST
-        WHERE CANCEL_NO = #{cancelNo}
-    </select>
-
-    <update id="updateOrderItemStatus">
-        UPDATE ORDER_ITEM
-        SET STATUS = #{status}
-        WHERE ORDER_ITEM_NO = #{orderItemNo}
-    </update>
 
     <!-- ===================== 6. 사업자 관리 (BUSINESS) ===================== -->
 
