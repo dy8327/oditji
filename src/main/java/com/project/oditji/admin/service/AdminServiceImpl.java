@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
 import com.project.oditji.admin.vo.MemberManageVO;
+import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
@@ -57,9 +60,61 @@ public class AdminServiceImpl implements AdminService {
 
     // ===================== 회원 관리 =====================
 
+    // 본인 직접 탈퇴 후 자동삭제까지 유예되는 기간(일). 스케줄러(MemberDeleteScheduler)의 7일 기준과 맞춘다.
+    private static final int WITHDRAW_AUTO_DELETE_DAYS = 7;
+
     @Override
-    public List<MemberManageVO> getMemberList(String keyword) {
-        return adminDAO.selectMemberList(keyword);
+    public List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType, int page, int pageSize) {
+
+        Map<String, Object> param = memberSearchParam(keyword, searchType, status, memberType);
+
+        int currentPage = (page < 1) ? 1 : page;
+
+        param.put("offset", (currentPage - 1) * pageSize);
+        param.put("pageSize", pageSize);
+
+        List<MemberManageVO> memberList = adminDAO.selectMemberList(param);
+        memberList.forEach(this::fillRemainingDeleteDays);
+
+        return memberList;
+    }
+
+    @Override
+    public int getMemberListCount(String keyword, String searchType, String status, String memberType) {
+        return adminDAO.selectMemberListCount(memberSearchParam(keyword, searchType, status, memberType));
+    }
+
+    @Override
+    public MemberStatVO getMemberStats() {
+        return adminDAO.selectMemberStats();
+    }
+
+    private Map<String, Object> memberSearchParam(String keyword, String searchType, String status, String memberType) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("keyword", keyword);
+        param.put("searchType", searchType);
+        param.put("status", status);
+        param.put("memberType", memberType);
+        return param;
+    }
+
+    /*
+     * 본인이 직접 탈퇴(STATUS = 'WITHDRAWN')한 회원에 한해, 자동삭제까지 남은 일수를 계산해 채운다.
+     * 스케줄러는 WITHDRAWN_AT 기준 7일이 지나면 삭제하므로, 남은 일수 = 7 - (오늘 - 탈퇴일).
+     * 음수가 되지 않도록(다음 스케줄 실행 전까지의 짧은 텀 등) 0으로 하한을 둔다.
+     */
+    private void fillRemainingDeleteDays(MemberManageVO member) {
+
+        if (!"WITHDRAWN".equals(member.getStatus()) || member.getWithdrawnAt() == null) {
+            return;
+        }
+
+        long elapsedDays = java.time.temporal.ChronoUnit.DAYS.between(
+                member.getWithdrawnAt().toInstant(),
+                java.time.Instant.now());
+
+        int remaining = (int) (WITHDRAW_AUTO_DELETE_DAYS - elapsedDays);
+        member.setRemainingDeleteDays(Math.max(remaining, 0));
     }
 
     @Override
@@ -70,6 +125,40 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void restoreMember(Long memberNo) {
         adminDAO.updateMemberStatus(memberNo, "ACTIVE");
+    }
+
+    /*
+     * 목록 화면에서 체크박스로 선택한 회원들을 한 번의 요청으로 일괄 처리한다.
+     * delete는 기존 deleteMember(단건)를 그대로 재사용해 FK 정리 순서를 그대로 유지한다.
+     * 화면 체크박스에서 이미 선택 자체를 막고 있지만, 본인이 직접 탈퇴하여 자동삭제 대기 중인
+     * (STATUS = 'WITHDRAWN') 회원이 우회 요청 등으로 포함되어 들어올 경우를 대비해
+     * 서버에서 한 번 더 걸러내고, 걸러낸 회원 수를 반환한다.
+     */
+    @Override
+    @Transactional
+    public int bulkMemberAction(List<Long> memberNos, String action) {
+
+        if (memberNos == null || memberNos.isEmpty()) {
+            return 0;
+        }
+
+        List<Long> withdrawnNos = adminDAO.selectWithdrawnMemberNos(memberNos);
+
+        for (Long memberNo : memberNos) {
+
+            if (withdrawnNos.contains(memberNo)) {
+                continue;
+            }
+
+            switch (action) {
+                case "suspend" -> adminDAO.updateMemberStatus(memberNo, "BLOCKED");
+                case "restore" -> adminDAO.updateMemberStatus(memberNo, "ACTIVE");
+                case "delete" -> deleteMember(memberNo);
+                default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
+            }
+        }
+
+        return withdrawnNos.size();
     }
 
     @Override
@@ -379,43 +468,21 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    // ===================== 주문 관리 =====================
+    // ===================== 주문 조회 (조회 전용) =====================
+    // 배송 상태 변경, 주문 취소 등 실제 처리는 사업자(Business)가 담당하며,
+    // 관리자는 분쟁 확인 등을 위해 상세 내역만 조회한다.
 
     @Override
     public List<OrderManageVO> getOrderList(String keyword) {
         return adminDAO.selectOrderList(keyword);
     }
 
-    @Override
-    public void updateOrderStatus(Long orderNo, String orderStatus) {
-        adminDAO.updateDeliveryStatusByOrderNo(orderNo, orderStatus);
-    }
+    // ===================== 환불 조회 (조회 전용) =====================
+    // 환불 승인/거절은 사업자가 처리하며, 관리자는 사유/처리 결과만 조회한다.
 
     @Override
-    public void cancelOrder(Long orderItemNo) {
-        adminDAO.updateOrderItemStatusCancel(orderItemNo);
-    }
-
-    // ===================== 환불 관리 =====================
-
-    @Override
-    public List<OrderManageVO> getRefundList(String keyword) {
-        return adminDAO.selectRefundList(keyword);
-    }
-
-    @Override
-    @Transactional
-    public void approveRefund(Long cancelNo) {
-        adminDAO.updateCancelRequestStatus(cancelNo, "APPROVED");
-        Long orderItemNo = adminDAO.selectOrderItemNoByCancelNo(cancelNo);
-        if (orderItemNo != null) {
-            adminDAO.updateOrderItemStatus(orderItemNo, "CANCELED");
-        }
-    }
-
-    @Override
-    public void rejectRefund(Long cancelNo) {
-        adminDAO.updateCancelRequestStatus(cancelNo, "REJECTED");
+    public List<OrderManageVO> getRefundList(String keyword, String status) {
+        return adminDAO.selectRefundList(keyword, status);
     }
 
     // ===================== 사업자 관리 =====================

@@ -12,6 +12,7 @@ import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
 import com.project.oditji.admin.vo.MemberManageVO;
+import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
@@ -49,8 +50,16 @@ public class AdminDAO {
 
     // ===================== 회원 관리 (MEMBER) =====================
 
-    public List<MemberManageVO> selectMemberList(String keyword) {
-        return sqlSession.selectList("selectMemberList", keywordParam(keyword));
+    public List<MemberManageVO> selectMemberList(Map<String, Object> param) {
+        return sqlSession.selectList("selectMemberList", param);
+    }
+
+    public int selectMemberListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectMemberListCount", param);
+    }
+
+    public MemberStatVO selectMemberStats() {
+        return sqlSession.selectOne("selectMemberStats");
     }
 
     public int updateMemberStatus(Long memberNo, String status) {
@@ -65,6 +74,14 @@ public class AdminDAO {
 
     public int restoreMember(Long memberNo) {
         return sqlSession.update("restoreMember", memberNo);
+    }
+
+    /**
+     * 전달받은 회원번호 중, 이미 본인이 직접 탈퇴하여 자동삭제 대기 중(STATUS = 'WITHDRAWN')인
+     * 회원번호만 골라 반환한다. 일괄 처리(정지/복구/완전삭제) 시 해당 회원을 걸러내기 위한 서버측 방어용.
+     */
+    public List<Long> selectWithdrawnMemberNos(List<Long> memberNos) {
+        return sqlSession.selectList("selectWithdrawnMemberNos", memberNos);
     }
 
     // ===================== 탈퇴 회원 자동 삭제 =====================
@@ -315,45 +332,21 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteProduct", productNo);
     }
 
-    // ===================== 주문 관리 (ORDER_ITEM / DELIVERY) =====================
+    // ===================== 주문 조회 (ORDER_ITEM / DELIVERY, 조회 전용) =====================
+    // 배송 상태 변경/주문 취소는 사업자(Business) 담당이므로 관리자 DAO에는 조회만 둔다.
 
     public List<OrderManageVO> selectOrderList(String keyword) {
         return sqlSession.selectList("selectOrderList", keywordParam(keyword));
     }
 
-    public int updateDeliveryStatusByOrderNo(Long orderNo, String status) {
+    // ===================== 환불 조회 (CANCEL_REQUEST, 조회 전용) =====================
+    // 환불 승인/거절은 사업자 담당이므로 관리자 DAO에는 조회만 둔다.
+
+    public List<OrderManageVO> selectRefundList(String keyword, String status) {
         Map<String, Object> param = new HashMap<>();
-        param.put("orderNo", orderNo);
+        param.put("keyword", keyword);
         param.put("status", status);
-        return sqlSession.update("updateDeliveryStatusByOrderNo", param);
-    }
-
-    public int updateOrderItemStatusCancel(Long orderItemNo) {
-        return sqlSession.update("updateOrderItemStatusCancel", orderItemNo);
-    }
-
-    // ===================== 환불 관리 (CANCEL_REQUEST) =====================
-
-    public List<OrderManageVO> selectRefundList(String keyword) {
-        return sqlSession.selectList("selectRefundList", keywordParam(keyword));
-    }
-
-    public int updateCancelRequestStatus(Long cancelNo, String status) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("cancelNo", cancelNo);
-        param.put("status", status);
-        return sqlSession.update("updateCancelRequestStatus", param);
-    }
-
-    public Long selectOrderItemNoByCancelNo(Long cancelNo) {
-        return sqlSession.selectOne("selectOrderItemNoByCancelNo", cancelNo);
-    }
-
-    public int updateOrderItemStatus(Long orderItemNo, String status) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("orderItemNo", orderItemNo);
-        param.put("status", status);
-        return sqlSession.update("updateOrderItemStatus", param);
+        return sqlSession.selectList("selectRefundList", param);
     }
 
     // ===================== 사업자 관리 (BUSINESS) =====================

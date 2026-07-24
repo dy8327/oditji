@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.common.vo.PageVO;
 
 @Controller
 @RequestMapping("/admin")
@@ -40,22 +42,54 @@ public class AdminController {
 
     // ===================== 1. 회원 관리 =====================
 
+    private static final int MEMBER_PAGE_SIZE = 10;
+    private static final int MEMBER_PAGE_BLOCK_SIZE = 5;
+
     @GetMapping("/member/list")
-    public String memberList(Model model, @RequestParam(required = false) String keyword) {
+    public String memberList(
+            Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "all") String searchType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false, defaultValue = "all") String memberType,
+            @RequestParam(required = false, defaultValue = "1") int page) {
+
+        int totalCount = adminService.getMemberListCount(keyword, searchType, status, memberType);
+        PageVO pagination = buildMemberPagination(page, totalCount);
+
         model.addAttribute("activeMenu", "member");
-        model.addAttribute("memberList", adminService.getMemberList(keyword));
+        model.addAttribute("memberList",
+                adminService.getMemberList(keyword, searchType, status, memberType, pagination.getCurrentPage(), MEMBER_PAGE_SIZE));
+        model.addAttribute("memberStats", adminService.getMemberStats());
+        model.addAttribute("pagination", pagination);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("status", status);
+        model.addAttribute("memberType", memberType);
+
         return "admin/member/memberManage";
     }
 
     @PostMapping("/member/suspend")
-    public String memberSuspend(@RequestParam Long memberNo) {
+    public String memberSuspend(
+            @RequestParam Long memberNo,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String searchType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String memberType,
+            @RequestParam(required = false, defaultValue = "1") int page) {
+
         adminService.suspendMember(memberNo);
-        return "redirect:/admin/member/list";
+        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     @PostMapping("/member/withdraw")
     public String memberWithdraw(
             @RequestParam Long memberNo,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String searchType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String memberType,
+            @RequestParam(required = false, defaultValue = "1") int page,
             RedirectAttributes ra) {
 
         // 관리자가 탈퇴 처리하면 대기 상태 없이 즉시 DB에서 완전히 삭제한다.
@@ -66,13 +100,116 @@ public class AdminController {
             ra.addFlashAttribute("message", e.getMessage());
         }
 
-        return "redirect:/admin/member/list";
+        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     @PostMapping("/member/restore")
-    public String restoreMember(@RequestParam Long memberNo) {
+    public String restoreMember(
+            @RequestParam Long memberNo,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String searchType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String memberType,
+            @RequestParam(required = false, defaultValue = "1") int page) {
+
         adminService.restoreMember(memberNo);
-        return "redirect:/admin/member/list";
+        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+    }
+
+    /**
+     * 목록 화면에서 체크박스로 선택한 회원들을 정지 / 복구 / 완전삭제 중 하나로 일괄 처리한다.
+     */
+    @PostMapping("/member/bulk")
+    public String memberBulkAction(
+            @RequestParam String action,
+            @RequestParam(required = false) List<Long> memberNos,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String searchType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String memberType,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            RedirectAttributes ra) {
+
+        if (memberNos == null || memberNos.isEmpty()) {
+            ra.addFlashAttribute("message", "선택된 회원이 없습니다.");
+            return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+        }
+
+        try {
+            int skippedCount = adminService.bulkMemberAction(memberNos, action);
+            int processedCount = memberNos.size() - skippedCount;
+
+            StringBuilder message = new StringBuilder(processedCount + "명의 회원을 처리했습니다.");
+            if (skippedCount > 0) {
+                // 자동삭제 대기 중인 회원은 화면에서 선택이 막혀 있지만,
+                // 우회 요청 등으로 포함된 경우를 대비해 실제로 몇 명이 제외되었는지 안내한다.
+                message.append(" (자동삭제 예정 회원 ").append(skippedCount).append("명은 처리에서 제외되었습니다.)");
+            }
+            ra.addFlashAttribute("message", message.toString());
+
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+    }
+
+    /**
+     * PageVO에는 계산 로직이 없으므로(값을 담는 순수 VO), 여기서 현재 페이지/전체 페이지 수를 계산해 채운다.
+     * 한 페이지에 MEMBER_PAGE_SIZE(10)건, 페이지 번호는 MEMBER_PAGE_BLOCK_SIZE(5)개 단위로 끊어서 보여준다.
+     */
+    private PageVO buildMemberPagination(int requestedPage, int totalCount) {
+
+        int totalPage = (int) Math.ceil((double) totalCount / MEMBER_PAGE_SIZE);
+        if (totalPage < 1) {
+            totalPage = 1;
+        }
+
+        int currentPage = requestedPage;
+        if (currentPage < 1) {
+            currentPage = 1;
+        } else if (currentPage > totalPage) {
+            currentPage = totalPage;
+        }
+
+        int startPage = ((currentPage - 1) / MEMBER_PAGE_BLOCK_SIZE) * MEMBER_PAGE_BLOCK_SIZE + 1;
+        int endPage = Math.min(startPage + MEMBER_PAGE_BLOCK_SIZE - 1, totalPage);
+
+        PageVO pageVO = new PageVO();
+        pageVO.setCurrentPage(currentPage);
+        pageVO.setPageSize(MEMBER_PAGE_SIZE);
+        pageVO.setTotalCount(totalCount);
+        pageVO.setTotalPage(totalPage);
+        pageVO.setStartPage(startPage);
+        pageVO.setEndPage(endPage);
+        pageVO.setPrev(startPage > 1);
+        pageVO.setNext(endPage < totalPage);
+
+        return pageVO;
+    }
+
+    /**
+     * 개별/일괄 처리 후 방금 보고 있던 검색어·필터·페이지 상태 그대로 목록으로 돌아가기 위한 리다이렉트 URL을 만든다.
+     */
+    private String memberListRedirectUrl(String keyword, String searchType, String status, String memberType, int page) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/member/list")
+                .queryParam("page", page);
+
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword);
+        }
+        if (searchType != null && !searchType.isBlank()) {
+            builder.queryParam("searchType", searchType);
+        }
+        if (status != null && !status.isBlank()) {
+            builder.queryParam("status", status);
+        }
+        if (memberType != null && !memberType.isBlank()) {
+            builder.queryParam("memberType", memberType);
+        }
+
+        return builder.build().toUriString();
     }
 
     // ===================== 2. 리뷰 관리 (콘텐츠 리뷰 / 상품 리뷰) =====================
@@ -287,45 +424,24 @@ public class AdminController {
         return "redirect:/admin/product/list?tab=" + tab;
     }
 
-    // ===================== 5. 주문 관리 =====================
+    // ===================== 5. 주문/환불 조회 (조회 전용) =====================
+    // 배송 상태 변경, 주문 취소, 환불 승인/거절은 사업자(Business)가 처리한다.
+    // 관리자는 분쟁 확인 등을 위해 상세 내역만 조회할 수 있다.
 
     @GetMapping("/order/list")
     public String orderList(Model model,
             @RequestParam(required = false) String tab,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status) {
         model.addAttribute("activeMenu", "order");
 
         if ("refund".equals(tab)) {
-            model.addAttribute("refundList", adminService.getRefundList(keyword));
+            model.addAttribute("refundList", adminService.getRefundList(keyword, status));
         } else {
             model.addAttribute("orderList", adminService.getOrderList(keyword));
         }
 
         return "admin/order/orderManage";
-    }
-
-    @PostMapping("/order/status-update")
-    public String orderStatusUpdate(@RequestParam Long orderNo, @RequestParam String orderStatus) {
-        adminService.updateOrderStatus(orderNo, orderStatus);
-        return "redirect:/admin/order/list";
-    }
-
-    @PostMapping("/order/cancel")
-    public String orderCancel(@RequestParam Long orderItemNo) {
-        adminService.cancelOrder(orderItemNo);
-        return "redirect:/admin/order/list";
-    }
-
-    @PostMapping("/order/refund-approve")
-    public String orderRefundApprove(@RequestParam Long cancelNo) {
-        adminService.approveRefund(cancelNo);
-        return "redirect:/admin/order/list?tab=refund";
-    }
-
-    @PostMapping("/order/refund-reject")
-    public String orderRefundReject(@RequestParam Long cancelNo) {
-        adminService.rejectRefund(cancelNo);
-        return "redirect:/admin/order/list?tab=refund";
     }
 
     // ===================== 6. 사업자 관리 (목록 / 입점 승인) =====================

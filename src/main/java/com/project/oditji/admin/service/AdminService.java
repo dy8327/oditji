@@ -7,6 +7,7 @@ import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
 import com.project.oditji.admin.vo.MemberManageVO;
+import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
@@ -22,13 +23,25 @@ public interface AdminService {
     AdminVO getDashboardStats();
 
     // 회원 관리
-    List<MemberManageVO> getMemberList(String keyword);
+    // memberType: all(기본,전체 유저) / general(일반 회원) / sns(SNS 로그인 유저) / business(사업자 회원)
+    List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType, int page, int pageSize);
+
+    int getMemberListCount(String keyword, String searchType, String status, String memberType);
+
+    MemberStatVO getMemberStats();
 
     void suspendMember(Long memberNo);
 
     void restoreMember(Long memberNo);
 
     void deleteMember(Long memberNo);
+
+    /**
+     * 체크박스로 선택한 회원들에 대해 정지(suspend) / 복구(restore) / 완전삭제(delete)를 한 번에 처리한다.
+     * 본인이 직접 탈퇴하여 자동삭제 대기 중(WITHDRAWN)인 회원은 선택 대상에서 제외하고 처리하며,
+     * 제외된 회원 수를 반환한다.
+     */
+    int bulkMemberAction(List<Long> memberNos, String action);
 
     void deleteExpiredWithdrawMembers();
 
@@ -64,19 +77,11 @@ public interface AdminService {
 
     void rejectProduct(Long productNo);
 
-    // 주문 관리
+    // 주문 조회 (조회 전용 - 처리는 사업자 담당)
     List<OrderManageVO> getOrderList(String keyword);
 
-    void updateOrderStatus(Long orderNo, String orderStatus);
-
-    void cancelOrder(Long orderItemNo);
-
-    // 환불 관리
-    List<OrderManageVO> getRefundList(String keyword);
-
-    void approveRefund(Long cancelNo);
-
-    void rejectRefund(Long cancelNo);
+    // 환불 조회 (조회 전용 - 승인/거절은 사업자 담당)
+    List<OrderManageVO> getRefundList(String keyword, String status);
 
     // 사업자 관리
     List<BusinessManageVO> getBusinessList(String keyword);
