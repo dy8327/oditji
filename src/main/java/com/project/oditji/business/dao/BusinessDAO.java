@@ -164,6 +164,14 @@ public interface BusinessDAO {
         // 마이페이지 대시보드 - 오늘 주문 건수
         int selectTodayOrderCountByBusinessNo(@Param("businessNo") long businessNo);
 
+        /*
+         * =========================================================
+         * [오늘 구매 고객 수 조회 추가]
+         * 오늘 정상 판매 상태의 상품을 구매한 중복되지 않은 회원 수 조회.
+         * =========================================================
+         */
+        int selectTodayCustomerCountByBusinessNo(@Param("businessNo") long businessNo);
+
         // 마이페이지 대시보드 - 오늘 상품 클릭 수
         int selectTodayClickCountByBusinessNo(@Param("businessNo") long businessNo);
 
