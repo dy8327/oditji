@@ -38,6 +38,15 @@ public interface OrderDAO {
         int insertOrderItem(
                         OrderItemVO orderItemVO);
 
+        /*
+         * =========================================================
+         * [결제 완료 주문상품 정산 예정 데이터 생성 추가]
+         * 주문상품별 수수료와 실 정산 예정 금액을 저장한다.
+         * =========================================================
+         */
+        int insertWaitingSettlement(
+                        @Param("orderItemNo") Long orderItemNo);
+
         /**
          * 주문 확정 시 재고 차감.
          * WHERE 조건에 재고 수량을 포함해 동시성 문제로 인한
@@ -80,6 +89,15 @@ public interface OrderDAO {
          */
         int updateOrderCanceled(
                         @Param("memberNo") Long memberNo,
+                        @Param("orderNo") Long orderNo);
+
+        /*
+         * =========================================================
+         * [사용자 즉시 전액 취소 정산 제외 추가]
+         * 해당 주문의 WAITING 정산을 REJECTED로 변경한다.
+         * =========================================================
+         */
+        int rejectSettlementsByOrderNo(
                         @Param("orderNo") Long orderNo);
 
         /*
