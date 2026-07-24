@@ -56,6 +56,20 @@ public interface OrderCancelRefundDAO {
 
         int cancelOrderItemsByGroup(@Param("cancelGroupNo") Long cancelGroupNo);
 
+        /*
+         * =========================================================
+         * [부분 취소 완료 정산 제외 추가]
+         * =========================================================
+         */
+        int rejectSettlementByOrderItemNo(@Param("orderItemNo") Long orderItemNo);
+
+        /*
+         * =========================================================
+         * [전체 취소 완료 정산 제외 추가]
+         * =========================================================
+         */
+        int rejectSettlementsByCancelGroupNo(@Param("cancelGroupNo") Long cancelGroupNo);
+
         int restoreProductStock(@Param("productNo") Long productNo,
                         @Param("quantity") Integer quantity);
 
