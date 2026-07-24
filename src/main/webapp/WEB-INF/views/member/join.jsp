@@ -52,7 +52,7 @@
             <div class="join-section-title no-border">기본 정보</div>
 
             <div class="form-group">
-                <label>아이디</label>
+                <label>아이디 <span class="required-mark">*</span></label>
                 <div class="row">
                     <input type="text"
                            name="memberId"
@@ -64,44 +64,96 @@
             </div>
 
             <div class="form-group">
-                <label>비밀번호</label>
-                <input type="password"
-                       name="memberPw"
-                       id="memberPw"
-                       placeholder="영문, 숫자, 특수문자 포함 8~20자"
-                       required>
+                <label>비밀번호 <span class="required-mark">*</span></label>
+
+                <%--
+                    =========================================================
+                    비밀번호 표시/숨김 버튼
+                    =========================================================
+                --%>
+                <div class="password-input-wrap">
+                    <input type="password"
+                           name="memberPw"
+                           id="memberPw"
+                           placeholder="영문, 숫자, 특수문자 포함 8~20자"
+                           required>
+
+                    <button type="button"
+                            class="password-toggle-btn"
+                            data-target="memberPw"
+                            aria-label="비밀번호 표시"
+                            aria-pressed="false">
+                        보기
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>비밀번호 확인</label>
-                <input type="password"
-                       id="memberPwCheck"
-                       required>
+                <label>비밀번호 확인 <span class="required-mark">*</span></label>
+
+                <%--
+                    =========================================================
+                    비밀번호 확인 표시/숨김 버튼
+                    =========================================================
+                --%>
+                <div class="password-input-wrap">
+                    <input type="password"
+                           id="memberPwCheck"
+                           required>
+
+                    <button type="button"
+                            class="password-toggle-btn"
+                            data-target="memberPwCheck"
+                            aria-label="비밀번호 확인 표시"
+                            aria-pressed="false">
+                        보기
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>이메일</label>
-                <input type="email"
-                       name="email"
-                       id="email"
-                       placeholder="example@email.com"
-                       required>
+                <label>
+                    이메일
+                    <span class="required-mark">*</span>
+                </label>
+
+                <%--
+                    =========================================================
+                    이메일 중복확인
+
+                    아이디 및 닉네임 중복확인 영역과 동일한
+                    레이아웃과 버튼 스타일을 적용
+                    =========================================================
+                --%>
+                <div class="row">
+                    <input type="email"
+                        name="email"
+                        id="email"
+                        placeholder="example@email.com"
+                        required>
+
+                    <button type="button"
+                            onclick="checkEmail()">
+                        중복확인
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>전화번호</label>
+                <label>전화번호 <span class="required-mark">*</span></label>
                 <input type="text"
                        name="phone"
                        id="phone"
                        placeholder="010-1234-5678"
-                       maxlength="13">
+                       maxlength="13"
+                       required>
             </div>
 
             <!-- 일반회원 전용 기본 정보 -->
             <div class="user-only-fields active" id="userBasicFields">
 
                 <div class="form-group">
-                    <label>이름</label>
+                    <label>이름 <span class="required-mark">*</span></label>
                     <input type="text"
                         name="memberName"
                         id="memberName"
@@ -109,7 +161,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>닉네임</label>
+                    <label>닉네임 <span class="required-mark">*</span></label>
                     <div class="row">
                         <input type="text"
                             name="nickname"
@@ -127,7 +179,7 @@
             </div>
             <!-- 프로필 이미지 -->
             <div class="form-group">
-                <label>프로필 이미지</label>
+                <label>프로필 이미지 <span class="optional-mark">(선택)</span></label>
 
                 <div class="file-box">
                     <input type="file"
@@ -145,7 +197,7 @@
 
             <!-- 일반회원 전용: OTT 선택 -->
             <div class="user-only-fields active" id="userOnlyFields">
-                <div class="join-section-title">사용 중인 OTT</div>
+                <div class="join-section-title">사용 중인 OTT <span class="required-mark">*</span></div>
 
                 <div class="form-group">
                     <div class="ott-box">
@@ -155,6 +207,16 @@
                         <label><input type="checkbox" name="ottList" value="Wavve"> 웨이브</label>
                         <label><input type="checkbox" name="ottList" value="Watcha"> 왓챠</label>
                         <label><input type="checkbox" name="ottList" value="Coupangplay"> 쿠팡플레이</label>
+
+                        <%--
+                            =========================================================
+                            일반회원 OTT 미사용 선택
+
+                            OTT 없음 선택 시 MEMBER_PLATFORM에는
+                            별도 데이터를 저장하지 않는다.
+                            =========================================================
+                        --%>
+                        <label><input type="checkbox" name="noOtt" id="noOtt" value="Y"> OTT 없음</label>
                     </div>
                 </div>
             </div>
@@ -296,83 +358,6 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
 
-<script>
-    // 회원가입 유형(일반/사업자) 탭 전환
-    function switchJoinType(type) {
-        document.getElementById('joinType').value = type;
-
-        document.querySelectorAll('.join-tab-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.type === type);
-        });
-
-        var userFields = document.getElementById('userOnlyFields');
-        var userBasicFields = document.getElementById('userBasicFields');
-        var businessFields = document.getElementById('businessOnlyFields');
-        var memberName = document.getElementById('memberName');
-        var nickname = document.getElementById('nickname');
-        var businessName = document.getElementById('businessName');
-        var businessNumber = document.getElementById('businessNumber');
-        var bankName = document.getElementById('bankName');
-        var accountNumber = document.getElementById('accountNumber');
-        var accountHolder = document.getElementById('accountHolder');
-        var representativeName = document.getElementById('representativeName');
-        var openDate = document.getElementById('openDate');
-        var licenseFile = document.getElementById('licenseFile');
-
-        if (type === 'BUSINESS') {
-            userBasicFields.classList.remove('active');
-            userFields.classList.remove('active');
-            businessFields.classList.add('active');
-
-            // 숨겨진 일반회원 전용 필드는 제출 시 막히지 않도록 required 해제할 것 없음(체크박스라 required 아님)
-
-            // 일반회원 전용 필수 해제
-            memberName.required = false;
-            nickname.required = false;
-
-            memberName.disabled = true;
-            nickname.disabled = true;
-            
-            // 사업자 전용 필드는 필수값으로 전환
-            businessName.required = true;
-            representativeName.required = true;
-            openDate.required = true;
-            businessNumber.required = true;
-            licenseFile.required = true;
-            bankName.required = true;
-            accountNumber.required = true;
-            accountHolder.required = true;
-        } else {
-            businessFields.classList.remove('active');
-            userFields.classList.add('active');
-            userBasicFields.classList.add('active');
-            // 일반회원 전용 필수
-            memberName.required = true;
-            nickname.required = true;
-
-            memberName.disabled = false;
-            nickname.disabled = false;
-            // 일반회원 전환 시 사업자 필드 required 해제 (숨겨진 상태라 제출 막힘 방지)
-            businessName.required = false;
-            representativeName.required = false;
-            openDate.required = false;
-            businessNumber.required = false;
-            licenseFile.required = false;
-            bankName.required = false;
-            accountNumber.required = false;
-            accountHolder.required = false;
-                    }
-    }
-
-    // 유효성 검사 실패로 폼이 다시 렌더링된 경우, 이전에 선택했던 탭을 복원
-    (function restoreJoinType() {
-        var previousJoinType = "${joinType}";
-
-        if (previousJoinType === 'BUSINESS') {
-            switchJoinType('BUSINESS');
-        }
-    })();
-</script>
 
 </body>
 </html>

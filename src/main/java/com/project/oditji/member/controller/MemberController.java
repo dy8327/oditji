@@ -42,16 +42,16 @@ public class MemberController {
         private final NtsBusinessService ntsBusinessService;
 
         public MemberController(
-                MemberService memberService,
-                MemberPlatformService memberPlatformService,
-                BusinessService businessService,
-                NtsBusinessService ntsBusinessService) {
+                        MemberService memberService,
+                        MemberPlatformService memberPlatformService,
+                        BusinessService businessService,
+                        NtsBusinessService ntsBusinessService) {
 
-        this.memberService = memberService;
-        this.memberPlatformService = memberPlatformService;
-        this.businessService = businessService;
-        this.ntsBusinessService = ntsBusinessService;
-}
+                this.memberService = memberService;
+                this.memberPlatformService = memberPlatformService;
+                this.businessService = businessService;
+                this.ntsBusinessService = ntsBusinessService;
+        }
 
         @GetMapping("/join")
         public String joinForm() {
@@ -59,45 +59,45 @@ public class MemberController {
         }
 
         /*
-        * =========================================================
-        * 사업자등록번호 중복 확인
-        *
-        * Y : 등록 가능
-        * N : 이미 등록된 번호
-        * =========================================================
-        */
+         * =========================================================
+         * 사업자등록번호 중복 확인
+         *
+         * Y : 등록 가능
+         * N : 이미 등록된 번호
+         * =========================================================
+         */
         @GetMapping("/checkBusinessNumber")
         @ResponseBody
         public String checkBusinessNumber(
-                @RequestParam("businessNumber")
-                String businessNumber) {
+                        @RequestParam("businessNumber") String businessNumber) {
                 boolean available = businessService.isBusinessNumberAvailable(businessNumber);
 
                 return available ? "Y" : "N";
         }
 
         /*
-        * =========================================================
-        * 국세청 사업자등록정보 진위확인
-        * =========================================================
-        */
+         * =========================================================
+         * 국세청 사업자등록정보 진위확인
+         * =========================================================
+         */
         @PostMapping("/verifyBusiness")
         @ResponseBody
         public NtsBusinessVerifyVO verifyBusiness(
-                @RequestParam("businessNumber") String businessNumber,
-                @RequestParam("representativeName") String representativeName,
-                @RequestParam("openDate") String openDate) {
+                        @RequestParam("businessNumber") String businessNumber,
+                        @RequestParam("representativeName") String representativeName,
+                        @RequestParam("openDate") String openDate) {
 
                 return ntsBusinessService.verifyBusiness(
-                        businessNumber,
-                        representativeName,
-                        openDate);
-                }
+                                businessNumber,
+                                representativeName,
+                                openDate);
+        }
 
         @PostMapping("/join")
-                public String join(MemberVO memberVO, BusinessVO businessVO,
+        public String join(MemberVO memberVO, BusinessVO businessVO,
                         @RequestParam(value = "joinType", defaultValue = "USER") String joinType,
                         @RequestParam(value = "ottList", required = false) List<String> ottList,
+                        @RequestParam(value = "noOtt", defaultValue = "N") String noOtt,
                         @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
                         @RequestParam(value = "licenseFile", required = false) MultipartFile licenseFile,
 
@@ -141,90 +141,95 @@ public class MemberController {
                                 System.out.println("저장된 프로필 파일명 = " + saveFileName);
                         }
 
-                /*회원 유형별 가입 처리 */
-                if ("BUSINESS".equalsIgnoreCase(joinType)) {
+                        /* 회원 유형별 가입 처리 */
+                        if ("BUSINESS".equalsIgnoreCase(joinType)) {
 
-                        /* 1. 국세청 사업자 정보 서버 재검증
-                        * 브라우저의 businessVerified 값은 조작 가능하므로
-                        * 실제 가입 시 서버에서 다시 검증한다. */
-                        NtsBusinessVerifyVO verifyResult = ntsBusinessService.verifyBusiness(
-                                                        businessVO.getBusinessNumber(), businessVO.getRepresentativeName(), businessVO.getOpenDate());
+                                /*
+                                 * 1. 국세청 사업자 정보 서버 재검증
+                                 * 브라우저의 businessVerified 값은 조작 가능하므로
+                                 * 실제 가입 시 서버에서 다시 검증한다.
+                                 */
+                                NtsBusinessVerifyVO verifyResult = ntsBusinessService.verifyBusiness(
+                                                businessVO.getBusinessNumber(), businessVO.getRepresentativeName(),
+                                                businessVO.getOpenDate());
 
-                        if (verifyResult == null || !verifyResult.isValid()) {
-                                String message = verifyResult != null && verifyResult.getMessage() != null
-                                                                ? verifyResult.getMessage() : "사업자 정보를 확인할 수 없습니다.";
+                                if (verifyResult == null || !verifyResult.isValid()) {
+                                        String message = verifyResult != null && verifyResult.getMessage() != null
+                                                        ? verifyResult.getMessage()
+                                                        : "사업자 정보를 확인할 수 없습니다.";
 
-                                throw new IllegalArgumentException(message);
-                        }
-
-                        /* 2. 계속사업자인지 최종 확인 */
-                        if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
-
-                                throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
-                        }
-
-                        /*
-                        * 국세청에서 실제 확인한 상태값을 저장한다.
-                        * 클라이언트에서 전달된 값은 사용하지 않는다.
-                        */
-                        businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
-
-                        /* 3. 사업자등록증 필수 확인 */
-                        if (licenseFile == null || licenseFile.isEmpty()) {
-                                throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
-                        }
-
-                        /* 4. 사업자등록증 확장자 확인 */
-                        String originalLicenseName = licenseFile.getOriginalFilename();
-
-                        if (originalLicenseName == null || !originalLicenseName.contains(".")) {
-                                throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
-                        }
-
-                        String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
-                                                        .toLowerCase();
-
-                        if (!licenseExt.equals(".pdf")
-                                        && !licenseExt.equals(".jpg")
-                                        && !licenseExt.equals(".jpeg")
-                                        && !licenseExt.equals(".png")) {
-
-                                throw new IllegalArgumentException("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
-                        }
-
-                        /* 5. 사업자등록증 저장 */
-                        String licenseUploadDir = "C:/oditji/uploads/business-license/";
-                        File licenseDir = new File(licenseUploadDir);
-
-                        if (!licenseDir.exists()) {
-                                boolean created = licenseDir.mkdirs();
-
-                                if (!created && !licenseDir.exists()) {
-                                        throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
+                                        throw new IllegalArgumentException(message);
                                 }
+
+                                /* 2. 계속사업자인지 최종 확인 */
+                                if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
+
+                                        throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
+                                }
+
+                                /*
+                                 * 국세청에서 실제 확인한 상태값을 저장한다.
+                                 * 클라이언트에서 전달된 값은 사용하지 않는다.
+                                 */
+                                businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
+
+                                /* 3. 사업자등록증 필수 확인 */
+                                if (licenseFile == null || licenseFile.isEmpty()) {
+                                        throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
+                                }
+
+                                /* 4. 사업자등록증 확장자 확인 */
+                                String originalLicenseName = licenseFile.getOriginalFilename();
+
+                                if (originalLicenseName == null || !originalLicenseName.contains(".")) {
+                                        throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
+                                }
+
+                                String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
+                                                .toLowerCase();
+
+                                if (!licenseExt.equals(".pdf")
+                                                && !licenseExt.equals(".jpg")
+                                                && !licenseExt.equals(".jpeg")
+                                                && !licenseExt.equals(".png")) {
+
+                                        throw new IllegalArgumentException(
+                                                        "사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+                                }
+
+                                /* 5. 사업자등록증 저장 */
+                                String licenseUploadDir = "C:/oditji/uploads/business-license/";
+                                File licenseDir = new File(licenseUploadDir);
+
+                                if (!licenseDir.exists()) {
+                                        boolean created = licenseDir.mkdirs();
+
+                                        if (!created && !licenseDir.exists()) {
+                                                throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
+                                        }
+                                }
+
+                                String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
+                                File savedLicenseFile = new File(licenseUploadDir + savedLicenseName);
+                                licenseFile.transferTo(savedLicenseFile);
+
+                                /* DB에는 UUID로 저장한 파일명만 저장 */
+                                businessVO.setLicenseFilePath(savedLicenseName);
+
+                                /* 6. MEMBER + BUSINESS 저장 */
+                                memberService.joinBusinessMember(memberVO, businessVO);
+
+                                redirectAttributes.addFlashAttribute("message",
+                                                "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
+
+                        } else {
+                                /* 일반회원은 기존 가입 로직 그대로 사용 */
+                                memberService.joinMember(memberVO, ottList, noOtt);
+
+                                redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
                         }
 
-                        String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
-                        File savedLicenseFile = new File(licenseUploadDir + savedLicenseName);
-                        licenseFile.transferTo(savedLicenseFile);
-
-                        /* DB에는 UUID로 저장한 파일명만 저장 */
-                        businessVO.setLicenseFilePath(savedLicenseName);
-
-                        /* 6. MEMBER + BUSINESS 저장 */
-                        memberService.joinBusinessMember(memberVO, businessVO);
-
-                        redirectAttributes.addFlashAttribute( "message",
-                                        "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
-
-                } else {
-                        /*일반회원은 기존 가입 로직 그대로 사용 */
-                        memberService.joinMember(memberVO, ottList);
-
-                        redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
-                }
-
-                return "redirect:/member/login";        
+                        return "redirect:/member/login";
 
                 } catch (IllegalArgumentException e) {
                         e.printStackTrace();
@@ -235,7 +240,7 @@ public class MemberController {
                 } catch (Exception e) {
                         e.printStackTrace();
                         model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다: " + e.getClass().getName()
-                                                        + " / " + e.getMessage());
+                                        + " / " + e.getMessage());
 
                         return "member/join";
                 }
@@ -293,49 +298,57 @@ public class MemberController {
                         MemberVO loginMember = memberService.loginMember(memberVO);
 
                         if (loginMember == null) {
-                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
+
+                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 틀렸습니다.");
+
+                                /*
+                                 * 로그인에 실패해도 사용자가 입력한 아이디는 유지한다.
+                                 * 비밀번호는 보안상 다시 전달하지 않는다.
+                                 */
+                                redirectAttributes.addFlashAttribute("loginMemberId", memberVO.getMemberId());
 
                                 return "redirect:/member/login";
                         }
 
                         /*
-                        * =========================================================
-                        * 사업자 회원 승인 상태 확인
-                        *
-                        * BUSINESS 행이 존재하면 사업자 회원으로 판단한다.
-                        * 관리자 승인(APPROVED) 전에는 로그인시키지 않는다.
-                        * =========================================================
-                        */
+                         * =========================================================
+                         * 사업자 회원 승인 상태 확인
+                         *
+                         * BUSINESS 행이 존재하면 사업자 회원으로 판단한다.
+                         * 관리자 승인(APPROVED) 전에는 로그인시키지 않는다.
+                         * =========================================================
+                         */
                         BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
 
                         if (business != null) {
                                 String businessStatus = business.getStatus();
 
-                        /* 승인 대기*/
-                        if ("WAITING".equals(businessStatus)) {
-                                 redirectAttributes.addFlashAttribute("message", "관리자 승인 대기 중인 사업자 계정입니다.");
+                                /* 승인 대기 */
+                                if ("WAITING".equals(businessStatus)) {
+                                        redirectAttributes.addFlashAttribute("message", "관리자 승인 대기 중인 사업자 계정입니다.");
 
-                                return "redirect:/member/login";
-                        }
-
-                        /* 승인 거절 */
-                        if ("REJECTED".equals(businessStatus)) {
-                                String message = "사업자 승인이 거절되었습니다.";
-
-                                if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
-                                         message += "\n사유: "+ business.getRejectReason();
+                                        return "redirect:/member/login";
                                 }
-                                redirectAttributes.addFlashAttribute("message", message);
 
-                                 return "redirect:/member/login";
-                        }
+                                /* 승인 거절 */
+                                if ("REJECTED".equals(businessStatus)) {
+                                        String message = "사업자 승인이 거절되었습니다.";
 
-                        /* 승인된 사업자만 로그인 허용 */
-                        if (!"APPROVED".equals(businessStatus)) {
-                                redirectAttributes.addFlashAttribute("message", "현재 사업자 계정 상태로는 로그인할 수 없습니다.");
+                                        if (business.getRejectReason() != null
+                                                        && !business.getRejectReason().isBlank()) {
+                                                message += "\n사유: " + business.getRejectReason();
+                                        }
+                                        redirectAttributes.addFlashAttribute("message", message);
 
-                                return "redirect:/member/login";
-                        }
+                                        return "redirect:/member/login";
+                                }
+
+                                /* 승인된 사업자만 로그인 허용 */
+                                if (!"APPROVED".equals(businessStatus)) {
+                                        redirectAttributes.addFlashAttribute("message", "현재 사업자 계정 상태로는 로그인할 수 없습니다.");
+
+                                        return "redirect:/member/login";
+                                }
                         }
 
                         session.setAttribute("loginMember", loginMember);
@@ -344,19 +357,18 @@ public class MemberController {
                         session.setAttribute("memberName", loginMember.getMemberName());
                         session.setAttribute("nickname", loginMember.getNickname());
                         session.setAttribute("role", loginMember.getRole());
-                        
+
                         if (business != null) {
                                 session.setAttribute("businessNo", business.getBusinessNo());
-                                session.setAttribute("businessName",business.getBusinessName());
-                                session.setAttribute("businessStatus", business.getStatus());           
-                                }
+                                session.setAttribute("businessName", business.getBusinessName());
+                                session.setAttribute("businessStatus", business.getStatus());
+                        }
                         String displayName = loginMember.getMemberName();
                         if (business != null) {
                                 displayName = business.getBusinessName();
-                        }
-                         else{
+                        } else {
                                 if (displayName == null || displayName.isBlank()) {
-                                displayName = loginMember.getNickname();
+                                        displayName = loginMember.getNickname();
                                 }
                         }
                         if (displayName == null || displayName.isBlank()) {
@@ -388,7 +400,8 @@ public class MemberController {
                          */
                         session.setAttribute("restoreMemberNo", e.getMemberNo());
                         session.setAttribute("restoreProvider", "LOCAL");
-                        redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+                        redirectAttributes.addFlashAttribute("withdrawnMessage",
+                                        WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
                         return "redirect:/member/login";
 
@@ -494,6 +507,27 @@ public class MemberController {
 
                 boolean duplicate = memberService.isDuplicateId(
                                 memberId);
+
+                if (duplicate) {
+                        return "N";
+                }
+
+                return "Y";
+        }
+
+        /*
+         * =========================================================
+         * 이메일 중복확인
+         *
+         * Y : 사용 가능한 이메일
+         * N : 이미 사용 중인 이메일
+         * =========================================================
+         */
+        @GetMapping("/checkEmail")
+        @ResponseBody
+        public String checkEmail(
+                        @RequestParam("email") String email) {
+                boolean duplicate = memberService.isDuplicateEmail(email);
 
                 if (duplicate) {
                         return "N";
@@ -659,15 +693,27 @@ public class MemberController {
 
                         } catch (Exception e) {
 
-                                return redirectWithError(redirectAttributes,"이미지 업로드에 실패했습니다.");
+                                return redirectWithError(redirectAttributes, "이미지 업로드에 실패했습니다.");
                         }
                 }
 
                 /*
                  * 회원정보 수정
+                 *
+                 * 중복확인 버튼의 결과는 브라우저에서 조작할 수 있으므로
+                 * Service에서 현재 회원을 제외한 닉네임/이메일 중복을 다시 검사한다.
                  */
-                memberService.updateMember(
-                                memberVO);
+                try {
+                        memberService.updateMember(
+                                        memberVO);
+
+                } catch (IllegalArgumentException
+                                | IllegalStateException e) {
+
+                        return redirectWithError(
+                                        redirectAttributes,
+                                        e.getMessage());
+                }
 
                 MemberVO updated = memberService.getMemberByNo(
                                 memberVO.getMemberNo());
@@ -781,6 +827,44 @@ public class MemberController {
                 System.out.println(
                                 "닉네임 사용 가능 여부 = "
                                                 + available);
+
+                return available
+                                ? "Y"
+                                : "N";
+        }
+
+        /**
+         * 회원정보 수정용 이메일 중복확인
+         *
+         * 로그인 세션의 회원번호를 사용하여 자기 자신을 제외한
+         * 이메일 중복 여부를 확인한다.
+         */
+        @GetMapping("/checkUpdateEmail")
+        @ResponseBody
+        public String checkUpdateEmail(
+                        @RequestParam("email") String email,
+                        HttpSession session) {
+
+                MemberVO loginMember = (MemberVO) session.getAttribute(
+                                "loginMember");
+
+                if (loginMember == null
+                                || loginMember.getMemberNo() == null) {
+
+                        return "N";
+                }
+
+                if (email == null
+                                || email.isBlank()) {
+
+                        return "N";
+                }
+
+                String trimmedEmail = email.trim();
+
+                boolean available = memberService.checkUpdateEmail(
+                                loginMember.getMemberNo(),
+                                trimmedEmail);
 
                 return available
                                 ? "Y"

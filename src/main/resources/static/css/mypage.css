@@ -2,853 +2,724 @@
    MyPage
 ========================================================= */
 
-.mypage-container{
+.mypage-container {
+  width: 1200px;
 
-    width:1200px;
+  margin: 60px auto 80px;
 
-    margin:60px auto 80px;
-
-    color:#F5F5F5;
-
+  color: #f5f5f5;
 }
 
 /* =========================================================
    Common
 ========================================================= */
 
-.mypage-section-header{
+.mypage-section-header {
+  display: flex;
 
-    display:flex;
+  justify-content: space-between;
 
-    justify-content:space-between;
+  align-items: flex-end;
 
-    align-items:flex-end;
-
-    margin-bottom:25px;
-
+  margin-bottom: 25px;
 }
 
-.mypage-section-header h2{
+.mypage-section-header h2 {
+  font-size: 28px;
 
-    font-size:28px;
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    margin-bottom:8px;
-
+  margin-bottom: 8px;
 }
 
-.mypage-section-header p{
+.mypage-section-header p {
+  color: #9ca3af;
 
-    color:#9CA3AF;
-
-    font-size:15px;
-
+  font-size: 15px;
 }
 
-.mypage-more{
+.mypage-more {
+  color: #4f8cff;
 
-    color:#4F8CFF;
+  font-size: 14px;
 
-    font-size:14px;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.mypage-more:hover{
-
-    color:#7DB2FF;
-
+.mypage-more:hover {
+  color: #7db2ff;
 }
 
 /* =========================================================
    Welcome
 ========================================================= */
 
-.mypage-welcome{
-
-    margin-bottom:50px;
-
+.mypage-welcome {
+  margin-bottom: 50px;
 }
 
-.mypage-greeting{
+.mypage-greeting {
+  color: #9ca3af;
 
-    color:#9CA3AF;
+  font-size: 18px;
 
-    font-size:18px;
-
-    margin-bottom:10px;
-
+  margin-bottom: 10px;
 }
 
-.mypage-welcome h1{
+.mypage-welcome h1 {
+  font-size: 42px;
 
-    font-size:42px;
+  font-weight: 700;
 
-    font-weight:700;
+  margin-bottom: 15px;
 
-    margin-bottom:15px;
-
-    color:#FFFFFF;
-
+  color: #ffffff;
 }
 
-.mypage-message{
+.mypage-message {
+  color: #cfcfcf;
 
-    color:#CFCFCF;
-
-    font-size:17px;
-
+  font-size: 17px;
 }
 
 /* =========================================================
    Profile
 ========================================================= */
 
-.mypage-profile{
+.mypage-profile {
+  display: flex;
 
-    display:flex;
+  justify-content: space-between;
 
-    justify-content:space-between;
+  align-items: center;
 
-    align-items:center;
+  background: #232323;
 
-    background:#232323;
+  border: 1px solid #343434;
 
-    border:1px solid #343434;
+  border-radius: 18px;
 
-    border-radius:18px;
+  padding: 35px 40px;
 
-    padding:35px 40px;
-
-    margin-bottom:35px;
-
+  margin-bottom: 35px;
 }
 
-.mypage-profile-left{
+.mypage-profile-left {
+  display: flex;
 
-    display:flex;
+  align-items: center;
 
-    align-items:center;
-
-    gap:25px;
-
+  gap: 25px;
 }
 
-.mypage-profile-image img{
+.mypage-profile-image img {
+  width: 110px;
 
-    width:110px;
+  height: 110px;
 
-    height:110px;
+  object-fit: cover;
 
-    object-fit:cover;
+  border-radius: 50%;
 
-    border-radius:50%;
-
-    border:4px solid #4F8CFF;
-
+  border: 4px solid #4f8cff;
 }
 
-.mypage-profile-info h2{
+.mypage-profile-info h2 {
+  font-size: 30px;
 
-    font-size:30px;
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    margin-bottom:10px;
-
+  margin-bottom: 10px;
 }
 
-.mypage-profile-info p{
+.mypage-profile-info p {
+  color: #a5a5a5;
 
-    color:#A5A5A5;
-
-    margin-bottom:15px;
-
+  margin-bottom: 15px;
 }
 
-.mypage-member-type{
+.mypage-member-type {
+  display: inline-block;
 
-    display:inline-block;
+  padding: 8px 18px;
 
-    padding:8px 18px;
+  border-radius: 30px;
 
-    border-radius:30px;
+  background: #2d3e5f;
 
-    background:#2D3E5F;
+  color: #7eb1ff;
 
-    color:#7EB1FF;
+  font-size: 14px;
 
-    font-size:14px;
+  font-weight: 600;
 
-    font-weight:600;
-
-    margin-bottom:10px;
-
+  margin-bottom: 10px;
 }
 
-.mypage-profile-right button{
+.mypage-profile-right button {
+  width: 170px;
 
-    width:170px;
+  height: 48px;
 
-    height:48px;
+  border-radius: 10px;
 
-    border-radius:10px;
+  background: #4f8cff;
 
-    background:#4F8CFF;
+  color: white;
 
-    color:white;
+  font-size: 15px;
 
-    font-size:15px;
+  font-weight: 600;
 
-    font-weight:600;
-
-    transition:.25s;
-
+  transition: 0.25s;
 }
 
-.mypage-profile-right button:hover{
-
-    background:#3D79F4;
-
+.mypage-profile-right button:hover {
+  background: #3d79f4;
 }
 
 /* =========================================================
    OTT
 ========================================================= */
 
-.mypage-ott{
+.mypage-ott {
+  background: #232323;
 
-    background:#232323;
+  border: 1px solid #343434;
 
-    border:1px solid #343434;
+  border-radius: 18px;
 
-    border-radius:18px;
+  padding: 35px 40px;
 
-    padding:35px 40px;
-
-    margin-bottom:50px;
-
+  margin-bottom: 50px;
 }
 
-.mypage-ott button{
+.mypage-ott button {
+  width: 160px;
 
-    width:160px;
+  height: 45px;
 
-    height:45px;
+  border-radius: 10px;
 
-    border-radius:10px;
+  background: #4f8cff;
 
-    background:#4F8CFF;
+  color: white;
 
-    color:white;
-
-    font-weight:600;
-
+  font-weight: 600;
 }
 
-.mypage-ott-list{
+.mypage-ott-list {
+  display: flex;
 
-    display:flex;
+  flex-wrap: wrap;
 
-    flex-wrap:wrap;
-
-    gap:15px;
-
+  gap: 15px;
 }
 
-.mypage-ott-chip{
+.mypage-ott-chip {
+  padding: 11px 22px;
 
-    padding:11px 22px;
+  border-radius: 30px;
 
-    border-radius:30px;
+  background: #313131;
 
-    background:#313131;
+  border: 1px solid #454545;
 
-    border:1px solid #454545;
+  color: #f5f5f5;
 
-    color:#F5F5F5;
+  font-size: 14px;
 
-    font-size:14px;
+  font-weight: 600;
 
-    font-weight:600;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.mypage-ott-chip:hover{
+.mypage-ott-chip:hover {
+  background: #4f8cff;
 
-    background:#4F8CFF;
-
-    border-color:#4F8CFF;
-
+  border-color: #4f8cff;
 }
 
-.mypage-empty{
-
-    color:#8A8A8A;
-
+.mypage-empty {
+  color: #8a8a8a;
 }
 
 /* =========================================================
    Activity
 ========================================================= */
 
-.mypage-activity{
-
-    margin-bottom:60px;
-
+.mypage-activity {
+  margin-bottom: 60px;
 }
 
-.mypage-activity-grid{
+.mypage-activity-grid {
+  display: grid;
 
-    display:grid;
+  grid-template-columns: repeat(4, 1fr);
 
-    grid-template-columns:repeat(4,1fr);
-
-    gap:20px;
-
+  gap: 20px;
 }
 
-.mypage-activity-card{
+.mypage-activity-card {
+  display: flex;
 
-    display:flex;
+  flex-direction: column;
 
-    flex-direction:column;
+  align-items: center;
 
-    align-items:center;
+  justify-content: center;
 
-    justify-content:center;
+  text-align: center;
 
-    text-align:center;
+  padding: 35px 20px;
 
-    padding:35px 20px;
+  background: #232323;
 
-    background:#232323;
+  border: 1px solid #343434;
 
-    border:1px solid #343434;
+  border-radius: 18px;
 
-    border-radius:18px;
-
-    transition:.25s;
-
+  transition: 0.25s;
 }
 
-.mypage-activity-card:hover{
+.mypage-activity-card:hover {
+  background: #2b2b2b;
 
-    background:#2B2B2B;
+  border-color: #4f8cff;
 
-    border-color:#4F8CFF;
-
-    transform:translateY(-6px);
-
+  transform: translateY(-6px);
 }
 
-.mypage-activity-icon{
+.mypage-activity-icon {
+  font-size: 34px;
 
-    font-size:34px;
-
-    margin-bottom:18px;
-
+  margin-bottom: 18px;
 }
 
-.mypage-activity-count{
+.mypage-activity-count {
+  font-size: 36px;
 
-    font-size:36px;
+  font-weight: 700;
 
-    font-weight:700;
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    margin-bottom:12px;
-
+  margin-bottom: 12px;
 }
 
-.mypage-activity-title{
+.mypage-activity-title {
+  font-size: 15px;
 
-    font-size:15px;
-
-    color:#AFAFAF;
-
+  color: #afafaf;
 }
 
 /* =========================================================
    Review
 ========================================================= */
 
-.mypage-review{
-
-    margin-bottom:60px;
-
+.mypage-review {
+  margin-bottom: 60px;
 }
 
-.mypage-review-list{
+.mypage-review-list {
+  display: flex;
 
-    display:flex;
+  flex-direction: column;
 
-    flex-direction:column;
-
-    gap:18px;
-
+  gap: 18px;
 }
 
-.mypage-review-card{
+.mypage-review-card {
+  background: #232323;
 
-    background:#232323;
+  border: 1px solid #343434;
 
-    border:1px solid #343434;
+  border-radius: 18px;
 
-    border-radius:18px;
+  padding: 24px;
 
-    padding:24px;
-
-    transition:.25s;
-
+  transition: 0.25s;
 }
 
-.mypage-review-card:hover{
+.mypage-review-card:hover {
+  border-color: #4f8cff;
 
-    border-color:#4F8CFF;
-
-    background:#2B2B2B;
-
+  background: #2b2b2b;
 }
 
-.mypage-review-top{
+.mypage-review-top {
+  display: flex;
 
-    display:flex;
+  justify-content: space-between;
 
-    justify-content:space-between;
+  align-items: flex-start;
 
-    align-items:flex-start;
-
-    margin-bottom:16px;
-
+  margin-bottom: 16px;
 }
 
-.mypage-review-top h3{
+.mypage-review-top h3 {
+  font-size: 20px;
 
-    font-size:20px;
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    margin-bottom:6px;
-
+  margin-bottom: 6px;
 }
 
-.mypage-review-top span{
+.mypage-review-top span {
+  color: #8c8c8c;
 
-    color:#8C8C8C;
-
-    font-size:13px;
-
+  font-size: 13px;
 }
 
-.mypage-review-score{
+.mypage-review-score {
+  color: #ffd54a;
 
-    color:#FFD54A;
-
-    font-weight:700;
-
+  font-weight: 700;
 }
 
-.mypage-review-content{
+.mypage-review-content {
+  color: #d3d3d3;
 
-    color:#D3D3D3;
-
-    line-height:1.8;
-
+  line-height: 1.8;
 }
 
-.mypage-review-clickable { cursor: pointer; }
-.mypage-review-actions { text-align: right; margin-top: 8px; }
-.mypage-review-delete-btn { 
-    background: none; border: 1px solid #ddd; border-radius: 4px;
-    padding: 4px 10px; cursor: pointer; color: #888;
+.mypage-review-clickable {
+  cursor: pointer;
 }
-.mypage-review-delete-btn:hover { color: #e74c3c; border-color: #e74c3c; }
-
-.mypage-empty-box{
-
-    background:#232323;
-
-    border:2px dashed #404040;
-
-    border-radius:18px;
-
-    padding:60px;
-
-    text-align:center;
-
+.mypage-review-actions {
+  text-align: right;
+  margin-top: 8px;
+}
+.mypage-review-delete-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: #888;
+}
+.mypage-review-delete-btn:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
 }
 
-.mypage-empty-icon{
+.mypage-empty-box {
+  background: #232323;
 
-    font-size:48px;
+  border: 2px dashed #404040;
 
-    margin-bottom:20px;
+  border-radius: 18px;
 
+  padding: 60px;
+
+  text-align: center;
 }
 
-.mypage-empty-box h3{
+.mypage-empty-icon {
+  font-size: 48px;
 
-    color:#FFFFFF;
-
-    margin-bottom:15px;
-
+  margin-bottom: 20px;
 }
 
-.mypage-empty-box p{
+.mypage-empty-box h3 {
+  color: #ffffff;
 
-    color:#A5A5A5;
-
-    margin-bottom:30px;
-
+  margin-bottom: 15px;
 }
 
-.mypage-empty-box button{
+.mypage-empty-box p {
+  color: #a5a5a5;
 
-    width:180px;
-
-    height:48px;
-
-    background:#4F8CFF;
-
-    color:white;
-
-    border-radius:10px;
-
-    font-weight:600;
-
+  margin-bottom: 30px;
 }
 
-.mypage-empty-box button:hover{
+.mypage-empty-box button {
+  width: 180px;
 
-    background:#3D79F4;
+  height: 48px;
 
+  background: #4f8cff;
+
+  color: white;
+
+  border-radius: 10px;
+
+  font-weight: 600;
+}
+
+.mypage-empty-box button:hover {
+  background: #3d79f4;
 }
 
 /* =========================================================
    Business
 ========================================================= */
 
-.mypage-business{
-
-    margin-bottom:60px;
-
+.mypage-business {
+  margin-bottom: 60px;
 }
 
-.mypage-business-banner{
+.mypage-business-banner {
+  display: flex;
 
-    display:flex;
+  justify-content: space-between;
 
-    justify-content:space-between;
+  align-items: center;
 
-    align-items:center;
+  padding: 35px 40px;
 
-    padding:35px 40px;
+  border-radius: 18px;
 
-    border-radius:18px;
+  background: linear-gradient(135deg, #262626, #1f1f1f);
 
-    background:linear-gradient(135deg,#262626,#1F1F1F);
-
-    border:1px solid #3A3A3A;
-
+  border: 1px solid #3a3a3a;
 }
 
-.mypage-business-info{
+.mypage-business-info {
+  display: flex;
 
-    display:flex;
+  align-items: center;
 
-    align-items:center;
-
-    gap:25px;
-
+  gap: 25px;
 }
 
-.mypage-business-icon{
-
-    font-size:54px;
-
+.mypage-business-icon {
+  font-size: 54px;
 }
 
-.mypage-business-info h3{
+.mypage-business-info h3 {
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    margin-bottom:10px;
-
+  margin-bottom: 10px;
 }
 
-.mypage-business-info p{
+.mypage-business-info p {
+  color: #b0b0b0;
 
-    color:#B0B0B0;
-
-    line-height:1.7;
-
+  line-height: 1.7;
 }
 
-.mypage-business-btn{
+.mypage-business-btn {
+  width: 190px;
 
-    width:190px;
+  height: 50px;
 
-    height:50px;
+  border-radius: 12px;
 
-    border-radius:12px;
+  background: #f59e0b;
 
-    background:#F59E0B;
+  color: #222;
 
-    color:#222;
+  font-weight: 700;
 
-    font-weight:700;
-
-    transition:.25s;
-
+  transition: 0.25s;
 }
 
-.mypage-business-btn:hover{
+.mypage-business-btn:hover {
+  background: #ffb020;
 
-    background:#FFB020;
-
-    transform:translateY(-3px);
-
+  transform: translateY(-3px);
 }
 
 .btn-danger {
-    background: #e74c3c;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-weight: bold;
+  background: #e74c3c;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
 }
 
 .btn-danger:hover {
-    background: #e60000;
+  background: #e60000;
 }
 
 /* =========================================================
    Account
 ========================================================= */
 
-.mypage-account{
-
-    margin-bottom:80px;
-
+.mypage-account {
+  margin-bottom: 80px;
 }
 
-.mypage-account-grid{
+.mypage-account-grid {
+  display: grid;
 
-    display:grid;
+  grid-template-columns: repeat(3, 1fr);
 
-    grid-template-columns:repeat(3,1fr);
-
-    gap:20px;
-
+  gap: 20px;
 }
 
-.mypage-account-card{
+.mypage-account-card {
+  background: #232323;
 
-    background:#232323;
+  border: 1px solid #343434;
 
-    border:1px solid #343434;
+  border-radius: 18px;
 
-    border-radius:18px;
+  padding: 28px;
 
-    padding:28px;
-
-    text-align:center;
-
+  text-align: center;
 }
 
-.mypage-account-card h4{
+.mypage-account-card h4 {
+  color: #a0a0a0;
 
-    color:#A0A0A0;
+  font-size: 14px;
 
-    font-size:14px;
-
-    margin-bottom:15px;
-
+  margin-bottom: 15px;
 }
 
-.mypage-account-card p{
+.mypage-account-card p {
+  color: #ffffff;
 
-    color:#FFFFFF;
+  font-size: 20px;
 
-    font-size:20px;
-
-    font-weight:600;
-
+  font-weight: 600;
 }
 
 /* =========================================================
    Responsive
 ========================================================= */
 
-@media(max-width:1024px){
+@media (max-width: 1024px) {
+  .mypage-container {
+    width: 95%;
+  }
 
-    .mypage-container{
+  .mypage-activity-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-        width:95%;
-
-    }
-
-    .mypage-activity-grid{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
-    .mypage-account-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
+  .mypage-account-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media(max-width:768px){
+@media (max-width: 768px) {
+  .mypage-profile {
+    flex-direction: column;
 
-    .mypage-profile{
+    gap: 25px;
 
-        flex-direction:column;
+    align-items: flex-start;
+  }
 
-        gap:25px;
+  .mypage-profile-left {
+    flex-direction: column;
 
-        align-items:flex-start;
+    text-align: center;
 
-    }
+    width: 100%;
+  }
 
-    .mypage-profile-left{
+  .mypage-business-banner {
+    flex-direction: column;
 
-        flex-direction:column;
+    gap: 25px;
 
-        text-align:center;
+    align-items: flex-start;
+  }
 
-        width:100%;
+  .mypage-business-info {
+    flex-direction: column;
 
-    }
+    align-items: flex-start;
+  }
 
-    .mypage-business-banner{
+  .mypage-activity-grid {
+    grid-template-columns: 1fr;
+  }
 
-        flex-direction:column;
+  .mypage-review-top {
+    flex-direction: column;
 
-        gap:25px;
-
-        align-items:flex-start;
-
-    }
-
-    .mypage-business-info{
-
-        flex-direction:column;
-
-        align-items:flex-start;
-
-    }
-
-    .mypage-activity-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .mypage-review-top{
-
-        flex-direction:column;
-
-        gap:10px;
-
-    }
-
+    gap: 10px;
+  }
 }
-
 
 /* =========================
    MODAL OVERLAY (공통)
 ========================= */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
 
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 
-    background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7);
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    z-index: 9999;
+  z-index: 9999;
 
-    padding: 20px;
+  padding: 20px;
 }
 
 /* =========================
    MODAL BOX (공통)
 ========================= */
 .modal-box {
-    width: 440px;
-    max-width: 100%;
+  width: 560px;
+  max-width: calc(100vw - 40px);
 
-    background: #1f1f1f;
-    color: #f5f5f5;
+  background: #1f1f1f;
+  color: #f5f5f5;
 
-    border-radius: 14px;
+  border-radius: 14px;
 
-    padding: 24px;
+  padding: 28px 30px;
 
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
 
-    animation: modalPop 0.18s ease-out;
+  animation: modalPop 0.18s ease-out;
 }
 
 /* =========================
    ANIMATION
 ========================= */
 @keyframes modalPop {
-    from {
-        transform: scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* =========================
    HIDDEN (JS 토글용)
 ========================= */
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
 /* =========================
    TITLE
 ========================= */
 .modal-box h2 {
-    font-size: 20px;
-    margin-bottom: 18px;
+  font-size: 20px;
+  margin-bottom: 18px;
 }
 
 /* =========================
    FORM GROUP
 ========================= */
 .modal-box .form-group {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    gap: 6px;
-    margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .modal-box label {
-    font-size: 13px;
-    color: #bbb;
+  font-size: 13px;
+  color: #bbb;
 }
 
 /* =========================
@@ -858,82 +729,203 @@
 .modal-box input[type="password"],
 .modal-box input[type="email"],
 .modal-box input[type="file"] {
-    padding: 10px 12px;
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 13px;
 
-    border-radius: 8px;
-    border: 1px solid #333;
+  border-radius: 8px;
+  border: 1px solid #333;
 
-    background: #111;
-    color: #fff;
+  background: #111;
+  color: #fff;
+}
+
+/* =========================
+   중복확인 입력 행
+========================= */
+.modal-box .duplicate-check-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.modal-box .duplicate-check-row input {
+  width: 100%;
+  min-width: 0;
+}
+
+.modal-box .duplicate-check-btn {
+  width: 96px;
+  min-width: 96px;
+  height: 46px;
+  padding: 0 10px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.modal-box .duplicate-check-btn:hover {
+  background: #444;
+  border-color: #555;
+}
+
+.modal-box .input-message {
+  min-height: 16px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.modal-box .input-message.valid {
+  color: #65c86e;
+}
+
+.modal-box .input-message.invalid {
+  color: #ff7b7b;
+}
+
+/* =========================
+   비밀번호 입력 행
+========================= */
+.modal-box .password-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.modal-box .password-input-row input {
+  width: 100%;
+  min-width: 0;
+}
+
+.modal-box .password-toggle-btn {
+  width: 64px;
+  min-width: 64px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-box .password-toggle-btn:hover {
+  background: #444;
+  border-color: #555;
+}
+
+.modal-box input[type="file"] {
+  height: auto;
+  min-height: 46px;
+  padding: 8px 10px;
 }
 
 /* =========================
    OTT CHECKBOX
 ========================= */
 .modal-box label input[type="checkbox"] {
-    margin-right: 6px;
+  margin-right: 6px;
 }
 
 .modal-box .ott-label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 /* =========================
    DANGER TEXT (탈퇴용)
 ========================= */
 .danger-text {
-    color: #ff6b6b;
-    font-size: 13px;
-    margin-bottom: 12px;
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 12px;
 }
 
 /* =========================
    BUTTON AREA
 ========================= */
 .modal-btns {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 /* 기본 버튼 */
 .modal-btns button {
-    padding: 8px 14px;
+  padding: 8px 14px;
 
-    border-radius: 8px;
-    cursor: pointer;
+  border-radius: 8px;
+  cursor: pointer;
 
-    font-size: 14px;
+  font-size: 14px;
 }
 
 /* 저장 버튼 */
 .modal-btns button[type="submit"] {
-    background: #4caf50;
-    color: white;
+  background: #4caf50;
+  color: white;
 }
 
 /* 취소 버튼 */
 .modal-btns button[type="button"] {
-    background: #444;
-    color: white;
+  background: #444;
+  color: white;
 }
 
 /* =========================
    RESPONSIVE
 ========================= */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 16px;
+  }
 
-    .modal-box {
-        width: 92%;
-        padding: 18px;
-    }
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    padding: 22px 18px;
+    margin: auto 0;
+  }
 
+  .modal-box .duplicate-check-row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .modal-box .duplicate-check-btn {
+    width: 88px;
+    min-width: 88px;
+  }
+
+  .modal-box .password-input-row {
+    grid-template-columns: minmax(0, 1fr) 58px;
+  }
+
+  .modal-box .password-toggle-btn {
+    width: 58px;
+    min-width: 58px;
+  }
 }
 
 .modal-overlay.hidden {
-    display: none !important;
+  display: none !important;
 }

@@ -19,7 +19,7 @@ public interface MemberDAO {
     Long selectPlatformNoByCode(@Param("platformCode") String platformCode);
 
     int insertMemberPlatform(@Param("memberNo") Long memberNo,
-                             @Param("platformNo") Long platformNo);
+            @Param("platformNo") Long platformNo);
 
     MemberVO loginMember(MemberVO memberVO);
 
@@ -46,14 +46,17 @@ public interface MemberDAO {
     int restoreMember(@Param("memberNo") Long memberNo);
 
     int checkPassword(@Param("memberNo") Long memberNo,
-                    @Param("password") String password);
+            @Param("password") String password);
 
     MemberVO getMemberByNo(@Param("memberNo") Long memberNo);
 
     int countByNicknameExceptMe(
             @Param("nickname") String nickname,
-            @Param("memberNo") Long memberNo
-    );
+            @Param("memberNo") Long memberNo);
+
+    int countByEmailExceptMe(
+            @Param("email") String email,
+            @Param("memberNo") Long memberNo);
 
     MemberVO findId(MemberVO memberVO);
 

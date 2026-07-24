@@ -34,7 +34,7 @@
 
             <div class="form-group">
                 <label>아이디</label>
-                <input type="text" name="memberId" required>
+                <input type="text" name="memberId" value="<c:out value='${loginMemberId}'/>" autocomplete="username" required>
             </div>
 
             <div class="form-group">

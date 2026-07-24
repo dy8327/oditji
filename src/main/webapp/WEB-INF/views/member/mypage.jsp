@@ -422,6 +422,11 @@
                    value="${loginMember.nickname}">
 
 
+            <input type="hidden"
+                   id="originalEmail"
+                   value="${loginMember.email}">
+
+
 
             <!-- 닉네임 -->
 
@@ -432,18 +437,20 @@
                 </label>
 
 
-                <div class="row">
+                <div class="duplicate-check-row">
 
                     <input type="text"
                            id="updateNickname"
                            name="nickname"
                            value="${loginMember.nickname}"
                            placeholder="한글/영문/숫자 2~10자"
+                           maxlength="10"
                            required>
 
 
                     <button type="button"
-                            id="checkUpdateNicknameBtn">
+                            id="checkUpdateNicknameBtn"
+                            class="duplicate-check-btn">
 
                         중복확인
 
@@ -475,11 +482,31 @@
                     </label>
 
 
-                    <input type="email"
-                           id="updateEmail"
-                           name="email"
-                           value="${loginMember.email}"
-                           readonly>
+                    <div class="duplicate-check-row">
+
+                        <input type="email"
+                               id="updateEmail"
+                               name="email"
+                               value="${loginMember.email}"
+                               placeholder="example@email.com"
+                               required>
+
+
+                        <button type="button"
+                                id="checkUpdateEmailBtn"
+                                class="duplicate-check-btn">
+
+                            중복확인
+
+                        </button>
+
+                    </div>
+
+
+                    <small id="emailMessage"
+                           class="input-message">
+
+                    </small>
 
                 </div>
 
@@ -525,9 +552,21 @@
                     </label>
 
 
-                    <input type="password"
-                           id="currentPw"
-                           name="currentPw">
+                    <div class="password-input-row">
+
+                        <input type="password"
+                               id="currentPw"
+                               name="currentPw"
+                               autocomplete="current-password">
+
+                        <button type="button"
+                                class="password-toggle-btn"
+                                data-target="currentPw"
+                                aria-label="현재 비밀번호 표시">
+                            보기
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -541,10 +580,22 @@
                     </label>
 
 
-                    <input type="password"
-                           id="newPw"
-                           name="newPw"
-                           placeholder="영문, 숫자, 특수문자 포함 8~20자">
+                    <div class="password-input-row">
+
+                        <input type="password"
+                               id="newPw"
+                               name="newPw"
+                               placeholder="영문, 숫자, 특수문자 포함 8~20자"
+                               autocomplete="new-password">
+
+                        <button type="button"
+                                class="password-toggle-btn"
+                                data-target="newPw"
+                                aria-label="새 비밀번호 표시">
+                            보기
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -558,9 +609,21 @@
                     </label>
 
 
-                    <input type="password"
-                           id="newPwCheck"
-                           name="newPwCheck">
+                    <div class="password-input-row">
+
+                        <input type="password"
+                               id="newPwCheck"
+                               name="newPwCheck"
+                               autocomplete="new-password">
+
+                        <button type="button"
+                                class="password-toggle-btn"
+                                data-target="newPwCheck"
+                                aria-label="새 비밀번호 확인 표시">
+                            보기
+                        </button>
+
+                    </div>
 
                 </div>
 
