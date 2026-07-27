@@ -44,22 +44,26 @@
         <%-- 회원 현황 통계 카드 (클릭 시 해당 상태로 자동 조회) --%>
         <div class="member-stat-grid">
 
-            <a class="stat-card" href="?memberType=${memberType}">
+            <a class="stat-card ${empty status ? 'active' : ''}"
+               href="?memberType=${memberType}">
                 <span>총 회원</span>
                 <strong>${memberStats.totalCount}명</strong>
             </a>
 
-            <a class="stat-card" href="?memberType=${memberType}&status=ACTIVE">
+            <a class="stat-card ${status == 'ACTIVE' ? 'active' : ''}"
+               href="?memberType=${memberType}&status=ACTIVE">
                 <span>정상 회원</span>
                 <strong>${memberStats.activeCount}명</strong>
             </a>
 
-            <a class="stat-card" href="?memberType=${memberType}&status=BLOCKED">
+            <a class="stat-card ${status == 'BLOCKED' ? 'active' : ''}"
+               href="?memberType=${memberType}&status=BLOCKED">
                 <span>정지 회원</span>
                 <strong>${memberStats.blockedCount}명</strong>
             </a>
 
-            <a class="stat-card" href="?memberType=${memberType}&status=WITHDRAWN">
+            <a class="stat-card ${status == 'WITHDRAWN' ? 'active' : ''}"
+               href="?memberType=${memberType}&status=WITHDRAWN">
                 <span>탈퇴 회원 (자동삭제 예정)</span>
                 <strong>${memberStats.withdrawnCount}명</strong>
             </a>
