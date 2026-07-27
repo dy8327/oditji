@@ -325,6 +325,7 @@ public class AdminController {
     public String eventList(
             Model model,
             @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String period,
             @RequestParam(required = false) String keyword) {
 
         model.addAttribute("activeMenu", "event");
@@ -333,30 +334,62 @@ public class AdminController {
                 "eventRequestList",
                 adminService.getEventList(tab, keyword));
 
+        model.addAttribute("eventStats", adminService.getEventStats());
+
         return "admin/event/eventManage";
     }
 
     @PostMapping("/event/approve")
     public String eventApprove(
             @RequestParam Long eventNo,
-            @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String keyword) {
 
         adminService.approveEvent(eventNo);
 
-        return "redirect:/admin/event/list?tab=" + tab;
+        return "redirect:" + eventListRedirectUrl(tab, period, keyword);
     }
 
     @PostMapping("/event/reject")
     public String eventReject(
             @RequestParam Long eventNo,
-            @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String keyword) {
 
         adminService.rejectEvent(eventNo);
 
-        return "redirect:/admin/event/list?tab=" + tab;
+        return "redirect:" + eventListRedirectUrl(tab, period, keyword);
+    }
+
+
+    /**
+     * 이벤트 승인/반려 처리 후 방금 보고 있던 상태·기간·검색어 필터 그대로 목록으로 돌아가기 위한 리다이렉트 URL을 만든다.
+     */
+    private String eventListRedirectUrl(String tab, String period, String keyword) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/event/list");
+
+        if (tab != null && !tab.isBlank()) {
+            builder.queryParam("tab", tab);
+        }
+        if (period != null && !period.isBlank()) {
+            builder.queryParam("period", period);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword);
+        }
+
+        return builder.build().toUriString();
     }
 
     // ===================== 4. 상품 관리 (사업자 등록/수정/삭제 요청 처리) =====================
+    //
+    // [정리됨] eventManage.jsp / memberManage.jsp와 톤앤매너를 통일하면서
+    // tab 파라미터의 의미도 "요청 유형(register/update/delete)"에서
+    // EVENT 관리와 동일한 "PRODUCT.STATUS 값" 기준으로 정리했다.
+    // tab: 빈값(전체) / waiting(승인 대기) / approved(승인 완료) / delete(삭제 요청)
 
     @GetMapping("/product/list")
     public String productList(Model model,
@@ -364,8 +397,8 @@ public class AdminController {
             @RequestParam(required = false) String keyword) {
 
         model.addAttribute("activeMenu", "product");
-        model.addAttribute("currentTab", tab);
         model.addAttribute("productRequestList", adminService.getProductRequestList(tab, keyword));
+        model.addAttribute("productStats", adminService.getProductStats());
 
         return "admin/goods/productManage";
     }
@@ -374,13 +407,17 @@ public class AdminController {
     public String productApprove(
             @RequestParam Long productNo,
             @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
             RedirectAttributes redirectAttributes) {
 
         try {
             adminService.approveProduct(productNo);
 
-            // 삭제 요청 탭에서 승인한 경우에는 실제 DB 삭제가 완료되었다는 메시지를 표시한다.
-            if ("delete".equals(tab)) {
+            // 처리 대상 상품이 삭제 요청 상태였다면 실제 DB 삭제가 완료되었다는 메시지를 보여준다.
+            // (모달을 열 때 넘겨받은 해당 상품의 상태값을 기준으로 판단하므로,
+            //  '전체' 탭에서 삭제 요청 건을 승인하는 경우에도 정확한 안내 문구가 나온다.)
+            if ("DELETE_REQUESTED".equals(status)) {
                 redirectAttributes.addFlashAttribute(
                         "message",
                         "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
@@ -394,20 +431,22 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         }
 
-        return "redirect:/admin/product/list?tab=" + tab;
+        return "redirect:" + productListRedirectUrl(tab, keyword);
     }
 
     @PostMapping("/product/reject")
     public String productReject(
             @RequestParam Long productNo,
             @RequestParam(required = false) String tab,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
             RedirectAttributes redirectAttributes) {
 
         try {
             adminService.rejectProduct(productNo);
 
             // 삭제 요청 반려 시에는 상품을 기존 승인 상태로 복구한다.
-            if ("delete".equals(tab)) {
+            if ("DELETE_REQUESTED".equals(status)) {
                 redirectAttributes.addFlashAttribute(
                         "message",
                         "상품 삭제 요청을 반려했습니다.");
@@ -421,7 +460,27 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         }
 
-        return "redirect:/admin/product/list?tab=" + tab;
+        return "redirect:" + productListRedirectUrl(tab, keyword);
+    }
+
+    /**
+     * 상품 승인/반려 처리 후 방금 보고 있던 상태(tab)·검색어(keyword) 필터
+     * 그대로 목록으로 돌아가기 위한 리다이렉트 URL을 만든다.
+     * (eventListRedirectUrl과 동일한 방식. 예전에는 keyword가 유지되지 않아
+     * 검색 중 승인/반려하면 검색 결과가 초기화되는 문제가 있었다.)
+     */
+    private String productListRedirectUrl(String tab, String keyword) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/product/list");
+
+        if (tab != null && !tab.isBlank()) {
+            builder.queryParam("tab", tab);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword);
+        }
+
+        return builder.build().toUriString();
     }
 
     // ===================== 5. 주문/환불 조회 (조회 전용) =====================

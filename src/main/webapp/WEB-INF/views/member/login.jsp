@@ -69,7 +69,18 @@
                 <!-- 카카오 로그인 -->
                 <a href="${pageContext.request.contextPath}/member/kakao/login"
                    class="sns-icon kakao"
-                   aria-label="카카오 계정으로 로그인"></a>
+                   aria-label="카카오 계정으로 로그인">
+                   
+                    <img src="${pageContext.request.contextPath}/images/kakao_login.png"
+                         alt=""
+                         width="36"
+                         height="36"
+                         style="display: block;
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                border-radius: 50%;">
+                </a>
 
                 <!--
                     네이버 로그인

@@ -1,15 +1,28 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<c:set var="activeMenu" value="product"/>
-<c:set var="currentTab" value="${empty param.tab ? 'register' : param.tab}"/>
+<%--
+    상태(tab) 필터의 현재 선택값. param이 없으면 '전체'를 의미하는 빈 문자열로 취급한다.
+
+    [정리됨] eventManage.jsp와 동일한 이유로 정리했다. PRODUCT 테이블에는 등록/수정
+    요청을 구분하는 컬럼이 없어 예전 tab=register/update가 실질적으로 같은 WAITING
+    목록을 서로 다른 메뉴처럼 보여주고 있었다. 지금은 PRODUCT.STATUS 값을 그대로
+    tab으로 사용해 승인 대기 / 승인 완료 / 삭제 요청 상태를 명확하게 구분한다.
+--%>
+<c:set var="currentTab" value="${empty param.tab ? '' : param.tab}"/>
 
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
+
 <meta charset="UTF-8">
 <title>ODITJI | 상품 관리</title>
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+
 </head>
 
 <body>
@@ -28,7 +41,9 @@
                 ← 뒤로가기
             </a>
 
-            <h1 class="admin-page-title">상품 관리</h1>
+            <h1 class="admin-page-title">
+                상품 관리
+            </h1>
 
             <p class="admin-page-desc">
                 사업자가 요청한 상품 등록·수정·삭제 건을 확인하고 승인 또는 반려할 수 있습니다.
@@ -36,32 +51,95 @@
 
         </div>
 
+
+        <%-- 승인/반려 처리 결과 안내 (RedirectAttributes flash message). memberManage.jsp와 동일한 컴포넌트를 사용한다. --%>
+        <c:if test="${not empty message}">
+            <div class="admin-flash-message">${message}</div>
+        </c:if>
+
+
+        <%--
+            상단 통계 카드.
+            각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
+            현재 선택된 상태(tab)와 일치하는 카드에는 active 클래스를 준다.
+            eventManage.jsp / memberManage.jsp와 동일한 .member-stat-grid 컴포넌트를 재사용한다.
+        --%>
+        <div class="member-stat-grid">
+
+            <a class="stat-card ${empty currentTab ? 'active' : ''}"
+               href="?tab=">
+                <span>전체 상품 요청</span>
+                <strong>${productStats.totalCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'waiting' ? 'active' : ''}"
+               href="?tab=waiting">
+                <span>승인 대기</span>
+                <strong>${productStats.waitingCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'approved' ? 'active' : ''}"
+               href="?tab=approved">
+                <span>승인 완료</span>
+                <strong>${productStats.approvedCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'delete' ? 'active' : ''}"
+               href="?tab=delete">
+                <span>삭제 요청</span>
+                <strong>${productStats.deleteRequestedCount}건</strong>
+            </a>
+
+        </div>
+
+
         <section class="admin-content-box">
 
-            <%--
-                관리자 승인/반려 처리 결과 메시지 출력
-                기존 페이지 레이아웃과 디자인 구조는 유지한다.
-            --%>
-            <c:if test="${not empty message}">
-                <div class="admin-message" style="margin-bottom: 20px;">
-                    <c:out value="${message}"/>
-                </div>
-            </c:if>
+            <%-- 상태 탭. 위쪽 통계 카드와 같은 상태(tab) 값을 다루지만 목록 바로 위에서도 빠르게 전환할 수 있도록 제공한다. --%>
+            <div class="tab-menu">
 
-            <nav class="tab-menu">
-                <a href="?tab=register" class="${currentTab == 'register' ? 'active' : ''}">상품 등록</a>
-                <a href="?tab=update" class="${currentTab == 'update' ? 'active' : ''}">상품 수정</a>
-                <a href="?tab=delete" class="${currentTab == 'delete' ? 'active' : ''}">상품 삭제</a>
-            </nav>
+                <a class="${empty currentTab ? 'active' : ''}"
+                   href="?tab=&keyword=${param.keyword}">
+                    전체
+                </a>
+
+                <a class="${currentTab == 'waiting' ? 'active' : ''}"
+                   href="?tab=waiting&keyword=${param.keyword}">
+                    승인 대기
+                </a>
+
+                <a class="${currentTab == 'approved' ? 'active' : ''}"
+                   href="?tab=approved&keyword=${param.keyword}">
+                    승인 완료
+                </a>
+
+                <a class="${currentTab == 'delete' ? 'active' : ''}"
+                   href="?tab=delete&keyword=${param.keyword}">
+                    삭제 요청
+                </a>
+
+            </div>
+
 
             <div class="toolbar">
+
                 <form method="get" action="${pageContext.request.contextPath}/admin/product/list">
-                    <input type="hidden" name="tab" value="${currentTab}">
+
+                    <%-- 상태 필터. 통계 카드/탭으로도 이동할 수 있지만, 키보드·스크린 리더 사용자를 위해 select로도 동일 기능을 제공한다. --%>
+                    <label for="productStatusFilter" class="sr-only">
+                        상태 필터
+                    </label>
+
+                    <select id="productStatusFilter" name="tab" class="filter-select">
+                        <option value=""         ${empty currentTab ? 'selected' : ''}>상태 전체</option>
+                        <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
+                        <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
+                        <option value="delete"   ${currentTab == 'delete' ? 'selected' : ''}>삭제 요청</option>
+                    </select>
 
                     <%-- 검색 input과 숨김 label을 명시적으로 연결한다. --%>
-                    <label for="productManageKeyword"
-                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
-                        상품 요청 검색어
+                    <label for="productManageKeyword" class="sr-only">
+                        사업자명 또는 상품명 검색
                     </label>
 
                     <input type="text"
@@ -70,110 +148,176 @@
                            name="keyword"
                            value="${param.keyword}"
                            placeholder="사업자명, 상품명 검색">
+
+                    <button type="submit" class="btn btn-dark search-btn">
+                        검색
+                    </button>
+
                 </form>
+
             </div>
 
-            <div class="card-list">
 
-                <c:choose>
+            <table class="data-table">
 
-                    <c:when test="${not empty productRequestList}">
+                <thead>
 
-                        <c:forEach var="req" items="${productRequestList}">
+                    <tr>
+                        <th>번호</th>
+                        <th>사업자명</th>
+                        <th>상품명</th>
+                        <th>관련 콘텐츠</th>
+                        <th>가격</th>
+                        <th>할인율</th>
+                        <th>재고</th>
+                        <th>요청일</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
 
-                            <article class="item-card">
+                </thead>
 
-                                <div class="thumb">
-                                    <c:choose>
-                                        <c:when test="${not empty req.mainImage}">
-                                            <%--
-                                                DB에는 /uploads/product/... 형태의 웹 경로가 저장되므로
-                                                context-path(/oditji)를 앞에 붙여 이미지를 출력한다.
-                                            --%>
-                                            <img src="${pageContext.request.contextPath}${req.mainImage}"
-                                                 alt="<c:out value='${req.productName}'/>">
-                                        </c:when>
-                                        <c:otherwise>상품</c:otherwise>
-                                    </c:choose>
-                                </div>
 
-                                <div class="item-info">
+                <tbody>
 
-                                    <h3><c:out value="${req.productName}"/></h3>
+                    <c:choose>
 
-                                    <div class="meta">
-                                        <span>사업자 <c:out value="${req.businessName}"/></span>
-                                        <span>관련 콘텐츠 <c:out value="${req.contentTitle}"/></span>
-                                        <span>가격 <c:out value="${req.price}"/>원</span>
+                        <c:when test="${not empty productRequestList}">
+
+                            <c:forEach var="req" items="${productRequestList}">
+
+                                <%--
+                                    상세보기 팝업에서 쓸 값들을 미리 변수로 정리해 둔다.
+                                    (요청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqStartDateStr 등과 동일한 방식)
+                                --%>
+                                <fmt:formatDate var="reqCreatedAtStr" value="${req.createdAt}" pattern="yyyy-MM-dd"/>
+
+                                <c:choose>
+                                    <c:when test="${req.status == 'APPROVED'}">
+                                        <c:set var="reqStatusLabel" value="승인"/>
+                                    </c:when>
+                                    <c:when test="${req.status == 'REJECTED'}">
+                                        <c:set var="reqStatusLabel" value="반려"/>
+                                    </c:when>
+                                    <c:when test="${req.status == 'DELETE_REQUESTED'}">
+                                        <c:set var="reqStatusLabel" value="삭제 요청"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="reqStatusLabel" value="대기"/>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <tr>
+
+                                    <td>${req.productNo}</td>
+
+                                    <td>${req.businessName}</td>
+
+                                    <td>${req.productName}</td>
+
+                                    <td>${req.contentTitle}</td>
+
+                                    <td><fmt:formatNumber value="${req.price}" pattern="#,##0"/>원</td>
+
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty req.discountRate and req.discountRate > 0}">
+                                                ${req.discountRate}%
+                                            </c:when>
+                                            <c:otherwise>-</c:otherwise>
+                                        </c:choose>
+                                    </td>
+
+                                    <td>${req.stock}</td>
+
+                                    <td>${reqCreatedAtStr}</td>
+
+                                    <td>
 
                                         <c:choose>
-                                            <c:when test="${req.status == 'WAITING'}">
-                                                <span class="status-waiting">대기</span>
-                                            </c:when>
+
                                             <c:when test="${req.status == 'APPROVED'}">
                                                 <span class="status-ok">승인</span>
                                             </c:when>
-                                            <%-- 상품 삭제 요청 상태 표시 추가 --%>
+
+                                            <c:when test="${req.status == 'REJECTED'}">
+                                                <span class="status-reject">반려</span>
+                                            </c:when>
+
                                             <c:when test="${req.status == 'DELETE_REQUESTED'}">
                                                 <span class="status-reject">삭제 요청</span>
                                             </c:when>
+
                                             <c:otherwise>
-                                                <span class="status-reject">반려</span>
+                                                <span class="status-waiting">대기</span>
                                             </c:otherwise>
+
                                         </c:choose>
-                                    </div>
 
-                                    <p style="margin-top:10px; color:var(--adm-text-sub);">
-                                        <c:out value="${req.description}"/>
-                                    </p>
+                                    </td>
 
-                                </div>
+                                    <td>
 
-                                <div class="item-actions">
+                                        <button type="button" class="btn btn-dark"
+                                                data-product-no="${req.productNo}"
+                                                data-business-name="${fn:escapeXml(req.businessName)}"
+                                                data-product-name="${fn:escapeXml(req.productName)}"
+                                                data-content-title="${fn:escapeXml(req.contentTitle)}"
+                                                data-price="${req.price}"
+                                                data-discount-rate="${req.discountRate}"
+                                                data-stock="${req.stock}"
+                                                data-created-at="${reqCreatedAtStr}"
+                                                data-status="${req.status}"
+                                                data-status-label="${reqStatusLabel}"
+                                                data-description="${fn:escapeXml(req.description)}"
+                                                onclick="openProductRequestModal(this)">
+                                            상세보기
+                                        </button>
 
-                                    <button type="button" class="btn btn-dark"
-                                            data-product-no="${req.productNo}"
-                                            data-business-name="${req.businessName}"
-                                            data-product-name="${req.productName}"
-                                            data-price="${req.price}"
-                                            data-description="${req.description}"
-                                            onclick="openProductRequestModal(this)">
-                                        상세보기
-                                    </button>
+                                    </td>
 
-                                </div>
+                                </tr>
 
-                            </article>
+                            </c:forEach>
 
-                        </c:forEach>
+                        </c:when>
 
-                    </c:when>
+                        <c:otherwise>
 
-                    <c:otherwise>
-                        <article class="item-card empty">
+                            <tr>
 
-                            <c:choose>
-                                <c:when test="${currentTab == 'update'}">수정 요청 내역이 없습니다.</c:when>
-                                <c:when test="${currentTab == 'delete'}">삭제 요청 내역이 없습니다.</c:when>
-                                <c:otherwise>등록 요청 내역이 없습니다.</c:otherwise>
-                            </c:choose>
+                                <td colspan="10">
 
-                        </article>
-                    </c:otherwise>
+                                    <c:choose>
+                                        <c:when test="${currentTab == 'waiting'}">승인 대기 중인 상품 요청이 없습니다.</c:when>
+                                        <c:when test="${currentTab == 'approved'}">승인 완료된 상품이 없습니다.</c:when>
+                                        <c:when test="${currentTab == 'delete'}">삭제 요청된 상품이 없습니다.</c:when>
+                                        <c:otherwise>조건에 맞는 상품 요청이 없습니다.</c:otherwise>
+                                    </c:choose>
 
-                </c:choose>
+                                </td>
 
-            </div>
+                            </tr>
+
+                        </c:otherwise>
+
+                    </c:choose>
+
+                </tbody>
+
+            </table>
+
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage-1}">‹</a>
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage-1}">‹</a>
 
                 <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
-                    <a href="?tab=${currentTab}&page=${p}" class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage+1}">›</a>
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage+1}">›</a>
 
             </div>
 
@@ -183,27 +327,41 @@
 
 </div>
 
-<%-- 상품 요청 상세 / 승인·반려 팝업 --%>
-<div class="modal-overlay" id="productRequestModal">
+
+<%--
+    상품 요청 상세 / 승인·반려 팝업입니다. eventManage.jsp의 상세 팝업과 동일한 구조(role="dialog",
+    aria-modal, target-info-box)를 사용한다.
+--%>
+<div class="modal-overlay"
+     id="productRequestModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="productRequestModalTitle">
 
     <div class="modal-box">
 
         <div class="modal-header">
-            <h3>상품 요청 상세</h3>
-            <%-- 비표준 클릭 요소인 span을 기본 상호작용 요소인 button으로 변경한다. --%>
+
+            <h3 id="productRequestModalTitle">상품 요청 상세</h3>
+
             <button type="button"
                     class="modal-close"
                     aria-label="상품 요청 상세 팝업 닫기"
-                    style="padding:0;border:0;background:transparent;font-family:inherit;"
                     onclick="closeModal('productRequestModal')">
                 &times;
             </button>
+
         </div>
 
         <div class="target-info-box">
             <p><span>사업자명</span><strong id="reqProductBusinessName"></strong></p>
             <p><span>상품명</span><strong id="reqProductName"></strong></p>
+            <p><span>관련 콘텐츠</span><strong id="reqProductContentTitle"></strong></p>
             <p><span>가격</span><strong id="reqProductPrice"></strong></p>
+            <p><span>할인율</span><strong id="reqProductDiscountRate"></strong></p>
+            <p><span>재고</span><strong id="reqProductStock"></strong></p>
+            <p><span>요청일</span><strong id="reqProductCreatedAt"></strong></p>
+            <p><span>상태</span><strong id="reqProductStatus"></strong></p>
         </div>
 
         <div class="form-group">
@@ -215,19 +373,30 @@
 
             <input type="hidden" name="productNo" id="reqProductNo">
             <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="status" id="reqProductStatusRaw">
 
-            <div class="modal-footer">
-                <%--
-                    삭제 탭의 승인 버튼은 PRODUCT를 실제로 최종 삭제한다.
-                    다른 탭에서는 기존과 동일하게 상품 요청을 승인한다.
-                --%>
+            <%--
+                이미 승인/반려 처리되어 상태가 확정된 상품(APPROVED/REJECTED)은 다시 승인·반려할 수 없다.
+                WAITING(등록·수정 승인 대기) 또는 DELETE_REQUESTED(삭제 요청) 상태일 때만 처리 버튼을 보여주고,
+                그 외에는 eventManage.jsp와 동일하게 안내 문구만 보여준다.
+                실제 표시 여부는 openProductRequestModal()이 상태값을 보고 JS로 전환한다.
+            --%>
+            <p id="productReadonlyNote" class="modal-readonly-note" style="display:none">
+                이미 처리된 요청이라 승인·반려할 수 없습니다.
+            </p>
+
+            <div class="modal-footer" id="productRequestActions">
+
                 <button type="submit"
+                        id="productApproveBtn"
                         class="btn btn-success"
                         onclick="return confirmProductApprove();">
                     승인
                 </button>
 
                 <button type="submit"
+                        id="productRejectBtn"
                         formaction="${pageContext.request.contextPath}/admin/product/reject"
                         class="btn btn-danger"
                         onclick="return confirmProductReject();">
@@ -235,6 +404,7 @@
                 </button>
 
                 <button type="button" class="btn btn-outline" onclick="closeModal('productRequestModal')">닫기</button>
+
             </div>
 
         </form>
@@ -242,6 +412,7 @@
     </div>
 
 </div>
+
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

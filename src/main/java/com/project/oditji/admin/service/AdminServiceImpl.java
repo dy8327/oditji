@@ -19,6 +19,7 @@ import com.project.oditji.admin.vo.AdminVO;
 import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
+import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
@@ -26,6 +27,7 @@ import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
+import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
@@ -313,9 +315,16 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 이벤트 관리 =====================
 
     @Override
-    public List<EventManageVO> getEventList(String tab, String keyword) {
+    public List<EventManageVO> getEventList(String tab, String keyword, String period) {
 
-        return adminDAO.selectAdminEventList(tab, keyword);
+        return adminDAO.selectAdminEventList(tab, keyword, period);
+    }
+
+
+    @Override
+    public EventStatVO getEventStats() {
+
+        return adminDAO.selectEventStats();
     }
 
     @Override
@@ -374,6 +383,11 @@ public class AdminServiceImpl implements AdminService {
          * delete 탭은 DELETE_REQUESTED 상태만 조회한다.
          */
         return adminDAO.selectProductRequestList(tab, keyword);
+    }
+
+    @Override
+    public ProductStatVO getProductStats() {
+        return adminDAO.selectProductStats();
     }
 
     @Override
