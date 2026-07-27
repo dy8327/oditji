@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.exception.MemberBlockedException;
@@ -16,12 +17,13 @@ import com.project.oditji.business.vo.BusinessVO;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberDAO memberDAO;
+    private final PasswordEncoder passwordEncoder;
     private final BusinessDAO businessDAO;
 
-    public MemberServiceImpl(MemberDAO memberDAO, BusinessDAO businessDAO) {
-
-        this.memberDAO = memberDAO;
-        this.businessDAO = businessDAO;
+    public MemberServiceImpl(MemberDAO memberDAO, BusinessDAO businessDAO, PasswordEncoder passwordEncoder) {
+    this.memberDAO = memberDAO;
+    this.businessDAO = businessDAO;
+    this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -47,6 +49,7 @@ public class MemberServiceImpl implements MemberService {
         memberVO.setRole("USER");
         memberVO.setStatus("ACTIVE");
         memberVO.setAdultVerified("N");
+        memberVO.setMemberPw(passwordEncoder.encode(memberVO.getMemberPw()));
 
         memberDAO.insertMember(memberVO);
 
@@ -133,13 +136,14 @@ public class MemberServiceImpl implements MemberService {
         }
 
         /* MEMBER 등록 */
-        memberVO.setRole("USER");
+        memberVO.setRole("BUSINESS");
         memberVO.setStatus("ACTIVE");
         memberVO.setAdultVerified("N");
 
         /* 사업자는 일반회원용 이름/닉네임을 사용하지 않음 */
         memberVO.setMemberName(null);
         memberVO.setNickname(null);
+        memberVO.setMemberPw(passwordEncoder.encode(memberVO.getMemberPw()));
 
         memberDAO.insertMember(memberVO);
 
@@ -240,19 +244,16 @@ public class MemberServiceImpl implements MemberService {
         return memberDAO.countByNickname(nickname) > 0;
     }
 
-    @Override
+   @Override
     public MemberVO loginMember(MemberVO memberVO) {
 
         MemberVO loginMember = memberDAO.loginMember(memberVO);
 
-        if (loginMember == null) {
+        if (loginMember == null
+                || !passwordEncoder.matches(memberVO.getMemberPw(), loginMember.getMemberPw())) {
             return null;
         }
 
-        /*
-         * 이 시점에는 이미 MEMBER_ID + MEMBER_PW가 일치하는 회원이 조회된 상태이므로,
-         * 정지/탈퇴 여부만 STATUS로 분기한다.
-         */
         if ("BLOCKED".equals(loginMember.getStatus())) {
             throw new MemberBlockedException("정지된 계정입니다. 고객센터로 문의해주세요.");
         }
@@ -263,6 +264,8 @@ public class MemberServiceImpl implements MemberService {
                     loginMember.getMemberNo(),
                     loginMember.getWithdrawnAt());
         }
+
+        loginMember.setMemberPw(null);
 
         return loginMember;
     }
@@ -313,7 +316,16 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
+        String newPassword = memberVO.getMemberPw();
+
+        if (newPassword != null && !newPassword.isBlank()) {
+            memberVO.setMemberPw(passwordEncoder.encode(newPassword));
+        } else {
+            memberVO.setMemberPw(null);
+        }
+
         int updated = memberDAO.updateMember(memberVO);
+
 
         if (updated != 1) {
             throw new IllegalStateException("회원정보 수정에 실패했습니다.");
@@ -374,8 +386,15 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public boolean checkPassword(Long memberNo, String password) {
-        return memberDAO.checkPassword(memberNo, password) > 0;
-    }
+        if (memberNo == null || password == null || password.isBlank()) {
+            return false;
+        }
+
+    String encodedPassword = memberDAO.selectPasswordByMemberNo(memberNo);
+
+    return encodedPassword != null
+            && passwordEncoder.matches(password, encodedPassword);
+}
 
     @Override
     public MemberVO getMemberByNo(Long memberNo) {

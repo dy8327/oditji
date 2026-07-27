@@ -890,30 +890,7 @@ public class MemberController {
                                 : "N";
         }
 
-        @GetMapping("/checkPassword")
-        @ResponseBody
-        public String checkPassword(
-                        @RequestParam("password") String password,
-                        HttpSession session) {
-
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
-
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
-
-                        return "N";
-                }
-
-                boolean result = memberService.checkPassword(
-                                loginMember.getMemberNo(),
-                                password);
-
-                return result
-                                ? "Y"
-                                : "N";
-        }
-
+        
         @PostMapping("/updateOtt")
         public String updateOtt(
                         @RequestParam(value = "ottList", required = false) List<String> ottList,
