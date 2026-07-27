@@ -37,21 +37,12 @@
                   action="${pageContext.request.contextPath}/business/delivery/list"
                   method="get">
                 <div class="delivery-form-field">
-                    <label for="status-${delivery.orderItemNo}">배송 상태</label>
-                    <select id="status-${delivery.orderItemNo}" name="status" class="form-input">
-                        <option value="PREPARING"
-                                ${delivery.status eq 'PREPARING' ? 'selected' : ''}
-                                ${(delivery.status eq 'SHIPPING' or delivery.status eq 'DELIVERED') ? 'disabled' : ''}>
-                            상품 준비 중
-                        </option>
-                        <option value="SHIPPING"
-                                ${delivery.status eq 'SHIPPING' ? 'selected' : ''}
-                                ${delivery.status eq 'DELIVERED' ? 'disabled' : ''}>
-                            배송 중
-                        </option>
-                        <option value="DELIVERED" ${delivery.status eq 'DELIVERED' ? 'selected' : ''}>
-                            배송 완료
-                        </option>
+                    <label for="delivery-status-filter">배송 상태</label>
+                    <select id="delivery-status-filter" name="status" class="form-input">
+                        <option value="">전체</option>
+                        <option value="PREPARING" ${selectedStatus eq 'PREPARING' ? 'selected' : ''}>상품 준비 중</option>
+                        <option value="SHIPPING" ${selectedStatus eq 'SHIPPING' ? 'selected' : ''}>배송 중</option>
+                        <option value="DELIVERED" ${selectedStatus eq 'DELIVERED' ? 'selected' : ''}>배송 완료</option>
                     </select>
                 </div>
 
