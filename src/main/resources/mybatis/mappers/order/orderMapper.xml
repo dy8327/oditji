@@ -341,6 +341,67 @@
 
 
     <!-- =====================================================
+         [결제 완료 주문상품 정산 예정 데이터 생성 추가]
+
+         주문상품 1건마다 SETTLEMENT 데이터를 생성한다.
+         BUSINESS.CUSTOM_RATE가 있으면 개별 수수료율을 우선하고,
+         없으면 GRADE_POLICY.COMMISSION_RATE를 사용한다.
+
+         동일 주문상품의 정산 중복 생성을 NOT EXISTS로 방지한다.
+    ====================================================== -->
+    <insert id="insertWaitingSettlement">
+
+        INSERT INTO SETTLEMENT (
+            SETTLEMENT_NO,
+            BUSINESS_NO,
+            ORDER_ITEM_NO,
+            TOTAL_AMOUNT,
+            APPLIED_GRADE,
+            APPLIED_RATE,
+            FEE_AMOUNT,
+            SETTLED_AMOUNT,
+            STATUS,
+            SETTLED_AT,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_SETTLEMENT_NO.NEXTVAL,
+            OI.BUSINESS_NO,
+            OI.ORDER_ITEM_NO,
+            OI.PRODUCT_PRICE * OI.QUANTITY,
+            B.GRADE_NAME,
+            NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE),
+            ROUND(
+                (OI.PRODUCT_PRICE * OI.QUANTITY)
+                * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)
+                / 100
+            ),
+            (OI.PRODUCT_PRICE * OI.QUANTITY)
+            - ROUND(
+                (OI.PRODUCT_PRICE * OI.QUANTITY)
+                * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)
+                / 100
+            ),
+            'WAITING',
+            NULL,
+            SYSDATE
+        FROM ORDER_ITEM OI
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = OI.BUSINESS_NO
+        JOIN GRADE_POLICY GP
+          ON GP.GRADE_NAME = B.GRADE_NAME
+        WHERE OI.ORDER_ITEM_NO = #{orderItemNo}
+          AND OI.STATUS = 'PAID'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM SETTLEMENT S
+              WHERE S.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+          )
+
+    </insert>
+
+
+    <!-- =====================================================
          주문 확정 시 재고 차감
          WHERE 절에 재고 조건(STOCK >= #{quantity})을 포함해
          동시성 문제로 인한 재고 초과 차감(음수 재고)을 방지한다.
@@ -446,6 +507,25 @@
         WHERE ORDER_NO = #{orderNo}
           AND MEMBER_NO = #{memberNo}
           AND ORDER_STATUS = 'PAID'
+
+    </update>
+
+
+    <!-- =====================================================
+         [사용자 즉시 전액 취소 정산 제외 추가]
+         결제 취소가 완료된 주문의 WAITING 정산을 REJECTED로 변경한다.
+    ====================================================== -->
+    <update id="rejectSettlementsByOrderNo">
+
+        UPDATE SETTLEMENT S
+        SET S.STATUS = 'REJECTED'
+        WHERE S.STATUS = 'WAITING'
+          AND EXISTS (
+              SELECT 1
+              FROM ORDER_ITEM OI
+              WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                AND OI.ORDER_NO = #{orderNo}
+          )
 
     </update>
 

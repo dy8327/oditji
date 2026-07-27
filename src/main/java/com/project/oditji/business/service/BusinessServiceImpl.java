@@ -102,12 +102,14 @@ public class BusinessServiceImpl
          * =========================================================
          * 마이페이지 대시보드 통계 조회
          *
-         * 오늘 매출/주문 건수/클릭 수/입금 대기 정산액/승인 대기 상품 수와
-         * 인기 상품 TOP N을 한 번에 모아서 내려준다.
+         * 오늘 매출/판매량/구매 고객 수/클릭 수/입금 대기 정산액/
+         * 승인 대기 상품 수와 인기 상품 TOP N을 한 번에 모아서 내려준다.
          *
+         * [구매전환율 계산 기준 수정]
          * purchaseRate(구매전환율)는 별도 저장 컬럼이 없어
-         * "오늘 주문 건수 / 오늘 클릭 수 * 100"으로 매 요청마다 계산한다.
-         * 클릭 수가 0이면 나눗셈 자체가 불가능하므로 0.0으로 처리한다.
+         * "오늘 정상 판매 수량 / 오늘 클릭 수 * 100"으로 계산한다.
+         * 취소 요청 및 결제 취소 완료 상품은 Mapper 조회에서 제외한다.
+         * 클릭 수가 0이면 나눗셈이 불가능하므로 0.0으로 처리한다.
          * =========================================================
          */
         @Override
@@ -119,16 +121,30 @@ public class BusinessServiceImpl
 
                 long todaySales = businessDAO.selectTodaySalesByBusinessNo(businessNo);
                 int todayOrderCount = businessDAO.selectTodayOrderCountByBusinessNo(businessNo);
+
+                /* [오늘 구매 고객 수 조회 추가] */
+                int todayCustomerCount = businessDAO.selectTodayCustomerCountByBusinessNo(businessNo);
+
                 int clickCount = businessDAO.selectTodayClickCountByBusinessNo(businessNo);
                 long waitingSettlement = businessDAO.selectWaitingSettlementAmountByBusinessNo(businessNo);
                 int waitingProductCount = businessDAO.selectWaitingProductCountByBusinessNo(businessNo);
 
+                /*
+                 * [구매전환율 계산]
+                 *
+                 * todayOrderCount에는 정상 판매 상태의 수량만 포함되므로
+                 * 취소 완료된 상품은 구매전환율에 포함되지 않는다.
+                 */
                 double purchaseRate = clickCount <= 0 ? 0.0 : todayOrderCount * 100.0 / clickCount;
 
                 BusinessDashboardVO dashboard = new BusinessDashboardVO();
 
                 dashboard.setTodaySales(todaySales);
                 dashboard.setTodayOrderCount(todayOrderCount);
+
+                /* [오늘 구매 고객 수 설정 추가] */
+                dashboard.setTodayCustomerCount(todayCustomerCount);
+
                 dashboard.setClickCount(clickCount);
                 dashboard.setPurchaseRate(purchaseRate);
                 dashboard.setWaitingSettlement(waitingSettlement);
