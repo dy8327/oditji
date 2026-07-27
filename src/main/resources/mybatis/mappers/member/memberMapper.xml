@@ -99,8 +99,7 @@
             WITHDRAWN_AT
         FROM MEMBER
         WHERE MEMBER_ID = #{memberId}
-        AND MEMBER_PW = #{memberPw}
-
+        
     </select>
 
     <select id="countByMemberId" parameterType="string" resultType="int">
@@ -199,11 +198,10 @@
           AND WITHDRAWN_AT >= SYSDATE - 7
     </update>
 
-    <select id="checkPassword" resultType="int">
-        SELECT COUNT(*)
+    <select id="selectPasswordByMemberNo" resultType="string">
+        SELECT MEMBER_PW
         FROM MEMBER
         WHERE MEMBER_NO = #{memberNo}
-        AND TRIM(MEMBER_PW) = TRIM(#{password})
     </select>
 
     <select id="getMemberByNo"

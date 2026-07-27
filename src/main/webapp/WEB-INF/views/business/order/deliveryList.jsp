@@ -36,12 +36,15 @@
             <form class="delivery-search-form"
                   action="${pageContext.request.contextPath}/business/delivery/list"
                   method="get">
-                <select name="status" class="form-input delivery-status-filter" aria-label="배송 상태">
-                    <option value="ALL" ${empty selectedStatus or selectedStatus eq 'ALL' ? 'selected' : ''}>전체 상태</option>
-                    <option value="PREPARING" ${selectedStatus eq 'PREPARING' ? 'selected' : ''}>상품 준비 중</option>
-                    <option value="SHIPPING" ${selectedStatus eq 'SHIPPING' ? 'selected' : ''}>배송 중</option>
-                    <option value="DELIVERED" ${selectedStatus eq 'DELIVERED' ? 'selected' : ''}>배송 완료</option>
-                </select>
+                <div class="delivery-form-field">
+                    <label for="delivery-status-filter">배송 상태</label>
+                    <select id="delivery-status-filter" name="status" class="form-input">
+                        <option value="">전체</option>
+                        <option value="PREPARING" ${selectedStatus eq 'PREPARING' ? 'selected' : ''}>상품 준비 중</option>
+                        <option value="SHIPPING" ${selectedStatus eq 'SHIPPING' ? 'selected' : ''}>배송 중</option>
+                        <option value="DELIVERED" ${selectedStatus eq 'DELIVERED' ? 'selected' : ''}>배송 완료</option>
+                    </select>
+                </div>
 
                 <input type="text"
                        name="keyword"

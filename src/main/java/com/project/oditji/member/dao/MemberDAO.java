@@ -45,8 +45,7 @@ public interface MemberDAO {
      */
     int restoreMember(@Param("memberNo") Long memberNo);
 
-    int checkPassword(@Param("memberNo") Long memberNo,
-            @Param("password") String password);
+    String selectPasswordByMemberNo(@Param("memberNo") Long memberNo);
 
     MemberVO getMemberByNo(@Param("memberNo") Long memberNo);
 

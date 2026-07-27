@@ -1266,7 +1266,7 @@
         LEFT JOIN DELIVERY D
           ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
         WHERE OI.BUSINESS_NO = #{businessNo}
-          AND OI.STATUS NOT IN ('CANCEL_REQUESTED', 'CANCELED', 'REFUNDED')
+          AND OI.STATUS NOT IN ('CANCEL_REQUEST', 'CANCELED', 'REFUNDED')
         <if test="status != null and status != ''">
           AND NVL(D.STATUS,
                 CASE

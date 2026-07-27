@@ -431,7 +431,7 @@ public class AdminDAO {
         Map<String, Object> param = new HashMap<>();
         param.put("contentNo", contentNo);
         param.put("platformNo", platformNo);
-        return sqlSession.insert("insertContentPlatform", param);
+        return sqlSession.insert("com.project.oditji.admin.dao.AdminDAO.insertContentPlatform", param);
     }
 
     // ===================== OTT 플랫폼 관리 (OTT_PLATFORM) =====================
