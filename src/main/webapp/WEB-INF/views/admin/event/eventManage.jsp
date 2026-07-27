@@ -3,8 +3,17 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<c:set var="activeMenu" value="event"/>
-<c:set var="currentTab" value="${empty param.tab ? 'register' : param.tab}"/>
+<%--
+    상태(tab) / 기간(period) 필터의 현재 선택값.
+    param이 없으면 둘 다 '전체'를 의미하는 빈 문자열로 취급한다.
+
+    [정리됨] 예전에는 미사용 기본값 'register'를 썼고, EVENT_PRODUCT/PRODUCT/BUSINESS와
+    조인되는 목록 쿼리 특성상 tab이 비어 있으면 승인대기/승인완료/종료/반려 이벤트가
+    구분 없이 한꺼번에 섞여 나왔는데도 화면에는 어떤 탭도 선택되지 않은 것처럼 보였다.
+    지금은 '전체' 상태를 상단 통계 카드/상태 필터에서 명시적으로 선택할 수 있게 했다.
+--%>
+<c:set var="currentTab" value="${empty param.tab ? '' : param.tab}"/>
+<c:set var="currentPeriod" value="${empty param.period ? '' : param.period}"/>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -15,45 +24,6 @@
 <title>ODITJI | 이벤트 관리</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
-
-<style>
-/*
- * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있도록
- * 입력 요소에 접근 가능한 이름을 제공할 때 사용합니다.
- */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/*
- * 기존 span 형태의 닫기 요소를 접근성에 적합한 button으로 변경했기 때문에
- * 브라우저 기본 버튼 스타일이 화면 디자인에 영향을 주지 않도록 초기화합니다.
- */
-button.modal-close {
-    border: 0;
-    padding: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
-
-.event-product-discount-line {
-    margin-bottom: 4px;
-}
-
-.event-product-discount-line:last-child {
-    margin-bottom: 0;
-}
-</style>
 
 </head>
 
@@ -78,33 +48,78 @@ button.modal-close {
             </h1>
 
             <p class="admin-page-desc">
-                사업자가 요청한 이벤트 등록·수정·연장 건을 확인하고 승인 또는 반려할 수 있습니다.
-                이벤트는 종료일이 지나면 자동으로 삭제됩니다.
+                사업자가 요청한 이벤트 등록·수정 요청을 검토하고 승인 상태를 관리합니다. 
+                이벤트는 종료일이 지나면 자동으로 종료 처리됩니다.
             </p>
+
+        </div>
+
+
+        <%--
+            상단 통계 카드.
+            각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
+            현재 선택된 상태(tab)와 일치하는 카드에는 active 클래스를 준다.
+            memberManage.jsp와 동일하게 admin-content-box 바깥(페이지 상단)에 별도로 배치한다.
+        --%>
+        <div class="member-stat-grid">
+
+            <a class="stat-card ${empty currentTab ? 'active' : ''}"
+               href="?tab=">
+                <span>전체 이벤트</span>
+                <strong>${eventStats.totalCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'waiting' ? 'active' : ''}"
+               href="?tab=waiting">
+                <span>승인 대기</span>
+                <strong>${eventStats.waitingCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'approved' ? 'active' : ''}"
+               href="?tab=approved">
+                <span>승인 완료</span>
+                <strong>${eventStats.approvedCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'end' ? 'active' : ''}"
+               href="?tab=end">
+                <span>종료 이벤트</span>
+                <strong>${eventStats.endCount}건</strong>
+            </a>
 
         </div>
 
 
         <section class="admin-content-box">
 
-            <nav class="tab-menu">
+            <%--
+                상태 탭. memberManage.jsp의 회원 유형 탭(.tab-menu)과 동일한 컴포넌트로,
+                위쪽 통계 카드와 같은 상태(tab) 값을 다루지만 목록 바로 위에서도
+                탭 형태로 빠르게 전환할 수 있도록 제공한다. 기간/검색어는 그대로 유지한다.
+            --%>
+            <div class="tab-menu">
 
-                <a href="?tab=waiting"
-                   class="${currentTab == 'waiting' ? 'active' : ''}">
+                <a class="${empty currentTab ? 'active' : ''}"
+                   href="?tab=&period=${currentPeriod}&keyword=${param.keyword}">
+                    전체
+                </a>
+
+                <a class="${currentTab == 'waiting' ? 'active' : ''}"
+                   href="?tab=waiting&period=${currentPeriod}&keyword=${param.keyword}">
                     승인 대기
                 </a>
 
-                <a href="?tab=approved"
-                   class="${currentTab == 'approved' ? 'active' : ''}">
+                <a class="${currentTab == 'approved' ? 'active' : ''}"
+                   href="?tab=approved&period=${currentPeriod}&keyword=${param.keyword}">
                     승인 완료
                 </a>
 
-                <a href="?tab=end"
-                   class="${currentTab == 'end' ? 'active' : ''}">
-                    종료 이벤트
+                <a class="${currentTab == 'end' ? 'active' : ''}"
+                   href="?tab=end&period=${currentPeriod}&keyword=${param.keyword}">
+                    종료
                 </a>
 
-            </nav>
+            </div>
 
 
             <div class="toolbar">
@@ -112,9 +127,42 @@ button.modal-close {
                 <form method="get"
                       action="${pageContext.request.contextPath}/admin/event/list">
 
-                    <input type="hidden"
-                           name="tab"
-                           value="${currentTab}">
+                    <%--
+                        상태 필터. 통계 카드로도 이동할 수 있지만,
+                        키보드/스크린 리더 사용자를 위해 동일한 기능을 select로도 제공한다.
+                    --%>
+                    <label for="eventStatusFilter"
+                           class="sr-only">
+                        상태 필터
+                    </label>
+
+                    <select id="eventStatusFilter"
+                            name="tab"
+                            class="filter-select">
+                        <option value=""         ${empty currentTab ? 'selected' : ''}>상태 전체</option>
+                        <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
+                        <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
+                        <option value="end"      ${currentTab == 'end' ? 'selected' : ''}>종료</option>
+                    </select>
+
+
+                    <%--
+                        기간 필터. 이벤트의 요청일(등록일) 기준으로 최근 건만 좁혀 볼 때 사용한다.
+                    --%>
+                    <label for="eventPeriodFilter"
+                           class="sr-only">
+                        기간 필터
+                    </label>
+
+                    <select id="eventPeriodFilter"
+                            name="period"
+                            class="filter-select">
+                        <option value=""      ${empty currentPeriod ? 'selected' : ''}>기간 전체</option>
+                        <option value="today" ${currentPeriod == 'today' ? 'selected' : ''}>오늘</option>
+                        <option value="week"  ${currentPeriod == 'week' ? 'selected' : ''}>최근 7일</option>
+                        <option value="month" ${currentPeriod == 'month' ? 'selected' : ''}>최근 30일</option>
+                    </select>
+
 
                     <%--
                         검색창과 label을 for/id로 연결하여
@@ -132,6 +180,11 @@ button.modal-close {
                            value="${param.keyword}"
                            placeholder="사업자명, 이벤트명 검색">
 
+                    <button type="submit"
+                            class="btn btn-dark search-btn">
+                        검색
+                    </button>
+
                 </form>
 
             </div>
@@ -146,27 +199,10 @@ button.modal-close {
                         <th>번호</th>
                         <th>사업자명</th>
                         <th>이벤트명</th>
-                        <th>연결 상품</th>
-                        <th>할인 적용가</th>
-
-                        <th>
-
-                            <c:choose>
-
-                                <c:when test="${currentTab == 'extend'}">
-                                    연장 기간
-                                </c:when>
-
-                                <c:otherwise>
-                                    이벤트 기간
-                                </c:otherwise>
-
-                            </c:choose>
-
-                        </th>
-
+                        <th>적용 상품</th>
+                        <th>이벤트 기간</th>
                         <th>요청일</th>
-                        <th>처리 상태</th>
+                        <th>상태</th>
                         <th>관리</th>
 
                     </tr>
@@ -183,6 +219,30 @@ button.modal-close {
                             <c:forEach var="req"
                                        items="${eventRequestList}">
 
+                                <%--
+                                    상세보기 팝업에서 쓸 값들을 미리 변수로 정리해 둔다.
+                                    (이벤트 기간 문자열, 상태 한글 라벨, JS로 넘길 때 따옴표가
+                                    깨지지 않도록 처리한 값)
+                                --%>
+                                <fmt:formatDate var="reqStartDateStr" value="${req.startDate}" pattern="yyyy-MM-dd"/>
+                                <fmt:formatDate var="reqEndDateStr" value="${req.endDate}" pattern="yyyy-MM-dd"/>
+                                <fmt:formatDate var="reqCreatedAtStr" value="${req.createdAt}" pattern="yyyy-MM-dd"/>
+
+                                <c:choose>
+                                    <c:when test="${req.status == 'APPROVED'}">
+                                        <c:set var="reqStatusLabel" value="승인"/>
+                                    </c:when>
+                                    <c:when test="${req.status == 'REJECTED'}">
+                                        <c:set var="reqStatusLabel" value="반려"/>
+                                    </c:when>
+                                    <c:when test="${req.status == 'END'}">
+                                        <c:set var="reqStatusLabel" value="종료"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="reqStatusLabel" value="대기"/>
+                                    </c:otherwise>
+                                </c:choose>
+
                                 <tr>
 
                                     <td>${req.eventNo}</td>
@@ -191,123 +251,56 @@ button.modal-close {
 
                                     <td>${req.title}</td>
 
-                                    <td>${req.productName}</td>
-
-
+                                    <%--
+                                        목록에서는 상품별 할인 내역까지 다 펼치지 않고
+                                        연결된 상품 개수만 간단히 보여주고, 자세한 내역은
+                                        상세보기 팝업의 "적용 상품" 표에서 확인하도록 한다.
+                                    --%>
                                     <td>
-
                                         <c:choose>
-
                                             <c:when test="${not empty req.productDetail}">
-
-                                                <c:forEach var="productItem"
-                                                           items="${fn:split(req.productDetail, ';')}"
-                                                           varStatus="productStatus">
-
-                                                    <%--
-                                                        빈 값이 섞여 들어오는 경우를 대비한 방어 코드입니다.
-                                                    --%>
-                                                    <c:if test="${not empty productItem}">
-
-                                                        <c:set var="productParts"
-                                                               value="${fn:split(productItem, '|')}"/>
-
-                                                        <c:set var="productRate"
-                                                               value="${productParts[1]}"/>
-
-                                                        <div class="event-product-discount-line">
-
-                                                            <c:out value="${productParts[0]}"/>
-                                                            :
-
-                                                            <c:choose>
-
-                                                                <c:when test="${productRate > 0}">
-
-                                                                    <fmt:formatNumber
-                                                                            value="${productParts[2]}"
-                                                                            pattern="#,###"/>원
-                                                                    →
-
-                                                                    <strong>
-                                                                        <fmt:formatNumber
-                                                                                value="${productParts[3]}"
-                                                                                pattern="#,###"/>원
-                                                                    </strong>
-
-                                                                    (${productRate}%)
-
-                                                                </c:when>
-
-                                                                <c:otherwise>
-                                                                    할인 없음
-                                                                </c:otherwise>
-
-                                                            </c:choose>
-
-                                                        </div>
-
-                                                    </c:if>
-
-                                                </c:forEach>
-
+                                                ${fn:length(fn:split(req.productDetail, ';'))}개 상품
                                             </c:when>
-
                                             <c:otherwise>
-                                                할인 없음
+                                                -
                                             </c:otherwise>
-
                                         </c:choose>
-
                                     </td>
-
 
                                     <td>
-                                        <fmt:formatDate
-                                                value="${req.startDate}"
-                                                pattern="yyyy-MM-dd"/>
-                                        ~
-                                        <fmt:formatDate
-                                                value="${req.endDate}"
-                                                pattern="yyyy-MM-dd"/>
+                                        ${reqStartDateStr} ~ ${reqEndDateStr}
                                     </td>
-
 
                                     <td>
-                                        <fmt:formatDate
-                                                value="${req.createdAt}"
-                                                pattern="yyyy-MM-dd"/>
+                                        ${reqCreatedAtStr}
                                     </td>
-
 
                                     <td>
 
                                         <c:choose>
 
                                             <c:when test="${req.status == 'APPROVED'}">
-
                                                 <span class="status-ok">
                                                     승인
                                                 </span>
-
                                             </c:when>
 
-
                                             <c:when test="${req.status == 'REJECTED'}">
-
                                                 <span class="status-reject">
                                                     반려
                                                 </span>
-
                                             </c:when>
 
+                                            <c:when test="${req.status == 'END'}">
+                                                <span class="status-end">
+                                                    종료
+                                                </span>
+                                            </c:when>
 
                                             <c:otherwise>
-
                                                 <span class="status-waiting">
                                                     대기
                                                 </span>
-
                                             </c:otherwise>
 
                                         </c:choose>
@@ -319,12 +312,15 @@ button.modal-close {
 
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                onclick="openEventRequestModal(
+                                                onclick="openEventDetailModal(
                                                     '${req.eventNo}',
-                                                    '${req.businessName}',
-                                                    '${req.title}',
-                                                    '<fmt:formatDate value="${req.startDate}" pattern="yyyy-MM-dd"/> ~ <fmt:formatDate value="${req.endDate}" pattern="yyyy-MM-dd"/>',
-                                                    '${req.productDetail}'
+                                                    '${fn:escapeXml(req.businessName)}',
+                                                    '${fn:escapeXml(req.title)}',
+                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
+                                                    '${reqCreatedAtStr}',
+                                                    '${req.status}',
+                                                    '${reqStatusLabel}',
+                                                    '${fn:escapeXml(req.productDetail)}'
                                                 )">
                                             상세보기
                                         </button>
@@ -342,7 +338,7 @@ button.modal-close {
 
                             <tr>
 
-                                <td colspan="9">
+                                <td colspan="8">
 
                                     <c:choose>
 
@@ -354,8 +350,12 @@ button.modal-close {
                                             종료된 이벤트가 없습니다.
                                         </c:when>
 
-                                        <c:otherwise>
+                                        <c:when test="${currentTab == 'waiting'}">
                                             승인 대기 이벤트가 없습니다.
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            조건에 맞는 이벤트가 없습니다.
                                         </c:otherwise>
 
                                     </c:choose>
@@ -375,7 +375,7 @@ button.modal-close {
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage-1}">
+                <a href="?tab=${currentTab}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.currentPage-1}">
                     ‹
                 </a>
 
@@ -384,7 +384,7 @@ button.modal-close {
                            begin="1"
                            end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
 
-                    <a href="?tab=${currentTab}&page=${p}"
+                    <a href="?tab=${currentTab}&period=${currentPeriod}&keyword=${param.keyword}&page=${p}"
                        class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
@@ -392,7 +392,7 @@ button.modal-close {
                 </c:forEach>
 
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage+1}">
+                <a href="?tab=${currentTab}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.currentPage+1}">
                     ›
                 </a>
 
@@ -424,13 +424,13 @@ button.modal-close {
      aria-labelledby="eventRequestModalTitle">
 
 
-    <div class="modal-box">
+    <div class="modal-box modal-box-lg">
 
 
         <div class="modal-header">
 
             <h3 id="eventRequestModalTitle">
-                이벤트 요청 상세
+                이벤트 상세
             </h3>
 
 
@@ -442,7 +442,7 @@ button.modal-close {
             --%>
             <button type="button"
                     class="modal-close"
-                    aria-label="이벤트 요청 상세 팝업 닫기"
+                    aria-label="이벤트 상세 팝업 닫기"
                     onclick="closeModal('eventRequestModal')">
                 &times;
             </button>
@@ -450,61 +450,61 @@ button.modal-close {
         </div>
 
 
+        <div class="detail-section-title">
+            이벤트 정보
+        </div>
+
         <div class="target-info-box">
 
-
             <p>
-
-                <span>
-                    사업자명
-                </span>
-
+                <span>사업자명</span>
                 <strong id="reqBusinessName"></strong>
-
             </p>
 
-
             <p>
-
-                <span>
-                    이벤트명
-                </span>
-
+                <span>이벤트명</span>
                 <strong id="reqtitle"></strong>
-
             </p>
-
 
             <p>
-
-                <span>
-                    이벤트 기간
-                </span>
-
+                <span>기간</span>
                 <strong id="reqEventPeriod"></strong>
+            </p>
 
+            <p>
+                <span>요청일</span>
+                <strong id="reqCreatedAt"></strong>
+            </p>
+
+            <p>
+                <span>상태</span>
+                <strong id="reqStatus"></strong>
             </p>
 
         </div>
 
 
-        <div class="form-group">
-
-            <%--
-                textarea의 id와 label의 for를 연결하여
-                입력 영역의 이름을 화면 낭독기가 정확히 읽도록 합니다.
-            --%>
-            <label class="form-label"
-                   for="reqDescription">
-                요청 내용
-            </label>
-
-
-            <textarea class="form-textarea"
-                      id="reqDescription"
-                      readonly></textarea>
-
+        <div class="detail-section-title">
+            적용 상품
         </div>
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>상품명</th>
+                    <th>판매자</th>
+                    <th>기존가격</th>
+                    <th>할인율</th>
+                    <th>적용가격</th>
+                </tr>
+            </thead>
+
+            <tbody id="reqProductTableBody">
+                <%-- openEventDetailModal()이 상품 목록을 채워 넣는다 --%>
+            </tbody>
+
+        </table>
 
 
         <form id="eventRequestForm"
@@ -521,17 +521,41 @@ button.modal-close {
                    name="tab"
                    value="${currentTab}">
 
+            <input type="hidden"
+                   name="period"
+                   value="${currentPeriod}">
 
-            <div class="modal-footer">
+            <input type="hidden"
+                   name="keyword"
+                   value="${param.keyword}">
+
+
+            <%--
+                이미 승인/반려/종료 처리된 이벤트는 다시 승인·반려할 수 없다
+                (adminMapper.xml의 updateEventStatus가 STATUS='WAITING'인 건만 갱신하며,
+                이미 처리된 이벤트에 다시 승인/반려를 시도하면 0건 갱신으로 처리되어 오류가 발생한다).
+                그래서 대기 상태가 아닐 때는 승인/반려 버튼 대신 안내 문구만 보여주고,
+                실제 표시 여부는 openEventDetailModal()이 상태값을 보고 JS로 전환한다.
+            --%>
+            <p id="eventReadonlyNote"
+               class="modal-readonly-note"
+               style="display:none">
+                이미 처리된 요청이라 승인·반려할 수 없습니다.
+            </p>
+
+            <div class="modal-footer"
+                 id="eventRequestActions">
 
 
                 <button type="submit"
+                        id="eventApproveBtn"
                         class="btn btn-success">
                     승인
                 </button>
 
 
                 <button type="submit"
+                        id="eventRejectBtn"
                         formaction="${pageContext.request.contextPath}/admin/event/reject"
                         class="btn btn-danger">
                     반려

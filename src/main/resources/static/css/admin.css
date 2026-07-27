@@ -216,6 +216,12 @@
   transform: translateY(-2px);
 }
 
+/* 이벤트 관리 등, 통계 카드를 상태 필터로도 쓰는 화면에서 현재 선택된 카드 강조 */
+.admin-wrap a.stat-card.active {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 1px var(--adm-point);
+}
+
 .admin-wrap .stat-card span {
   font-size: 14px;
   color: var(--adm-text-dim);
@@ -526,9 +532,16 @@
 
 .admin-wrap .status.reject,
 .admin-wrap .status-reject,
-.admin-wrap .status:not(.ok):not(.waiting) {
+.admin-wrap .status:not(.ok):not(.waiting):not(.end) {
   color: var(--adm-danger);
   background: var(--adm-danger-bg);
+}
+
+/* 종료(END)는 반려(REJECTED)와 의미가 다르므로 빨간색 대신 중립 색상을 쓴다 */
+.admin-wrap .status.end,
+.admin-wrap .status-end {
+  color: var(--adm-text-dim);
+  background: var(--adm-surface-3);
 }
 
 .admin-wrap .badge {
@@ -928,6 +941,98 @@
 
 .modal-footer .btn {
   flex: 1;
+}
+
+/*
+ * 적용 상품 표처럼 담을 내용이 많은 상세보기 팝업에서
+ * 기본 모달(440px)이 좁게 느껴질 때 이 클래스를 추가해 폭을 넓힌다.
+ * (eventManage.jsp 이벤트 상세 팝업 등)
+ */
+.modal-box.modal-box-lg {
+  max-width: 720px;
+}
+
+/* 모달 안에서 "이벤트 정보", "적용 상품"처럼 표/박스 위에 붙는 소제목 */
+.detail-section-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text-sub);
+}
+
+.detail-section-title + .data-table {
+  margin-bottom: 20px;
+}
+
+/*
+ * 이미 승인/반려 처리된 요청은 다시 승인·반려할 수 없어 버튼 대신 보여주는 안내 문구.
+ * (eventManage.jsp 이벤트 상세 팝업)
+ */
+.modal-readonly-note {
+  margin-top: 26px;
+  padding: 12px 14px;
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  color: var(--adm-text-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* =====================================================
+   이벤트 상세 팝업 - 적용 상품 표 가독성
+   ===================================================== */
+
+#reqProductTableBody .ep-name {
+  text-align: left;
+  color: var(--adm-text);
+  font-weight: 600;
+}
+
+#reqProductTableBody .ep-seller {
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
+#reqProductTableBody .ep-price {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 할인 전 원가: 할인이 있는 상품만 취소선 처리해 할인 여부를 한눈에 구분되게 한다 */
+#reqProductTableBody .ep-price-original {
+  color: var(--adm-text-dim);
+  text-decoration: line-through;
+}
+
+/* 할인 적용가: 강조 색상 + 살짝 큰 글씨로 시선이 먼저 가도록 한다 */
+#reqProductTableBody .ep-price-final strong {
+  color: var(--adm-point);
+  font-size: 15px;
+}
+
+/* 할인율은 상태 배지와 같은 톤(경고색 pill)으로 표시해 표 안에서 바로 눈에 띄게 한다 */
+#reqProductTableBody .ep-rate-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: 4px 10px;
+  border-radius: var(--adm-radius-pill);
+  color: var(--adm-warning);
+  background: var(--adm-warning-bg);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#reqProductTableBody .ep-rate-none {
+  color: var(--adm-text-dim);
+}
+
+#reqProductTableBody .ep-empty {
+  color: var(--adm-text-dim);
 }
 
 /* =====================================================

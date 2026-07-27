@@ -80,7 +80,7 @@
                 <c:when test="${empty loginMember.profileImage}">
 
                     <img class="profile-img"
-                         src="${pageContext.request.contextPath}/images/default-profile.png"
+                         src="${pageContext.request.contextPath}/images/profile_image.jpg"
                          alt="기본 프로필">
 
                 </c:when>

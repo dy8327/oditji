@@ -6,6 +6,7 @@ import com.project.oditji.admin.vo.AdminVO;
 import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
+import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
@@ -13,6 +14,7 @@ import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
+import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
@@ -64,7 +66,12 @@ public interface AdminService {
     void rejectProductReviewReport(Long reviewNo);
 
     // 이벤트 관리
-    List<EventManageVO> getEventList(String tab, String keyword);
+    // tab: null/빈값(전체) / waiting(승인 대기) / approved(승인 완료) / end(종료)
+    // period: null/빈값(전체) / today(오늘) / week(최근 7일) / month(최근 30일) - 요청일(CREATED_AT) 기준
+    List<EventManageVO> getEventList(String tab, String keyword, String period);
+
+    // 이벤트 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 종료)
+    EventStatVO getEventStats();
 
     void approveEvent(Long eventNo);
 
@@ -72,6 +79,9 @@ public interface AdminService {
 
     // 상품 관리
     List<ProductManageVO> getProductRequestList(String tab, String keyword);
+
+    // 상품 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 삭제 요청)
+    ProductStatVO getProductStats();
 
     void approveProduct(Long productNo);
 

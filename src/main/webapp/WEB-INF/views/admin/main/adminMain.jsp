@@ -61,13 +61,13 @@
                     <strong>${adminMain.businessRequestCount}건</strong>
                 </a>
 
-                <a href="${pageContext.request.contextPath}/admin/product/list?tab=register"
+                <a href="${pageContext.request.contextPath}/admin/product/list?tab=waiting"
                    class="stat-card">
                     <span>상품 등록 요청</span>
                     <strong>${adminMain.productRequestCount}건</strong>
                 </a>
 
-                <a href="${pageContext.request.contextPath}/admin/event/list?tab=register"
+                <a href="${pageContext.request.contextPath}/admin/event/list?tab=waiting"
                    class="stat-card">
                     <span>이벤트 요청</span>
                     <strong>${adminMain.eventRequestCount}건</strong>
