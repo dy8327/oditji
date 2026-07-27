@@ -133,7 +133,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         /* MEMBER 등록 */
-        memberVO.setRole("USER");
+        memberVO.setRole("BUSINESS");
         memberVO.setStatus("ACTIVE");
         memberVO.setAdultVerified("N");
 
