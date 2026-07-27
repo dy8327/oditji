@@ -13,6 +13,7 @@ public class ReviewManageVO {
     private Long memberNo;
     private String nickname;       // MEMBER 조인
     private Long contentNo;
+    private String contentTitle;   // 콘텐츠 리뷰 조회 시에만 사용 (CONTENT 조인)
     private Long productNo;
     private String productName;    // 상품 리뷰 조회 시에만 사용 (PRODUCT 조인)
     private Double rating;
@@ -51,6 +52,14 @@ public class ReviewManageVO {
 
     public void setContentNo(Long contentNo) {
         this.contentNo = contentNo;
+    }
+
+    public String getContentTitle() {
+        return contentTitle;
+    }
+
+    public void setContentTitle(String contentTitle) {
+        this.contentTitle = contentTitle;
     }
 
     public Long getProductNo() {

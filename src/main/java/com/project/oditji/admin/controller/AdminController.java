@@ -224,13 +224,16 @@ public class AdminController {
             @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "review");
         model.addAttribute("reviewList", adminService.getContentReviewList(tab, keyword));
+        model.addAttribute("reviewStats", adminService.getContentReviewStats());
         return "admin/review/reviewManage";
     }
 
     @PostMapping("/review/delete")
     public String reviewDelete(@RequestParam Long reviewNo,
-            @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
         adminService.deleteContentReview(reviewNo);
+        redirectAttributes.addFlashAttribute("message", "리뷰를 삭제했습니다.");
         return "redirect:/admin/review/list?tab=" + tab;
     }
 
@@ -268,6 +271,46 @@ public class AdminController {
         return "redirect:/admin/review/list?tab=" + tab;
     }
 
+    /**
+     * 목록 화면에서 체크박스로 선택한 콘텐츠 리뷰들을 삭제 / 신고 승인 / 신고 반려 중
+     * 하나로 일괄 처리한다. (member/bulk와 동일한 패턴)
+     */
+    @PostMapping("/review/bulk")
+    public String reviewBulkAction(
+            @RequestParam String action,
+            @RequestParam(required = false) List<Long> reviewNos,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        if (reviewNos == null || reviewNos.isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "선택된 리뷰가 없습니다.");
+            return "redirect:/admin/review/list?tab=" + tab;
+        }
+
+        String label = switch (action) {
+            case "delete" -> "삭제";
+            case "approve" -> "승인(리뷰 삭제)";
+            case "reject" -> "반려";
+            default -> "처리";
+        };
+
+        try {
+            int skipped = adminService.bulkContentReviewAction(reviewNos, action);
+            int processedCount = reviewNos.size() - skipped;
+
+            StringBuilder message = new StringBuilder(processedCount + "건의 리뷰를 " + label + " 처리했습니다.");
+            if (skipped > 0) {
+                message.append(" (이미 처리되었거나 대상이 아닌 ").append(skipped).append("건은 제외되었습니다.)");
+            }
+            redirectAttributes.addFlashAttribute("message", message.toString());
+
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/review/list?tab=" + tab;
+    }
+
     // 2-2. 상품 리뷰 관리 (전체 리뷰, 신고 내역)
     @GetMapping("/productReview/list")
     public String productReviewList(Model model,
@@ -275,13 +318,16 @@ public class AdminController {
             @RequestParam(required = false) String keyword) {
         model.addAttribute("activeMenu", "productReview");
         model.addAttribute("productReviewList", adminService.getProductReviewList(tab, keyword));
+        model.addAttribute("productReviewStats", adminService.getProductReviewStats());
         return "admin/review/productReviewManage";
     }
 
     @PostMapping("/productReview/delete")
     public String productReviewDelete(@RequestParam Long reviewNo,
-            @RequestParam(required = false) String tab) {
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
         adminService.deleteProductReview(reviewNo);
+        redirectAttributes.addFlashAttribute("message", "리뷰를 삭제했습니다.");
         return "redirect:/admin/productReview/list?tab=" + tab;
     }
 
@@ -313,6 +359,46 @@ public class AdminController {
             adminService.rejectProductReviewReport(reviewNo);
             redirectAttributes.addFlashAttribute("message", "신고를 반려했습니다.");
         } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
+
+        return "redirect:/admin/productReview/list?tab=" + tab;
+    }
+
+    /**
+     * 목록 화면에서 체크박스로 선택한 상품 리뷰들을 삭제 / 신고 승인 / 신고 반려 중
+     * 하나로 일괄 처리한다. (review/bulk와 동일한 패턴)
+     */
+    @PostMapping("/productReview/bulk")
+    public String productReviewBulkAction(
+            @RequestParam String action,
+            @RequestParam(required = false) List<Long> reviewNos,
+            @RequestParam(required = false) String tab,
+            RedirectAttributes redirectAttributes) {
+
+        if (reviewNos == null || reviewNos.isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "선택된 리뷰가 없습니다.");
+            return "redirect:/admin/productReview/list?tab=" + tab;
+        }
+
+        String label = switch (action) {
+            case "delete" -> "삭제";
+            case "approve" -> "승인(리뷰 삭제)";
+            case "reject" -> "반려";
+            default -> "처리";
+        };
+
+        try {
+            int skipped = adminService.bulkProductReviewAction(reviewNos, action);
+            int processedCount = reviewNos.size() - skipped;
+
+            StringBuilder message = new StringBuilder(processedCount + "건의 리뷰를 " + label + " 처리했습니다.");
+            if (skipped > 0) {
+                message.append(" (이미 처리되었거나 대상이 아닌 ").append(skipped).append("건은 제외되었습니다.)");
+            }
+            redirectAttributes.addFlashAttribute("message", message.toString());
+
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         }
 

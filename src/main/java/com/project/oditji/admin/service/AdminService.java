@@ -16,6 +16,7 @@ import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
+import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
@@ -52,20 +53,40 @@ public interface AdminService {
     // 콘텐츠 리뷰 관리
     List<ReviewManageVO> getContentReviewList(String tab, String keyword);
 
+    // 콘텐츠 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수)
+    ReviewStatVO getContentReviewStats();
+
     void deleteContentReview(Long reviewNo);
 
     void approveContentReviewReport(Long reviewNo);
 
     void rejectContentReviewReport(Long reviewNo);
 
+    /**
+     * 체크박스로 선택한 콘텐츠 리뷰들을 삭제(all 탭) / 신고 승인(report 탭) / 신고 반려(report 탭) 중
+     * 하나로 한 번에 처리한다. 이미 처리된 신고 등 처리할 수 없는 건은 건너뛰고,
+     * 건너뛴 건수를 반환한다.
+     */
+    int bulkContentReviewAction(List<Long> reviewNos, String action);
+
     // 상품 리뷰 관리
     List<ReviewManageVO> getProductReviewList(String tab, String keyword);
+
+    // 상품 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수)
+    ReviewStatVO getProductReviewStats();
 
     void deleteProductReview(Long reviewNo);
 
     void approveProductReviewReport(Long reviewNo);
 
     void rejectProductReviewReport(Long reviewNo);
+
+    /**
+     * 체크박스로 선택한 상품 리뷰들을 삭제(all 탭) / 신고 승인(report 탭) / 신고 반려(report 탭) 중
+     * 하나로 한 번에 처리한다. 이미 처리된 신고 등 처리할 수 없는 건은 건너뛰고,
+     * 건너뛴 건수를 반환한다.
+     */
+    int bulkProductReviewAction(List<Long> reviewNos, String action);
 
     // 이벤트 관리
     // tab: null/빈값(전체) / waiting(승인 대기) / approved(승인 완료) / end(종료)

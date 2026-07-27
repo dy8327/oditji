@@ -345,6 +345,7 @@
             R.MEMBER_NO     AS MEMBER_NO,
             M.NICKNAME      AS NICKNAME,
             R.CONTENT_NO    AS CONTENT_NO,
+            C.TITLE         AS CONTENT_TITLE,
             R.RATING        AS RATING,
             R.REVIEW_TEXT   AS CONTENT,
             R.STATUS        AS STATUS,
@@ -375,6 +376,7 @@
         R.MEMBER_NO AS MEMBER_NO,
         M.NICKNAME AS NICKNAME,
         R.CONTENT_NO AS CONTENT_NO,
+        C.TITLE AS CONTENT_TITLE,
         R.RATING AS RATING,
         R.REVIEW_TEXT AS CONTENT,
         R.STATUS AS STATUS,
@@ -385,6 +387,9 @@
 
     JOIN MEMBER M
     ON M.MEMBER_NO = R.MEMBER_NO
+
+    JOIN CONTENT C
+    ON C.CONTENT_NO = R.CONTENT_NO
 
     JOIN (
         SELECT
@@ -429,6 +434,29 @@
             UPDATED_AT = SYSDATE
         WHERE REVIEW_NO = #{reviewNo}
     </update>
+
+    <!--
+        콘텐츠 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수).
+        신고 접수는 WAITING 상태 신고가 하나라도 걸린 "리뷰" 건수를 센다
+        (신고가 여러 건 겹쳐도 리뷰 1건으로만 집계, selectContentReviewReportList와 동일 기준).
+        eventManage.jsp의 selectEventStats / productManage.jsp의 selectProductStats와 동일한 방식.
+    -->
+    <select id="selectContentReviewStats"
+            resultType="com.project.oditji.admin.vo.ReviewStatVO">
+
+        SELECT
+            (SELECT COUNT(*) FROM REVIEW WHERE STATUS != 'DELETED') AS TOTAL_COUNT,
+            (
+                SELECT COUNT(DISTINCT RR.CONTENT_REVIEW_NO)
+                FROM REVIEW_REPORT RR
+                JOIN REVIEW R ON R.REVIEW_NO = RR.CONTENT_REVIEW_NO
+                WHERE RR.REVIEW_TYPE = 'CONTENT'
+                  AND RR.STATUS = 'WAITING'
+                  AND R.STATUS != 'DELETED'
+            ) AS REPORT_COUNT
+        FROM DUAL
+
+    </select>
 
     <!-- ===================== 2-2. 상품 리뷰 관리 (PRODUCT_REVIEW) ===================== -->
 
@@ -504,6 +532,22 @@
         DELETE FROM PRODUCT_REVIEW
         WHERE REVIEW_NO = #{reviewNo}
     </delete>
+
+    <!-- 상품 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수). 콘텐츠 리뷰 통계와 동일한 방식이다. -->
+    <select id="selectProductReviewStats"
+            resultType="com.project.oditji.admin.vo.ReviewStatVO">
+
+        SELECT
+            (SELECT COUNT(*) FROM PRODUCT_REVIEW) AS TOTAL_COUNT,
+            (
+                SELECT COUNT(DISTINCT PRODUCT_REVIEW_NO)
+                FROM REVIEW_REPORT
+                WHERE REVIEW_TYPE = 'PRODUCT'
+                  AND STATUS = 'WAITING'
+            ) AS REPORT_COUNT
+        FROM DUAL
+
+    </select>
 
     <!-- ===================== 3. 이벤트 관리 (EVENT) ===================== -->
     <!-- EVENT 테이블에는 요청 유형(등록/수정/연장) 구분 컬럼이 없어

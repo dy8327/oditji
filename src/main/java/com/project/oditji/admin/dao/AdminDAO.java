@@ -21,6 +21,7 @@ import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
+import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
@@ -184,6 +185,10 @@ public class AdminDAO {
         return sqlSession.selectList("selectContentReviewReportList", keywordParam(keyword));
     }
 
+    public ReviewStatVO selectContentReviewStats() {
+        return sqlSession.selectOne("selectContentReviewStats");
+    }
+
     public int deleteContentReview(Long reviewNo) {
         // REVIEW 테이블은 STATUS 컬럼이 있어 소프트 삭제 처리
         return sqlSession.update("adminDeleteContentReview", reviewNo);
@@ -197,6 +202,10 @@ public class AdminDAO {
 
     public List<ReviewManageVO> selectProductReviewReportList(String keyword) {
         return sqlSession.selectList("selectProductReviewReportList", keywordParam(keyword));
+    }
+
+    public ReviewStatVO selectProductReviewStats() {
+        return sqlSession.selectOne("selectProductReviewStats");
     }
 
     public int adminDeleteProductReview(Long reviewNo) {
