@@ -1452,13 +1452,108 @@ public class BusinessController {
          */
         @GetMapping("/settlement/main")
         public String settlement(
-                        Model model) {
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
-                model.addAttribute(
-                                "activeMenu",
-                                "settlement");
+                /* [수정] 로그인 사업자의 이번 달 수수료 정보를 실제 DB에서 조회한다. */
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return "redirect:/member/login";
+                }
+
+                model.addAttribute("business", business);
+                model.addAttribute("settlementSummary",
+                                businessService.getMonthlySettlementSummary(business.getBusinessNo()));
+                model.addAttribute("activeMenu", "settlement");
 
                 return "business/settlement/settlementMain";
+        }
+
+        /* [수정] 사업자 수수료 입금 확인 요청 처리 */
+        @PostMapping("/settlement/request")
+        public String requestSettlement(
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return "redirect:/member/login";
+                }
+
+                try {
+                        businessService.requestSettlementConfirmation(business.getBusinessNo());
+                        redirectAttributes.addFlashAttribute("successMessage", "입금 확인 요청이 완료되었습니다.");
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                }
+
+                return "redirect:/business/settlement/main";
+        }
+
+        /* [수정] 월별 수수료 납부 내역 화면 */
+        @GetMapping("/settlement/complete")
+        public String settlementComplete(
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
+
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return "redirect:/member/login";
+                }
+
+                model.addAttribute("business", business);
+                model.addAttribute("settlementHistory",
+                                businessService.getSettlementPaymentHistory(business.getBusinessNo()));
+                model.addAttribute("activeMenu", "settlement");
+
+                return "business/settlement/settlementComplete";
+        }
+
+        /* [수정] 사업자 정산 계좌 정보 관리 화면 */
+        @GetMapping("/settlement/account")
+        public String settlementAccount(
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
+
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return "redirect:/member/login";
+                }
+
+                model.addAttribute("business", business);
+                model.addAttribute("settlementAccount",
+                                businessService.getSettlementAccount(business.getBusinessNo()));
+                model.addAttribute("activeMenu", "settlement");
+
+                return "business/settlement/settlementAccount";
+        }
+
+        /* [수정] 사업자 정산 계좌 정보 저장 */
+        @PostMapping("/settlement/account")
+        public String updateSettlementAccount(
+                        @RequestParam String bankName,
+                        @RequestParam String accountNumber,
+                        @RequestParam String accountHolder,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return "redirect:/member/login";
+                }
+
+                try {
+                        businessService.updateSettlementAccount(
+                                        business.getBusinessNo(), bankName, accountNumber, accountHolder);
+                        redirectAttributes.addFlashAttribute("successMessage", "정산 계좌 정보가 저장되었습니다.");
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                }
+
+                return "redirect:/business/settlement/account";
         }
 
         /*
@@ -1818,6 +1913,28 @@ public class BusinessController {
          * 기존 로그인 방식도 함께 지원한다.
          * =========================================================
          */
+        /*
+         * [수정] 정산 화면에서 공통으로 사용하는 로그인 사업자 조회.
+         * 세션 회원번호와 BUSINESS 연결 여부를 한 곳에서 확인한다.
+         */
+        private BusinessVO getLoginBusiness(HttpSession session, RedirectAttributes redirectAttributes) {
+                Long memberNo = getLoginMemberNo(session);
+                if (memberNo == null) {
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+                        return null;
+                }
+
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+                if (business == null) {
+                        redirectAttributes.addFlashAttribute(
+                                        "errorMessage",
+                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                }
+                return business;
+        }
+
         private Long getLoginMemberNo(
                         HttpSession session) {
 
