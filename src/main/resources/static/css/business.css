@@ -1617,3 +1617,306 @@
     grid-column: auto;
   }
 }
+
+/* =====================================================
+   [수정] 수수료 납부 내역 / 계좌 정보 관리 세부 디자인
+   기존 business-wrap, main-content, content-panel, tab-menu의
+   전체 레이아웃은 유지하고 내부 카드와 입력 폼만 정돈한다.
+   ===================================================== */
+.settlement-page-panel {
+  padding-bottom: 28px;
+}
+
+.settlement-section-card {
+  margin-top: 26px;
+  padding: 28px;
+  border: 1px solid #3b3e46;
+  border-radius: 14px;
+  background: #202126;
+}
+
+.settlement-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.settlement-section-kicker {
+  margin: 0 0 8px;
+  color: #5c9dff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.settlement-section-head h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 21px;
+}
+
+.settlement-section-description {
+  margin: 10px 0 0;
+  color: #a7acb5;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.settlement-history-count {
+  min-width: 110px;
+  padding: 12px 16px;
+  border: 1px solid #3b3e46;
+  border-radius: 10px;
+  background: #292b31;
+  text-align: right;
+}
+
+.settlement-history-count span {
+  display: block;
+  margin-bottom: 5px;
+  color: #9da3ad;
+  font-size: 11px;
+}
+
+.settlement-history-count strong {
+  color: #ffffff;
+  font-size: 17px;
+}
+
+.settlement-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #373a42;
+  border-radius: 10px;
+}
+
+.settlement-history-table {
+  min-width: 900px;
+  margin: 0;
+}
+
+.settlement-history-table th {
+  background: #292b31;
+  color: #b7bcc5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settlement-history-table td {
+  height: 58px;
+  color: #e8e9ec;
+}
+
+.settlement-month-cell,
+.settlement-fee-cell {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.settlement-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-approved {
+  background: rgba(46, 204, 113, 0.14);
+  color: #63d995;
+}
+
+.status-requested {
+  background: rgba(92, 157, 255, 0.15);
+  color: #7db1ff;
+}
+
+.status-rejected {
+  background: rgba(255, 82, 82, 0.14);
+  color: #ff7777;
+}
+
+.status-waiting {
+  background: rgba(255, 193, 7, 0.14);
+  color: #e9c44f;
+}
+
+.settlement-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 50px 20px;
+}
+
+.settlement-empty-state strong {
+  color: #e9eaed;
+  font-size: 15px;
+}
+
+.settlement-empty-state span {
+  color: #9298a2;
+  font-size: 12px;
+}
+
+.settlement-account-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.settlement-account-form {
+  display: grid;
+  gap: 18px;
+}
+
+.settlement-form-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #d7dae0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.required-mark {
+  color: #ff6969;
+}
+
+.settlement-form-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #454954;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #292b31;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settlement-form-field input::placeholder {
+  color: #777d87;
+}
+
+.settlement-form-field input:focus {
+  border-color: #5c9dff;
+  box-shadow: 0 0 0 3px rgba(92, 157, 255, 0.12);
+}
+
+.settlement-field-hint {
+  display: block;
+  margin-top: 7px;
+  color: #858b95;
+  font-size: 11px;
+}
+
+.settlement-account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 6px;
+  padding-top: 20px;
+  border-top: 1px solid #393c44;
+}
+
+.settlement-account-actions p {
+  margin: 0;
+  color: #9399a3;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.settlement-save-button {
+  flex-shrink: 0;
+  min-width: 128px;
+  height: 42px;
+}
+
+.settlement-account-guide {
+  margin-top: 26px;
+  padding: 24px;
+  border: 1px solid #3b3e46;
+  border-radius: 14px;
+  background: #292b31;
+}
+
+.settlement-account-guide h4 {
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.settlement-account-guide ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #aeb3bc;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.settlement-account-preview {
+  margin-top: 22px;
+  padding: 18px;
+  border-left: 3px solid #5c9dff;
+  border-radius: 8px;
+  background: #22242a;
+}
+
+.settlement-account-preview span {
+  display: block;
+  margin-bottom: 8px;
+  color: #888f99;
+  font-size: 10px;
+}
+
+.settlement-account-preview strong {
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.settlement-account-preview p {
+  margin: 7px 0 0;
+  color: #aeb3bc;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+@media (max-width: 1000px) {
+  .settlement-account-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settlement-account-guide {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .settlement-section-card {
+    padding: 20px;
+  }
+
+  .settlement-section-head,
+  .settlement-account-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settlement-history-count {
+    text-align: left;
+  }
+
+  .settlement-save-button {
+    width: 100%;
+  }
+}
