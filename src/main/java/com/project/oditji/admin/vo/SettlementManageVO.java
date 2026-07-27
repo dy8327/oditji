@@ -3,23 +3,24 @@ package com.project.oditji.admin.vo;
 import java.util.Date;
 
 /**
- * 정산 관리 VO (테이블: SETTLEMENT + BUSINESS 조인)
+ * 정산 관리 VO (SETTLEMENT 월별 집계 + BUSINESS 조인)
  */
 public class SettlementManageVO {
 
     private Long settlementNo;
     private Long businessNo;
-    private String businessName;   // BUSINESS 조인
+    private String businessName;
+    private String settlementMonth; // [수정] 관리자 월별 일괄 처리 기준
     private Long orderItemNo;
     private Long totalAmount;
     private String appliedGrade;
     private Double appliedRate;
     private Long feeAmount;
     private Long settledAmount;
-    private String status;         // WAITING, DONE, REJECTED
-    private String bankName;       // BUSINESS 조인
-    private String accountNumber;  // BUSINESS 조인
-    private String accountHolder;  // BUSINESS 조인
+    private String status; // WAITING, DONE, REJECTED
+    private String bankName; // BUSINESS 조인
+    private String accountNumber; // BUSINESS 조인
+    private String accountHolder; // BUSINESS 조인
     private Date settledAt;
     private Date createdAt;
 
@@ -45,6 +46,14 @@ public class SettlementManageVO {
 
     public void setBusinessName(String businessName) {
         this.businessName = businessName;
+    }
+
+    public String getSettlementMonth() {
+        return settlementMonth;
+    }
+
+    public void setSettlementMonth(String settlementMonth) {
+        this.settlementMonth = settlementMonth;
     }
 
     public Long getOrderItemNo() {
