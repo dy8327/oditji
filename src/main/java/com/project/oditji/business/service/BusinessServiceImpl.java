@@ -378,6 +378,7 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = normalizeDeliveryUpdateStatus(status);
+                validateDeliveryStatusTransition(currentStatus, normalizedStatus);
                 String normalizedCourier = courier == null ? null : courier.trim();
                 String normalizedTrackingNumber = trackingNumber == null ? null : trackingNumber.trim();
 
@@ -448,6 +449,22 @@ public class BusinessServiceImpl
 
                 return normalizedStatus;
         }
+
+        /* 배송 상태가 이전 단계로 돌아가지 않도록 검사 */
+        private void validateDeliveryStatusTransition(String currentStatus, String nextStatus) {
+                Map<String, Integer> statusOrder = Map.of(
+                                "PAID", 0,
+                                "PREPARING", 1,
+                                "SHIPPING", 2,
+                                "DELIVERED", 3);
+
+                Integer currentStep = statusOrder.get(currentStatus);
+                Integer nextStep = statusOrder.get(nextStatus);
+
+                if (currentStep != null && nextStep != null && nextStep < currentStep) {
+                        throw new IllegalStateException("배송 상태는 이전 단계로 되돌릴 수 없습니다.");
+                }
+        }        
 
         /* 사업자등록번호 사용 가능 여부 확인 */
         @Override
