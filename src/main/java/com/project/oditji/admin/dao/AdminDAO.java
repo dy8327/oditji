@@ -11,6 +11,7 @@ import com.project.oditji.admin.vo.AdminVO;
 import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
+import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
@@ -18,6 +19,7 @@ import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
+import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
@@ -226,17 +228,23 @@ public class AdminDAO {
 
     // ===================== 이벤트 관리 (EVENT) =====================
 
-    public List<EventManageVO> selectAdminEventList(String tab, String keyword) {
+    public List<EventManageVO> selectAdminEventList(String tab, String keyword, String period) {
 
         Map<String, Object> param = new HashMap<>();
 
         param.put("tab", tab);
         param.put("keyword", keyword);
+        param.put("period", period);
 
         return sqlSession.selectList(
                 "selectAdminEventList",
                 param
         );
+    }
+
+    public EventStatVO selectEventStats() {
+
+        return sqlSession.selectOne("selectEventStats");
     }
 
     public int updateEventStatus(Long eventNo, String status) {
@@ -266,6 +274,10 @@ public class AdminDAO {
         Map<String, Object> param = keywordParam(keyword);
         param.put("tab", tab);
         return sqlSession.selectList("selectProductRequestList", param);
+    }
+
+    public ProductStatVO selectProductStats() {
+        return sqlSession.selectOne("selectProductStats");
     }
 
     public int updateProductStatus(Long productNo, String status) {

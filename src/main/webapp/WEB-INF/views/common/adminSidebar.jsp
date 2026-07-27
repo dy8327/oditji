@@ -57,46 +57,47 @@
 
         </div>
 
-        <!-- 이벤트 관리 (사업자 등록/수정/연장 요청 처리) -->
+        <!--
+            이벤트 관리 (회원 관리와 동일한 방식)
+
+            [정리됨] 예전에는 이벤트 등록/수정/연장 "요청 유형"별로 하위 메뉴 3개를 나누고
+            각각 tab=register/update/extend 파라미터로 구분했었다. 하지만 지금 컨트롤러
+            (AdminController#eventList)와 eventManage.jsp의 tab 파라미터는 요청 유형이 아니라
+            "상태"(승인 대기/승인 완료/종료) 값을 쓰고 있어 더 이상 이 하위 메뉴들과 맞지 않았고,
+            그 결과 tab이 비어있을 때(전체 이벤트를 보고 있을 때도) 항상 "이벤트 등록"만
+            눌린 것처럼 표시되는 문제가 있었다. EVENT 테이블에는 요청 유형을 구분하는 컬럼이
+            아직 없어 하위 메뉴로 나눌 근거도 없으므로, 회원 관리처럼 activeMenu만으로
+            판단하는 단일 링크로 정리한다.
+        -->
         <div class="menu-group">
 
             <h3>이벤트 관리</h3>
 
-            <a href="${pageContext.request.contextPath}/admin/event/list?tab=register"
-               class="${activeMenu == 'event' && (curTab == 'register' || empty curTab) ? 'active' : ''}">
-                이벤트 등록
-            </a>
-
-            <a href="${pageContext.request.contextPath}/admin/event/list?tab=update"
-               class="${activeMenu == 'event' && curTab == 'update' ? 'active' : ''}">
-                이벤트 수정
-            </a>
-
-            <a href="${pageContext.request.contextPath}/admin/event/list?tab=extend"
-               class="${activeMenu == 'event' && curTab == 'extend' ? 'active' : ''}">
-                이벤트 연장
+            <a href="${pageContext.request.contextPath}/admin/event/list"
+               class="${activeMenu == 'event' ? 'active' : ''}">
+                이벤트 관리
             </a>
 
         </div>
 
-        <!-- 상품 관리 (사업자 등록/수정/삭제 요청 처리) -->
+        <!--
+            상품 관리 (사업자 등록/수정/삭제 요청 처리)
+
+            [정리됨] 이벤트 관리와 동일한 이유로 정리했다. 예전에는 요청 유형별로
+            등록/수정/삭제 하위 메뉴 3개를 나누고 tab=register/update/delete로
+            구분했지만, PRODUCT 테이블에는 요청 유형을 구분하는 컬럼이 없어
+            등록/수정 탭이 실제로는 같은 WAITING 목록을 보여주고 있었다.
+            지금은 productManage.jsp의 tab 파라미터가 "상태"(승인 대기/승인 완료/
+            삭제 요청) 값을 쓰므로, 회원·이벤트 관리처럼 activeMenu만으로
+            판단하는 단일 링크로 정리한다.
+        -->
         <div class="menu-group">
 
             <h3>상품 관리</h3>
 
-            <a href="${pageContext.request.contextPath}/admin/product/list?tab=register"
-               class="${activeMenu == 'product' && (curTab == 'register' || empty curTab) ? 'active' : ''}">
-                상품 등록
-            </a>
-
-            <a href="${pageContext.request.contextPath}/admin/product/list?tab=update"
-               class="${activeMenu == 'product' && curTab == 'update' ? 'active' : ''}">
-                상품 수정
-            </a>
-
-            <a href="${pageContext.request.contextPath}/admin/product/list?tab=delete"
-               class="${activeMenu == 'product' && curTab == 'delete' ? 'active' : ''}">
-                상품 삭제
+            <a href="${pageContext.request.contextPath}/admin/product/list"
+               class="${activeMenu == 'product' ? 'active' : ''}">
+                상품 관리
             </a>
 
         </div>

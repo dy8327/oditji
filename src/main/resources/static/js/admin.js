@@ -182,69 +182,117 @@ function openApprovalModal(businessNo, businessName, memberId, email, businessNu
 /* =========================================================
  * eventManage.jsp - 이벤트 관리
  * ========================================================= */
-function openEventRequestModal(eventNo, businessName, title, period, productDetail) {
+
+/* HTML 특수문자를 이스케이프해서 상품명/판매자명 등을 안전하게 innerHTML에 넣는다. */
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+/*
+ * 숫자를 "1,234원" 형태로 표시. 값이 숫자가 아니면 원본 문자열을 이스케이프해서 그대로 보여준다.
+ * (아래 orderManage.jsp 섹션에도 동일한 이름의 formatWon이 있어, 이름이 겹치지 않도록
+ * 이벤트 상세 전용 함수는 formatEventWon으로 따로 둔다.)
+ */
+function formatEventWon(value) {
+    var amount = Number(value);
+    if (isNaN(amount)) {
+        return escapeHtml(value);
+    }
+    return amount.toLocaleString('ko-KR') + '원';
+}
+
+/*
+ * 이벤트 상세 팝업.
+ *
+ * 목록 화면에서는 연결 상품 개수만 보여주고, 상품별 상세 할인 내역(상품명/판매자/
+ * 기존가격/할인율/적용가격)은 이 팝업의 표에서만 그려준다. 서버가 내려준
+ * productDetail("상품명|할인율|기존가격|적용가격|판매자명" 을 ';'로 이어붙인 문자열)을
+ * 그대로 파싱해서 행을 만든다.
+ *
+ * status(원본 코드값)가 WAITING이 아니면 승인/반려 버튼을 숨기고 안내 문구만 보여준다.
+ * (WAITING이 아닌 이벤트에 승인/반려를 시도하면 adminMapper.xml의 updateEventStatus가
+ * 0건을 갱신해 500 오류로 이어지던 문제를 화면에서 원천적으로 막기 위함이다.)
+ */
+function openEventDetailModal(
+    eventNo,
+    businessName,
+    title,
+    period,
+    createdAt,
+    status,
+    statusLabel,
+    productDetail
+) {
+
     document.getElementById('reqeventNo').value = eventNo;
     document.getElementById('reqBusinessName').textContent = businessName;
     document.getElementById('reqtitle').textContent = title;
     document.getElementById('reqEventPeriod').textContent = period;
-    document.getElementById('reqDescription').value = formatProductDetail(productDetail);
-    document.getElementById('eventRequestModal').classList.add('open');
-}
+    document.getElementById('reqCreatedAt').textContent = createdAt;
+    document.getElementById('reqStatus').textContent = statusLabel;
 
-/*
- * 상품별 상세 내역 파싱
- *
- * productDetail 형식: "상품명|할인율|가격|할인적용가;상품명|할인율|가격|할인적용가;..."
- * (adminMapper.xml selectAdminEventList의 productDetail 컬럼)
- */
-function formatProductDetail(productDetail) {
-
-    if (!productDetail) {
-        return '연결된 상품이 없습니다.';
-    }
-
-    const items = productDetail.split(';').filter(Boolean);
+    var tbody = document.getElementById('reqProductTableBody');
+    var items = (productDetail || '')
+        .split(';')
+        .filter(function (item) { return item.trim() !== ''; });
 
     if (items.length === 0) {
-        return '연결된 상품이 없습니다.';
+        tbody.innerHTML = '<tr><td colspan="5" class="ep-empty">연결된 상품이 없습니다.</td></tr>';
+    } else {
+        tbody.innerHTML = items.map(function (item) {
+            var parts = item.split('|');
+            var name = parts[0] || '';
+            var rate = Number(parts[1]) || 0;
+            var price = parts[2] || '0';
+            var discounted = parts[3] || price;
+            var business = parts[4] || businessName;
+
+            // 할인이 없는 상품은 기존가격에 취소선을 넣지 않고, 할인율도 배지 대신 "-"로 표시한다.
+            var priceCell = rate > 0
+                ? '<span class="ep-price-original">' + formatEventWon(price) + '</span>'
+                : formatEventWon(price);
+
+            var rateCell = rate > 0
+                ? '<span class="ep-rate-badge">' + rate + '% 할인</span>'
+                : '<span class="ep-rate-none">-</span>';
+
+            return '<tr>'
+                + '<td class="ep-name">' + escapeHtml(name) + '</td>'
+                + '<td class="ep-seller">' + escapeHtml(business) + '</td>'
+                + '<td class="ep-price">' + priceCell + '</td>'
+                + '<td class="ep-rate">' + rateCell + '</td>'
+                + '<td class="ep-price ep-price-final"><strong>' + formatEventWon(discounted) + '</strong></td>'
+                + '</tr>';
+        }).join('');
     }
 
-    const lines = [];
+    // 대기(WAITING) 상태일 때만 승인/반려 버튼을 보여주고, 이미 처리된 이벤트는
+    // 내용만 확인할 수 있도록 버튼 대신 안내 문구를 보여준다. (닫기 버튼은 항상 보여준다.)
+    var isWaiting = (status === 'WAITING');
 
-    items.forEach(function (item) {
+    var approveBtn = document.getElementById('eventApproveBtn');
+    var rejectBtn = document.getElementById('eventRejectBtn');
+    var noteEl = document.getElementById('eventReadonlyNote');
 
-        const parts = item.split('|');
+    if (approveBtn) {
+        approveBtn.style.display = isWaiting ? '' : 'none';
+    }
+    if (rejectBtn) {
+        rejectBtn.style.display = isWaiting ? '' : 'none';
+    }
+    if (noteEl) {
+        noteEl.style.display = isWaiting ? 'none' : '';
+    }
 
-        const name = parts[0];
-        const rate = Number(parts[1]);
-        const price = Number(parts[2]);
-        const discounted = Number(parts[3]);
-
-        if (!name) {
-            return;
-        }
-
-        if (rate > 0) {
-
-            lines.push(
-                name
-                + ' : '
-                + price.toLocaleString()
-                + '원 → '
-                + discounted.toLocaleString()
-                + '원 (' + rate + '% 할인)'
-            );
-
-        } else {
-
-            lines.push(name + ' : 할인 없음');
-
-        }
-
-    });
-
-    return lines.join('\n');
-
+    document.getElementById('eventRequestModal').classList.add('open');
 }
 
 
@@ -353,35 +401,82 @@ function openRefundDetailModal(
  * productManage.jsp - 상품 관리
  * ========================================================= */
 
+// 숫자를 "1,234원" 형태로 표시한다. (formatEventWon / formatWon과 동일한 역할이지만,
+// 각 화면 섹션이 독립적으로 유지되도록 상품 관리 전용으로 따로 둔다.)
+function formatProductWon(value) {
+    var amount = Number(value);
+    if (isNaN(amount)) {
+        return escapeHtml(value);
+    }
+    return amount.toLocaleString('ko-KR') + '원';
+}
+
 /*
+ * 상품 요청 상세 팝업.
+ *
  * data-* 속성을 사용하여 상품명이나 설명에 따옴표가 포함되어도
- * JavaScript 함수 호출 문자열이 깨지지 않도록 수정한다.
+ * JavaScript 함수 호출 문자열이 깨지지 않도록 한다.
+ *
+ * status(원본 코드값)가 WAITING(등록·수정 승인 대기) 또는 DELETE_REQUESTED(삭제 요청)가
+ * 아니면(즉 이미 APPROVED/REJECTED로 확정된 상품이면) 승인/반려 버튼을 숨기고
+ * 안내 문구만 보여준다. eventManage.jsp의 openEventDetailModal()과 동일한 방식이다.
+ * (WAITING/DELETE_REQUESTED가 아닌 상품에 승인/반려를 시도하면 updateProductStatus가
+ * 의도치 않게 상태를 덮어써버릴 수 있는 문제를 화면에서 막기 위함이다.)
  */
 function openProductRequestModal(button) {
+
+    var status = button.dataset.status || '';
+
     document.getElementById('reqProductNo').value = button.dataset.productNo;
+    document.getElementById('reqProductStatusRaw').value = status;
+
     document.getElementById('reqProductBusinessName').textContent = button.dataset.businessName || '';
     document.getElementById('reqProductName').textContent = button.dataset.productName || '';
-    document.getElementById('reqProductPrice').textContent = (button.dataset.price || '0') + '원';
+    document.getElementById('reqProductContentTitle').textContent = button.dataset.contentTitle || '';
+    document.getElementById('reqProductPrice').textContent = formatProductWon(button.dataset.price || 0);
+
+    var discountRate = Number(button.dataset.discountRate);
+    document.getElementById('reqProductDiscountRate').textContent =
+        (discountRate > 0) ? discountRate + '% 할인' : '할인 없음';
+
+    document.getElementById('reqProductStock').textContent = (button.dataset.stock || '0') + '개';
+    document.getElementById('reqProductCreatedAt').textContent = button.dataset.createdAt || '';
+    document.getElementById('reqProductStatus').textContent = button.dataset.statusLabel || '';
     document.getElementById('reqProductDescription').value = button.dataset.description || '';
+
+    var isActionable = (status === 'WAITING' || status === 'DELETE_REQUESTED');
+
+    var approveBtn = document.getElementById('productApproveBtn');
+    var rejectBtn = document.getElementById('productRejectBtn');
+    var noteEl = document.getElementById('productReadonlyNote');
+
+    if (approveBtn) {
+        approveBtn.style.display = isActionable ? '' : 'none';
+    }
+    if (rejectBtn) {
+        rejectBtn.style.display = isActionable ? '' : 'none';
+    }
+    if (noteEl) {
+        noteEl.style.display = isActionable ? 'none' : '';
+    }
+
     document.getElementById('productRequestModal').classList.add('open');
 }
 
 /*
- * 원래 코드는 JSP EL(${currentTab})을 스크립트 안에서 직접 사용했으나,
- * admin.js로 분리되면서 더 이상 JSP 엔진이 처리하지 않는 정적 파일이 되었기 때문에
- * ${currentTab} 표현식이 그대로 문자열로 남아 동작하지 않게 된다.
- * 대신 이미 화면에 렌더링되어 있는 productRequestForm의 hidden input(tab) 값을
- * 런타임에 읽어와 동일한 기능을 유지한다.
+ * 승인/반려 확인 문구는 페이지의 현재 탭이 아니라, 모달을 열 때 저장해 둔
+ * 해당 상품 자체의 실제 상태(hidden input의 status 값)를 기준으로 판단한다.
+ * '전체' 탭에서 삭제 요청 건을 열람하는 경우에도 정확한 문구가 나오도록 하기 위함이다.
  */
-function getProductRequestCurrentTab() {
-    var tabInput = document.querySelector('#productRequestForm input[name="tab"]');
-    return tabInput ? tabInput.value : '';
+function getProductRequestRawStatus() {
+    var statusInput = document.querySelector('#productRequestForm input[name="status"]');
+    return statusInput ? statusInput.value : '';
 }
 
 function confirmProductApprove() {
-    const currentTab = getProductRequestCurrentTab();
+    var status = getProductRequestRawStatus();
 
-    if (currentTab === 'delete') {
+    if (status === 'DELETE_REQUESTED') {
         return confirm('삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?');
     }
 
@@ -389,9 +484,9 @@ function confirmProductApprove() {
 }
 
 function confirmProductReject() {
-    const currentTab = getProductRequestCurrentTab();
+    var status = getProductRequestRawStatus();
 
-    if (currentTab === 'delete') {
+    if (status === 'DELETE_REQUESTED') {
         return confirm('이 상품의 삭제 요청을 반려하시겠습니까?');
     }
 
