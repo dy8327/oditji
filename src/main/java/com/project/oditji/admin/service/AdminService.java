@@ -23,8 +23,10 @@ public interface AdminService {
     AdminVO getDashboardStats();
 
     // 회원 관리
-    // memberType: all(기본,전체 유저) / general(일반 회원) / sns(SNS 로그인 유저) / business(사업자 회원)
-    List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType, int page, int pageSize);
+    // memberType: all(기본,전체 유저) / general(일반 회원) / sns(SNS 로그인 유저) / business(사업자
+    // 회원)
+    List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType, int page,
+            int pageSize);
 
     int getMemberListCount(String keyword, String searchType, String status, String memberType);
 
@@ -97,9 +99,10 @@ public interface AdminService {
     // 정산 관리
     List<SettlementManageVO> getSettlementList(String keyword);
 
-    void confirmSettlement(Long settlementNo);
+    /* [수정] 사업자와 정산 월을 기준으로 해당 월 요청 건 전체를 처리한다. */
+    void confirmSettlement(Long businessNo, String settlementMonth);
 
-    void rejectSettlement(Long settlementNo);
+    void rejectSettlement(Long businessNo, String settlementMonth);
 
     // 모니터링
     List<MonitoringVO> getMonitoringList();
