@@ -59,7 +59,8 @@ public class AdminController {
 
         model.addAttribute("activeMenu", "member");
         model.addAttribute("memberList",
-                adminService.getMemberList(keyword, searchType, status, memberType, pagination.getCurrentPage(), MEMBER_PAGE_SIZE));
+                adminService.getMemberList(keyword, searchType, status, memberType, pagination.getCurrentPage(),
+                        MEMBER_PAGE_SIZE));
         model.addAttribute("memberStats", adminService.getMemberStats());
         model.addAttribute("pagination", pagination);
         model.addAttribute("searchType", searchType);
@@ -156,7 +157,8 @@ public class AdminController {
 
     /**
      * PageVO에는 계산 로직이 없으므로(값을 담는 순수 VO), 여기서 현재 페이지/전체 페이지 수를 계산해 채운다.
-     * 한 페이지에 MEMBER_PAGE_SIZE(10)건, 페이지 번호는 MEMBER_PAGE_BLOCK_SIZE(5)개 단위로 끊어서 보여준다.
+     * 한 페이지에 MEMBER_PAGE_SIZE(10)건, 페이지 번호는 MEMBER_PAGE_BLOCK_SIZE(5)개 단위로 끊어서
+     * 보여준다.
      */
     private PageVO buildMemberPagination(int requestedPage, int totalCount) {
 
@@ -191,7 +193,8 @@ public class AdminController {
     /**
      * 개별/일괄 처리 후 방금 보고 있던 검색어·필터·페이지 상태 그대로 목록으로 돌아가기 위한 리다이렉트 URL을 만든다.
      */
-    private String memberListRedirectUrl(String keyword, String searchType, String status, String memberType, int page) {
+    private String memberListRedirectUrl(String keyword, String searchType, String status, String memberType,
+            int page) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/member/list")
                 .queryParam("page", page);
@@ -327,13 +330,11 @@ public class AdminController {
         model.addAttribute("activeMenu", "event");
 
         model.addAttribute(
-            "eventRequestList",
-            adminService.getEventList(tab, keyword)
-        );
+                "eventRequestList",
+                adminService.getEventList(tab, keyword));
 
         return "admin/event/eventManage";
     }
-
 
     @PostMapping("/event/approve")
     public String eventApprove(
@@ -344,7 +345,6 @@ public class AdminController {
 
         return "redirect:/admin/event/list?tab=" + tab;
     }
-
 
     @PostMapping("/event/reject")
     public String eventReject(
@@ -488,15 +488,21 @@ public class AdminController {
         return "admin/settlement/settlementManage";
     }
 
+    /* [수정] 화면에서 전달한 사업자 번호와 정산 월을 기준으로 일괄 확인한다. */
     @PostMapping("/settlement/confirm")
-    public String settlementConfirm(@RequestParam Long settlementNo) {
-        adminService.confirmSettlement(settlementNo);
+    public String settlementConfirm(
+            @RequestParam Long businessNo,
+            @RequestParam String settlementMonth) {
+        adminService.confirmSettlement(businessNo, settlementMonth);
         return "redirect:/admin/settlement/main";
     }
 
+    /* [수정] 화면에서 전달한 사업자 번호와 정산 월을 기준으로 일괄 반려한다. */
     @PostMapping("/settlement/reject")
-    public String settlementReject(@RequestParam Long settlementNo) {
-        adminService.rejectSettlement(settlementNo);
+    public String settlementReject(
+            @RequestParam Long businessNo,
+            @RequestParam String settlementMonth) {
+        adminService.rejectSettlement(businessNo, settlementMonth);
         return "redirect:/admin/settlement/main";
     }
 
