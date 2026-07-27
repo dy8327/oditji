@@ -155,10 +155,10 @@ public interface BusinessDAO {
          * END_DATE < 오늘 이면서 STATUS = 'APPROVED'인 이벤트를
          * 'END'로 전환한다. (EventStatusScheduler에서 매일 호출)
          * =========================================================
-        */
+         */
         int updateExpiredEventStatus();
 
-        // 마이페이지 대시보드 - 오늘 매출 합계  
+        // 마이페이지 대시보드 - 오늘 매출 합계
         long selectTodaySalesByBusinessNo(@Param("businessNo") long businessNo);
 
         // 마이페이지 대시보드 - 오늘 주문 건수
@@ -213,6 +213,21 @@ public interface BusinessDAO {
                         @Param("businessNo") long businessNo,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
+
+        /* [수정] 사업자 수수료 관리 조회/변경 */
+        SettlementManageVO selectMonthlySettlementSummary(@Param("businessNo") long businessNo);
+
+        List<SettlementManageVO> selectSettlementPaymentHistory(@Param("businessNo") long businessNo);
+
+        int updateSettlementRequestStatus(@Param("businessNo") long businessNo);
+
+        SettlementManageVO selectSettlementAccount(@Param("businessNo") long businessNo);
+
+        int updateSettlementAccount(
+                        @Param("businessNo") long businessNo,
+                        @Param("bankName") String bankName,
+                        @Param("accountNumber") String accountNumber,
+                        @Param("accountHolder") String accountHolder);
 
         /*
          * =========================================================
