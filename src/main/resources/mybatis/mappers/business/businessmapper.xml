@@ -362,7 +362,7 @@
                 WHERE EP.PRODUCT_NO = P.PRODUCT_NO
                   AND (
                         E.STATUS = 'WAITING'
-                        OR (E.STATUS = 'APPROVED' AND E.END_DATE >= TRUNC(SYSDATE))
+                        OR (E.STATUS = 'APPROVED' AND E.END_DATE <![CDATA[ >= ]]> TRUNC(SYSDATE))
                       )
           )
 
@@ -572,7 +572,7 @@
             WHERE EP.PRODUCT_NO = P.PRODUCT_NO
                 AND (
                       E.STATUS = 'WAITING'
-                      OR (E.STATUS = 'APPROVED' AND E.END_DATE >= TRUNC(SYSDATE))
+                      OR (E.STATUS = 'APPROVED' AND E.END_DATE <![CDATA[ >= ]]> TRUNC(SYSDATE))
                     )
                 <if test="excludeEventNo != null">
                     AND E.EVENT_NO != #{excludeEventNo}
@@ -1450,5 +1450,92 @@
         ORDER BY SALE_DATE DESC
 
     </select>
+
+    <!-- =====================================================
+         [수정] 사업자 수수료 관리 - 이번 달 요약
+         SETTLEMENT은 주문상품 단위이므로 월 단위로 합산한다.
+    ====================================================== -->
+    <select id="selectMonthlySettlementSummary"
+            resultType="com.project.oditji.business.vo.SettlementManageVO">
+        SELECT
+            NVL(SUM(S.TOTAL_AMOUNT), 0) AS MONTH_SALES,
+            NVL(SUM(S.FEE_AMOUNT), 0) AS FEE_AMOUNT,
+            NVL(MAX(S.APPLIED_RATE), NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)) AS FEE_RATE,
+            TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) + 9, 'YYYY-MM-DD') AS EXPECTED_DATE,
+            CASE
+                WHEN COUNT(S.SETTLEMENT_NO) = 0 THEN 'WAITING'
+                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(S.SETTLEMENT_NO) THEN 'APPROVED'
+                ELSE 'WAITING'
+            END AS STATUS,
+            COUNT(DISTINCT OI.ORDER_NO) AS MONTH_ORDER_COUNT
+        FROM BUSINESS B
+        JOIN GRADE_POLICY GP ON GP.GRADE_NAME = B.GRADE_NAME
+        LEFT JOIN SETTLEMENT S
+          ON S.BUSINESS_NO = B.BUSINESS_NO
+         AND S.CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE, 'MM')
+         AND S.CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+        LEFT JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+        WHERE B.BUSINESS_NO = #{businessNo}
+        GROUP BY B.CUSTOM_RATE, GP.COMMISSION_RATE
+    </select>
+
+    <!-- [수정] 사업자 월별 수수료 납부 내역 -->
+    <select id="selectSettlementPaymentHistory"
+            resultType="com.project.oditji.business.vo.SettlementManageVO">
+        SELECT
+            TO_CHAR(TRUNC(S.CREATED_AT, 'MM'), 'YYYY-MM') AS SETTLEMENT_MONTH,
+            SUM(S.TOTAL_AMOUNT) AS MONTH_SALES,
+            SUM(S.FEE_AMOUNT) AS FEE_AMOUNT,
+            MAX(S.APPLIED_RATE) AS FEE_RATE,
+            COUNT(DISTINCT OI.ORDER_NO) AS MONTH_ORDER_COUNT,
+            CASE
+                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'APPROVED'
+                ELSE 'WAITING'
+            END AS STATUS,
+            TRUNC(MIN(CASE WHEN S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED') THEN S.CREATED_AT END)) AS REQUESTED_AT,
+            TRUNC(MAX(S.SETTLED_AT)) AS SETTLED_AT
+        FROM SETTLEMENT S
+        JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+        WHERE S.BUSINESS_NO = #{businessNo}
+        GROUP BY TRUNC(S.CREATED_AT, 'MM')
+        ORDER BY TRUNC(S.CREATED_AT, 'MM') DESC
+    </select>
+
+    <!-- [수정] 반려 건은 다시 요청할 수 있으며, 현재 달 데이터만 변경한다. -->
+    <update id="updateSettlementRequestStatus">
+        UPDATE SETTLEMENT
+        SET STATUS = 'REQUESTED',
+            SETTLED_AT = NULL
+        WHERE BUSINESS_NO = #{businessNo}
+          AND CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE, 'MM')
+          AND CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+          AND STATUS IN ('WAITING', 'REJECTED')
+    </update>
+
+    <!-- [수정] 사업자 정산 계좌 조회 -->
+    <select id="selectSettlementAccount"
+            resultType="com.project.oditji.business.vo.SettlementManageVO">
+        SELECT
+            BUSINESS_NO,
+            BUSINESS_NAME,
+            BANK_NAME,
+            ACCOUNT_NUMBER,
+            ACCOUNT_HOLDER
+        FROM BUSINESS
+        WHERE BUSINESS_NO = #{businessNo}
+    </select>
+
+    <!-- [수정] 사업자 본인의 정산 계좌만 변경한다. -->
+    <update id="updateSettlementAccount">
+        UPDATE BUSINESS
+        SET BANK_NAME = #{bankName},
+            ACCOUNT_NUMBER = #{accountNumber},
+            ACCOUNT_HOLDER = #{accountHolder}
+        WHERE BUSINESS_NO = #{businessNo}
+    </update>
 
 </mapper>
