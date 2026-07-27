@@ -332,7 +332,7 @@ public class AdminController {
 
         model.addAttribute(
                 "eventRequestList",
-                adminService.getEventList(tab, keyword));
+                adminService.getEventList(tab, keyword, period));
 
         model.addAttribute("eventStats", adminService.getEventStats());
 
