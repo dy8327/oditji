@@ -235,8 +235,7 @@ public class AdminDAO {
 
         return sqlSession.selectList(
                 "selectAdminEventList",
-                param
-        );
+                param);
     }
 
     public int updateEventStatus(Long eventNo, String status) {
@@ -248,8 +247,7 @@ public class AdminDAO {
 
         return sqlSession.update(
                 "updateEventStatus",
-                param
-        );
+                param);
     }
 
     /*
@@ -332,7 +330,8 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteProduct", productNo);
     }
 
-    // ===================== 주문 조회 (ORDER_ITEM / DELIVERY, 조회 전용) =====================
+    // ===================== 주문 조회 (ORDER_ITEM / DELIVERY, 조회 전용)
+    // =====================
     // 배송 상태 변경/주문 취소는 사업자(Business) 담당이므로 관리자 DAO에는 조회만 둔다.
 
     public List<OrderManageVO> selectOrderList(String keyword) {
@@ -379,9 +378,11 @@ public class AdminDAO {
         return sqlSession.selectList("selectSettlementList", keywordParam(keyword));
     }
 
-    public int updateSettlementStatus(Long settlementNo, String status) {
+    /* [수정] 월별로 묶인 수수료 요청을 사업자/정산월 기준으로 일괄 처리한다. */
+    public int updateSettlementStatus(Long businessNo, String settlementMonth, String status) {
         Map<String, Object> param = new HashMap<>();
-        param.put("settlementNo", settlementNo);
+        param.put("businessNo", businessNo);
+        param.put("settlementMonth", settlementMonth);
         param.put("status", status);
         return sqlSession.update("updateSettlementStatus", param);
     }
