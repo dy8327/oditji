@@ -371,7 +371,7 @@ public class BusinessServiceImpl
                 }
 
                 String currentStatus = currentItem.getStatus();
-                if ("CANCEL_REQUESTED".equals(currentStatus)
+                if ("CANCEL_REQUEST".equals(currentStatus)
                                 || "CANCELED".equals(currentStatus)
                                 || "REFUNDED".equals(currentStatus)) {
                         throw new IllegalStateException("취소 또는 환불 처리 중인 상품은 배송 상태를 변경할 수 없습니다.");
