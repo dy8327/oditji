@@ -29,6 +29,7 @@ import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
+import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
@@ -223,6 +224,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public ReviewStatVO getContentReviewStats() {
+        return adminDAO.selectContentReviewStats();
+    }
+
+    @Override
     public void deleteContentReview(Long reviewNo) {
         adminDAO.deleteContentReview(reviewNo);
     }
@@ -259,6 +265,40 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    /*
+     * 목록 화면에서 체크박스로 선택한 콘텐츠 리뷰들을 한 번의 요청으로 일괄 처리한다.
+     * bulkMemberAction과 동일하게, 이미 처리되어 대상이 아닌 건(예: 이미 처리된 신고)은
+     * 건너뛰고 몇 건을 건너뛰었는지 반환한다. 각 처리는 기존 단건 메서드를 그대로
+     * 재사용해 삭제/상태 변경 로직을 중복 작성하지 않는다.
+     */
+    @Override
+    @Transactional
+    public int bulkContentReviewAction(List<Long> reviewNos, String action) {
+
+        if (reviewNos == null || reviewNos.isEmpty()) {
+            return 0;
+        }
+
+        int skipped = 0;
+
+        for (Long reviewNo : reviewNos) {
+
+            try {
+                switch (action) {
+                    case "delete" -> deleteContentReview(reviewNo);
+                    case "approve" -> approveContentReviewReport(reviewNo);
+                    case "reject" -> rejectContentReviewReport(reviewNo);
+                    default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
+                }
+            } catch (IllegalStateException e) {
+                // 이미 처리된 신고 등 대상이 아닌 건은 건너뛴다.
+                skipped++;
+            }
+        }
+
+        return skipped;
+    }
+
     // ===================== 상품 리뷰 관리 =====================
 
     @Override
@@ -267,6 +307,11 @@ public class AdminServiceImpl implements AdminService {
             return adminDAO.selectProductReviewReportList(keyword);
         }
         return adminDAO.selectProductReviewList(keyword);
+    }
+
+    @Override
+    public ReviewStatVO getProductReviewStats() {
+        return adminDAO.selectProductReviewStats();
     }
 
     @Override
@@ -310,6 +355,38 @@ public class AdminServiceImpl implements AdminService {
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
         }
+    }
+
+    /*
+     * 목록 화면에서 체크박스로 선택한 상품 리뷰들을 한 번의 요청으로 일괄 처리한다.
+     * bulkContentReviewAction과 동일한 방식으로, 처리할 수 없는 건은 건너뛰고
+     * 건너뛴 건수를 반환한다.
+     */
+    @Override
+    @Transactional
+    public int bulkProductReviewAction(List<Long> reviewNos, String action) {
+
+        if (reviewNos == null || reviewNos.isEmpty()) {
+            return 0;
+        }
+
+        int skipped = 0;
+
+        for (Long reviewNo : reviewNos) {
+
+            try {
+                switch (action) {
+                    case "delete" -> deleteProductReview(reviewNo);
+                    case "approve" -> approveProductReviewReport(reviewNo);
+                    case "reject" -> rejectProductReviewReport(reviewNo);
+                    default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
+                }
+            } catch (IllegalStateException e) {
+                skipped++;
+            }
+        }
+
+        return skipped;
     }
 
     // ===================== 이벤트 관리 =====================

@@ -152,6 +152,85 @@ function confirmMemberBulkAction(label) {
 
 
 /* =========================================================
+ * reviewManage.jsp / productReviewManage.jsp - 리뷰 관리 (일괄처리/내용보기)
+ * 콘텐츠 리뷰와 상품 리뷰 화면은 구조가 동일해 같은 함수를 공용으로 쓴다.
+ * ========================================================= */
+
+/* 헤더의 "전체 선택" 체크박스와 각 행 체크박스를 동기화한다. */
+function toggleAllReviews(checkAllBox) {
+
+    var checks = document.querySelectorAll('.review-check');
+
+    checks.forEach(function (check) {
+        check.checked = checkAllBox.checked;
+    });
+
+    updateSelectedReviewCount();
+}
+
+/* 선택된 리뷰 수를 갱신하고, 1건도 선택하지 않았으면 일괄처리 버튼을 비활성화한다. */
+function updateSelectedReviewCount() {
+
+    var checkedList = document.querySelectorAll('.review-check:checked');
+    var allChecks = document.querySelectorAll('.review-check');
+    var count = checkedList.length;
+
+    var countEl = document.getElementById('selectedReviewCount');
+    if (countEl) {
+        countEl.textContent = count;
+    }
+
+    var checkAllBox = document.getElementById('reviewCheckAll');
+    if (checkAllBox) {
+        checkAllBox.checked = (allChecks.length > 0 && count === allChecks.length);
+    }
+
+    ['bulkDeleteReviewBtn', 'bulkApproveReviewBtn', 'bulkRejectReviewBtn'].forEach(function (id) {
+        var btn = document.getElementById(id);
+        if (btn) {
+            btn.disabled = (count === 0);
+        }
+    });
+}
+
+/* 일괄처리 버튼(삭제/승인/반려) 클릭 시 선택 건수를 확인시켜준다. */
+function confirmReviewBulkAction(label) {
+
+    var count = document.querySelectorAll('.review-check:checked').length;
+
+    if (count === 0) {
+        alert('선택된 리뷰가 없습니다.');
+        return false;
+    }
+
+    var message = count + '건의 리뷰를 ' + label + ' 처리하시겠습니까?';
+
+    if (label === '삭제' || label === '승인') {
+        message += '\n삭제된 리뷰는 복구할 수 없습니다.';
+    }
+
+    return confirm(message);
+}
+
+/*
+ * 리뷰 내용은 길어질 수 있어 표에서는 2줄로 잘려 보이므로,
+ * "내용보기" 버튼을 누르면 전체 내용을 팝업으로 보여준다.
+ * 리뷰 내용에 따옴표나 줄바꿈이 섞여 있어도 안전하도록 onclick 인라인 문자열이 아닌
+ * data-* 속성(버튼 자신)에서 값을 읽어온다.
+ */
+function openReviewContentModal(button) {
+
+    document.getElementById('reviewContentWriter').textContent = displayOrDash(button.dataset.writer);
+    document.getElementById('reviewContentTarget').textContent = displayOrDash(button.dataset.target);
+    document.getElementById('reviewContentRating').textContent = displayOrDash(button.dataset.rating) + '점';
+    document.getElementById('reviewContentDate').textContent = displayOrDash(button.dataset.createdAt);
+    document.getElementById('reviewContentBody').textContent = displayOrDash(button.dataset.content);
+
+    document.getElementById('reviewContentModal').classList.add('open');
+}
+
+
+/* =========================================================
  * businessManage.jsp - 사업자 관리
  * ========================================================= */
 function openGradeModal(businessNo, name, memberId, email, currentGrade) {
