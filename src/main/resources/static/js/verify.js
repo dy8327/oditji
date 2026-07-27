@@ -1,5 +1,10 @@
-const contextPath = "<%= contextPath %>";
-const returnUrl = "<%= returnUrl %>";
+/*
+ * [성인인증 JavaScript 설정값 전달 수정]
+ * 외부 정적 JavaScript 파일에서는 JSP 표현식을 사용할 수 없으므로,
+ * adultVerify.jsp에서 전달한 window.verifyConfig 값을 사용합니다.
+ */
+const contextPath = window.verifyConfig?.contextPath || "";
+const returnUrl = window.verifyConfig?.returnUrl || "/";
 
 function openMethodPanel() {
   document.getElementById("startArea").style.display = "none";
