@@ -1,181 +1,500 @@
+@charset "UTF-8";
+
 /* verify.css
- * adultVerify.jsp 페이지 내부 <style> 태그에 있던 스타일을
- * 외부 CSS 파일로 분리했습니다. (rule 8, 내용 변경 없음)
+ * [성인인증 안내 화면 디자인 수정]
+ * adultVerify.jsp의 인증 로직은 변경하지 않고,
+ * ODITJI 메인 페이지의 다크 테마에 맞춰 화면 디자인만 재구성한다.
  */
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            margin: 0;
-            background: #f5f6f8;
-            font-family: Arial, 'Noto Sans KR', sans-serif;
-            color: #222;
-        }
-        .verify-wrap {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 16px;
-        }
-        .verify-card {
-            width: 100%;
-            max-width: 520px;
-            background: #fff;
-            border-radius: 18px;
-            padding: 36px 32px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-        }
-        .badge-19 {
-            display: inline-block;
-            padding: 7px 12px;
-            border-radius: 999px;
-            background: #111;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 18px;
-        }
-        h1 {
-            margin: 0 0 10px;
-            font-size: 28px;
-            line-height: 1.35;
-            font-weight: 700;
-        }
-        .desc {
-            margin: 0 0 24px;
-            color: #666;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        .standard-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 18px;
-            background: #fafafa;
-            margin-bottom: 22px;
-        }
-        .standard-title {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .standard-list {
-            margin: 0;
-            padding-left: 18px;
-            color: #555;
-            font-size: 14px;
-            line-height: 1.7;
-        }
-        .notice {
-            padding: 14px;
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            border-radius: 12px;
-            color: #9a3412;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 22px;
-        }
-        .btn-area {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-custom {
-            width: 100%;
-            min-height: 48px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-        }
-        .method-panel {
-            display: none;
-            margin-top: 22px;
-            padding: 22px;
-            border-radius: 18px;
-            border: 1px solid #e5e7eb;
-            background: #fbfbfc;
-        }
-        .method-panel.show {
-            display: block;
-        }
-        .method-title {
-            margin: 0 0 16px;
-            font-size: 18px;
-            font-weight: 800;
-            text-align: center;
-        }
-        .method-desc {
-            margin: 0 0 18px;
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-            text-align: center;
-        }
-        .method-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .method-btn {
-            width: 100%;
-            min-height: 58px;
-            border-radius: 14px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #222;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-        }
-        .method-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-            border-color: #111;
-        }
-        .method-btn-main {
-            background: #111;
-            color: #fff;
-            border-color: #111;
-        }
-        .method-sub {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            opacity: 0.75;
-        }
-        .method-back {
-            margin-top: 14px;
-            width: 100%;
-            min-height: 42px;
-            border: none;
-            background: transparent;
-            color: #666;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .result-message {
-            display: none;
-            margin-top: 18px;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .result-message.success {
-            display: block;
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #047857;
-        }
-        .result-message.fail {
-            display: block;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-        }
-    
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #141414;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: radial-gradient(circle at 50% -20%, rgba(229, 9, 20, 0.14), transparent 34%), #141414;
+  color: #e5e5e5;
+  font-family: Arial, "Noto Sans KR", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.verify-page {
+  min-height: 100vh;
+  padding: 52px 20px 72px;
+}
+
+.verify-container {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+/* [성인인증 안내 화면 디자인 수정] 상단 브랜드와 페이지 제목 영역 */
+.verify-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.verify-brand {
+  color: #e50914;
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.verify-header-divider {
+  width: 1px;
+  height: 24px;
+  background: #404040;
+}
+
+.verify-page-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.verify-card {
+  overflow: hidden;
+  border: 1px solid #3b3b3b;
+  border-radius: 12px;
+  background: rgba(28, 28, 28, 0.96);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+}
+
+.verify-card-inner {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  gap: 42px;
+  padding: 44px 48px;
+}
+
+/* [성인인증 안내 화면 디자인 수정] 19+ 연령 표시 영역 */
+.age-symbol-wrap {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 38px;
+  border-right: 1px solid #343434;
+}
+
+.age-symbol {
+  display: flex;
+  width: 158px;
+  height: 158px;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: #e50914;
+  color: #ffffff;
+  box-shadow: 0 16px 38px rgba(229, 9, 20, 0.22);
+}
+
+.age-symbol strong {
+  font-size: 66px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.age-symbol span {
+  margin: 30px 0 0 3px;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.age-symbol-wrap p {
+  margin: 17px 0 0;
+  color: #777777;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+}
+
+.verify-content {
+  min-width: 0;
+}
+
+.badge-19 {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 11px;
+  border: 1px solid rgba(229, 9, 20, 0.55);
+  border-radius: 999px;
+  background: rgba(229, 9, 20, 0.12);
+  color: #ff5d65;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.verify-content h2 {
+  margin: 17px 0 12px;
+  color: #ffffff;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.3;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+.desc {
+  margin: 0;
+  color: #b9b9b9;
+  font-size: 15px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.verify-law-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 15px 17px;
+  border-left: 3px solid #e50914;
+  background: #242424;
+}
+
+.notice-mark {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e50914;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.verify-law-notice p {
+  margin: 0;
+  color: #d0d0d0;
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.identity-area {
+  margin-top: 24px;
+}
+
+.identity-label {
+  color: #8f8f8f !important;
+  font-size: 12px;
+}
+
+.identity-input {
+  height: 42px;
+  border: 1px solid #3d3d3d;
+  background: #111111 !important;
+  color: #dedede !important;
+  box-shadow: none !important;
+}
+
+.identity-input:focus {
+  border-color: #555555;
+}
+
+.standard-box {
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid #383838;
+  border-radius: 8px;
+  background: #202020;
+}
+
+.standard-title {
+  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.standard-list {
+  margin: 0;
+  padding-left: 19px;
+  color: #a9a9a9;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.notice {
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  border: 1px solid #463c28;
+  border-radius: 8px;
+  background: #282318;
+  color: #d9c28d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.btn-area {
+  display: flex;
+  gap: 12px;
+}
+
+.verify-action {
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.verify-action:hover {
+  transform: translateY(-1px);
+}
+
+.verify-action-exit {
+  background: #4a4a4a;
+}
+
+.verify-action-exit:hover {
+  background: #585858;
+}
+
+.verify-action-continue {
+  background: #e50914;
+  box-shadow: 0 10px 22px rgba(229, 9, 20, 0.2);
+}
+
+.verify-action-continue:hover {
+  background: #f3131f;
+}
+
+.method-panel {
+  display: none;
+  margin-top: 22px;
+  padding: 22px;
+  border: 1px solid #3b3b3b;
+  border-radius: 9px;
+  background: #181818;
+}
+
+.method-panel.show {
+  display: block;
+  animation: methodPanelOpen 0.2s ease-out;
+}
+
+@keyframes methodPanelOpen {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.method-title {
+  margin: 0 0 7px;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.method-desc {
+  margin: 0 0 18px;
+  color: #8f8f8f;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.method-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.method-btn {
+  width: 100%;
+  min-height: 70px;
+  padding: 12px;
+  border: 1px solid #454545;
+  border-radius: 7px;
+  background: #262626;
+  color: #eeeeee;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.method-btn:hover:not(:disabled) {
+  border-color: #777777;
+  background: #303030;
+  transform: translateY(-1px);
+}
+
+.method-btn-main {
+  border-color: #e50914;
+  background: #e50914;
+  color: #ffffff;
+}
+
+.method-btn-main:hover:not(:disabled) {
+  border-color: #f3131f;
+  background: #f3131f;
+}
+
+.method-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.method-sub {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.72;
+}
+
+.method-back {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 12px;
+  border: 0;
+  background: transparent;
+  color: #8f8f8f;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.method-back:hover {
+  color: #ffffff;
+}
+
+.result-message {
+  display: none;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 7px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.result-message.success {
+  display: block;
+  border: 1px solid #246f4c;
+  background: #183829;
+  color: #7ee2ad;
+}
+
+.result-message.fail {
+  display: block;
+  border: 1px solid #784142;
+  background: #3d2021;
+  color: #ff9b9f;
+}
+
+/* [성인인증 안내 화면 디자인 수정] 태블릿 이하 반응형 배치 */
+@media (max-width: 860px) {
+  .verify-page {
+    padding-top: 34px;
+  }
+
+  .verify-card-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 34px 30px;
+  }
+
+  .age-symbol-wrap {
+    min-height: auto;
+    padding: 0 0 28px;
+    border-right: 0;
+    border-bottom: 1px solid #343434;
+  }
+
+  .age-symbol {
+    width: 128px;
+    height: 128px;
+  }
+
+  .age-symbol strong {
+    font-size: 54px;
+  }
+
+  .age-symbol span {
+    margin-top: 24px;
+    font-size: 25px;
+  }
+}
+
+/* [성인인증 안내 화면 디자인 수정] 모바일 화면에서 버튼과 인증 방식을 세로 배치 */
+@media (max-width: 560px) {
+  .verify-page {
+    padding: 24px 14px 42px;
+  }
+
+  .verify-header {
+    gap: 11px;
+    margin-bottom: 18px;
+  }
+
+  .verify-brand {
+    font-size: 20px;
+  }
+
+  .verify-page-title {
+    font-size: 21px;
+  }
+
+  .verify-card-inner {
+    padding: 28px 20px;
+  }
+
+  .verify-content h2 {
+    font-size: 27px;
+  }
+
+  .desc {
+    font-size: 14px;
+  }
+
+  .btn-area,
+  .method-list {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .btn-area {
+    display: flex;
+  }
+}

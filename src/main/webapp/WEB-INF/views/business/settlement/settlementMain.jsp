@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 
 <c:set var="activeMenu" value="settlement" />
 
@@ -37,6 +38,14 @@
 
             <section class="content-panel">
 
+                <%-- [수정] 입금 확인 요청 결과 메시지 표시 --%>
+                <c:if test="${not empty successMessage}">
+                    <p class="alert alert-success">${successMessage}</p>
+                </c:if>
+                <c:if test="${not empty errorMessage}">
+                    <p class="alert alert-danger">${errorMessage}</p>
+                </c:if>
+
                 <!-- 탭 -->
                 <nav class="tab-menu">
 
@@ -67,7 +76,7 @@
                         </span>
 
                         <span class="summary-value">
-                            ${settlementSummary.monthSales}원
+                            <fmt:formatNumber value="${settlementSummary.monthSales}" pattern="#,##0"/>원
                         </span>
 
                     </p>
@@ -79,7 +88,7 @@
                         </span>
 
                         <span class="summary-value fee">
-                            ${settlementSummary.feeAmount}원
+                            <fmt:formatNumber value="${settlementSummary.feeAmount}" pattern="#,##0"/>원
                         </span>
 
                     </p>
@@ -180,13 +189,21 @@
                         action="${pageContext.request.contextPath}/business/settlement/request"
                         method="post">
 
-                        <button
-                            class="btn btn-primary"
-                            type="submit">
-
-                            입금 확인 요청
-
-                        </button>
+                        <%-- [수정] 요청 중/완료 상태에서는 중복 요청을 막는다. --%>
+                        <c:choose>
+                            <c:when test="${settlementSummary.status eq 'REQUESTED'}">
+                                <button class="btn btn-primary" type="button" disabled>확인 요청 중</button>
+                            </c:when>
+                            <c:when test="${settlementSummary.status eq 'APPROVED'}">
+                                <button class="btn btn-primary" type="button" disabled>납부 완료</button>
+                            </c:when>
+                            <c:when test="${settlementSummary.feeAmount le 0}">
+                                <button class="btn btn-primary" type="button" disabled>요청할 내역 없음</button>
+                            </c:when>
+                            <c:otherwise>
+                                <button class="btn btn-primary" type="submit">입금 확인 요청</button>
+                            </c:otherwise>
+                        </c:choose>
 
                     </form>
 
@@ -247,7 +264,7 @@
 
                         <strong>
 
-                            ${settlementSummary.feeAmount}원
+                            <fmt:formatNumber value="${settlementSummary.feeAmount}" pattern="#,##0"/>원
 
                         </strong>
 

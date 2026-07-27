@@ -66,7 +66,8 @@ public class AdminServiceImpl implements AdminService {
     private static final int WITHDRAW_AUTO_DELETE_DAYS = 7;
 
     @Override
-    public List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType, int page, int pageSize) {
+    public List<MemberManageVO> getMemberList(String keyword, String searchType, String status, String memberType,
+            int page, int pageSize) {
 
         Map<String, Object> param = memberSearchParam(keyword, searchType, status, memberType);
 
@@ -326,7 +327,6 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectEventStats();
     }
 
-
     @Override
     @Transactional
     public void approveEvent(Long eventNo) {
@@ -335,13 +335,11 @@ public class AdminServiceImpl implements AdminService {
 
         int updateResult = adminDAO.updateEventStatus(
                 eventNo,
-                "APPROVED"
-        );
+                "APPROVED");
 
         if (updateResult != 1) {
             throw new IllegalStateException(
-                    "이벤트 승인 처리에 실패했습니다."
-            );
+                    "이벤트 승인 처리에 실패했습니다.");
         }
 
         /*
@@ -359,7 +357,6 @@ public class AdminServiceImpl implements AdminService {
          */
     }
 
-
     @Override
     @Transactional
     public void rejectEvent(Long eventNo) {
@@ -368,13 +365,11 @@ public class AdminServiceImpl implements AdminService {
 
         int updateResult = adminDAO.updateEventStatus(
                 eventNo,
-                "REJECTED"
-        );
+                "REJECTED");
 
         if (updateResult != 1) {
             throw new IllegalStateException(
-                    "이벤트 반려 처리에 실패했습니다."
-            );
+                    "이벤트 반려 처리에 실패했습니다.");
         }
     }
 
@@ -533,14 +528,22 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectSettlementList(keyword);
     }
 
+    /* [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. */
     @Override
-    public void confirmSettlement(Long settlementNo) {
-        adminDAO.updateSettlementStatus(settlementNo, "DONE");
+    public void confirmSettlement(Long businessNo, String settlementMonth) {
+        if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
+            throw new IllegalArgumentException("올바르지 않은 정산 요청입니다.");
+        }
+        adminDAO.updateSettlementStatus(businessNo, settlementMonth, "DONE");
     }
 
+    /* [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다. */
     @Override
-    public void rejectSettlement(Long settlementNo) {
-        adminDAO.updateSettlementStatus(settlementNo, "REJECTED");
+    public void rejectSettlement(Long businessNo, String settlementMonth) {
+        if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
+            throw new IllegalArgumentException("올바르지 않은 정산 요청입니다.");
+        }
+        adminDAO.updateSettlementStatus(businessNo, settlementMonth, "REJECTED");
     }
 
     // ===================== 모니터링 =====================

@@ -80,6 +80,7 @@
 
                     <tr>
                         <th>사업자명</th>
+                        <th>정산 월</th>
                         <th>신청일</th>
                         <th>정산 예정금</th>
                         <th>입금 계좌</th>
@@ -104,13 +105,16 @@
                                         ${settlement.businessName}
                                     </td>
 
+                                    <%-- [수정] 월별로 묶인 정산 기준 월 표시 --%>
+                                    <td>${settlement.settlementMonth}</td>
+
                                     <td>
                                         <fmt:formatDate value="${settlement.createdAt}"
                                                         pattern="yyyy-MM-dd"/>
                                     </td>
 
                                     <td>
-                                        ${settlement.settledAmount}원
+                                        <fmt:formatNumber value="${settlement.settledAmount}" pattern="#,##0"/>원
                                     </td>
 
                                     <td>
@@ -156,12 +160,15 @@
                                         <div class="item-actions"
                                              style="justify-content:center;">
 
+                                            <%-- [수정] 관리자 처리는 입금 확인 요청 상태에서만 가능 --%>
+                                            <c:if test="${settlement.status == 'REQUESTED'}">
+
                                             <form action="${pageContext.request.contextPath}/admin/settlement/confirm"
                                                   method="post">
 
-                                                <input type="hidden"
-                                                       name="settlementNo"
-                                                       value="${settlement.settlementNo}">
+                                                <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
+                                                <input type="hidden" name="businessNo" value="${settlement.businessNo}">
+                                                <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
 
                                                 <button type="submit"
                                                         class="btn btn-success">
@@ -173,9 +180,9 @@
                                             <form action="${pageContext.request.contextPath}/admin/settlement/reject"
                                                   method="post">
 
-                                                <input type="hidden"
-                                                       name="settlementNo"
-                                                       value="${settlement.settlementNo}">
+                                                <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
+                                                <input type="hidden" name="businessNo" value="${settlement.businessNo}">
+                                                <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
 
                                                 <button type="submit"
                                                         class="btn btn-danger">
@@ -183,6 +190,10 @@
                                                 </button>
 
                                             </form>
+
+                                            </c:if>
+
+                                            <c:if test="${settlement.status != 'REQUESTED'}">-</c:if>
 
                                         </div>
 
@@ -197,7 +208,7 @@
                         <c:otherwise>
 
                             <tr>
-                                <td colspan="6">
+                                <td colspan="7">
                                     입금 확인 요청 내역이 없습니다.
                                 </td>
                             </tr>

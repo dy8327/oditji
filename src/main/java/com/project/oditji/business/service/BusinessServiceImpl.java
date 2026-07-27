@@ -310,6 +310,85 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
+         * [수정] 이번 달 수수료 요약 조회
+         * SETTLEMENT에 생성된 결제 완료 주문상품을 월 단위로 집계한다.
+         * =========================================================
+         */
+        @Override
+        public SettlementManageVO getMonthlySettlementSummary(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                SettlementManageVO summary = businessDAO.selectMonthlySettlementSummary(businessNo);
+                return summary == null ? new SettlementManageVO() : summary;
+        }
+
+        /* [수정] 사업자의 월별 수수료 납부 내역 조회 */
+        @Override
+        public List<SettlementManageVO> getSettlementPaymentHistory(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                List<SettlementManageVO> history = businessDAO.selectSettlementPaymentHistory(businessNo);
+                return history == null ? Collections.emptyList() : history;
+        }
+
+        /* [수정] 이번 달 수수료 입금 확인 요청 */
+        @Override
+        public void requestSettlementConfirmation(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                int updatedCount = businessDAO.updateSettlementRequestStatus(businessNo);
+                if (updatedCount <= 0) {
+                        throw new IllegalStateException("입금 확인을 요청할 수 있는 이번 달 수수료 내역이 없습니다.");
+                }
+        }
+
+        /* [수정] 사업자 정산 계좌 조회 */
+        @Override
+        public SettlementManageVO getSettlementAccount(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                return businessDAO.selectSettlementAccount(businessNo);
+        }
+
+        /* [수정] 사업자 정산 계좌 수정 */
+        @Override
+        public void updateSettlementAccount(long businessNo, String bankName, String accountNumber,
+                        String accountHolder) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                String normalizedBankName = bankName == null ? "" : bankName.trim();
+                String normalizedAccountNumber = accountNumber == null ? "" : accountNumber.trim();
+                String normalizedAccountHolder = accountHolder == null ? "" : accountHolder.trim();
+
+                if (normalizedBankName.isEmpty() || normalizedAccountNumber.isEmpty()
+                                || normalizedAccountHolder.isEmpty()) {
+                        throw new IllegalArgumentException("은행명, 계좌번호, 예금주를 모두 입력해주세요.");
+                }
+
+                if (!normalizedAccountNumber.matches("[0-9-]{5,50}")) {
+                        throw new IllegalArgumentException("계좌번호는 숫자와 하이픈(-)만 입력할 수 있습니다.");
+                }
+
+                int updatedCount = businessDAO.updateSettlementAccount(
+                                businessNo, normalizedBankName, normalizedAccountNumber, normalizedAccountHolder);
+
+                if (updatedCount <= 0) {
+                        throw new IllegalStateException("정산 계좌 정보를 수정하지 못했습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
          * 사업자 배송 관리 목록 조회
          *
          * 허용된 상태값만 Mapper에 전달하여 임의 문자열이 SQL 조건으로
