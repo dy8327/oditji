@@ -906,37 +906,54 @@
 
     <!-- ===================== 7. 정산 관리 (SETTLEMENT) ===================== -->
 
+    <!-- [수정] 주문상품 단위 SETTLEMENT를 사업자/월 단위로 묶어 관리자에게 표시한다. -->
     <select id="selectSettlementList" resultType="com.project.oditji.admin.vo.SettlementManageVO">
         SELECT
-            S.SETTLEMENT_NO   AS SETTLEMENT_NO,
-            S.BUSINESS_NO     AS BUSINESS_NO,
-            B.BUSINESS_NAME   AS BUSINESS_NAME,
-            S.ORDER_ITEM_NO   AS ORDER_ITEM_NO,
-            S.TOTAL_AMOUNT    AS TOTAL_AMOUNT,
-            S.APPLIED_GRADE   AS APPLIED_GRADE,
-            S.APPLIED_RATE    AS APPLIED_RATE,
-            S.FEE_AMOUNT      AS FEE_AMOUNT,
-            S.SETTLED_AMOUNT  AS SETTLED_AMOUNT,
-            S.STATUS          AS STATUS,
-            B.BANK_NAME       AS BANK_NAME,
-            B.ACCOUNT_NUMBER  AS ACCOUNT_NUMBER,
-            B.ACCOUNT_HOLDER  AS ACCOUNT_HOLDER,
-            S.SETTLED_AT      AS SETTLED_AT,
-            S.CREATED_AT      AS CREATED_AT
+            MIN(S.SETTLEMENT_NO) AS SETTLEMENT_NO,
+            S.BUSINESS_NO AS BUSINESS_NO,
+            B.BUSINESS_NAME AS BUSINESS_NAME,
+            TO_CHAR(TRUNC(S.CREATED_AT, 'MM'), 'YYYY-MM') AS SETTLEMENT_MONTH,
+            SUM(S.TOTAL_AMOUNT) AS TOTAL_AMOUNT,
+            MAX(S.APPLIED_GRADE) AS APPLIED_GRADE,
+            MAX(S.APPLIED_RATE) AS APPLIED_RATE,
+            SUM(S.FEE_AMOUNT) AS FEE_AMOUNT,
+            SUM(S.FEE_AMOUNT) AS SETTLED_AMOUNT,
+            CASE
+                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'DONE'
+                ELSE 'WAITING'
+            END AS STATUS,
+            B.BANK_NAME AS BANK_NAME,
+            B.ACCOUNT_NUMBER AS ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER AS ACCOUNT_HOLDER,
+            MAX(S.SETTLED_AT) AS SETTLED_AT,
+            MIN(S.CREATED_AT) AS CREATED_AT
         FROM SETTLEMENT S
         JOIN BUSINESS B ON B.BUSINESS_NO = S.BUSINESS_NO
-        WHERE 1 = 1
+        WHERE S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
         <if test="keyword != null and keyword != ''">
             AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
         </if>
-        ORDER BY S.CREATED_AT DESC
+        GROUP BY
+            S.BUSINESS_NO,
+            B.BUSINESS_NAME,
+            TRUNC(S.CREATED_AT, 'MM'),
+            B.BANK_NAME,
+            B.ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER
+        ORDER BY MIN(S.CREATED_AT) DESC
     </select>
 
+    <!-- [수정] 같은 사업자의 같은 달 요청 건 전체를 동시에 확인/반려한다. -->
     <update id="updateSettlementStatus">
         UPDATE SETTLEMENT
         SET STATUS = #{status},
-            SETTLED_AT = CASE WHEN #{status} = 'DONE' THEN SYSDATE ELSE SETTLED_AT END
-        WHERE SETTLEMENT_NO = #{settlementNo}
+            SETTLED_AT = CASE WHEN #{status} = 'DONE' THEN SYSDATE ELSE NULL END
+        WHERE BUSINESS_NO = #{businessNo}
+          AND CREATED_AT <![CDATA[ >= ]]> TO_DATE(#{settlementMonth} || '-01', 'YYYY-MM-DD')
+          AND CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TO_DATE(#{settlementMonth} || '-01', 'YYYY-MM-DD'), 1)
+          AND STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
     </update>
 
     <!-- ===================== 8. 시스템 관리 (모니터링) ===================== -->
@@ -975,7 +992,7 @@
             COUNT(DISTINCT A.MEMBER_NO)                AS VISITOR_COUNT
         FROM ACCESS_LOG A
         WHERE A.MEMBER_NO IS NOT NULL
-          AND A.CREATED_AT >= TRUNC(SYSDATE) - 6
+          AND A.CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE) - 6
         GROUP BY TRUNC(A.CREATED_AT)
         ORDER BY TRUNC(A.CREATED_AT)
     </select>
