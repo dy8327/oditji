@@ -141,6 +141,16 @@
     </main>
 </div>
 
+<%-- [성인인증 JavaScript 값 전달 수정]
+     외부 정적 JavaScript 파일에서는 JSP 표현식을 해석할 수 없으므로,
+     JSP 화면에서 contextPath와 returnUrl을 전역 변수로 전달합니다. --%>
+<script>
+    window.verifyConfig = {
+        contextPath: "<%= contextPath %>",
+        returnUrl: "<%= returnUrl %>"
+    };
+</script>
+
 <script defer src="${pageContext.request.contextPath}/js/verify.js"></script>
 
 </body>
