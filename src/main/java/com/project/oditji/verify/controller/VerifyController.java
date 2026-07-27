@@ -51,13 +51,19 @@ public class VerifyController {
     public String adultVerifyPage(
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
             HttpSession session,
-            Model model
-    ) {
+            Model model) {
         Long memberNo = (Long) session.getAttribute("memberNo");
 
         // 1) 로그인 검증 (아이디가 비어있다면 로그인 창으로 이동)
         if (memberNo == null || memberNo == 0) {
-            session.setAttribute("afterLoginRedirectUrl", "/verify/adult?returnUrl=" + sanitizeReturnUrl(returnUrl));
+            /*
+             * [성인 콘텐츠 로그인 복귀 경로 수정]
+             * MemberController가 로그인 후 사용하는 세션 키와 동일하게 맞춰
+             * 로그인 완료 뒤 다시 성인인증 페이지로 돌아오도록 합니다.
+             */
+            session.setAttribute(
+                    "redirectAfterLogin",
+                    "/verify/adult?returnUrl=" + sanitizeReturnUrl(returnUrl));
             return "redirect:/member/login";
         }
 
@@ -88,7 +94,6 @@ public class VerifyController {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
 
-        
         return verifyService.prepareVerification(memberNo);
     }
 
@@ -100,8 +105,7 @@ public class VerifyController {
     public AdultVerifyCompleteVO completeVerification(
             @RequestBody AdultVerifyRequestVO adultVerifyRequestVO,
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
-            HttpSession session
-    ) {
+            HttpSession session) {
         try {
             System.out.println("===== 성인인증 complete 진입 =====");
             Long memberNo = (Long) session.getAttribute("memberNo");
@@ -119,8 +123,7 @@ public class VerifyController {
                     memberNo,
                     verifyId,
                     returnUrl,
-                    session
-            );
+                    session);
 
         } catch (Exception e) {
             System.out.println("===== 성인인증 complete 서버 오류 =====");
@@ -143,8 +146,7 @@ public class VerifyController {
     @GetMapping("/adult/fail")
     public String fail(
             @RequestParam(value = "message", required = false, defaultValue = "성인인증에 실패했습니다.") String message,
-            Model model
-    ) {
+            Model model) {
         model.addAttribute("message", message);
         return "verify/adultVerifyFail";
     }
@@ -153,9 +155,9 @@ public class VerifyController {
      * URL 오픈 리다이렉트 취약점 방지용 유틸 메서드
      */
     private String sanitizeReturnUrl(String returnUrl) {
-        if (returnUrl == null || returnUrl.isBlank() || 
-            returnUrl.startsWith("http://") || returnUrl.startsWith("https://") || 
-            !returnUrl.startsWith("/")) {
+        if (returnUrl == null || returnUrl.isBlank() ||
+                returnUrl.startsWith("http://") || returnUrl.startsWith("https://") ||
+                !returnUrl.startsWith("/")) {
             return "/";
         }
         return returnUrl;
