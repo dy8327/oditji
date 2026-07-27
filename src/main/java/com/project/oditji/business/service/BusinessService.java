@@ -138,6 +138,22 @@ public interface BusinessService {
 
         /*
          * =========================================================
+         * [수정] 사업자 수수료 관리
+         * 이번 달 요약, 납부 요청/내역, 정산 계좌 조회·수정을 처리한다.
+         * =========================================================
+         */
+        SettlementManageVO getMonthlySettlementSummary(long businessNo);
+
+        List<SettlementManageVO> getSettlementPaymentHistory(long businessNo);
+
+        void requestSettlementConfirmation(long businessNo);
+
+        SettlementManageVO getSettlementAccount(long businessNo);
+
+        void updateSettlementAccount(long businessNo, String bankName, String accountNumber, String accountHolder);
+
+        /*
+         * =========================================================
          * 사업자 배송 관리 목록 조회
          * 상태와 검색어는 선택 조건이며 사업자 소유 주문상품만 반환.
          * =========================================================
