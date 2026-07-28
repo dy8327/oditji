@@ -147,12 +147,11 @@
 
 .business-wrap .business-panel,
 .business-wrap .content-panel,
-.business-wrap .form-panel,
-.business-wrap {
-  padding: 32px;
-  background: var(--biz-surface-1);
-  border-radius: var(--biz-radius-md);
-  border: 1px solid var(--biz-border);
+.business-wrap .form-panel {
+    padding:32px;
+    background:var(--biz-surface-1);
+    border-radius:var(--biz-radius-md);
+    border:1px solid var(--biz-border);
 }
 
 .business-content,

@@ -571,9 +571,18 @@
   font-weight: 600;
 }
 
-.admin-wrap .badge-blue { background-color: var(--adm-point); color: #fff; }
-.admin-wrap .badge-gray { background-color: var(--adm-border); color: var(--adm-text-dim); }
-.admin-wrap .badge-yellow { background-color: #f59e0b; color: #fff; }
+.admin-wrap .badge-blue {
+  background-color: var(--adm-point);
+  color: #fff;
+}
+.admin-wrap .badge-gray {
+  background-color: var(--adm-border);
+  color: var(--adm-text-dim);
+}
+.admin-wrap .badge-yellow {
+  background-color: #f59e0b;
+  color: #fff;
+}
 
 /* =====================================================
    Tab Menu
@@ -842,11 +851,16 @@
   display: flex;
 
   justify-content: center;
+  align-items: center;
 
-  gap: 8px;
+  gap: 6px;
 
-  margin-top: 32px;
+  margin-top: 36px;
 }
+
+/* =====================================================
+   Page Button
+   ===================================================== */
 
 .admin-wrap .pagination a {
   display: flex;
@@ -854,31 +868,102 @@
   justify-content: center;
   align-items: center;
 
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
+
+  border-radius: 8px;
 
   background: var(--adm-surface-1);
 
-  border-radius: var(--adm-radius-sm);
+  border: 1px solid transparent;
 
   color: var(--adm-text-dim);
-  transition: var(--adm-transition);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+/* =====================================================
+   Hover
+   ===================================================== */
+
 .admin-wrap .pagination a:hover {
+  background: var(--adm-surface-2);
+
+  border-color: rgba(255, 255, 255, 0.08);
+
   color: var(--adm-text);
+
+  transform: translateY(-2px);
 }
+
+/* =====================================================
+   Active Page
+   ===================================================== */
 
 .admin-wrap .pagination a.active {
   background: var(--adm-point);
 
-  color: var(--adm-text);
+  border-color: var(--adm-point);
+
+  color: #fff;
+
+  font-weight: 700;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* 첫 페이지/마지막 페이지에서 «, ‹ 또는 ›, » 를 눌러도 더 이동할 곳이 없는 상태 */
+/* =====================================================
+   Navigation Button
+   << < > >>
+   ===================================================== */
+
+.admin-wrap .pagination a:first-child,
+.admin-wrap .pagination a:nth-child(2),
+.admin-wrap .pagination a:nth-last-child(1),
+.admin-wrap .pagination a:nth-last-child(2) {
+  background: transparent;
+
+  color: var(--adm-text-dim);
+
+  font-size: 18px;
+
+  font-weight: 700;
+}
+
+/* 이동 버튼 hover */
+
+.admin-wrap .pagination a:first-child:hover,
+.admin-wrap .pagination a:nth-child(2):hover,
+.admin-wrap .pagination a:nth-last-child(1):hover,
+.admin-wrap .pagination a:nth-last-child(2):hover {
+  background: var(--adm-surface-1);
+
+  color: var(--adm-point);
+}
+
+/* =====================================================
+   Disabled
+   ===================================================== */
+
 .admin-wrap .pagination a.disabled {
-  opacity: 0.35;
+  background: transparent;
+
+  color: var(--adm-text-muted);
+
+  opacity: 0.3;
+
   pointer-events: none;
+
+  transform: none;
 }
 
 /* =====================================================

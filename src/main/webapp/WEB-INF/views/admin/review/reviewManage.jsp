@@ -294,22 +294,11 @@
 
                                                     <c:otherwise>
 
-                                                        <form action="${pageContext.request.contextPath}/admin/review/delete"
-                                                              method="post"
-                                                              style="display:inline;">
-
-                                                            <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                            <input type="hidden" name="tab" value="${currentTab}">
-                                                            <input type="hidden" name="keyword" value="${param.keyword}">
-                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
-
-                                                            <button type="submit"
-                                                                    class="btn btn-danger"
-                                                                    onclick="return confirm('이 리뷰를 삭제하시겠습니까?');">
-                                                                리뷰 삭제
-                                                            </button>
-
-                                                        </form>
+                                                        <button type="button"
+                                                                class="btn btn-danger"
+                                                                onclick="deleteContentReview(${review.reviewNo})">
+                                                            리뷰 삭제
+                                                        </button>
 
                                                     </c:otherwise>
 
