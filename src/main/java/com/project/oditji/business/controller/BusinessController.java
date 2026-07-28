@@ -753,16 +753,6 @@ public class BusinessController {
                 eventManageVO.setDiscountRateList(discountRateList);
 
                 try {
-                        System.out.println("===== 이벤트 등록 요청 =====");
-                        System.out.println("사업자 번호: " + business.getBusinessNo());
-                        System.out.println("이벤트명: " + eventTitle);
-                        System.out.println("이벤트 설명: " + eventContent);
-                        System.out.println("이벤트 시작일: " + startDate);
-                        System.out.println("이벤트 종료일: " + endDate);
-                        System.out.println("연결 상품 번호 목록: " + productNoList);
-                        System.out.println("상품별 할인율 목록: " + discountRateList);
-                        System.out.println("이벤트 상태: WAITING");
-
                         long eventNo = businessService.registerEvent(eventManageVO, eventImage);
 
                         redirectAttributes.addFlashAttribute("successMessage", "이벤트 등록 요청이 접수되었습니다.");
