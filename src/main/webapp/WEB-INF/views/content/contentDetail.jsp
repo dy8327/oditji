@@ -754,75 +754,85 @@
              hidden></div>
     </c:if>
 
-    <div id="reviewWriteBox"
-         class="review-write-box"
-         data-has-my-review="${not empty myReview}">
+    <%--
+    [수정] 로그인한 사용자가 현재 콘텐츠에 작성한 리뷰가 없는 경우에만
+    신규 리뷰 등록 영역을 표시한다.
 
-        <%--
-            [수정] 본인 리뷰가 있어도 상단은 신규 리뷰 등록 폼을 그대로 표시한다.
-            다시 등록을 시도하면 JavaScript와 서버 양쪽에서 중복 작성을 차단한다.
-        --%>
-        <form action="${pageContext.request.contextPath}/review/write"
-              method="post"
-              class="review-form"
-              id="contentReviewWriteForm">
+    본인 리뷰가 존재하면 등록 영역을 숨기고,
+    리뷰 삭제 후에는 myReview가 조회되지 않으므로 등록 영역이 다시 표시된다.
+    리뷰 수정 시에는 기존 리뷰가 유지되므로 등록 영역은 표시되지 않는다.
+    --%>
+    <c:if test="${empty myReview}">
 
-            <input type="hidden"
-                   name="contentNo"
-                   value="${content.contentNo}">
-
-            <div class="rating-box">
-
-                <label for="writeReviewRating">
-                    평점 (0 ~ 5)
-                </label>
-
-                <input type="number"
-                       id="writeReviewRating"
-                       name="rating"
-                       min="0"
-                       max="5"
-                       step="0.5"
-                       required>
-
-            </div>
+        <div id="reviewWriteBox"
+             class="review-write-box"
+             data-has-my-review="false">
 
             <%--
-                신규 리뷰 textarea에 id와 label을 연결한다.
-                label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
+                [수정] 다시 리뷰 등록을 시도하면 JavaScript와 서버 양쪽에서 중복 작성을 차단한다.
             --%>
-            <label for="writeReviewText"
-                   style="position:absolute;
-                          width:1px;
-                          height:1px;
-                          padding:0;
-                          margin:-1px;
-                          overflow:hidden;
-                          clip:rect(0, 0, 0, 0);
-                          white-space:nowrap;
-                          border:0;">
-                리뷰 작성 내용
-            </label>
+            <form action="${pageContext.request.contextPath}/review/write"
+                method="post"
+                class="review-form"
+                id="contentReviewWriteForm">
 
-            <textarea id="writeReviewText"
-                      name="reviewText"
-                      placeholder="이 작품에 대한 리뷰를 작성하세요"
-                      required></textarea>
+                <input type="hidden"
+                    name="contentNo"
+                    value="${content.contentNo}">
 
-            <%-- [추가] 사용자가 직접 스포일러 포함 여부 선택 --%>
-            <label class="spoiler-check-box" for="writeSpoilerYn">
-                <input type="checkbox" id="writeSpoilerYn" name="spoilerYn" value="Y">
-                <span>스포일러가 포함되어 있습니다.</span>
-            </label>
+                <div class="rating-box">
 
-            <button type="submit"
-                    class="btn">
-                등록
-            </button>
+                    <label for="writeReviewRating">
+                        평점 (0 ~ 5)
+                    </label>
 
-        </form>
+                    <input type="number"
+                        id="writeReviewRating"
+                        name="rating"
+                        min="0"
+                        max="5"
+                        step="0.5"
+                        required>
 
-    </div>
+                </div>
+
+                <%--
+                    신규 리뷰 textarea에 id와 label을 연결한다.
+                    label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
+                --%>
+                <label for="writeReviewText"
+                    style="position:absolute;
+                            width:1px;
+                            height:1px;
+                            padding:0;
+                            margin:-1px;
+                            overflow:hidden;
+                            clip:rect(0, 0, 0, 0);
+                            white-space:nowrap;
+                            border:0;">
+                    리뷰 작성 내용
+                </label>
+
+                <textarea id="writeReviewText"
+                        name="reviewText"
+                        placeholder="이 작품에 대한 리뷰를 작성하세요"
+                        required></textarea>
+
+                <%-- [추가] 사용자가 직접 스포일러 포함 여부 선택 --%>
+                <label class="spoiler-check-box" for="writeSpoilerYn">
+                    <input type="checkbox" id="writeSpoilerYn" name="spoilerYn" value="Y">
+                    <span>스포일러가 포함되어 있습니다.</span>
+                </label>
+
+                <button type="submit"
+                        class="btn">
+                    등록
+                </button>
+
+            </form>
+
+        </div>
+    </c:if>
 
     <div class="review-list">
 
