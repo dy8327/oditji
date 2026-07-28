@@ -148,10 +148,10 @@
 .business-wrap .business-panel,
 .business-wrap .content-panel,
 .business-wrap .form-panel {
-    padding:32px;
-    background:var(--biz-surface-1);
-    border-radius:var(--biz-radius-md);
-    border:1px solid var(--biz-border);
+  padding: 32px;
+  background: var(--biz-surface-1);
+  border-radius: var(--biz-radius-md);
+  border: 1px solid var(--biz-border);
 }
 
 .business-content,
@@ -1462,23 +1462,48 @@
 }
 
 /* =====================================================
-   [배송 관리 기능 추가]
-   기존 business-wrap, content-panel, form-input, btn 스타일을
-   그대로 사용하면서 배송 관리 화면에 필요한 배치만 추가한다.
+   [수정] 배송 관리 검색 영역 정렬
+   배송 상태, 검색창, 버튼의 아래쪽 라인을 동일하게 맞춘다.
    ===================================================== */
 .delivery-search-form {
-  display: flex;
-  align-items: center;
+  display: grid;
+
+  /* 배송 상태 / 검색창 / 검색 / 초기화 */
+  grid-template-columns: 170px minmax(0, 1fr) auto auto;
+
   gap: 10px;
+
+  /* [수정] label이 있는 배송 상태 필드 기준으로 하단 정렬 */
+  align-items: end;
 }
 
-.delivery-status-filter {
-  flex: 0 0 170px;
+/* [수정] 배송 상태 영역 너비는 grid에서 관리 */
+.delivery-search-form .delivery-form-field {
+  width: 100%;
 }
 
+/* [수정] 검색창과 select 높이를 동일하게 고정 */
+.delivery-search-form .form-input {
+  height: 54px;
+  box-sizing: border-box;
+}
+
+/* [수정] 검색 버튼과 초기화 버튼도 입력창과 같은 높이로 맞춤 */
+.delivery-search-form .btn {
+  height: 54px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+/* 검색 입력창은 남은 공간 전체 사용 */
 .delivery-keyword-input {
-  flex: 1;
+  width: 100%;
   min-width: 0;
+}
+
+/* 기존 flex 전용 속성 제거 또는 덮어쓰기 */
+.delivery-status-filter {
+  width: 100%;
 }
 
 .delivery-list-panel {
@@ -1597,14 +1622,19 @@
 }
 
 @media (max-width: 700px) {
-  .delivery-search-form,
+  /* [수정] 배송 검색 조건을 모바일에서 한 줄씩 배치 */
+  .delivery-search-form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .delivery-search-form .btn {
+    width: 100%;
+  }
+
   .delivery-card-head {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .delivery-status-filter {
-    flex-basis: auto;
   }
 
   .delivery-info-grid,

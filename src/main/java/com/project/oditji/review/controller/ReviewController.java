@@ -30,9 +30,7 @@ public class ReviewController {
      * 마이페이지 내가 작성한 리뷰 목록
      */
     @GetMapping("/myReviewList")
-    public String myReviewList(
-            HttpSession session,
-            Model model) {
+    public String myReviewList(HttpSession session, Model model) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -40,12 +38,9 @@ public class ReviewController {
             return "redirect:/member/login";
         }
 
-        List<MyReviewVO> reviewList = reviewService.getMyReviewList(
-                loginMember.getMemberNo());
+        List<MyReviewVO> reviewList = reviewService.getMyReviewList(loginMember.getMemberNo());
 
-        model.addAttribute(
-                "reviewList",
-                reviewList);
+        model.addAttribute("reviewList", reviewList);
 
         return "review/myReviewList";
     }
@@ -129,7 +124,11 @@ public class ReviewController {
             @RequestParam int productNo,
             @RequestParam int orderItemNo,
             @RequestParam double rating,
-            @RequestParam String content) {
+            @RequestParam String content,
+            // [추가] 리뷰 작성 전 보고 있던 주문내역 페이지를 유지하기 위해 전달받는다.
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            // [추가] 새 요청으로 리다이렉트한 뒤에도 안내 메시지를 한 번만 전달한다.
+            RedirectAttributes redirectAttributes) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -137,14 +136,25 @@ public class ReviewController {
             return "redirect:/member/login";
         }
 
-        reviewService.writeProductReview(
-                loginMember.getMemberNo(),
-                productNo,
-                orderItemNo,
-                rating,
-                content);
+        try {
+            reviewService.writeProductReview(
+                    loginMember.getMemberNo(),
+                    productNo,
+                    orderItemNo,
+                    rating,
+                    content);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            // [추가] 중복 리뷰 등 작성 불가 사유를 에러 페이지 대신 주문내역 알림으로 표시한다.
+            redirectAttributes.addFlashAttribute(
+                    "reviewMessage",
+                    e.getMessage());
 
-        return "redirect:/order/list";
+            // [추가] 사용자가 리뷰 작성 전 보고 있던 주문내역 페이지로 돌아간다.
+            return "redirect:/order/list?page=" + Math.max(page, 1);
+        }
+
+        // [수정] 정상 등록 후에도 기존 주문내역 페이지를 유지한다.
+        return "redirect:/order/list?page=" + Math.max(page, 1);
     }
 
     /**
@@ -181,7 +191,9 @@ public class ReviewController {
     @PostMapping("/deleteProductReview")
     public String deleteProductReview(
             HttpSession session,
-            @RequestParam Long reviewNo) {
+            @RequestParam Long reviewNo,
+            // [수정] 상품 상세 페이지에서 삭제한 경우 동일 상품의 리뷰 영역으로 돌아가기 위해 사용한다.
+            @RequestParam(required = false) Integer productNo) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -192,6 +204,11 @@ public class ReviewController {
         reviewService.deleteProductReview(
                 loginMember.getMemberNo(),
                 reviewNo);
+
+        // [수정] 상품 상세 페이지에서 삭제한 경우 현재 상품 리뷰 영역으로 즉시 돌아간다.
+        if (productNo != null) {
+            return "redirect:/goods/goodsDetail/" + productNo + "#reviewSection";
+        }
 
         return "redirect:/review/myReviewList";
     }

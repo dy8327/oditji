@@ -53,7 +53,7 @@
                        placeholder="주문번호, 주문상품번호, 상품명, 수령인 검색">
 
                 <button type="submit" class="btn btn-dark">검색</button>
-                <a href="${pageContext.request.contextPath}/business/delivery/list" class="btn">초기화</a>
+                <button type="button" class="btn btn-dark" onclick="location.href='${pageContext.request.contextPath}/business/delivery/list'">초기화</button>
             </form>
         </section>
 

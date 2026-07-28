@@ -23,25 +23,6 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/payment.css">
 
-    <style>
-    /*
-     * SonarQube 접근성 이슈 대응:
-     * 리뷰 작성 textarea의 label은 화면 배치에 영향을 주지 않으면서
-     * 스크린 리더에는 입력 목적을 전달한다.
-     */
-    .review-accessibility-label {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
-    </style>
-
 </head>
 
 <body>
@@ -50,6 +31,19 @@
 
 <main class="order-list-container"
       data-context-path="${pageContext.request.contextPath}">
+
+    <%--
+        [추가] 상품 리뷰 작성 실패 메시지를 외부 JavaScript에서 읽을 수 있도록 저장한다.
+        화면에는 표시하지 않으며, order.js에서 alert 메시지로 사용한다.
+    --%>
+    <c:if test="${not empty reviewMessage}">
+
+        <div id="reviewMessageData"
+             data-message="<c:out value='${reviewMessage}'/>"
+             hidden>
+        </div>
+
+    </c:if>
 
     <h1>주문 내역</h1>
 
@@ -531,6 +525,14 @@
                        id="productNo"
                        name="productNo">
 
+                <%--
+                    [추가] 리뷰 작성 성공 또는 실패 후
+                    사용자가 보고 있던 주문내역 페이지를 유지한다.
+                --%>
+                <input type="hidden"
+                       name="page"
+                       value="${pageVO.currentPage}">
+
                 <div>
 
                     <label for="rating">
@@ -657,6 +659,7 @@
 
 <script src="${pageContext.request.contextPath}/js/orderReview.js"></script>
 <script src="${pageContext.request.contextPath}/js/orderCancel.js"></script>
+<script src="${pageContext.request.contextPath}/js/order.js"></script>
 
 </body>
 
