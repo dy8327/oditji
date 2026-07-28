@@ -22,13 +22,19 @@ public interface ReviewService {
                         Long memberNo,
                         int contentNo,
                         double rating,
-                        String reviewText);
+                        String reviewText,
+                        // [추가] 사용자가 선택한 스포일러 포함 여부
+                        String spoilerYn);
 
         void updateContentReview(
                         Long memberNo,
                         Long reviewNo,
+                        // [추가] 수정 리뷰의 줄거리 비교에 사용
+                        int contentNo,
                         double rating,
-                        String reviewText);
+                        String reviewText,
+                        // [추가] 사용자가 선택한 스포일러 포함 여부
+                        String spoilerYn);
 
         // =========================
         // 상품 리뷰 작성
