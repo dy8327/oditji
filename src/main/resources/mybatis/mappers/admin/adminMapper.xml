@@ -361,6 +361,21 @@
             )
         </if>
         ORDER BY R.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectContentReviewListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM REVIEW R
+        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
+        JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
+        WHERE R.STATUS != 'DELETED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR C.TITLE LIKE '%' || #{keyword} || '%'
+            )
+        </if>
     </select>
 
     <!--
@@ -415,7 +430,32 @@
     </if>
 
     ORDER BY R.CREATED_AT DESC
+    OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
 
+    </select>
+
+    <select id="selectContentReviewReportListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM REVIEW R
+        JOIN MEMBER M ON M.MEMBER_NO = R.MEMBER_NO
+        JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
+        JOIN (
+            SELECT
+                CONTENT_REVIEW_NO,
+                COUNT(REPORT_NO) AS REPORT_COUNT
+            FROM REVIEW_REPORT
+            WHERE REVIEW_TYPE = 'CONTENT'
+              AND STATUS = 'WAITING'
+            GROUP BY CONTENT_REVIEW_NO
+        ) RC
+        ON RC.CONTENT_REVIEW_NO = R.REVIEW_NO
+        WHERE R.STATUS != 'DELETED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR C.TITLE LIKE '%' || #{keyword} || '%'
+            )
+        </if>
     </select>
 
     <!-- 콘텐츠 리뷰 신고: WAITING 상태 신고를 전부 ACCEPTED 또는 REJECTED로 변경 -->
@@ -481,6 +521,21 @@
             )
         </if>
         ORDER BY PR.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectProductReviewListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT_REVIEW PR
+        JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                M.NICKNAME LIKE '%' || #{keyword} || '%'
+                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+            )
+        </if>
     </select>
 
     <!-- 신고 내역 탭: WAITING 상태 신고가 걸린 상품 리뷰만 조회한다. -->
@@ -511,6 +566,29 @@
         </if>
         GROUP BY PR.REVIEW_NO, PR.MEMBER_NO, M.NICKNAME, PR.PRODUCT_NO, P.PRODUCT_NAME, PR.RATING, PR.CONTENT, PR.CREATED_AT
         ORDER BY PR.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectProductReviewReportListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT PR.REVIEW_NO
+            FROM PRODUCT_REVIEW PR
+            JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
+            JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
+            JOIN REVIEW_REPORT RR
+                ON RR.PRODUCT_REVIEW_NO = PR.REVIEW_NO
+                AND RR.REVIEW_TYPE = 'PRODUCT'
+                AND RR.STATUS = 'WAITING'
+            WHERE 1 = 1
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    M.NICKNAME LIKE '%' || #{keyword} || '%'
+                    OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+            GROUP BY PR.REVIEW_NO
+        ) T
     </select>
 
     <!-- 상품 리뷰 신고: WAITING 상태 신고를 전부 ACCEPTED 또는 REJECTED로 변경 -->
@@ -665,6 +743,70 @@
 
 
         ORDER BY E.EVENT_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- 이벤트 목록과 동일한 필터로, 상품 조인 때문에 늘어나는 행 수를 빼고
+         이벤트(EVENT_NO) 기준 건수만 센다. -->
+    <select id="selectAdminEventListCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM (
+            SELECT E.EVENT_NO
+
+            FROM EVENT E
+
+            JOIN EVENT_PRODUCT EP
+                ON E.EVENT_NO = EP.EVENT_NO
+
+            JOIN PRODUCT P
+                ON EP.PRODUCT_NO = P.PRODUCT_NO
+
+            JOIN BUSINESS B
+                ON P.BUSINESS_NO = B.BUSINESS_NO
+
+            WHERE 1=1
+
+            <if test="tab != null and tab != ''">
+                <choose>
+                    <when test="tab == 'waiting'">
+                        AND E.STATUS = 'WAITING'
+                    </when>
+                    <when test="tab == 'approved'">
+                        AND E.STATUS = 'APPROVED'
+                    </when>
+                    <when test="tab == 'end'">
+                        AND E.STATUS = 'END'
+                    </when>
+                </choose>
+            </if>
+
+            <if test="period != null and period != '' and period != 'all'">
+                <choose>
+                    <when test="period == 'today'">
+                        AND E.CREATED_AT >= TRUNC(SYSDATE)
+                    </when>
+                    <when test="period == 'week'">
+                        AND E.CREATED_AT >= TRUNC(SYSDATE) - 7
+                    </when>
+                    <when test="period == 'month'">
+                        AND E.CREATED_AT >= TRUNC(SYSDATE) - 30
+                    </when>
+                </choose>
+            </if>
+
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    E.TITLE LIKE '%' || #{keyword} || '%'
+                    OR B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                    OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+
+            GROUP BY E.EVENT_NO
+        ) T
 
     </select>
 
@@ -754,6 +896,34 @@
             )
         </if>
         ORDER BY P.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectProductRequestListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT P
+        JOIN BUSINESS B ON B.BUSINESS_NO = P.BUSINESS_NO
+        JOIN CONTENT C ON C.CONTENT_NO = P.CONTENT_NO
+        WHERE 1 = 1
+        <if test="tab != null and tab != ''">
+            <choose>
+                <when test="tab == 'waiting'">
+                    AND P.STATUS = 'WAITING'
+                </when>
+                <when test="tab == 'approved'">
+                    AND P.STATUS = 'APPROVED'
+                </when>
+                <when test="tab == 'delete'">
+                    AND P.STATUS = 'DELETE_REQUESTED'
+                </when>
+            </choose>
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+            )
+        </if>
     </select>
 
     <!-- 상품 관리 화면 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 삭제 요청) -->
@@ -901,6 +1071,18 @@
             AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
         </if>
         ORDER BY O.ORDER_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectOrderListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM ORDER_ITEM OI
+        JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+        WHERE OI.STATUS != 'CANCELED'
+        <if test="keyword != null and keyword != ''">
+            AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+        </if>
     </select>
 
     <!-- ===================== 5-2. 환불 조회 (CANCEL_REQUEST, 조회 전용) =====================
@@ -938,6 +1120,31 @@
             AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
         </if>
         ORDER BY CR.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectRefundListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM CANCEL_REQUEST CR
+        JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+        JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+        WHERE 1 = 1
+        <if test="status != null and status != '' and status != 'ALL'">
+            AND CR.STATUS = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+        </if>
+    </select>
+
+    <!-- 주문/환불 관리 화면 상단 통계 카드 (전체 주문 / 전체 환불요청 / 환불 대기 / 환불 완료) -->
+    <select id="selectOrderStats" resultType="com.project.oditji.admin.vo.OrderStatVO">
+        SELECT
+            (SELECT COUNT(*) FROM ORDER_ITEM OI WHERE OI.STATUS != 'CANCELED') AS TOTAL_ORDER_COUNT,
+            (SELECT COUNT(*) FROM CANCEL_REQUEST) AS REFUND_TOTAL_COUNT,
+            (SELECT COUNT(*) FROM CANCEL_REQUEST WHERE STATUS = 'WAITING') AS REFUND_WAITING_COUNT,
+            (SELECT COUNT(*) FROM CANCEL_REQUEST WHERE STATUS = 'APPROVED') AS REFUND_APPROVED_COUNT
+        FROM DUAL
     </select>
 
     <!-- ===================== 6. 사업자 관리 (BUSINESS) ===================== -->
@@ -968,6 +1175,21 @@
             )
         </if>
         ORDER BY B.BUSINESS_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectBusinessListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM BUSINESS B
+        JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
+        WHERE B.STATUS = 'APPROVED'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                OR M.EMAIL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
     </select>
 
     <select id="selectBusinessApprovalList" resultType="com.project.oditji.admin.vo.BusinessManageVO">
@@ -996,6 +1218,29 @@
             )
         </if>
         ORDER BY B.CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="selectBusinessApprovalListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM BUSINESS B
+        JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
+        WHERE B.STATUS = 'WAITING'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                OR M.EMAIL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+    </select>
+
+    <!-- 사업자 관리 화면 상단 통계 카드 (입점 완료 / 승인 대기) -->
+    <select id="selectBusinessStats" resultType="com.project.oditji.admin.vo.BusinessStatVO">
+        SELECT
+            SUM(CASE WHEN STATUS = 'APPROVED' THEN 1 ELSE 0 END) AS APPROVED_COUNT,
+            SUM(CASE WHEN STATUS = 'WAITING' THEN 1 ELSE 0 END) AS WAITING_COUNT
+        FROM BUSINESS
     </select>
 
     <update id="updateBusinessGrade">
@@ -1048,7 +1293,69 @@
             B.BANK_NAME,
             B.ACCOUNT_NUMBER,
             B.ACCOUNT_HOLDER
+        <if test="status != null and status != '' and status != 'ALL'">
+        HAVING
+            CASE
+                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'DONE'
+                ELSE 'WAITING'
+            END = #{status}
+        </if>
         ORDER BY MIN(S.CREATED_AT) DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <!-- selectSettlementList와 동일하게 사업자/월 단위로 묶은 뒤 그룹 수만 센다. -->
+    <select id="selectSettlementListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT S.BUSINESS_NO
+            FROM SETTLEMENT S
+            JOIN BUSINESS B ON B.BUSINESS_NO = S.BUSINESS_NO
+            WHERE S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
+            <if test="keyword != null and keyword != ''">
+                AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+            </if>
+            GROUP BY
+                S.BUSINESS_NO,
+                B.BUSINESS_NAME,
+                TRUNC(S.CREATED_AT, 'MM'),
+                B.BANK_NAME,
+                B.ACCOUNT_NUMBER,
+                B.ACCOUNT_HOLDER
+            <if test="status != null and status != '' and status != 'ALL'">
+            HAVING
+                CASE
+                    WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                    WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                    WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'DONE'
+                    ELSE 'WAITING'
+                END = #{status}
+            </if>
+        ) T
+    </select>
+
+    <!-- 정산 관리 화면 상단 통계 카드 (전체 / 입금 대기 / 입금 완료 / 반려).
+         selectSettlementList와 동일하게 사업자/정산월 단위로 묶은 그룹을 기준으로 센다. -->
+    <select id="selectSettlementStats" resultType="com.project.oditji.admin.vo.SettlementStatVO">
+        SELECT
+            COUNT(*) AS TOTAL_COUNT,
+            SUM(CASE WHEN GROUP_STATUS = 'REQUESTED' THEN 1 ELSE 0 END) AS REQUESTED_COUNT,
+            SUM(CASE WHEN GROUP_STATUS = 'DONE' THEN 1 ELSE 0 END) AS DONE_COUNT,
+            SUM(CASE WHEN GROUP_STATUS = 'REJECTED' THEN 1 ELSE 0 END) AS REJECTED_COUNT
+        FROM (
+            SELECT
+                CASE
+                    WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
+                    WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                    WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'DONE'
+                    ELSE 'WAITING'
+                END AS GROUP_STATUS
+            FROM SETTLEMENT S
+            WHERE S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
+            GROUP BY S.BUSINESS_NO, TRUNC(S.CREATED_AT, 'MM')
+        ) T
     </select>
 
     <!-- [수정] 같은 사업자의 같은 달 요청 건 전체를 동시에 확인/반려한다. -->

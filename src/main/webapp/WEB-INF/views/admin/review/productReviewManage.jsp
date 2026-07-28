@@ -117,6 +117,7 @@
 
                 <input type="hidden" name="keyword" value="${param.keyword}">
                 <input type="hidden" name="tab" value="${currentTab}">
+                <input type="hidden" name="page" value="${pagination.currentPage}">
 
                 <div class="bulk-action-bar">
 
@@ -233,6 +234,7 @@
                                                      data-* 속성으로 값을 전달한다. --%>
                                                 <button type="button"
                                                         class="btn btn-outline"
+                                                        data-review-no="${review.reviewNo}"
                                                         data-writer="${fn:escapeXml(review.nickname)}"
                                                         data-target="${fn:escapeXml(review.productName)}"
                                                         data-rating="${review.rating}"
@@ -252,6 +254,8 @@
 
                                                             <input type="hidden" name="reviewNo" value="${review.reviewNo}">
                                                             <input type="hidden" name="tab" value="${currentTab}">
+                                                            <input type="hidden" name="keyword" value="${param.keyword}">
+                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                             <button type="submit"
                                                                     class="btn btn-danger"
@@ -267,6 +271,8 @@
 
                                                             <input type="hidden" name="reviewNo" value="${review.reviewNo}">
                                                             <input type="hidden" name="tab" value="${currentTab}">
+                                                            <input type="hidden" name="keyword" value="${param.keyword}">
+                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                             <button type="submit"
                                                                     class="btn btn-secondary"
@@ -286,6 +292,8 @@
 
                                                             <input type="hidden" name="reviewNo" value="${review.reviewNo}">
                                                             <input type="hidden" name="tab" value="${currentTab}">
+                                                            <input type="hidden" name="keyword" value="${param.keyword}">
+                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                             <button type="submit"
                                                                     class="btn btn-danger"
@@ -331,14 +339,45 @@
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}">‹</a>
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
+
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
                     <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+                    class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}">›</a>
+
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
 
             </div>
 
@@ -373,9 +412,58 @@
         <div class="detail-section-title">리뷰 내용</div>
         <div class="review-content-full" id="reviewContentBody"></div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="closeModal('reviewContentModal')">닫기</button>
-        </div>
+        <%-- 내용보기 모달에서 바로 처리(삭제 / 신고 승인·반려)할 수 있도록
+             폼으로 감싸고, 현재 탭에 맞는 처리 버튼만 보여준다.
+             (row의 처리 버튼과 동일한 엔드포인트를 그대로 사용) --%>
+        <form id="reviewContentForm"
+              method="post"
+              action="${pageContext.request.contextPath}/admin/productReview/delete">
+
+            <input type="hidden" name="reviewNo" id="reviewContentReviewNo">
+            <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
+
+            <div class="modal-footer">
+
+                <c:choose>
+
+                    <c:when test="${currentTab == 'report'}">
+
+                        <button type="submit"
+                                formaction="${pageContext.request.contextPath}/admin/productReview/report/approve"
+                                class="btn btn-danger"
+                                onclick="return confirm('신고를 승인하여 리뷰를 삭제하시겠습니까?');">
+                            승인 (리뷰 삭제)
+                        </button>
+
+                        <button type="submit"
+                                formaction="${pageContext.request.contextPath}/admin/productReview/report/reject"
+                                class="btn btn-secondary"
+                                onclick="return confirm('신고를 반려하시겠습니까?');">
+                            반려
+                        </button>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <button type="submit"
+                                formaction="${pageContext.request.contextPath}/admin/productReview/delete"
+                                class="btn btn-danger"
+                                onclick="return confirm('이 리뷰를 삭제하시겠습니까?');">
+                            리뷰 삭제
+                        </button>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+                <button type="button" class="btn btn-outline" onclick="closeModal('reviewContentModal')">닫기</button>
+
+            </div>
+
+        </form>
 
     </div>
 

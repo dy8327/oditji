@@ -4,6 +4,12 @@
 
 <c:set var="activeMenu" value="settlement"/>
 
+<%--
+    상태(status) 필터의 현재 선택값. param이 없으면 '전체'를 의미하는 빈 문자열로 취급한다.
+    eventManage.jsp와 동일한 방식.
+--%>
+<c:set var="currentStatus" value="${empty param.status ? '' : param.status}"/>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -39,12 +45,76 @@
 
         </div>
 
+        <%--
+            상단 통계 카드. 각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
+            현재 선택된 상태(status)와 일치하는 카드에는 active 클래스를 준다.
+            memberManage.jsp / eventManage.jsp와 동일한 .member-stat-grid 컴포넌트를 재사용한다.
+        --%>
+        <div class="member-stat-grid">
+
+            <a class="stat-card ${empty currentStatus ? 'active' : ''}"
+               href="?status=">
+                <span>전체 정산</span>
+                <strong>${settlementStats.totalCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentStatus == 'REQUESTED' ? 'active' : ''}"
+               href="?status=REQUESTED">
+                <span>입금 대기</span>
+                <strong>${settlementStats.requestedCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentStatus == 'DONE' ? 'active' : ''}"
+               href="?status=DONE">
+                <span>입금 완료</span>
+                <strong>${settlementStats.doneCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentStatus == 'REJECTED' ? 'active' : ''}"
+               href="?status=REJECTED">
+                <span>반려</span>
+                <strong>${settlementStats.rejectedCount}건</strong>
+            </a>
+
+        </div>
+
         <section class="admin-content-box">
+
+            <%--
+                상태 탭. memberManage.jsp의 회원 유형 탭(.tab-menu)과 동일한 컴포넌트로,
+                위쪽 통계 카드와 같은 상태(status) 값을 다루지만 목록 바로 위에서도
+                탭 형태로 빠르게 전환할 수 있도록 제공한다. 검색어는 그대로 유지한다.
+            --%>
+            <div class="tab-menu">
+
+                <a class="${empty currentStatus ? 'active' : ''}"
+                   href="?status=&keyword=${param.keyword}">
+                    전체
+                </a>
+
+                <a class="${currentStatus == 'REQUESTED' ? 'active' : ''}"
+                   href="?status=REQUESTED&keyword=${param.keyword}">
+                    입금 대기
+                </a>
+
+                <a class="${currentStatus == 'DONE' ? 'active' : ''}"
+                   href="?status=DONE&keyword=${param.keyword}">
+                    입금 완료
+                </a>
+
+                <a class="${currentStatus == 'REJECTED' ? 'active' : ''}"
+                   href="?status=REJECTED&keyword=${param.keyword}">
+                    반려
+                </a>
+
+            </div>
 
             <div class="toolbar">
 
                 <form method="get"
                       action="${pageContext.request.contextPath}/admin/settlement/main">
+
+                    <input type="hidden" name="status" value="${currentStatus}">
 
                     <%--
                         검색 input에 고유 id를 부여하고
@@ -64,11 +134,15 @@
                     </label>
 
                     <input type="text"
-                           id="settlementKeyword"
-                           class="page-search"
-                           name="keyword"
-                           value="${param.keyword}"
-                           placeholder="사업자명 검색">
+                        id="settlementKeyword"
+                        class="page-search"
+                        name="keyword"
+                        value="${param.keyword}"
+                        placeholder="사업자명 검색">
+
+                    <button type="submit" class="btn btn-dark search-btn">
+                        검색
+                    </button>
 
                 </form>
 
@@ -169,6 +243,9 @@
                                                 <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
                                                 <input type="hidden" name="businessNo" value="${settlement.businessNo}">
                                                 <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
+                                                <input type="hidden" name="keyword" value="${param.keyword}">
+                                                <input type="hidden" name="status" value="${currentStatus}">
+                                                <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                 <button type="submit"
                                                         class="btn btn-success">
@@ -183,6 +260,9 @@
                                                 <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
                                                 <input type="hidden" name="businessNo" value="${settlement.businessNo}">
                                                 <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
+                                                <input type="hidden" name="keyword" value="${param.keyword}">
+                                                <input type="hidden" name="status" value="${currentStatus}">
+                                                <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                 <button type="submit"
                                                         class="btn btn-danger">
@@ -223,25 +303,44 @@
 
             <div class="pagination">
 
-                <a href="?page=${pagination.currentPage - 1}">
-                    ‹
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
                 </a>
 
-                <c:forEach var="p"
-                           begin="1"
-                           end="${empty pagination.totalPages
-                               ? 1
-                               : pagination.totalPages}">
 
-                    <a href="?page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
+                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
 
                 </c:forEach>
 
-                <a href="?page=${pagination.currentPage + 1}">
-                    ›
+
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
                 </a>
 
             </div>

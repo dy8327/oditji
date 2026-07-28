@@ -310,14 +310,45 @@
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage-1}">‹</a>
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
+
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
                     <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+                    class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage+1}">›</a>
+
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
 
             </div>
 
@@ -374,6 +405,7 @@
             <input type="hidden" name="productNo" id="reqProductNo">
             <input type="hidden" name="tab" value="${currentTab}">
             <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
             <input type="hidden" name="status" id="reqProductStatusRaw">
 
             <%--

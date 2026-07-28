@@ -349,26 +349,45 @@
 
             <div class="pagination">
 
-                <a href="?page=1&status=${status}&searchType=${searchType}&keyword=${param.keyword}&memberType=${memberType}"
-                   class="${!pagination.prev ? 'disabled' : ''}">«</a>
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
 
-                <a href="?page=${pagination.currentPage - 1}&status=${status}&searchType=${searchType}&keyword=${param.keyword}&memberType=${memberType}"
-                   class="${!pagination.prev ? 'disabled' : ''}">‹</a>
 
-                <c:forEach var="p" begin="${pagination.startPage}" end="${pagination.endPage}">
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
 
-                    <a href="?page=${p}&status=${status}&searchType=${searchType}&keyword=${param.keyword}&memberType=${memberType}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
+                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
 
                 </c:forEach>
 
-                <a href="?page=${pagination.currentPage + 1}&status=${status}&searchType=${searchType}&keyword=${param.keyword}&memberType=${memberType}"
-                   class="${!pagination.next ? 'disabled' : ''}">›</a>
 
-                <a href="?page=${pagination.totalPage}&status=${status}&searchType=${searchType}&keyword=${param.keyword}&memberType=${memberType}"
-                   class="${!pagination.next ? 'disabled' : ''}">»</a>
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
 
             </div>
 

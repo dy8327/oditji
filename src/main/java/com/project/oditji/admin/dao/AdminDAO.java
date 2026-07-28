@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.project.oditji.admin.vo.AdminVO;
 import com.project.oditji.admin.vo.BusinessManageVO;
+import com.project.oditji.admin.vo.BusinessStatVO;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.EventManageVO;
 import com.project.oditji.admin.vo.EventStatVO;
@@ -16,6 +17,7 @@ import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
 import com.project.oditji.admin.vo.OrderManageVO;
+import com.project.oditji.admin.vo.OrderStatVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
@@ -23,6 +25,7 @@ import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
 @Repository
@@ -177,12 +180,20 @@ public class AdminDAO {
 
     // ===================== 콘텐츠 리뷰 관리 (REVIEW) =====================
 
-    public List<ReviewManageVO> selectContentReviewList(String keyword) {
-        return sqlSession.selectList("selectContentReviewList", keywordParam(keyword));
+    public List<ReviewManageVO> selectContentReviewList(Map<String, Object> param) {
+        return sqlSession.selectList("selectContentReviewList", param);
     }
 
-    public List<ReviewManageVO> selectContentReviewReportList(String keyword) {
-        return sqlSession.selectList("selectContentReviewReportList", keywordParam(keyword));
+    public int selectContentReviewListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectContentReviewListCount", param);
+    }
+
+    public List<ReviewManageVO> selectContentReviewReportList(Map<String, Object> param) {
+        return sqlSession.selectList("selectContentReviewReportList", param);
+    }
+
+    public int selectContentReviewReportListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectContentReviewReportListCount", param);
     }
 
     public ReviewStatVO selectContentReviewStats() {
@@ -196,12 +207,20 @@ public class AdminDAO {
 
     // ===================== 상품 리뷰 관리 (PRODUCT_REVIEW) =====================
 
-    public List<ReviewManageVO> selectProductReviewList(String keyword) {
-        return sqlSession.selectList("selectProductReviewList", keywordParam(keyword));
+    public List<ReviewManageVO> selectProductReviewList(Map<String, Object> param) {
+        return sqlSession.selectList("selectProductReviewList", param);
     }
 
-    public List<ReviewManageVO> selectProductReviewReportList(String keyword) {
-        return sqlSession.selectList("selectProductReviewReportList", keywordParam(keyword));
+    public int selectProductReviewListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectProductReviewListCount", param);
+    }
+
+    public List<ReviewManageVO> selectProductReviewReportList(Map<String, Object> param) {
+        return sqlSession.selectList("selectProductReviewReportList", param);
+    }
+
+    public int selectProductReviewReportListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectProductReviewReportListCount", param);
     }
 
     public ReviewStatVO selectProductReviewStats() {
@@ -237,16 +256,17 @@ public class AdminDAO {
 
     // ===================== 이벤트 관리 (EVENT) =====================
 
-    public List<EventManageVO> selectAdminEventList(String tab, String keyword, String period) {
-
-        Map<String, Object> param = new HashMap<>();
-
-        param.put("tab", tab);
-        param.put("keyword", keyword);
-        param.put("period", period);
+    public List<EventManageVO> selectAdminEventList(Map<String, Object> param) {
 
         return sqlSession.selectList(
                 "selectAdminEventList",
+                param);
+    }
+
+    public int selectAdminEventListCount(Map<String, Object> param) {
+
+        return sqlSession.selectOne(
+                "selectAdminEventListCount",
                 param);
     }
 
@@ -277,10 +297,12 @@ public class AdminDAO {
 
     // ===================== 상품 관리 (PRODUCT) =====================
 
-    public List<ProductManageVO> selectProductRequestList(String tab, String keyword) {
-        Map<String, Object> param = keywordParam(keyword);
-        param.put("tab", tab);
+    public List<ProductManageVO> selectProductRequestList(Map<String, Object> param) {
         return sqlSession.selectList("selectProductRequestList", param);
+    }
+
+    public int selectProductRequestListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectProductRequestListCount", param);
     }
 
     public ProductStatVO selectProductStats() {
@@ -355,28 +377,49 @@ public class AdminDAO {
     // =====================
     // 배송 상태 변경/주문 취소는 사업자(Business) 담당이므로 관리자 DAO에는 조회만 둔다.
 
-    public List<OrderManageVO> selectOrderList(String keyword) {
-        return sqlSession.selectList("selectOrderList", keywordParam(keyword));
+    public List<OrderManageVO> selectOrderList(Map<String, Object> param) {
+        return sqlSession.selectList("selectOrderList", param);
+    }
+
+    public int selectOrderListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectOrderListCount", param);
+    }
+
+    public OrderStatVO selectOrderStats() {
+        return sqlSession.selectOne("selectOrderStats");
     }
 
     // ===================== 환불 조회 (CANCEL_REQUEST, 조회 전용) =====================
     // 환불 승인/거절은 사업자 담당이므로 관리자 DAO에는 조회만 둔다.
 
-    public List<OrderManageVO> selectRefundList(String keyword, String status) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("keyword", keyword);
-        param.put("status", status);
+    public List<OrderManageVO> selectRefundList(Map<String, Object> param) {
         return sqlSession.selectList("selectRefundList", param);
+    }
+
+    public int selectRefundListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectRefundListCount", param);
     }
 
     // ===================== 사업자 관리 (BUSINESS) =====================
 
-    public List<BusinessManageVO> selectBusinessList(String keyword) {
-        return sqlSession.selectList("selectBusinessList", keywordParam(keyword));
+    public List<BusinessManageVO> selectBusinessList(Map<String, Object> param) {
+        return sqlSession.selectList("selectBusinessList", param);
     }
 
-    public List<BusinessManageVO> selectBusinessApprovalList(String keyword) {
-        return sqlSession.selectList("selectBusinessApprovalList", keywordParam(keyword));
+    public int selectBusinessListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectBusinessListCount", param);
+    }
+
+    public List<BusinessManageVO> selectBusinessApprovalList(Map<String, Object> param) {
+        return sqlSession.selectList("selectBusinessApprovalList", param);
+    }
+
+    public int selectBusinessApprovalListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectBusinessApprovalListCount", param);
+    }
+
+    public BusinessStatVO selectBusinessStats() {
+        return sqlSession.selectOne("selectBusinessStats");
     }
 
     public int updateBusinessGrade(Long businessNo, String gradeName) {
@@ -395,8 +438,16 @@ public class AdminDAO {
 
     // ===================== 정산 관리 (SETTLEMENT) =====================
 
-    public List<SettlementManageVO> selectSettlementList(String keyword) {
-        return sqlSession.selectList("selectSettlementList", keywordParam(keyword));
+    public List<SettlementManageVO> selectSettlementList(Map<String, Object> param) {
+        return sqlSession.selectList("selectSettlementList", param);
+    }
+
+    public int selectSettlementListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectSettlementListCount", param);
+    }
+
+    public SettlementStatVO selectSettlementStats() {
+        return sqlSession.selectOne("selectSettlementStats");
     }
 
     /* [수정] 월별로 묶인 수수료 요청을 사업자/정산월 기준으로 일괄 처리한다. */
@@ -440,7 +491,7 @@ public class AdminDAO {
         Map<String, Object> param = new HashMap<>();
         param.put("contentNo", contentNo);
         param.put("platformNo", platformNo);
-        return sqlSession.insert("com.project.oditji.admin.dao.AdminDAO.insertContentPlatform", param);
+        return sqlSession.insert("insertContentPlatform", param);
     }
 
     // ===================== OTT 플랫폼 관리 (OTT_PLATFORM) =====================

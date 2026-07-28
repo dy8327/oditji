@@ -10,7 +10,9 @@ import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
+import com.project.oditji.admin.vo.BusinessStatVO;
 import com.project.oditji.admin.vo.OrderManageVO;
+import com.project.oditji.admin.vo.OrderStatVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
@@ -18,6 +20,7 @@ import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
 public interface AdminService {
@@ -51,7 +54,9 @@ public interface AdminService {
     void deleteExpiredWithdrawMembers();
 
     // 콘텐츠 리뷰 관리
-    List<ReviewManageVO> getContentReviewList(String tab, String keyword);
+    List<ReviewManageVO> getContentReviewList(String tab, String keyword, int page, int pageSize);
+
+    int getContentReviewListCount(String tab, String keyword);
 
     // 콘텐츠 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수)
     ReviewStatVO getContentReviewStats();
@@ -70,7 +75,9 @@ public interface AdminService {
     int bulkContentReviewAction(List<Long> reviewNos, String action);
 
     // 상품 리뷰 관리
-    List<ReviewManageVO> getProductReviewList(String tab, String keyword);
+    List<ReviewManageVO> getProductReviewList(String tab, String keyword, int page, int pageSize);
+
+    int getProductReviewListCount(String tab, String keyword);
 
     // 상품 리뷰 관리 상단 통계 카드 (전체 리뷰 / 신고 접수)
     ReviewStatVO getProductReviewStats();
@@ -91,7 +98,9 @@ public interface AdminService {
     // 이벤트 관리
     // tab: null/빈값(전체) / waiting(승인 대기) / approved(승인 완료) / end(종료)
     // period: null/빈값(전체) / today(오늘) / week(최근 7일) / month(최근 30일) - 요청일(CREATED_AT) 기준
-    List<EventManageVO> getEventList(String tab, String keyword, String period);
+    List<EventManageVO> getEventList(String tab, String keyword, String period, int page, int pageSize);
+
+    int getEventListCount(String tab, String keyword, String period);
 
     // 이벤트 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 종료)
     EventStatVO getEventStats();
@@ -101,7 +110,9 @@ public interface AdminService {
     void rejectEvent(Long eventNo);
 
     // 상품 관리
-    List<ProductManageVO> getProductRequestList(String tab, String keyword);
+    List<ProductManageVO> getProductRequestList(String tab, String keyword, int page, int pageSize);
+
+    int getProductRequestListCount(String tab, String keyword);
 
     // 상품 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 삭제 요청)
     ProductStatVO getProductStats();
@@ -111,15 +122,29 @@ public interface AdminService {
     void rejectProduct(Long productNo);
 
     // 주문 조회 (조회 전용 - 처리는 사업자 담당)
-    List<OrderManageVO> getOrderList(String keyword);
+    List<OrderManageVO> getOrderList(String keyword, int page, int pageSize);
+
+    int getOrderListCount(String keyword);
+
+    // 주문/환불 관리 화면 상단 통계 카드 (전체 주문 / 전체 환불요청 / 환불 대기 / 환불 완료)
+    OrderStatVO getOrderStats();
 
     // 환불 조회 (조회 전용 - 승인/거절은 사업자 담당)
-    List<OrderManageVO> getRefundList(String keyword, String status);
+    List<OrderManageVO> getRefundList(String keyword, String status, int page, int pageSize);
+
+    int getRefundListCount(String keyword, String status);
 
     // 사업자 관리
-    List<BusinessManageVO> getBusinessList(String keyword);
+    List<BusinessManageVO> getBusinessList(String keyword, int page, int pageSize);
 
-    List<BusinessManageVO> getBusinessApprovalList(String keyword);
+    int getBusinessListCount(String keyword);
+
+    List<BusinessManageVO> getBusinessApprovalList(String keyword, int page, int pageSize);
+
+    int getBusinessApprovalListCount(String keyword);
+
+    // 사업자 관리 화면 상단 통계 카드 (입점 완료 / 승인 대기)
+    BusinessStatVO getBusinessStats();
 
     void updateBusinessGrade(Long businessNo, String gradeName);
 
@@ -127,8 +152,13 @@ public interface AdminService {
 
     void rejectBusiness(Long businessNo);
 
-    // 정산 관리
-    List<SettlementManageVO> getSettlementList(String keyword);
+    // 정산 관리 (status: null/""/"ALL"이면 전체, 그 외에는 REQUESTED/DONE/REJECTED로 필터)
+    List<SettlementManageVO> getSettlementList(String keyword, String status, int page, int pageSize);
+
+    int getSettlementListCount(String keyword, String status);
+
+    // 정산 관리 화면 상단 통계 카드 (전체 / 입금 대기 / 입금 완료 / 반려)
+    SettlementStatVO getSettlementStats();
 
     /* [수정] 사업자와 정산 월을 기준으로 해당 월 요청 건 전체를 처리한다. */
     void confirmSettlement(Long businessNo, String settlementMonth);
