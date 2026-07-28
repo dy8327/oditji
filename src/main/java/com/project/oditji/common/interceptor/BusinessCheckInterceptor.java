@@ -24,12 +24,12 @@ public class BusinessCheckInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 사업자 정보가 없거나 승인된 사업자가 아닌 경우 접근 차단
         Object businessNo = session.getAttribute("businessNo");
         String businessStatus = (String) session.getAttribute("businessStatus");
 
+        // 승인된 사업자 외 접근 차단
         if (businessNo == null || !"APPROVED".equals(businessStatus)) {
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
 

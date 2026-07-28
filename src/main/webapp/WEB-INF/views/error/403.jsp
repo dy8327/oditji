@@ -4,7 +4,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>404 - ODITJI</title>
+<title>403 - ODITJI</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/error.css">
 </head>
@@ -17,14 +17,14 @@
 
     <div class="error-card">
 
-        <div class="error-code">404</div>
+        <div class="error-code">403</div>
 
         <div class="error-title">
-            페이지를 찾을 수 없습니다
+            접근 권한이 없습니다.
         </div>
 
         <div class="error-sub">
-            요청하신 페이지가 존재하지 않거나 이동되었습니다.
+            해당 페이지에 접근할 수 있는 권한이 없습니다.
         </div>
 
         <div class="error-btns">
