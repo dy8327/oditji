@@ -333,9 +333,13 @@ input {
 }
 
 .method-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+/* [수정] 간편인증 버튼을 인증 방식 영역 가운데에 배치 */
+.method-list .method-btn {
+  width: min(368px, 100%);
 }
 
 .method-btn {
@@ -391,7 +395,7 @@ input {
   margin-top: 12px;
   border: 0;
   background: transparent;
-  color: #8f8f8f;
+  color: #868181;
   font-size: 13px;
   cursor: pointer;
 }
