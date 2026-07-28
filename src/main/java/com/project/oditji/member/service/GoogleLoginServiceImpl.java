@@ -31,6 +31,8 @@ import com.project.oditji.member.vo.GoogleUserInfoVO;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberSocialVO;
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.member.exception.MemberBlockedException;
+import com.project.oditji.member.exception.MemberWithdrawnException;
 
 /**
  * Google OAuth 2.0 / OpenID Connect 로그인 구현체입니다.
@@ -66,10 +68,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     private final RestTemplate restTemplate;
     private static final Logger log = LoggerFactory.getLogger(GoogleLoginServiceImpl.class);
 
-    public GoogleLoginServiceImpl(
-            MemberDAO memberDAO,
-            MemberSocialDAO memberSocialDAO,
-            Environment environment) {
+    public GoogleLoginServiceImpl(MemberDAO memberDAO, MemberSocialDAO memberSocialDAO, Environment environment) {
 
         this.memberDAO = memberDAO;
         this.memberSocialDAO = memberSocialDAO;
@@ -90,8 +89,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
         String redirectUri = getGoogleRedirectUri();
 
         if (state == null || state.isBlank()) {
-            throw new IllegalStateException(
-                    "Google 로그인 상태값 생성에 실패했습니다.");
+            throw new IllegalStateException("Google 로그인 상태값 생성에 실패했습니다.");
         }
 
         return UriComponentsBuilder
@@ -116,35 +114,33 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     public GoogleLoginResultVO googleLogin(String code) {
 
         if (code == null || code.isBlank()) {
-            throw new IllegalStateException(
-                    "Google 인증 코드가 전달되지 않았습니다.");
+            throw new IllegalStateException("Google 인증 코드가 전달되지 않았습니다.");
         }
 
         GoogleTokenVO token = requestToken(code);
-        GoogleUserInfoVO googleUser =
-                requestUserInfo(token.getAccessToken());
+        GoogleUserInfoVO googleUser = requestUserInfo(token.getAccessToken());
 
         String providerUserId = googleUser.getSub();
-
         if (providerUserId == null || providerUserId.isBlank()) {
             throw new IllegalStateException(
                     "Google 사용자 고유 식별자를 확인할 수 없습니다.");
         }
 
-        MemberSocialJoinVO existingMember =
-                memberSocialDAO.selectMemberBySocial(
-                        PROVIDER_GOOGLE,
-                        providerUserId);
-
+        MemberSocialJoinVO existingMember = memberSocialDAO.selectMemberBySocial(PROVIDER_GOOGLE, providerUserId);
         if (existingMember != null) {
-            return new GoogleLoginResultVO(
-                    false,
-                    existingMember);
-        }
+                if ("BLOCKED".equals(existingMember.getStatus())) {
+                        throw new MemberBlockedException("정지된 계정입니다. 고객센터로 문의해주세요.");
+                }
 
-        MemberVO newMember = createGoogleMember(
-                googleUser,
-                providerUserId);
+                if ("WITHDRAWN".equals(existingMember.getStatus())) {
+                        throw new MemberWithdrawnException("탈퇴한 계정입니다.", existingMember.getMemberNo(),
+                                existingMember.getWithdrawnAt());
+                }
+
+                return new GoogleLoginResultVO(false, existingMember);
+                }
+
+        MemberVO newMember = createGoogleMember(googleUser, providerUserId);
 
         /*
          * 현재 memberMapper의 insertKakaoMember SQL은 이름과 달리
@@ -154,8 +150,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
         memberDAO.insertKakaoMember(newMember);
 
         if (newMember.getMemberNo() == null) {
-            throw new IllegalStateException(
-                    "Google 회원번호 생성에 실패했습니다.");
+            throw new IllegalStateException("Google 회원번호 생성에 실패했습니다.");
         }
 
         MemberSocialVO memberSocialVO = new MemberSocialVO();
@@ -165,19 +160,13 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
 
         memberSocialDAO.insertMemberSocial(memberSocialVO);
 
-        MemberSocialJoinVO joinedMember =
-                memberSocialDAO.selectMemberBySocial(
-                        PROVIDER_GOOGLE,
-                        providerUserId);
+        MemberSocialJoinVO joinedMember = memberSocialDAO.selectMemberBySocial(PROVIDER_GOOGLE, providerUserId);
 
         if (joinedMember == null) {
-            throw new IllegalStateException(
-                    "Google 회원정보 저장 후 조회에 실패했습니다.");
+            throw new IllegalStateException("Google 회원정보 저장 후 조회에 실패했습니다.");
         }
 
-        return new GoogleLoginResultVO(
-                true,
-                joinedMember);
+        return new GoogleLoginResultVO(true, joinedMember);
     }
 
     /**
@@ -186,11 +175,9 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     private GoogleTokenVO requestToken(String code) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(
-                MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> params =
-                new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
 
         params.add("grant_type", "authorization_code");
         params.add("code", code);
@@ -198,28 +185,18 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
         params.add("client_secret", getGoogleClientSecret());
         params.add("redirect_uri", getGoogleRedirectUri());
 
-        HttpEntity<MultiValueMap<String, String>> request =
-                new HttpEntity<MultiValueMap<String, String>>(
-                        params,
-                        headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(params, headers);
 
         try {
 
-            ResponseEntity<GoogleTokenVO> response =
-                    restTemplate.exchange(
-                            GOOGLE_TOKEN_URL,
-                            HttpMethod.POST,
-                            request,
-                            GoogleTokenVO.class);
+            ResponseEntity<GoogleTokenVO> response = restTemplate.exchange( GOOGLE_TOKEN_URL, HttpMethod.POST,
+                            request, GoogleTokenVO.class);
 
             GoogleTokenVO token = response.getBody();
 
-            if (token == null
-                    || token.getAccessToken() == null
-                    || token.getAccessToken().isBlank()) {
+            if (token == null || token.getAccessToken() == null || token.getAccessToken().isBlank()) {
 
-                throw new IllegalStateException(
-                        "Google access_token 발급에 실패했습니다.");
+                throw new IllegalStateException("Google access_token 발급에 실패했습니다.");
             }
 
             return token;
@@ -235,38 +212,29 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     /**
      * access_token으로 OpenID Connect UserInfo를 조회합니다.
      */
-    private GoogleUserInfoVO requestUserInfo(
-            String accessToken) {
+    private GoogleUserInfoVO requestUserInfo(String accessToken) {
 
         if (accessToken == null || accessToken.isBlank()) {
-            throw new IllegalStateException(
-                    "Google 사용자정보 조회용 토큰이 없습니다.");
+            throw new IllegalStateException("Google 사용자정보 조회용 토큰이 없습니다.");
         }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
-        RequestEntity<Void> request =
-                RequestEntity
+        RequestEntity<Void> request = RequestEntity
                         .get(URI.create(GOOGLE_USER_INFO_URL))
                         .headers(headers)
                         .build();
 
         try {
 
-            ResponseEntity<GoogleUserInfoVO> response =
-                    restTemplate.exchange(
-                            request,
-                            GoogleUserInfoVO.class);
+            ResponseEntity<GoogleUserInfoVO> response = restTemplate.exchange(request, GoogleUserInfoVO.class);
 
             GoogleUserInfoVO googleUser = response.getBody();
 
-            if (googleUser == null
-                    || googleUser.getSub() == null
-                    || googleUser.getSub().isBlank()) {
+            if (googleUser == null || googleUser.getSub() == null || googleUser.getSub().isBlank()) {
 
-                throw new IllegalStateException(
-                        "Google 사용자정보 조회에 실패했습니다.");
+                throw new IllegalStateException("Google 사용자정보 조회에 실패했습니다.");
             }
 
             return googleUser;
@@ -288,29 +256,17 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
      * - EMAIL: 요청하지 않으므로 NULL
      * - PROFILE_IMAGE: Google picture URL
      */
-    private MemberVO createGoogleMember(
-            GoogleUserInfoVO googleUser,
-            String providerUserId) {
+    private MemberVO createGoogleMember(GoogleUserInfoVO googleUser, String providerUserId) {
 
         MemberVO memberVO = new MemberVO();
 
-        memberVO.setMemberId(
-                "google_" + sha256(providerUserId).substring(0, 32));
-
+        memberVO.setMemberId("google_" + sha256(providerUserId).substring(0, 32));
         memberVO.setMemberPw(null);
         memberVO.setMemberName(null);
-
-        memberVO.setNickname(
-                createAvailableNickname(
-                        googleUser.getNickname(),
-                        providerUserId));
-
+        memberVO.setNickname(createAvailableNickname(googleUser.getNickname(), providerUserId));
         memberVO.setEmail(null);
         memberVO.setPhone(null);
-
-        memberVO.setProfileImage(
-                googleUser.getProfileImageUrl());
-
+        memberVO.setProfileImage(googleUser.getProfileImageUrl());
         memberVO.setRole("USER");
         memberVO.setStatus("ACTIVE");
         memberVO.setAdultVerified("N");
@@ -322,75 +278,48 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
      * MEMBER.NICKNAME UNIQUE 제약조건을 지키기 위해
      * Google 표시 이름이 이미 사용 중일 때만 식별값을 덧붙입니다.
      */
-    private String createAvailableNickname(
-            String googleName,
-            String providerUserId) {
+    private String createAvailableNickname(String googleName, String providerUserId) {
 
         String baseNickname = normalizeNickname(googleName);
-
         if (memberDAO.countByNickname(baseNickname) == 0) {
             return baseNickname;
         }
 
         String shortId = sha256(providerUserId).substring(0, 6);
-
-        String candidate = appendNicknameSuffix(
-                baseNickname,
-                "_" + shortId);
-
+        String candidate = appendNicknameSuffix(baseNickname, "_" + shortId);
         if (memberDAO.countByNickname(candidate) == 0) {
             return candidate;
         }
 
         for (int index = 2; index <= 99; index++) {
-
-            candidate = appendNicknameSuffix(
-                    baseNickname,
-                    "_" + shortId + "_" + index);
-
+            candidate = appendNicknameSuffix(baseNickname, "_" + shortId + "_" + index);
             if (memberDAO.countByNickname(candidate) == 0) {
                 return candidate;
             }
         }
 
-        return "구글회원_"
-                + sha256(providerUserId).substring(0, 12);
+        return "구글회원_" + sha256(providerUserId).substring(0, 12);
     }
 
     private String normalizeNickname(String value) {
-
         String nickname = value;
-
         if (nickname == null || nickname.isBlank()) {
             nickname = "구글회원";
         }
 
-        nickname = nickname.trim()
-                .replaceAll("\\s+", " ");
+        nickname = nickname.trim().replaceAll("\\s+", " ");
 
-        return limitLength(
-                nickname,
-                MAX_NICKNAME_LENGTH);
+        return limitLength(nickname, MAX_NICKNAME_LENGTH);
     }
 
-    private String appendNicknameSuffix(
-            String baseNickname,
-            String suffix) {
-
-        int baseMaxLength =
-                MAX_NICKNAME_LENGTH - suffix.length();
-
-        String safeBase = limitLength(
-                baseNickname,
-                Math.max(baseMaxLength, 1));
+    private String appendNicknameSuffix(String baseNickname, String suffix) {
+        int baseMaxLength = MAX_NICKNAME_LENGTH - suffix.length();
+        String safeBase = limitLength(baseNickname, Math.max(baseMaxLength, 1));
 
         return safeBase + suffix;
     }
 
-    private String limitLength(
-            String value,
-            int maxLength) {
-
+    private String limitLength(String value, int maxLength) {
         if (value == null) {
             return null;
         }
@@ -409,27 +338,19 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     private String sha256(String value) {
 
         try {
-
-            MessageDigest digest =
-                    MessageDigest.getInstance("SHA-256");
-
-            byte[] hash = digest.digest(
-                    value.getBytes(StandardCharsets.UTF_8));
-
-            StringBuilder builder =
-                    new StringBuilder(hash.length * 2);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder(hash.length * 2);
 
             for (byte oneByte : hash) {
-                builder.append(
-                        String.format("%02x", oneByte & 0xff));
+                builder.append(String.format("%02x", oneByte & 0xff));
             }
 
             return builder.toString();
 
         } catch (NoSuchAlgorithmException e) {
 
-            throw new IllegalStateException(
-                    "SHA-256 알고리즘을 사용할 수 없습니다.",
+            throw new IllegalStateException("SHA-256 알고리즘을 사용할 수 없습니다.",
                     e);
         }
     }
@@ -446,8 +367,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
                         "spring.security.oauth2.client.registration.google.client-id"));
 
         if (clientId == null) {
-            throw new IllegalStateException(
-                    "Google Client ID가 설정되지 않았습니다.");
+            throw new IllegalStateException("Google Client ID가 설정되지 않았습니다.");
         }
 
         return clientId;
@@ -461,8 +381,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
                         "spring.security.oauth2.client.registration.google.client-secret"));
 
         if (clientSecret == null) {
-            throw new IllegalStateException(
-                    "Google Client Secret이 설정되지 않았습니다.");
+            throw new IllegalStateException("Google Client Secret이 설정되지 않았습니다.");
         }
 
         return clientSecret;
