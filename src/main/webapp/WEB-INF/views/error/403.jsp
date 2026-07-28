@@ -20,11 +20,11 @@
         <div class="error-code">404</div>
 
         <div class="error-title">
-            페이지를 찾을 수 없습니다
+            접근 권한이 없습니다.
         </div>
 
         <div class="error-sub">
-            요청하신 페이지가 존재하지 않거나 이동되었습니다.
+            해당 페이지에 접근할 수 있는 권한이 없습니다.
         </div>
 
         <div class="error-btns">
