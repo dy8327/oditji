@@ -230,6 +230,51 @@ function openReviewContentModal(button) {
     document.getElementById('reviewContentModal').classList.add('open');
 }
 
+function deleteContentReview(reviewNo) {
+
+    if (!confirm('이 리뷰를 삭제하시겠습니까?')) {
+        return;
+    }
+
+    var form = document.createElement('form');
+
+    form.method = 'post';
+    form.action = '/oditji/admin/review/delete';
+
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'reviewNo';
+    input.value = reviewNo;
+
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+
+function deleteProductReview(reviewNo) {
+
+    if (!confirm('이 리뷰를 삭제하시겠습니까?')) {
+        return;
+    }
+
+    var form = document.createElement('form');
+
+    form.method = 'post';
+    form.action = '/oditji/admin/productReview/delete';
+
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'reviewNo';
+    input.value = reviewNo;
+
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
 
 /* =========================================================
  * businessManage.jsp - 사업자 관리
