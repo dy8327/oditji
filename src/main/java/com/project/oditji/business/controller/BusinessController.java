@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
@@ -38,6 +41,7 @@ public class BusinessController {
 
         private final BusinessService businessService;
         private final OrderCancelRefundService orderCancelRefundService;
+        private static final Logger log = LoggerFactory.getLogger(BusinessController.class);
 
         public BusinessController(
                         BusinessService businessService,
@@ -1863,11 +1867,15 @@ public class BusinessController {
 
                 try {
                         orderCancelRefundService.approveCancel(memberNo, cancelNo);
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "취소 요청을 승인하고 환불을 완료했습니다.");
-                } catch (Exception e) {
+                        redirectAttributes.addFlashAttribute("successMessage", "취소 요청을 승인하고 환불을 완료했습니다.");
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("취소 요청 승인 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute("errorMessage", "취소 요청 승인 처리 중 오류가 발생했습니다.");
                 }
 
                 return "redirect:/business/cancel/list";
@@ -1890,11 +1898,15 @@ public class BusinessController {
 
                 try {
                         orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason);
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "취소 요청을 반려했습니다.");
-                } catch (Exception e) {
+                        redirectAttributes.addFlashAttribute("successMessage", "취소 요청을 반려했습니다.");
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("취소 요청 반려 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute("errorMessage", "취소 요청 반려 처리 중 오류가 발생했습니다.");
                 }
 
                 return "redirect:/business/cancel/list";
