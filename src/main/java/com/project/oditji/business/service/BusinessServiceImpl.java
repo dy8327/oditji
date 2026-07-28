@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,11 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.content.service.ContentService;
+import com.project.oditji.search.service.SearchContentStore;
+import com.project.oditji.search.vo.CachedContentVO;
+import com.project.oditji.tmdb.service.TmdbService;
+import com.project.oditji.tmdb.vo.ActorVO;
 
 @Service
 public class BusinessServiceImpl
@@ -40,6 +46,9 @@ public class BusinessServiceImpl
 
         /* 마이페이지 대시보드에 노출할 인기 상품 개수 */
         private static final int POPULAR_PRODUCT_LIMIT = 5;
+
+        /* JSONL 콘텐츠 검색 팝업에 한 번에 표시할 최대 건수 */
+        private static final int CONTENT_SEARCH_LIMIT = 100;
 
         private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
                         "jpg",
@@ -58,6 +67,9 @@ public class BusinessServiceImpl
                         "ETC");
 
         private final BusinessDAO businessDAO;
+        private final ContentService contentService;
+        private final SearchContentStore searchContentStore;
+        private final TmdbService tmdbService;
         private final Path productUploadDirectory;
 
         /*
@@ -71,11 +83,16 @@ public class BusinessServiceImpl
 
         public BusinessServiceImpl(
                         BusinessDAO businessDAO,
-
+                        ContentService contentService,
+                        SearchContentStore searchContentStore,
+                        TmdbService tmdbService,
                         @Value("${oditji.upload.product-path:"
                                         + "uploads/product}") String productUploadPath) {
 
                 this.businessDAO = businessDAO;
+                this.contentService = contentService;
+                this.searchContentStore = searchContentStore;
+                this.tmdbService = tmdbService;
 
                 this.productUploadDirectory = Paths.get(
                                 productUploadPath)
@@ -578,9 +595,17 @@ public class BusinessServiceImpl
                 }
 
                 validateProduct(goodsManageVO);
-                normalizeActorNo(goodsManageVO);
-                validateContentActor(goodsManageVO);
                 validateProductImage(productImage);
+
+                /*
+                 * JSONL에서 선택한 콘텐츠를 실제 상품 저장 직전에 DB에 준비합니다.
+                 * ContentService 내부에서 CONTENT, ACTOR, DIRECTOR,
+                 * CONTENT_ACTOR, CONTENT_DIRECTOR, CONTENT_PLATFORM을 저장합니다.
+                 */
+                prepareProductContent(goodsManageVO);
+                resolveProductActor(goodsManageVO);
+                validateContentActor(goodsManageVO);
+
                 Path savedPhysicalPath = null;
 
                 try {
@@ -640,6 +665,115 @@ public class BusinessServiceImpl
                 }
 
                 return contentList;
+        }
+
+        /*
+         * =========================================================
+         * 상품 등록 화면용 JSONL 콘텐츠 검색
+         *
+         * DB의 CONTENT 테이블은 조회하지 않습니다.
+         * 검색어가 없는 경우 3만 건 이상의 전체 캐시가 화면에 노출되지
+         * 않도록 빈 목록을 반환합니다.
+         * =========================================================
+         */
+        @Override
+        public List<ContentSearchVO> getCachedContentList(
+                        String keyword) {
+
+                if (keyword == null
+                                || keyword.isBlank()) {
+                        return Collections.emptyList();
+                }
+
+                String normalizedKeyword = keyword.trim()
+                                .toLowerCase(Locale.ROOT);
+
+                List<ContentSearchVO> resultList =
+                                new ArrayList<ContentSearchVO>();
+
+                for (CachedContentVO cachedContent
+                                : searchContentStore.getAll()) {
+
+                        if (cachedContent == null
+                                        || cachedContent.getTmdbId() == null
+                                        || cachedContent.getContentType() == null) {
+                                continue;
+                        }
+
+                        if (!matchesCachedContent(
+                                        cachedContent,
+                                        normalizedKeyword)) {
+                                continue;
+                        }
+
+                        resultList.add(
+                                        convertToContentSearchVO(
+                                                        cachedContent));
+
+                        if (resultList.size()
+                                        >= CONTENT_SEARCH_LIMIT) {
+                                break;
+                        }
+                }
+
+                return resultList;
+        }
+
+        /*
+         * =========================================================
+         * JSONL 콘텐츠 선택 후 TMDB 배우 미리보기 조회
+         *
+         * 이 단계에서는 ACTOR와 CONTENT_ACTOR에 저장하지 않습니다.
+         * 상품 등록 요청이 성공적으로 처리될 때 DB 저장이 수행됩니다.
+         * =========================================================
+         */
+        @Override
+        public List<ActorSearchVO> getActorPreview(
+                        Long tmdbId,
+                        String contentType) {
+
+                validateCachedContentSelection(
+                                tmdbId,
+                                contentType);
+
+                List<ActorVO> actorList =
+                                tmdbService.getContentActorPreview(
+                                                tmdbId,
+                                                contentType);
+
+                if (actorList == null
+                                || actorList.isEmpty()) {
+                        return Collections.emptyList();
+                }
+
+                List<ActorSearchVO> resultList =
+                                new ArrayList<ActorSearchVO>();
+
+                for (ActorVO actor : actorList) {
+
+                        if (actor == null
+                                        || actor.getTmdbActorId() == null) {
+                                continue;
+                        }
+
+                        ActorSearchVO result =
+                                        new ActorSearchVO();
+
+                        result.setTmdbActorId(
+                                        actor.getTmdbActorId());
+                        result.setActorName(
+                                        actor.getActorName());
+                        result.setProfilePath(
+                                        actor.getProfilePath());
+                        result.setCharacterName(
+                                        actor.getCharacterName());
+                        result.setDisplayOrder(
+                                        actor.getDisplayOrder());
+
+                        resultList.add(result);
+                }
+
+                return resultList;
         }
 
         /*
@@ -1693,21 +1827,6 @@ public class BusinessServiceImpl
                                         "사업자 정보가 올바르지 않습니다.");
                 }
 
-                if (goodsManageVO.getContentNo() <= 0) {
-
-                        throw new IllegalArgumentException(
-                                        "콘텐츠를 선택해주세요.");
-                }
-
-                ContentSearchVO content = businessDAO.selectContentByNo(
-                                goodsManageVO.getContentNo());
-
-                if (content == null) {
-
-                        throw new IllegalArgumentException(
-                                        "선택한 콘텐츠가 존재하지 않습니다.");
-                }
-
                 String productName = goodsManageVO.getProductName();
 
                 if (productName == null
@@ -1786,6 +1905,190 @@ public class BusinessServiceImpl
                                                 description);
                         }
                 }
+        }
+
+        /*
+         * =========================================================
+         * JSONL 선택 콘텐츠를 상품 저장용 DB 데이터로 준비
+         * =========================================================
+         */
+        private void prepareProductContent(
+                        GoodsManageVO goodsManageVO) {
+
+                Long tmdbId = goodsManageVO.getTmdbId();
+                String contentType = goodsManageVO.getContentType();
+
+                /*
+                 * 신규 JSONL 검색 방식입니다.
+                 */
+                if (tmdbId != null
+                                && tmdbId > 0
+                                && contentType != null
+                                && !contentType.isBlank()) {
+
+                        validateCachedContentSelection(
+                                        tmdbId,
+                                        contentType);
+
+                        int contentNo =
+                                        contentService.ensureContentStored(
+                                                        tmdbId,
+                                                        contentType);
+
+                        goodsManageVO.setContentNo(
+                                        contentNo);
+
+                        return;
+                }
+
+                /*
+                 * 기존 CONTENT_NO 방식으로 되돌아온 등록 요청도 허용하여
+                 * 브라우저 뒤로가기나 이전 화면과의 호환성을 유지합니다.
+                 */
+                if (goodsManageVO.getContentNo() <= 0) {
+                        throw new IllegalArgumentException(
+                                        "콘텐츠를 선택해주세요.");
+                }
+
+                ContentSearchVO content =
+                                businessDAO.selectContentByNo(
+                                                goodsManageVO.getContentNo());
+
+                if (content == null) {
+                        throw new IllegalArgumentException(
+                                        "선택한 콘텐츠가 존재하지 않습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * TMDB 배우 ID를 DB의 ACTOR_NO로 변환
+         * =========================================================
+         */
+        private void resolveProductActor(
+                        GoodsManageVO goodsManageVO) {
+
+                Long tmdbActorId =
+                                goodsManageVO.getTmdbActorId();
+
+                if (tmdbActorId == null
+                                || tmdbActorId <= 0) {
+
+                        normalizeActorNo(goodsManageVO);
+                        return;
+                }
+
+                List<ActorSearchVO> actorList =
+                                businessDAO.selectActorListByContentNo(
+                                                goodsManageVO.getContentNo());
+
+                if (actorList == null) {
+                        actorList = Collections.emptyList();
+                }
+
+                for (ActorSearchVO actor : actorList) {
+
+                        if (actor != null
+                                        && actor.getTmdbActorId()
+                                                == tmdbActorId.longValue()) {
+
+                                goodsManageVO.setActorNo(
+                                                actor.getActorNo());
+                                return;
+                        }
+                }
+
+                throw new IllegalArgumentException(
+                                "선택한 배우를 저장된 콘텐츠 배우 목록에서 찾을 수 없습니다.");
+        }
+
+        /*
+         * =========================================================
+         * JSONL 콘텐츠 선택값 검증
+         * =========================================================
+         */
+        private void validateCachedContentSelection(
+                        Long tmdbId,
+                        String contentType) {
+
+                if (tmdbId == null
+                                || tmdbId <= 0
+                                || contentType == null
+                                || contentType.isBlank()) {
+
+                        throw new IllegalArgumentException(
+                                        "올바른 콘텐츠를 선택해주세요.");
+                }
+
+                String normalizedType =
+                                contentType.trim()
+                                                .toUpperCase(Locale.ROOT);
+
+                if (!"MOVIE".equals(normalizedType)
+                                && !"TV".equals(normalizedType)) {
+
+                        throw new IllegalArgumentException(
+                                        "지원하지 않는 콘텐츠 유형입니다.");
+                }
+
+                CachedContentVO cachedContent =
+                                searchContentStore
+                                                .findByTmdbIdAndContentType(
+                                                                tmdbId,
+                                                                normalizedType);
+
+                if (cachedContent == null) {
+                        throw new IllegalArgumentException(
+                                        "JSONL 공용 저장소에서 선택한 콘텐츠를 찾을 수 없습니다.");
+                }
+        }
+
+        private boolean matchesCachedContent(
+                        CachedContentVO cachedContent,
+                        String normalizedKeyword) {
+
+                return containsIgnoreCase(
+                                cachedContent.getTitle(),
+                                normalizedKeyword)
+                                || containsIgnoreCase(
+                                                cachedContent.getOriginalTitle(),
+                                                normalizedKeyword)
+                                || containsIgnoreCase(
+                                                cachedContent.getSearchText(),
+                                                normalizedKeyword);
+        }
+
+        private boolean containsIgnoreCase(
+                        String value,
+                        String normalizedKeyword) {
+
+                return value != null
+                                && value.toLowerCase(Locale.ROOT)
+                                                .contains(normalizedKeyword);
+        }
+
+        private ContentSearchVO convertToContentSearchVO(
+                        CachedContentVO cachedContent) {
+
+                ContentSearchVO result =
+                                new ContentSearchVO();
+
+                result.setTmdbId(
+                                cachedContent.getTmdbId());
+                result.setContentType(
+                                cachedContent.getContentType());
+                result.setTitle(
+                                cachedContent.getTitle());
+                result.setOriginalTitle(
+                                cachedContent.getOriginalTitle());
+                result.setPosterPath(
+                                cachedContent.getPosterPath());
+                result.setGenreText(
+                                cachedContent.getGenreText());
+                result.setAgeRating(
+                                cachedContent.getAgeRating());
+
+                return result;
         }
 
         /*

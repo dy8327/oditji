@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
+import com.project.oditji.tmdb.vo.ActorVO;
 
 public interface TmdbService {
 
@@ -49,6 +50,13 @@ public interface TmdbService {
 
     void saveContentPeople(
             ContentVO content);
+
+    /**
+     * 상품 등록 화면에서 DB 저장 전에 표시할 TMDB 출연 배우 목록을 조회합니다.
+     */
+    List<ActorVO> getContentActorPreview(
+            Long tmdbId,
+            String contentType);
 
     PersonFilmographyVO getPersonFilmography(
             Long tmdbPersonId,

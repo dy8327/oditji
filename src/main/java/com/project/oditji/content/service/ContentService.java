@@ -19,6 +19,15 @@ public interface ContentService {
             Long tmdbId,
             String contentType);
 
+    /**
+     * JSONL에서 선택한 콘텐츠를 상품 등록 등에 사용할 수 있도록
+     * CONTENT, ACTOR, DIRECTOR 및 각 관계 테이블에 준비합니다.
+     * 상세페이지 조회수가 증가하지 않습니다.
+     */
+    int ensureContentStored(
+            Long tmdbId,
+            String contentType);
+
     ContentVO getContentDetail(
             int contentNo);
 
@@ -73,8 +82,24 @@ public interface ContentService {
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
+            List<String> providerIds);
+
+    /**
+     * 현재 콘텐츠 목록 화면에서 사용하는 네 번째 목록 필터까지
+     * JSONL 공용 콘텐츠 저장소 조회에 전달합니다.
+     *
+     * additionalFilterValues는 Controller와
+     * SearchContentPageCacheService 사이에서 값을 변경하지 않고
+     * 그대로 전달하기 위한 매개변수입니다.
+     */
+    ContentListPageVO getContentListByType(
+            String type,
+            String sort,
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds,
-            List<String> ageRatings);
+            List<String> additionalFilterValues);
 
     /**
      * 현재 목록의 카테고리, 장르, OTT 조건을 반영하여
@@ -83,6 +108,15 @@ public interface ContentService {
     List<SearchResultVO> getContentRecommendedList(
             List<String> contentCategories,
             List<String> genreCodes,
+            List<String> providerIds);
+
+    /**
+     * 현재 콘텐츠 목록 화면에서 사용하는 네 번째 목록 필터까지
+     * 추천 콘텐츠 조회에 전달합니다.
+     */
+    List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds,
-            List<String> ageRatings);
+            List<String> additionalFilterValues);
 }

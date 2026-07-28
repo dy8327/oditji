@@ -21,21 +21,22 @@ const contextPath =
 
 /*
  * 상품 등록 실패 후 화면으로 돌아왔을 때
- * 이전에 선택한 배우 번호를 복원하기 위한 값
+ * JSONL에서 선택했던 TMDB 배우 ID를 복원합니다.
  */
-const savedActorNo =
-        "${empty productForm.actorNo
+const savedTmdbActorId =
+        "${empty productForm.tmdbActorId
             ? ''
-            : productForm.actorNo}";
+            : productForm.tmdbActorId}";
 
 
 /* =========================================================
-   콘텐츠 검색 팝업
+   JSONL 콘텐츠 검색 팝업
 ========================================================= */
 function openContentSearch() {
 
     window.open(
-        contextPath + "/business/content/search",
+        contextPath
+            + "/business/content/search?mode=register",
         "contentSearchPopup",
         "width=900,height=720,"
             + "scrollbars=yes,resizable=yes"
@@ -44,71 +45,80 @@ function openContentSearch() {
 
 
 /* =========================================================
-   콘텐츠 검색 팝업에서 콘텐츠 선택
+   JSONL 콘텐츠 검색 팝업에서 콘텐츠 선택
 
-   contentSearch.jsp에서 다음 함수를 호출한다.
+   contentSearch.jsp에서 다음 함수를 호출합니다.
 
-   window.opener.selectContent(contentNo, title);
+   window.opener.selectCachedContent(
+       tmdbId,
+       contentType,
+       title
+   );
 ========================================================= */
-function selectContent(contentNo, title) {
+function selectCachedContent(
+        tmdbId,
+        contentType,
+        title) {
 
-    const convertedContentNo =
-            Number(contentNo);
+    const convertedTmdbId = Number(tmdbId);
+    const normalizedContentType =
+            String(contentType || "")
+                .trim()
+                .toUpperCase();
 
-    if (!Number.isFinite(convertedContentNo)
-            || convertedContentNo <= 0) {
+    if (!Number.isFinite(convertedTmdbId)
+            || convertedTmdbId <= 0
+            || (normalizedContentType !== "MOVIE"
+                && normalizedContentType !== "TV")) {
 
-        alert("올바른 콘텐츠 번호가 아닙니다.");
+        alert("올바른 콘텐츠 정보가 아닙니다.");
         return;
     }
 
-    document.getElementById(
-        "contentNo"
-    ).value = convertedContentNo;
-
-    document.getElementById(
-        "contentTitle"
-    ).value = title;
-
     /*
-     * 선택한 CONTENT_NO로 해당 콘텐츠의 배우를 조회한다.
+     * 아직 CONTENT_NO는 생성하지 않습니다.
+     * 상품 등록 요청 시 서버에서 콘텐츠 관련 6개 테이블을 저장합니다.
      */
-    loadActorsByContent(
-        convertedContentNo,
+    document.getElementById("contentNo").value = "";
+    document.getElementById("tmdbId").value = convertedTmdbId;
+    document.getElementById("contentType").value = normalizedContentType;
+    document.getElementById("contentTitle").value = title;
+
+    loadActorsByCachedContent(
+        convertedTmdbId,
+        normalizedContentType,
         null
     );
 }
 
 
 /* =========================================================
-   선택한 콘텐츠에 연결된 배우 조회
+   선택한 JSONL 콘텐츠의 배우 미리보기 조회
+
+   이 API는 TMDB 배우 정보만 반환하며 DB에는 저장하지 않습니다.
 ========================================================= */
-async function loadActorsByContent(
-        contentNo,
-        actorNoToRestore) {
+async function loadActorsByCachedContent(
+        tmdbId,
+        contentType,
+        actorIdToRestore) {
 
     const actorSelect =
-            document.getElementById(
-                "actorNo"
-            );
+            document.getElementById("tmdbActorId");
 
     const actorLoadMessage =
-            document.getElementById(
-                "actorLoadMessage"
-            );
+            document.getElementById("actorLoadMessage");
 
-    const convertedContentNo =
-            Number(contentNo);
+    const convertedTmdbId = Number(tmdbId);
 
-    if (!Number.isFinite(convertedContentNo)
-            || convertedContentNo <= 0) {
+    if (!Number.isFinite(convertedTmdbId)
+            || convertedTmdbId <= 0
+            || !contentType) {
 
         resetActorSelect();
         return;
     }
 
     actorSelect.disabled = true;
-
     actorSelect.innerHTML =
             "<option value=\"\">"
             + "배우 목록을 불러오는 중입니다."
@@ -121,53 +131,40 @@ async function loadActorsByContent(
 
         const requestUrl =
                 contextPath
-                + "/business/api/actor/list"
-                + "?contentNo="
-                + encodeURIComponent(
-                    convertedContentNo
-                );
+                + "/business/api/content/actor-preview"
+                + "?tmdbId="
+                + encodeURIComponent(convertedTmdbId)
+                + "&contentType="
+                + encodeURIComponent(contentType);
 
-        console.log(
-            "배우 조회 요청:",
-            requestUrl
+        const response = await fetch(
+            requestUrl,
+            {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
         );
 
-        const response =
-                await fetch(
-                    requestUrl,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Accept": "application/json"
-                        }
-                    }
-                );
-
         if (!response.ok) {
-
             throw new Error(
                 "배우 조회 실패: "
                 + response.status
             );
         }
 
-        const actorList =
-                await response.json();
-
-        console.log(
-            "배우 조회 결과:",
-            actorList
-        );
+        const actorList = await response.json();
 
         renderActorList(
             actorList,
-            actorNoToRestore
+            actorIdToRestore
         );
 
     } catch (error) {
 
         console.error(
-            "콘텐츠별 배우 조회 오류:",
+            "JSONL 콘텐츠 배우 조회 오류:",
             error
         );
 
@@ -177,7 +174,6 @@ async function loadActorsByContent(
                 + "</option>";
 
         actorSelect.disabled = true;
-
         actorLoadMessage.textContent =
                 "배우 정보를 불러오지 못했습니다.";
     }
@@ -189,57 +185,39 @@ async function loadActorsByContent(
 ========================================================= */
 function renderActorList(
         actorList,
-        actorNoToRestore) {
+        actorIdToRestore) {
 
     const actorSelect =
-            document.getElementById(
-                "actorNo"
-            );
+            document.getElementById("tmdbActorId");
 
     const actorLoadMessage =
-            document.getElementById(
-                "actorLoadMessage"
-            );
+            document.getElementById("actorLoadMessage");
 
     actorSelect.innerHTML = "";
 
-    /*
-     * PRODUCT.ACTOR_NO는 NULL 허용
-     */
     const emptyOption =
-            document.createElement(
-                "option"
-            );
+            document.createElement("option");
 
     emptyOption.value = "";
     emptyOption.textContent =
             "관련 배우 선택 안 함";
 
-    actorSelect.appendChild(
-        emptyOption
-    );
+    actorSelect.appendChild(emptyOption);
 
     if (!Array.isArray(actorList)
             || actorList.length === 0) {
 
         const noActorOption =
-                document.createElement(
-                    "option"
-                );
+                document.createElement("option");
 
         noActorOption.value = "";
-
         noActorOption.textContent =
-                "해당 콘텐츠에 연결된 배우가 없습니다.";
+                "해당 콘텐츠의 배우 정보가 없습니다.";
 
-        actorSelect.appendChild(
-            noActorOption
-        );
-
+        actorSelect.appendChild(noActorOption);
         actorSelect.disabled = false;
-
         actorLoadMessage.textContent =
-                "CONTENT_ACTOR에 연결된 배우 정보가 없습니다.";
+                "TMDB에서 배우 정보를 찾지 못했습니다.";
 
         return;
     }
@@ -248,46 +226,36 @@ function renderActorList(
         function(actor) {
 
             const option =
-                    document.createElement(
-                        "option"
-                    );
+                    document.createElement("option");
 
             /*
-             * 서버에 전송되는 값은 ACTOR_NO
+             * 등록 요청에는 ACTOR_NO가 아니라 TMDB_ACTOR_ID를 전달합니다.
+             * 서버가 콘텐츠 저장 후 실제 ACTOR_NO로 변환합니다.
              */
-            option.value =
-                    actor.actorNo;
+            option.value = actor.tmdbActorId;
 
-            let optionText =
-                    actor.actorName;
+            let optionText = actor.actorName;
 
             if (actor.characterName) {
-
                 optionText +=
                         " / 배역: "
                         + actor.characterName;
             }
 
-            option.textContent =
-                    optionText;
+            option.textContent = optionText;
 
-            if (actorNoToRestore
-                    && String(actor.actorNo)
-                        === String(
-                            actorNoToRestore
-                        )) {
+            if (actorIdToRestore
+                    && String(actor.tmdbActorId)
+                        === String(actorIdToRestore)) {
 
                 option.selected = true;
             }
 
-            actorSelect.appendChild(
-                option
-            );
+            actorSelect.appendChild(option);
         }
     );
 
     actorSelect.disabled = false;
-
     actorLoadMessage.textContent =
             actorList.length
             + "명의 배우가 조회되었습니다.";
@@ -300,14 +268,10 @@ function renderActorList(
 function resetActorSelect() {
 
     const actorSelect =
-            document.getElementById(
-                "actorNo"
-            );
+            document.getElementById("tmdbActorId");
 
     const actorLoadMessage =
-            document.getElementById(
-                "actorLoadMessage"
-            );
+            document.getElementById("actorLoadMessage");
 
     actorSelect.innerHTML =
             "<option value=\"\">"
@@ -315,10 +279,8 @@ function resetActorSelect() {
             + "</option>";
 
     actorSelect.disabled = true;
-
     actorLoadMessage.textContent =
-            "콘텐츠를 선택하면 해당 작품에 연결된 "
-            + "배우가 표시됩니다.";
+            "콘텐츠를 선택하면 해당 작품의 배우가 표시됩니다.";
 }
 
 
@@ -328,9 +290,7 @@ function resetActorSelect() {
 function updateFileName(input) {
 
     const fileNameElement =
-            document.getElementById(
-                "selectedFileName"
-            );
+            document.getElementById("selectedFileName");
 
     if (input.files
             && input.files.length > 0) {
@@ -352,45 +312,35 @@ function updateFileName(input) {
 function validateProductForm() {
 
     const productName =
-            document.getElementById(
-                "productName"
-            ).value.trim();
+            document.getElementById("productName")
+                .value.trim();
 
     const productType =
-            document.getElementById(
-                "productType"
-            ).value;
+            document.getElementById("productType")
+                .value;
 
-    const price =
-            Number(
-                document.getElementById(
-                    "price"
-                ).value
-            );
+    const price = Number(
+        document.getElementById("price").value
+    );
 
-    const discountRate =
-            Number(
-                document.getElementById(
-                    "discountRate"
-                ).value
-            );
+    const discountRate = Number(
+        document.getElementById("discountRate").value
+    );
 
-    const stock =
-            Number(
-                document.getElementById(
-                    "stock"
-                ).value
-            );
+    const stock = Number(
+        document.getElementById("stock").value
+    );
 
-    const contentNo =
-            document.getElementById(
-                "contentNo"
-            ).value;
+    const tmdbId = Number(
+        document.getElementById("tmdbId").value
+    );
+
+    const contentType =
+            document.getElementById("contentType")
+                .value;
 
     const productImage =
-            document.getElementById(
-                "productImage"
-            );
+            document.getElementById("productImage");
 
     if (!productName) {
         alert("상품명을 입력해주세요.");
@@ -413,10 +363,7 @@ function validateProductForm() {
             || discountRate < 0
             || discountRate > 100) {
 
-        alert(
-            "할인율은 0부터 100 사이로 입력해주세요."
-        );
-
+        alert("할인율은 0부터 100 사이로 입력해주세요.");
         return false;
     }
 
@@ -427,7 +374,9 @@ function validateProductForm() {
         return false;
     }
 
-    if (!contentNo) {
+    if (!Number.isFinite(tmdbId)
+            || tmdbId <= 0
+            || !contentType) {
 
         alert("관련 콘텐츠를 선택해주세요.");
         return false;
@@ -449,24 +398,27 @@ function validateProductForm() {
 /* =========================================================
    화면 최초 진입
 
-   등록 실패 후 CONTENT_NO가 남아 있으면
-   배우 목록과 기존 배우 선택값을 복원한다.
+   등록 실패 후 TMDB_ID와 CONTENT_TYPE이 남아 있으면
+   배우 목록과 이전 배우 선택값을 복원합니다.
 ========================================================= */
 document.addEventListener(
     "DOMContentLoaded",
     function() {
 
-        const contentNo =
-                document.getElementById(
-                    "contentNo"
-                ).value;
+        const tmdbId =
+                document.getElementById("tmdbId").value;
 
-        if (contentNo
-                && Number(contentNo) > 0) {
+        const contentType =
+                document.getElementById("contentType").value;
 
-            loadActorsByContent(
-                contentNo,
-                savedActorNo
+        if (tmdbId
+                && Number(tmdbId) > 0
+                && contentType) {
+
+            loadActorsByCachedContent(
+                tmdbId,
+                contentType,
+                savedTmdbActorId
             );
 
         } else {
@@ -662,12 +614,36 @@ document.addEventListener(
                         관련 콘텐츠
                     </label>
 
+                    <%--
+                        CONTENT_NO는 등록 요청 처리 중 서버가 생성하거나 조회합니다.
+                        JSONL에서 선택한 TMDB 식별값을 hidden 필드로 전달합니다.
+                    --%>
+                    <%--
+                        등록 화면에서는 CONTENT_NO를 클라이언트가 전송하지 않습니다.
+                        상품 등록 처리 중 tmdbId와 contentType을 이용하여 서버에서
+                        CONTENT_NO를 조회하거나 생성한 뒤 GoodsManageVO에 설정합니다.
+
+                        name 속성을 넣으면 빈 문자열이 기본형 long인 contentNo에
+                        바인딩되면서 컨트롤러 진입 전에 500 오류가 발생할 수 있으므로,
+                        이 필드는 JavaScript 화면 제어용 id만 유지합니다.
+                    --%>
                     <input type="hidden"
                            id="contentNo"
-                           name="contentNo"
                            value="${productForm.contentNo > 0
                                ? productForm.contentNo
                                : ''}">
+
+                    <input type="hidden"
+                           id="tmdbId"
+                           name="tmdbId"
+                           value="${empty productForm.tmdbId
+                               ? ''
+                               : productForm.tmdbId}">
+
+                    <input type="hidden"
+                           id="contentType"
+                           name="contentType"
+                           value="<c:out value='${productForm.contentType}'/>">
 
                     <div class="input-with-btn">
 
@@ -692,13 +668,13 @@ document.addEventListener(
                 <div class="form-group">
 
                     <label class="form-label"
-                           for="actorNo">
+                           for="tmdbActorId">
                         관련 배우
                     </label>
 
                     <select class="form-input"
-                            id="actorNo"
-                            name="actorNo"
+                            id="tmdbActorId"
+                            name="tmdbActorId"
                             disabled>
 
                         <option value="">

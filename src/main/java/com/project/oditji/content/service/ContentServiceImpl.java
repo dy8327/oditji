@@ -60,11 +60,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     /**
-     * 검색 결과에서 상세페이지로 진입할 때
-     * 콘텐츠 데이터를 DB에 준비합니다.
-     *
-     * 기존 CONTENT.VIEW_COUNT 증가 로직은 그대로 유지합니다.
-     * 회원별 조회 이력은 상세페이지 Controller에서 별도로 저장합니다.
+     * 검색 결과에서 상세페이지로 진입할 때 콘텐츠 데이터를 DB에 준비하고
+     * 기존 CONTENT.VIEW_COUNT를 증가시킵니다.
      */
     @Override
     @Transactional
@@ -72,12 +69,44 @@ public class ContentServiceImpl implements ContentService {
             Long tmdbId,
             String contentType) {
 
+        int contentNo = ensureContentStored(
+                tmdbId,
+                contentType
+        );
+
+        contentDAO.increaseViewCount(
+                contentNo
+        );
+
+        return contentNo;
+    }
+
+    /**
+     * JSONL에서 선택한 콘텐츠를 DB에 준비합니다.
+     *
+     * 저장 또는 보완 대상은 다음과 같습니다.
+     * - CONTENT
+     * - ACTOR
+     * - DIRECTOR
+     * - CONTENT_ACTOR
+     * - CONTENT_DIRECTOR
+     * - CONTENT_PLATFORM
+     *
+     * 상품 등록 준비 용도이므로 CONTENT.VIEW_COUNT는 증가시키지 않습니다.
+     */
+    @Override
+    @Transactional
+    public int ensureContentStored(
+            Long tmdbId,
+            String contentType) {
+
         if (tmdbId == null
+                || tmdbId <= 0
                 || contentType == null
                 || contentType.trim().isEmpty()) {
 
             throw new IllegalArgumentException(
-                    "콘텐츠 상세 진입에 필요한 값이 없습니다."
+                    "콘텐츠 저장에 필요한 값이 없습니다."
             );
         }
 
@@ -109,10 +138,6 @@ public class ContentServiceImpl implements ContentService {
 
         if (existingContent != null) {
 
-            /*
-             * 검색 JSON에 저장된 장르, 평점, 연령등급 등
-             * 검색 기준 데이터를 기존 DB 행에 반영합니다.
-             */
             boolean changed =
                     applyCachedContent(
                             existingContent,
@@ -120,18 +145,11 @@ public class ContentServiceImpl implements ContentService {
                     );
 
             if (changed) {
-
-                contentDAO
-                        .updateContentFromSearchCache(
-                                existingContent
-                        );
+                contentDAO.updateContentFromSearchCache(
+                        existingContent
+                );
             }
 
-            /*
-             * 검색 JSON에 저장된 플랫폼 키를 우선 사용합니다.
-             * TMDB watch/providers의 응답 차이로
-             * 일부 OTT가 누락되는 문제를 방지합니다.
-             */
             tmdbService.saveContentPlatform(
                     existingContent,
                     cachedContent == null
@@ -143,17 +161,9 @@ public class ContentServiceImpl implements ContentService {
                     existingContent
             );
 
-            contentDAO.increaseViewCount(
-                    existingContent.getContentNo()
-            );
-
             return existingContent.getContentNo();
         }
 
-        /*
-         * DB에 없는 콘텐츠는 기존 TMDB 상세 저장 로직으로
-         * 상세 데이터를 만든 뒤 JSON 캐시 값을 우선 반영합니다.
-         */
         ContentVO contentForSave =
                 tmdbService.getDetailForSave(
                         tmdbId,
@@ -176,7 +186,6 @@ public class ContentServiceImpl implements ContentService {
                 );
 
         if (savedContent == null) {
-
             throw new IllegalStateException(
                     "콘텐츠 저장 후 조회에 실패했습니다."
             );
@@ -191,10 +200,6 @@ public class ContentServiceImpl implements ContentService {
 
         tmdbService.saveContentPeople(
                 savedContent
-        );
-
-        contentDAO.increaseViewCount(
-                savedContent.getContentNo()
         );
 
         return savedContent.getContentNo();
@@ -475,8 +480,32 @@ public class ContentServiceImpl implements ContentService {
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
+            List<String> providerIds) {
+
+        /*
+         * 기존 3개 목록 필터를 사용하는 호출부와의 호환성을 유지합니다.
+         * 네 번째 필터가 없는 경우 빈 목록을 전달합니다.
+         */
+        return getContentListByType(
+                type,
+                sort,
+                page,
+                contentCategories,
+                genreCodes,
+                providerIds,
+                Collections.emptyList()
+        );
+    }
+
+    @Override
+    public ContentListPageVO getContentListByType(
+            String type,
+            String sort,
+            int page,
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds,
-            List<String> ageRatings) {
+            List<String> additionalFilterValues) {
 
         return searchContentPageCacheService
                 .getContentListPage(
@@ -486,7 +515,7 @@ public class ContentServiceImpl implements ContentService {
                         contentCategories,
                         genreCodes,
                         providerIds,
-                        ageRatings
+                        additionalFilterValues
                 );
     }
 
@@ -494,15 +523,33 @@ public class ContentServiceImpl implements ContentService {
     public List<SearchResultVO> getContentRecommendedList(
             List<String> contentCategories,
             List<String> genreCodes,
+            List<String> providerIds) {
+
+        /*
+         * 기존 3개 목록 필터를 사용하는 호출부와의 호환성을 유지합니다.
+         * 네 번째 필터가 없는 경우 빈 목록을 전달합니다.
+         */
+        return getContentRecommendedList(
+                contentCategories,
+                genreCodes,
+                providerIds,
+                Collections.emptyList()
+        );
+    }
+
+    @Override
+    public List<SearchResultVO> getContentRecommendedList(
+            List<String> contentCategories,
+            List<String> genreCodes,
             List<String> providerIds,
-            List<String> ageRatings) {
+            List<String> additionalFilterValues) {
 
         return searchContentPageCacheService
                 .getContentRecommendedList(
                         contentCategories,
                         genreCodes,
                         providerIds,
-                        ageRatings,
+                        additionalFilterValues,
                         5
                 );
     }
