@@ -426,7 +426,40 @@
 
                             <c:choose>
 
-                                <c:when test="${reportedReviewSet.contains(r.reviewNo)}">
+                                <%-- [수정] 로그인 회원이 작성한 상품 리뷰에는 신고 버튼 대신 삭제 버튼을 표시한다. --%>
+                                <c:when test="${not empty sessionScope.loginMember
+                                                and sessionScope.loginMember.memberNo eq r.memberNo}">
+
+                                    <div class="my-product-review-actions">
+
+                                        <form action="${pageContext.request.contextPath}/review/deleteProductReview"
+                                              method="post"
+                                              class="product-review-delete-form"
+                                              onsubmit="return confirm('상품 리뷰를 삭제하시겠습니까?');">
+
+                                            <input type="hidden"
+                                                   name="reviewNo"
+                                                   value="${r.reviewNo}">
+
+                                            <%-- [수정] 상품 상세 화면에서 삭제한 경우 현재 상품 리뷰 영역으로 돌아가기 위해 전달한다. --%>
+                                            <input type="hidden"
+                                                   name="productNo"
+                                                   value="${goods.productNo}">
+
+                                            <button type="submit"
+                                                    class="product-review-delete-btn">
+                                                삭제
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </c:when>
+
+                                <%-- [수정] 이미 신고한 다른 회원의 상품 리뷰에는 신고완료를 표시한다. --%>
+                                <c:when test="${not empty reportedReviewSet
+                                                and reportedReviewSet.contains(r.reviewNo)}">
 
                                     <span class="report-btn reported"
                                           aria-disabled="true">
@@ -435,6 +468,7 @@
 
                                 </c:when>
 
+                                <%-- [수정] 본인 리뷰가 아니며 신고하지 않은 리뷰에만 신고 버튼을 표시한다. --%>
                                 <c:otherwise>
 
                                     <button type="button"
