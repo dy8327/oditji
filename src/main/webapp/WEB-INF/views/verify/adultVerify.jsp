@@ -63,23 +63,6 @@
                         </p>
                     </div>
 
-                    <div class="mb-3 identity-area">
-                        <%--
-                            읽기 전용 입력창도 label의 for와 input의 id를 연결하여
-                            인증 요청 고유 ID라는 의미를 보조 기술에 전달한다.
-                        --%>
-                        <label for="identityVerificationId"
-                               class="form-label fw-semibold identity-label">
-                            인증 요청 고유 ID
-                        </label>
-
-                        <input type="text"
-                               id="identityVerificationId"
-                               class="form-control form-control-sm text-center identity-input"
-                               value="-"
-                               readonly>
-                    </div>
-
                     <div class="standard-box">
                         <div class="standard-title">국내 표준: 본인/실명 인증형</div>
                         <ul class="standard-list">
@@ -119,13 +102,8 @@
 
                         <div class="method-list">
                             <button type="button" id="easyVerifyBtn" class="method-btn method-btn-main" onclick="startAdultVerify('EASY')">
-                                ⚡ 간편인증으로 시작
+                                ⚡ 본인인증으로 시작
                                 <span class="method-sub">카카오, PASS, 토스, 네이버 등</span>
-                            </button>
-
-                            <button type="button" id="smsVerifyBtn" class="method-btn" onclick="startAdultVerify('SMS')">
-                                휴대폰 문자(SMS) 인증
-                                <span class="method-sub">앱 사용이 어려운 사용자용</span>
                             </button>
                         </div>
 
