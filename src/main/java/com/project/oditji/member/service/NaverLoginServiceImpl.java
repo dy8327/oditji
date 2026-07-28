@@ -23,6 +23,9 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
 import com.project.oditji.member.exception.MemberBlockedException;
@@ -57,6 +60,8 @@ public class NaverLoginServiceImpl implements NaverLoginService {
     private final MemberSocialDAO memberSocialDAO;
     private final RestTemplate restTemplate;
     private final SecureRandom secureRandom;
+
+    private static final Logger log = LoggerFactory.getLogger(NaverLoginServiceImpl.class);
 
     @Value("${naver.client-id}")
     private String naverClientId;
@@ -328,14 +333,13 @@ public class NaverLoginServiceImpl implements NaverLoginService {
     /**
      * 네이버가 전달한 오류 설명이 있을 때 사용자 안내 문구 뒤에 덧붙입니다.
      */
-    private String buildNaverErrorMessage(
-            String defaultMessage,
-            String errorDescription) {
+    private String buildNaverErrorMessage(String defaultMessage, String errorDescription) {
 
-        if (errorDescription == null || errorDescription.isBlank()) {
-            return defaultMessage;
+        if (errorDescription != null && !errorDescription.isBlank() && log.isWarnEnabled()) {
+
+            log.warn("네이버 로그인 오류 응답: {}", errorDescription);
         }
 
-        return defaultMessage + " " + errorDescription;
+        return defaultMessage;
     }
 }
