@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,37 +25,25 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
-    public void submitReport(
-            Long memberNo,
-            String reviewType,
-            Integer contentReviewNo,
-            Integer productReviewNo,
-            String reason,
-            String detail) {
+    public void submitReport(Long memberNo, String reviewType, Integer contentReviewNo, Integer productReviewNo, String reason, String detail) {
 
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
         }
 
-        String normalizedType =
-                reviewType == null
-                        ? ""
-                        : reviewType.trim().toUpperCase();
+        String normalizedType = reviewType == null ? "" : reviewType.trim().toUpperCase(Locale.ROOT);
 
-        if (!"CONTENT".equals(normalizedType)
-                && !"PRODUCT".equals(normalizedType)) {
+        if (!"CONTENT".equals(normalizedType) && !"PRODUCT".equals(normalizedType)) {
 
             throw new IllegalArgumentException("잘못된 신고 대상입니다.");
         }
 
-        if ("CONTENT".equals(normalizedType)
-                && (contentReviewNo == null || contentReviewNo <= 0)) {
+        if ("CONTENT".equals(normalizedType) && (contentReviewNo == null || contentReviewNo <= 0)) {
 
             throw new IllegalArgumentException("신고할 리뷰 정보가 없습니다.");
         }
 
-        if ("PRODUCT".equals(normalizedType)
-                && (productReviewNo == null || productReviewNo <= 0)) {
+        if ("PRODUCT".equals(normalizedType) && (productReviewNo == null || productReviewNo <= 0)) {
 
             throw new IllegalArgumentException("신고할 리뷰 정보가 없습니다.");
         }
@@ -71,14 +60,6 @@ public class ReportServiceImpl implements ReportService {
 
         int existingCount = reportDAO.countReport(checkParam);
 
-        System.out.println("=========================");
-        System.out.println("memberNo = " + memberNo);
-        System.out.println("reviewType = " + normalizedType);
-        System.out.println("contentReviewNo = " + contentReviewNo);
-        System.out.println("productReviewNo = " + productReviewNo);
-        System.out.println("existingCount = " + existingCount);
-        System.out.println("=========================");
-
         if (existingCount > 0) {
             // UQ_CONTENT_REVIEW_REPORT / UQ_PRODUCT_REVIEW_REPORT 제약조건과
             // 동일한 조건을 애플리케이션 단에서 먼저 체크하여
@@ -92,10 +73,7 @@ public class ReportServiceImpl implements ReportService {
         report.setContentReviewNo(contentReviewNo);
         report.setProductReviewNo(productReviewNo);
         report.setReason(reason.trim());
-        report.setDetail(
-                detail == null || detail.trim().isEmpty()
-                        ? null
-                        : detail.trim());
+        report.setDetail(detail == null || detail.trim().isEmpty() ? null : detail.trim());
 
         reportDAO.insertReport(report);
     }
@@ -107,11 +85,8 @@ public class ReportServiceImpl implements ReportService {
             return Collections.emptySet();
         }
 
-        List<Integer> reportedList =
-                reportDAO.selectReportedProductReviewNoList(memberNo);
+        List<Integer> reportedList = reportDAO.selectReportedProductReviewNoList(memberNo);
 
-        return reportedList == null
-                ? Collections.emptySet()
-                : new HashSet<>(reportedList);
+        return reportedList == null ? Collections.emptySet() : new HashSet<>(reportedList);
     }
 }

@@ -2,7 +2,6 @@ package com.project.oditji.business.controller;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -208,11 +207,13 @@ public class BusinessController {
                         return "redirect:/business/product/register";
 
                 } catch (Exception e) {
-                        e.printStackTrace();
-                        redirectAttributes.addFlashAttribute("errorMessage", "상품 등록 중 오류가 발생했습니다.");
-                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
+                if (log.isErrorEnabled()) {
+                        log.error("상품 등록 처리 중 오류 발생", e);
+                }
+                redirectAttributes.addFlashAttribute("errorMessage", "상품 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
 
-                        return "redirect:/business/product/register";
+                return "redirect:/business/product/register";
                 }
         }
 
@@ -275,22 +276,12 @@ public class BusinessController {
         @ResponseBody
         public List<ActorSearchVO> actorListByContentApi(@RequestParam("contentNo") long contentNo) {
 
-                System.out.println("===== 콘텐츠별 배우 조회 API =====");
-                System.out.println("contentNo: " + contentNo);
 
                 if (contentNo <= 0) {
                         return Collections.emptyList();
                 }
 
-                List<ActorSearchVO> actorList = businessService.getActorListByContentNo(contentNo);
-                System.out.println("조회된 배우 수: " + actorList.size());
-
-                for (ActorSearchVO actor : actorList) {
-
-                        System.out.println("배우: " + actor.getActorName() + ", 배역: " + actor.getCharacterName());
-                }
-
-                return actorList;
+                return businessService.getActorListByContentNo(contentNo);
         }
 
         /*
@@ -458,36 +449,21 @@ public class BusinessController {
 
                         return "redirect:/business/product/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
 
-                        redirectAttributes.addFlashAttribute(
-                                        "productForm",
-                                        goodsManageVO);
-
-                        return "redirect:/business/product/update"
-                                        + "?productNo="
-                                        + goodsManageVO.getProductNo();
+                        return "redirect:/business/product/update" + "?productNo=" + goodsManageVO.getProductNo();
 
                 } catch (Exception e) {
+                if (log.isErrorEnabled()) {
+                        log.error("상품 수정 처리 중 오류 - productNo: {}", goodsManageVO.getProductNo(), e);
+                }
+                redirectAttributes.addFlashAttribute("errorMessage", "상품 수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                redirectAttributes.addFlashAttribute("productForm", goodsManageVO);
 
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "상품 수정 중 오류가 발생했습니다.");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "productForm",
-                                        goodsManageVO);
-
-                        return "redirect:/business/product/update"
-                                        + "?productNo="
-                                        + goodsManageVO.getProductNo();
+                return "redirect:/business/product/update?productNo=" + goodsManageVO.getProductNo();
                 }
         }
 
@@ -503,57 +479,32 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/product/delete")
-        public String productDelete(
-                        @RequestParam(value = "productNo", required = false) Long productNo,
+        public String productDelete(@RequestParam(value = "productNo", required = false) Long productNo,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
-
-                /*
-                 * 상품 번호 없이 삭제 페이지에 직접 접근한 경우
-                 */
-                if (productNo == null
-                                || productNo <= 0) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "삭제 요청할 상품을 선택해주세요.");
+                // 상품 번호 없이 삭제 페이지에 직접 접근한 경우
+                if (productNo == null || productNo <= 0) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "삭제 요청할 상품을 선택해주세요.");
 
                         return "redirect:/business/product/list";
                 }
 
-                Long memberNo = getLoginMemberNo(
-                                session);
-
+                Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
-
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
+                if (!"APPROVED".equals(business.getStatus())) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
@@ -564,29 +515,16 @@ public class BusinessController {
                          * PRODUCT_NO와 BUSINESS_NO를 함께 조회하므로
                          * 다른 사업자의 상품에는 접근할 수 없다.
                          */
-                        GoodsManageVO product = businessService.getProductForUpdate(
-                                        productNo,
-                                        business.getBusinessNo());
+                        GoodsManageVO product = businessService.getProductForUpdate(productNo, business.getBusinessNo());
 
-                        model.addAttribute(
-                                        "product",
-                                        product);
-
-                        model.addAttribute(
-                                        "business",
-                                        business);
-
-                        model.addAttribute(
-                                        "activeMenu",
-                                        "productDelete");
+                        model.addAttribute("product", product);
+                        model.addAttribute("business", business);
+                        model.addAttribute("activeMenu", "productDelete");
 
                         return "business/goods/productDelete";
 
                 } catch (IllegalArgumentException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
                         return "redirect:/business/product/list";
                 }
@@ -604,85 +542,50 @@ public class BusinessController {
          * =========================================================
          */
         @PostMapping("/product/delete")
-        public String productDeleteProcess(
-                        @RequestParam("productNo") long productNo,
+        public String productDeleteProcess(@RequestParam("productNo") long productNo, @RequestParam("reason") String reason,
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
-                        @RequestParam("reason") String reason,
-
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
-
-                Long memberNo = getLoginMemberNo(
-                                session);
-
+                Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
+                if (!"APPROVED".equals(business.getStatus())) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
 
                 try {
-
-                        businessService.requestProductDelete(
-                                        productNo,
-                                        business.getBusinessNo(),
-                                        reason);
-
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "상품 삭제 요청이 완료되었습니다. "
-                                                        + "관리자 승인 후 최종 처리됩니다.");
+                        businessService.requestProductDelete(productNo, business.getBusinessNo(), reason);
+                        redirectAttributes.addFlashAttribute("successMessage", "상품 삭제 요청이 완료되었습니다. " + "관리자 승인 후 최종 처리됩니다.");
 
                         return "redirect:/business/product/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
-
-                        return "redirect:/business/product/delete"
-                                        + "?productNo="
-                                        + productNo;
+                        return "redirect:/business/product/delete" + "?productNo=" + productNo;
 
                 } catch (Exception e) {
+                if (log.isErrorEnabled()) {
+                        log.error("상품 삭제 요청 처리 중 오류 - productNo: {}", productNo, e);
+                }
+                redirectAttributes.addFlashAttribute(
+                        "errorMessage",
+                        "상품 삭제 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "상품 삭제 요청 처리 중 오류가 발생했습니다.");
-
-                        return "redirect:/business/product/delete"
-                                        + "?productNo="
-                                        + productNo;
+                return "redirect:/business/product/delete?productNo=" + productNo;
                 }
         }
 
@@ -696,56 +599,29 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/event/list")
-        public String eventList(
-                        @RequestParam(value = "keyword", required = false) String keyword,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String eventList(@RequestParam(value = "keyword", required = false) String keyword,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(
-                                session);
-
+                Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
-
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(
-                                business.getBusinessNo(),
-                                keyword);
+                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(business.getBusinessNo(), keyword);
 
-                model.addAttribute(
-                                "business",
-                                business);
-
-                model.addAttribute(
-                                "keyword",
-                                keyword);
-
-                model.addAttribute(
-                                "eventList",
-                                eventList);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "event");
+                model.addAttribute("business", business);
+                model.addAttribute("keyword", keyword);
+                model.addAttribute("eventList", eventList);
+                model.addAttribute("activeMenu", "event");
 
                 return "business/event/eventList";
         }
@@ -759,42 +635,25 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/event/register")
-        public String eventRegister(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String eventRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(
-                                session);
-
+                Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
+                if (!"APPROVED".equals(business.getStatus())) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
@@ -804,20 +663,11 @@ public class BusinessController {
                  * 별도 검색 JSP를 추가하지 않고 현재 이벤트 등록 화면의
                  * 상품 검색 모달에서 이 목록을 사용한다.
                  */
-                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(
-                                business.getBusinessNo());
+                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
 
-                model.addAttribute(
-                                "business",
-                                business);
-
-                model.addAttribute(
-                                "productList",
-                                productList);
-
-                model.addAttribute(
-                                "activeMenu",
-                                "eventRegister");
+                model.addAttribute("business", business);
+                model.addAttribute("productList", productList);
+                model.addAttribute("activeMenu", "eventRegister");
 
                 return "business/event/eventRegister";
         }
@@ -843,179 +693,86 @@ public class BusinessController {
         public String eventRegisterProcess(
 
                         @RequestParam("eventTitle") String eventTitle,
-
                         @RequestParam(value = "eventContent", required = false) String eventContent,
-
                         @RequestParam("startDate") LocalDate startDate,
-
                         @RequestParam("endDate") LocalDate endDate,
 
-                        /*
-                         * 선택한 연결 상품 목록
-                         */
+                        // 선택한 연결 상품 목록
                         @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
-
-                        /*
-                         * 상품별 할인율 목록
-                         */
+                        // 상품별 할인율 목록
                         @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
-
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
-
                         HttpSession session,
-
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(
-                                session);
+                Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
-                if (!"APPROVED".equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
+                if (!"APPROVED".equals(business.getStatus())) {
+                        redirectAttributes.addFlashAttribute("errorMessage","승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
 
                         return "redirect:/business/main";
                 }
 
                 if (discountRateList != null) {
-
                         for (Integer rate : discountRateList) {
-
                                 if (rate < 0 || rate > 100) {
-
-                                        redirectAttributes.addFlashAttribute(
-                                                        "errorMessage",
-                                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                                        redirectAttributes.addFlashAttribute("errorMessage", "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                                         return "redirect:/business/event/register";
                                 }
-
                         }
-
                 }
 
                 EventManageVO eventManageVO = new EventManageVO();
 
-                eventManageVO.setBusinessNo(
-                                business.getBusinessNo());
-
-                eventManageVO.setTitle(
-                                eventTitle);
-
-                eventManageVO.setStartDate(
-                                startDate);
-
-                eventManageVO.setEndDate(
-                                endDate);
+                eventManageVO.setBusinessNo(business.getBusinessNo());
+                eventManageVO.setTitle(eventTitle);
+                eventManageVO.setStartDate(startDate);
+                eventManageVO.setEndDate(endDate);
 
                 /*
                  * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
-                eventManageVO.setStatus(
-                                "WAITING");
-
-                eventManageVO.setProductNoList(
-                                productNoList);
-
-                eventManageVO.setDiscountRateList(
-                                discountRateList);
+                eventManageVO.setStatus("WAITING");
+                eventManageVO.setProductNoList(productNoList);
+                eventManageVO.setDiscountRateList(discountRateList);
 
                 try {
+                        long eventNo = businessService.registerEvent(eventManageVO, eventImage);
 
-                        System.out.println(
-                                        "===== 이벤트 등록 요청 =====");
-
-                        System.out.println(
-                                        "사업자 번호: "
-                                                        + business.getBusinessNo());
-
-                        System.out.println(
-                                        "이벤트명: "
-                                                        + eventTitle);
-
-                        System.out.println(
-                                        "이벤트 설명: "
-                                                        + eventContent);
-
-                        System.out.println(
-                                        "이벤트 시작일: "
-                                                        + startDate);
-
-                        System.out.println(
-                                        "이벤트 종료일: "
-                                                        + endDate);
-
-                        System.out.println(
-                                        "연결 상품 번호 목록: "
-                                                        + productNoList);
-
-                        System.out.println(
-                                        "상품별 할인율 목록: "
-                                                        + discountRateList);
-
-                        System.out.println(
-                                        "이벤트 상태: WAITING");
-
-                        long eventNo = businessService.registerEvent(
-                                        eventManageVO,
-                                        eventImage);
-
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "이벤트 등록 요청이 접수되었습니다.");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "registeredEventNo",
-                                        eventNo);
+                        redirectAttributes.addFlashAttribute("successMessage", "이벤트 등록 요청이 접수되었습니다.");
+                        redirectAttributes.addFlashAttribute("registeredEventNo", eventNo);
 
                         return "redirect:/business/event/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
-
-                        System.out.println("===== catch 실행 =====");
-                        System.out.println("에러 메시지 : " + e.getMessage());
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        if (log.isWarnEnabled()) {
+                                log.warn("이벤트 등록 검증 실패: {}", e.getMessage());
+                        }
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
                         return "redirect:/business/event/register";
 
                 } catch (Exception e) {
-
-                        System.out.println("===== Exception catch 실행 =====");
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 등록 요청 처리 중 오류가 발생했습니다.");
+                        if (log.isErrorEnabled()) {
+                                log.error("이벤트 등록 처리 중 오류", e);
+                        }
+                        redirectAttributes.addFlashAttribute("errorMessage", "이벤트 등록 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
                         return "redirect:/business/event/register";
                 }
@@ -1030,80 +787,42 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/event/update")
-        public String eventUpdate(
-                        @RequestParam(value = "eventNo", required = false) Long eventNo,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String eventUpdate(@RequestParam(value = "eventNo", required = false) Long eventNo,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                if (eventNo == null
-                                || eventNo <= 0) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "수정할 이벤트를 선택해주세요.");
+                if (eventNo == null || eventNo <= 0) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "수정할 이벤트를 선택해주세요.");
 
                         return "redirect:/business/event/list";
                 }
 
-                Long memberNo = getLoginMemberNo(
-                                session);
-
+                Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
-
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
                 try {
+                        EventManageVO event = businessService.getApprovedEventForBusiness(eventNo, business.getBusinessNo());
+                        List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
 
-                        EventManageVO event = businessService.getApprovedEventForBusiness(
-                                        eventNo,
-                                        business.getBusinessNo());
-
-                        List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(
-                                        business.getBusinessNo());
-
-                        model.addAttribute(
-                                        "business",
-                                        business);
-
-                        model.addAttribute(
-                                        "event",
-                                        event);
-
-                        model.addAttribute(
-                                        "productList",
-                                        productList);
-
-                        model.addAttribute(
-                                        "activeMenu",
-                                        "eventUpdate");
+                        model.addAttribute("business", business);
+                        model.addAttribute("event", event);
+                        model.addAttribute("productList", productList);
+                        model.addAttribute("activeMenu", "eventUpdate");
 
                         return "business/event/eventUpdate";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
                         return "redirect:/business/event/list";
                 }
@@ -1123,65 +842,38 @@ public class BusinessController {
         @PostMapping("/event/update")
         public String eventUpdateProcess(
                         @RequestParam("eventNo") long eventNo,
-
                         @RequestParam("eventTitle") String eventTitle,
-
                         @RequestParam(value = "eventContent", required = false) String eventContent,
-
                         @RequestParam("startDate") LocalDate startDate,
-
                         @RequestParam("endDate") LocalDate endDate,
-
-                        /*
-                         * 선택한 연결 상품 목록 (수정 화면도 등록 화면과 동일하게
-                         * +버튼으로 여러 개의 상품을 연결할 수 있다.)
-                         */
                         @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
 
-                        /*
-                         * 상품별 할인율 목록
-                         */
+                        //상품별 할인율 목록
                         @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
-
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
-
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(
-                                session);
+                Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
                 if (discountRateList != null) {
-
                         for (Integer rate : discountRateList) {
-
-                                if (rate < 0 || rate > 100) {
-
-                                        redirectAttributes.addFlashAttribute(
-                                                        "errorMessage",
-                                                        "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                                if (rate ==null || rate < 0 || rate > 100) {
+                                        redirectAttributes.addFlashAttribute("errorMessage", "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                                         return "redirect:/business/event/update?eventNo=" + eventNo;
                                 }
@@ -1190,92 +882,40 @@ public class BusinessController {
 
                 EventManageVO eventManageVO = new EventManageVO();
 
-                eventManageVO.setEventNo(
-                                eventNo);
-
-                eventManageVO.setBusinessNo(
-                                business.getBusinessNo());
-
-                eventManageVO.setTitle(
-                                eventTitle);
-
-                eventManageVO.setStartDate(
-                                startDate);
-
-                eventManageVO.setEndDate(
-                                endDate);
+                eventManageVO.setEventNo(eventNo);
+                eventManageVO.setBusinessNo(business.getBusinessNo());
+                eventManageVO.setTitle(eventTitle);
+                eventManageVO.setStartDate(startDate);
+                eventManageVO.setEndDate(endDate);
 
                 /*
                  * 이벤트 수정 요청은 반드시 관리자 재승인을 거치므로
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
-                eventManageVO.setStatus(
-                                "WAITING");
-
-                eventManageVO.setProductNoList(
-                                productNoList);
-
-                eventManageVO.setDiscountRateList(
-                                discountRateList);
+                eventManageVO.setStatus("WAITING");
+                eventManageVO.setProductNoList(productNoList);
+                eventManageVO.setDiscountRateList(discountRateList);
 
                 try {
-
-                        System.out.println(
-                                        "===== 이벤트 수정 요청 =====");
-
-                        System.out.println(
-                                        "이벤트 번호: "
-                                                        + eventNo);
-
-                        System.out.println(
-                                        "사업자 번호: "
-                                                        + business.getBusinessNo());
-
-                        System.out.println(
-                                        "이벤트 설명: "
-                                                        + eventContent);
-
-                        System.out.println(
-                                        "연결 상품 번호 목록: "
-                                                        + productNoList);
-
-                        System.out.println(
-                                        "상품별 할인율 목록: "
-                                                        + discountRateList);
-
-                        businessService.updateApprovedEvent(
-                                        eventManageVO,
-                                        eventImage);
-
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "이벤트 수정 요청이 접수되었습니다. "
-                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
+                        businessService.updateApprovedEvent(eventManageVO, eventImage);
+                        redirectAttributes.addFlashAttribute("successMessage", "이벤트 수정 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
 
                         return "redirect:/business/event/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute( "errorMessage", e.getMessage());
 
+                        return "redirect:/business/event/update" + "?eventNo=" + eventNo;
+
+               } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("이벤트 수정 처리 중 오류 - eventNo: {}", eventNo, e);
+                        }
                         redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                                "errorMessage",
+                                "이벤트 수정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "redirect:/business/event/update"
-                                        + "?eventNo="
-                                        + eventNo;
-
-                } catch (Exception e) {
-
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 수정 처리 중 오류가 발생했습니다.");
-
-                        return "redirect:/business/event/update"
-                                        + "?eventNo="
-                                        + eventNo;
+                        return "redirect:/business/event/update?eventNo=" + eventNo;
                 }
         }
 
@@ -1287,73 +927,42 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/event/extend")
-        public String eventExtend(
-                        @RequestParam(value = "eventNo", required = false) Long eventNo,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String eventExtend(@RequestParam(value = "eventNo", required = false) Long eventNo,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                if (eventNo == null
-                                || eventNo <= 0) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "연장할 이벤트를 선택해주세요.");
+                if (eventNo == null || eventNo <= 0) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "연장할 이벤트를 선택해주세요.");
 
                         return "redirect:/business/event/list";
                 }
 
-                Long memberNo = getLoginMemberNo(
-                                session);
+                Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
                 try {
+                        EventManageVO event = businessService.getApprovedEventForBusiness(eventNo, business.getBusinessNo());
 
-                        EventManageVO event = businessService.getApprovedEventForBusiness(
-                                        eventNo,
-                                        business.getBusinessNo());
-
-                        model.addAttribute(
-                                        "business",
-                                        business);
-
-                        model.addAttribute(
-                                        "event",
-                                        event);
-
-                        model.addAttribute(
-                                        "activeMenu",
-                                        "eventExtend");
+                        model.addAttribute("business", business);
+                        model.addAttribute("event", event);
+                        model.addAttribute("activeMenu", "eventExtend");
 
                         return "business/event/eventExtend";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
                         return "redirect:/business/event/list";
                 }
@@ -1376,76 +985,47 @@ public class BusinessController {
         @PostMapping("/event/extend")
         public String eventExtendProcess(
                         @RequestParam("eventNo") long eventNo,
-
                         @RequestParam("extendEndDate") LocalDate extendEndDate,
-
                         @RequestParam("extendReason") String extendReason,
-
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(
-                                session);
+                Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. "
-                                                        + "다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. " + "다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(
-                                memberNo);
+                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
 
                         return "redirect:/";
                 }
 
                 try {
-
-                        businessService.extendApprovedEvent(
-                                        eventNo,
-                                        business.getBusinessNo(),
-                                        extendEndDate,
-                                        extendReason);
-
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "이벤트 연장 요청이 접수되었습니다. "
-                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
+                        businessService.extendApprovedEvent(eventNo, business.getBusinessNo(), extendEndDate, extendReason);
+                        redirectAttributes.addFlashAttribute("successMessage", "이벤트 연장 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
 
                         return "redirect:/business/event/list";
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 
+                        return "redirect:/business/event/extend" + "?eventNo=" + eventNo;
+
+               } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("이벤트 연장 처리 중 오류 - eventNo: {}", eventNo, e);
+                        }
                         redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                                "errorMessage",
+                                "이벤트 연장 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "redirect:/business/event/extend"
-                                        + "?eventNo="
-                                        + eventNo;
-
-                } catch (Exception e) {
-
-                        e.printStackTrace();
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "이벤트 연장 처리 중 오류가 발생했습니다.");
-
-                        return "redirect:/business/event/extend"
-                                        + "?eventNo="
-                                        + eventNo;
+                        return "redirect:/business/event/extend?eventNo=" + eventNo;
                 }
         }
 
@@ -1455,10 +1035,7 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/settlement/main")
-        public String settlement(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String settlement(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 /* [수정] 로그인 사업자의 이번 달 수수료 정보를 실제 DB에서 조회한다. */
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
@@ -1467,8 +1044,7 @@ public class BusinessController {
                 }
 
                 model.addAttribute("business", business);
-                model.addAttribute("settlementSummary",
-                                businessService.getMonthlySettlementSummary(business.getBusinessNo()));
+                model.addAttribute("settlementSummary", businessService.getMonthlySettlementSummary(business.getBusinessNo()));
                 model.addAttribute("activeMenu", "settlement");
 
                 return "business/settlement/settlementMain";
@@ -1476,9 +1052,7 @@ public class BusinessController {
 
         /* [수정] 사업자 수수료 입금 확인 요청 처리 */
         @PostMapping("/settlement/request")
-        public String requestSettlement(
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+        public String requestSettlement(HttpSession session, RedirectAttributes redirectAttributes) {
 
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
                 if (business == null) {
@@ -1497,10 +1071,7 @@ public class BusinessController {
 
         /* [수정] 월별 수수료 납부 내역 화면 */
         @GetMapping("/settlement/complete")
-        public String settlementComplete(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String settlementComplete(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
                 if (business == null) {
@@ -1508,8 +1079,7 @@ public class BusinessController {
                 }
 
                 model.addAttribute("business", business);
-                model.addAttribute("settlementHistory",
-                                businessService.getSettlementPaymentHistory(business.getBusinessNo()));
+                model.addAttribute("settlementHistory", businessService.getSettlementPaymentHistory(business.getBusinessNo()));
                 model.addAttribute("activeMenu", "settlement");
 
                 return "business/settlement/settlementComplete";
@@ -1517,10 +1087,7 @@ public class BusinessController {
 
         /* [수정] 사업자 정산 계좌 정보 관리 화면 */
         @GetMapping("/settlement/account")
-        public String settlementAccount(
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+        public String settlementAccount(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
                 if (business == null) {
@@ -1528,8 +1095,7 @@ public class BusinessController {
                 }
 
                 model.addAttribute("business", business);
-                model.addAttribute("settlementAccount",
-                                businessService.getSettlementAccount(business.getBusinessNo()));
+                model.addAttribute("settlementAccount", businessService.getSettlementAccount(business.getBusinessNo()));
                 model.addAttribute("activeMenu", "settlement");
 
                 return "business/settlement/settlementAccount";
@@ -1550,8 +1116,7 @@ public class BusinessController {
                 }
 
                 try {
-                        businessService.updateSettlementAccount(
-                                        business.getBusinessNo(), bankName, accountNumber, accountHolder);
+                        businessService.updateSettlementAccount(business.getBusinessNo(), bankName, accountNumber, accountHolder);
                         redirectAttributes.addFlashAttribute("successMessage", "정산 계좌 정보가 저장되었습니다.");
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -1569,25 +1134,18 @@ public class BusinessController {
         public String sales(
                         @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                         @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
-
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
                         return "redirect:/";
                 }
 
@@ -1597,12 +1155,8 @@ public class BusinessController {
                  * 누락된 날짜만 기본값으로 보완한다.
                  */
                 LocalDate today = LocalDate.now();
-                LocalDate resolvedStartDate = startDate == null
-                                ? today.withDayOfMonth(1)
-                                : startDate;
-                LocalDate resolvedEndDate = endDate == null
-                                ? today
-                                : endDate;
+                LocalDate resolvedStartDate = startDate == null ? today.withDayOfMonth(1) : startDate;
+                LocalDate resolvedEndDate = endDate == null ? today : endDate;
 
                 try {
                         SettlementManageVO salesStatus = businessService.getBusinessSalesStatus(
@@ -1632,12 +1186,8 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/chat")
-        public String chat(
-                        Model model) {
-
-                model.addAttribute(
-                                "activeMenu",
-                                "chat");
+        public String chat(Model model) {
+                model.addAttribute("activeMenu", "chat");
 
                 return "business/community/businessChat";
         }
@@ -1718,31 +1268,24 @@ public class BusinessController {
         public String deliveryList(
                         @RequestParam(name = "status", required = false) String status,
                         @RequestParam(name = "keyword", required = false) String keyword,
-                        HttpSession session,
-                        Model model,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
                         return "redirect:/member/login";
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
                         return "redirect:/";
                 }
 
                 try {
-                        List<DeliveryManageVO> deliveryList = businessService.getBusinessDeliveryList(
-                                        business.getBusinessNo(), status, keyword);
+                        List<DeliveryManageVO> deliveryList = businessService.getBusinessDeliveryList(business.getBusinessNo(), status, keyword);
 
                         model.addAttribute("business", business);
                         model.addAttribute("deliveryList", deliveryList);
@@ -1774,46 +1317,34 @@ public class BusinessController {
                         @RequestParam("status") String status,
                         @RequestParam(name = "returnStatus", required = false) String returnStatus,
                         @RequestParam(name = "returnKeyword", required = false) String returnKeyword,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
                 if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
                         return "redirect:/member/login";
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
 
                 if (business == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
                         return "redirect:/";
                 }
 
                 try {
-                        businessService.updateBusinessDelivery(
-                                        business.getBusinessNo(),
-                                        orderItemNo,
-                                        courier,
-                                        trackingNumber,
-                                        status);
+                        businessService.updateBusinessDelivery(business.getBusinessNo(), orderItemNo, courier, trackingNumber, status);
 
-                        redirectAttributes.addFlashAttribute(
-                                        "successMessage",
-                                        "배송 정보가 저장되었습니다.");
+                        redirectAttributes.addFlashAttribute("successMessage", "배송 정보가 저장되었습니다.");
 
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 } catch (Exception e) {
-                        e.printStackTrace();
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "배송 정보 저장 중 오류가 발생했습니다.");
+                        if (log.isErrorEnabled()) {
+                                log.error("배송 정보 저장 중 오류 - orderItemNo: {}", orderItemNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute("errorMessage", "배송 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
                 }
 
                 /* 목록에서 사용하던 검색 조건을 유지하여 같은 화면으로 돌아간다. */
@@ -1840,8 +1371,7 @@ public class BusinessController {
                 }
 
                 try {
-                        model.addAttribute("cancelList",
-                                        orderCancelRefundService.getBusinessCancelList(memberNo, status));
+                        model.addAttribute("cancelList", orderCancelRefundService.getBusinessCancelList(memberNo, status));
                         model.addAttribute("activeMenu", "cancel");
                         return "business/order/cancelList";
 
@@ -1858,10 +1388,7 @@ public class BusinessController {
          * =========================================================
          */
         @PostMapping("/cancel/approve")
-        public String approveCancel(
-                        @RequestParam("cancelNo") Long cancelNo,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+        public String approveCancel(@RequestParam("cancelNo") Long cancelNo, HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
@@ -1891,8 +1418,7 @@ public class BusinessController {
         public String rejectCancel(
                         @RequestParam("cancelNo") Long cancelNo,
                         @RequestParam(name = "rejectReason", required = false) String rejectReason,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
@@ -1932,17 +1458,13 @@ public class BusinessController {
         private BusinessVO getLoginBusiness(HttpSession session, RedirectAttributes redirectAttributes) {
                 Long memberNo = getLoginMemberNo(session);
                 if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.");
                         return null;
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
                 if (business == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "로그인 회원과 연결된 사업자 정보가 없습니다.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 회원과 연결된 사업자 정보가 없습니다.");
                 }
                 return business;
         }
@@ -1950,42 +1472,20 @@ public class BusinessController {
         private Long getLoginMemberNo(
                         HttpSession session) {
 
-                System.out.println(
-                                "===== 사업자 페이지 세션 확인 =====");
 
-                System.out.println(
-                                "세션 ID: "
-                                                + session.getId());
+                // 현재 ODITJI 표준 세션 키
+                Object loginMemberNo = session.getAttribute("loginMemberNo");
 
-                /*
-                 * 현재 ODITJI 표준 세션 키
-                 */
-                Object loginMemberNo = session.getAttribute(
-                                "loginMemberNo");
-
-                System.out.println(
-                                "loginMemberNo: "
-                                                + loginMemberNo);
-
-                Long convertedLoginMemberNo = convertToLong(
-                                loginMemberNo);
+                Long convertedLoginMemberNo = convertToLong(loginMemberNo);
 
                 if (convertedLoginMemberNo != null) {
                         return convertedLoginMemberNo;
                 }
 
-                /*
-                 * 기존 코드에서 사용했을 가능성이 있는 세션 키
-                 */
-                Object memberNo = session.getAttribute(
-                                "memberNo");
+                // 기존 코드에서 사용했을 가능성이 있는 세션 키
+                Object memberNo = session.getAttribute("memberNo");
 
-                System.out.println(
-                                "memberNo: "
-                                                + memberNo);
-
-                Long convertedMemberNo = convertToLong(
-                                memberNo);
+                Long convertedMemberNo = convertToLong(memberNo);
 
                 if (convertedMemberNo != null) {
 
@@ -1993,43 +1493,23 @@ public class BusinessController {
                          * 이후 요청부터 표준 키를 사용하도록
                          * loginMemberNo에도 다시 저장한다.
                          */
-                        session.setAttribute(
-                                        "loginMemberNo",
-                                        convertedMemberNo);
+                        session.setAttribute("loginMemberNo", convertedMemberNo);
 
                         return convertedMemberNo;
                 }
 
-                /*
-                 * MemberVO 전체 객체가 세션에 저장된 경우
-                 */
-                Object loginMemberObject = session.getAttribute(
-                                "loginMember");
-
-                System.out.println(
-                                "loginMember 객체: "
-                                                + loginMemberObject);
+                // MemberVO 전체 객체가 세션에 저장된 경우
+                Object loginMemberObject = session.getAttribute("loginMember");
 
                 if (loginMemberObject instanceof MemberVO loginMember) {
-
                         long loginMemberObjectNo = loginMember.getMemberNo();
 
                         if (loginMemberObjectNo > 0) {
-
-                                session.setAttribute(
-                                                "loginMemberNo",
-                                                loginMemberObjectNo);
+                                session.setAttribute("loginMemberNo", loginMemberObjectNo);
 
                                 return loginMemberObjectNo;
                         }
                 }
-
-                /*
-                 * 현재 저장된 전체 세션 키를 콘솔에 출력한다.
-                 * 세션 속성명 불일치 확인용이다.
-                 */
-                printSessionAttributes(
-                                session);
 
                 return null;
         }
@@ -2042,32 +1522,23 @@ public class BusinessController {
          * 모두 처리한다.
          * =========================================================
          */
-        private Long convertToLong(
-                        Object value) {
+        private Long convertToLong(Object value) {
 
                 if (value == null) {
                         return null;
                 }
 
                 if (value instanceof Number number) {
-
                         long convertedValue = number.longValue();
 
-                        return convertedValue > 0
-                                        ? convertedValue
-                                        : null;
+                        return convertedValue > 0 ? convertedValue : null;
                 }
 
                 if (value instanceof String stringValue) {
-
                         try {
+                                long convertedValue = Long.parseLong(stringValue.trim());
 
-                                long convertedValue = Long.parseLong(
-                                                stringValue.trim());
-
-                                return convertedValue > 0
-                                                ? convertedValue
-                                                : null;
+                                return convertedValue > 0 ? convertedValue : null;
 
                         } catch (NumberFormatException e) {
 
@@ -2078,41 +1549,4 @@ public class BusinessController {
                 return null;
         }
 
-        /*
-         * =========================================================
-         * 현재 세션 속성 전체 출력
-         *
-         * 개발 중 세션 속성명 확인을 위한 로그이다.
-         * 로그인 세션 키가 통일된 후에는 삭제해도 된다.
-         * =========================================================
-         */
-        private void printSessionAttributes(
-                        HttpSession session) {
-
-                System.out.println(
-                                "===== 현재 세션 속성 전체 목록 =====");
-
-                Enumeration<String> attributeNames = session.getAttributeNames();
-
-                if (!attributeNames.hasMoreElements()) {
-
-                        System.out.println(
-                                        "저장된 세션 속성이 없습니다.");
-
-                        return;
-                }
-
-                while (attributeNames.hasMoreElements()) {
-
-                        String attributeName = attributeNames.nextElement();
-
-                        Object attributeValue = session.getAttribute(
-                                        attributeName);
-
-                        System.out.println(
-                                        attributeName
-                                                        + " = "
-                                                        + attributeValue);
-                }
-        }
 }

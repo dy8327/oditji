@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.wish.service.WishService;
 import com.project.oditji.wish.vo.WishVO;
@@ -22,6 +25,7 @@ import jakarta.servlet.http.HttpSession;
 public class WishController {
 
     private final WishService wishService;
+    private static final Logger log = LoggerFactory.getLogger(WishController.class);
 
     public WishController(
             WishService wishService) {
@@ -36,36 +40,23 @@ public class WishController {
      */
     @PostMapping("/toggle")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> toggleWish(
-            @RequestBody WishVO wishVO,
-            HttpSession session) {
-
-        MemberVO loginMember =
-                getLoginMember(session);
+    public ResponseEntity<Map<String, Object>> toggleWish(@RequestBody WishVO wishVO, HttpSession session) {
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResult(
-                            "로그인이 필요합니다."));
+                    .body(createErrorResult("로그인이 필요합니다."));
         }
 
         try {
+            wishVO.setMemberNo(loginMember.getMemberNo());
 
-            wishVO.setMemberNo(
-                    loginMember.getMemberNo());
-
-            boolean active =
-                    wishService.toggleWish(
-                            wishVO);
-
-            Map<String, Object> result =
-                    new HashMap<String, Object>();
+            boolean active = wishService.toggleWish(wishVO);
+            Map<String, Object> result = new HashMap<String, Object>();
 
             result.put("active", active);
-            result.put(
-                    "productNo",
-                    wishVO.getProductNo());
+            result.put("productNo", wishVO.getProductNo());
 
             return ResponseEntity.ok(result);
 
@@ -73,40 +64,33 @@ public class WishController {
 
             return ResponseEntity
                     .badRequest()
-                    .body(createErrorResult(
-                            e.getMessage()));
+                    .body(createErrorResult(e.getMessage()));
 
-        } catch (Exception e) {
+      } catch (Exception e) {
+                if (log.isErrorEnabled()) {
+                        log.error("상품 찜 처리 중 오류 - productNo: {}", wishVO.getProductNo(), e);
+                }
 
-            e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResult(
-                            "찜 처리 중 오류가 발생했습니다."));
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResult("찜 처리 중 오류가 발생했습니다."));
         }
     }
 
-    private MemberVO getLoginMember(
-            HttpSession session) {
+    private MemberVO getLoginMember(HttpSession session) {
 
-        Object loginMember =
-                session.getAttribute(
-                        "loginMember");
-
+        Object loginMember = session.getAttribute("loginMember");
         if (loginMember instanceof MemberVO memberVO) {
-            return memberVO;
+           
+                return memberVO;
         }
 
         return null;
     }
 
-    private Map<String, Object> createErrorResult(
-            String message) {
+    private Map<String, Object> createErrorResult(String message) {
 
-        Map<String, Object> result =
-                new HashMap<String, Object>();
-
+        Map<String, Object> result = new HashMap<String, Object>();
         result.put("message", message);
 
         return result;

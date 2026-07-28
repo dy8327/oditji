@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.cart.service.CartService;
 import com.project.oditji.cart.vo.CartItemVO;
 import com.project.oditji.cart.vo.CartRequestVO;
@@ -24,6 +27,7 @@ import jakarta.servlet.http.HttpSession;
 public class CartController {
 
     private final CartService cartService;
+    private static final Logger log = LoggerFactory.getLogger(CartController.class);
 
     public CartController(
             CartService cartService) {
@@ -31,312 +35,186 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    /**
-     * 장바구니 목록 화면
-     */
+    // 장바구니 목록 화면
     @GetMapping
-    public String cart(
-            HttpSession session,
-            Model model) {
+    public String cart(HttpSession session, Model model) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return "redirect:/member/login?redirect=/cart";
         }
 
-        List<CartItemVO> cartItemList =
-                cartService.getCartItemList(
-                        loginMember.getMemberNo()
-                );
+        List<CartItemVO> cartItemList = cartService.getCartItemList(loginMember.getMemberNo());
 
         long totalPrice = 0L;
 
         for (CartItemVO item : cartItemList) {
-
             if (item.isAvailable()) {
                 totalPrice += item.getItemTotalPrice();
             }
         }
 
-        model.addAttribute(
-                "cartItemList",
-                cartItemList
-        );
-
-        model.addAttribute(
-                "totalPrice",
-                totalPrice
-        );
+        model.addAttribute("cartItemList", cartItemList);
+        model.addAttribute("totalPrice", totalPrice);
 
         return "cart/cart";
     }
 
-    /**
-     * 상품 상세에서 장바구니 담기
-     */
+    // 상품 상세에서 장바구니 담기
     @PostMapping("/add")
     @ResponseBody
-    public Map<String, Object> addCartItem(
-            @RequestBody CartRequestVO requestVO,
-            HttpSession session) {
+    public Map<String, Object> addCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return loginRequiredResponse();
         }
 
         try {
-
-            int cartCount =
-                    cartService.addCartItem(
+            int cartCount = cartService.addCartItem(
                             loginMember.getMemberNo(),
                             requestVO.getProductNo(),
-                            requestVO.getQuantity()
-                    );
+                            requestVO.getQuantity());
 
-            Map<String, Object> response =
-                    successResponse(
-                            "장바구니에 상품을 담았습니다."
-                    );
-
-            response.put(
-                    "cartCount",
-                    cartCount
-            );
+            Map<String, Object> response = successResponse("장바구니에 상품을 담았습니다." );
+            response.put("cartCount", cartCount);
 
             return response;
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(
-                    e.getMessage()
-            );
+            return failResponse(e.getMessage());
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return failResponse(
-                    "장바구니 처리 중 오류가 발생했습니다."
-            );
+                if (log.isErrorEnabled()) {
+                        log.error("장바구니 상품 추가 중 오류 - productNo: {}", requestVO.getProductNo(), e);
+                }
+                return failResponse("장바구니 처리 중 오류가 발생했습니다.");
         }
     }
 
-    /**
-     * 장바구니 상품 수량 변경
-     */
+    // 장바구니 상품 수량 변경
     @PostMapping("/update")
     @ResponseBody
-    public Map<String, Object> updateCartItem(
-            @RequestBody CartRequestVO requestVO,
-            HttpSession session) {
+    public Map<String, Object> updateCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return loginRequiredResponse();
         }
 
         try {
-
             cartService.updateCartItemQuantity(
                     loginMember.getMemberNo(),
                     requestVO.getCartItemNo(),
-                    requestVO.getQuantity()
-            );
+                    requestVO.getQuantity());
 
-            return successResponse(
-                    "수량이 변경되었습니다."
-            );
+            return successResponse("수량이 변경되었습니다.");
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(
-                    e.getMessage()
-            );
+            return failResponse(e.getMessage());
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return failResponse(
-                    "수량 변경 중 오류가 발생했습니다."
-            );
+                if (log.isErrorEnabled()) {
+                        log.error("장바구니 수량 변경 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
+                }
+                return failResponse("수량 변경 중 오류가 발생했습니다.");
         }
     }
 
-    /**
-     * 장바구니 상품 개별 삭제
-     */
+    // 장바구니 상품 개별 삭제
     @PostMapping("/delete")
     @ResponseBody
-    public Map<String, Object> deleteCartItem(
-            @RequestBody CartRequestVO requestVO,
-            HttpSession session) {
+    public Map<String, Object> deleteCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return loginRequiredResponse();
         }
 
         try {
+            cartService.deleteCartItem(loginMember.getMemberNo(), requestVO.getCartItemNo());
 
-            cartService.deleteCartItem(
-                    loginMember.getMemberNo(),
-                    requestVO.getCartItemNo()
-            );
-
-            Map<String, Object> response =
-                    successResponse(
-                            "장바구니에서 상품을 삭제했습니다."
-                    );
-
-            response.put(
-                    "cartCount",
-                    cartService.countCartItems(
-                            loginMember.getMemberNo()
-                    )
-            );
+            Map<String, Object> response = successResponse("장바구니에서 상품을 삭제했습니다.");
+            response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
 
             return response;
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(
-                    e.getMessage()
-            );
+            return failResponse(e.getMessage());
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return failResponse(
-                    "상품 삭제 중 오류가 발생했습니다."
-            );
+                if (log.isErrorEnabled()) {
+                        log.error("장바구니 상품 삭제 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
+                }
+                return failResponse("상품 삭제 중 오류가 발생했습니다.");
         }
     }
 
-    /**
-     * 선택한 장바구니 상품 삭제
-     */
+    // 선택한 장바구니 상품 삭제
     @PostMapping("/delete-selected")
     @ResponseBody
-    public Map<String, Object> deleteSelectedCartItems(
-            @RequestBody CartRequestVO requestVO,
-            HttpSession session) {
-
-        MemberVO loginMember =
-                getLoginMember(session);
+    public Map<String, Object> deleteSelectedCartItems(@RequestBody CartRequestVO requestVO, HttpSession session) {
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return loginRequiredResponse();
         }
 
         try {
+            cartService.deleteSelectedCartItems(loginMember.getMemberNo(), requestVO.getCartItemNos());
 
-            cartService.deleteSelectedCartItems(
-                    loginMember.getMemberNo(),
-                    requestVO.getCartItemNos()
-            );
-
-            Map<String, Object> response =
-                    successResponse(
-                            "선택한 상품을 삭제했습니다."
-                    );
-
-            response.put(
-                    "cartCount",
-                    cartService.countCartItems(
-                            loginMember.getMemberNo()
-                    )
-            );
+            Map<String, Object> response =successResponse("선택한 상품을 삭제했습니다.");
+            response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
 
             return response;
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(
-                    e.getMessage()
-            );
+            return failResponse(e.getMessage());
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return failResponse(
-                    "선택 상품 삭제 중 오류가 발생했습니다."
-            );
+                if (log.isErrorEnabled()) {
+                        log.error("선택한 장바구니 상품 삭제 중 오류", e);
+                }
+                return failResponse("선택 상품 삭제 중 오류가 발생했습니다.");
         }
     }
 
-    /**
-     * 헤더나 다른 화면에서 사용할 장바구니 개수
-     */
+    // 헤더나 다른 화면에서 사용할 장바구니 개수
     @GetMapping("/count")
     @ResponseBody
-    public Map<String, Object> countCartItems(
-            HttpSession session) {
-
-        MemberVO loginMember =
-                getLoginMember(session);
-
-        Map<String, Object> response =
-                new LinkedHashMap<String, Object>();
+    public Map<String, Object> countCartItems(HttpSession session) {
+        MemberVO loginMember = getLoginMember(session);
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
 
         if (loginMember == null) {
-
-            response.put(
-                    "success",
-                    true
-            );
-
-            response.put(
-                    "cartCount",
-                    0
-            );
+            response.put("success", true);
+            response.put("cartCount", 0);
 
             return response;
         }
 
-        response.put(
-                "success",
-                true
-        );
-
-        response.put(
-                "cartCount",
-                cartService.countCartItems(
-                        loginMember.getMemberNo()
-                )
-        );
+        response.put("success",true);
+        response.put("cartCount",cartService.countCartItems(loginMember.getMemberNo()));
 
         return response;
     }
 
-    private MemberVO getLoginMember(
-            HttpSession session) {
-
-        Object sessionMember =
-                session.getAttribute(
-                        "loginMember"
-                );
-
+    private MemberVO getLoginMember(HttpSession session) {
+        Object sessionMember = session.getAttribute("loginMember");
         if (!(sessionMember instanceof MemberVO)) {
             return null;
         }
 
-        MemberVO loginMember =
-                (MemberVO) sessionMember;
-
-        if (loginMember.getMemberNo() == null
-                || loginMember.getMemberNo() <= 0) {
+        MemberVO loginMember = (MemberVO) sessionMember;
+        if (loginMember.getMemberNo() == null || loginMember.getMemberNo() <= 0) {
 
             return null;
         }
@@ -344,55 +222,28 @@ public class CartController {
         return loginMember;
     }
 
-    private Map<String, Object> successResponse(
-            String message) {
+    private Map<String, Object> successResponse(String message) {
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
 
-        Map<String, Object> response =
-                new LinkedHashMap<String, Object>();
-
-        response.put(
-                "success",
-                true
-        );
-
-        response.put(
-                "message",
-                message
-        );
+        response.put("success", true);
+        response.put("message", message);
 
         return response;
     }
 
-    private Map<String, Object> failResponse(
-            String message) {
+    private Map<String, Object> failResponse(String message) {
+        Map<String, Object> response = new LinkedHashMap<String, Object>();
 
-        Map<String, Object> response =
-                new LinkedHashMap<String, Object>();
-
-        response.put(
-                "success",
-                false
-        );
-
-        response.put(
-                "message",
-                message
-        );
+        response.put("success", false);
+        response.put("message", message);
 
         return response;
     }
 
     private Map<String, Object> loginRequiredResponse() {
 
-        Map<String, Object> response =
-                failResponse(
-                        "로그인이 필요한 서비스입니다."
-                );
-
-        response.put(
-                "loginRequired",
-                true
-        );
+        Map<String, Object> response = failResponse("로그인이 필요한 서비스입니다.");
+        response.put("loginRequired", true);
 
         return response;
     }

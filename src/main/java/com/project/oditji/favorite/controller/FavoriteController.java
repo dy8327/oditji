@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.service.FavoriteService;
@@ -33,11 +36,9 @@ public class FavoriteController {
     private final FavoriteService favoriteService;
     private final ContentService contentService;
     private final WishService wishService;
+    private static final Logger log = LoggerFactory.getLogger(FavoriteController.class);
 
-    public FavoriteController(
-            FavoriteService favoriteService,
-            ContentService contentService,
-            WishService wishService) {
+    public FavoriteController(FavoriteService favoriteService, ContentService contentService, WishService wishService) {
 
         this.favoriteService = favoriteService;
         this.contentService = contentService;
@@ -45,81 +46,45 @@ public class FavoriteController {
     }
 
     @GetMapping("/list")
-    public String favoriteList(
-            HttpSession session,
-            Model model) {
+    public String favoriteList(HttpSession session, Model model) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
-
+        MemberVO loginMember = getLoginMember(session);
         if (loginMember == null) {
             return "redirect:/member/login";
         }
 
-        List<ContentVO> contentFavoriteList =
-                favoriteService.selectFavoriteList(
-                        loginMember.getMemberNo());
+        List<ContentVO> contentFavoriteList = favoriteService.selectFavoriteList(loginMember.getMemberNo());
+        List<GoodsVO> goodsFavoriteList =wishService.selectWishList(loginMember.getMemberNo());
 
-        List<GoodsVO> goodsFavoriteList =
-                wishService.selectWishList(
-                        loginMember.getMemberNo());
-
-        model.addAttribute(
-                "contentFavoriteList",
-                contentFavoriteList);
-
-        model.addAttribute(
-                "contentCount",
-                contentFavoriteList.size());
-
-        model.addAttribute(
-                "goodsFavoriteList",
-                goodsFavoriteList);
-
-        model.addAttribute(
-                "goodsCount",
-                goodsFavoriteList.size());
-
-        model.addAttribute(
-                "totalFavoriteCount",
-                contentFavoriteList.size()
-                        + goodsFavoriteList.size());
+        model.addAttribute("contentFavoriteList", contentFavoriteList);
+        model.addAttribute("contentCount", contentFavoriteList.size());
+        model.addAttribute("goodsFavoriteList", goodsFavoriteList);
+        model.addAttribute("goodsCount", goodsFavoriteList.size());
+        model.addAttribute("totalFavoriteCount", contentFavoriteList.size() + goodsFavoriteList.size());
 
         return "favorite/favoriteList";
     }
 
     @PostMapping("/toggle")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> toggleFavorite(
-            @RequestBody FavoriteVO favoriteVO,
-            HttpSession session) {
+    public ResponseEntity<Map<String, Object>> toggleFavorite(@RequestBody FavoriteVO favoriteVO, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResult(
-                            "로그인이 필요합니다."));
+                    .body(createErrorResult("로그인이 필요합니다."));
         }
 
         try {
+            favoriteVO.setMemberNo(loginMember.getMemberNo());
 
-            favoriteVO.setMemberNo(
-                    loginMember.getMemberNo());
-
-            boolean active =
-                    favoriteService.toggleFavorite(
-                            favoriteVO);
-
-            Map<String, Object> result =
-                    new HashMap<String, Object>();
+            boolean active = favoriteService.toggleFavorite(favoriteVO);
+            Map<String, Object> result = new HashMap<String, Object>();
 
             result.put("active", active);
-            result.put(
-                    "contentNo",
-                    favoriteVO.getContentNo());
+            result.put("contentNo", favoriteVO.getContentNo());
 
             return ResponseEntity.ok(result);
 
@@ -127,70 +92,47 @@ public class FavoriteController {
 
             return ResponseEntity
                     .badRequest()
-                    .body(createErrorResult(
-                            e.getMessage()));
+                    .body(createErrorResult(e.getMessage()));
 
         } catch (Exception e) {
+                if (log.isErrorEnabled()) {
+                        log.error("콘텐츠 찜 처리 중 오류 - contentNo: {}", favoriteVO.getContentNo(), e);
+                }
 
-            e.printStackTrace();
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResult(
-                            "찜 처리 중 오류가 발생했습니다."));
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResult("찜 처리 중 오류가 발생했습니다."));
         }
     }
 
     @PostMapping("/toggle-by-tmdb")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> toggleFavoriteByTmdb(
-            @RequestBody FavoriteVO requestVO,
-            HttpSession session) {
+    public ResponseEntity<Map<String, Object>> toggleFavoriteByTmdb(@RequestBody FavoriteVO requestVO, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
+        MemberVO loginMember = getLoginMember(session);
 
         if (loginMember == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(createErrorResult(
-                            "로그인이 필요합니다."));
+                    .body(createErrorResult("로그인이 필요합니다."));
         }
 
         try {
-
-            Long tmdbId =
-                    requestVO.getTmdbId();
-
-            String contentType =
-                    normalizeContentType(
-                            requestVO.getContentType());
+            Long tmdbId = requestVO.getTmdbId();
+            String contentType = normalizeContentType(requestVO.getContentType());
 
             if (tmdbId == null || tmdbId <= 0) {
-                throw new IllegalArgumentException(
-                        "TMDB 콘텐츠 번호가 올바르지 않습니다.");
+                throw new IllegalArgumentException("TMDB 콘텐츠 번호가 올바르지 않습니다.");
             }
 
-            int contentNo =
-                    contentService.prepareContentDetail(
-                            tmdbId,
-                            contentType);
+            int contentNo = contentService.prepareContentDetail(tmdbId, contentType);
+            FavoriteVO favoriteVO = new FavoriteVO();
 
-            FavoriteVO favoriteVO =
-                    new FavoriteVO();
+            favoriteVO.setMemberNo( loginMember.getMemberNo());
+            favoriteVO.setContentNo((long) contentNo);
 
-            favoriteVO.setMemberNo(
-                    loginMember.getMemberNo());
-
-            favoriteVO.setContentNo(
-                    (long) contentNo);
-
-            boolean active =
-                    favoriteService.toggleFavorite(
-                            favoriteVO);
-
-            Map<String, Object> result =
-                    new HashMap<String, Object>();
+            boolean active = favoriteService.toggleFavorite(favoriteVO);
+            Map<String, Object> result = new HashMap<String, Object>();
 
             result.put("active", active);
             result.put("contentNo", contentNo);
@@ -199,37 +141,40 @@ public class FavoriteController {
 
             return ResponseEntity.ok(result);
 
-        } catch (IllegalArgumentException
-                | IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(createErrorResult(e.getMessage()));
 
-            return ResponseEntity
-                    .badRequest()
-                    .body(createErrorResult(
-                            e.getMessage()));
+                } catch (IllegalStateException e) {
+                if (log.isErrorEnabled()) {
+                        log.error("TMDB 콘텐츠 저장 후 찜 처리 실패 - tmdbId: {}, contentType: {}",
+                                requestVO.getTmdbId(), requestVO.getContentType(), e);
+                }
 
-        } catch (Exception e) {
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
 
-            e.printStackTrace();
+                } catch (Exception e) {
+                if (log.isErrorEnabled()) {
+                        log.error("TMDB 콘텐츠 찜 처리 중 오류 - tmdbId: {}, contentType: {}",
+                                requestVO.getTmdbId(), requestVO.getContentType(), e);
+                }
 
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResult(
-                            "콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
         }
     }
 
     @GetMapping("/status-by-tmdb")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> favoriteStatusByTmdb(
-            @RequestParam("tmdbId") Long tmdbId,
-            @RequestParam("contentType") String contentType,
-            HttpSession session) {
+    public ResponseEntity<Map<String, Object>> favoriteStatusByTmdb(@RequestParam("tmdbId") Long tmdbId,
+            @RequestParam("contentType") String contentType, HttpSession session) {
 
-        MemberVO loginMember =
-                getLoginMember(session);
-
-        Map<String, Object> result =
-                new HashMap<String, Object>();
+        MemberVO loginMember = getLoginMember(session);
+        Map<String, Object> result = new HashMap<String, Object>();
 
         if (loginMember == null) {
             result.put("login", false);
@@ -239,23 +184,13 @@ public class FavoriteController {
         }
 
         try {
+            FavoriteVO favoriteVO = new FavoriteVO();
 
-            FavoriteVO favoriteVO =
-                    new FavoriteVO();
+            favoriteVO.setMemberNo(loginMember.getMemberNo());
+            favoriteVO.setTmdbId(tmdbId);
+            favoriteVO.setContentType(normalizeContentType(contentType));
 
-            favoriteVO.setMemberNo(
-                    loginMember.getMemberNo());
-
-            favoriteVO.setTmdbId(
-                    tmdbId);
-
-            favoriteVO.setContentType(
-                    normalizeContentType(
-                            contentType));
-
-            boolean active =
-                    favoriteService.isFavoriteByTmdb(
-                            favoriteVO);
+            boolean active = favoriteService.isFavoriteByTmdb(favoriteVO);
 
             result.put("login", true);
             result.put("active", active);
@@ -266,17 +201,13 @@ public class FavoriteController {
 
             return ResponseEntity
                     .badRequest()
-                    .body(createErrorResult(
-                            e.getMessage()));
+                    .body(createErrorResult(e.getMessage()));
         }
     }
 
-    private MemberVO getLoginMember(
-            HttpSession session) {
+    private MemberVO getLoginMember(HttpSession session) {
 
-        Object loginMember =
-                session.getAttribute(
-                        "loginMember");
+        Object loginMember = session.getAttribute("loginMember");
 
         if (loginMember instanceof MemberVO memberVO) {
             return memberVO;
@@ -285,36 +216,25 @@ public class FavoriteController {
         return null;
     }
 
-    private String normalizeContentType(
-            String contentType) {
+    private String normalizeContentType(String contentType) {
 
-        if (contentType == null
-                || contentType.isBlank()) {
+        if (contentType == null || contentType.isBlank()) {
 
-            throw new IllegalArgumentException(
-                    "콘텐츠 유형이 없습니다.");
+            throw new IllegalArgumentException("콘텐츠 유형이 없습니다.");
         }
 
-        String normalized =
-                contentType.trim()
-                        .toUpperCase(Locale.ROOT);
+        String normalized = contentType.trim().toUpperCase(Locale.ROOT);
+        if (!"MOVIE".equals(normalized) && !"TV".equals(normalized)) {
 
-        if (!"MOVIE".equals(normalized)
-                && !"TV".equals(normalized)) {
-
-            throw new IllegalArgumentException(
-                    "올바르지 않은 콘텐츠 유형입니다.");
+            throw new IllegalArgumentException("올바르지 않은 콘텐츠 유형입니다.");
         }
 
         return normalized;
     }
 
-    private Map<String, Object> createErrorResult(
-            String message) {
+    private Map<String, Object> createErrorResult(String message) {
 
-        Map<String, Object> result =
-                new HashMap<String, Object>();
-
+        Map<String, Object> result = new HashMap<String, Object>();
         result.put("message", message);
 
         return result;
