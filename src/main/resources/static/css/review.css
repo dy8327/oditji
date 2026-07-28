@@ -1,55 +1,44 @@
-.mypage-review-tabs{
-    display:flex;
-    gap:12px;
-    margin-bottom:25px;
+.mypage-review-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
 }
 
-.review-tab{
+.review-tab {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 30px;
 
-    padding:10px 22px;
-    border:none;
-    border-radius:30px;
+  background: #2d2d2d;
+  color: #bdbdbd;
 
-    background:#2d2d2d;
-    color:#bdbdbd;
-
-    cursor:pointer;
-    transition:.2s;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.review-tab:hover{
-
-    background:#3a3a3a;
-    color:#fff;
-
+.review-tab:hover {
+  background: #3a3a3a;
+  color: #fff;
 }
 
-.review-tab.active{
-
-    background:#6d4aff;
-    color:#fff;
-
+.review-tab.active {
+  background: #6d4aff;
+  color: #fff;
 }
 
-.mypage-review-filter-empty{
-
-    text-align:center;
-    padding:70px 20px;
-
+.mypage-review-filter-empty {
+  text-align: center;
+  padding: 70px 20px;
 }
 
-.mypage-filter-empty-title{
-
-    margin-top:18px;
-    font-size:22px;
-
+.mypage-filter-empty-title {
+  margin-top: 18px;
+  font-size: 22px;
 }
 
-.mypage-filter-empty-message{
-
-    margin-top:12px;
-    color:#9d9d9d;
-
+.mypage-filter-empty-message {
+  margin-top: 12px;
+  color: #9d9d9d;
 }
 
 /* =========================
@@ -57,217 +46,175 @@
 ========================= */
 
 .review-modal {
+  position: fixed;
 
-    position: fixed;
+  top: 0;
+  left: 0;
 
-    top:0;
-    left:0;
+  width: 100%;
+  height: 100%;
 
-    width:100%;
-    height:100%;
+  background: rgba(0, 0, 0, 0.7);
 
-    background:rgba(0,0,0,0.7);
+  display: flex;
 
-    display:flex;
+  justify-content: center;
 
-    justify-content:center;
+  align-items: center;
 
-    align-items:center;
-
-    z-index:9999;
-
+  z-index: 9999;
 }
-
 
 /* 모달 내부 */
 
 .review-modal-content {
+  width: 460px;
 
-    width:460px;
+  background: #202020;
 
-    background:#202020;
+  color: #ffffff;
 
-    color:#ffffff;
+  padding: 32px;
 
-    padding:32px;
+  border-radius: 16px;
 
-    border-radius:16px;
+  border: 1px solid #333;
 
-    border:1px solid #333;
-
-    box-shadow:
-        0 20px 50px rgba(0,0,0,0.6);
-
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
-
 
 /* 제목 */
 
 .review-modal-content h2 {
+  margin: 0 0 28px;
 
-    margin:0 0 28px;
+  font-size: 22px;
 
-    font-size:22px;
-
-    font-weight:700;
-
+  font-weight: 700;
 }
-
 
 /* label */
 
 .review-modal-content label {
+  display: block;
 
-    display:block;
+  margin-bottom: 10px;
 
-    margin-bottom:10px;
+  color: #ddd;
 
-    color:#ddd;
+  font-size: 14px;
 
-    font-size:14px;
-
-    font-weight:600;
-
+  font-weight: 600;
 }
-
 
 /* 평점 select */
 
 .review-modal-content select {
+  width: 100%;
 
-    width:100%;
+  height: 44px;
 
-    height:44px;
+  padding: 0 14px;
 
-    padding:0 14px;
+  border-radius: 8px;
 
-    border-radius:8px;
+  border: 1px solid #444;
 
-    border:1px solid #444;
+  background: #2a2a2a;
 
-    background:#2a2a2a;
+  color: #ffffff;
 
-    color:#ffffff;
+  font-size: 15px;
 
-    font-size:15px;
+  cursor: pointer;
 
-    cursor:pointer;
-
-    outline:none;
-
+  outline: none;
 }
-
 
 .review-modal-content select:focus {
-
-    border-color:#7EB1FF;
-
+  border-color: #7eb1ff;
 }
-
 
 /* 리뷰 textarea */
 
 .review-modal-content textarea {
+  width: 100%;
 
-    width:100%;
+  height: 140px;
 
-    height:140px;
+  margin-top: 20px;
 
-    margin-top:20px;
+  padding: 14px;
 
-    padding:14px;
+  box-sizing: border-box;
 
-    box-sizing:border-box;
+  resize: none;
 
-    resize:none;
+  border-radius: 8px;
 
-    border-radius:8px;
+  border: 1px solid #444;
 
-    border:1px solid #444;
+  background: #2a2a2a;
 
-    background:#2a2a2a;
+  color: #fff;
 
-    color:#fff;
+  font-size: 14px;
 
-    font-size:14px;
+  line-height: 1.5;
 
-    line-height:1.5;
-
-    outline:none;
-
+  outline: none;
 }
-
 
 .review-modal-content textarea::placeholder {
-
-    color:#888;
-
+  color: #888;
 }
-
 
 .review-modal-content textarea:focus {
-
-    border-color:#7EB1FF;
-
+  border-color: #7eb1ff;
 }
-
 
 /* 버튼 영역 */
 
 .review-modal-content button {
+  height: 42px;
 
-    height:42px;
+  padding: 0 24px;
 
-    padding:0 24px;
+  margin-top: 25px;
 
-    margin-top:25px;
+  margin-right: 8px;
 
-    margin-right:8px;
+  border: none;
 
-    border:none;
+  border-radius: 8px;
 
-    border-radius:8px;
+  font-size: 14px;
 
-    font-size:14px;
+  font-weight: 600;
 
-    font-weight:600;
-
-    cursor:pointer;
-
+  cursor: pointer;
 }
-
 
 /* 등록 버튼 */
 
 .review-modal-content button[type="submit"] {
+  background: #7eb1ff;
 
-    background:#7EB1FF;
-
-    color:#181818;
-
+  color: #181818;
 }
-
 
 .review-modal-content button[type="submit"]:hover {
-
-    background:#9ac4ff;
-
+  background: #9ac4ff;
 }
-
 
 /* 취소 버튼 */
 
 #closeReviewModal {
+  background: #333;
 
-    background:#333;
-
-    color:#ddd;
-
+  color: #ddd;
 }
 
-
 #closeReviewModal:hover {
-
-    background:#444;
-
+  background: #444;
 }

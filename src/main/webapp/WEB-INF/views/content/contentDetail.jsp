@@ -30,6 +30,9 @@
 
 <%-- [추가] 스포일러 리뷰 블라인드 및 확인 모달 --%>
 <script defer src="${pageContext.request.contextPath}/js/spoiler-review.js"></script>
+
+<%-- [수정] 콘텐츠 리뷰 중복 안내, 인라인 수정, 삭제 확인 기능 --%>
+<script defer src="${pageContext.request.contextPath}/js/content-review.js"></script>
 </head>
 
 <body>
@@ -744,140 +747,80 @@
 
     <h2>리뷰</h2>
 
+    <%-- [수정] 서버에서 전달한 중복 리뷰 안내 메시지를 JavaScript 알림으로 출력한다. --%>
+    <c:if test="${not empty reviewAlertMessage}">
+        <div id="reviewAlertMessage"
+             data-message="<c:out value='${reviewAlertMessage}'/>"
+             hidden></div>
+    </c:if>
+
     <div id="reviewWriteBox"
-         class="review-write-box">
+         class="review-write-box"
+         data-has-my-review="${not empty myReview}">
 
-        <c:choose>
+        <%--
+            [수정] 본인 리뷰가 있어도 상단은 신규 리뷰 등록 폼을 그대로 표시한다.
+            다시 등록을 시도하면 JavaScript와 서버 양쪽에서 중복 작성을 차단한다.
+        --%>
+        <form action="${pageContext.request.contextPath}/review/write"
+              method="post"
+              class="review-form"
+              id="contentReviewWriteForm">
 
-            <c:when test="${not empty myReview}">
+            <input type="hidden"
+                   name="contentNo"
+                   value="${content.contentNo}">
 
-                <form action="${pageContext.request.contextPath}/review/update"
-                      method="post"
-                      class="review-form">
+            <div class="rating-box">
 
-                    <input type="hidden"
-                           name="reviewNo"
-                           value="${myReview.reviewNo}">
+                <label for="writeReviewRating">
+                    평점 (0 ~ 5)
+                </label>
 
-                    <input type="hidden"
-                           name="contentNo"
-                           value="${content.contentNo}">
+                <input type="number"
+                       id="writeReviewRating"
+                       name="rating"
+                       min="0"
+                       max="5"
+                       step="0.5"
+                       required>
 
-                    <div class="rating-box">
+            </div>
 
-                        <label for="updateReviewRating">평점</label>
+            <%--
+                신규 리뷰 textarea에 id와 label을 연결한다.
+                label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
+            --%>
+            <label for="writeReviewText"
+                   style="position:absolute;
+                          width:1px;
+                          height:1px;
+                          padding:0;
+                          margin:-1px;
+                          overflow:hidden;
+                          clip:rect(0, 0, 0, 0);
+                          white-space:nowrap;
+                          border:0;">
+                리뷰 작성 내용
+            </label>
 
-                        <input type="number"
-                               id="updateReviewRating"
-                               name="rating"
-                               min="0"
-                               max="5"
-                               step="0.5"
-                               value="${myReview.rating}">
+            <textarea id="writeReviewText"
+                      name="reviewText"
+                      placeholder="이 작품에 대한 리뷰를 작성하세요"
+                      required></textarea>
 
-                    </div>
+            <%-- [추가] 사용자가 직접 스포일러 포함 여부 선택 --%>
+            <label class="spoiler-check-box" for="writeSpoilerYn">
+                <input type="checkbox" id="writeSpoilerYn" name="spoilerYn" value="Y">
+                <span>스포일러가 포함되어 있습니다.</span>
+            </label>
 
-                    <%--
-                        리뷰 수정 textarea에 id와 label을 연결한다.
-                        label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
-                    --%>
-                    <label for="updateReviewText"
-                           style="position:absolute;
-                                  width:1px;
-                                  height:1px;
-                                  padding:0;
-                                  margin:-1px;
-                                  overflow:hidden;
-                                  clip:rect(0, 0, 0, 0);
-                                  white-space:nowrap;
-                                  border:0;">
-                        리뷰 수정 내용
-                    </label>
+            <button type="submit"
+                    class="btn">
+                등록
+            </button>
 
-                    <textarea id="updateReviewText"
-                              name="reviewText"
-                              required>${myReview.reviewText}</textarea>
-
-                    <%-- [추가] 기존 스포일러 여부 유지 --%>
-                    <label class="spoiler-check-box" for="updateSpoilerYn">
-                        <input type="checkbox" id="updateSpoilerYn" name="spoilerYn" value="Y"
-                               <c:if test="${myReview.spoilerYn eq 'Y'}">checked</c:if>>
-                        <span>스포일러가 포함되어 있습니다.</span>
-                    </label>
-
-                    <button type="submit"
-                            class="btn">
-                        수정하기
-                    </button>
-
-                </form>
-
-            </c:when>
-
-            <c:otherwise>
-
-                <form action="${pageContext.request.contextPath}/review/write"
-                      method="post"
-                      class="review-form">
-
-                    <input type="hidden"
-                           name="contentNo"
-                           value="${content.contentNo}">
-
-                    <div class="rating-box">
-
-                        <label for="writeReviewRating">
-                            평점 (0 ~ 5)
-                        </label>
-
-                        <input type="number"
-                               id="writeReviewRating"
-                               name="rating"
-                               min="0"
-                               max="5"
-                               step="0.5"
-                               required>
-
-                    </div>
-
-                    <%--
-                        신규 리뷰 textarea에 id와 label을 연결한다.
-                        label은 화면 배치를 유지하기 위해 시각적으로만 숨긴다.
-                    --%>
-                    <label for="writeReviewText"
-                           style="position:absolute;
-                                  width:1px;
-                                  height:1px;
-                                  padding:0;
-                                  margin:-1px;
-                                  overflow:hidden;
-                                  clip:rect(0, 0, 0, 0);
-                                  white-space:nowrap;
-                                  border:0;">
-                        리뷰 작성 내용
-                    </label>
-
-                    <textarea id="writeReviewText"
-                              name="reviewText"
-                              placeholder="이 작품에 대한 리뷰를 작성하세요"
-                              required></textarea>
-
-                    <%-- [추가] 사용자가 직접 스포일러 포함 여부 선택 --%>
-                    <label class="spoiler-check-box" for="writeSpoilerYn">
-                        <input type="checkbox" id="writeSpoilerYn" name="spoilerYn" value="Y">
-                        <span>스포일러가 포함되어 있습니다.</span>
-                    </label>
-
-                    <button type="submit"
-                            class="btn">
-                        등록
-                    </button>
-
-                </form>
-
-            </c:otherwise>
-
-        </c:choose>
+        </form>
 
     </div>
 
@@ -891,7 +834,13 @@
 
                     <c:if test="${r.status eq 'ACTIVE'}">
 
-                        <div class="review-item">
+                        <%-- [수정] 본인 리뷰인지 구분하여 신고 버튼과 스포일러 표시 방식을 다르게 처리한다. --%>
+                        <c:set var="isMyContentReview"
+                               value="${not empty sessionScope.loginMember and sessionScope.loginMember.memberNo eq r.memberNo}"/>
+
+                        <div class="review-item"
+                             data-review-item
+                             data-review-no="${r.reviewNo}">
 
                             <div class="review-meta">
 
@@ -913,6 +862,29 @@
                                 </span>
 
                                 <c:choose>
+
+                                    <c:when test="${isMyContentReview}">
+
+                                        <%-- [수정] 본인 리뷰에는 신고 대신 수정·삭제 버튼을 표시한다. --%>
+                                        <div class="my-review-actions">
+                                            <button type="button"
+                                                    class="review-btn review-edit-open-btn"
+                                                    data-review-edit-open>
+                                                수정
+                                            </button>
+
+                                            <form action="${pageContext.request.contextPath}/review/deleteContentReview"
+                                                  method="post"
+                                                  class="review-delete-form">
+                                                <input type="hidden" name="reviewNo" value="${r.reviewNo}">
+                                                <input type="hidden" name="contentNo" value="${content.contentNo}">
+                                                <button type="submit" class="review-delete-btn">
+                                                    삭제
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </c:when>
 
                                     <c:when test="${reportedReviewSet.contains(r.reviewNo)}">
 
@@ -939,21 +911,71 @@
 
                             </div>
 
-                            <%-- [추가] 스포일러 리뷰 블라인드 처리 --%>
-                            <c:choose>
-                                <c:when test="${r.spoilerYn eq 'Y'}">
-                                    <div class="spoiler-review" data-spoiler-review>
-                                        <p class="review-content spoiler-review-content"><c:out value="${r.reviewText}"/></p>
-                                        <button type="button" class="spoiler-review-overlay" data-spoiler-open>
-                                            <strong>스포일러가 포함되어 있습니다.</strong>
-                                            <span>내용을 보려면 클릭하세요.</span>
-                                        </button>
+                            <div class="review-display-area" data-review-display>
+                                <%-- [수정] 본인 리뷰는 스포일러 포함 여부와 관계없이 내용을 즉시 표시한다. --%>
+                                <c:choose>
+                                    <c:when test="${r.spoilerYn eq 'Y' and not isMyContentReview}">
+                                        <div class="spoiler-review" data-spoiler-review>
+                                            <p class="review-content spoiler-review-content"><c:out value="${r.reviewText}"/></p>
+                                            <button type="button" class="spoiler-review-overlay" data-spoiler-open>
+                                                <strong>스포일러가 포함되어 있습니다.</strong>
+                                                <span>내용을 보려면 클릭하세요.</span>
+                                            </button>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <p class="review-content"><c:out value="${r.reviewText}"/></p>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                            <c:if test="${isMyContentReview}">
+                                <%-- [수정] 수정 버튼을 누르면 현재 리뷰 카드 내부에서 수정 폼을 표시한다. --%>
+                                <form action="${pageContext.request.contextPath}/review/update"
+                                      method="post"
+                                      class="review-form inline-review-edit-form"
+                                      data-review-edit-form
+                                      hidden>
+
+                                    <input type="hidden" name="reviewNo" value="${r.reviewNo}">
+                                    <input type="hidden" name="contentNo" value="${content.contentNo}">
+
+                                    <div class="rating-box">
+                                        <label for="editRating${r.reviewNo}">평점</label>
+                                        <input type="number"
+                                               id="editRating${r.reviewNo}"
+                                               name="rating"
+                                               min="0"
+                                               max="5"
+                                               step="0.5"
+                                               value="${r.rating}"
+                                               required>
                                     </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <p class="review-content"><c:out value="${r.reviewText}"/></p>
-                                </c:otherwise>
-                            </c:choose>
+
+                                    <label for="editReviewText${r.reviewNo}" class="visually-hidden-label">
+                                        리뷰 수정 내용
+                                    </label>
+
+                                    <textarea id="editReviewText${r.reviewNo}"
+                                              name="reviewText"
+                                              required><c:out value="${r.reviewText}"/></textarea>
+
+                                    <label class="spoiler-check-box" for="editSpoilerYn${r.reviewNo}">
+                                        <input type="checkbox"
+                                               id="editSpoilerYn${r.reviewNo}"
+                                               name="spoilerYn"
+                                               value="Y"
+                                               <c:if test="${r.spoilerYn eq 'Y'}">checked</c:if>>
+                                        <span>스포일러가 포함되어 있습니다.</span>
+                                    </label>
+
+                                    <div class="inline-review-edit-actions">
+                                        <button type="submit" class="btn">수정 완료</button>
+                                        <button type="button" class="btn" data-review-edit-cancel>취소</button>
+                                    </div>
+
+                                </form>
+                            </c:if>
 
                         </div>
 
@@ -1019,10 +1041,6 @@
 
                 <option value="스팸/광고">
                     스팸/광고
-                </option>
-
-                <option value="도배">
-                    도배
                 </option>
 
                 <option value="음란물/불법정보">

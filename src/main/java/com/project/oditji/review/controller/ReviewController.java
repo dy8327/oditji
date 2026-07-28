@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
@@ -59,7 +60,9 @@ public class ReviewController {
             @RequestParam double rating,
             @RequestParam String reviewText,
             // [추가] 체크하지 않은 경우 N으로 처리한다.
-            @RequestParam(defaultValue = "N") String spoilerYn) {
+            @RequestParam(defaultValue = "N") String spoilerYn,
+            // [수정] 동일 콘텐츠 중복 작성 안내 메시지를 상세 페이지로 전달한다.
+            RedirectAttributes redirectAttributes) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -67,15 +70,22 @@ public class ReviewController {
             return "redirect:/member/login";
         }
 
-        reviewService.writeContentReview(
-                loginMember.getMemberNo(),
-                contentNo,
-                rating,
-                reviewText,
-                // [추가] 사용자가 선택한 스포일러 포함 여부
-                spoilerYn);
+        try {
+            reviewService.writeContentReview(
+                    loginMember.getMemberNo(),
+                    contentNo,
+                    rating,
+                    reviewText,
+                    // [추가] 사용자가 선택한 스포일러 포함 여부
+                    spoilerYn);
+        } catch (IllegalStateException e) {
+            // [수정] 서비스의 중복 리뷰 예외를 사용자가 확인할 수 있는 알림 문구로 변경한다.
+            redirectAttributes.addFlashAttribute(
+                    "reviewAlertMessage",
+                    "계정 하나당 리뷰 1개만 작성이 가능합니다");
+        }
 
-        return "redirect:/content/contentDetail/" + contentNo;
+        return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
     }
 
     /**
@@ -107,7 +117,7 @@ public class ReviewController {
                 // [추가] 사용자가 선택한 스포일러 포함 여부
                 spoilerYn);
 
-        return "redirect:/content/contentDetail/" + contentNo;
+        return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
     }
 
     /**
@@ -143,7 +153,9 @@ public class ReviewController {
     @PostMapping("/deleteContentReview")
     public String deleteContentReview(
             HttpSession session,
-            @RequestParam Long reviewNo) {
+            @RequestParam Long reviewNo,
+            // [수정] 콘텐츠 상세 페이지에서 삭제한 경우 동일 페이지로 돌아가기 위해 사용한다.
+            @RequestParam(required = false) Integer contentNo) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -154,6 +166,11 @@ public class ReviewController {
         reviewService.deleteContentReview(
                 loginMember.getMemberNo(),
                 reviewNo);
+
+        // [수정] 콘텐츠 상세 페이지에서 삭제한 경우 리뷰 영역으로 즉시 돌아간다.
+        if (contentNo != null) {
+            return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
+        }
 
         return "redirect:/review/myReviewList";
     }

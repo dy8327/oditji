@@ -505,10 +505,6 @@
                     스팸/광고
                 </option>
 
-                <option value="도배">
-                    도배
-                </option>
-
                 <option value="음란물/불법정보">
                     음란물/불법정보
                 </option>
