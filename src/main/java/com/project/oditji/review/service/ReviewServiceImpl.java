@@ -159,8 +159,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void writeProductReview(
-            Long memberNo, int productNo, int orderItemNo, double rating, String content) {
+    public void writeProductReview(Long memberNo, int productNo, int orderItemNo, double rating, String content) {
 
         System.out.println("===== 상품 리뷰 작성 =====");
         System.out.println("memberNo = " + memberNo);
@@ -198,7 +197,8 @@ public class ReviewServiceImpl implements ReviewService {
         System.out.println("existingReview = " + existingReview);
 
         if (existingReview != null) {
-            throw new IllegalStateException("이미 작성한 리뷰가 있습니다.");
+            // [수정] 주문내역 화면에 표시할 중복 상품 리뷰 안내 문구를 요구사항에 맞게 변경한다.
+            throw new IllegalStateException("해당 상품에 대한 리뷰가 이미 존재합니다.");
         }
 
         ProductReviewVO productReview = new ProductReviewVO();
