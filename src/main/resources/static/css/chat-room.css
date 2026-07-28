@@ -1,6 +1,8 @@
 /*
  * 채팅방 상세 화면
  * 공지방 읽기 전용 상태와 자유방 대화 상태를 함께 지원합니다.
+ * 같은 발신자가 같은 분에 연속으로 보낸 메시지는 한 묶음처럼 표시합니다.
+ * 자유방의 내 메시지는 ⋮ 메뉴를 통해 수정/삭제할 수 있습니다.
  */
 * {
     box-sizing: border-box;
@@ -90,10 +92,19 @@ body {
     background: #fafafa;
 }
 
+/*
+ * 메시지 한 줄의 기본 배치입니다.
+ * 묶음의 마지막 또는 단독 메시지 뒤에는 다음 대화와 구분되는 간격을 둡니다.
+ */
 .message-row {
-    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
+    margin-bottom: 2px;
+}
+
+.message-row.group-single,
+.message-row.group-end {
+    margin-bottom: 14px;
 }
 
 .message-row.mine {
@@ -105,13 +116,41 @@ body {
 }
 
 .sender {
+    margin-bottom: 5px;
     font-size: 13px;
     color: #666666;
-    margin-bottom: 4px;
+}
+
+/*
+ * 내 메시지 발신자명은 화면에서 생략합니다.
+ * 다른 사용자의 메시지는 같은 묶음의 첫 메시지에만 발신자명이 생성됩니다.
+ */
+.message-row.mine .sender {
+    display: none;
+}
+
+/*
+ * 말풍선, 수정/시간 정보, ⋮ 메뉴를 같은 줄에 배치합니다.
+ * 내 메시지는 말풍선이 가장 오른쪽에 위치하도록 순서를 반대로 배치합니다.
+ */
+.message-line {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 82%;
+}
+
+.message-row.mine .message-line {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+.message-row.other .message-line {
+    justify-content: flex-start;
 }
 
 .bubble {
-    max-width: 65%;
+    max-width: 100%;
     padding: 10px 14px;
     border-radius: 14px;
     line-height: 1.5;
@@ -131,6 +170,20 @@ body {
     border-bottom-left-radius: 2px;
 }
 
+/*
+ * 같은 묶음 안쪽 말풍선은 아래쪽 꼬리 모양을 없애 자연스럽게 붙여 보이도록 합니다.
+ * 묶음의 마지막 말풍선만 기존의 꼬리 형태를 유지합니다.
+ */
+.message-row.mine.group-start .bubble,
+.message-row.mine.group-middle .bubble {
+    border-bottom-right-radius: 14px;
+}
+
+.message-row.other.group-start .bubble,
+.message-row.other.group-middle .bubble {
+    border-bottom-left-radius: 14px;
+}
+
 .notice-message-row .bubble {
     background: #fff3e0;
     color: #5d4037;
@@ -143,10 +196,145 @@ body {
     border-color: #ef6c00;
 }
 
+/*
+ * 수정 상태와 시간을 말풍선 옆의 작은 메타 영역에 함께 표시합니다.
+ * 수정된 메시지는 묶음 중간이라 시간이 생략되더라도 [수정] 표기가 유지됩니다.
+ */
+.message-meta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 1px;
+    white-space: nowrap;
+}
+
+.edited-indicator {
+    color: #9e9e9e;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
 .time {
-    font-size: 12px;
     color: #888888;
-    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+/*
+ * 자유방의 내 메시지에만 생성되는 ⋮ 메뉴 영역입니다.
+ * 평상시에는 버튼을 연하게 두고, 메시지에 마우스를 올리면 선명하게 표시합니다.
+ */
+.message-actions {
+    position: relative;
+    flex: 0 0 auto;
+    align-self: center;
+}
+
+.message-more-btn {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #8d8d8d;
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0.25;
+    transition:
+        opacity 0.15s ease,
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.message-row.mine:hover .message-more-btn,
+.message-more-btn:focus-visible,
+.message-more-btn[aria-expanded="true"] {
+    color: #555555;
+    opacity: 1;
+}
+
+.message-more-btn:hover,
+.message-more-btn[aria-expanded="true"] {
+    background: #eeeeee;
+}
+
+.message-more-btn:focus-visible {
+    outline: 2px solid #90caf9;
+    outline-offset: 2px;
+}
+
+/*
+ * ⋮ 버튼을 눌렀을 때 표시되는 수정/삭제 메뉴입니다.
+ */
+.message-action-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 20;
+    display: none;
+    min-width: 82px;
+    padding: 5px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+.message-action-menu.open {
+    display: block;
+}
+
+.message-action-item {
+    display: block;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #333333;
+    font-size: 12px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.message-action-item:hover,
+.message-action-item:focus-visible {
+    background: #f5f5f5;
+}
+
+/*
+ * 전송 후 5분이 지난 메시지는 수정 메뉴를 비활성화합니다.
+ * 삭제 메뉴는 그대로 사용할 수 있습니다.
+ */
+.message-action-item:disabled {
+    background: transparent;
+    color: #bdbdbd;
+    cursor: not-allowed;
+    opacity: 0.72;
+}
+
+.message-action-item:disabled:hover {
+    background: transparent;
+}
+
+.message-action-item:focus-visible {
+    outline: 2px solid #90caf9;
+    outline-offset: -2px;
+}
+
+.message-action-delete {
+    color: #d32f2f;
+}
+
+.message-action-delete:hover,
+.message-action-delete:focus-visible {
+    background: #ffebee;
 }
 
 .system-message {
@@ -223,6 +411,12 @@ body {
     margin-top: 120px;
 }
 
+@media (hover: none) {
+    .message-more-btn {
+        opacity: 0.65;
+    }
+}
+
 @media (max-width: 960px) {
     .chat-container {
         width: calc(100% - 24px);
@@ -234,7 +428,7 @@ body {
         flex-direction: column;
     }
 
-    .bubble {
-        max-width: 82%;
+    .message-line {
+        max-width: 90%;
     }
 }

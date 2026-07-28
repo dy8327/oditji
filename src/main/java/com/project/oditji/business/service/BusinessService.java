@@ -31,8 +31,16 @@ public interface BusinessService {
         // 상품 등록
         long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage);
 
-        // 콘텐츠 검색 목록 조회
+        // 기존 DB 콘텐츠 검색 목록 조회
         List<ContentSearchVO> getContentList(String keyword);
+
+        // 상품 등록 화면용 JSONL 콘텐츠 검색 목록 조회
+        List<ContentSearchVO> getCachedContentList(String keyword);
+
+        // JSONL 콘텐츠 선택 후 TMDB 배우 미리보기 조회
+        List<ActorSearchVO> getActorPreview(
+                        Long tmdbId,
+                        String contentType);
 
         // 콘텐츠 단건 조회
         ContentSearchVO getContentByNo(long contentNo);

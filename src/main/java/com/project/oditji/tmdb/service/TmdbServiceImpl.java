@@ -568,6 +568,89 @@ public class TmdbServiceImpl implements TmdbService {
         return saveCount;
     }
 
+    /**
+     * 상품 등록 화면에서 DB 저장 전에 표시할 출연 배우를 TMDB에서 조회합니다.
+     * 실제 저장 제한과 동일하게 상위 CAST_SAVE_LIMIT명만 반환합니다.
+     */
+    @Override
+    public List<ActorVO> getContentActorPreview(
+            Long tmdbId,
+            String contentType) {
+
+        if (tmdbId == null
+                || tmdbId <= 0
+                || contentType == null
+                || contentType.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "배우 조회에 필요한 콘텐츠 정보가 없습니다."
+            );
+        }
+
+        String normalizedType =
+                contentType.trim()
+                        .toUpperCase(Locale.ROOT);
+
+        if (!"MOVIE".equals(normalizedType)
+                && !"TV".equals(normalizedType)) {
+
+            throw new IllegalArgumentException(
+                    "지원하지 않는 콘텐츠 타입입니다."
+            );
+        }
+
+        JsonNode castNode =
+                getDetailRoot(
+                        tmdbId,
+                        normalizedType,
+                        true
+                ).path("credits").path("cast");
+
+        if (!castNode.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<ActorVO> actorList =
+                new ArrayList<ActorVO>();
+
+        int displayOrder = 1;
+
+        for (JsonNode cast : castNode) {
+
+            if (displayOrder > CAST_SAVE_LIMIT) {
+                break;
+            }
+
+            long tmdbActorId = cast.path("id").asLong();
+            String actorName = cast.path("name").asString(null);
+
+            if (tmdbActorId <= 0
+                    || actorName == null
+                    || actorName.isBlank()) {
+                continue;
+            }
+
+            ActorVO actor = new ActorVO();
+            actor.setTmdbActorId(tmdbActorId);
+            actor.setActorName(limitLength(actorName, 100));
+            actor.setProfilePath(
+                    cast.path("profile_path").asString(null)
+            );
+            actor.setCharacterName(
+                    limitLength(
+                            cast.path("character").asString(null),
+                            100
+                    )
+            );
+            actor.setDisplayOrder(displayOrder);
+
+            actorList.add(actor);
+            displayOrder++;
+        }
+
+        return actorList;
+    }
+
     @Override
     public void saveContentPeople(ContentVO content) {
 

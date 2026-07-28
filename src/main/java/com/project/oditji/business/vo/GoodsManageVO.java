@@ -9,6 +9,14 @@ public class GoodsManageVO {
     private long businessNo;
     private long contentNo;
 
+    /*
+     * JSONL 콘텐츠 검색 결과를 상품 등록 요청까지 유지하기 위한 값입니다.
+     * 실제 PRODUCT 저장 전 ContentService가 CONTENT_NO를 준비합니다.
+     */
+    private Long tmdbId;
+    private String contentType;
+    private Long tmdbActorId;
+
     // PRODUCT.ACTOR_NO는 NULL 허용
     private Long actorNo;
 
@@ -59,6 +67,30 @@ public class GoodsManageVO {
 
     public void setContentNo(long contentNo) {
         this.contentNo = contentNo;
+    }
+
+    public Long getTmdbId() {
+        return tmdbId;
+    }
+
+    public void setTmdbId(Long tmdbId) {
+        this.tmdbId = tmdbId;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getTmdbActorId() {
+        return tmdbActorId;
+    }
+
+    public void setTmdbActorId(Long tmdbActorId) {
+        this.tmdbActorId = tmdbActorId;
     }
 
     public Long getActorNo() {
@@ -195,6 +227,9 @@ public class GoodsManageVO {
                 "productNo=" + productNo +
                 ", businessNo=" + businessNo +
                 ", contentNo=" + contentNo +
+                ", tmdbId=" + tmdbId +
+                ", contentType='" + contentType + '\'' +
+                ", tmdbActorId=" + tmdbActorId +
                 ", actorNo=" + actorNo +
                 ", productName='" + productName + '\'' +
                 ", productType='" + productType + '\'' +

@@ -123,6 +123,44 @@
                 or warChecked
                 or westernChecked}"/>
 
+
+<%-- 관람등급 선택 상태 계산 --%>
+<c:set var="allAgeChecked" value="false"/>
+<c:set var="age7Checked" value="false"/>
+<c:set var="age12Checked" value="false"/>
+<c:set var="age15Checked" value="false"/>
+<c:set var="adultAgeChecked" value="false"/>
+<c:set var="unknownAgeChecked" value="false"/>
+
+<c:forEach var="ageRating" items="${ageRatings}">
+    <c:if test="${ageRating eq '전체 관람가'}">
+        <c:set var="allAgeChecked" value="true"/>
+    </c:if>
+    <c:if test="${ageRating eq '7세 이상 관람가'}">
+        <c:set var="age7Checked" value="true"/>
+    </c:if>
+    <c:if test="${ageRating eq '12세 이상 관람가'}">
+        <c:set var="age12Checked" value="true"/>
+    </c:if>
+    <c:if test="${ageRating eq '15세 이상 관람가'}">
+        <c:set var="age15Checked" value="true"/>
+    </c:if>
+    <c:if test="${ageRating eq '청소년 관람불가'}">
+        <c:set var="adultAgeChecked" value="true"/>
+    </c:if>
+    <c:if test="${ageRating eq '등급 정보 없음'}">
+        <c:set var="unknownAgeChecked" value="true"/>
+    </c:if>
+</c:forEach>
+
+<c:set var="ageRatingSelected"
+       value="${allAgeChecked
+                or age7Checked
+                or age12Checked
+                or age15Checked
+                or adultAgeChecked
+                or unknownAgeChecked}"/>
+
 <%-- OTT 플랫폼 선택 상태 계산 --%>
 <c:set var="netflixChecked" value="false"/>
 <c:set var="tvingChecked" value="false"/>
@@ -455,6 +493,61 @@
                     <c:otherwise>장르 전체보기</c:otherwise>
                 </c:choose>
             </button>
+        </section>
+
+
+        <section class="filter-group">
+            <h3 class="filter-group-title">관람등급</h3>
+
+            <label class="filter-option">
+                <input type="checkbox"
+                       data-filter-all
+                       data-filter-group="ageRating"
+                       <c:if test="${not ageRatingSelected}">checked</c:if>/>
+                <span>전체</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="전체 관람가"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${allAgeChecked}">checked</c:if>/>
+                <span>전체 관람가</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="7세 이상 관람가"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${age7Checked}">checked</c:if>/>
+                <span>7세 이상</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="12세 이상 관람가"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${age12Checked}">checked</c:if>/>
+                <span>12세 이상</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="15세 이상 관람가"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${age15Checked}">checked</c:if>/>
+                <span>15세 이상</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="청소년 관람불가"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${adultAgeChecked}">checked</c:if>/>
+                <span>청소년 관람불가</span>
+            </label>
+
+            <label class="filter-option">
+                <input type="checkbox" name="ageRatings" value="등급 정보 없음"
+                       data-filter-checkbox data-filter-group="ageRating"
+                       <c:if test="${unknownAgeChecked}">checked</c:if>/>
+                <span>등급 정보 없음</span>
+            </label>
         </section>
 
         <section class="filter-group filter-provider-group">

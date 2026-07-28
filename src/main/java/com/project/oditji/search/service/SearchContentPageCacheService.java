@@ -34,6 +34,13 @@ public class SearchContentPageCacheService {
     private static final String CATEGORY_VARIETY = "VARIETY";
     private static final String CATEGORY_DOCUMENTARY = "DOCUMENTARY";
 
+    private static final String AGE_ALL = "전체 관람가";
+    private static final String AGE_7 = "7세 이상 관람가";
+    private static final String AGE_12 = "12세 이상 관람가";
+    private static final String AGE_15 = "15세 이상 관람가";
+    private static final String AGE_ADULT = "청소년 관람불가";
+    private static final String AGE_UNKNOWN = "등급 정보 없음";
+
     private final SearchContentStore searchContentStore;
     private final TmdbDAO tmdbDAO;
 
@@ -989,7 +996,8 @@ public class SearchContentPageCacheService {
             int displayPage,
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds) {
+            List<String> providerIds,
+            List<String> ageRatings) {
 
         final int pageSize = 20;
 
@@ -1010,7 +1018,8 @@ public class SearchContentPageCacheService {
                         "",
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         if ("new".equals(normalizedType)) {
@@ -1122,6 +1131,7 @@ public class SearchContentPageCacheService {
             List<String> contentCategories,
             List<String> genreCodes,
             List<String> providerIds,
+            List<String> ageRatings,
             int limit) {
 
         List<SearchResultVO> recommendedList =
@@ -1129,7 +1139,8 @@ public class SearchContentPageCacheService {
                         "",
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         recommendedList.sort(
@@ -1311,6 +1322,29 @@ public class SearchContentPageCacheService {
             List<String> genreCodes,
             List<String> providerIds) {
 
+        return getContentPage(
+                keyword,
+                displayPage,
+                pageSize,
+                contentCategories,
+                genreCodes,
+                providerIds,
+                Collections.emptyList()
+        );
+    }
+
+    /**
+     * 검색결과 화면의 관람등급 조건까지 포함하여 콘텐츠를 조회합니다.
+     */
+    public SearchResultPageVO getContentPage(
+            String keyword,
+            int displayPage,
+            int pageSize,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds,
+            List<String> ageRatings) {
+
         int normalizedPage =
                 Math.max(displayPage, 1);
 
@@ -1328,7 +1362,8 @@ public class SearchContentPageCacheService {
                         keyword,
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         int totalResults =
@@ -1390,7 +1425,8 @@ public class SearchContentPageCacheService {
             int contentPageSize,
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds) {
+            List<String> providerIds,
+            List<String> ageRatings) {
 
         if (previewSize <= 0) {
             return new ArrayList<SearchResultVO>();
@@ -1406,7 +1442,8 @@ public class SearchContentPageCacheService {
                         ),
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         List<SearchResultVO> resultList =
@@ -1438,6 +1475,22 @@ public class SearchContentPageCacheService {
             List<String> genreCodes,
             List<String> providerIds) {
 
+        return searchAll(
+                keyword,
+                contentCategories,
+                genreCodes,
+                providerIds,
+                Collections.emptyList()
+        );
+    }
+
+    private List<SearchResultVO> searchAll(
+            String keyword,
+            List<String> contentCategories,
+            List<String> genreCodes,
+            List<String> providerIds,
+            List<String> ageRatings) {
+
         String normalizedKeyword =
                 normalizeSearchText(keyword);
 
@@ -1449,6 +1502,11 @@ public class SearchContentPageCacheService {
         List<String> normalizedGenres =
                 normalizeUpperCaseList(
                         genreCodes
+                );
+
+        List<String> normalizedAgeRatings =
+                normalizeAgeRatingList(
+                        ageRatings
                 );
 
         Set<String> selectedPlatformKeys =
@@ -1493,6 +1551,14 @@ public class SearchContentPageCacheService {
             if (!matchesGenreCodes(
                     content,
                     normalizedGenres
+            )) {
+
+                continue;
+            }
+
+            if (!matchesAgeRatings(
+                    content,
+                    normalizedAgeRatings
             )) {
 
                 continue;
@@ -1704,6 +1770,111 @@ public class SearchContentPageCacheService {
         }
 
         return false;
+    }
+
+
+    /**
+     * 선택된 관람등급 중 하나와 콘텐츠의 관람등급이 일치하는지 확인합니다.
+     * 서로 다른 표기와 공백 차이는 한국식 표준 등급으로 정규화합니다.
+     */
+    private boolean matchesAgeRatings(
+            CachedContentVO content,
+            List<String> ageRatings) {
+
+        if (ageRatings.isEmpty()) {
+            return true;
+        }
+
+        String contentAgeRating =
+                normalizeAgeRating(
+                        content == null
+                                ? null
+                                : content.getAgeRating()
+                );
+
+        return ageRatings.contains(contentAgeRating);
+    }
+
+    private List<String> normalizeAgeRatingList(
+            List<String> sourceList) {
+
+        List<String> result =
+                new ArrayList<String>();
+
+        if (sourceList == null) {
+            return result;
+        }
+
+        for (String value : sourceList) {
+
+            if (value == null
+                    || value.isBlank()) {
+
+                continue;
+            }
+
+            String normalized =
+                    normalizeAgeRating(value);
+
+            if (!normalized.isEmpty()
+                    && !result.contains(normalized)) {
+
+                result.add(normalized);
+            }
+        }
+
+        return result;
+    }
+
+    private String normalizeAgeRating(
+            String value) {
+
+        if (value == null
+                || value.isBlank()) {
+
+            return AGE_UNKNOWN;
+        }
+
+        String normalized =
+                Normalizer.normalize(
+                        value,
+                        Normalizer.Form.NFKC
+                )
+                        .replaceAll("\\s+", "")
+                        .toLowerCase(Locale.ROOT);
+
+        if (normalized.contains("등급정보없음")
+                || normalized.contains("notrated")
+                || normalized.contains("unrated")
+                || "nr".equals(normalized)) {
+
+            return AGE_UNKNOWN;
+        }
+
+        if (normalized.contains("청소년관람불가")
+                || normalized.contains("19세")
+                || normalized.contains("18세")) {
+
+            return AGE_ADULT;
+        }
+
+        if (normalized.contains("15세")) {
+            return AGE_15;
+        }
+
+        if (normalized.contains("12세")) {
+            return AGE_12;
+        }
+
+        if (normalized.contains("7세")) {
+            return AGE_7;
+        }
+
+        if (normalized.contains("전체")) {
+            return AGE_ALL;
+        }
+
+        return value.trim();
     }
 
     private boolean matchesProviders(

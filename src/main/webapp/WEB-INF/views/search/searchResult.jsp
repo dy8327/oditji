@@ -301,17 +301,23 @@
                             </section>
                         </c:when>
 
-                        <%-- 검색어가 없으면 포스터 중심의 발견형 카드로 표시합니다. --%>
-                        <c:when test="${discoveryMode}">
+                        <%--
+                            전체 탭은 검색어와 필터 선택 여부와 관계없이
+                            포스터 중심의 발견형 카드 UI를 유지합니다.
+
+                            실제 카드 데이터는 allContentResults를 사용하므로
+                            검색어와 콘텐츠 필터가 적용된 결과만 표시됩니다.
+                        --%>
+                        <c:otherwise>
                             <div class="search-discovery-content-grid">
                                 <c:forEach var="content" items="${allContentResults}">
-                                    <c:url var="discoveryContentUrl" value="/content/prepare">
+                                    <c:url var="allContentDetailUrl" value="/content/prepare">
                                         <c:param name="tmdbId" value="${content.tmdbId}"/>
                                         <c:param name="contentType" value="${content.contentType}"/>
                                     </c:url>
 
                                     <article class="search-discovery-card">
-                                        <a href="${discoveryContentUrl}">
+                                        <a href="${allContentDetailUrl}">
                                             <div class="search-discovery-poster">
                                                 <c:choose>
                                                     <c:when test="${not empty content.posterPath}">
@@ -353,107 +359,6 @@
                                                         <c:otherwise>공개일 정보 없음</c:otherwise>
                                                     </c:choose>
                                                 </p>
-                                            </div>
-                                        </a>
-                                    </article>
-                                </c:forEach>
-                            </div>
-                        </c:when>
-
-                        <%-- 검색 중에는 정보 확인이 쉬운 가로형 카드로 표시합니다. --%>
-                        <c:otherwise>
-                            <div class="search-content-list search-content-list-preview">
-                                <c:forEach var="content" items="${allContentResults}">
-                                    <c:url var="allContentDetailUrl" value="/content/prepare">
-                                        <c:param name="tmdbId" value="${content.tmdbId}"/>
-                                        <c:param name="contentType" value="${content.contentType}"/>
-                                    </c:url>
-
-                                    <article class="search-content-item">
-                                        <a class="search-content-link" href="${allContentDetailUrl}">
-                                            <div class="search-content-poster">
-                                                <c:choose>
-                                                    <c:when test="${not empty content.posterPath}">
-                                                        <img src="https://image.tmdb.org/t/p/w300${content.posterPath}"
-                                                             alt="<c:out value='${content.title}'/>"
-                                                             loading="lazy">
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <div class="search-content-no-image">NO IMAGE</div>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </div>
-
-                                            <div class="search-content-info">
-                                                <div class="search-content-title-row">
-                                                    <div>
-                                                        <span class="search-content-type-badge">
-                                                            <c:choose>
-                                                                <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
-                                                                <c:otherwise>TV</c:otherwise>
-                                                            </c:choose>
-                                                        </span>
-                                                        <h3 class="search-content-title"><c:out value="${content.title}"/></h3>
-                                                    </div>
-
-                                                    <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
-                                                        <span class="search-content-score">
-                                                            ★ <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
-                                                        </span>
-                                                    </c:if>
-                                                </div>
-
-                                                <div class="search-content-meta">
-                                                    <c:if test="${not empty content.releaseDate}">
-                                                        <span><c:out value="${content.releaseDate}"/></span>
-                                                    </c:if>
-                                                    <c:if test="${not empty content.genreText}">
-                                                        <span><c:out value="${content.genreText}"/></span>
-                                                    </c:if>
-                                                </div>
-
-                                                <c:if test="${not empty content.overview}">
-                                                    <p class="search-content-overview">
-                                                        <c:out value="${content.overview}"/>
-                                                    </p>
-                                                </c:if>
-
-                                                <div class="search-content-bottom-row">
-                                                    <div class="search-content-platform-list">
-                                                        <c:forEach var="platform"
-                                                                   items="${content.platformList}"
-                                                                   varStatus="platformStatus">
-                                                            <c:if test="${platformStatus.index < 4}">
-                                                                <c:choose>
-                                                                    <c:when test="${not empty platform.logoImage}">
-                                                                        <img class="search-content-platform-logo"
-                                                                             src="${platform.logoImage}"
-                                                                             alt="<c:out value='${platform.platformName}'/>"
-                                                                             title="<c:out value='${platform.platformName}'/>"
-                                                                             loading="lazy">
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <span class="search-platform-name">
-                                                                            <c:out value="${platform.platformName}"/>
-                                                                        </span>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </c:if>
-                                                        </c:forEach>
-
-                                                        <c:if test="${content.platformList.size() > 4}">
-                                                            <span class="search-platform-more">
-                                                                +${content.platformList.size() - 4}
-                                                            </span>
-                                                        </c:if>
-                                                    </div>
-
-                                                    <span class="search-detail-label">상세보기 →</span>
-                                                </div>
                                             </div>
                                         </a>
                                     </article>

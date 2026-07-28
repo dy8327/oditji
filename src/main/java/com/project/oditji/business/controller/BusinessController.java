@@ -217,12 +217,30 @@ public class BusinessController {
                 }
         }
 
-        /* 콘텐츠 검색 팝업 화면 */
+        /*
+         * 콘텐츠 검색 팝업 화면
+         *
+         * mode=register: JSONL 공용 저장소 검색
+         * 그 외: 기존 DB CONTENT 검색
+         */
         @GetMapping("/content/search")
-        public String contentSearch(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
-                List<ContentSearchVO> contentList = businessService.getContentList(keyword);
+        public String contentSearch(
+                        @RequestParam(value = "keyword", required = false) String keyword,
+                        @RequestParam(value = "mode", required = false, defaultValue = "database") String mode,
+                        Model model) {
+
+                boolean registerMode =
+                                "register".equalsIgnoreCase(mode);
+
+                List<ContentSearchVO> contentList =
+                                registerMode
+                                                ? businessService.getCachedContentList(keyword)
+                                                : businessService.getContentList(keyword);
 
                 model.addAttribute("keyword", keyword);
+                model.addAttribute("mode", registerMode
+                                ? "register"
+                                : "database");
                 model.addAttribute("contentList", contentList);
 
                 return "business/goods/contentSearch";
@@ -247,6 +265,30 @@ public class BusinessController {
                 }
 
                 return contentList;
+        }
+
+        /*
+         * =========================================================
+         * JSONL 콘텐츠의 배우 미리보기 JSON API
+         *
+         * 콘텐츠 선택 단계에서는 DB에 저장하지 않고 TMDB 정보만 반환합니다.
+         * 실제 ACTOR/CONTENT_ACTOR 저장은 상품 등록 요청 시 수행됩니다.
+         * =========================================================
+         */
+        @GetMapping("/api/content/actor-preview")
+        @ResponseBody
+        public List<ActorSearchVO> contentActorPreviewApi(
+                        @RequestParam("tmdbId") Long tmdbId,
+                        @RequestParam("contentType") String contentType) {
+
+                List<ActorSearchVO> actorList =
+                                businessService.getActorPreview(
+                                                tmdbId,
+                                                contentType);
+
+                return actorList == null
+                                ? Collections.emptyList()
+                                : actorList;
         }
 
         /*

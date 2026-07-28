@@ -30,6 +30,12 @@
     flex: 1;
 }
 
+.content-search-guide {
+    margin: -10px 0 20px;
+    color: #777777;
+    font-size: 13px;
+}
+
 .content-search-table {
     width: 100%;
     border-collapse: collapse;
@@ -72,19 +78,50 @@
 <script>
 function chooseContent(button) {
 
-    const contentNo =
-            button.dataset.contentNo;
-
-    const title =
-            button.dataset.title;
+    const mode = button.dataset.mode;
+    const title = button.dataset.title;
 
     if (!window.opener
             || window.opener.closed) {
 
-        alert(
-            "상품 등록 화면을 찾을 수 없습니다."
+        alert("상품 등록 또는 수정 화면을 찾을 수 없습니다.");
+        return;
+    }
+
+    /*
+     * 상품 등록 화면은 JSONL의 TMDB 식별값을 전달합니다.
+     * 이 단계에서는 CONTENT 테이블에 저장하지 않습니다.
+     */
+    if (mode === "register") {
+
+        const tmdbId = Number(button.dataset.tmdbId);
+        const contentType = button.dataset.contentType;
+
+        if (!Number.isFinite(tmdbId)
+                || tmdbId <= 0
+                || !contentType) {
+
+            alert("올바른 콘텐츠 정보가 아닙니다.");
+            return;
+        }
+
+        window.opener.selectCachedContent(
+            tmdbId,
+            contentType,
+            title
         );
 
+        window.close();
+        return;
+    }
+
+    /* 상품 수정 화면은 기존 CONTENT_NO 방식을 유지합니다. */
+    const contentNo = Number(button.dataset.contentNo);
+
+    if (!Number.isFinite(contentNo)
+            || contentNo <= 0) {
+
+        alert("올바른 콘텐츠 번호가 아닙니다.");
         return;
     }
 
@@ -107,14 +144,21 @@ function chooseContent(button) {
         관련 콘텐츠 검색
     </h1>
 
+    <c:if test="${mode == 'register'}">
+        <p class="content-search-guide">
+            JSONL 공용 콘텐츠 저장소에서 검색합니다.
+            선택한 콘텐츠는 상품 등록 요청 시 DB에 저장됩니다.
+        </p>
+    </c:if>
+
     <form class="content-search-form"
           action="${pageContext.request.contextPath}/business/content/search"
           method="get">
 
-        <%--
-            콘텐츠 검색 input에 고유 id를 부여하고 label의 for와 연결한다.
-            label은 화면에는 표시하지 않지만 스크린 리더에는 전달된다.
-        --%>
+        <input type="hidden"
+               name="mode"
+               value="<c:out value='${mode}'/>">
+
         <label for="contentKeyword"
                style="position:absolute;
                       width:1px;
@@ -147,7 +191,14 @@ function chooseContent(button) {
         <c:when test="${empty contentList}">
 
             <div class="empty-result">
-                검색된 콘텐츠가 없습니다.
+                <c:choose>
+                    <c:when test="${mode == 'register' and empty keyword}">
+                        작품명을 입력하면 JSONL 콘텐츠를 검색합니다.
+                    </c:when>
+                    <c:otherwise>
+                        검색된 콘텐츠가 없습니다.
+                    </c:otherwise>
+                </c:choose>
             </div>
 
         </c:when>
@@ -225,7 +276,10 @@ function chooseContent(button) {
 
                                 <button class="btn btn-primary"
                                         type="button"
+                                        data-mode="<c:out value='${mode}'/>"
                                         data-content-no="${content.contentNo}"
+                                        data-tmdb-id="${content.tmdbId}"
+                                        data-content-type="<c:out value='${content.contentType}'/>"
                                         data-title="<c:out value='${content.title}'/>"
                                         onclick="chooseContent(this);">
                                     선택
