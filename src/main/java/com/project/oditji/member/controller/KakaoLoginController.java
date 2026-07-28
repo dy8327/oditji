@@ -118,8 +118,7 @@ public class KakaoLoginController {
             return "redirect:/member/login";
 
         } catch (IllegalStateException e) {
-
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "카카오 로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/member/login";
         }
     }

@@ -60,20 +60,13 @@ public class GoogleLoginController {
 
             String state = UUID.randomUUID().toString();
 
-            session.setAttribute(
-                    GOOGLE_OAUTH_STATE,
-                    state);
+            session.setAttribute(GOOGLE_OAUTH_STATE, state);
 
-            return "redirect:"
-                    + googleLoginService.getGoogleLoginUrl(state);
+            return "redirect:" + googleLoginService.getGoogleLoginUrl(state);
 
-        } catch (IllegalStateException e) {
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage());
-
-            return "redirect:/member/login";
+        } catch (IllegalStateException ignored) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 준비 중 오류가 발생했습니다.");
+        return "redirect:/member/login";
         }
     }
 
@@ -224,13 +217,9 @@ public class GoogleLoginController {
 
             return "redirect:/member/login";
 
-        } catch (IllegalStateException e) {
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage());
-
-            return "redirect:/member/login";
+        } catch (IllegalStateException ignored) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 처리 중 오류가 발생했습니다.");
+        return "redirect:/member/login";
         }
     }
 

@@ -15,6 +15,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.client.RestClientResponseException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
@@ -35,6 +39,7 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
     private final MemberDAO memberDAO;
     private final MemberSocialDAO memberSocialDAO;
     private final RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(KakaoLoginServiceImpl.class);
 
     @Value("${kakao.client-id}")
     private String kakaoClientId;
@@ -132,15 +137,18 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
         HttpEntity<MultiValueMap<String, String>> request =
                 new HttpEntity<>(params, headers);
 
-        ResponseEntity<KakaoTokenVO> response = restTemplate.exchange(
-                tokenUrl,
-                HttpMethod.POST,
-                request,
-                KakaoTokenVO.class
-        );
+        ResponseEntity<KakaoTokenVO> response;
+
+            try {
+                response = restTemplate.exchange(tokenUrl, HttpMethod.POST, request, KakaoTokenVO.class);
+            } catch (RestClientResponseException e) {
+                if (log.isErrorEnabled()) {
+                    log.error("카카오 토큰 발급 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+                }
+                throw new IllegalStateException("카카오 로그인 인증에 실패했습니다.", e);
+            }
 
         KakaoTokenVO token = response.getBody();
-
         if (token == null || token.getAccessToken() == null) {
             throw new IllegalStateException("카카오 access_token 발급에 실패했습니다.");
         }
@@ -159,8 +167,16 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
                 .headers(headers)
                 .build();
 
-        ResponseEntity<KakaoUserInfoVO> response =
-                restTemplate.exchange(request, KakaoUserInfoVO.class);
+        ResponseEntity<KakaoUserInfoVO> response;
+
+            try {
+                response = restTemplate.exchange(request, KakaoUserInfoVO.class);
+            } catch (RestClientResponseException e) {
+                if (log.isErrorEnabled()) {
+                    log.error("카카오 사용자 정보 조회 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+                }
+                throw new IllegalStateException("카카오 사용자 정보 조회에 실패했습니다.", e);
+            }
 
         KakaoUserInfoVO kakaoUser = response.getBody();
 
