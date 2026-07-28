@@ -114,6 +114,14 @@ public class AdminServiceImpl implements AdminService {
         return param;
     }
 
+    /** keyword + searchType만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. (memberSearchParam의 축소판) */
+    private Map<String, Object> keywordSearchTypeParam(String keyword, String searchType) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("keyword", keyword);
+        param.put("searchType", searchType);
+        return param;
+    }
+
     private Map<String, Object> memberSearchParam(String keyword, String searchType, String status, String memberType) {
         Map<String, Object> param = new HashMap<>();
         param.put("keyword", keyword);
@@ -237,8 +245,9 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 콘텐츠 리뷰 관리 =====================
 
     @Override
-    public List<ReviewManageVO> getContentReviewList(String tab, String keyword, int page, int pageSize) {
-        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
+    public List<ReviewManageVO> getContentReviewList(String tab, String keyword, String searchType, int page,
+            int pageSize) {
+        Map<String, Object> param = withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize);
         if ("report".equals(tab)) {
             return adminDAO.selectContentReviewReportList(param);
         }
@@ -246,11 +255,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public int getContentReviewListCount(String tab, String keyword) {
+    public int getContentReviewListCount(String tab, String keyword, String searchType) {
         if ("report".equals(tab)) {
-            return adminDAO.selectContentReviewReportListCount(keywordParam(keyword));
+            return adminDAO.selectContentReviewReportListCount(keywordSearchTypeParam(keyword, searchType));
         }
-        return adminDAO.selectContentReviewListCount(keywordParam(keyword));
+        return adminDAO.selectContentReviewListCount(keywordSearchTypeParam(keyword, searchType));
     }
 
     @Override
@@ -332,8 +341,9 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 상품 리뷰 관리 =====================
 
     @Override
-    public List<ReviewManageVO> getProductReviewList(String tab, String keyword, int page, int pageSize) {
-        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
+    public List<ReviewManageVO> getProductReviewList(String tab, String keyword, String searchType, int page,
+            int pageSize) {
+        Map<String, Object> param = withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize);
         if ("report".equals(tab)) {
             return adminDAO.selectProductReviewReportList(param);
         }
@@ -341,11 +351,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public int getProductReviewListCount(String tab, String keyword) {
+    public int getProductReviewListCount(String tab, String keyword, String searchType) {
         if ("report".equals(tab)) {
-            return adminDAO.selectProductReviewReportListCount(keywordParam(keyword));
+            return adminDAO.selectProductReviewReportListCount(keywordSearchTypeParam(keyword, searchType));
         }
-        return adminDAO.selectProductReviewListCount(keywordParam(keyword));
+        return adminDAO.selectProductReviewListCount(keywordSearchTypeParam(keyword, searchType));
     }
 
     @Override
@@ -509,15 +519,16 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 상품 관리 =====================
 
     @Override
-    public List<ProductManageVO> getProductRequestList(String tab, String keyword, int page, int pageSize) {
-        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
+    public List<ProductManageVO> getProductRequestList(String tab, String keyword, String searchType, int page,
+            int pageSize) {
+        Map<String, Object> param = withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize);
         param.put("tab", tab);
         return adminDAO.selectProductRequestList(param);
     }
 
     @Override
-    public int getProductRequestListCount(String tab, String keyword) {
-        Map<String, Object> param = keywordParam(keyword);
+    public int getProductRequestListCount(String tab, String keyword, String searchType) {
+        Map<String, Object> param = keywordSearchTypeParam(keyword, searchType);
         param.put("tab", tab);
         return adminDAO.selectProductRequestListCount(param);
     }
@@ -654,23 +665,25 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 사업자 관리 =====================
 
     @Override
-    public List<BusinessManageVO> getBusinessList(String keyword, int page, int pageSize) {
-        return adminDAO.selectBusinessList(withPaging(keywordParam(keyword), page, pageSize));
+    public List<BusinessManageVO> getBusinessList(String keyword, String searchType, int page, int pageSize) {
+        return adminDAO.selectBusinessList(withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize));
     }
 
     @Override
-    public int getBusinessListCount(String keyword) {
-        return adminDAO.selectBusinessListCount(keywordParam(keyword));
+    public int getBusinessListCount(String keyword, String searchType) {
+        return adminDAO.selectBusinessListCount(keywordSearchTypeParam(keyword, searchType));
     }
 
     @Override
-    public List<BusinessManageVO> getBusinessApprovalList(String keyword, int page, int pageSize) {
-        return adminDAO.selectBusinessApprovalList(withPaging(keywordParam(keyword), page, pageSize));
+    public List<BusinessManageVO> getBusinessApprovalList(String keyword, String searchType, int page,
+            int pageSize) {
+        return adminDAO.selectBusinessApprovalList(
+                withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize));
     }
 
     @Override
-    public int getBusinessApprovalListCount(String keyword) {
-        return adminDAO.selectBusinessApprovalListCount(keywordParam(keyword));
+    public int getBusinessApprovalListCount(String keyword, String searchType) {
+        return adminDAO.selectBusinessApprovalListCount(keywordSearchTypeParam(keyword, searchType));
     }
 
     @Override
@@ -696,17 +709,20 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 정산 관리 =====================
 
     @Override
-    public List<SettlementManageVO> getSettlementList(String keyword, String status, int page, int pageSize) {
+    public List<SettlementManageVO> getSettlementList(String keyword, String status, String period, int page,
+            int pageSize) {
         Map<String, Object> param = keywordParam(keyword);
         param.put("status", status);
+        param.put("period", period);
         withPaging(param, page, pageSize);
         return adminDAO.selectSettlementList(param);
     }
 
     @Override
-    public int getSettlementListCount(String keyword, String status) {
+    public int getSettlementListCount(String keyword, String status, String period) {
         Map<String, Object> param = keywordParam(keyword);
         param.put("status", status);
+        param.put("period", period);
         return adminDAO.selectSettlementListCount(param);
     }
 

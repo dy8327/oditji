@@ -20,6 +20,7 @@ public class ReviewManageVO {
     private String content;
     private String status;         // 콘텐츠 리뷰에만 존재 (ACTIVE/HIDDEN/DELETED)
     private Long reportCount;       // REVIEW_REPORT 집계 (신고 탭에서만 사용)
+    private String reportReason;    // REVIEW_REPORT 사유 (신고 탭에서만 사용)
     private Date createdAt;
 
     public Long getReviewNo() {
@@ -108,6 +109,14 @@ public class ReviewManageVO {
 
     public void setReportCount(Long reportCount) {
         this.reportCount = reportCount;
+    }
+
+    public String getReportReason() {
+        return reportReason;
+    }
+
+    public void setReportReason(String reportReason) {
+        this.reportReason = reportReason;
     }
 
     public Date getCreatedAt() {

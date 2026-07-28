@@ -24,6 +24,13 @@
 
   /* ---- Accent / Status ---- */
   --adm-point: var(--color-point, #5ea3ff);
+  /* [수정] --adm-point는 테두리·링크·포커스링 등 "강조선" 용도로는 대비가 충분하지만,
+     흰 글자를 그 위에 얹는 "꽉 찬 배경"(버튼/뱃지/active 탭·페이지네이션)에서는
+     흰색 텍스트와의 대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
+     이런 채워진 배경 전용으로 더 진한 톤을 별도로 둔다. (대비 약 4.6:1) */
+  --adm-point-strong: #2f6fe4;
+  --adm-point-strong-hover: #2559c4;
+  --adm-point-bg: rgba(94, 163, 255, 0.15);
   --adm-success: #4ade80;
   --adm-success-bg: rgba(74, 222, 128, 0.12);
   --adm-warning: #facc15;
@@ -105,11 +112,18 @@
 
 .admin-wrap .menu-group a {
   display: block;
-  padding: 11px 14px;
+  margin-bottom: 2px;
+  padding: 11px 16px;
   border-left: 3px solid transparent;
   border-radius: var(--adm-radius-sm);
   font-size: 14px;
-  color: var(--adm-text-sub);
+  letter-spacing: 0.1px;
+  /*
+   * [수정] 평소 상태 색(--adm-text-sub, #c5c8ce)이 흰색에 가까워 선택된
+   * 메뉴(--adm-text, #fff)와 거의 구분이 안 됐다. 비활성 메뉴를 더 낮춰
+   * 지금 어디에 있는지 한눈에 보이게 한다.
+   */
+  color: var(--adm-text-dim);
   transition: var(--adm-transition);
 }
 
@@ -151,6 +165,7 @@
   margin-bottom: 12px;
   font-size: 28px;
   font-weight: 700;
+  letter-spacing: -0.3px;
   color: var(--adm-text);
 }
 
@@ -233,6 +248,7 @@
 
   font-size: 26px;
   font-weight: 700;
+  letter-spacing: -0.3px;
 
   color: var(--adm-text);
 }
@@ -246,12 +262,26 @@
   margin-bottom: 28px;
 }
 
+/*
+ * [수정] .stat-card 기본 배경(--adm-surface-2, #181818)이 .admin-wrap
+ * 페이지 배경과 완전히 같은 색이었다. .admin-hero(surface-1) 안에서 쓰일 때는
+ * 문제 없지만, member-stat-grid는 페이지 배경 위에 바로 놓여서 카드가
+ * 테두리 1px 말고는 안 보였다. 회원/상품/이벤트/정산/업체/리뷰/주문 관리 등
+ * 8개 목록 페이지 전부 상단에 쓰이는 요소라 영향이 컸던 부분.
+ */
+.admin-wrap .member-stat-grid .stat-card {
+  background: var(--adm-surface-1);
+}
+
 /* 처리 결과 안내 (정지/복구/삭제 등 redirect 후 flash message) */
 .admin-wrap .admin-flash-message {
   padding: 14px 18px;
   margin-bottom: 20px;
 
-  background: var(--adm-surface-2);
+  /* [수정] 위와 같은 이유로 페이지 배경과 같은 색이라 눈에 안 띄었다.
+     정지/복구/삭제 등 처리 직후 결과를 알려주는 중요한 메시지라 더 눈에
+     띄어야 하므로 한 단계 밝은 톤으로 분리한다. */
+  background: var(--adm-surface-1);
   border: 1px solid var(--adm-border);
   border-left: 3px solid var(--adm-point);
   border-radius: var(--adm-radius-sm);
@@ -279,13 +309,16 @@
   align-items: center;
   flex-wrap: wrap;
 
-  gap: 10px;
+  /* [수정] 10px는 필터 셀렉트·검색창·검색 버튼이 서로 거의 붙어 보였다.
+     요소 각각이 독립된 컨트롤로 보이도록 여백을 넓힌다. */
+  gap: 12px;
 
   width: 100%;
 }
 
 /* 상태 / 검색기준 필터 드롭다운. 검색어 입력창(.page-search)과 달리 폭을 고정하지 않는다 */
 .admin-wrap .filter-select {
+  min-width: 130px;
   padding: 12px 14px;
 
   background: var(--adm-surface-2);
@@ -294,6 +327,7 @@
   border-radius: var(--adm-radius-sm);
 
   color: var(--adm-text);
+  font-size: 14px;
   cursor: pointer;
   transition: var(--adm-transition);
 }
@@ -319,7 +353,14 @@
   border-radius: var(--adm-radius-sm);
 
   color: var(--adm-text);
+  font-size: 14px;
   transition: var(--adm-transition);
+}
+
+.admin-wrap .page-search::placeholder {
+  /* [수정] placeholder가 지정 색 없이 브라우저 기본값(거의 흰색)을 따라가
+     입력값과 구분이 안 됐다. 힌트 텍스트임을 알 수 있게 낮춘다. */
+  color: var(--adm-text-dim);
 }
 
 .admin-wrap .page-search:focus {
@@ -341,36 +382,55 @@
 
   justify-content: center;
   align-items: center;
+  gap: 6px;
 
-  padding: 10px 18px;
+  padding: 10px 20px;
 
   border: 1px solid transparent;
   border-radius: var(--adm-radius-sm);
 
   font-size: 14px;
+  font-weight: 600;
+  /* [수정] 표 안 작은 버튼("내용보기", "리뷰 삭제" 등)들이 글자가 다닥다닥 붙어
+     보여 답답한 느낌이었다. 살짝의 자간으로 가독성과 여백감을 더한다. */
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 
   cursor: pointer;
   transition: var(--adm-transition);
 }
 
 .btn-primary {
-  background: var(--adm-point);
+  /*
+   * [수정] 기존에는 --adm-point(#5ea3ff) 위에 흰 글자를 올려 대비가 약 2.6:1로
+   * 낮았다. 버튼처럼 채워진 배경에서는 --adm-point-strong을 사용해 대비를
+   * 4.6:1 이상으로 끌어올린다. --adm-point 자체는 테두리/링크 등에서 계속 사용한다.
+   */
+  background: var(--adm-point-strong);
   color: #fff;
 
-  box-shadow: 0 4px 12px rgba(94, 163, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(47, 111, 228, 0.3);
 }
 
 .btn-primary:hover {
-  background: #7bb5ff;
+  /* 기존에는 hover 시 더 밝은 파랑(#7bb5ff)으로 바뀌어 대비가 더 나빠졌다.
+     대비를 지키면서 눌림 피드백을 주기 위해 더 어둡게 바꾼다. */
+  background: var(--adm-point-strong-hover);
 }
 
 .btn-dark {
-  background: var(--adm-surface-1);
+  /*
+   * [수정] "검색" 버튼 등에 쓰이는데, 대부분 admin-content-box(surface-1) 안에
+   * 놓여서 배경색이 패널과 완전히 같았다. 테두리 1px만으로 버튼임을 알아채야
+   * 했던 문제라 패널보다 한 단계 어두운 톤으로 분리해 버튼임이 바로 보이게 한다.
+   */
+  background: var(--adm-surface-2);
   border-color: var(--adm-border);
   color: var(--adm-text);
 }
 
 .btn-dark:hover {
+  background: var(--adm-surface-3);
   border-color: var(--adm-point);
 }
 
@@ -453,19 +513,27 @@
   cursor: not-allowed;
 }
 
-.admin-wrap .data-table {
+/*
+ * [수정] 기존에는 .data-table 관련 스타일이 .admin-wrap 안에서만 적용됐다.
+ * 그런데 이벤트 상세 팝업(적용 상품 표)처럼 .modal-overlay가 .admin-wrap의
+ * 형제(sibling)로 렌더링되는 곳에서 쓰이는 .data-table에는 이 스타일이
+ * 전혀 먹지 않아, 테두리·패딩·색상 없이 브라우저 기본 표 모양(굵은 흰 글자,
+ * 좁은 간격)으로만 보였다. .data-table은 admin-wrap 안팎에서 공통으로 쓰는
+ * 컴포넌트이므로 스코프를 없애 어디서든 동일하게 적용되게 한다.
+ */
+.data-table {
   width: 100%;
   margin-top: 20px;
 
   border-collapse: collapse;
 }
 
-.admin-wrap .data-table th.checkbox-col,
-.admin-wrap .data-table td.checkbox-col {
+.data-table th.checkbox-col,
+.data-table td.checkbox-col {
   width: 44px;
 }
 
-.admin-wrap .data-table input[type="checkbox"] {
+.data-table input[type="checkbox"] {
   width: 16px;
   height: 16px;
 
@@ -473,8 +541,8 @@
   cursor: pointer;
 }
 
-.admin-wrap .data-table th,
-.admin-wrap .data-table td {
+.data-table th,
+.data-table td {
   padding: 16px;
 
   text-align: center;
@@ -482,16 +550,24 @@
   border-bottom: 1px solid var(--adm-border);
 }
 
-.admin-wrap .data-table th {
+.data-table th {
   color: var(--adm-text-dim);
 
-  font-size: 14px;
+  /*
+   * [수정] 헤더가 본문(td, 14px)과 크기가 같고 밝기 차이도 크지 않아
+   * "표 전체가 다 흰 글자"처럼 보이는 원인 중 하나였다. 헤더는 한 단계 작게,
+   * 자간을 넓혀 라벨(제목행)임을 시각적으로 분리한다.
+   */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.admin-wrap .data-table td {
+.data-table td {
   color: var(--adm-text-sub);
 
   font-size: 14px;
+  letter-spacing: 0.1px;
 }
 
 /*
@@ -513,7 +589,7 @@
   word-break: break-word;
 }
 
-.admin-wrap .data-table tbody tr:hover {
+.data-table tbody tr:hover {
   background: var(--adm-surface-2);
 }
 
@@ -528,13 +604,17 @@
   justify-content: center;
   align-items: center;
 
-  min-width: 70px;
+  min-width: 76px;
 
-  padding: 6px 12px;
+  padding: 6px 14px;
 
   border-radius: var(--adm-radius-pill);
 
   font-size: 13px;
+  font-weight: 600;
+  /* [수정] 뱃지 안 글자가 배경색만 있고 자간이 없어 밋밋했다.
+     살짝의 자간으로 알약(pill) 형태 안에서 글자가 또렷하게 보이게 한다. */
+  letter-spacing: 0.3px;
 }
 
 .admin-wrap .status.ok,
@@ -556,32 +636,50 @@
   background: var(--adm-danger-bg);
 }
 
-/* 종료(END)는 반려(REJECTED)와 의미가 다르므로 빨간색 대신 중립 색상을 쓴다 */
+/*
+ * 종료(END)는 반려(REJECTED)와 의미가 다르므로 빨간색 대신 중립 색상을 쓴다.
+ * [수정] 배경을 --adm-surface-3(#101012, 거의 검정)로 뒀더니 승인/대기/반려가
+ * 전부 "연한 색 틴트" 배경인 것과 달리 이 뱃지만 딱딱한 검은 칩처럼 튀어
+ * 보였다. 같은 톤(연한 반투명 배경)으로 맞추되 색상만 무채색으로 유지한다.
+ */
 .admin-wrap .status.end,
 .admin-wrap .status-end {
   color: var(--adm-text-dim);
-  background: var(--adm-surface-3);
+  background: var(--adm-border-soft);
 }
 
 .admin-wrap .badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  /* [수정] 4px 10px는 .status 계열 뱃지보다 눈에 띄게 작아서 같은 화면 안에서
+     뱃지 크기가 들쭉날쭉해 보였다. .status와 톤을 맞추되 살짝 더 작은
+     "보조 뱃지" 크기로 통일한다. */
+  padding: 5px 11px;
+  border-radius: var(--adm-radius-pill);
   font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
+/*
+ * [수정] badge-blue/yellow가 각각 --adm-point 원색, #f59e0b 하드코딩 색을
+ * 흰 글자와 함께 꽉 채운 배경으로 써서 대비가 낮고(약 2.1~2.6:1), 위쪽의
+ * .status(ok/waiting/reject) 뱃지와 톤도 어긋났다. 같은 의미(진행중/대기/기본)를
+ * 나타내는 .status 뱃지와 동일하게 "연한 배경 + 진한 글자" 톤으로 통일해
+ * 대비도 확보하고 관리자 화면 전체의 뱃지 톤을 맞춘다.
+ */
 .admin-wrap .badge-blue {
-  background-color: var(--adm-point);
-  color: #fff;
+  background-color: var(--adm-point-bg);
+  color: var(--adm-point);
 }
 .admin-wrap .badge-gray {
-  background-color: var(--adm-border);
+  background-color: var(--adm-border-soft);
   color: var(--adm-text-dim);
 }
 .admin-wrap .badge-yellow {
-  background-color: #f59e0b;
-  color: #fff;
+  background-color: var(--adm-warning-bg);
+  color: var(--adm-warning);
 }
 
 /* =====================================================
@@ -599,19 +697,21 @@
 
 .admin-wrap .tab-menu a,
 .admin-wrap .tab-menu button {
-  padding: 8px 16px;
+  padding: 9px 18px;
   color: var(--adm-text-dim);
   background: transparent;
   border: none;
   border-radius: var(--adm-radius-sm);
   font-size: 14px;
+  letter-spacing: 0.1px;
   cursor: pointer;
   transition: var(--adm-transition);
 }
 
 .admin-wrap .tab-menu a.active,
 .admin-wrap .tab-menu button.active {
-  background: var(--adm-point);
+  /* [수정] --adm-point 원색은 흰 글자와 대비가 낮아 --adm-point-strong으로 교체 */
+  background: var(--adm-point-strong);
   color: #fff;
   font-weight: 700;
 }
@@ -692,8 +792,17 @@
   font-size: 13px;
 }
 
+/*
+ * [수정] item-actions는 원래 카드형 리스트(.item-card)용으로 만든 버튼 묶음인데,
+ * 실제로는 회원/정산/리뷰/주문 관리의 표(.data-table) "관리" 컬럼 안에서만 쓰이고
+ * 있다. display:flex는 블록 레벨이라 셀(td) 전체 폭을 차지하고, 자식 버튼은
+ * 기본값(justify-content:flex-start)대로 왼쪽에 붙어버려 "관리" 컬럼이 넓을수록
+ * 버튼 묶음이 왼쪽으로 쏠려 보였다. inline-flex로 바꿔 내용 폭만큼만 차지하게
+ * 하면 td의 text-align:center에 의해 컬럼 안에서 항상 가운데 정렬된다.
+ */
 .admin-wrap .item-actions {
-  display: flex;
+  display: inline-flex;
+  justify-content: center;
   gap: 10px;
   flex-shrink: 0;
 }
@@ -771,8 +880,11 @@
 
 /* 회원/사업자 등급 변경 선택 목록 */
 .grade-select-box {
+  /* [수정] modal-box 배경(adm-surface-1 상당)과 거의 같은 톤이라 팝업 안에서
+     패널이 구분되지 않았다. .thumb과 같은 "눌린(inset) 표면" 톤(adm-surface-3)으로
+     바꿔 모달 배경과 뚜렷하게 구분되는 패널로 보이게 한다. */
   padding: 18px;
-  background: var(--adm-surface-2);
+  background: var(--adm-surface-3);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-sm);
 }
@@ -787,23 +899,90 @@
 .grade-option-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
+/*
+ * [수정] 라디오 버튼 + 텍스트만 나열돼 있어 팝업에서 가장 허전해 보이는
+ * 영역이었다. 옵션 하나하나를 카드형 행으로 감싸고, hover/선택 상태를
+ * 명확히 구분해 실제로 "고를 수 있는 목록"처럼 보이게 한다.
+ */
 .grade-option-list label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--adm-text);
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text-sub);
   font-size: 14px;
   cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.grade-option-list label:hover {
+  border-color: var(--adm-point);
+  color: var(--adm-text);
+}
+
+.grade-option-list input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--adm-point);
+  cursor: pointer;
+}
+
+/* 현재 선택된 등급 행을 배경/테두리/굵기로 뚜렷하게 강조한다 */
+.grade-option-list label:has(input:checked) {
+  background: var(--adm-point-bg);
+  border-color: var(--adm-point);
+  color: var(--adm-text);
+  font-weight: 700;
+}
+
+/*
+ * 등급명 앞에 등급을 상징하는 색상 점을 붙여 목록에 생기를 준다.
+ * (JSP의 <span class="grade-dot grade-dot-*">가 라디오와 텍스트 사이에 위치)
+ */
+.grade-dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.grade-dot-bronze {
+  background: #c98a4b;
+}
+
+.grade-dot-silver {
+  background: #b9c1cc;
+}
+
+.grade-dot-gold {
+  background: var(--adm-warning);
+}
+
+.grade-dot-platinum {
+  background: var(--adm-point);
+}
+
+.grade-dot-vip {
+  background: #b083f0;
 }
 
 /* 대상 정보 요약 (팝업 상단) */
 .target-info-box {
+  /* [수정] modal-box 배경과 톤이 거의 같아 패널이 눈에 안 띄었다.
+     grade-select-box와 같은 눌린 표면 톤(adm-surface-3)으로 통일. */
   margin-bottom: 20px;
-  padding: 16px 18px;
-  background: var(--adm-surface-2);
+  padding: 18px 20px;
+  background: var(--adm-surface-3);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-sm);
 }
@@ -811,9 +990,23 @@
 .target-info-box p {
   display: flex;
   justify-content: space-between;
-  padding: 6px 0;
+  align-items: center;
+
+  /* [수정] 6px → 10px: 항목 사이 간격이 좁아 촘촘해 보이던 것을 넓힘 */
+  padding: 10px 0;
   font-size: 14px;
-  color: var(--adm-text-sub);
+
+  /*
+   * [수정] 라벨(span)이 값(strong, --adm-text 흰색)과 거의 구분되지 않는
+   * --adm-text-sub(#c5c8ce, 흰색에 가까움)였다. 더 어두운 --adm-text-dim으로
+   * 낮춰 "라벨은 흐리게, 값은 또렷하게" 위계를 분명히 한다.
+   */
+  color: var(--adm-text-dim);
+}
+
+/* 항목 사이를 옅은 구분선으로 나눠 표처럼 읽히게 한다 */
+.target-info-box p + p {
+  border-top: 1px solid var(--adm-border-soft);
 }
 
 .target-info-box p strong {
@@ -831,7 +1024,9 @@
 
   padding: 14px 16px;
 
-  background: var(--adm-surface-2);
+  /* [수정] modal-box와 거의 같은 톤(adm-surface-2)이라 패널이 묻혀 보였다.
+     같은 성격의 target-info-box/grade-select-box와 통일해 눌린 표면 톤으로 변경 */
+  background: var(--adm-surface-3);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-sm);
 
@@ -841,6 +1036,74 @@
 
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/*
+ * 신고 사유 목록(reviewReportReasonBody). 서버에서 "사유 - 상세내용"이
+ * " / "로 이어붙여 내려오는 문자열을 신고 1건 단위로 나눠, 뱃지(사유)와
+ * 상세내용을 하나의 카드 안에 함께 담는다. 신고가 여러 건이어도 어느
+ * 뱃지가 어느 내용인지 카드 단위로 명확히 짝지어 보이고, 뱃지는 카드
+ * 좌상단에 붙여 라벨처럼 읽히게 한다.
+ */
+.report-reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.report-reason-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+
+  padding: 12px 14px;
+
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+}
+
+.report-reason-tag {
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 10px;
+
+  border-radius: var(--adm-radius-pill);
+
+  background-color: var(--adm-warning-bg);
+  color: var(--adm-warning);
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.report-reason-detail {
+  width: 100%;
+
+  color: var(--adm-text);
+  font-size: 14px;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.report-reason-detail:empty::before {
+  content: '상세 내용 없음';
+  color: var(--adm-text-dim);
+}
+
+.report-reason-empty {
+  color: var(--adm-text-dim);
+  font-size: 14px;
 }
 
 /* =====================================================
@@ -873,7 +1136,12 @@
 
   border-radius: 8px;
 
-  background: var(--adm-surface-1);
+  /*
+   * [수정] admin-content-box(surface-1) 안에 놓이는데 평소 배경이 같은
+   * surface-1이라 hover 하기 전까지는 버튼 칩처럼 안 보였다. 한 단계
+   * 어두운 톤으로 분리해 평소에도 버튼임이 보이게 한다.
+   */
+  background: var(--adm-surface-2);
 
   border: 1px solid transparent;
 
@@ -896,7 +1164,8 @@
    ===================================================== */
 
 .admin-wrap .pagination a:hover {
-  background: var(--adm-surface-2);
+  /* 평소 상태가 surface-2로 바뀌어서 hover는 그보다 한 단계 더 진한 톤으로 */
+  background: var(--adm-surface-3);
 
   border-color: rgba(255, 255, 255, 0.08);
 
@@ -910,9 +1179,10 @@
    ===================================================== */
 
 .admin-wrap .pagination a.active {
-  background: var(--adm-point);
+  /* [수정] --adm-point 원색은 흰 글자와 대비가 낮아 --adm-point-strong으로 교체 */
+  background: var(--adm-point-strong);
 
-  border-color: var(--adm-point);
+  border-color: var(--adm-point-strong);
 
   color: #fff;
 
@@ -945,7 +1215,7 @@
 .admin-wrap .pagination a:nth-child(2):hover,
 .admin-wrap .pagination a:nth-last-child(1):hover,
 .admin-wrap .pagination a:nth-last-child(2):hover {
-  background: var(--adm-surface-1);
+  background: var(--adm-surface-2);
 
   color: var(--adm-point);
 }
@@ -1016,6 +1286,7 @@
 .modal-header h3 {
   font-size: 20px;
   font-weight: 700;
+  letter-spacing: -0.2px;
   color: var(--color-white, #fff);
 }
 
@@ -1061,7 +1332,7 @@
 
 .modal-footer {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 26px;
 }
 
@@ -1080,10 +1351,27 @@
 
 /* 모달 안에서 "이벤트 정보", "적용 상품"처럼 표/박스 위에 붙는 소제목 */
 .detail-section-title {
-  margin-bottom: 12px;
+  /*
+   * [수정] 라벨과 같은 --adm-text-sub 톤이라 소제목과 본문 라벨의 위계가
+   * 구분되지 않았다. 포인트 컬러 마커 + 밝은 텍스트로 "이 아래는 하나의
+   * 묶음이다"가 한눈에 보이는 섹션 헤더로 바꾼다.
+   */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 14px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--adm-text-sub);
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.detail-section-title::before {
+  content: "";
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--adm-point);
 }
 
 .detail-section-title + .data-table {
@@ -1097,7 +1385,8 @@
 .modal-readonly-note {
   margin-top: 26px;
   padding: 12px 14px;
-  background: var(--adm-surface-2);
+  /* [수정] target-info-box 등과 같은 눌린 표면 톤으로 통일 */
+  background: var(--adm-surface-3);
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-sm);
   color: var(--adm-text-dim);
@@ -1109,8 +1398,14 @@
    이벤트 상세 팝업 - 적용 상품 표 가독성
    ===================================================== */
 
+/*
+ * [수정] 다른 관리자 화면 표는 전부 가운데 정렬인데 이 표만 상품명은 왼쪽,
+ * 가격은 오른쪽으로 따로 정렬돼 있어 통일감이 없어 보였다. 헤더는 표
+ * 공통 규칙(.data-table th) 그대로 두고, 값 쪽을 다른 표와 똑같이
+ * 가운데 정렬로 맞춘다.
+ */
+
 #reqProductTableBody .ep-name {
-  text-align: left;
   color: var(--adm-text);
   font-weight: 600;
 }
@@ -1121,7 +1416,6 @@
 }
 
 #reqProductTableBody .ep-price {
-  text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

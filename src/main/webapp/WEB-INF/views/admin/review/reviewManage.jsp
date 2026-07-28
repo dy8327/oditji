@@ -10,6 +10,9 @@
 --%>
 <c:set var="currentTab" value="${empty param.tab ? 'all' : param.tab}"/>
 
+<%-- 검색 기준(searchType)의 현재 선택값. memberManage.jsp의 searchType 필터와 동일한 방식. --%>
+<c:set var="currentSearchType" value="${empty param.searchType ? '' : param.searchType}"/>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -77,12 +80,12 @@
 
             <nav class="tab-menu">
 
-                <a href="?tab=all"
+                <a href="?tab=all&searchType=${currentSearchType}&keyword=${param.keyword}"
                    class="${currentTab == 'all' ? 'active' : ''}">
                     전체 리뷰
                 </a>
 
-                <a href="?tab=report"
+                <a href="?tab=report&searchType=${currentSearchType}&keyword=${param.keyword}"
                    class="${currentTab == 'report' ? 'active' : ''}">
                     신고 내역
                 </a>
@@ -94,9 +97,33 @@
                 <form method="get"
                       action="${pageContext.request.contextPath}/admin/review/list">
 
-                    <input type="hidden"
-                           name="tab"
-                           value="${currentTab}">
+                    <%-- 상태 필터. 위쪽 탭 메뉴와 같은 값(tab)을 다루지만, 검색창 옆에서도
+                         memberManage.jsp / eventManage.jsp와 동일하게 select로 전환할 수 있도록 제공한다. --%>
+                    <label for="contentReviewStatusFilter"
+                           class="sr-only">
+                        상태 필터
+                    </label>
+
+                    <select id="contentReviewStatusFilter"
+                            name="tab"
+                            class="filter-select">
+                        <option value="all"    ${currentTab == 'all' ? 'selected' : ''}>전체 리뷰</option>
+                        <option value="report" ${currentTab == 'report' ? 'selected' : ''}>신고 내역</option>
+                    </select>
+
+                    <%-- 검색 기준 필터. --%>
+                    <label for="contentReviewSearchTypeFilter"
+                           class="sr-only">
+                        검색 기준
+                    </label>
+
+                    <select id="contentReviewSearchTypeFilter"
+                            name="searchType"
+                            class="filter-select">
+                        <option value=""        ${empty currentSearchType ? 'selected' : ''}>전체</option>
+                        <option value="writer"  ${currentSearchType == 'writer' ? 'selected' : ''}>작성자</option>
+                        <option value="content" ${currentSearchType == 'content' ? 'selected' : ''}>콘텐츠명</option>
+                    </select>
 
                     <label for="contentReviewKeyword"
                            class="sr-only">
@@ -125,6 +152,7 @@
 
                 <input type="hidden" name="keyword" value="${param.keyword}">
                 <input type="hidden" name="tab" value="${currentTab}">
+                <input type="hidden" name="searchType" value="${currentSearchType}">
                 <input type="hidden" name="page" value="${pagination.currentPage}">
 
                 <div class="bulk-action-bar">
@@ -248,6 +276,7 @@
                                                         data-rating="${review.rating}"
                                                         data-created-at="${reviewCreatedAtStr}"
                                                         data-content="${fn:escapeXml(review.content)}"
+                                                        <c:if test="${currentTab == 'report'}">data-report-reason="${fn:escapeXml(review.reportReason)}"</c:if>
                                                         onclick="openReviewContentModal(this)">
                                                     내용보기
                                                 </button>
@@ -262,6 +291,7 @@
 
                                                             <input type="hidden" name="reviewNo" value="${review.reviewNo}">
                                                             <input type="hidden" name="tab" value="${currentTab}">
+                                                            <input type="hidden" name="searchType" value="${currentSearchType}">
                                                             <input type="hidden" name="keyword" value="${param.keyword}">
                                                             <input type="hidden" name="page" value="${pagination.currentPage}">
 
@@ -279,6 +309,7 @@
 
                                                             <input type="hidden" name="reviewNo" value="${review.reviewNo}">
                                                             <input type="hidden" name="tab" value="${currentTab}">
+                                                            <input type="hidden" name="searchType" value="${currentSearchType}">
                                                             <input type="hidden" name="keyword" value="${param.keyword}">
                                                             <input type="hidden" name="page" value="${pagination.currentPage}">
 
@@ -337,14 +368,14 @@
             <div class="pagination">
 
                 <!-- 이전 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
                 class="${!pagination.prev ? 'disabled' : ''}">
                     <<
                 </a>
 
 
                 <!-- 이전 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
@@ -355,7 +386,7 @@
                         begin="${pagination.startPage}"
                         end="${pagination.endPage}">
 
-                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${p}"
                     class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
@@ -364,14 +395,14 @@
 
 
                 <!-- 다음 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
 
                 <!-- 다음 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>
@@ -406,6 +437,13 @@
             <p><span>작성일</span><strong id="reviewContentDate"></strong></p>
         </div>
 
+        <%-- 신고 내역 탭에서만 사용하는 모달이므로, 이 탭일 때만 신고 사유 섹션을 넣는다.
+             (전체 리뷰 탭에서는 review.reportReason 자체가 조회되지 않는다) --%>
+        <c:if test="${currentTab == 'report'}">
+            <div class="detail-section-title">신고 사유</div>
+            <div class="report-reason-list" id="reviewReportReasonBody"></div>
+        </c:if>
+
         <div class="detail-section-title">리뷰 내용</div>
         <div class="review-content-full" id="reviewContentBody"></div>
 
@@ -418,6 +456,7 @@
 
             <input type="hidden" name="reviewNo" id="reviewContentReviewNo">
             <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="searchType" value="${currentSearchType}">
             <input type="hidden" name="keyword" value="${param.keyword}">
             <input type="hidden" name="page" value="${pagination.currentPage}">
 
