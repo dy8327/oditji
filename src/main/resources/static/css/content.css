@@ -2263,3 +2263,54 @@ body.spoiler-modal-open {
 .spoiler-confirm-actions .btn {
   min-width: 100px;
 }
+
+/* =========================================================
+   [추가] 콘텐츠 상세 페이지 본인 리뷰 수정·삭제 영역
+   - 기존 리뷰 카드 레이아웃과 색상은 유지한다.
+   ========================================================= */
+.my-review-actions,
+.inline-review-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.review-delete-form {
+  margin: 0;
+}
+
+.inline-review-edit-form {
+  margin-top: 16px;
+}
+
+.visually-hidden-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* [추가] 본인 리뷰의 수정·삭제 버튼 디자인을 기존 신고 버튼과 동일하게 유지한다.
+   신고 모달 이벤트와 충돌하지 않도록 report-btn 클래스는 사용하지 않는다. */
+.review-edit-open-btn,
+.review-delete-btn {
+  padding: 7px 12px;
+  border: 1px solid #7f3035;
+  border-radius: 7px;
+  background: transparent;
+  color: #d96a70;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* [추가] 수정·삭제 버튼 마우스 오버 효과 */
+.review-edit-open-btn:hover,
+.review-delete-btn:hover {
+  background: rgba(127, 48, 53, 0.18);
+}
