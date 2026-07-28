@@ -127,7 +127,7 @@
                         <div class="favorite-poster">
                             <c:choose>
                                 <c:when test="${not empty g.mainImage}">
-                                    <img src="${g.mainImage}"
+                                    <img src="${pageContext.request.contextPath}${g.mainImage}"
                                          alt="${g.productName}"
                                          loading="lazy">
                                 </c:when>
