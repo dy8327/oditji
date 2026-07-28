@@ -29,15 +29,18 @@ public class WebConfig implements WebMvcConfigurer {
     /*
      * 관리자 페이지 접근 권한 체크 + 전체 접속 로그(ACCESS_LOG) 기록
      */
-    @Override
-    public void addInterceptors(
-            InterceptorRegistry registry) {
-
+@Override
+        public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(adminCheckInterceptor)
-                .addPathPatterns("/admin/**");
+                .addPathPatterns("/admin", "/admin/**");
 
         registry.addInterceptor(businessCheckInterceptor)
-                .addPathPatterns("/business/**");
+                .addPathPatterns(
+                        "/business",
+                        "/business/**",
+                        "/chat",
+                        "/chat/**"
+                );
 
         registry.addInterceptor(accessLogInterceptor)
                 .addPathPatterns("/**")
@@ -49,7 +52,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/favicon.ico",
                         "/error"
                 );
-    }
+}
 
         @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
