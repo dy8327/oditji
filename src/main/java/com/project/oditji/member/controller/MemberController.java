@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.MemberPlatformService;
@@ -36,6 +39,7 @@ import jakarta.servlet.http.HttpSession;
 public class MemberController {
 
         private static final String LOGIN_REDIRECT_SESSION_KEY = "redirectAfterLogin";
+        private static final Logger log = LoggerFactory.getLogger(MemberController.class);
 
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
@@ -57,10 +61,8 @@ public class MemberController {
         @GetMapping("/join")
         public String joinForm(Model model) {
 
-                /* OTT 선택 영역에 로고/목록을 표시하기 위한 플랫폼 목록 */
-                model.addAttribute(
-                                "platformList",
-                                memberPlatformService.findPlatformList());
+                // OTT 선택 영역에 로고/목록을 표시하기 위한 플랫폼 목록 
+                model.addAttribute("platformList", memberPlatformService.findPlatformList());
 
                 return "member/join";
         }
@@ -75,18 +77,13 @@ public class MemberController {
          */
         @GetMapping("/checkBusinessNumber")
         @ResponseBody
-        public String checkBusinessNumber(
-                        @RequestParam("businessNumber") String businessNumber) {
+        public String checkBusinessNumber(@RequestParam("businessNumber") String businessNumber) {
                 boolean available = businessService.isBusinessNumberAvailable(businessNumber);
 
                 return available ? "Y" : "N";
         }
 
-        /*
-         * =========================================================
-         * 국세청 사업자등록정보 진위확인
-         * =========================================================
-         */
+        // 국세청 사업자등록정보 진위확인
         @PostMapping("/verifyBusiness")
         @ResponseBody
         public NtsBusinessVerifyVO verifyBusiness(
@@ -94,10 +91,7 @@ public class MemberController {
                         @RequestParam("representativeName") String representativeName,
                         @RequestParam("openDate") String openDate) {
 
-                return ntsBusinessService.verifyBusiness(
-                                businessNumber,
-                                representativeName,
-                                openDate);
+                return ntsBusinessService.verifyBusiness(businessNumber, representativeName, openDate);
         }
 
         @PostMapping("/join")
@@ -125,9 +119,7 @@ public class MemberController {
                 model.addAttribute(
                                 "platformList",
                                 memberPlatformService.findPlatformList());
-
                 try {
-
                         if (profileImageFile != null && !profileImageFile.isEmpty()) {
                                 String uploadDir = "C:/oditji/uploads/profile/";
                                 File dir = new File(uploadDir);
@@ -138,7 +130,6 @@ public class MemberController {
 
                                 String originalFileName = profileImageFile.getOriginalFilename();
                                 String ext = "";
-
                                 if (originalFileName != null && originalFileName.contains(".")) {
                                         ext = originalFileName.substring(originalFileName.lastIndexOf("."));
                                 }
@@ -147,16 +138,14 @@ public class MemberController {
                                 File saveFile = new File(uploadDir + saveFileName);
                                 profileImageFile.transferTo(saveFile);
 
-                                /*
-                                 * DB에는 경로가 아닌
-                                 * 저장된 파일명만 저장한다.
-                                 */
+                                //DB에는 경로가 아닌 저장된 파일명만 저장한다.
+                                
                                 memberVO.setProfileImage(saveFileName);
 
                                 System.out.println("저장된 프로필 파일명 = " + saveFileName);
                         }
 
-                        /* 회원 유형별 가입 처리 */
+                        // 회원 유형별 가입 처리
                         if ("BUSINESS".equalsIgnoreCase(joinType)) {
 
                                 /*
@@ -172,13 +161,11 @@ public class MemberController {
                                         String message = verifyResult != null && verifyResult.getMessage() != null
                                                         ? verifyResult.getMessage()
                                                         : "사업자 정보를 확인할 수 없습니다.";
-
                                         throw new IllegalArgumentException(message);
                                 }
 
-                                /* 2. 계속사업자인지 최종 확인 */
+                                // 2. 계속사업자인지 최종 확인 
                                 if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
-
                                         throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
                                 }
 
@@ -188,12 +175,12 @@ public class MemberController {
                                  */
                                 businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
 
-                                /* 3. 사업자등록증 필수 확인 */
+                                // 3. 사업자등록증 필수 확인
                                 if (licenseFile == null || licenseFile.isEmpty()) {
                                         throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
                                 }
 
-                                /* 4. 사업자등록증 확장자 확인 */
+                                // 4. 사업자등록증 확장자 확인
                                 String originalLicenseName = licenseFile.getOriginalFilename();
 
                                 if (originalLicenseName == null || !originalLicenseName.contains(".")) {
@@ -211,7 +198,7 @@ public class MemberController {
                                                         "사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
                                 }
 
-                                /* 5. 사업자등록증 저장 */
+                                // 5. 사업자등록증 저장
                                 String licenseUploadDir = "C:/oditji/uploads/business-license/";
                                 File licenseDir = new File(licenseUploadDir);
 
@@ -227,34 +214,38 @@ public class MemberController {
                                 File savedLicenseFile = new File(licenseUploadDir + savedLicenseName);
                                 licenseFile.transferTo(savedLicenseFile);
 
-                                /* DB에는 UUID로 저장한 파일명만 저장 */
+                                // DB에는 UUID로 저장한 파일명만 저장
                                 businessVO.setLicenseFilePath(savedLicenseName);
 
-                                /* 6. MEMBER + BUSINESS 저장 */
+                                // 6. MEMBER + BUSINESS 저장
                                 memberService.joinBusinessMember(memberVO, businessVO);
 
                                 redirectAttributes.addFlashAttribute("message",
                                                 "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
 
                         } else {
-                                /* 일반회원은 기존 가입 로직 그대로 사용 */
+                                // 일반회원은 기존 가입 로직 그대로 사용
                                 memberService.joinMember(memberVO, ottList, noOtt);
-
                                 redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
                         }
 
                         return "redirect:/member/login";
 
                 } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
+                        if (log.isWarnEnabled()) {
+                        log.warn("회원가입 입력값 검증 실패: {}", e.getMessage());
+                        }
                         model.addAttribute("errorMessage", e.getMessage());
 
                         return "member/join";
 
                 } catch (Exception e) {
-                e.printStackTrace();
-                model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-                return "member/join";
+                        if (log.isErrorEnabled()) {
+                        log.error("회원가입 처리 중 오류 발생", e);
+                        }
+                        model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+
+                        return "member/join";
                 }
         }
 
@@ -309,7 +300,6 @@ public class MemberController {
 
                 try {
                         MemberVO loginMember = memberService.loginMember(memberVO);
-
                         if (loginMember == null) {
 
                                 redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 틀렸습니다.");
@@ -336,19 +326,18 @@ public class MemberController {
                         if (business != null) {
                                 String businessStatus = business.getStatus();
 
-                                /* 승인 대기 */
+                                // 승인 대기 
                                 if ("WAITING".equals(businessStatus)) {
                                         redirectAttributes.addFlashAttribute("message", "관리자 승인 대기 중인 사업자 계정입니다.");
 
                                         return "redirect:/member/login";
                                 }
 
-                                /* 승인 거절 */
+                                // 승인 거절 
                                 if ("REJECTED".equals(businessStatus)) {
                                         String message = "사업자 승인이 거절되었습니다.";
 
-                                        if (business.getRejectReason() != null
-                                                        && !business.getRejectReason().isBlank()) {
+                                        if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
                                                 message += "\n사유: " + business.getRejectReason();
                                         }
                                         redirectAttributes.addFlashAttribute("message", message);
@@ -356,7 +345,7 @@ public class MemberController {
                                         return "redirect:/member/login";
                                 }
 
-                                /* 승인된 사업자만 로그인 허용 */
+                                // 승인된 사업자만 로그인 허용
                                 if (!"APPROVED".equals(businessStatus)) {
                                         redirectAttributes.addFlashAttribute("message", "현재 사업자 계정 상태로는 로그인할 수 없습니다.");
 
@@ -413,13 +402,13 @@ public class MemberController {
                          */
                         session.setAttribute("restoreMemberNo", e.getMemberNo());
                         session.setAttribute("restoreProvider", "LOCAL");
-                        redirectAttributes.addFlashAttribute("withdrawnMessage",
-                                        WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+                        redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
                         return "redirect:/member/login";
 
                 } catch (IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        log.error("로그인 처리 중 오류 발생", e);
+                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
                         return "redirect:/member/login";
                 }
@@ -434,17 +423,11 @@ public class MemberController {
          * 세션을 탈취하지 않는 한 다른 사람의 계정을 복구할 수 없다.
          */
         @PostMapping("/restore")
-        public String restoreMember(
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+        public String restoreMember(HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Object restoreNoObj = session.getAttribute(
-                                "restoreMemberNo");
-
+                Object restoreNoObj = session.getAttribute("restoreMemberNo");
                 if (restoreNoObj == null) {
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute("errorMessage", "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
 
                         return "redirect:/member/login";
                 }
@@ -453,31 +436,18 @@ public class MemberController {
 
                 try {
 
-                        memberService.restoreMember(
-                                        memberNo);
+                        memberService.restoreMember(memberNo);
+                        session.removeAttribute("restoreMemberNo");
+                        session.removeAttribute("restoreProvider");
 
-                        session.removeAttribute(
-                                        "restoreMemberNo");
+                        redirectAttributes.addFlashAttribute("restoredMessage", "계정이 복구되었습니다. 다시 로그인해주세요.");
 
-                        session.removeAttribute(
-                                        "restoreProvider");
+                } catch (IllegalStateException | IllegalArgumentException e) {
 
-                        redirectAttributes.addFlashAttribute(
-                                        "restoredMessage",
-                                        "계정이 복구되었습니다. 다시 로그인해주세요.");
+                        session.removeAttribute("restoreMemberNo");
+                        session.removeAttribute("restoreProvider");
 
-                } catch (IllegalStateException
-                                | IllegalArgumentException e) {
-
-                        session.removeAttribute(
-                                        "restoreMemberNo");
-
-                        session.removeAttribute(
-                                        "restoreProvider");
-
-                        redirectAttributes.addFlashAttribute(
-                                        "errorMessage",
-                                        e.getMessage());
+                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 }
 
                 return "redirect:/member/login";
@@ -485,21 +455,15 @@ public class MemberController {
 
         /**
          * 로그아웃 처리
-         *
          * 로그아웃 링크를 누른 현재 페이지의 주소를 저장한 후
          * 세션을 무효화하고 해당 페이지로 돌아간다.
          */
         @GetMapping("/logout")
-        public String logout(
-                        HttpServletRequest request,
-                        HttpSession session) {
+        public String logout(HttpServletRequest request, HttpSession session) {
 
-                String redirectUrl = extractPreviousUrl(
-                                request);
+                String redirectUrl = extractPreviousUrl(request);
 
-                /*
-                 * 세션 무효화 전에 이전 주소를 지역변수에 저장한다.
-                 */
+                //세션 무효화 전에 이전 주소를 지역변수에 저장한다.
                 session.invalidate();
 
                 if (!isUsableRedirectUrl(redirectUrl)) {
@@ -507,17 +471,14 @@ public class MemberController {
                         return "redirect:/";
                 }
 
-                return "redirect:"
-                                + redirectUrl;
+                return "redirect:" + redirectUrl;
         }
 
         @GetMapping("/checkId")
         @ResponseBody
-        public String checkId(
-                        @RequestParam("memberId") String memberId) {
+        public String checkId(@RequestParam("memberId") String memberId) {
 
-                boolean duplicate = memberService.isDuplicateId(
-                                memberId);
+                boolean duplicate = memberService.isDuplicateId(memberId);
 
                 if (duplicate) {
                         return "N";
@@ -549,18 +510,11 @@ public class MemberController {
 
         @GetMapping("/checkNickname")
         @ResponseBody
-        public String checkNickname(
-                        @RequestParam("nickname") String nickname) {
+        public String checkNickname(@RequestParam("nickname") String nickname) {
 
-                System.out.println(
-                                "===== 닉네임 중복확인 요청 =====");
-
-                System.out.println(
-                                "nickname = "
-                                                + nickname);
-
-                boolean duplicate = memberService.isDuplicateNickname(
-                                nickname);
+                System.out.println("===== 닉네임 중복확인 요청 =====");
+                System.out.println("nickname = "+ nickname);
+                boolean duplicate = memberService.isDuplicateNickname( nickname);
 
                 if (duplicate) {
                         return "N";
@@ -569,15 +523,12 @@ public class MemberController {
                 return "Y";
         }
 
-        /* 마이페이지 */
+        // 마이페이지
         @GetMapping("/mypage")
-        public String mypage(
-                        HttpSession session,
-                        Model model) {
+        public String mypage(HttpSession session, Model model) {
 
-                /* 로그인 회원 조회 */
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
+                // 로그인 회원 조회 
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
                 /*
                  * 로그인하지 않은 사용자가 마이페이지에 접근하면
@@ -593,34 +544,24 @@ public class MemberController {
                         return "redirect:/admin/main";
                 }
 
-                /* 사업자 전용 페이지로 이동 */
+                // 사업자 전용 페이지로 이동
                 BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
 
                 if (business != null) {
                         return "redirect:/business/main";
                 }
 
-                /* SNS 로그인 회원 여부 */
-                boolean socialMember = session.getAttribute(
-                                "loginProvider") != null;
+                // SNS 로그인 회원 여부
+                boolean socialMember = session.getAttribute("loginProvider") != null;
+                model.addAttribute("socialMember", socialMember);
 
-                model.addAttribute(
-                                "socialMember",
-                                socialMember);
+                // 로그인 회원이 선택한 활성 OTT 목록 조회
+                List<PlatformVO> ottList = memberPlatformService.findMemberPlatformList(loginMember.getMemberNo());
+                // JSP에서 ${ottList}로 사용할 수 있도록 전달 
+                model.addAttribute("ottList", ottList);
 
-                /* 로그인 회원이 선택한 활성 OTT 목록 조회 */
-                List<PlatformVO> ottList = memberPlatformService.findMemberPlatformList(
-                                loginMember.getMemberNo());
-
-                /* JSP에서 ${ottList}로 사용할 수 있도록 전달 */
-                model.addAttribute(
-                                "ottList",
-                                ottList);
-
-                /* OTT 정보 수정 모달에서 선택 가능한 전체 플랫폼 목록(로고 포함) */
-                model.addAttribute(
-                                "platformList",
-                                memberPlatformService.findPlatformList());
+                // OTT 정보 수정 모달에서 선택 가능한 전체 플랫폼 목록(로고 포함)
+                model.addAttribute("platformList", memberPlatformService.findPlatformList());
 
                 return "member/mypage";
         }
@@ -635,12 +576,10 @@ public class MemberController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
-                /* 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지 */
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
+                // 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지 
+                if (loginMember == null || loginMember.getMemberNo() == null) {
 
                         return "redirect:/member/login";
                 }
@@ -649,47 +588,29 @@ public class MemberController {
                  * 클라이언트가 전달한 memberNo를 신뢰하지 않고
                  * 로그인 세션의 회원번호를 사용한다.
                  */
-                memberVO.setMemberNo(
-                                loginMember.getMemberNo());
+                memberVO.setMemberNo(loginMember.getMemberNo());
 
-                /*
-                 * 비밀번호 변경
-                 */
-                if (newPw != null
-                                && !newPw.isBlank()) {
+                // 비밀번호 변경
+                if (newPw != null && !newPw.isBlank()) {
+                        if (currentPw == null || currentPw.isBlank()) {
 
-                        if (currentPw == null
-                                        || currentPw.isBlank()) {
-
-                                return redirectWithError(
-                                                redirectAttributes,
-                                                "현재 비밀번호를 입력해주세요.");
+                                return redirectWithError(redirectAttributes, "현재 비밀번호를 입력해주세요.");
                         }
 
-                        if (!newPw.equals(
-                                        newPwCheck)) {
+                        if (!newPw.equals(newPwCheck)) {
 
-                                return redirectWithError(
-                                                redirectAttributes,
-                                                "새 비밀번호가 일치하지 않습니다.");
+                                return redirectWithError(redirectAttributes, "새 비밀번호가 일치하지 않습니다.");
                         }
 
-                        if (!memberService.checkPassword(
-                                        loginMember.getMemberNo(),
-                                        currentPw)) {
+                        if (!memberService.checkPassword(loginMember.getMemberNo(),currentPw)) {
 
-                                return redirectWithError(
-                                                redirectAttributes,
-                                                "현재 비밀번호가 일치하지 않습니다.");
+                                return redirectWithError(redirectAttributes, "현재 비밀번호가 일치하지 않습니다.");
                         }
 
-                        memberVO.setMemberPw(
-                                        newPw);
+                        memberVO.setMemberPw(newPw);
                 }
 
-                /*
-                 * 프로필 이미지
-                 */
+                // 프로필 이미지
                 if (profileImageFile != null && !profileImageFile.isEmpty()) {
                         try {
                                 String uploadDir = "C:/oditji/uploads/profile/";
@@ -723,53 +644,34 @@ public class MemberController {
                  * Service에서 현재 회원을 제외한 닉네임/이메일 중복을 다시 검사한다.
                  */
                 try {
-                        memberService.updateMember(
-                                        memberVO);
+                        memberService.updateMember(memberVO);
 
-                } catch (IllegalArgumentException
-                                | IllegalStateException e) {
+                } catch (IllegalArgumentException | IllegalStateException e) {
 
-                        return redirectWithError(
-                                        redirectAttributes,
-                                        e.getMessage());
+                        return redirectWithError(redirectAttributes, e.getMessage());
                 }
 
-                MemberVO updated = memberService.getMemberByNo(
-                                memberVO.getMemberNo());
-
-                session.setAttribute(
-                                "loginMember",
-                                updated);
+                MemberVO updated = memberService.getMemberByNo(memberVO.getMemberNo());
+                session.setAttribute("loginMember", updated);
 
                 /*
                  * 헤더 등에서 개별 세션값을 사용하고 있으므로
                  * 수정된 닉네임도 함께 갱신한다.
                  */
-                session.setAttribute(
-                                "nickname",
-                                updated.getNickname());
+                session.setAttribute("nickname", updated.getNickname());
 
                 String displayName = updated.getMemberName();
 
-                if (displayName == null
-                                || displayName.isBlank()) {
-
+                if (displayName == null || displayName.isBlank()) {
                         displayName = updated.getNickname();
                 }
 
-                if (displayName == null
-                                || displayName.isBlank()) {
-
+                if (displayName == null || displayName.isBlank()) {
                         displayName = "회원";
                 }
 
-                session.setAttribute(
-                                "loginDisplayName",
-                                displayName);
-
-                redirectAttributes.addFlashAttribute(
-                                "message",
-                                "회원정보가 수정되었습니다.");
+                session.setAttribute("loginDisplayName", displayName);
+                redirectAttributes.addFlashAttribute("message", "회원정보가 수정되었습니다.");
 
                 return "redirect:/member/mypage";
         }
@@ -785,71 +687,44 @@ public class MemberController {
          */
         @GetMapping("/checkUpdateNickname")
         @ResponseBody
-        public String checkUpdateNickname(
-                        @RequestParam("nickname") String nickname,
-                        HttpSession session) {
+        public String checkUpdateNickname(@RequestParam("nickname") String nickname, HttpSession session) {
 
-                System.out.println(
-                                "===== 회원정보 수정 닉네임 중복확인 요청 =====");
+                System.out.println("===== 회원정보 수정 닉네임 중복확인 요청 =====");
+                System.out.println("nickname = " + nickname);
 
-                System.out.println(
-                                "nickname = "
-                                                + nickname);
-
-                /*
-                 * 현재 로그인한 회원 정보를 세션에서 조회한다.
-                 */
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
+                // 현재 로그인한 회원 정보를 세션에서 조회한다.
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
                 /*
                  * 로그인 세션이 없거나 회원번호가 없다면
                  * 정상적인 중복확인을 진행할 수 없다.
                  */
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
-
-                        System.out.println(
-                                        "닉네임 중복확인 실패: 로그인 회원 정보 없음");
+                if (loginMember == null || loginMember.getMemberNo() == null) {
+                        System.out.println("닉네임 중복확인 실패: 로그인 회원 정보 없음");
 
                         return "N";
                 }
 
-                /*
-                 * 공백만 입력된 닉네임은 검사하지 않는다.
-                 */
-                if (nickname == null
-                                || nickname.isBlank()) {
-
-                        System.out.println(
-                                        "닉네임 중복확인 실패: 닉네임 값 없음");
+                // 공백만 입력된 닉네임은 검사하지 않는다.
+                if (nickname == null || nickname.isBlank()) {
+                        System.out.println("닉네임 중복확인 실패: 닉네임 값 없음");
 
                         return "N";
                 }
 
                 String trimmedNickname = nickname.trim();
-
                 Long memberNo = loginMember.getMemberNo();
-
-                System.out.println(
-                                "로그인 회원번호 = "
-                                                + memberNo);
+                System.out.println("로그인 회원번호 = " + memberNo);
 
                 /*
                  * 현재 로그인한 회원을 제외하고
                  * 같은 닉네임을 사용하는 회원이 있는지 검사한다.
                  */
-                boolean available = memberService.checkUpdateNickname(
-                                memberNo,
-                                trimmedNickname);
+                boolean available = memberService.checkUpdateNickname(memberNo, trimmedNickname);
 
-                System.out.println(
-                                "닉네임 사용 가능 여부 = "
-                                                + available);
+                System.out.println("닉네임 사용 가능 여부 = " + available);
 
-                return available
-                                ? "Y"
-                                : "N";
+                return available ? "Y" : "N";
         }
 
         /**
@@ -860,95 +735,60 @@ public class MemberController {
          */
         @GetMapping("/checkUpdateEmail")
         @ResponseBody
-        public String checkUpdateEmail(
-                        @RequestParam("email") String email,
-                        HttpSession session) {
-
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
-
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
+        public String checkUpdateEmail(@RequestParam("email") String email, HttpSession session) {
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                if (loginMember == null|| loginMember.getMemberNo() == null) {
 
                         return "N";
                 }
 
-                if (email == null
-                                || email.isBlank()) {
+                if (email == null || email.isBlank()) {
 
                         return "N";
                 }
 
                 String trimmedEmail = email.trim();
+                boolean available = memberService.checkUpdateEmail(loginMember.getMemberNo(), trimmedEmail);
 
-                boolean available = memberService.checkUpdateEmail(
-                                loginMember.getMemberNo(),
-                                trimmedEmail);
-
-                return available
-                                ? "Y"
-                                : "N";
+                return available ? "Y" : "N";
         }
 
-        
         @PostMapping("/updateOtt")
         public String updateOtt(
                         @RequestParam(value = "ottList", required = false) List<String> ottList,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
-
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                if (loginMember == null || loginMember.getMemberNo() == null) {
 
                         return "redirect:/member/login";
                 }
 
-                memberService.updateMemberOtt(
-                                loginMember.getMemberNo(),
-                                ottList);
-
-                redirectAttributes.addFlashAttribute(
-                                "message",
-                                "OTT 정보가 수정되었습니다.");
+                memberService.updateMemberOtt(loginMember.getMemberNo(), ottList);
+                redirectAttributes.addFlashAttribute("message", "OTT 정보가 수정되었습니다.");
 
                 return "redirect:/member/mypage";
         }
 
         @PostMapping("/withdraw")
-        public String withdrawMember(
-                        HttpSession session) {
+        public String withdrawMember(HttpSession session) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute(
-                                "loginMember");
-
-                if (loginMember == null
-                                || loginMember.getMemberNo() == null) {
+                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                if (loginMember == null || loginMember.getMemberNo() == null) {
 
                         return "redirect:/member/login";
                 }
 
-                memberService.withdrawMember(
-                                loginMember.getMemberNo());
-
+                memberService.withdrawMember(loginMember.getMemberNo());
                 session.invalidate();
 
                 return "redirect:/";
         }
 
-        private String redirectWithError(
-                        RedirectAttributes redirectAttributes,
-                        String message) {
+        private String redirectWithError(RedirectAttributes redirectAttributes, String message) {
 
-                redirectAttributes.addFlashAttribute(
-                                "errorMessage",
-                                message);
-
-                redirectAttributes.addFlashAttribute(
-                                "openMemberModal",
-                                true);
+                redirectAttributes.addFlashAttribute("errorMessage", message);
+                redirectAttributes.addFlashAttribute("openMemberModal", true);
 
                 return "redirect:/member/mypage";
         }
@@ -961,31 +801,19 @@ public class MemberController {
         @PostMapping("/findId")
         public String findIdPost(
                         @RequestParam("memberName") String memberName,
-                        @RequestParam("email") String email,
-                        Model model) {
+                        @RequestParam("email") String email,Model model) {
 
                 MemberVO memberVO = new MemberVO();
+                memberVO.setMemberName(memberName);
+                memberVO.setEmail(email);
 
-                memberVO.setMemberName(
-                                memberName);
-
-                memberVO.setEmail(
-                                email);
-
-                MemberVO result = memberService.findId(
-                                memberVO);
+                MemberVO result = memberService.findId(memberVO);
 
                 if (result != null) {
-
-                        model.addAttribute(
-                                        "findIdResult",
-                                        result.getMemberId());
+                        model.addAttribute("findIdResult", result.getMemberId());
 
                 } else {
-
-                        model.addAttribute(
-                                        "errorMessage",
-                                        "일치하는 회원 정보가 없습니다.");
+                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
                 }
 
                 return "member/findId";
@@ -1000,34 +828,20 @@ public class MemberController {
         public String findPwPost(
                         @RequestParam("memberId") String memberId,
                         @RequestParam("memberName") String memberName,
-                        @RequestParam("email") String email,
-                        Model model) {
+                        @RequestParam("email") String email, Model model) {
 
                 MemberVO memberVO = new MemberVO();
+                memberVO.setMemberId(memberId);
+                memberVO.setMemberName(memberName);
+                memberVO.setEmail(email);
 
-                memberVO.setMemberId(
-                                memberId);
-
-                memberVO.setMemberName(
-                                memberName);
-
-                memberVO.setEmail(
-                                email);
-
-                MemberVO result = memberService.findPw(
-                                memberVO);
+                MemberVO result = memberService.findPw(memberVO);
 
                 if (result != null) {
-
-                        model.addAttribute(
-                                        "findPwResult",
-                                        result.getMemberPw());
+                        model.addAttribute("findPwResult", "회원 정보가 확인되었습니다. 비밀번호 재설정이 필요합니다.");
 
                 } else {
-
-                        model.addAttribute(
-                                        "errorMessage",
-                                        "일치하는 회원 정보가 없습니다.");
+                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
                 }
 
                 return "member/findPw";
@@ -1041,36 +855,23 @@ public class MemberController {
          * http://localhost:8080/oditji/recommend
          * → /recommend
          */
-        private String extractPreviousUrl(
-                        HttpServletRequest request) {
+        private String extractPreviousUrl(HttpServletRequest request) {
+                String referer = request.getHeader("Referer");
 
-                String referer = request.getHeader(
-                                "Referer");
-
-                return normalizeRedirectUrl(
-                                referer,
-                                request);
+                return normalizeRedirectUrl(referer, request);
         }
 
         /**
          * 전체 URL 또는 애플리케이션 내부 경로를
          * redirect에서 사용할 수 있는 내부 경로로 변환한다.
          */
-        private String normalizeRedirectUrl(
-                        String redirectUrl,
-                        HttpServletRequest request) {
-
-                if (redirectUrl == null
-                                || redirectUrl.isBlank()) {
+        private String normalizeRedirectUrl(String redirectUrl, HttpServletRequest request) {
+                if (redirectUrl == null || redirectUrl.isBlank()) {
 
                         return null;
                 }
-
                 try {
-
-                        URI uri = URI.create(
-                                        redirectUrl.trim());
-
+                        URI uri = URI.create(redirectUrl.trim());
                         String path;
 
                         /*
@@ -1078,23 +879,15 @@ public class MemberController {
                          * 전체 URL인 경우 동일 호스트인지 확인한다.
                          */
                         if (uri.isAbsolute()) {
-
-                                if (!isSameOrigin(
-                                                uri,
-                                                request)) {
+                                if (!isSameOrigin(uri, request)) {
 
                                         return null;
                                 }
-
                                 path = uri.getRawPath();
-
                         } else {
-
                                 path = uri.getRawPath();
                         }
-
-                        if (path == null
-                                        || path.isBlank()) {
+                        if (path == null || path.isBlank()) {
 
                                 return null;
                         }
@@ -1105,13 +898,9 @@ public class MemberController {
                          * /oditji/recommend
                          * → /recommend
                          */
-                        if (contextPath != null
-                                        && !contextPath.isBlank()
-                                        && path.startsWith(
-                                                        contextPath)) {
+                        if (contextPath != null && !contextPath.isBlank()  && path.startsWith(contextPath)) {
 
-                                path = path.substring(
-                                                contextPath.length());
+                                path = path.substring(contextPath.length());
                         }
 
                         if (path.isBlank()) {
@@ -1119,18 +908,13 @@ public class MemberController {
                         }
 
                         if (!path.startsWith("/")) {
-                                path = "/"
-                                                + path;
+                                path = "/" + path;
                         }
 
                         String query = uri.getRawQuery();
+                        if (query != null && !query.isBlank()) {
 
-                        if (query != null
-                                        && !query.isBlank()) {
-
-                                path = path
-                                                + "?"
-                                                + query;
+                                path = path + "?" + query;
                         }
 
                         return path;
@@ -1144,22 +928,18 @@ public class MemberController {
         /**
          * 외부 사이트로 리다이렉트되는 것을 방지한다.
          */
-        private boolean isSameOrigin(
-                        URI uri,
-                        HttpServletRequest request) {
+        private boolean isSameOrigin(URI uri, HttpServletRequest request) {
 
                 if (uri.getHost() == null) {
                         return false;
                 }
 
-                if (!uri.getHost().equalsIgnoreCase(
-                                request.getServerName())) {
+                if (!uri.getHost().equalsIgnoreCase(request.getServerName())) {
 
                         return false;
                 }
 
                 int requestPort = request.getServerPort();
-
                 int uriPort = uri.getPort();
 
                 /*
@@ -1167,14 +947,9 @@ public class MemberController {
                  * 스킴의 기본 포트를 적용한다.
                  */
                 if (uriPort == -1) {
-
-                        if ("https".equalsIgnoreCase(
-                                        uri.getScheme())) {
-
+                        if ("https".equalsIgnoreCase(uri.getScheme())) {
                                 uriPort = 443;
-
                         } else {
-
                                 uriPort = 80;
                         }
                 }
