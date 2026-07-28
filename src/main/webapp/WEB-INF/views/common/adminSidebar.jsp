@@ -143,6 +143,18 @@
 
         </div>
 
+        <!-- 사업자 공지 채팅 -->
+        <div class="menu-group">
+
+            <h3>사업자 커뮤니티</h3>
+
+            <a href="${pageContext.request.contextPath}/chat/list"
+               class="${activeMenu == 'chat' ? 'active' : ''}">
+                공지 채팅방
+            </a>
+
+        </div>
+
         <!-- 시스템 관리 -->
         <div class="menu-group">
 

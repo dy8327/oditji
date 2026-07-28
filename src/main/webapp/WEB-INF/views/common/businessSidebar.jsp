@@ -126,7 +126,7 @@
             <h3>커뮤니티</h3>
 
 
-            <a href="${pageContext.request.contextPath}/business/chat"
+            <a href="${pageContext.request.contextPath}/chat/list"
                class="${activeMenu == 'chat' ? 'active' : ''}">
                 실시간 채팅
             </a>

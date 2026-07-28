@@ -66,7 +66,7 @@
     </div>
 
     <div class="chat-info">
-        <span>접속 사업자: <c:out value="${businessName}" /></span>
+        <span>접속 사용자: <c:out value="${businessName}" /></span>
         <span>ROOM ID: <c:out value="${room.roomId}" /></span>
     </div>
 
