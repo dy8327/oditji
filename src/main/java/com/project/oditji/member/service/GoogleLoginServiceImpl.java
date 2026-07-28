@@ -20,6 +20,9 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
 import com.project.oditji.member.vo.GoogleLoginResultVO;
@@ -61,6 +64,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
     private final MemberSocialDAO memberSocialDAO;
     private final Environment environment;
     private final RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(GoogleLoginServiceImpl.class);
 
     public GoogleLoginServiceImpl(
             MemberDAO memberDAO,
@@ -221,11 +225,10 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
             return token;
 
         } catch (RestClientResponseException e) {
-
-            throw new IllegalStateException(
-                    "Google 토큰 발급에 실패했습니다. "
-                    + "Client ID, Client Secret, 콜백 주소를 확인해주세요.",
-                    e);
+        if (log.isErrorEnabled()) {
+                log.error("Google 토큰 발급 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+        }
+        throw new IllegalStateException("Google 로그인 인증에 실패했습니다.", e);
         }
     }
 
@@ -269,10 +272,10 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
             return googleUser;
 
         } catch (RestClientResponseException e) {
-
-            throw new IllegalStateException(
-                    "Google 프로필 정보 조회에 실패했습니다.",
-                    e);
+        if (log.isErrorEnabled()) {
+                log.error("Google 사용자 정보 조회 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+        }
+        throw new IllegalStateException("Google 로그인 처리에 실패했습니다.", e);
         }
     }
 
@@ -465,14 +468,9 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
         return clientSecret;
     }
 
-    private String getGoogleRedirectUri() {
-
-        String redirectUri = firstNonBlank(
-                environment.getProperty("google.redirect-uri"),
-                DEFAULT_REDIRECT_URI);
-
-        return redirectUri;
-    }
+        private String getGoogleRedirectUri() {
+                return firstNonBlank(environment.getProperty("google.redirect-uri"), DEFAULT_REDIRECT_URI);
+                }
 
     private String firstNonBlank(String... values) {
 

@@ -133,10 +133,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
         NaverUserInfoVO naverUser = requestUserInfo(token.getAccessToken());
         String providerUserId = naverUser.getProviderUserId();
 
-        MemberSocialJoinVO existingMember =
-                memberSocialDAO.selectMemberBySocial(
-                        PROVIDER_NAVER,
-                        providerUserId);
+        MemberSocialJoinVO existingMember = memberSocialDAO.selectMemberBySocial(PROVIDER_NAVER, providerUserId);
 
         if (existingMember != null) {
             validateMemberStatus(existingMember);
@@ -158,10 +155,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
 
         memberSocialDAO.insertMemberSocial(memberSocialVO);
 
-        MemberSocialJoinVO joinedMember =
-                memberSocialDAO.selectMemberBySocial(
-                        PROVIDER_NAVER,
-                        providerUserId);
+        MemberSocialJoinVO joinedMember = memberSocialDAO.selectMemberBySocial(PROVIDER_NAVER,providerUserId);
 
         if (joinedMember == null) {
             throw new IllegalStateException("네이버 회원 연동 정보 생성에 실패했습니다.");
@@ -184,15 +178,10 @@ public class NaverLoginServiceImpl implements NaverLoginService {
         params.add("code", code);
         params.add("state", state);
 
-        HttpEntity<MultiValueMap<String, String>> request =
-                new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         try {
-            ResponseEntity<NaverTokenVO> response = restTemplate.exchange(
-                    NAVER_TOKEN_URL,
-                    HttpMethod.POST,
-                    request,
-                    NaverTokenVO.class);
+            ResponseEntity<NaverTokenVO> response = restTemplate.exchange(NAVER_TOKEN_URL, HttpMethod.POST, request, NaverTokenVO.class);
 
             NaverTokenVO token = response.getBody();
 
@@ -205,17 +194,16 @@ public class NaverLoginServiceImpl implements NaverLoginService {
                         : token.getErrorDescription();
 
                 throw new IllegalStateException(
-                        buildNaverErrorMessage(
-                                "네이버 접근 토큰 발급에 실패했습니다.",
-                                errorDescription));
+                        buildNaverErrorMessage("네이버 접근 토큰 발급에 실패했습니다.", errorDescription));
             }
 
             return token;
 
         } catch (RestClientResponseException e) {
-            throw new IllegalStateException(
-                    "네이버 접근 토큰 발급 요청에 실패했습니다.",
-                    e);
+            if (log.isErrorEnabled()) {
+                log.error("네이버 토큰 발급 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            }
+            throw new IllegalStateException("네이버 로그인 인증에 실패했습니다.", e);
         }
     }
 
@@ -232,34 +220,28 @@ public class NaverLoginServiceImpl implements NaverLoginService {
                 .build();
 
         try {
-            ResponseEntity<NaverUserInfoVO> response =
-                    restTemplate.exchange(request, NaverUserInfoVO.class);
+            ResponseEntity<NaverUserInfoVO> response = restTemplate.exchange(request, NaverUserInfoVO.class);
 
             NaverUserInfoVO naverUser = response.getBody();
 
-            if (naverUser == null
-                    || naverUser.getProviderUserId() == null
-                    || naverUser.getProviderUserId().isBlank()) {
+            if (naverUser == null || naverUser.getProviderUserId() == null || naverUser.getProviderUserId().isBlank()) {
 
-                throw new IllegalStateException(
-                        "네이버 사용자 정보 조회에 실패했습니다.");
+                throw new IllegalStateException("네이버 사용자 정보 조회에 실패했습니다.");
             }
 
-            if (naverUser.getResultcode() != null
-                    && !"00".equals(naverUser.getResultcode())) {
+            if (naverUser.getResultcode() != null && !"00".equals(naverUser.getResultcode())) {
 
                 throw new IllegalStateException(
-                        buildNaverErrorMessage(
-                                "네이버 사용자 정보 조회에 실패했습니다.",
-                                naverUser.getMessage()));
+                        buildNaverErrorMessage( "네이버 사용자 정보 조회에 실패했습니다.", naverUser.getMessage()));
             }
 
             return naverUser;
 
         } catch (RestClientResponseException e) {
-            throw new IllegalStateException(
-                    "네이버 사용자 정보 조회 요청에 실패했습니다.",
-                    e);
+            if (log.isErrorEnabled()) {
+                log.error("네이버 사용자 정보 조회 실패 - HTTP 상태: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            }
+            throw new IllegalStateException("네이버 로그인 처리에 실패했습니다.", e);
         }
     }
 
@@ -268,15 +250,11 @@ public class NaverLoginServiceImpl implements NaverLoginService {
      */
     private void validateMemberStatus(MemberSocialJoinVO member) {
         if ("BLOCKED".equals(member.getStatus())) {
-            throw new MemberBlockedException(
-                    "정지된 계정입니다. 고객센터로 문의해주세요.");
+            throw new MemberBlockedException("정지된 계정입니다. 고객센터로 문의해주세요.");
         }
 
         if ("WITHDRAWN".equals(member.getStatus())) {
-            throw new MemberWithdrawnException(
-                    "탈퇴한 계정입니다.",
-                    member.getMemberNo(),
-                    member.getWithdrawnAt());
+            throw new MemberWithdrawnException("탈퇴한 계정입니다.", member.getMemberNo(), member.getWithdrawnAt());
         }
     }
 
@@ -286,9 +264,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
      * 네이버 이용자 식별자는 최대 64자이므로 MEMBER_ID의 50자 제한을 넘을 수 있습니다.
      * 따라서 원본 식별자는 MEMBER_SOCIAL에 저장하고, MEMBER_ID에는 SHA-256 해시 일부를 사용합니다.
      */
-    private MemberVO createNaverMember(
-            NaverUserInfoVO naverUser,
-            String providerUserId) {
+    private MemberVO createNaverMember(NaverUserInfoVO naverUser, String providerUserId) {
 
         MemberVO memberVO = new MemberVO();
 
@@ -317,29 +293,21 @@ public class NaverLoginServiceImpl implements NaverLoginService {
     private String buildNaverMemberId(String providerUserId) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            byte[] digest = messageDigest.digest(
-                    providerUserId.getBytes(StandardCharsets.UTF_8));
+            byte[] digest = messageDigest.digest(providerUserId.getBytes(StandardCharsets.UTF_8));
             String hash = HexFormat.of().formatHex(digest);
 
             return "naver_" + hash.substring(0, MEMBER_ID_HASH_LENGTH);
 
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(
-                    "네이버 회원 아이디 생성에 실패했습니다.",
-                    e);
+            throw new IllegalStateException("네이버 회원 아이디 생성에 실패했습니다.", e);
         }
     }
 
-    /**
-     * 네이버가 전달한 오류 설명이 있을 때 사용자 안내 문구 뒤에 덧붙입니다.
-     */
+    // 네이버 오류 상세는 로그에 남기고 사용자에게 기본 문구만 반환
     private String buildNaverErrorMessage(String defaultMessage, String errorDescription) {
-
         if (errorDescription != null && !errorDescription.isBlank() && log.isWarnEnabled()) {
-
-            log.warn("네이버 로그인 오류 응답: {}", errorDescription);
+            log.warn("네이버 API 오류 응답: {}", errorDescription);
         }
-
         return defaultMessage;
     }
 }

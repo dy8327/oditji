@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.MemberPlatformService;
@@ -32,6 +35,7 @@ public class NaverLoginController {
     private final NaverLoginService naverLoginService;
     private final MemberPlatformService memberPlatformService;
     private final MemberService memberService;
+    private static final Logger log = LoggerFactory.getLogger(NaverLoginController.class);
 
     public NaverLoginController(
             NaverLoginService naverLoginService,
@@ -65,11 +69,8 @@ public class NaverLoginController {
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "error", required = false) String error,
-            @RequestParam(
-                    value = "error_description",
-                    required = false) String errorDescription,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "error_description", required = false) String errorDescription,
+            HttpSession session, RedirectAttributes redirectAttributes) {
 
         String savedState = (String) session.getAttribute(NAVER_OAUTH_STATE);
 
@@ -78,41 +79,29 @@ public class NaverLoginController {
          */
         session.removeAttribute(NAVER_OAUTH_STATE);
 
-        if (savedState == null
-                || state == null
-                || !savedState.equals(state)) {
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    "네이버 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
+        if (savedState == null || state == null || !savedState.equals(state)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
 
             return "redirect:/member/login";
         }
 
         if (error != null && !error.isBlank()) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    buildCallbackErrorMessage(errorDescription));
+            redirectAttributes.addFlashAttribute("errorMessage", buildCallbackErrorMessage(errorDescription));
 
             return "redirect:/member/login";
         }
 
         if (code == null || code.isBlank()) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    "네이버 인증 코드를 받지 못했습니다. 다시 시도해주세요.");
+            redirectAttributes.addFlashAttribute("errorMessage", "네이버 인증 코드를 받지 못했습니다. 다시 시도해주세요.");
 
             return "redirect:/member/login";
         }
 
         try {
-            NaverLoginResultVO result =
-                    naverLoginService.naverLogin(code, state);
+            NaverLoginResultVO result = naverLoginService.naverLogin(code, state);
 
             if (result == null || result.getMember() == null) {
-                redirectAttributes.addFlashAttribute(
-                        "errorMessage",
-                        "네이버 로그인 회원 정보를 확인하지 못했습니다.");
+                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 정보를 확인하지 못했습니다.");
 
                 return "redirect:/member/login";
             }
@@ -120,9 +109,7 @@ public class NaverLoginController {
             MemberSocialJoinVO member = result.getMember();
 
             if (member.getMemberNo() <= 0) {
-                redirectAttributes.addFlashAttribute(
-                        "errorMessage",
-                        "네이버 로그인 회원 번호를 확인하지 못했습니다.");
+                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 번호를 확인하지 못했습니다.");
 
                 return "redirect:/member/login";
             }
@@ -130,47 +117,32 @@ public class NaverLoginController {
             String displayName = getDisplayName(member);
             member.setMemberName(displayName);
 
-            int platformCount =
-                    memberPlatformService.countMemberPlatform(
-                            member.getMemberNo());
+            int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
 
             if (result.isNewMember() || platformCount == 0) {
-                savePendingMemberSession(
-                        session,
-                        member,
-                        displayName);
+                savePendingMemberSession(session, member, displayName);
 
                 return "redirect:/member/platform/select";
             }
 
-            MemberVO loginMember =
-                    memberService.getMemberByNo(member.getMemberNo());
+            MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
 
             if (loginMember == null) {
-                redirectAttributes.addFlashAttribute(
-                        "errorMessage",
-                        "네이버 로그인 회원 정보를 불러오지 못했습니다.");
+                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 정보를 불러오지 못했습니다.");
 
                 return "redirect:/member/login";
             }
 
-            if (loginMember.getMemberName() == null
-                    || loginMember.getMemberName().isBlank()) {
+            if (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank()) {
                 loginMember.setMemberName(displayName);
             }
 
-            saveLoginSession(
-                    session,
-                    loginMember,
-                    member.getProvider(),
-                    displayName);
+            saveLoginSession(session, loginMember, member.getProvider(), displayName);
 
             return "redirect:/";
 
         } catch (MemberBlockedException e) {
-            redirectAttributes.addFlashAttribute(
-                    "blockedMessage",
-                    e.getMessage());
+            redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
 
             return "redirect:/member/login";
 
@@ -182,17 +154,12 @@ public class NaverLoginController {
             session.setAttribute("restoreMemberNo", e.getMemberNo());
             session.setAttribute("restoreProvider", PROVIDER_NAVER);
 
-            redirectAttributes.addFlashAttribute(
-                    "withdrawnMessage",
-                    WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+            redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
             return "redirect:/member/login";
 
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage());
-
+        } catch (IllegalArgumentException | IllegalStateException ignored) {
+            redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/member/login";
         }
     }
@@ -200,10 +167,7 @@ public class NaverLoginController {
     /**
      * 신규 네이버 회원이 OTT 선택을 완료하기 전까지 필요한 정보를 저장합니다.
      */
-    private void savePendingMemberSession(
-            HttpSession session,
-            MemberSocialJoinVO member,
-            String displayName) {
+    private void savePendingMemberSession(HttpSession session, MemberSocialJoinVO member, String displayName) {
 
         session.setAttribute("pendingMemberNo", member.getMemberNo());
         session.setAttribute("pendingMemberId", member.getMemberId());
@@ -218,11 +182,7 @@ public class NaverLoginController {
     /**
      * 기존 일반 로그인 및 카카오 로그인과 동일한 세션 키를 저장합니다.
      */
-    private void saveLoginSession(
-            HttpSession session,
-            MemberVO loginMember,
-            String provider,
-            String displayName) {
+    private void saveLoginSession(HttpSession session, MemberVO loginMember, String provider, String displayName) {
 
         session.setAttribute("loginMember", loginMember);
 
@@ -267,15 +227,11 @@ public class NaverLoginController {
         return displayName;
     }
 
-    /**
-     * 사용자가 네이버 로그인 동의를 취소하거나 인증이 실패한 경우의 안내 문구를 만듭니다.
-     */
+    // 네이버 OAuth 콜백 오류 상세는 로그에만 기록
     private String buildCallbackErrorMessage(String errorDescription) {
-        if (errorDescription == null || errorDescription.isBlank()) {
-            return "네이버 로그인이 취소되었거나 실패했습니다.";
+        if (errorDescription != null && !errorDescription.isBlank() && log.isWarnEnabled()) {
+            log.warn("네이버 OAuth 콜백 오류: {}", errorDescription);
         }
-
-        return "네이버 로그인이 취소되었거나 실패했습니다. "
-                + errorDescription;
+        return "네이버 로그인이 취소되었거나 실패했습니다.";
     }
 }
