@@ -29,7 +29,9 @@ public class GlobalExceptionHandler {
     // 처리되지 않은 전체 예외
     @ExceptionHandler(Exception.class)
     public Object handleException(Exception e, HttpServletRequest request) {
-        log.error("처리되지 않은 오류 발생 - {} {}", request.getMethod(), request.getRequestURI(), e);
+        if (log.isErrorEnabled()) {
+            log.error("처리되지 않은 오류 발생 - {} {}", request.getMethod(), request.getRequestURI(), e);
+        }
         return createErrorResponse(request, HttpStatus.INTERNAL_SERVER_ERROR,
                 "요청 처리 중 오류가 발생했습니다.", "error/500");
     }
