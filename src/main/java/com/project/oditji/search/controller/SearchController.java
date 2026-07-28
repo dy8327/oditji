@@ -90,6 +90,11 @@ public class SearchController {
                         searchVO.getProviderIds()
                 );
 
+        List<String> ageRatings =
+                createSafeList(
+                        searchVO.getAgeRatings()
+                );
+
         List<String> productTypes =
                 createSafeList(
                         searchVO.getProductTypes()
@@ -171,6 +176,10 @@ public class SearchController {
                 providerIds
         );
 
+        searchVO.setAgeRatings(
+                ageRatings
+        );
+
         searchVO.setProductTypes(
                 productTypes
         );
@@ -207,7 +216,8 @@ public class SearchController {
                         CONTENT_PAGE_SIZE,
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         List<SearchResultVO> contentResults =
@@ -225,7 +235,8 @@ public class SearchController {
                         CONTENT_PAGE_SIZE,
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
 
         if (allContentResults == null) {
@@ -433,6 +444,11 @@ public class SearchController {
         model.addAttribute(
                 "providerIds",
                 providerIds
+        );
+
+        model.addAttribute(
+                "ageRatings",
+                ageRatings
         );
 
         model.addAttribute(

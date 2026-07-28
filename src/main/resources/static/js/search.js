@@ -530,6 +530,7 @@ function initializeActiveFilterChips() {
 
             synchronizeAllCheckbox(filterForm, "contentCategory");
             synchronizeAllCheckbox(filterForm, "genre");
+            synchronizeAllCheckbox(filterForm, "ageRating");
             synchronizeAllCheckbox(filterForm, "provider");
             updateOttSelectedSummary();
 
@@ -568,6 +569,7 @@ function initializePaginationFilterPreservation() {
                     "contentCategories",
                     "genreCodes",
                     "providerIds",
+                    "ageRatings",
                     "productTypes",
                     "minPrice",
                     "maxPrice",

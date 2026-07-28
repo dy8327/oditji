@@ -9,6 +9,8 @@ public class SearchVO {
     private List<String> contentCategories;
     private List<String> genreCodes;
     private List<String> providerIds;
+    // 콘텐츠 관람등급 복수 선택 필터입니다.
+    private List<String> ageRatings;
 
     private List<String> productTypes;
     private Integer minPrice;
@@ -24,6 +26,7 @@ public class SearchVO {
         this.contentCategories = new ArrayList<String>();
         this.genreCodes = new ArrayList<String>();
         this.providerIds = new ArrayList<String>();
+        this.ageRatings = new ArrayList<String>();
         this.productTypes = new ArrayList<String>();
         this.searchTab = "ALL";
         this.contentPage = 1;
@@ -66,6 +69,16 @@ public class SearchVO {
         this.providerIds = providerIds == null
                 ? new ArrayList<String>()
                 : providerIds;
+    }
+
+    public List<String> getAgeRatings() {
+        return ageRatings;
+    }
+
+    public void setAgeRatings(List<String> ageRatings) {
+        this.ageRatings = ageRatings == null
+                ? new ArrayList<String>()
+                : ageRatings;
     }
 
     public List<String> getProductTypes() {
@@ -159,6 +172,10 @@ public class SearchVO {
         return providerIds != null && !providerIds.isEmpty();
     }
 
+    public boolean hasAgeRatings() {
+        return ageRatings != null && !ageRatings.isEmpty();
+    }
+
     public boolean hasProductTypes() {
         return productTypes != null && !productTypes.isEmpty();
     }
@@ -175,6 +192,7 @@ public class SearchVO {
         return hasContentCategories()
                 || hasGenreCodes()
                 || hasProviderIds()
+                || hasAgeRatings()
                 || hasGoodsFilter();
     }
 }

@@ -475,7 +475,8 @@ public class ContentServiceImpl implements ContentService {
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds) {
+            List<String> providerIds,
+            List<String> ageRatings) {
 
         return searchContentPageCacheService
                 .getContentListPage(
@@ -484,7 +485,8 @@ public class ContentServiceImpl implements ContentService {
                         page,
                         contentCategories,
                         genreCodes,
-                        providerIds
+                        providerIds,
+                        ageRatings
                 );
     }
 
@@ -492,13 +494,15 @@ public class ContentServiceImpl implements ContentService {
     public List<SearchResultVO> getContentRecommendedList(
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds) {
+            List<String> providerIds,
+            List<String> ageRatings) {
 
         return searchContentPageCacheService
                 .getContentRecommendedList(
                         contentCategories,
                         genreCodes,
                         providerIds,
+                        ageRatings,
                         5
                 );
     }

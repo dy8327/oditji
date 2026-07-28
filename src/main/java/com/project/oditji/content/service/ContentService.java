@@ -73,7 +73,8 @@ public interface ContentService {
             int page,
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds);
+            List<String> providerIds,
+            List<String> ageRatings);
 
     /**
      * 현재 목록의 카테고리, 장르, OTT 조건을 반영하여
@@ -82,5 +83,6 @@ public interface ContentService {
     List<SearchResultVO> getContentRecommendedList(
             List<String> contentCategories,
             List<String> genreCodes,
-            List<String> providerIds);
+            List<String> providerIds,
+            List<String> ageRatings);
 }

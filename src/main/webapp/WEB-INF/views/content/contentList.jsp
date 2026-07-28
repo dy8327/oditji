@@ -38,7 +38,7 @@
             src="${pageContext.request.contextPath}/js/favorite.js"></script>
 
     <script defer
-            src="${pageContext.request.contextPath}/js/contentList.js?v=4"></script>
+            src="${pageContext.request.contextPath}/js/contentList.js?v=5"></script>
 </head>
 
 <body>
@@ -90,7 +90,8 @@
                     <c:choose>
                         <c:when test="${not empty contentCategories
                                       or not empty genreCodes
-                                      or not empty providerIds}">
+                                      or not empty providerIds
+                                      or not empty ageRatings}">
 
                             <span class="content-selected-filter-label">
                                 선택된 조건
@@ -153,6 +154,21 @@
                                             </c:choose>
                                         </span>
 
+                                        <span aria-hidden="true">×</span>
+                                    </button>
+
+                                </c:forEach>
+
+
+                                <c:forEach var="ageRating"
+                                           items="${ageRatings}">
+
+                                    <button type="button"
+                                            class="content-selected-filter-chip"
+                                            data-content-filter-chip
+                                            data-filter-name="ageRatings"
+                                            data-filter-value="${ageRating}">
+                                        <span><c:out value="${ageRating}"/></span>
                                         <span aria-hidden="true">×</span>
                                     </button>
 
@@ -222,6 +238,13 @@
                         <input type="hidden"
                                name="providerIds"
                                value="${provider}">
+                    </c:forEach>
+
+                    <c:forEach var="ageRating"
+                               items="${ageRatings}">
+                        <input type="hidden"
+                               name="ageRatings"
+                               value="${ageRating}">
                     </c:forEach>
 
                     <label for="contentSortSelect">
@@ -443,6 +466,9 @@
                             <c:forEach var="provider" items="${providerIds}">
                                 <c:param name="providerIds" value="${provider}"/>
                             </c:forEach>
+                            <c:forEach var="ageRating" items="${ageRatings}">
+                                <c:param name="ageRatings" value="${ageRating}"/>
+                            </c:forEach>
                         </c:url>
 
                         <c:url var="previousPageUrl"
@@ -458,6 +484,9 @@
                             </c:forEach>
                             <c:forEach var="provider" items="${providerIds}">
                                 <c:param name="providerIds" value="${provider}"/>
+                            </c:forEach>
+                            <c:forEach var="ageRating" items="${ageRatings}">
+                                <c:param name="ageRatings" value="${ageRating}"/>
                             </c:forEach>
                         </c:url>
 
@@ -488,6 +517,9 @@
                             </c:forEach>
                             <c:forEach var="provider" items="${providerIds}">
                                 <c:param name="providerIds" value="${provider}"/>
+                            </c:forEach>
+                            <c:forEach var="ageRating" items="${ageRatings}">
+                                <c:param name="ageRatings" value="${ageRating}"/>
                             </c:forEach>
                         </c:url>
 
@@ -524,6 +556,9 @@
                             <c:forEach var="provider" items="${providerIds}">
                                 <c:param name="providerIds" value="${provider}"/>
                             </c:forEach>
+                            <c:forEach var="ageRating" items="${ageRatings}">
+                                <c:param name="ageRatings" value="${ageRating}"/>
+                            </c:forEach>
                         </c:url>
 
                         <c:url var="lastPageUrl"
@@ -539,6 +574,9 @@
                             </c:forEach>
                             <c:forEach var="provider" items="${providerIds}">
                                 <c:param name="providerIds" value="${provider}"/>
+                            </c:forEach>
+                            <c:forEach var="ageRating" items="${ageRatings}">
+                                <c:param name="ageRatings" value="${ageRating}"/>
                             </c:forEach>
                         </c:url>
 

@@ -87,6 +87,7 @@ public class ContentController {
                         @RequestParam(required = false) List<String> contentCategories,
                         @RequestParam(required = false) List<String> genreCodes,
                         @RequestParam(required = false) List<String> providerIds,
+                        @RequestParam(required = false) List<String> ageRatings,
                         Model model) {
 
                 String normalizedType = normalizeListType(type);
@@ -103,18 +104,22 @@ public class ContentController {
 
                 List<String> safeProviders = safeList(providerIds);
 
+                List<String> safeAgeRatings = safeList(ageRatings);
+
                 ContentListPageVO pageVO = contentService.getContentListByType(
                                 normalizedType,
                                 normalizedSort,
                                 safePage,
                                 safeCategories,
                                 safeGenres,
-                                safeProviders);
+                                safeProviders,
+                                safeAgeRatings);
 
                 List<SearchResultVO> recommendedList = contentService.getContentRecommendedList(
                                 safeCategories,
                                 safeGenres,
-                                safeProviders);
+                                safeProviders,
+                                safeAgeRatings);
 
                 Map<String, String> ottLogoMap = createOttLogoMap(
                                 tmdbDAO.selectActivePlatformList());
@@ -162,6 +167,10 @@ public class ContentController {
                 model.addAttribute(
                                 "providerIds",
                                 safeProviders);
+
+                model.addAttribute(
+                                "ageRatings",
+                                safeAgeRatings);
 
                 model.addAttribute(
                                 "pageTitle",
