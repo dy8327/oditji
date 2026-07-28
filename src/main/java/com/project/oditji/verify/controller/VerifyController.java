@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // 4. Spring Web MVC 라우팅 및 HTTP 요청 처리를 위한 API
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class VerifyController {
 
     private final VerifyService verifyService;
+    private static final Logger log = LoggerFactory.getLogger(VerifyController.class);
 
     // 포트원 성인인증 연동을 위한 설정값들
     @Value("${portone.store-id:test-store-id}")
@@ -50,8 +54,7 @@ public class VerifyController {
     @GetMapping("/adult")
     public String adultVerifyPage(
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
-            HttpSession session,
-            Model model) {
+            HttpSession session, Model model) {
         Long memberNo = (Long) session.getAttribute("memberNo");
 
         // 1) 로그인 검증 (아이디가 비어있다면 로그인 창으로 이동)
@@ -61,9 +64,7 @@ public class VerifyController {
              * MemberController가 로그인 후 사용하는 세션 키와 동일하게 맞춰
              * 로그인 완료 뒤 다시 성인인증 페이지로 돌아오도록 합니다.
              */
-            session.setAttribute(
-                    "redirectAfterLogin",
-                    "/verify/adult?returnUrl=" + sanitizeReturnUrl(returnUrl));
+            session.setAttribute("redirectAfterLogin", "/verify/adult?returnUrl=" + sanitizeReturnUrl(returnUrl));
             return "redirect:/member/login";
         }
 
@@ -82,9 +83,7 @@ public class VerifyController {
         return "verify/adultVerify";
     }
 
-    /**
-     * 2. 성인인증 준비 (포트원 호출 전 사전 작업)
-     */
+    // 2. 성인인증 준비 (포트원 호출 전 사전 작업)
     @PostMapping("/adult/ready")
     @ResponseBody
     public AdultVerifyReadyVO prepareVerification(HttpSession session) {
@@ -97,9 +96,7 @@ public class VerifyController {
         return verifyService.prepareVerification(memberNo);
     }
 
-    /**
-     * 3. 성인인증 완료 처리
-     */
+    // 3. 성인인증 완료 처리
     @PostMapping("/adult/complete")
     @ResponseBody
     public AdultVerifyCompleteVO completeVerification(
@@ -107,9 +104,7 @@ public class VerifyController {
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
             HttpSession session) {
         try {
-            System.out.println("===== 성인인증 complete 진입 =====");
             Long memberNo = (Long) session.getAttribute("memberNo");
-
             if (memberNo == null) {
                 return AdultVerifyCompleteVO.fail("로그인이 필요합니다.");
             }
@@ -119,45 +114,35 @@ public class VerifyController {
                 return AdultVerifyCompleteVO.fail("본인인증 요청 ID가 없습니다.");
             }
 
-            return verifyService.completeVerification(
-                    memberNo,
-                    verifyId,
-                    returnUrl,
-                    session);
+            return verifyService.completeVerification(memberNo, verifyId, returnUrl, session);
 
-        } catch (Exception e) {
-            System.out.println("===== 성인인증 complete 서버 오류 =====");
-            e.printStackTrace();
-            return AdultVerifyCompleteVO.fail("성인인증 완료 처리 중 서버 오류가 발생했습니다.");
+       } catch (Exception e) {
+            if (log.isErrorEnabled()) {
+                log.error("성인인증 완료 처리 중 오류", e);
+            }
+
+            return AdultVerifyCompleteVO.fail("성인인증 완료 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
         }
     }
 
-    /**
-     * 4. 성인인증 성공 페이지
-     */
+    // 4. 성인인증 성공 페이지
     @GetMapping("/adult/success")
     public String success() {
         return "verify/adultVerifySuccess";
     }
 
-    /**
-     * 5. 성인인증 실패 페이지
-     */
+    // 5. 성인인증 실패 페이지
     @GetMapping("/adult/fail")
-    public String fail(
-            @RequestParam(value = "message", required = false, defaultValue = "성인인증에 실패했습니다.") String message,
+    public String fail(@RequestParam(value = "message", required = false, defaultValue = "성인인증에 실패했습니다.") String message,
             Model model) {
         model.addAttribute("message", message);
         return "verify/adultVerifyFail";
     }
 
-    /**
-     * URL 오픈 리다이렉트 취약점 방지용 유틸 메서드
-     */
+    // URL 오픈 리다이렉트 취약점 방지용 유틸 메서드
     private String sanitizeReturnUrl(String returnUrl) {
-        if (returnUrl == null || returnUrl.isBlank() ||
-                returnUrl.startsWith("http://") || returnUrl.startsWith("https://") ||
-                !returnUrl.startsWith("/")) {
+        if (returnUrl == null || returnUrl.isBlank() || returnUrl.startsWith("http://") || 
+            returnUrl.startsWith("https://") || !returnUrl.startsWith("/")) {
             return "/";
         }
         return returnUrl;
