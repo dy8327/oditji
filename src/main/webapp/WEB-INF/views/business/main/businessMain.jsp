@@ -108,7 +108,7 @@
                         </a>
 
                         <!-- 정산 -->
-                        <a href="${pageContext.request.contextPath}/business/settlementManage"
+                        <a href="${pageContext.request.contextPath}/business/settlement/main"
                         class="dashboard-card">
 
                             <span>정산 예정</span>
