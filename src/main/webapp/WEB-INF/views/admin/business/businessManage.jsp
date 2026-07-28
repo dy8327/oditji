@@ -36,6 +36,27 @@
 
         </div>
 
+        <%--
+            상단 통계 카드. 각 카드는 해당 탭으로 바로 이동하는 링크이며,
+            현재 선택된 탭과 일치하는 카드에는 active 클래스를 준다.
+            memberManage.jsp / reviewManage.jsp와 동일한 .member-stat-grid 컴포넌트를 재사용한다.
+        --%>
+        <div class="member-stat-grid">
+
+            <a class="stat-card ${currentTab == 'info' ? 'active' : ''}"
+               href="?tab=info">
+                <span>입점 완료 사업자</span>
+                <strong>${businessStats.approvedCount}명</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'approval' ? 'active' : ''}"
+               href="?tab=approval">
+                <span>승인 대기</span>
+                <strong>${businessStats.waitingCount}명</strong>
+            </a>
+
+        </div>
+
         <section class="admin-content-box">
 
             <nav class="tab-menu">
@@ -46,23 +67,25 @@
             <div class="toolbar">
 
                 <form method="get" action="${pageContext.request.contextPath}/admin/business/list">
+
                     <input type="hidden" name="tab" value="${currentTab}">
 
-                    <%--
-                        검색 입력창에 고유 id를 부여하고 label의 for와 연결한다.
-                        label은 기존 화면 배치에 영향을 주지 않도록 시각적으로 숨긴다.
-                    --%>
                     <label for="businessKeyword"
-                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
                         사업자 검색어
                     </label>
 
                     <input type="text"
-                           id="businessKeyword"
-                           class="page-search"
-                           name="keyword"
-                           value="${param.keyword}"
-                           placeholder="이름, 아이디, 이메일 검색">
+                        id="businessKeyword"
+                        class="page-search"
+                        name="keyword"
+                        value="${param.keyword}"
+                        placeholder="이름, 아이디, 이메일 검색">
+
+                    <button type="submit" class="btn btn-dark search-btn">
+                        검색
+                    </button>
+
                 </form>
 
             </div>
@@ -207,16 +230,48 @@
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage-1}">‹</a>
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
-                    <a href="?tab=${currentTab}&page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
+                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&page=${pagination.currentPage+1}">›</a>
+
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
 
             </div>
+
 
         </section>
 
@@ -247,6 +302,8 @@
         <form action="${pageContext.request.contextPath}/admin/business/grade" method="post">
 
             <input type="hidden" name="businessNo" id="gradeBusinessNo">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
 
             <div class="target-info-box">
                 <p><span>이름</span><strong id="gradeBusinessName"></strong></p>
@@ -309,6 +366,8 @@
         <form id="approvalForm" action="${pageContext.request.contextPath}/admin/business/approve" method="post">
 
             <input type="hidden" name="businessNo" id="approvalBusinessNo">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-success">승인</button>

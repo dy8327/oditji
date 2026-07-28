@@ -220,6 +220,7 @@ function confirmReviewBulkAction(label) {
  */
 function openReviewContentModal(button) {
 
+    document.getElementById('reviewContentReviewNo').value = button.dataset.reviewNo;
     document.getElementById('reviewContentWriter').textContent = displayOrDash(button.dataset.writer);
     document.getElementById('reviewContentTarget').textContent = displayOrDash(button.dataset.target);
     document.getElementById('reviewContentRating').textContent = displayOrDash(button.dataset.rating) + '점';

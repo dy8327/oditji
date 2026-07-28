@@ -39,6 +39,39 @@
 
         </div>
 
+        <%--
+            상단 통계 카드. 각 카드는 해당 탭·상태로 바로 필터링된 목록으로 이동하는 링크이며,
+            현재 선택된 탭/상태와 일치하는 카드에는 active 클래스를 준다.
+            memberManage.jsp / eventManage.jsp와 동일한 .member-stat-grid 컴포넌트를 재사용한다.
+        --%>
+        <div class="member-stat-grid">
+
+            <a class="stat-card ${currentTab == 'order' ? 'active' : ''}"
+               href="?tab=order">
+                <span>전체 주문</span>
+                <strong>${orderStats.totalOrderCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'refund' && currentStatus == 'ALL' ? 'active' : ''}"
+               href="?tab=refund&status=ALL">
+                <span>전체 환불 요청</span>
+                <strong>${orderStats.refundTotalCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'refund' && currentStatus == 'WAITING' ? 'active' : ''}"
+               href="?tab=refund&status=WAITING">
+                <span>환불 대기</span>
+                <strong>${orderStats.refundWaitingCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'refund' && currentStatus == 'APPROVED' ? 'active' : ''}"
+               href="?tab=refund&status=APPROVED">
+                <span>환불 완료</span>
+                <strong>${orderStats.refundApprovedCount}건</strong>
+            </a>
+
+        </div>
+
         <section class="admin-content-box">
 
             <nav class="tab-menu">
@@ -49,13 +82,23 @@
             <div class="toolbar">
                 <form method="get" action="${pageContext.request.contextPath}/admin/order/list">
                     <input type="hidden" name="tab" value="${currentTab}">
+
+                    <%-- 환불 조회 탭 전용 상태 필터. eventManage.jsp / productManage.jsp와 동일하게,
+                         아래 탭 메뉴로도 이동할 수 있지만 키보드·스크린 리더 사용자를 위해 select로도 동일 기능을 제공한다. --%>
                     <c:if test="${currentTab == 'refund'}">
-                        <input type="hidden" name="status" value="${currentStatus}">
+                        <label for="orderManageStatusFilter" class="sr-only">
+                            처리 상태 필터
+                        </label>
+
+                        <select id="orderManageStatusFilter" name="status" class="filter-select">
+                            <option value="ALL"      ${currentStatus == 'ALL' ? 'selected' : ''}>상태 전체</option>
+                            <option value="WAITING"  ${currentStatus == 'WAITING' ? 'selected' : ''}>처리 대기</option>
+                            <option value="APPROVED" ${currentStatus == 'APPROVED' ? 'selected' : ''}>승인 완료</option>
+                            <option value="REJECTED" ${currentStatus == 'REJECTED' ? 'selected' : ''}>반려</option>
+                        </select>
                     </c:if>
 
-                    <%-- 검색 input에 id를 부여하고 숨김 label과 연결한다. --%>
-                    <label for="orderManageKeyword"
-                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                    <label for="orderManageKeyword" class="sr-only">
                         주문 상품명 검색
                     </label>
 
@@ -65,6 +108,10 @@
                            name="keyword"
                            value="${param.keyword}"
                            placeholder="상품명 검색">
+
+                    <button type="submit" class="btn btn-dark search-btn">
+                        검색
+                    </button>
                 </form>
             </div>
 
@@ -82,119 +129,148 @@
                 </nav>
             </c:if>
 
-            <div class="card-list">
+            <c:choose>
 
-                <c:choose>
+                <%-- 주문 조회 탭 --%>
+                <c:when test="${currentTab == 'order'}">
 
-                    <%-- 주문 조회 탭 --%>
-                    <c:when test="${currentTab == 'order'}">
+                    <table class="data-table">
 
-                        <c:choose>
+                        <thead>
+                            <tr>
+                                <th>주문번호</th>
+                                <th>상품명</th>
+                                <th>관련 콘텐츠</th>
+                                <th>가격</th>
+                                <th>주문상태</th>
+                                <th>배송상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
 
-                            <c:when test="${not empty orderList}">
+                        <tbody>
 
-                                <c:forEach var="order" items="${orderList}">
+                            <c:choose>
 
-                                    <article class="item-card">
+                                <c:when test="${not empty orderList}">
 
-                                        <div class="thumb">상품</div>
+                                    <c:forEach var="order" items="${orderList}">
 
-                                        <div class="item-info">
-                                            <h3>${order.productName}</h3>
-                                            <div class="meta">
-                                                <span>관련 콘텐츠: ${order.contentTitle}</span>
-                                                <span>주문번호: ${order.orderNo}</span>
-                                                <span>가격: <fmt:formatNumber value="${order.productPrice}" pattern="#,###"/>원</span>
-                                                <span>
-                                                    주문상태:
-                                                    <span class="badge ${order.orderStatus == 'CANCEL_REQUEST' ? 'badge-yellow' : 'badge-gray'}">
-                                                        <c:choose>
-                                                            <c:when test="${order.orderStatus == 'ORDERED'}">주문 완료</c:when>
-                                                            <c:when test="${order.orderStatus == 'PAID'}">결제 완료</c:when>
-                                                            <c:when test="${order.orderStatus == 'PREPARING'}">상품 준비 중</c:when>
-                                                            <c:when test="${order.orderStatus == 'SHIPPING'}">배송 중</c:when>
-                                                            <c:when test="${order.orderStatus == 'DELIVERED'}">배송 완료</c:when>
-                                                            <c:when test="${order.orderStatus == 'CONFIRMED'}">구매 확정</c:when>
-                                                            <c:when test="${order.orderStatus == 'CANCELED'}">주문 취소</c:when>
-                                                            <c:when test="${order.orderStatus == 'CANCEL_REQUEST'}">취소 요청 중</c:when>
-                                                            <c:when test="${order.orderStatus == 'REFUNDED'}">환불 완료</c:when>
-                                                            <c:otherwise>${order.orderStatus}</c:otherwise>
-                                                        </c:choose>
-                                                    </span>
+                                        <tr>
+
+                                            <td>${order.orderNo}</td>
+                                            <td>${order.productName}</td>
+                                            <td>${order.contentTitle}</td>
+                                            <td><fmt:formatNumber value="${order.productPrice}" pattern="#,###"/>원</td>
+
+                                            <td>
+                                                <span class="badge ${order.orderStatus == 'CANCEL_REQUEST' ? 'badge-yellow' : 'badge-gray'}">
+                                                    <c:choose>
+                                                        <c:when test="${order.orderStatus == 'ORDERED'}">주문 완료</c:when>
+                                                        <c:when test="${order.orderStatus == 'PAID'}">결제 완료</c:when>
+                                                        <c:when test="${order.orderStatus == 'PREPARING'}">상품 준비 중</c:when>
+                                                        <c:when test="${order.orderStatus == 'SHIPPING'}">배송 중</c:when>
+                                                        <c:when test="${order.orderStatus == 'DELIVERED'}">배송 완료</c:when>
+                                                        <c:when test="${order.orderStatus == 'CONFIRMED'}">구매 확정</c:when>
+                                                        <c:when test="${order.orderStatus == 'CANCELED'}">주문 취소</c:when>
+                                                        <c:when test="${order.orderStatus == 'CANCEL_REQUEST'}">취소 요청 중</c:when>
+                                                        <c:when test="${order.orderStatus == 'REFUNDED'}">환불 완료</c:when>
+                                                        <c:otherwise>${order.orderStatus}</c:otherwise>
+                                                    </c:choose>
                                                 </span>
-                                                <span>
-                                                    배송상태:
-                                                    <span class="badge ${order.status == 'SHIPPING' ? 'badge-blue' : 'badge-gray'}">
-                                                        <c:choose>
-                                                            <c:when test="${order.status == 'PREPARING'}">상품 준비 중</c:when>
-                                                            <c:when test="${order.status == 'SHIPPING'}">배송 중</c:when>
-                                                            <c:when test="${order.status == 'DELIVERED'}">배송 완료</c:when>
-                                                            <c:when test="${order.status == 'CONFIRMED'}">구매 확정</c:when>
-                                                            <c:otherwise>${order.status}</c:otherwise>
-                                                        </c:choose>
-                                                    </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="badge ${order.status == 'SHIPPING' ? 'badge-blue' : 'badge-gray'}">
+                                                    <c:choose>
+                                                        <c:when test="${order.status == 'PREPARING'}">상품 준비 중</c:when>
+                                                        <c:when test="${order.status == 'SHIPPING'}">배송 중</c:when>
+                                                        <c:when test="${order.status == 'DELIVERED'}">배송 완료</c:when>
+                                                        <c:when test="${order.status == 'CONFIRMED'}">구매 확정</c:when>
+                                                        <c:otherwise>${order.status}</c:otherwise>
+                                                    </c:choose>
                                                 </span>
-                                            </div>
-                                        </div>
+                                            </td>
 
-                                        <div class="item-actions">
+                                            <td>
+                                                <div class="item-actions">
+                                                    <button type="button" class="btn btn-dark"
+                                                            onclick="openOrderDetailModal(
+                                                                '${order.orderNo}',
+                                                                '${order.orderItemNo}',
+                                                                '${order.productName}',
+                                                                '${order.contentTitle}',
+                                                                '${order.quantity}',
+                                                                '${order.productPrice}',
+                                                                '${order.totalAmount}',
+                                                                '${order.orderStatus}',
+                                                                '${order.status}',
+                                                                '${order.receiverName}',
+                                                                '${order.receiverPhone}',
+                                                                '${order.address}',
+                                                                '${order.trackingNumber}',
+                                                                '${order.courier}',
+                                                                '<fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>'
+                                                            )">
+                                                        상세보기
+                                                    </button>
+                                                </div>
+                                            </td>
 
-                                            <button type="button" class="btn btn-dark"
-                                                    onclick="openOrderDetailModal(
-                                                        '${order.orderNo}',
-                                                        '${order.orderItemNo}',
-                                                        '${order.productName}',
-                                                        '${order.contentTitle}',
-                                                        '${order.quantity}',
-                                                        '${order.productPrice}',
-                                                        '${order.totalAmount}',
-                                                        '${order.orderStatus}',
-                                                        '${order.status}',
-                                                        '${order.receiverName}',
-                                                        '${order.receiverPhone}',
-                                                        '${order.address}',
-                                                        '${order.trackingNumber}',
-                                                        '${order.courier}',
-                                                        '<fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>'
-                                                    )">
-                                                상세보기
-                                            </button>
+                                        </tr>
 
-                                        </div>
+                                    </c:forEach>
 
-                                    </article>
+                                </c:when>
 
-                                </c:forEach>
+                                <c:otherwise>
+                                    <tr>
+                                        <td colspan="7">주문 내역이 없습니다.</td>
+                                    </tr>
+                                </c:otherwise>
 
-                            </c:when>
+                            </c:choose>
 
-                            <c:otherwise>
-                                <article class="item-card empty">주문 내역이 없습니다.</article>
-                            </c:otherwise>
+                        </tbody>
 
-                        </c:choose>
+                    </table>
 
-                    </c:when>
+                </c:when>
 
-                    <%-- 환불 조회 탭 --%>
-                    <c:otherwise>
+                <%-- 환불 조회 탭 --%>
+                <c:otherwise>
 
-                        <c:choose>
+                    <table class="data-table">
 
-                            <c:when test="${not empty refundList}">
+                        <thead>
+                            <tr>
+                                <th>주문번호</th>
+                                <th>상품명</th>
+                                <th>관련 콘텐츠</th>
+                                <th>구매자</th>
+                                <th>사유</th>
+                                <th>처리상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
 
-                                <c:forEach var="refund" items="${refundList}">
+                        <tbody>
 
-                                    <article class="item-card">
+                            <c:choose>
 
-                                        <div class="thumb">상품</div>
+                                <c:when test="${not empty refundList}">
 
-                                        <div class="item-info">
-                                            <h3>${refund.productName}</h3>
-                                            <div class="meta">
-                                                <span>관련 콘텐츠: ${refund.contentTitle}</span>
-                                                <span>구매자: ${refund.memberId}</span>
-                                                <span>${refund.reason}</span>
+                                    <c:forEach var="refund" items="${refundList}">
+
+                                        <tr>
+
+                                            <td>${refund.orderNo}</td>
+                                            <td>${refund.productName}</td>
+                                            <td>${refund.contentTitle}</td>
+                                            <td>${refund.memberId}</td>
+                                            <td>${refund.reason}</td>
+
+                                            <td>
                                                 <span class="badge ${refund.cancelStatus == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
                                                     <c:choose>
                                                         <c:when test="${refund.cancelStatus == 'WAITING'}">처리 대기</c:when>
@@ -203,60 +279,94 @@
                                                         <c:otherwise>${refund.cancelStatus}</c:otherwise>
                                                     </c:choose>
                                                 </span>
-                                            </div>
-                                        </div>
+                                            </td>
 
-                                        <div class="item-actions">
+                                            <td>
+                                                <div class="item-actions">
+                                                    <button type="button" class="btn btn-dark"
+                                                            onclick="openRefundDetailModal(
+                                                                '${refund.cancelNo}',
+                                                                '${refund.orderNo}',
+                                                                '${refund.orderItemNo}',
+                                                                '${refund.productName}',
+                                                                '${refund.memberId}',
+                                                                '${refund.cancelType}',
+                                                                '${refund.quantity}',
+                                                                '${refund.refundAmount}',
+                                                                '${refund.reason}',
+                                                                '${refund.cancelStatus}',
+                                                                '${refund.rejectReason}',
+                                                                '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
+                                                                '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
+                                                            )">
+                                                        상세보기
+                                                    </button>
+                                                </div>
+                                            </td>
 
-                                            <button type="button" class="btn btn-dark"
-                                                    onclick="openRefundDetailModal(
-                                                        '${refund.cancelNo}',
-                                                        '${refund.orderNo}',
-                                                        '${refund.orderItemNo}',
-                                                        '${refund.productName}',
-                                                        '${refund.memberId}',
-                                                        '${refund.cancelType}',
-                                                        '${refund.quantity}',
-                                                        '${refund.refundAmount}',
-                                                        '${refund.reason}',
-                                                        '${refund.cancelStatus}',
-                                                        '${refund.rejectReason}',
-                                                        '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
-                                                        '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
-                                                    )">
-                                                상세보기
-                                            </button>
+                                        </tr>
 
-                                        </div>
+                                    </c:forEach>
 
-                                    </article>
+                                </c:when>
 
-                                </c:forEach>
+                                <c:otherwise>
+                                    <tr>
+                                        <td colspan="7">환불 요청 내역이 없습니다.</td>
+                                    </tr>
+                                </c:otherwise>
 
-                            </c:when>
+                            </c:choose>
 
-                            <c:otherwise>
-                                <article class="item-card empty">환불 요청 내역이 없습니다.</article>
-                            </c:otherwise>
+                        </tbody>
 
-                        </c:choose>
+                    </table>
 
-                    </c:otherwise>
+                </c:otherwise>
 
-                </c:choose>
-
-            </div>
+            </c:choose>
 
             <div class="pagination">
 
-                <a href="?tab=${currentTab}&status=${currentStatus}&page=${pagination.currentPage-1}">‹</a>
+                <!-- 이전 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
 
-                <c:forEach var="p" begin="1" end="${empty pagination.totalPages ? 1 : pagination.totalPages}">
-                    <a href="?tab=${currentTab}&status=${currentStatus}&page=${p}"
-                       class="${pagination.currentPage == p ? 'active' : ''}">${p}</a>
+
+                <!-- 이전 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
+                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
                 </c:forEach>
 
-                <a href="?tab=${currentTab}&status=${currentStatus}&page=${pagination.currentPage+1}">›</a>
+
+                <!-- 다음 페이지 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+
+                <!-- 다음 블록 -->
+                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
 
             </div>
 

@@ -3,9 +3,6 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<%-- 하위 메뉴 활성화 표시용 (각 페이지의 currentTab 유무와 무관하게 param.tab을 그대로 사용) --%>
-<c:set var="curTab" value="${empty param.tab ? '' : param.tab}"/>
-
 <aside class="admin-sidebar">
 
     <div class="sidebar-logo">
@@ -114,19 +111,22 @@
 
         </div>
 
-        <!-- 사업자 관리 -->
+        <!--
+            사업자 관리 (이벤트/상품 관리와 동일한 방식)
+
+            [정리됨] 예전에는 tab=info/approval 하위 메뉴 2개로 나눠져 있었지만,
+            businessManage.jsp에 상단 통계 카드(입점 완료/승인 대기)와 페이지 내
+            tab-menu(사업자 목록/사업자 승인 관리)가 이미 같은 전환을 제공하고 있어
+            사이드바에서까지 나누면 같은 기능이 중복된다. 이벤트/상품 관리처럼
+            activeMenu만으로 판단하는 단일 링크로 정리한다.
+        -->
         <div class="menu-group">
 
             <h3>사업자 관리</h3>
 
-            <a href="${pageContext.request.contextPath}/admin/business/list?tab=info"
-               class="${activeMenu == 'business' && (curTab == 'info' || empty curTab) ? 'active' : ''}">
-                사업자 목록
-            </a>
-
-            <a href="${pageContext.request.contextPath}/admin/business/list?tab=approval"
-               class="${activeMenu == 'business' && curTab == 'approval' ? 'active' : ''}">
-                사업자 승인 관리
+            <a href="${pageContext.request.contextPath}/admin/business/list"
+               class="${activeMenu == 'business' ? 'active' : ''}">
+                사업자 관리
             </a>
 
         </div>

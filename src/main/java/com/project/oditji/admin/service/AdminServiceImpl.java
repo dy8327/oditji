@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.project.oditji.admin.dao.AdminDAO;
+import com.project.oditji.common.util.PaginationUtil;
 import com.project.oditji.admin.vo.AdminVO;
 import com.project.oditji.admin.vo.BusinessManageVO;
 import com.project.oditji.admin.vo.ContentManageVO;
@@ -23,7 +24,9 @@ import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
+import com.project.oditji.admin.vo.BusinessStatVO;
 import com.project.oditji.admin.vo.OrderManageVO;
+import com.project.oditji.admin.vo.OrderStatVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ProductManageVO;
@@ -31,6 +34,7 @@ import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
+import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 
 @Service
@@ -91,6 +95,23 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public MemberStatVO getMemberStats() {
         return adminDAO.selectMemberStats();
+    }
+
+    /** keyword 하나만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. */
+    private Map<String, Object> keywordParam(String keyword) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("keyword", keyword);
+        return param;
+    }
+
+    /**
+     * 리뷰/이벤트/상품/주문/사업자/정산 등 회원 관리 외 목록 조회에서 공통으로 쓰는
+     * offset/pageSize 파라미터를 채워 넣는다. (memberSearchParam과 동일한 방식)
+     */
+    private Map<String, Object> withPaging(Map<String, Object> param, int page, int pageSize) {
+        param.put("offset", PaginationUtil.offset(page, pageSize));
+        param.put("pageSize", pageSize);
+        return param;
     }
 
     private Map<String, Object> memberSearchParam(String keyword, String searchType, String status, String memberType) {
@@ -216,11 +237,20 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 콘텐츠 리뷰 관리 =====================
 
     @Override
-    public List<ReviewManageVO> getContentReviewList(String tab, String keyword) {
+    public List<ReviewManageVO> getContentReviewList(String tab, String keyword, int page, int pageSize) {
+        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
         if ("report".equals(tab)) {
-            return adminDAO.selectContentReviewReportList(keyword);
+            return adminDAO.selectContentReviewReportList(param);
         }
-        return adminDAO.selectContentReviewList(keyword);
+        return adminDAO.selectContentReviewList(param);
+    }
+
+    @Override
+    public int getContentReviewListCount(String tab, String keyword) {
+        if ("report".equals(tab)) {
+            return adminDAO.selectContentReviewReportListCount(keywordParam(keyword));
+        }
+        return adminDAO.selectContentReviewListCount(keywordParam(keyword));
     }
 
     @Override
@@ -302,11 +332,20 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 상품 리뷰 관리 =====================
 
     @Override
-    public List<ReviewManageVO> getProductReviewList(String tab, String keyword) {
+    public List<ReviewManageVO> getProductReviewList(String tab, String keyword, int page, int pageSize) {
+        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
         if ("report".equals(tab)) {
-            return adminDAO.selectProductReviewReportList(keyword);
+            return adminDAO.selectProductReviewReportList(param);
         }
-        return adminDAO.selectProductReviewList(keyword);
+        return adminDAO.selectProductReviewList(param);
+    }
+
+    @Override
+    public int getProductReviewListCount(String tab, String keyword) {
+        if ("report".equals(tab)) {
+            return adminDAO.selectProductReviewReportListCount(keywordParam(keyword));
+        }
+        return adminDAO.selectProductReviewListCount(keywordParam(keyword));
     }
 
     @Override
@@ -392,9 +431,26 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 이벤트 관리 =====================
 
     @Override
-    public List<EventManageVO> getEventList(String tab, String keyword, String period) {
+    public List<EventManageVO> getEventList(String tab, String keyword, String period, int page, int pageSize) {
 
-        return adminDAO.selectAdminEventList(tab, keyword, period);
+        Map<String, Object> param = new HashMap<>();
+        param.put("tab", tab);
+        param.put("keyword", keyword);
+        param.put("period", period);
+        withPaging(param, page, pageSize);
+
+        return adminDAO.selectAdminEventList(param);
+    }
+
+    @Override
+    public int getEventListCount(String tab, String keyword, String period) {
+
+        Map<String, Object> param = new HashMap<>();
+        param.put("tab", tab);
+        param.put("keyword", keyword);
+        param.put("period", period);
+
+        return adminDAO.selectAdminEventListCount(param);
     }
 
 
@@ -453,13 +509,17 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 상품 관리 =====================
 
     @Override
-    public List<ProductManageVO> getProductRequestList(String tab, String keyword) {
-        /*
-         * PRODUCT 테이블에는 등록/수정 요청을 구분하는 별도 컬럼이 없으므로
-         * register/update 탭은 WAITING 상태를 동일하게 조회한다.
-         * delete 탭은 DELETE_REQUESTED 상태만 조회한다.
-         */
-        return adminDAO.selectProductRequestList(tab, keyword);
+    public List<ProductManageVO> getProductRequestList(String tab, String keyword, int page, int pageSize) {
+        Map<String, Object> param = withPaging(keywordParam(keyword), page, pageSize);
+        param.put("tab", tab);
+        return adminDAO.selectProductRequestList(param);
+    }
+
+    @Override
+    public int getProductRequestListCount(String tab, String keyword) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("tab", tab);
+        return adminDAO.selectProductRequestListCount(param);
     }
 
     @Override
@@ -559,28 +619,63 @@ public class AdminServiceImpl implements AdminService {
     // 관리자는 분쟁 확인 등을 위해 상세 내역만 조회한다.
 
     @Override
-    public List<OrderManageVO> getOrderList(String keyword) {
-        return adminDAO.selectOrderList(keyword);
+    public List<OrderManageVO> getOrderList(String keyword, int page, int pageSize) {
+        return adminDAO.selectOrderList(withPaging(keywordParam(keyword), page, pageSize));
+    }
+
+    @Override
+    public int getOrderListCount(String keyword) {
+        return adminDAO.selectOrderListCount(keywordParam(keyword));
+    }
+
+    @Override
+    public OrderStatVO getOrderStats() {
+        return adminDAO.selectOrderStats();
     }
 
     // ===================== 환불 조회 (조회 전용) =====================
     // 환불 승인/거절은 사업자가 처리하며, 관리자는 사유/처리 결과만 조회한다.
 
     @Override
-    public List<OrderManageVO> getRefundList(String keyword, String status) {
-        return adminDAO.selectRefundList(keyword, status);
+    public List<OrderManageVO> getRefundList(String keyword, String status, int page, int pageSize) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("status", status);
+        withPaging(param, page, pageSize);
+        return adminDAO.selectRefundList(param);
+    }
+
+    @Override
+    public int getRefundListCount(String keyword, String status) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("status", status);
+        return adminDAO.selectRefundListCount(param);
     }
 
     // ===================== 사업자 관리 =====================
 
     @Override
-    public List<BusinessManageVO> getBusinessList(String keyword) {
-        return adminDAO.selectBusinessList(keyword);
+    public List<BusinessManageVO> getBusinessList(String keyword, int page, int pageSize) {
+        return adminDAO.selectBusinessList(withPaging(keywordParam(keyword), page, pageSize));
     }
 
     @Override
-    public List<BusinessManageVO> getBusinessApprovalList(String keyword) {
-        return adminDAO.selectBusinessApprovalList(keyword);
+    public int getBusinessListCount(String keyword) {
+        return adminDAO.selectBusinessListCount(keywordParam(keyword));
+    }
+
+    @Override
+    public List<BusinessManageVO> getBusinessApprovalList(String keyword, int page, int pageSize) {
+        return adminDAO.selectBusinessApprovalList(withPaging(keywordParam(keyword), page, pageSize));
+    }
+
+    @Override
+    public int getBusinessApprovalListCount(String keyword) {
+        return adminDAO.selectBusinessApprovalListCount(keywordParam(keyword));
+    }
+
+    @Override
+    public BusinessStatVO getBusinessStats() {
+        return adminDAO.selectBusinessStats();
     }
 
     @Override
@@ -601,8 +696,23 @@ public class AdminServiceImpl implements AdminService {
     // ===================== 정산 관리 =====================
 
     @Override
-    public List<SettlementManageVO> getSettlementList(String keyword) {
-        return adminDAO.selectSettlementList(keyword);
+    public List<SettlementManageVO> getSettlementList(String keyword, String status, int page, int pageSize) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("status", status);
+        withPaging(param, page, pageSize);
+        return adminDAO.selectSettlementList(param);
+    }
+
+    @Override
+    public int getSettlementListCount(String keyword, String status) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put("status", status);
+        return adminDAO.selectSettlementListCount(param);
+    }
+
+    @Override
+    public SettlementStatVO getSettlementStats() {
+        return adminDAO.selectSettlementStats();
     }
 
     /* [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. */
