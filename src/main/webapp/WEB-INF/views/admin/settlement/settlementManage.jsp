@@ -10,6 +10,12 @@
 --%>
 <c:set var="currentStatus" value="${empty param.status ? '' : param.status}"/>
 
+<%--
+    기간(period) 필터의 현재 선택값. param이 없으면 '전체'를 의미하는 빈 문자열로 취급한다.
+    eventManage.jsp의 기간 필터와 동일한 방식(신청일 기준).
+--%>
+<c:set var="currentPeriod" value="${empty param.period ? '' : param.period}"/>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -88,22 +94,22 @@
             <div class="tab-menu">
 
                 <a class="${empty currentStatus ? 'active' : ''}"
-                   href="?status=&keyword=${param.keyword}">
+                   href="?status=&period=${currentPeriod}&keyword=${param.keyword}">
                     전체
                 </a>
 
                 <a class="${currentStatus == 'REQUESTED' ? 'active' : ''}"
-                   href="?status=REQUESTED&keyword=${param.keyword}">
+                   href="?status=REQUESTED&period=${currentPeriod}&keyword=${param.keyword}">
                     입금 대기
                 </a>
 
                 <a class="${currentStatus == 'DONE' ? 'active' : ''}"
-                   href="?status=DONE&keyword=${param.keyword}">
+                   href="?status=DONE&period=${currentPeriod}&keyword=${param.keyword}">
                     입금 완료
                 </a>
 
                 <a class="${currentStatus == 'REJECTED' ? 'active' : ''}"
-                   href="?status=REJECTED&keyword=${param.keyword}">
+                   href="?status=REJECTED&period=${currentPeriod}&keyword=${param.keyword}">
                     반려
                 </a>
 
@@ -114,7 +120,30 @@
                 <form method="get"
                       action="${pageContext.request.contextPath}/admin/settlement/main">
 
-                    <input type="hidden" name="status" value="${currentStatus}">
+                    <%-- 상태 필터. 위쪽 통계 카드/탭 메뉴와 같은 값(status)을 다루지만, 검색창 옆에서도
+                         memberManage.jsp / eventManage.jsp와 동일하게 select로 전환할 수 있도록 제공한다. --%>
+                    <label for="settlementStatusFilter" class="sr-only">
+                        상태 필터
+                    </label>
+
+                    <select id="settlementStatusFilter" name="status" class="filter-select">
+                        <option value=""          ${empty currentStatus ? 'selected' : ''}>상태 전체</option>
+                        <option value="REQUESTED" ${currentStatus == 'REQUESTED' ? 'selected' : ''}>입금 대기</option>
+                        <option value="DONE"      ${currentStatus == 'DONE' ? 'selected' : ''}>입금 완료</option>
+                        <option value="REJECTED"  ${currentStatus == 'REJECTED' ? 'selected' : ''}>반려</option>
+                    </select>
+
+                    <%-- 기간 필터. 정산 신청일(신청일) 기준으로 최근 건만 좁혀 볼 때 사용한다. eventManage.jsp와 동일한 구성. --%>
+                    <label for="settlementPeriodFilter" class="sr-only">
+                        기간 필터
+                    </label>
+
+                    <select id="settlementPeriodFilter" name="period" class="filter-select">
+                        <option value=""      ${empty currentPeriod ? 'selected' : ''}>기간 전체</option>
+                        <option value="today" ${currentPeriod == 'today' ? 'selected' : ''}>오늘</option>
+                        <option value="week"  ${currentPeriod == 'week' ? 'selected' : ''}>최근 7일</option>
+                        <option value="month" ${currentPeriod == 'month' ? 'selected' : ''}>최근 30일</option>
+                    </select>
 
                     <%--
                         검색 input에 고유 id를 부여하고
@@ -245,6 +274,7 @@
                                                 <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
                                                 <input type="hidden" name="keyword" value="${param.keyword}">
                                                 <input type="hidden" name="status" value="${currentStatus}">
+                                                <input type="hidden" name="period" value="${currentPeriod}">
                                                 <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                 <button type="submit"
@@ -262,6 +292,7 @@
                                                 <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
                                                 <input type="hidden" name="keyword" value="${param.keyword}">
                                                 <input type="hidden" name="status" value="${currentStatus}">
+                                                <input type="hidden" name="period" value="${currentPeriod}">
                                                 <input type="hidden" name="page" value="${pagination.currentPage}">
 
                                                 <button type="submit"
@@ -304,14 +335,14 @@
             <div class="pagination">
 
                 <!-- 이전 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                <a href="?status=${currentStatus}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
                 class="${!pagination.prev ? 'disabled' : ''}">
                     <<
                 </a>
 
 
                 <!-- 이전 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                <a href="?status=${currentStatus}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
@@ -322,7 +353,7 @@
                         begin="${pagination.startPage}"
                         end="${pagination.endPage}">
 
-                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    <a href="?status=${currentStatus}&period=${currentPeriod}&keyword=${param.keyword}&page=${p}"
                     class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
@@ -331,14 +362,14 @@
 
 
                 <!-- 다음 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                <a href="?status=${currentStatus}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
 
                 <!-- 다음 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                <a href="?status=${currentStatus}&period=${currentPeriod}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>

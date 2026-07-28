@@ -218,6 +218,34 @@ function confirmReviewBulkAction(label) {
  * 리뷰 내용에 따옴표나 줄바꿈이 섞여 있어도 안전하도록 onclick 인라인 문자열이 아닌
  * data-* 속성(버튼 자신)에서 값을 읽어온다.
  */
+/*
+ * 신고 사유 렌더링.
+ *
+ * 서버(adminMapper.xml)는 신고 1건당 "사유 - 상세내용"을 만들고, 신고가
+ * 여러 건이면 그것들을 " / "로 이어붙인 하나의 문자열로 내려준다.
+ * (예: "욕설/비방 - ㅁㅁㅁ / 스팸/광고")
+ * 그 원본 문자열을 " / " 기준으로 신고 건별로 나누고, 각 건은 다시 첫 번째
+ * " - " 기준으로 "사유"와 "상세내용"을 분리한다. 사유는 "신고 사유" 소제목
+ * 옆에 뱃지로, 상세내용은 그 아래 박스에 순서대로 쌓아 보여준다.
+ * (상세내용 자체에 " - "가 더 있을 수 있으므로 첫 번째 구분자만 기준으로 자른다.)
+ */
+function parseReportReasons(raw) {
+
+    if (!raw || raw === 'null' || raw === 'undefined') {
+        return [];
+    }
+
+    return raw.split(' / ')
+        .filter(function (item) { return item.trim() !== ''; })
+        .map(function (item) {
+            var sepIndex = item.indexOf(' - ');
+            return {
+                reason: (sepIndex === -1 ? item : item.substring(0, sepIndex)).trim(),
+                detail: (sepIndex === -1 ? '' : item.substring(sepIndex + 3)).trim()
+            };
+        });
+}
+
 function openReviewContentModal(button) {
 
     document.getElementById('reviewContentReviewNo').value = button.dataset.reviewNo;
@@ -226,6 +254,28 @@ function openReviewContentModal(button) {
     document.getElementById('reviewContentRating').textContent = displayOrDash(button.dataset.rating) + '점';
     document.getElementById('reviewContentDate').textContent = displayOrDash(button.dataset.createdAt);
     document.getElementById('reviewContentBody').textContent = displayOrDash(button.dataset.content);
+
+    /*
+     * 신고 사유 섹션은 "신고 내역" 탭 화면에서만 렌더링되므로(JSP의 c:if),
+     * 전체 리뷰 탭에서는 이 요소 자체가 DOM에 없다. 존재할 때만 채운다.
+     */
+    var reportBodyEl = document.getElementById('reviewReportReasonBody');
+
+    if (reportBodyEl) {
+
+        var reports = parseReportReasons(button.dataset.reportReason);
+
+        if (reports.length === 0) {
+            reportBodyEl.innerHTML = '<div class="report-reason-empty">신고 사유가 없습니다.</div>';
+        } else {
+            reportBodyEl.innerHTML = reports.map(function (r) {
+                return '<div class="report-reason-card">'
+                    + '<span class="report-reason-tag">' + escapeHtml(r.reason) + '</span>'
+                    + '<div class="report-reason-detail">' + escapeHtml(r.detail) + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+    }
 
     document.getElementById('reviewContentModal').classList.add('open');
 }

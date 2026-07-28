@@ -355,10 +355,20 @@
         JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
         WHERE R.STATUS != 'DELETED'
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR C.TITLE LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'content'">
+                    AND C.TITLE LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR C.TITLE LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY R.CREATED_AT DESC
         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -371,10 +381,20 @@
         JOIN CONTENT C ON C.CONTENT_NO = R.CONTENT_NO
         WHERE R.STATUS != 'DELETED'
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR C.TITLE LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'content'">
+                    AND C.TITLE LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR C.TITLE LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -396,6 +416,7 @@
         R.REVIEW_TEXT AS CONTENT,
         R.STATUS AS STATUS,
         RC.REPORT_COUNT AS REPORT_COUNT,
+        RC.REPORT_REASON AS REPORT_REASON,
         R.CREATED_AT AS CREATED_AT
 
     FROM REVIEW R
@@ -409,7 +430,13 @@
     JOIN (
         SELECT
             CONTENT_REVIEW_NO,
-            COUNT(REPORT_NO) AS REPORT_COUNT
+            COUNT(REPORT_NO) AS REPORT_COUNT,
+            <!-- 신고가 여러 건이면 사유를 " / "로 이어붙여 한 번에 보여준다.
+                 DETAIL(상세 사유)은 회원이 안 적었을 수도 있어 있을 때만 붙인다. -->
+            LISTAGG(
+                REASON || CASE WHEN DETAIL IS NOT NULL THEN ' - ' || DETAIL ELSE '' END,
+                ' / '
+            ) WITHIN GROUP (ORDER BY CREATED_AT) AS REPORT_REASON
         FROM REVIEW_REPORT
         WHERE REVIEW_TYPE = 'CONTENT'
           AND STATUS = 'WAITING'
@@ -419,20 +446,27 @@
 
     WHERE R.STATUS != 'DELETED'
     <if test="keyword != null and keyword != ''">
-        AND (
-            M.NICKNAME LIKE '%' || #{keyword} || '%'
-            OR EXISTS (
-                SELECT 1 FROM CONTENT C
-                WHERE C.CONTENT_NO = R.CONTENT_NO
+        <choose>
+            <when test="searchType == 'writer'">
+                AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+            </when>
+            <when test="searchType == 'content'">
                 AND C.TITLE LIKE '%' || #{keyword} || '%'
-            )
-        )
+            </when>
+            <otherwise>
+                AND (
+                    M.NICKNAME LIKE '%' || #{keyword} || '%'
+                    OR C.TITLE LIKE '%' || #{keyword} || '%'
+                )
+            </otherwise>
+        </choose>
     </if>
 
     ORDER BY R.CREATED_AT DESC
     OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
 
     </select>
+
 
     <select id="selectContentReviewReportListCount" parameterType="map" resultType="int">
         SELECT COUNT(*)
@@ -451,10 +485,20 @@
         ON RC.CONTENT_REVIEW_NO = R.REVIEW_NO
         WHERE R.STATUS != 'DELETED'
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR C.TITLE LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'content'">
+                    AND C.TITLE LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR C.TITLE LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -515,10 +559,20 @@
         JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
         WHERE 1 = 1
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'product'">
+                    AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY PR.CREATED_AT DESC
         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -531,10 +585,20 @@
         JOIN PRODUCT P ON P.PRODUCT_NO = PR.PRODUCT_NO
         WHERE 1 = 1
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'product'">
+                    AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -549,6 +613,12 @@
             PR.RATING         AS RATING,
             PR.CONTENT        AS CONTENT,
             COUNT(RR.REPORT_NO) AS REPORT_COUNT,
+            <!-- 신고가 여러 건이면 사유를 " / "로 이어붙여 한 번에 보여준다.
+                 DETAIL(상세 사유)은 회원이 안 적었을 수도 있어 있을 때만 붙인다. -->
+            LISTAGG(
+                RR.REASON || CASE WHEN RR.DETAIL IS NOT NULL THEN ' - ' || RR.DETAIL ELSE '' END,
+                ' / '
+            ) WITHIN GROUP (ORDER BY RR.CREATED_AT) AS REPORT_REASON,
             PR.CREATED_AT     AS CREATED_AT
         FROM PRODUCT_REVIEW PR
         JOIN MEMBER M ON M.MEMBER_NO = PR.MEMBER_NO
@@ -559,10 +629,20 @@
             AND RR.STATUS = 'WAITING'
         WHERE 1 = 1
         <if test="keyword != null and keyword != ''">
-            AND (
-                M.NICKNAME LIKE '%' || #{keyword} || '%'
-                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'writer'">
+                    AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'product'">
+                    AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        M.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         GROUP BY PR.REVIEW_NO, PR.MEMBER_NO, M.NICKNAME, PR.PRODUCT_NO, P.PRODUCT_NAME, PR.RATING, PR.CONTENT, PR.CREATED_AT
         ORDER BY PR.CREATED_AT DESC
@@ -582,10 +662,20 @@
                 AND RR.STATUS = 'WAITING'
             WHERE 1 = 1
             <if test="keyword != null and keyword != ''">
-                AND (
-                    M.NICKNAME LIKE '%' || #{keyword} || '%'
-                    OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-                )
+                <choose>
+                    <when test="searchType == 'writer'">
+                        AND M.NICKNAME LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <when test="searchType == 'product'">
+                        AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <otherwise>
+                        AND (
+                            M.NICKNAME LIKE '%' || #{keyword} || '%'
+                            OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                        )
+                    </otherwise>
+                </choose>
             </if>
             GROUP BY PR.REVIEW_NO
         ) T
@@ -890,10 +980,20 @@
         </if>
 
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'business'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'product'">
+                    AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY P.CREATED_AT DESC
         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -919,10 +1019,20 @@
             </choose>
         </if>
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'business'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'product'">
+                    AND P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR P.PRODUCT_NAME LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -1168,11 +1278,24 @@
         JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
         WHERE B.STATUS = 'APPROVED'
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
-                OR M.EMAIL LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'name'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'id'">
+                    AND M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'email'">
+                    AND M.EMAIL LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR M.EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY B.BUSINESS_NO DESC
         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -1184,11 +1307,24 @@
         JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
         WHERE B.STATUS = 'APPROVED'
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
-                OR M.EMAIL LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'name'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'id'">
+                    AND M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'email'">
+                    AND M.EMAIL LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR M.EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -1211,11 +1347,24 @@
         JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
         WHERE B.STATUS = 'WAITING'
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
-                OR M.EMAIL LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'name'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'id'">
+                    AND M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'email'">
+                    AND M.EMAIL LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR M.EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY B.CREATED_AT DESC
         OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -1227,11 +1376,24 @@
         JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
         WHERE B.STATUS = 'WAITING'
         <if test="keyword != null and keyword != ''">
-            AND (
-                B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
-                OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
-                OR M.EMAIL LIKE '%' || #{keyword} || '%'
-            )
+            <choose>
+                <when test="searchType == 'name'">
+                    AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'id'">
+                    AND M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                </when>
+                <when test="searchType == 'email'">
+                    AND M.EMAIL LIKE '%' || #{keyword} || '%'
+                </when>
+                <otherwise>
+                    AND (
+                        B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+                        OR M.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR M.EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -1286,6 +1448,20 @@
         <if test="keyword != null and keyword != ''">
             AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
         </if>
+        <!-- 정산 요청일(S.CREATED_AT) 기준 기간 필터. eventManage.jsp의 period 필터와 동일한 방식 -->
+        <if test="period != null and period != '' and period != 'all'">
+            <choose>
+                <when test="period == 'today'">
+                    AND S.CREATED_AT >= TRUNC(SYSDATE)
+                </when>
+                <when test="period == 'week'">
+                    AND S.CREATED_AT >= TRUNC(SYSDATE) - 7
+                </when>
+                <when test="period == 'month'">
+                    AND S.CREATED_AT >= TRUNC(SYSDATE) - 30
+                </when>
+            </choose>
+        </if>
         GROUP BY
             S.BUSINESS_NO,
             B.BUSINESS_NAME,
@@ -1316,6 +1492,19 @@
             WHERE S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
             <if test="keyword != null and keyword != ''">
                 AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
+            </if>
+            <if test="period != null and period != '' and period != 'all'">
+                <choose>
+                    <when test="period == 'today'">
+                        AND S.CREATED_AT >= TRUNC(SYSDATE)
+                    </when>
+                    <when test="period == 'week'">
+                        AND S.CREATED_AT >= TRUNC(SYSDATE) - 7
+                    </when>
+                    <when test="period == 'month'">
+                        AND S.CREATED_AT >= TRUNC(SYSDATE) - 30
+                    </when>
+                </choose>
             </if>
             GROUP BY
                 S.BUSINESS_NO,

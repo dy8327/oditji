@@ -137,7 +137,7 @@
                         value="${param.keyword}"
                         placeholder="이름, 아이디, 닉네임, 이메일 검색">
 
-                    <button type="submit" class="btn btn-dark search-btn" aria-label="검색">🔍</button>
+                    <button type="submit" class="btn btn-dark search-btn" aria-label="검색">검색</button>
 
                 </form>
 

@@ -13,6 +13,12 @@
 --%>
 <c:set var="currentTab" value="${empty param.tab ? '' : param.tab}"/>
 
+<%--
+    검색 기준(searchType)의 현재 선택값. param이 없으면 '전체'를 의미하는 빈 문자열로 취급한다.
+    memberManage.jsp의 searchType 필터와 동일한 방식.
+--%>
+<c:set var="currentSearchType" value="${empty param.searchType ? '' : param.searchType}"/>
+
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -99,22 +105,22 @@
             <div class="tab-menu">
 
                 <a class="${empty currentTab ? 'active' : ''}"
-                   href="?tab=&keyword=${param.keyword}">
+                   href="?tab=&searchType=${currentSearchType}&keyword=${param.keyword}">
                     전체
                 </a>
 
                 <a class="${currentTab == 'waiting' ? 'active' : ''}"
-                   href="?tab=waiting&keyword=${param.keyword}">
+                   href="?tab=waiting&searchType=${currentSearchType}&keyword=${param.keyword}">
                     승인 대기
                 </a>
 
                 <a class="${currentTab == 'approved' ? 'active' : ''}"
-                   href="?tab=approved&keyword=${param.keyword}">
+                   href="?tab=approved&searchType=${currentSearchType}&keyword=${param.keyword}">
                     승인 완료
                 </a>
 
                 <a class="${currentTab == 'delete' ? 'active' : ''}"
-                   href="?tab=delete&keyword=${param.keyword}">
+                   href="?tab=delete&searchType=${currentSearchType}&keyword=${param.keyword}">
                     삭제 요청
                 </a>
 
@@ -135,6 +141,17 @@
                         <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
                         <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
                         <option value="delete"   ${currentTab == 'delete' ? 'selected' : ''}>삭제 요청</option>
+                    </select>
+
+                    <%-- 검색 기준 필터. memberManage.jsp / eventManage.jsp와 동일하게 검색창 옆에 두 번째 드롭다운으로 제공한다. --%>
+                    <label for="productSearchTypeFilter" class="sr-only">
+                        검색 기준
+                    </label>
+
+                    <select id="productSearchTypeFilter" name="searchType" class="filter-select">
+                        <option value=""        ${empty currentSearchType ? 'selected' : ''}>전체</option>
+                        <option value="business" ${currentSearchType == 'business' ? 'selected' : ''}>사업자명</option>
+                        <option value="product"  ${currentSearchType == 'product' ? 'selected' : ''}>상품명</option>
                     </select>
 
                     <%-- 검색 input과 숨김 label을 명시적으로 연결한다. --%>
@@ -311,14 +328,14 @@
             <div class="pagination">
 
                 <!-- 이전 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
                 class="${!pagination.prev ? 'disabled' : ''}">
                     <<
                 </a>
 
 
                 <!-- 이전 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
@@ -329,7 +346,7 @@
                         begin="${pagination.startPage}"
                         end="${pagination.endPage}">
 
-                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${p}"
                     class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
@@ -338,14 +355,14 @@
 
 
                 <!-- 다음 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
 
                 <!-- 다음 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>
@@ -404,6 +421,7 @@
 
             <input type="hidden" name="productNo" id="reqProductNo">
             <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="searchType" value="${currentSearchType}">
             <input type="hidden" name="keyword" value="${param.keyword}">
             <input type="hidden" name="page" value="${pagination.currentPage}">
             <input type="hidden" name="status" id="reqProductStatusRaw">

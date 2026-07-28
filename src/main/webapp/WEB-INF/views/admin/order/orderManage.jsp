@@ -75,13 +75,22 @@
         <section class="admin-content-box">
 
             <nav class="tab-menu">
-                <a href="?tab=order" class="${currentTab == 'order' ? 'active' : ''}">주문 조회</a>
-                <a href="?tab=refund" class="${currentTab == 'refund' ? 'active' : ''}">환불 조회</a>
+                <a href="?tab=order&keyword=${param.keyword}" class="${currentTab == 'order' ? 'active' : ''}">주문 조회</a>
+                <a href="?tab=refund&keyword=${param.keyword}" class="${currentTab == 'refund' ? 'active' : ''}">환불 조회</a>
             </nav>
 
             <div class="toolbar">
                 <form method="get" action="${pageContext.request.contextPath}/admin/order/list">
-                    <input type="hidden" name="tab" value="${currentTab}">
+                    <%-- 조회 구분 필터. 위쪽 탭 메뉴와 같은 값(tab)을 다루지만, 검색창 옆에서도
+                         memberManage.jsp / eventManage.jsp와 동일하게 select로 전환할 수 있도록 제공한다. --%>
+                    <label for="orderManageTabFilter" class="sr-only">
+                        조회 구분
+                    </label>
+
+                    <select id="orderManageTabFilter" name="tab" class="filter-select">
+                        <option value="order"  ${currentTab == 'order' ? 'selected' : ''}>주문 조회</option>
+                        <option value="refund" ${currentTab == 'refund' ? 'selected' : ''}>환불 조회</option>
+                    </select>
 
                     <%-- 환불 조회 탭 전용 상태 필터. eventManage.jsp / productManage.jsp와 동일하게,
                          아래 탭 메뉴로도 이동할 수 있지만 키보드·스크린 리더 사용자를 위해 select로도 동일 기능을 제공한다. --%>

@@ -4,6 +4,9 @@
 <c:set var="activeMenu" value="business"/>
 <c:set var="currentTab" value="${empty param.tab ? 'info' : param.tab}"/>
 
+<%-- 검색 기준(searchType)의 현재 선택값. memberManage.jsp의 searchType 필터와 동일한 방식. --%>
+<c:set var="currentSearchType" value="${empty param.searchType ? '' : param.searchType}"/>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -60,15 +63,38 @@
         <section class="admin-content-box">
 
             <nav class="tab-menu">
-                <a href="?tab=info" class="${currentTab == 'info' ? 'active' : ''}">사업자 목록</a>
-                <a href="?tab=approval" class="${currentTab == 'approval' ? 'active' : ''}">사업자 승인 관리</a>
+                <a href="?tab=info&searchType=${currentSearchType}&keyword=${param.keyword}" class="${currentTab == 'info' ? 'active' : ''}">사업자 목록</a>
+                <a href="?tab=approval&searchType=${currentSearchType}&keyword=${param.keyword}" class="${currentTab == 'approval' ? 'active' : ''}">사업자 승인 관리</a>
             </nav>
 
             <div class="toolbar">
 
                 <form method="get" action="${pageContext.request.contextPath}/admin/business/list">
 
-                    <input type="hidden" name="tab" value="${currentTab}">
+                    <%-- 상태 필터. 위쪽 탭 메뉴와 같은 값(tab)을 다루지만, 검색창 옆에서도
+                         memberManage.jsp / eventManage.jsp와 동일하게 select로 전환할 수 있도록 제공한다. --%>
+                    <label for="businessStatusFilter"
+                        style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        상태 필터
+                    </label>
+
+                    <select id="businessStatusFilter" name="tab" class="filter-select">
+                        <option value="info"     ${currentTab == 'info' ? 'selected' : ''}>사업자 목록</option>
+                        <option value="approval" ${currentTab == 'approval' ? 'selected' : ''}>사업자 승인 관리</option>
+                    </select>
+
+                    <%-- 검색 기준 필터. memberManage.jsp의 searchType 필터와 동일한 구성(이름/아이디/이메일). --%>
+                    <label for="businessSearchTypeFilter"
+                        style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
+                        검색 기준
+                    </label>
+
+                    <select id="businessSearchTypeFilter" name="searchType" class="filter-select">
+                        <option value=""         ${empty currentSearchType ? 'selected' : ''}>전체</option>
+                        <option value="name"     ${currentSearchType == 'name' ? 'selected' : ''}>이름</option>
+                        <option value="id"       ${currentSearchType == 'id' ? 'selected' : ''}>아이디</option>
+                        <option value="email"    ${currentSearchType == 'email' ? 'selected' : ''}>이메일</option>
+                    </select>
 
                     <label for="businessKeyword"
                         style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
@@ -231,14 +257,14 @@
             <div class="pagination">
 
                 <!-- 이전 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.startPage - 1}"
                 class="${!pagination.prev ? 'disabled' : ''}">
                     <<
                 </a>
 
 
                 <!-- 이전 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
@@ -249,7 +275,7 @@
                         begin="${pagination.startPage}"
                         end="${pagination.endPage}">
 
-                    <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${p}"
+                    <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${p}"
                     class="${pagination.currentPage == p ? 'active' : ''}">
                         ${p}
                     </a>
@@ -258,14 +284,14 @@
 
 
                 <!-- 다음 페이지 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
 
                 <!-- 다음 블록 -->
-                <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
+                <a href="?tab=${currentTab}&searchType=${currentSearchType}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>
@@ -302,6 +328,8 @@
         <form action="${pageContext.request.contextPath}/admin/business/grade" method="post">
 
             <input type="hidden" name="businessNo" id="gradeBusinessNo">
+            <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="searchType" value="${currentSearchType}">
             <input type="hidden" name="keyword" value="${param.keyword}">
             <input type="hidden" name="page" value="${pagination.currentPage}">
 
@@ -317,11 +345,11 @@
                 <div class="grade-select-title">등급 변경하기</div>
 
                 <div class="grade-option-list">
-                    <label><input type="radio" name="gradeName" value="BRONZE">Bronze</label>
-                    <label><input type="radio" name="gradeName" value="SILVER">Silver</label>
-                    <label><input type="radio" name="gradeName" value="GOLD">Gold</label>
-                    <label><input type="radio" name="gradeName" value="PLATINUM">Platinum</label>
-                    <label><input type="radio" name="gradeName" value="VIP">VIP</label>
+                    <label><input type="radio" name="gradeName" value="BRONZE"><span class="grade-dot grade-dot-bronze"></span>Bronze</label>
+                    <label><input type="radio" name="gradeName" value="SILVER"><span class="grade-dot grade-dot-silver"></span>Silver</label>
+                    <label><input type="radio" name="gradeName" value="GOLD"><span class="grade-dot grade-dot-gold"></span>Gold</label>
+                    <label><input type="radio" name="gradeName" value="PLATINUM"><span class="grade-dot grade-dot-platinum"></span>Platinum</label>
+                    <label><input type="radio" name="gradeName" value="VIP"><span class="grade-dot grade-dot-vip"></span>VIP</label>
                 </div>
 
             </div>
@@ -366,6 +394,8 @@
         <form id="approvalForm" action="${pageContext.request.contextPath}/admin/business/approve" method="post">
 
             <input type="hidden" name="businessNo" id="approvalBusinessNo">
+            <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="searchType" value="${currentSearchType}">
             <input type="hidden" name="keyword" value="${param.keyword}">
             <input type="hidden" name="page" value="${pagination.currentPage}">
 
