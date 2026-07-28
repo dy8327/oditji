@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public class ReportServiceImpl implements ReportService {
             throw new IllegalArgumentException("로그인이 필요합니다.");
         }
 
-        String normalizedType = reviewType == null ? "" : reviewType.trim().toUpperCase();
+        String normalizedType = reviewType == null ? "" : reviewType.trim().toUpperCase(Locale.ROOT);
 
         if (!"CONTENT".equals(normalizedType) && !"PRODUCT".equals(normalizedType)) {
 
