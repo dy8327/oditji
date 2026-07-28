@@ -4,7 +4,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>404 - ODITJI</title>
+<title>403 - ODITJI</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/error.css">
 </head>
@@ -17,7 +17,7 @@
 
     <div class="error-card">
 
-        <div class="error-code">404</div>
+        <div class="error-code">403</div>
 
         <div class="error-title">
             접근 권한이 없습니다.
