@@ -27,6 +27,9 @@
 
 <script defer
         src="${pageContext.request.contextPath}/js/report.js"></script>
+
+<%-- [추가] 스포일러 리뷰 블라인드 및 확인 모달 --%>
+<script defer src="${pageContext.request.contextPath}/js/spoiler-review.js"></script>
 </head>
 
 <body>
@@ -795,6 +798,13 @@
                               name="reviewText"
                               required>${myReview.reviewText}</textarea>
 
+                    <%-- [추가] 기존 스포일러 여부 유지 --%>
+                    <label class="spoiler-check-box" for="updateSpoilerYn">
+                        <input type="checkbox" id="updateSpoilerYn" name="spoilerYn" value="Y"
+                               <c:if test="${myReview.spoilerYn eq 'Y'}">checked</c:if>>
+                        <span>스포일러가 포함되어 있습니다.</span>
+                    </label>
+
                     <button type="submit"
                             class="btn">
                         수정하기
@@ -852,6 +862,12 @@
                               placeholder="이 작품에 대한 리뷰를 작성하세요"
                               required></textarea>
 
+                    <%-- [추가] 사용자가 직접 스포일러 포함 여부 선택 --%>
+                    <label class="spoiler-check-box" for="writeSpoilerYn">
+                        <input type="checkbox" id="writeSpoilerYn" name="spoilerYn" value="Y">
+                        <span>스포일러가 포함되어 있습니다.</span>
+                    </label>
+
                     <button type="submit"
                             class="btn">
                         등록
@@ -871,8 +887,7 @@
 
             <c:when test="${not empty reviewList}">
 
-                <c:forEach var="r"
-                           items="${reviewList}">
+                <c:forEach var="r" items="${reviewList}">
 
                     <c:if test="${r.status eq 'ACTIVE'}">
 
@@ -924,7 +939,21 @@
 
                             </div>
 
-                            <p class="review-content"><c:out value="${r.reviewText}"/></p>
+                            <%-- [추가] 스포일러 리뷰 블라인드 처리 --%>
+                            <c:choose>
+                                <c:when test="${r.spoilerYn eq 'Y'}">
+                                    <div class="spoiler-review" data-spoiler-review>
+                                        <p class="review-content spoiler-review-content"><c:out value="${r.reviewText}"/></p>
+                                        <button type="button" class="spoiler-review-overlay" data-spoiler-open>
+                                            <strong>스포일러가 포함되어 있습니다.</strong>
+                                            <span>내용을 보려면 클릭하세요.</span>
+                                        </button>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <p class="review-content"><c:out value="${r.reviewText}"/></p>
+                                </c:otherwise>
+                            </c:choose>
 
                         </div>
 
@@ -947,6 +976,18 @@
     </div>
 
 </section>
+
+<%-- [추가] 예/아니오 버튼을 표시하는 스포일러 확인 모달 --%>
+<div id="spoilerConfirmModal" class="spoiler-confirm-modal" hidden>
+    <div class="spoiler-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="spoilerConfirmTitle">
+        <h3 id="spoilerConfirmTitle">스포일러 안내</h3>
+        <p>스포일러가 포함되어있습니다.<br>계속 보시겠습니까?</p>
+        <div class="spoiler-confirm-actions">
+            <button type="button" id="spoilerConfirmNo" class="btn">아니오</button>
+            <button type="button" id="spoilerConfirmYes" class="btn">예</button>
+        </div>
+    </div>
+</div>
 
 <div id="reportModal"
      class="modal-overlay"

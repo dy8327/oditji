@@ -13,6 +13,9 @@ public class ReviewVO {
     private int contentNo;
     private double rating;
     private String reviewText;
+
+    // [추가] 스포일러 포함 여부(Y/N)
+    private String spoilerYn;
     private String status;
     private Date createdAt;
     private Date updatedAt;
@@ -58,6 +61,15 @@ public class ReviewVO {
 
     public void setReviewText(String reviewText) {
         this.reviewText = reviewText;
+    }
+
+    // [추가] 스포일러 포함 여부 getter/setter
+    public String getSpoilerYn() {
+        return spoilerYn;
+    }
+
+    public void setSpoilerYn(String spoilerYn) {
+        this.spoilerYn = spoilerYn;
     }
 
     public String getStatus() {

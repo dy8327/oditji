@@ -57,7 +57,9 @@ public class ReviewController {
             HttpSession session,
             @RequestParam int contentNo,
             @RequestParam double rating,
-            @RequestParam String reviewText) {
+            @RequestParam String reviewText,
+            // [추가] 체크하지 않은 경우 N으로 처리한다.
+            @RequestParam(defaultValue = "N") String spoilerYn) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -69,7 +71,9 @@ public class ReviewController {
                 loginMember.getMemberNo(),
                 contentNo,
                 rating,
-                reviewText);
+                reviewText,
+                // [추가] 사용자가 선택한 스포일러 포함 여부
+                spoilerYn);
 
         return "redirect:/content/contentDetail/" + contentNo;
     }
@@ -83,7 +87,9 @@ public class ReviewController {
             @RequestParam Long reviewNo,
             @RequestParam int contentNo,
             @RequestParam double rating,
-            @RequestParam String reviewText) {
+            @RequestParam String reviewText,
+            // [추가] 체크하지 않은 경우 N으로 처리한다.
+            @RequestParam(defaultValue = "N") String spoilerYn) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -94,8 +100,12 @@ public class ReviewController {
         reviewService.updateContentReview(
                 loginMember.getMemberNo(),
                 reviewNo,
+                // [추가] 수정 리뷰의 줄거리 비교에 사용
+                contentNo,
                 rating,
-                reviewText);
+                reviewText,
+                // [추가] 사용자가 선택한 스포일러 포함 여부
+                spoilerYn);
 
         return "redirect:/content/contentDetail/" + contentNo;
     }

@@ -99,6 +99,8 @@
             CONTENT_NO,
             RATING,
             REVIEW_TEXT,
+            <!-- [추가] 스포일러 포함 여부 -->
+            SPOILER_YN,
             STATUS,
             CREATED_AT
         )
@@ -108,6 +110,8 @@
             #{contentNo},
             #{rating},
             #{reviewText},
+            <!-- [추가] 최종 판별 결과 -->
+            #{spoilerYn},
             'ACTIVE',
             SYSDATE
         )
@@ -125,6 +129,7 @@
             CONTENT_NO      AS contentNo,
             RATING          AS rating,
             REVIEW_TEXT     AS reviewText,
+            SPOILER_YN      AS spoilerYn,
             STATUS          AS status,
             CREATED_AT      AS createdAt,
             UPDATED_AT      AS updatedAt
@@ -146,6 +151,7 @@
             CONTENT_NO      AS contentNo,
             RATING          AS rating,
             REVIEW_TEXT     AS reviewText,
+            SPOILER_YN      AS spoilerYn,
             STATUS          AS status,
             CREATED_AT      AS createdAt,
             UPDATED_AT      AS updatedAt
@@ -162,10 +168,21 @@
         UPDATE REVIEW
         SET RATING = #{rating},
             REVIEW_TEXT = #{reviewText},
+            <!-- [추가] 수정된 판별 결과 -->
+            SPOILER_YN = #{spoilerYn},
             UPDATED_AT = SYSDATE
         WHERE REVIEW_NO = #{reviewNo}
 
     </update>
+
+    <!-- [추가] 제목·배우·감독·장르를 제외하고 OVERVIEW만 조회 -->
+    <select id="selectContentSpoilerSource"
+            parameterType="int"
+            resultType="com.project.oditji.review.vo.ContentSpoilerSourceVO">
+        SELECT CONTENT_NO AS contentNo, OVERVIEW AS overview
+        FROM CONTENT
+        WHERE CONTENT_NO = #{contentNo}
+    </select>
 
     <!-- =========================
      상품 리뷰 작성
@@ -266,6 +283,7 @@
             M.NICKNAME       AS writer,
             R.RATING         AS rating,
             R.REVIEW_TEXT    AS reviewText,
+            R.SPOILER_YN     AS spoilerYn,
             R.STATUS         AS status,
             R.CREATED_AT     AS createdAt
         FROM REVIEW R
@@ -379,6 +397,7 @@
             CONTENT_NO      AS contentNo,
             RATING          AS rating,
             REVIEW_TEXT     AS reviewText,
+            SPOILER_YN      AS spoilerYn,
             STATUS          AS status,
             CREATED_AT      AS createdAt,
             UPDATED_AT      AS updatedAt
@@ -395,6 +414,8 @@
         UPDATE REVIEW
         SET RATING = #{rating},
             REVIEW_TEXT = #{reviewText},
+            <!-- [추가] 재작성된 리뷰의 판별 결과 -->
+            SPOILER_YN = #{spoilerYn},
             STATUS = 'ACTIVE',
             CREATED_AT = SYSDATE,
             UPDATED_AT = NULL

@@ -12,30 +12,77 @@ public class ContentReviewVO {
     private String writer;
     private double rating;
     private String reviewText;
+
+    // [추가] 스포일러 포함 여부(Y/N)
+    private String spoilerYn;
     private String status;
     private Date createdAt;
 
     public ContentReviewVO() {
     }
 
-    public int getReviewNo() { return reviewNo; }
-    public void setReviewNo(int reviewNo) { this.reviewNo = reviewNo; }
+    public int getReviewNo() {
+        return reviewNo;
+    }
 
-    public Long getMemberNo() { return memberNo; }
-    public void setMemberNo(Long memberNo) { this.memberNo = memberNo; }
+    public void setReviewNo(int reviewNo) {
+        this.reviewNo = reviewNo;
+    }
 
-    public String getWriter() { return writer; }
-    public void setWriter(String writer) { this.writer = writer; }
+    public Long getMemberNo() {
+        return memberNo;
+    }
 
-    public double getRating() { return rating; }
-    public void setRating(double rating) { this.rating = rating; }
+    public void setMemberNo(Long memberNo) {
+        this.memberNo = memberNo;
+    }
 
-    public String getReviewText() { return reviewText; }
-    public void setReviewText(String reviewText) { this.reviewText = reviewText; }
+    public String getWriter() {
+        return writer;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setWriter(String writer) {
+        this.writer = writer;
+    }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    public String getReviewText() {
+        return reviewText;
+    }
+
+    public void setReviewText(String reviewText) {
+        this.reviewText = reviewText;
+    }
+
+    // [추가] 스포일러 포함 여부 getter/setter
+    public String getSpoilerYn() {
+        return spoilerYn;
+    }
+
+    public void setSpoilerYn(String spoilerYn) {
+        this.spoilerYn = spoilerYn;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 }
