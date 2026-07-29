@@ -55,7 +55,6 @@ public class NaverLoginController {
     @GetMapping("/member/naver/login")
     public String naverLogin(HttpSession session) {
         String state = naverLoginService.createState();
-
         session.setAttribute(NAVER_OAUTH_STATE, state);
 
         return "redirect:" + naverLoginService.getNaverLoginUrl(state);
@@ -78,7 +77,6 @@ public class NaverLoginController {
          * state는 한 번만 사용할 수 있도록 콜백 진입 즉시 세션에서 제거합니다.
          */
         session.removeAttribute(NAVER_OAUTH_STATE);
-
         if (savedState == null || state == null || !savedState.equals(state)) {
             redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
 
@@ -107,7 +105,6 @@ public class NaverLoginController {
             }
 
             MemberSocialJoinVO member = result.getMember();
-
             if (member.getMemberNo() <= 0) {
                 redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 번호를 확인하지 못했습니다.");
 
@@ -118,7 +115,6 @@ public class NaverLoginController {
             member.setMemberName(displayName);
 
             int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
-
             if (result.isNewMember() || platformCount == 0) {
                 savePendingMemberSession(session, member, displayName);
 
@@ -126,7 +122,6 @@ public class NaverLoginController {
             }
 
             MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
-
             if (loginMember == null) {
                 redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 정보를 불러오지 못했습니다.");
 
@@ -158,7 +153,10 @@ public class NaverLoginController {
 
             return "redirect:/member/login";
 
-        } catch (IllegalArgumentException | IllegalStateException ignored) {
+       } catch (IllegalArgumentException | IllegalStateException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("네이버 로그인 처리 실패", e);
+            }
             redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 처리 중 오류가 발생했습니다.");
             return "redirect:/member/login";
         }
@@ -202,7 +200,6 @@ public class NaverLoginController {
         session.setAttribute("loginDisplayName", displayName);
 
         String adultVerified = loginMember.getAdultVerified();
-
         if (adultVerified == null || adultVerified.isBlank()) {
             adultVerified = "N";
         }
@@ -215,7 +212,6 @@ public class NaverLoginController {
      */
     private String getDisplayName(MemberSocialJoinVO member) {
         String displayName = member.getMemberName();
-
         if (displayName == null || displayName.isBlank()) {
             displayName = member.getNickname();
         }

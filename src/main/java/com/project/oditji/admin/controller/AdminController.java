@@ -482,28 +482,34 @@ public class AdminController {
     }
 
     @PostMapping("/event/approve")
-    public String eventApprove(
-            @RequestParam Long eventNo,
+    public String eventApprove(@RequestParam Long eventNo,
             @RequestParam(required = false) String tab,
             @RequestParam(required = false) String period,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "1") int page) {
-
-        adminService.approveEvent(eventNo);
-
+            @RequestParam(required = false, defaultValue = "1") int page,
+            RedirectAttributes redirectAttributes) {
+        try {
+            adminService.approveEvent(eventNo);
+            redirectAttributes.addFlashAttribute("message", "이벤트 요청을 승인했습니다.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
         return "redirect:" + eventListRedirectUrl(tab, period, keyword, page);
     }
 
     @PostMapping("/event/reject")
-    public String eventReject(
-            @RequestParam Long eventNo,
+    public String eventReject(@RequestParam Long eventNo,
             @RequestParam(required = false) String tab,
             @RequestParam(required = false) String period,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "1") int page) {
-
-        adminService.rejectEvent(eventNo);
-
+            @RequestParam(required = false, defaultValue = "1") int page,
+            RedirectAttributes redirectAttributes) {
+        try {
+            adminService.rejectEvent(eventNo);
+            redirectAttributes.addFlashAttribute("message", "이벤트 요청을 반려했습니다.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        }
         return "redirect:" + eventListRedirectUrl(tab, period, keyword, page);
     }
 
@@ -572,13 +578,9 @@ public class AdminController {
             // (모달을 열 때 넘겨받은 해당 상품의 상태값을 기준으로 판단하므로,
             //  '전체' 탭에서 삭제 요청 건을 승인하는 경우에도 정확한 안내 문구가 나온다.)
             if ("DELETE_REQUESTED".equals(status)) {
-                redirectAttributes.addFlashAttribute(
-                        "message",
-                        "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
+                redirectAttributes.addFlashAttribute("message", "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
             } else {
-                redirectAttributes.addFlashAttribute(
-                        "message",
-                        "상품 요청을 승인했습니다.");
+                redirectAttributes.addFlashAttribute("message", "상품 요청을 승인했습니다.");
             }
 
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -603,13 +605,9 @@ public class AdminController {
 
             // 삭제 요청 반려 시에는 상품을 기존 승인 상태로 복구한다.
             if ("DELETE_REQUESTED".equals(status)) {
-                redirectAttributes.addFlashAttribute(
-                        "message",
-                        "상품 삭제 요청을 반려했습니다.");
+                redirectAttributes.addFlashAttribute("message", "상품 삭제 요청을 반려했습니다.");
             } else {
-                redirectAttributes.addFlashAttribute(
-                        "message",
-                        "상품 요청을 반려했습니다.");
+                redirectAttributes.addFlashAttribute("message", "상품 요청을 반려했습니다.");
             }
 
         } catch (IllegalArgumentException | IllegalStateException e) {

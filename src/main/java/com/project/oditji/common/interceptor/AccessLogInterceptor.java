@@ -3,6 +3,9 @@ package com.project.oditji.common.interceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.common.dao.AccessLogDAO;
 import com.project.oditji.common.vo.AccessLogVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -24,30 +27,24 @@ import jakarta.servlet.http.HttpSession;
 public class AccessLogInterceptor implements HandlerInterceptor {
 
     private final AccessLogDAO accessLogDAO;
+    private static final Logger log = LoggerFactory.getLogger(AccessLogInterceptor.class);
 
     public AccessLogInterceptor(AccessLogDAO accessLogDAO) {
         this.accessLogDAO = accessLogDAO;
     }
 
     @Override
-    public boolean preHandle(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         try {
 
             HttpSession session = request.getSession(false);
 
-            MemberVO loginMember =
-                    session == null
-                            ? null
-                            : (MemberVO) session.getAttribute("loginMember");
+            MemberVO loginMember = session == null ? null : (MemberVO) session.getAttribute("loginMember");
 
             AccessLogVO accessLog = new AccessLogVO();
 
-            accessLog.setMemberNo(
-                    loginMember == null ? null : loginMember.getMemberNo());
+            accessLog.setMemberNo(loginMember == null ? null : loginMember.getMemberNo());
             accessLog.setAccessIp(resolveClientIp(request));
             accessLog.setUserAgent(request.getHeader("User-Agent"));
             accessLog.setAccessUrl(request.getRequestURI());
@@ -55,7 +52,10 @@ public class AccessLogInterceptor implements HandlerInterceptor {
             accessLogDAO.insertAccessLog(accessLog);
 
         } catch (Exception e) {
-            // 접속 로그 적재 실패가 실제 요청 흐름을 막지 않도록 여기서 흡수한다.
+            // 접속 로그 적재 실패가 실제 요청 흐름을 막지 않도록 로그만 남긴다.
+            if (log.isWarnEnabled()) {
+                log.warn("접속 로그 저장 실패 - {} {}", request.getMethod(), request.getRequestURI(), e);
+            }
         }
 
         return true;

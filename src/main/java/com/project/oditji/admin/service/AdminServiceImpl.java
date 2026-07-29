@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.admin.dao.AdminDAO;
 import com.project.oditji.common.util.PaginationUtil;
 import com.project.oditji.admin.vo.AdminVO;
@@ -41,6 +44,7 @@ import com.project.oditji.admin.vo.VisitorTrendVO;
 public class AdminServiceImpl implements AdminService {
 
     private final AdminDAO adminDAO;
+    private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
     /*
      * 상품 삭제 승인 후 실제 업로드 파일까지 정리하기 위한 경로이다.
@@ -58,15 +62,13 @@ public class AdminServiceImpl implements AdminService {
                 .normalize();
     }
 
-    // ===================== 대시보드 =====================
-
+    //  대시보드
     @Override
     public AdminVO getDashboardStats() {
         return adminDAO.selectDashboardStats();
     }
 
-    // ===================== 회원 관리 =====================
-
+    // 회원 관리 
     // 본인 직접 탈퇴 후 자동삭제까지 유예되는 기간(일). 스케줄러(MemberDeleteScheduler)의 7일 기준과 맞춘다.
     private static final int WITHDRAW_AUTO_DELETE_DAYS = 7;
 
@@ -97,14 +99,14 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectMemberStats();
     }
 
-    /** keyword 하나만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. */
+    // keyword 하나만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼.
     private Map<String, Object> keywordParam(String keyword) {
         Map<String, Object> param = new HashMap<>();
         param.put("keyword", keyword);
         return param;
     }
 
-    /**
+    /*
      * 리뷰/이벤트/상품/주문/사업자/정산 등 회원 관리 외 목록 조회에서 공통으로 쓰는
      * offset/pageSize 파라미터를 채워 넣는다. (memberSearchParam과 동일한 방식)
      */
@@ -114,7 +116,7 @@ public class AdminServiceImpl implements AdminService {
         return param;
     }
 
-    /** keyword + searchType만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. (memberSearchParam의 축소판) */
+    // keyword + searchType만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. (memberSearchParam의 축소판)
     private Map<String, Object> keywordSearchTypeParam(String keyword, String searchType) {
         Map<String, Object> param = new HashMap<>();
         param.put("keyword", keyword);
@@ -242,7 +244,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    // ===================== 콘텐츠 리뷰 관리 =====================
+    // 콘텐츠 리뷰 관리 
 
     @Override
     public List<ReviewManageVO> getContentReviewList(String tab, String keyword, String searchType, int page,
@@ -338,7 +340,7 @@ public class AdminServiceImpl implements AdminService {
         return skipped;
     }
 
-    // ===================== 상품 리뷰 관리 =====================
+    // 상품 리뷰 관리
 
     @Override
     public List<ReviewManageVO> getProductReviewList(String tab, String keyword, String searchType, int page,
@@ -438,7 +440,7 @@ public class AdminServiceImpl implements AdminService {
         return skipped;
     }
 
-    // ===================== 이벤트 관리 =====================
+    // 이벤트 관리 
 
     @Override
     public List<EventManageVO> getEventList(String tab, String keyword, String period, int page, int pageSize) {
@@ -516,7 +518,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    // ===================== 상품 관리 =====================
+    // 상품 관리 
 
     @Override
     public List<ProductManageVO> getProductRequestList(String tab, String keyword, String searchType, int page,
@@ -610,10 +612,7 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalArgumentException("존재하지 않는 상품입니다.");
         }
 
-        /*
-         * 삭제 요청 반려 시 상품 자체를 삭제하지 않고
-         * 삭제 요청 전 승인 상태로 되돌린다.
-         */
+        // 삭제 요청 반려 시 상품 자체를 삭제하지 않고 삭제 요청 전 승인 상태로 되돌린다.
         String nextStatus = "DELETE_REQUESTED".equals(status)
                 ? "APPROVED"
                 : "REJECTED";
@@ -662,7 +661,7 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectRefundListCount(param);
     }
 
-    // ===================== 사업자 관리 =====================
+    // 사업자 관리 
 
     @Override
     public List<BusinessManageVO> getBusinessList(String keyword, String searchType, int page, int pageSize) {
@@ -706,7 +705,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.updateBusinessStatus(businessNo, "REJECTED");
     }
 
-    // ===================== 정산 관리 =====================
+    // 정산 관리
 
     @Override
     public List<SettlementManageVO> getSettlementList(String keyword, String status, String period, int page,
@@ -731,7 +730,7 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectSettlementStats();
     }
 
-    /* [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. */
+    // [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. 
     @Override
     public void confirmSettlement(Long businessNo, String settlementMonth) {
         if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
@@ -740,7 +739,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.updateSettlementStatus(businessNo, settlementMonth, "DONE");
     }
 
-    /* [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다. */
+    // [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다. 
     @Override
     public void rejectSettlement(Long businessNo, String settlementMonth) {
         if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
@@ -749,7 +748,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.updateSettlementStatus(businessNo, settlementMonth, "REJECTED");
     }
 
-    // ===================== 모니터링 =====================
+    // 모니터링
 
     @Override
     public List<MonitoringVO> getMonitoringList() {
@@ -766,7 +765,7 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectPopularProductClicks();
     }
 
-    // ===================== 콘텐츠 관리 =====================
+    // 콘텐츠 관리
 
     @Override
     public List<ContentManageVO> getContentList(String keyword) {
@@ -801,11 +800,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.updatePlatform(platform);
     }
 
-    /*
-     * =========================================================
-     * 이벤트 번호 검증
-     * =========================================================
-     */
+    // 이벤트 번호 검증
     private void validateEventNo(Long eventNo) {
 
         if (eventNo == null || eventNo <= 0) {
@@ -813,11 +808,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    /*
-     * =========================================================
-     * 상품 번호 검증
-     * =========================================================
-     */
+    // 상품 번호 검증
     private void validateProductNo(Long productNo) {
 
         if (productNo == null || productNo <= 0) {
@@ -825,11 +816,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    /*
-     * =========================================================
-     * DB 트랜잭션 커밋 후 실제 상품 이미지 파일 삭제 등록
-     * =========================================================
-     */
+    // DB 트랜잭션 커밋 후 실제 상품 이미지 파일 삭제 등록
     private void registerImageFileDeleteAfterCommit(List<String> imagePathList) {
 
         if (imagePathList == null || imagePathList.isEmpty()) {
@@ -855,11 +842,7 @@ public class AdminServiceImpl implements AdminService {
         deletePhysicalImageFiles(copiedImagePathList);
     }
 
-    /*
-     * =========================================================
-     * 서버에 저장된 실제 상품 이미지 파일 삭제
-     * =========================================================
-     */
+    //  서버에 저장된 실제 상품 이미지 파일 삭제
     private void deletePhysicalImageFiles(List<String> imagePathList) {
 
         for (String imagePath : imagePathList) {
@@ -886,19 +869,19 @@ public class AdminServiceImpl implements AdminService {
 
                 // 상위 경로 이동 공격을 방지한다.
                 if (!targetPath.startsWith(productUploadDirectory)) {
-                    System.err.println("허용되지 않은 상품 이미지 경로: " + targetPath);
+                    if (log.isWarnEnabled()) {
+                        log.warn("허용되지 않은 상품 이미지 경로: {}", targetPath);
+                    }
                     continue;
                 }
 
                 Files.deleteIfExists(targetPath);
 
             } catch (IOException e) {
-                /*
-                 * DB 삭제는 이미 정상 커밋되었으므로
-                 * 파일 삭제 실패는 로그로 남기고 전체 DB 처리를 되돌리지 않는다.
-                 */
-                System.err.println("상품 이미지 실제 파일 삭제 실패: " + imagePath);
-                e.printStackTrace();
+                // DB 삭제는 유지하고 파일 삭제 실패만 로그로 기록한다.
+                if (log.isErrorEnabled()) {
+                    log.error("상품 이미지 실제 파일 삭제 실패: {}", imagePath, e);
+                }
             }
         }
     }
