@@ -19,24 +19,6 @@
         <meta charset="UTF-8">
         <title>ODITJI | 취소/환불 관리</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
-
-        <style>
-        /*
-         * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있는
-         * 접근성 전용 라벨에 사용하는 공통 스타일입니다.
-         */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-        </style>
     </head>
 
     <body>

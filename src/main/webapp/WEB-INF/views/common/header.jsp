@@ -10,6 +10,8 @@
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=8">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
 
 <header class="header">
