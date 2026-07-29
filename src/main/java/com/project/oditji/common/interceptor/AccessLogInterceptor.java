@@ -34,24 +34,17 @@ public class AccessLogInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         try {
 
             HttpSession session = request.getSession(false);
 
-            MemberVO loginMember =
-                    session == null
-                            ? null
-                            : (MemberVO) session.getAttribute("loginMember");
+            MemberVO loginMember = session == null ? null : (MemberVO) session.getAttribute("loginMember");
 
             AccessLogVO accessLog = new AccessLogVO();
 
-            accessLog.setMemberNo(
-                    loginMember == null ? null : loginMember.getMemberNo());
+            accessLog.setMemberNo(loginMember == null ? null : loginMember.getMemberNo());
             accessLog.setAccessIp(resolveClientIp(request));
             accessLog.setUserAgent(request.getHeader("User-Agent"));
             accessLog.setAccessUrl(request.getRequestURI());
