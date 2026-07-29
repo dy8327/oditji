@@ -17,24 +17,6 @@
         src="${pageContext.request.contextPath}/js/business.js">
 </script>
 
-<style>
-/*
- * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있는 접근성 전용 텍스트입니다.
- * 상품 검색 입력창의 label을 시각적으로 숨길 때 사용합니다.
- */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-</style>
-
 </head>
 
 <body>
