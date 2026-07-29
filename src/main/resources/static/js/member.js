@@ -468,26 +468,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const businessNumber = document.getElementById("businessNumber");
   const ottCheckboxes = document.querySelectorAll("input[name='ottList']");
   const noOttCheckbox = document.getElementById("noOtt");
-  const passwordToggleButtons = document.querySelectorAll(".password-toggle-btn");
-  const profileImageFile = document.getElementById("profileImageFile");
-  const profileFileName = document.querySelector("label[for='profileImageFile']")?.parentElement.querySelector(".file-name");
-  const licenseFile = document.getElementById("licenseFile");
-  const licenseFileName = document.getElementById("licenseFileName");
-  const representativeName = document.getElementById("representativeName");
-  const openDate = document.getElementById("openDate");
-
-  if (!form) {
-    return;
-  }
 
   /*
-   * =========================================================
-   * 비밀번호 표시/숨김
-   *
-   * 보기 버튼을 누르면 비밀번호를 표시하고,
-   * 다시 누르면 비밀번호 입력값을 숨긴다.
-   * =========================================================
+   * 수정:
+   * 비밀번호 표시/숨김 기능은 회원가입 페이지뿐 아니라
+   * 비밀번호 변경 페이지에서도 사용하므로 form 검사 전에 실행한다.
    */
+  const passwordToggleButtons = document.querySelectorAll(".password-toggle-btn");
+
   passwordToggleButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const targetId = button.dataset.target;
@@ -502,9 +490,28 @@ document.addEventListener("DOMContentLoaded", () => {
       targetInput.type = showPassword ? "text" : "password";
       button.textContent = showPassword ? "숨김" : "보기";
       button.setAttribute("aria-pressed", String(showPassword));
-      button.setAttribute("aria-label", showPassword ? "비밀번호 숨기기" : "비밀번호 표시");
+      button.setAttribute(
+        "aria-label",
+        showPassword ? "비밀번호 숨기기" : "비밀번호 표시"
+      );
     });
   });
+
+  const profileImageFile = document.getElementById("profileImageFile");
+  const profileFileName = document.querySelector("label[for='profileImageFile']") ?.parentElement.querySelector(".file-name");
+  const licenseFile = document.getElementById("licenseFile");
+  const licenseFileName = document.getElementById("licenseFileName");
+  const representativeName = document.getElementById("representativeName");
+  const openDate = document.getElementById("openDate");
+
+  /*
+   * 회원가입 페이지가 아니라면
+   * 아래 회원가입 전용 로직은 실행하지 않는다.
+   */
+  if (!form) {
+    return;
+  }
+
 
   /*
    * =========================================================
