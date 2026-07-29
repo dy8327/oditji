@@ -10,7 +10,7 @@ import com.project.oditji.notification.vo.NotificationContextVO;
 import com.project.oditji.notification.vo.NotificationVO;
 
 /**
- * 업무 처리 결과를 수신 회원별 알림으로 저장하고 읽음 상태를 관리합니다.
+ * 서비스 처리 결과를 수신 회원별 알림으로 저장하고 읽음 상태를 관리합니다.
  */
 @Service
 public class NotificationServiceImpl implements NotificationService {

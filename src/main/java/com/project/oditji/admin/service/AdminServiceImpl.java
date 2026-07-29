@@ -285,6 +285,9 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveContentReviewReport(Long reviewNo) {
 
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
+
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "ACCEPTED");
 
         if (updated == 0) {
@@ -292,6 +295,12 @@ public class AdminServiceImpl implements AdminService {
         }
 
         adminDAO.deleteContentReview(reviewNo);
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "CONTENT",
+                true,
+                reviewNo);
     }
 
     /*
@@ -299,13 +308,23 @@ public class AdminServiceImpl implements AdminService {
      * 리뷰는 그대로 둔다.
      */
     @Override
+    @Transactional
     public void rejectContentReviewReport(Long reviewNo) {
+
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "REJECTED");
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
         }
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "CONTENT",
+                false,
+                reviewNo);
     }
 
     /*
@@ -387,6 +406,9 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveProductReviewReport(Long reviewNo) {
 
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
+
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "ACCEPTED");
 
         if (updated == 0) {
@@ -394,6 +416,12 @@ public class AdminServiceImpl implements AdminService {
         }
 
         adminDAO.adminDeleteProductReview(reviewNo);
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "PRODUCT",
+                true,
+                reviewNo);
     }
 
     /*
@@ -401,13 +429,23 @@ public class AdminServiceImpl implements AdminService {
      * 리뷰는 그대로 둔다.
      */
     @Override
+    @Transactional
     public void rejectProductReviewReport(Long reviewNo) {
+
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "REJECTED");
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
         }
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "PRODUCT",
+                false,
+                reviewNo);
     }
 
     /*
@@ -440,6 +478,45 @@ public class AdminServiceImpl implements AdminService {
         }
 
         return skipped;
+    }
+
+    /**
+     * 동일 리뷰를 신고한 모든 회원에게 관리자 검토 결과를 알립니다.
+     *
+     * 상품 리뷰 승인 시 원본 리뷰와 신고 행이 함께 삭제되므로,
+     * 호출 측에서 신고자 목록을 삭제 전에 먼저 조회해야 합니다.
+     */
+    private void createReviewReportResultNotifications(
+            List<Long> reporterMemberNos,
+            String reviewType,
+            boolean accepted,
+            Long reviewNo) {
+
+        if (reporterMemberNos == null || reporterMemberNos.isEmpty()) {
+            return;
+        }
+
+        boolean contentReview = "CONTENT".equals(reviewType);
+        String targetLabel = contentReview ? "콘텐츠 리뷰" : "상품 리뷰";
+        String notificationType = contentReview
+                ? "CONTENT_REVIEW_REPORT_PROCESSED"
+                : "PRODUCT_REVIEW_REPORT_PROCESSED";
+        String message = accepted
+                ? "신고하신 " + targetLabel
+                        + "에서 운영 정책 위반이 확인되어 해당 리뷰를 삭제했습니다."
+                : "신고하신 " + targetLabel
+                        + "를 검토한 결과 운영 정책 위반 사항이 확인되지 않았습니다.";
+
+        for (Long reporterMemberNo : reporterMemberNos) {
+            notificationService.createForMember(
+                    reporterMemberNo,
+                    notificationType,
+                    "리뷰 신고 검토 완료",
+                    message,
+                    null,
+                    contentReview ? "CONTENT_REVIEW" : "PRODUCT_REVIEW",
+                    reviewNo);
+        }
     }
 
     // ===================== 이벤트 관리 =====================

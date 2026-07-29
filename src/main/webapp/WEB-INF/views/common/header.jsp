@@ -129,12 +129,11 @@
 
                 <c:otherwise>
                     <%--
-                        관리자와 사업자에게만 통합 알림 영역을 표시합니다.
-                        일반 회원에게는 알림 벨과 채팅 진입 링크를 출력하지 않습니다.
-                        채팅 알림과 관리자·사업자 업무 알림을 동일 알림 센터의
-                        서로 다른 source로 등록하여 한 번에 표시합니다.
+                        로그인 회원 모두에게 통합 알림 영역을 표시합니다.
+                        일반 회원은 Oracle 업무 알림만 사용하고,
+                        관리자와 사업자는 업무 알림과 채팅 알림을 함께 사용합니다.
                     --%>
-                    <c:if test="${headerChatEnabled}">
+                    <c:if test="${not empty headerMemberNo}">
                         <div class="notification-menu"
                          id="notificationMenu"
                          data-context-path="${pageContext.request.contextPath}"
@@ -239,7 +238,7 @@
     </div>
 </header>
 
-<c:if test="${not empty sessionScope.loginMember and headerChatEnabled}">
+<c:if test="${not empty sessionScope.loginMember}">
     <script type="module"
-            src="${pageContext.request.contextPath}/js/header-notification.js?v=4"></script>
+            src="${pageContext.request.contextPath}/js/header-notification.js?v=5"></script>
 </c:if>

@@ -10,8 +10,10 @@ import {
 /**
  * ODITJI 공통 헤더 알림 센터입니다.
  *
- * Firestore 기반 채팅 알림과 Oracle 기반 관리자·사업자 업무 알림을
+ * Firestore 기반 채팅 알림과 Oracle 기반 공통 알림을
  * 하나의 벨과 상세 목록에서 함께 표시합니다.
+ * 일반 회원은 리뷰 신고·배송 알림을, 관리자와 사업자는
+ * 기존 업무 알림과 채팅 알림을 함께 확인합니다.
  * 다른 기능도 아래 전역 API에 별도 source를 등록하면 같은 UI를 재사용할 수 있습니다.
  *
  * window.oditjiNotificationCenter.setSource("refund", {
@@ -43,8 +45,9 @@ function initializeHeaderNotification() {
 
     const contextPath = menu.dataset.contextPath || "";
     const chatEnabled = menu.dataset.chatEnabled === "true";
-    const role = String(menu.dataset.role || "").toUpperCase();
-    const workNotificationEnabled = role === "ADMIN" || role === "BUSINESS";
+    const memberNo = Number(menu.dataset.memberNo);
+    const workNotificationEnabled = Number.isFinite(memberNo)
+        && memberNo > 0;
     const notificationSources = new Map();
     const roomSubscriptions = new Map();
     let chatContext = null;
@@ -322,7 +325,7 @@ function initializeHeaderNotification() {
     }
 
     /**
-     * 현재 로그인한 관리자 또는 사업자의 업무 알림을 모두 읽음 처리합니다.
+     * 현재 로그인한 회원의 Oracle 알림을 모두 읽음 처리합니다.
      */
     async function clearAllWorkNotifications() {
 
@@ -355,7 +358,8 @@ function initializeHeaderNotification() {
     }
 
     /**
-     * 서버에서 미읽은 업무 알림을 조회해 통합 알림 센터의 work source로 등록합니다.
+     * 서버에서 현재 로그인 회원의 미읽은 Oracle 알림을 조회해
+     * 통합 알림 센터의 work source로 등록합니다.
      */
     async function loadWorkNotifications() {
 

@@ -235,6 +235,25 @@ public class AdminDAO {
     }
 
     /**
+     * 콘텐츠 리뷰 신고 처리 전에 WAITING 상태 신고자 회원번호를 조회합니다.
+     */
+    public List<Long> selectWaitingContentReviewReporterMemberNos(Long reviewNo) {
+        return sqlSession.selectList(
+                "selectWaitingContentReviewReporterMemberNos",
+                reviewNo);
+    }
+
+    /**
+     * 상품 리뷰 신고 처리 전에 WAITING 상태 신고자 회원번호를 조회합니다.
+     * 상품 리뷰 승인 시 REVIEW_REPORT가 함께 삭제되므로 반드시 삭제 전에 호출합니다.
+     */
+    public List<Long> selectWaitingProductReviewReporterMemberNos(Long reviewNo) {
+        return sqlSession.selectList(
+                "selectWaitingProductReviewReporterMemberNos",
+                reviewNo);
+    }
+
+    /**
      * 해당 콘텐츠 리뷰에 걸린 WAITING 상태 신고를 전부 ACCEPTED/REJECTED로 변경한다.
      */
     public int updateContentReviewReportStatus(Long reviewNo, String status) {

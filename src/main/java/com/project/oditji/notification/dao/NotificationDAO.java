@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import com.project.oditji.notification.vo.NotificationVO;
 
 /**
- * 관리자·사업자 공통 업무 알림의 저장과 읽음 상태를 처리합니다.
+ * 공통 알림의 저장과 읽음 상태를 처리합니다.
  */
 @Mapper
 public interface NotificationDAO {

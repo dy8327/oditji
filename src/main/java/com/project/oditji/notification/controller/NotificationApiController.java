@@ -16,14 +16,14 @@ import com.project.oditji.notification.vo.NotificationResponseVO;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * 공통 헤더에서 사용하는 관리자·사업자 업무 알림 API입니다.
+ * 로그인 회원이 공통 헤더에서 사용하는 알림 API입니다.
+ *
+ * 일반 회원, 사업자, 관리자 모두 자신의 MEMBER_NO로 저장된
+ * NOTIFICATION만 조회하고 읽음 처리할 수 있습니다.
  */
 @RestController
 @RequestMapping("/notification/api")
 public class NotificationApiController {
-
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_BUSINESS = "BUSINESS";
 
     private final NotificationService notificationService;
 
@@ -85,7 +85,7 @@ public class NotificationApiController {
 
         return new NotificationResponseVO(
                 true,
-                "업무 알림을 모두 읽음 처리했습니다.");
+                "알림을 모두 읽음 처리했습니다.");
     }
 
     private MemberVO getLoginMember(HttpSession session) {
@@ -102,12 +102,8 @@ public class NotificationApiController {
     }
 
     private boolean hasNotificationAccess(MemberVO loginMember) {
-
-        if (loginMember == null || loginMember.getMemberNo() == null) {
-            return false;
-        }
-
-        return ROLE_ADMIN.equals(loginMember.getRole())
-                || ROLE_BUSINESS.equals(loginMember.getRole());
+        return loginMember != null
+                && loginMember.getMemberNo() != null
+                && loginMember.getMemberNo() > 0L;
     }
 }

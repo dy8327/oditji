@@ -529,6 +529,68 @@ public class BusinessServiceImpl
                 }
 
                 businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
+
+                if (!normalizedStatus.equals(currentStatus)) {
+                        createDeliveryStatusNotification(
+                                        currentItem,
+                                        normalizedStatus);
+                }
+        }
+
+        /**
+         * 배송 상태가 실제로 다음 단계로 변경된 경우 주문 회원에게 알림을 생성합니다.
+         * 동일 상태 재저장은 알림 생성 대상에서 제외합니다.
+         */
+        private void createDeliveryStatusNotification(
+                        DeliveryManageVO deliveryItem,
+                        String deliveryStatus) {
+
+                if (deliveryItem == null || deliveryStatus == null) {
+                        return;
+                }
+
+                String productName = deliveryItem.getProductName();
+                String productMessage = productName == null
+                                || productName.isBlank()
+                                                ? ""
+                                                : " 상품명: " + productName.trim();
+
+                String notificationType;
+                String title;
+                String message;
+
+                switch (deliveryStatus) {
+                        case "PREPARING" -> {
+                                notificationType = "DELIVERY_PREPARING";
+                                title = "배송 준비 시작";
+                                message = "주문하신 상품의 배송 준비가 시작되었습니다."
+                                                + productMessage;
+                        }
+                        case "SHIPPING" -> {
+                                notificationType = "DELIVERY_SHIPPED";
+                                title = "상품 발송";
+                                message = "주문하신 상품이 발송되었습니다."
+                                                + productMessage;
+                        }
+                        case "DELIVERED" -> {
+                                notificationType = "DELIVERY_DELIVERED";
+                                title = "배송 완료";
+                                message = "주문하신 상품의 배송이 완료되었습니다."
+                                                + productMessage;
+                        }
+                        default -> {
+                                return;
+                        }
+                }
+
+                notificationService.createForMember(
+                                deliveryItem.getMemberNo(),
+                                notificationType,
+                                title,
+                                message,
+                                "/order/list",
+                                "ORDER_ITEM",
+                                deliveryItem.getOrderItemNo());
         }
 
         /* 배송 목록 검색에 사용할 상태값을 검증하고 정규화. */

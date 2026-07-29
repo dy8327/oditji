@@ -3,7 +3,7 @@ package com.project.oditji.notification.service;
 import com.project.oditji.notification.vo.NotificationContextVO;
 
 /**
- * 관리자·사업자 공통 업무 알림 기능을 제공합니다.
+ * 일반 회원, 사업자, 관리자 공통 알림 기능을 제공합니다.
  */
 public interface NotificationService {
 

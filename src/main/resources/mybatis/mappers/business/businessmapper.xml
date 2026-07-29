@@ -1292,12 +1292,19 @@
         SELECT
             OI.ORDER_ITEM_NO,
             OI.ORDER_NO,
+            O.MEMBER_NO,
             OI.BUSINESS_NO,
+            OI.PRODUCT_NO,
+            P.PRODUCT_NAME,
             OI.STATUS,
             D.DELIVERY_NO,
             D.COURIER,
             D.TRACKING_NUMBER
         FROM ORDER_ITEM OI
+        JOIN ORDERS O
+          ON O.ORDER_NO = OI.ORDER_NO
+        JOIN PRODUCT P
+          ON P.PRODUCT_NO = OI.PRODUCT_NO
         LEFT JOIN DELIVERY D
           ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
         WHERE OI.BUSINESS_NO = #{businessNo}

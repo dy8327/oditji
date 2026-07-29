@@ -3,7 +3,7 @@ package com.project.oditji.notification.vo;
 import java.util.Date;
 
 /**
- * 관리자와 사업자가 공통으로 사용하는 업무 알림 정보를 전달합니다.
+ * 일반 회원, 사업자, 관리자가 공통으로 사용하는 알림 정보를 전달합니다.
  */
 public class NotificationVO {
 
@@ -121,6 +121,14 @@ public class NotificationVO {
 
         if (notificationType == null) {
             return "업무";
+        }
+
+        if (notificationType.contains("REPORT")) {
+            return "신고";
+        }
+
+        if (notificationType.contains("DELIVERY")) {
+            return "배송";
         }
 
         if (notificationType.contains("ORDER")) {
