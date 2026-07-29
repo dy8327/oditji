@@ -228,6 +228,21 @@
                                 <fmt:formatDate var="reqEndDateStr" value="${req.endDate}" pattern="yyyy-MM-dd"/>
                                 <fmt:formatDate var="reqCreatedAtStr" value="${req.createdAt}" pattern="yyyy-MM-dd"/>
 
+                                <%--
+                                    사업자가 등록한 이벤트 배너 이미지(EVENT.BANNER_IMAGE) URL.
+                                    productManage.jsp의 reqMainImageUrl과 동일하게, DB에는 contextPath
+                                    기준으로 바로 접근 가능한 상대경로가 저장되어 있다고 가정한다.
+                                --%>
+                                <c:choose>
+                                    <c:when test="${not empty req.bannerImage}">
+                                        <c:set var="reqBannerImageUrl"
+                                               value="${pageContext.request.contextPath}${req.bannerImage}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="reqBannerImageUrl" value=""/>
+                                    </c:otherwise>
+                                </c:choose>
+
                                 <c:choose>
                                     <c:when test="${req.status == 'APPROVED'}">
                                         <c:set var="reqStatusLabel" value="승인"/>
@@ -320,7 +335,8 @@
                                                     '${reqCreatedAtStr}',
                                                     '${req.status}',
                                                     '${reqStatusLabel}',
-                                                    '${fn:escapeXml(req.productDetail)}'
+                                                    '${fn:escapeXml(req.productDetail)}',
+                                                    '${fn:escapeXml(reqBannerImageUrl)}'
                                                 )">
                                             상세보기
                                         </button>
@@ -472,6 +488,15 @@
 
         <div class="detail-section-title">
             이벤트 정보
+        </div>
+
+        <%--
+            사업자가 등록한 이벤트 배너 이미지. openEventDetailModal()이 bannerImage 값을 보고
+            이미지 또는 안내 문구 중 하나를 보여준다. productManage.jsp의 이미지 영역과 동일한 구조.
+        --%>
+        <div class="detail-image-box" id="reqEventImageBox">
+            <img id="reqEventImage" src="" alt="이벤트 배너 이미지" style="display:none">
+            <span id="reqEventImageEmpty" class="detail-image-empty">등록된 이미지가 없습니다.</span>
         </div>
 
         <div class="target-info-box">

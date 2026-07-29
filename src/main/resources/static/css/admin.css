@@ -976,6 +976,38 @@
   background: #b083f0;
 }
 
+/*
+ * 상세 팝업 상단 대표 이미지 (상품 상세 / 이벤트 상세 공용).
+ * .thumb(목록용 80px 썸네일)과 톤은 같지만, 팝업에서는 더 크게 보여준다.
+ */
+.detail-image-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 220px;
+
+  margin-bottom: 20px;
+
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  overflow: hidden;
+}
+
+.detail-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-image-box .detail-image-empty {
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
 /* 대상 정보 요약 (팝업 상단) */
 .target-info-box {
   /* [수정] modal-box 배경과 톤이 거의 같아 패널이 눈에 안 띄었다.

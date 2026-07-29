@@ -160,6 +160,63 @@
 
 
     <!-- =====================================================
+         [배송 조회 화면 추가]
+         사용자 배송 조회(DeliveryVO) 매핑
+         business.vo.DeliveryManageVO와 동일한 컬럼 구성에
+         상품 이미지(MAIN_IMAGE) 컬럼만 추가했다.
+    ====================================================== -->
+    <resultMap id="deliveryResultMap"
+               type="com.project.oditji.order.vo.DeliveryVO">
+
+        <id property="orderItemNo"
+            column="ORDER_ITEM_NO"/>
+
+        <result property="deliveryNo"
+                column="DELIVERY_NO"/>
+
+        <result property="orderNo"
+                column="ORDER_NO"/>
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="productPrice"
+                column="PRODUCT_PRICE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+        <result property="receiverName"
+                column="RECEIVER_NAME"/>
+
+        <result property="receiverPhone"
+                column="RECEIVER_PHONE"/>
+
+        <result property="address"
+                column="ADDRESS"/>
+
+        <result property="trackingNumber"
+                column="TRACKING_NUMBER"/>
+
+        <result property="courier"
+                column="COURIER"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="orderCreatedAt"
+                column="ORDER_CREATED_AT"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
          상품 대표 이미지 조인 (goodsMapper / cartMapper와 동일 패턴)
     ====================================================== -->
     <sql id="mainImageJoin">
@@ -879,6 +936,57 @@
         WHERE OI.ORDER_NO = #{orderNo}
 
         ORDER BY OI.ORDER_ITEM_NO ASC
+
+    </select>
+
+
+    <!-- =====================================================
+         [배송 조회 화면 추가]
+         로그인 회원 소유의 주문상품 배송 조회 단건.
+
+         DELIVERY 행이 아직 없으면(배송 준비 단계) NVL로
+         business의 selectBusinessDeliveryList와 동일하게
+         PREPARING/SHIPPING/DELIVERED 상태를 계산해서 내려준다.
+    ====================================================== -->
+    <select id="selectDeliveryDetailByMember"
+            resultMap="deliveryResultMap">
+
+        SELECT
+            D.DELIVERY_NO,
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            P.PRODUCT_NAME,
+            PI.MAIN_IMAGE,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            O.RECEIVER_NAME,
+            O.RECEIVER_PHONE,
+            O.ADDRESS,
+            D.TRACKING_NUMBER,
+            D.COURIER,
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'PREPARING'
+                END
+            ) AS STATUS,
+            O.CREATED_AT AS ORDER_CREATED_AT
+        FROM ORDER_ITEM OI
+
+        INNER JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+
+        LEFT JOIN DELIVERY D
+            ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+        <include refid="mainImageJoin"/>
+
+        WHERE O.MEMBER_NO = #{memberNo}
+          AND OI.ORDER_ITEM_NO = #{orderItemNo}
 
     </select>
 

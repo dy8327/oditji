@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -44,6 +45,44 @@
         </div>
 
     </c:if>
+
+    <%--
+        =========================================================
+        [주문/환불 탭 UI 추가]
+
+        orderList.jsp 안에서 "주문 내역"과 "환불 내역"을 탭으로
+        전환하는 UI만 구성한다. 실제 데이터 조회 로직은 그대로
+        유지하며(orderList 모델은 기존과 동일), 환불 내역 탭은
+        기존에 함께 내려오는 주문/취소 요청 데이터를 화면에서
+        다시 정리해서 보여준다.
+        =========================================================
+    --%>
+    <div class="order-tabs"
+         role="tablist"
+         aria-label="주문/환불 내역 탭">
+
+        <button type="button"
+                class="order-tab-btn active"
+                data-tab-target="orderTabPanel"
+                role="tab"
+                aria-selected="true">
+            주문 내역
+        </button>
+
+        <button type="button"
+                class="order-tab-btn"
+                data-tab-target="refundTabPanel"
+                role="tab"
+                aria-selected="false">
+            환불 내역
+        </button>
+
+    </div>
+
+    <!-- 주문 내역 탭 패널 -->
+    <div id="orderTabPanel"
+         class="order-tab-panel active"
+         role="tabpanel">
 
     <h1>주문 내역</h1>
 
@@ -96,6 +135,34 @@
 
                             <div class="order-item">
 
+                                <%--
+                                    =========================================================
+                                    [상품 선택 체크박스 추가]
+
+                                    취소 요청이 가능한 상태(주문 완료/결제 완료/상품 준비 중/
+                                    배송 중)의 상품에만 체크박스를 노출하여, 상단의
+                                    "선택 상품 주문 취소" 버튼과 함께 여러 상품을 한 번에
+                                    선택할 수 있는 UI를 구성한다. 체크박스 선택 값 처리와
+                                    실제 취소 로직은 이번 작업 범위에 포함하지 않는다.
+                                    =========================================================
+                                --%>
+                                <c:if test="${i.status eq 'ORDERED'
+                                        || i.status eq 'PAID'
+                                        || i.status eq 'PREPARING'
+                                        || i.status eq 'SHIPPING'}">
+
+                                    <label class="order-item-select-label">
+
+                                        <input type="checkbox"
+                                               class="order-item-select"
+                                               value="${i.orderItemNo}"
+                                               data-product-name="${i.productName}"
+                                               aria-label="${i.productName} 선택">
+
+                                    </label>
+
+                                </c:if>
+
                                 <a href="${pageContext.request.contextPath}/goods/goodsDetail/${i.productNo}">
 
                                     <c:choose>
@@ -143,6 +210,24 @@
 
                                 <div class="order-item-actions">
 
+                                    <%--
+                                        =========================================================
+                                        [상품별 배송조회 버튼 추가]
+
+                                        취소가 완료된 상품이 아니면 배송조회 탭으로 전환하여
+                                        해당 주문상품의 배송 정보를 볼 수 있도록 한다.
+                                        =========================================================
+                                    --%>
+                                    <c:if test="${i.status ne 'CANCELED'}">
+
+                                        <button type="button"
+                                                class="delivery-detail-btn"
+                                                data-order-item-no="${i.orderItemNo}">
+                                            배송조회
+                                        </button>
+
+                                    </c:if>
+
                                     <c:if test="${o.orderStatus ne 'CANCELED'}">
 
                                         <button type="button"
@@ -156,26 +241,17 @@
 
                                     <%--
                                         =========================================================
-                                        [상품별 부분 취소 버튼 추가]
+                                        [상품별 액션 버튼 정리]
 
-                                        주문상품이 결제 완료 또는 상품 준비 중 상태일 때만
-                                        해당 상품 한 건에 대한 부분 취소 요청을 등록한다.
-                                        기존 상품 카드 레이아웃은 유지한다.
+                                        상품별 액션 영역에는 "배송조회"와 "리뷰 작성"만 남기고,
+                                        상태별 "주문 취소" / "환불 신청" 버튼은 제거한다.
+                                        상품 취소·환불은 체크박스로 선택한 뒤 주문 카드 하단의
+                                        "선택 상품 주문 취소" 버튼, 환불 내역 탭의
+                                        "선택 상품 환불" 버튼으로 처리하는 방식으로 통일한다.
+
+                                        취소 진행 상태는 버튼이 아닌 안내 문구로만 표시한다.
                                         =========================================================
                                     --%>
-                                    <c:if test="${i.status eq 'PAID'
-                                            || i.status eq 'ORDERED'
-                                            || i.status eq 'PREPARING'}">
-
-                                        <button type="button"
-                                                class="item-cancel-btn"
-                                                data-order-item-no="${i.orderItemNo}"
-                                                data-product-name="${i.productName}">
-                                            상품 부분 취소
-                                        </button>
-
-                                    </c:if>
-
                                     <c:if test="${i.status eq 'CANCEL_REQUEST'}">
 
                                         <span class="item-cancel-state">
@@ -432,9 +508,9 @@
                     <div class="order-cancel-action">
 
                         <button type="button"
-                                class="payment-cancel-btn"
+                                class="bulk-action-btn order-select-cancel-btn"
                                 data-order-no="${o.orderNo}">
-                            주문 전체 취소
+                            선택 상품 주문 취소
                         </button>
 
                     </div>
@@ -504,6 +580,399 @@
         </nav>
 
     </c:if>
+
+    </div>
+    <!-- // 주문 내역 탭 패널 -->
+
+    <%--
+        =========================================================
+        [환불 내역 탭 패널 추가]
+
+        Controller/Service/Mapper 수정 없이, 이미 orderList 모델에
+        포함되어 있는 주문 전체 취소(o.fullCancelStatus)와 상품
+        부분 취소(i.cancelRequestStatus) 데이터를 화면에서 다시
+        모아 표(table) 형태로 보여준다.
+
+        "신청일" 컬럼은 취소 요청 시각을 담는 필드가 현재
+        OrderVO/OrderItemVO에 없어 주문일(createdAt)로 대신 표시했다.
+        실제 취소/환불 신청일을 보여주려면 서버에서 해당 값을
+        내려주는 작업이 추후 필요하다.
+        =========================================================
+    --%>
+    <div id="refundTabPanel"
+         class="order-tab-panel"
+         role="tabpanel"
+         hidden>
+
+        <h1>환불 내역</h1>
+
+        <div class="refund-table-wrap">
+
+            <table class="refund-table">
+
+                <thead>
+
+                    <tr>
+                        <th scope="col">주문번호</th>
+                        <th scope="col">상품명</th>
+                        <th scope="col">신청일</th>
+                        <th scope="col">환불금액</th>
+                        <th scope="col">환불상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="refundTableBody">
+
+                    <c:forEach var="o"
+                               items="${orderList}">
+
+                        <%-- 주문 전체 취소 요청 1행 --%>
+                        <c:if test="${not empty o.fullCancelStatus}">
+
+                            <tr class="refund-row">
+
+                                <td data-label="주문번호">
+                                    ${o.orderNo}
+                                </td>
+
+                                <td data-label="상품명">
+                                    전체 상품 (${fn:length(o.items)}건)
+                                </td>
+
+                                <td data-label="신청일">
+                                    <fmt:formatDate
+                                        value="${o.createdAt}"
+                                        pattern="yyyy.MM.dd"/>
+                                </td>
+
+                                <td data-label="환불금액">
+                                    ₩
+                                    <fmt:formatNumber
+                                        value="${o.totalAmount}"
+                                        pattern="#,###"/>
+                                </td>
+
+                                <td data-label="환불상태">
+
+                                    <c:choose>
+
+                                        <c:when test="${o.fullCancelStatus eq 'WAITING'}">
+                                            <span class="refund-badge waiting">승인 대기</span>
+                                        </c:when>
+
+                                        <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
+                                            <span class="refund-badge rejected">승인 거절</span>
+                                        </c:when>
+
+                                        <c:when test="${o.fullCancelStatus eq 'APPROVED'}">
+                                            <span class="refund-badge completed">환불 완료</span>
+                                        </c:when>
+
+                                    </c:choose>
+
+                                </td>
+
+                                <td data-label="관리">
+
+                                    <label class="refund-select-label">
+
+                                        <input type="checkbox"
+                                               class="refund-select"
+                                               value="full-${o.orderNo}"
+                                               aria-label="주문번호 ${o.orderNo} 전체 취소 건 선택">
+
+                                    </label>
+
+                                </td>
+
+                            </tr>
+
+                        </c:if>
+
+                        <%-- 상품 부분 취소 요청 행 --%>
+                        <c:forEach var="i"
+                                   items="${o.items}">
+
+                            <c:if test="${not empty i.cancelRequestStatus}">
+
+                                <tr class="refund-row">
+
+                                    <td data-label="주문번호">
+                                        ${o.orderNo}
+                                    </td>
+
+                                    <td data-label="상품명">
+                                        <c:out value="${i.productName}"/>
+                                    </td>
+
+                                    <td data-label="신청일">
+                                        <fmt:formatDate
+                                            value="${o.createdAt}"
+                                            pattern="yyyy.MM.dd"/>
+                                    </td>
+
+                                    <td data-label="환불금액">
+                                        ₩
+                                        <fmt:formatNumber
+                                            value="${i.itemTotalPrice}"
+                                            pattern="#,###"/>
+                                    </td>
+
+                                    <td data-label="환불상태">
+
+                                        <c:choose>
+
+                                            <c:when test="${i.cancelRequestStatus eq 'WAITING'}">
+                                                <span class="refund-badge waiting">승인 대기</span>
+                                            </c:when>
+
+                                            <c:when test="${i.cancelRequestStatus eq 'REJECTED'}">
+                                                <span class="refund-badge rejected">승인 거절</span>
+                                            </c:when>
+
+                                            <c:when test="${i.cancelRequestStatus eq 'APPROVED'}">
+                                                <span class="refund-badge completed">환불 완료</span>
+                                            </c:when>
+
+                                        </c:choose>
+
+                                    </td>
+
+                                    <td data-label="관리">
+
+                                        <label class="refund-select-label">
+
+                                            <input type="checkbox"
+                                                   class="refund-select"
+                                                   value="item-${i.orderItemNo}"
+                                                   aria-label="${i.productName} 환불 건 선택">
+
+                                        </label>
+
+                                    </td>
+
+                                </tr>
+
+                            </c:if>
+
+                        </c:forEach>
+
+                    </c:forEach>
+
+                </tbody>
+
+            </table>
+
+            <!-- 환불 신청 내역 없음 (orderTabs.js에서 행 개수에 따라 표시) -->
+            <div id="refundEmptyBox"
+                 class="empty-box"
+                 style="display:none;">
+                환불 신청 내역이 없습니다.
+            </div>
+
+        </div>
+
+        <%--
+            =========================================================
+            [선택 상품 환불 버튼 추가]
+
+            체크박스로 선택한 환불 신청 건을 일괄 처리하기 위한
+            버튼이다. 현재는 화면(UI)만 구현하며 실제 환불 처리는
+            하지 않는다.
+            =========================================================
+        --%>
+        <div class="order-bulk-actions">
+
+            <button type="button"
+                    id="bulkRefundBtn"
+                    class="bulk-action-btn">
+                선택 상품 환불
+            </button>
+
+        </div>
+
+    </div>
+    <!-- // 환불 내역 탭 패널 -->
+
+    <%--
+        =========================================================
+        [배송조회 모달 추가]
+
+        기존에는 배송조회가 같은 페이지 안의 별도 탭(패널)으로
+        전환되는 방식이었지만, 불필요하게 화면을 분리하고 있어
+        주문 목록에서 "배송조회" 버튼을 누르면 모달로 바로
+        보여주도록 리팩토링했다. 내용 구성(배송 단계 / 주문상품
+        정보 / 배송 정보)은 기존과 동일하며, orderDeliveryModal.js가
+        /order/delivery AJAX 응답으로 아래 요소들의 내용을 채워
+        넣는다.
+        =========================================================
+    --%>
+    <div id="deliveryDetailModal"
+         class="delivery-detail-modal"
+         aria-hidden="true">
+
+        <div class="delivery-detail-modal-content"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="deliveryDetailModalTitle">
+
+            <div class="delivery-detail-modal-header">
+
+                <h2 id="deliveryDetailModalTitle">
+                    배송 조회
+                </h2>
+
+                <button type="button"
+                        id="deliveryDetailCloseBtn"
+                        class="delivery-detail-modal-close"
+                        aria-label="닫기">
+                    &times;
+                </button>
+
+            </div>
+
+            <!-- 배송 정보를 불러오는 중 -->
+            <div id="deliveryDetailLoading"
+                 class="empty-box"
+                 style="display:none;">
+                배송 정보를 불러오는 중입니다...
+            </div>
+
+            <!-- 배송 정보 조회 실패 -->
+            <div id="deliveryDetailError"
+                 class="empty-box"
+                 style="display:none;">
+            </div>
+
+            <!-- 배송 정보 -->
+            <div id="deliveryDetailContent"
+                 style="display:none;">
+
+                <div id="deliveryProgress"
+                     class="delivery-progress"
+                     data-status="PREPARING">
+
+                    <div class="delivery-progress-bar">
+                        <div class="delivery-progress-fill"></div>
+                        <div class="delivery-progress-truck" aria-hidden="true">🚚</div>
+                    </div>
+
+                    <div class="delivery-progress-labels">
+
+                        <span class="delivery-progress-label"
+                              data-step="PREPARING">
+                            상품 준비 중
+                        </span>
+
+                        <span class="delivery-progress-label"
+                              data-step="SHIPPING">
+                            배송 중
+                        </span>
+
+                        <span class="delivery-progress-label"
+                              data-step="DELIVERED">
+                            배송 완료
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="delivery-product">
+
+                    <div id="deliveryMainImageWrap"
+                         class="delivery-product-image">
+                        <div class="no-image">NO IMAGE</div>
+                    </div>
+
+                    <div class="order-info-list delivery-product-info">
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">상품명</div>
+                            <div class="order-info-value" id="deliveryProductName"></div>
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">수량</div>
+                            <div class="order-info-value" id="deliveryQuantity"></div>
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">결제 금액</div>
+                            <div class="order-info-value">₩ <span id="deliveryItemTotalPrice"></span></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="ticket-divider"
+                     aria-hidden="true">
+                </div>
+
+                <div class="order-info-section">
+
+                    <h2 class="order-info-title">배송 정보</h2>
+
+                    <div class="order-info-list">
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">받는 사람</div>
+                            <div class="order-info-value" id="deliveryReceiverName"></div>
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">연락처</div>
+                            <div class="order-info-value" id="deliveryReceiverPhone"></div>
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">배송지 주소</div>
+                            <div class="order-info-value" id="deliveryAddress"></div>
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">택배사</div>
+                            <div class="order-info-value" id="deliveryCourier"></div>
+                        </div>
+
+                        <div class="order-info-row">
+
+                            <div class="order-info-label">운송장 번호</div>
+
+                            <div class="order-info-value"
+                                 id="deliveryTrackingWrap">
+                                <span class="delivery-empty-note">아직 운송장 번호가 등록되지 않았습니다.</span>
+                            </div>
+
+                        </div>
+
+                        <div class="order-info-row">
+                            <div class="order-info-label">주문일</div>
+                            <div class="order-info-value" id="deliveryOrderCreatedAt"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="delivery-detail-modal-footer">
+
+                <button type="button"
+                        id="deliveryDetailFooterCloseBtn"
+                        class="delivery-detail-modal-footer-close">
+                    닫기
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 
     <!-- 리뷰 작성 모달 -->
     <div id="reviewModal"
@@ -659,6 +1128,8 @@
 
 <script src="${pageContext.request.contextPath}/js/orderReview.js"></script>
 <script src="${pageContext.request.contextPath}/js/orderCancel.js"></script>
+<script src="${pageContext.request.contextPath}/js/orderDeliveryModal.js"></script>
+<script src="${pageContext.request.contextPath}/js/orderTabs.js"></script>
 <script src="${pageContext.request.contextPath}/js/order.js"></script>
 
 </body>
