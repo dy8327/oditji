@@ -296,7 +296,7 @@ public class MemberController {
          * 세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
          */
         @PostMapping("/login")
-        public String login(MemberVO memberVO, HttpSession session, RedirectAttributes redirectAttributes) {
+        public String login(MemberVO memberVO, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
 
                 try {
                         MemberVO loginMember = memberService.loginMember(memberVO);
@@ -352,6 +352,8 @@ public class MemberController {
                                         return "redirect:/member/login";
                                 }
                         }
+
+                        request.changeSessionId();
 
                         session.setAttribute("loginMember", loginMember);
                         session.setAttribute("memberNo", loginMember.getMemberNo());
