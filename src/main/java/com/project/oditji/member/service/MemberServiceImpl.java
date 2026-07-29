@@ -447,10 +447,55 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void updatePassword(Long memberNo, String password) {
 
-        memberDAO.updatePassword(memberNo, password);
+        /* =========================================================
+        * 비밀번호 변경 유효성 검사
+        * 회원 번호와 새 비밀번호가 정상적으로 전달되었는지 확인한다.
+        * =========================================================
+        */
+        if (memberNo == null) {
+            throw new IllegalArgumentException("회원 정보가 올바르지 않습니다.");
+        }
 
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("새 비밀번호를 입력해주세요.");
+        }
+
+        String trimmedPassword = password.trim();
+
+        /*
+        * =========================================================
+        * 새 비밀번호 형식 검사
+        *
+        * 회원가입과 동일하게 영문, 숫자, 특수문자를 포함한
+        * 8~20자의 비밀번호만 허용한다.
+        * =========================================================
+        */
+        if (!trimmedPassword.matches("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,20}$")) {
+
+            throw new IllegalArgumentException("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.");
+        }
+
+        /*
+        * =========================================================
+        * 비밀번호 BCrypt 암호화
+        *
+        * 입력받은 평문 비밀번호를 그대로 DB에 저장하지 않고,
+        * 회원가입과 동일하게 PasswordEncoder로 암호화하여 저장한다.
+        * =========================================================
+        */
+        String encodedPassword = passwordEncoder.encode(trimmedPassword);
+
+        int updatedCount = memberDAO.updatePassword(memberNo, encodedPassword);
+
+        /*
+        * 회원 정보가 존재하지 않아 수정되지 않은 경우를 방지한다.
+        */
+        if (updatedCount != 1) {
+            throw new IllegalStateException("비밀번호 변경에 실패했습니다.");
+        }
     }
 
     @Override
