@@ -23,46 +23,88 @@ function closeMethodPanel() {
  */
 async function startAdultVerify(methodType) {
   const easyVerifyBtn = document.getElementById("easyVerifyBtn");
-  const smsVerifyBtn = document.getElementById("smsVerifyBtn");
+
+  /*
+   * [성인인증 창 미호출 오류 수정]
+   * 현재 화면에는 easyVerifyBtn만 존재하는데 기존 코드는 존재하지 않는
+   * smsVerifyBtn.disabled에 접근하여 fetch 호출 전에 JavaScript 오류가 발생했습니다.
+   * 실제로 존재하는 버튼만 비활성화하도록 수정합니다.
+   */
+  if (!easyVerifyBtn) {
+    showFail("본인인증 버튼을 찾을 수 없습니다. 페이지를 새로고침해주세요.");
+    return;
+  }
 
   easyVerifyBtn.disabled = true;
-  smsVerifyBtn.disabled = true;
   clearMessage();
 
   try {
+    /*
+     * [포트원 SDK 로드 상태 확인 추가]
+     * CDN 차단 또는 SDK 로딩 실패 시 requestIdentityVerification 호출에서
+     * 원인을 알 수 없는 오류가 발생하지 않도록 사용자에게 정확한 메시지를 표시합니다.
+     */
+    if (!window.PortOne || typeof window.PortOne.requestIdentityVerification !== "function") {
+      throw new Error("포트원 본인인증 모듈을 불러오지 못했습니다. 인터넷 연결 또는 브라우저 차단 설정을 확인해주세요.");
+    }
+
     // 1) 서버에 성인인증 준비 요청 (가맹점 식별값 및 서버 발급 고유 ID 획득)
     const readyResponse = await fetch(contextPath + "/verify/adult/ready", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
     });
 
+    /*
+     * [성인인증 준비 오류 메시지 보강]
+     * 서버가 4xx/5xx를 반환하면 가능한 경우 서버 응답 메시지를 읽어
+     * 로그인 세션 만료, 설정값 누락 등을 확인할 수 있게 합니다.
+     */
     if (!readyResponse.ok) {
-      throw new Error("본인인증 준비 작업 중 서버 통신 오류가 발생했습니다.");
+      const readyErrorText = await readyResponse.text();
+      let readyErrorMessage = "본인인증 준비 작업 중 서버 통신 오류가 발생했습니다.";
+
+      try {
+        const readyErrorData = JSON.parse(readyErrorText);
+        readyErrorMessage = readyErrorData.message || readyErrorData.error || readyErrorMessage;
+      } catch (e) {
+        // JSON 응답이 아니면 기본 오류 메시지를 사용합니다.
+      }
+
+      throw new Error(readyErrorMessage);
     }
 
     const readyData = await readyResponse.json();
 
-    // 실습 편의용 화면 Input 노출 업데이트
-    document.getElementById("identityVerificationId").value = readyData.verifyId;
+    /*
+     * [존재하지 않는 화면 요소 접근 오류 수정]
+     * 기존 코드는 JSP에 없는 identityVerificationId 요소에 값을 넣으면서
+     * 준비 요청 성공 직후 오류가 발생했습니다.
+     * 인증 ID는 readyData.verifyId를 그대로 포트원과 완료 API에 사용합니다.
+     */
+    if (!readyData.storeId || !readyData.verifyId) {
+      throw new Error("본인인증 준비 정보가 올바르게 내려오지 않았습니다.");
+    }
 
-    let selectedChannelKey = methodType === "EASY" ? readyData.easyChannelKey : readyData.smsChannelKey;
+    const selectedChannelKey = methodType === "EASY" ? readyData.easyChannelKey : readyData.smsChannelKey;
 
     if (!selectedChannelKey) {
       throw new Error("설정된 인증 채널키가 존재하지 않습니다.");
     }
 
     // 2) PortOne V2 Browser SDK 본인인증 모달창 호출
-    const response = await PortOne.requestIdentityVerification({
+    const response = await window.PortOne.requestIdentityVerification({
       storeId: readyData.storeId,
       channelKey: selectedChannelKey,
       identityVerificationId: readyData.verifyId,
     });
 
     // 인증 취소 또는 인증 도중 에러가 전달된 경우 예외 처리
-    if (response.code !== undefined) {
+    if (response && response.code !== undefined) {
       showFail(response.message || "본인인증이 취소되었거나 실패했습니다.");
       easyVerifyBtn.disabled = false;
-      smsVerifyBtn.disabled = false;
       return;
     }
 
@@ -71,7 +113,10 @@ async function startAdultVerify(methodType) {
     // 3) 서버 최종 이력 비교 검증 및 세션 바인딩 완료 처리 요청
     const completeResponse = await fetch(contextPath + "/verify/adult/complete?returnUrl=" + encodeURIComponent(returnUrl), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify({ verifyId: readyData.verifyId }),
     });
 
@@ -84,6 +129,14 @@ async function startAdultVerify(methodType) {
       throw new Error("서버 검증 완료 처리 중 부적절한 데이터 형식이 수신되었습니다.");
     }
 
+    /*
+     * [완료 API HTTP 상태 검증 추가]
+     * JSON 응답이더라도 서버 오류 상태이면 성공 처리하지 않습니다.
+     */
+    if (!completeResponse.ok) {
+      throw new Error(completeData.message || "성인인증 완료 처리 중 서버 오류가 발생했습니다.");
+    }
+
     // 4) 최종 비즈니스 분기 검증 결과 반영 리다이렉트
     if (completeData.success && completeData.adult) {
       showSuccess(completeData.message || "성인인증이 완료되었습니다.");
@@ -93,13 +146,11 @@ async function startAdultVerify(methodType) {
     } else {
       showFail(completeData.message || "만 19세 미만 아동/청소년은 이용할 수 없습니다.");
       easyVerifyBtn.disabled = false;
-      smsVerifyBtn.disabled = false;
     }
   } catch (error) {
-    console.error(error);
+    console.error("[성인인증 처리 오류]", error);
     showFail(error.message || "성인인증 처리 과정 중 예외 오류가 발생했습니다.");
     easyVerifyBtn.disabled = false;
-    smsVerifyBtn.disabled = false;
   }
 }
 

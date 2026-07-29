@@ -9,16 +9,22 @@ public class BusinessManageVO {
 
     private Long businessNo;
     private Long memberNo;
-    private String memberId;      // MEMBER.MEMBER_ID (조인)
-    private String email;         // MEMBER.EMAIL (조인)
+    private String memberId; // MEMBER.MEMBER_ID (조인)
+    private String email; // MEMBER.EMAIL (조인)
     private String businessName;
     private String businessNumber;
     private String bankName;
     private String accountNumber;
     private String accountHolder;
-    private String gradeName;     // BRONZE, SILVER, GOLD, PLATINUM (GRADE_POLICY 참조)
+    private String gradeName; // BRONZE, SILVER, GOLD, PLATINUM, VIP (GRADE_POLICY 참조)
     private Double customRate;
-    private String status;        // WAITING, APPROVED, REJECTED
+
+    /*
+     * [사업자 자동 등급 관리 추가]
+     * 결제 완료 후 취소되지 않은 주문상품을 기준으로 계산한 사업자 누적 실매출이다.
+     */
+    private Long totalSales;
+    private String status; // WAITING, APPROVED, REJECTED
     private Date createdAt;
 
     public Long getBusinessNo() {
@@ -107,6 +113,14 @@ public class BusinessManageVO {
 
     public void setCustomRate(Double customRate) {
         this.customRate = customRate;
+    }
+
+    public Long getTotalSales() {
+        return totalSales;
+    }
+
+    public void setTotalSales(Long totalSales) {
+        this.totalSales = totalSales;
     }
 
     public String getStatus() {
