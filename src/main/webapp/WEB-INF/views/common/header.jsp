@@ -131,8 +131,8 @@
                     <%--
                         관리자와 사업자에게만 통합 알림 영역을 표시합니다.
                         일반 회원에게는 알림 벨과 채팅 진입 링크를 출력하지 않습니다.
-                        현재는 채팅 알림을 연결하고, 이후 환불·배송 알림 스크립트가
-                        동일 알림 센터에 별도 source로 등록할 수 있도록 구성합니다.
+                        채팅 알림과 관리자·사업자 업무 알림을 동일 알림 센터의
+                        서로 다른 source로 등록하여 한 번에 표시합니다.
                     --%>
                     <c:if test="${headerChatEnabled}">
                         <div class="notification-menu"
@@ -177,8 +177,8 @@
                             </div>
 
                             <%--
-                                알림은 실제 채팅 메시지를 삭제하지 않고,
-                                현재 로그인 사용자의 마지막 읽음 위치를 일괄 갱신합니다.
+                                모두 읽음은 채팅의 마지막 읽음 위치와
+                                업무 알림의 읽음 상태만 갱신하며 원본 데이터는 삭제하지 않습니다.
                             --%>
                             <div class="notification-dropdown-footer">
                                 <button type="button"
@@ -241,5 +241,5 @@
 
 <c:if test="${not empty sessionScope.loginMember and headerChatEnabled}">
     <script type="module"
-            src="${pageContext.request.contextPath}/js/header-notification.js?v=3"></script>
+            src="${pageContext.request.contextPath}/js/header-notification.js?v=4"></script>
 </c:if>

@@ -14,6 +14,7 @@ import com.project.oditji.payment.service.PaymentService;
 import com.project.oditji.payment.vo.PaymentVO;
 import com.project.oditji.refund.dao.OrderCancelRefundDAO;
 import com.project.oditji.refund.vo.OrderCancelRefundVO;
+import com.project.oditji.notification.service.NotificationService;
 
 @Service
 public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
@@ -26,6 +27,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     private final BusinessDAO businessDAO;
     private final PaymentDAO paymentDAO;
     private final PaymentService paymentService;
+    private final NotificationService notificationService;
 
     /*
      * =========================================================
@@ -39,12 +41,14 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
             OrderCancelRefundDAO orderCancelRefundDAO,
             BusinessDAO businessDAO,
             PaymentDAO paymentDAO,
-            PaymentService paymentService) {
+            PaymentService paymentService,
+            NotificationService notificationService) {
 
         this.orderCancelRefundDAO = orderCancelRefundDAO;
         this.businessDAO = businessDAO;
         this.paymentDAO = paymentDAO;
         this.paymentService = paymentService;
+        this.notificationService = notificationService;
     }
 
     /*
@@ -104,6 +108,15 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(orderNo);
+
+        notificationService.createForCancelGroupBusinesses(
+                cancelGroupNo,
+                "CANCEL_REQUEST",
+                "주문 취소 요청",
+                "주문번호 " + orderNo + "의 전체 취소 요청이 접수되었습니다.",
+                "/business/cancel/list",
+                "CANCEL",
+                cancelGroupNo);
     }
 
     /*
@@ -172,6 +185,16 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(item.getOrderNo());
+
+        notificationService.createForCancelGroupBusinesses(
+                cancelGroupNo,
+                "CANCEL_REQUEST",
+                "상품 부분 취소 요청",
+                "주문번호 " + item.getOrderNo()
+                        + "의 상품 부분 취소 요청이 접수되었습니다.",
+                "/business/cancel/list",
+                "CANCEL",
+                cancelGroupNo);
     }
 
     @Override

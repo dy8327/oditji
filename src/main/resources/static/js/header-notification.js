@@ -10,9 +10,9 @@ import {
 /**
  * ODITJI 공통 헤더 알림 센터입니다.
  *
- * 현재는 채팅 알림을 연결합니다.
- * 이후 환불 요청, 배송 변경 등의 기능은 아래 전역 API에 별도 source를 등록하면
- * 같은 벨과 상세 목록을 그대로 사용할 수 있습니다.
+ * Firestore 기반 채팅 알림과 Oracle 기반 관리자·사업자 업무 알림을
+ * 하나의 벨과 상세 목록에서 함께 표시합니다.
+ * 다른 기능도 아래 전역 API에 별도 source를 등록하면 같은 UI를 재사용할 수 있습니다.
  *
  * window.oditjiNotificationCenter.setSource("refund", {
  *     badgeCount: 1,
@@ -43,10 +43,13 @@ function initializeHeaderNotification() {
 
     const contextPath = menu.dataset.contextPath || "";
     const chatEnabled = menu.dataset.chatEnabled === "true";
+    const role = String(menu.dataset.role || "").toUpperCase();
+    const workNotificationEnabled = role === "ADMIN" || role === "BUSINESS";
     const notificationSources = new Map();
     const roomSubscriptions = new Map();
     let chatContext = null;
     let contextRefreshTimer = null;
+    let workRefreshTimer = null;
 
     /**
      * 알림 source를 등록하거나 갱신합니다.
@@ -107,6 +110,11 @@ function initializeHeaderNotification() {
                     sourceName
                 });
             });
+        });
+
+        allItems.sort(function(first, second) {
+            return (Number(second.createdAtEpochMs) || 0)
+                - (Number(first.createdAtEpochMs) || 0);
         });
 
         if (totalBadgeCount > 0) {
@@ -210,6 +218,24 @@ function initializeHeaderNotification() {
         message.className = "notification-item-message";
         message.textContent = item.message || "새로운 알림이 있습니다.";
 
+        if (typeof item.onClick === "function") {
+            link.addEventListener("click", async function(event) {
+                event.preventDefault();
+
+                const targetHref = link.href;
+
+                try {
+                    await item.onClick();
+                } catch (error) {
+                    console.error("알림 읽음 처리 실패:", error);
+                } finally {
+                    if (targetHref && !targetHref.endsWith("#")) {
+                        window.location.href = targetHref;
+                    }
+                }
+            });
+        }
+
         top.appendChild(title);
         top.appendChild(type);
         link.appendChild(top);
@@ -250,6 +276,10 @@ function initializeHeaderNotification() {
         }
 
         openDropdown();
+
+        if (workNotificationEnabled) {
+            loadWorkNotifications();
+        }
     });
 
     dropdown.addEventListener("click", function(event) {
@@ -263,6 +293,141 @@ function initializeHeaderNotification() {
             closeDropdown();
         }
     });
+
+    /**
+     * Oracle NOTIFICATION 테이블에 저장된 업무 알림 한 건을 읽음 처리합니다.
+     */
+    async function markWorkNotificationRead(notificationNo) {
+
+        const response = await fetch(
+            contextPath
+                + "/notification/api/"
+                + encodeURIComponent(notificationNo)
+                + "/read",
+            {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "업무 알림 읽음 처리 요청 실패: " + response.status
+            );
+        }
+
+        await loadWorkNotifications();
+    }
+
+    /**
+     * 현재 로그인한 관리자 또는 사업자의 업무 알림을 모두 읽음 처리합니다.
+     */
+    async function clearAllWorkNotifications() {
+
+        const response = await fetch(
+            contextPath + "/notification/api/read-all",
+            {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "업무 알림 전체 읽음 처리 요청 실패: "
+                    + response.status
+            );
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(
+                result.message || "업무 알림 전체 읽음 처리에 실패했습니다."
+            );
+        }
+
+        await loadWorkNotifications();
+    }
+
+    /**
+     * 서버에서 미읽은 업무 알림을 조회해 통합 알림 센터의 work source로 등록합니다.
+     */
+    async function loadWorkNotifications() {
+
+        if (!workNotificationEnabled) {
+            setSource("work", {
+                badgeCount: 0,
+                items: [],
+                clearAll: clearAllWorkNotifications
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                contextPath + "/notification/api/context",
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    cache: "no-store"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "업무 알림 요청 실패: " + response.status
+                );
+            }
+
+            const notificationContext = await response.json();
+            const notificationList = Array.isArray(
+                notificationContext.notificationList
+            )
+                ? notificationContext.notificationList
+                : [];
+
+            const items = notificationList.map(function(notification) {
+                const linkUrl = String(notification.linkUrl || "");
+
+                return {
+                    id: "work-" + notification.notificationNo,
+                    title: notification.title,
+                    typeLabel: notification.typeLabel || "업무",
+                    message: notification.message,
+                    href: linkUrl.startsWith("/")
+                        ? contextPath + linkUrl
+                        : linkUrl || "#",
+                    createdAtEpochMs: Number(
+                        notification.createdAtEpochMs
+                    ) || 0,
+                    onClick: function() {
+                        return markWorkNotificationRead(
+                            notification.notificationNo
+                        );
+                    }
+                };
+            });
+
+            setSource("work", {
+                badgeCount: Math.max(
+                    0,
+                    Number(notificationContext.unreadCount) || 0
+                ),
+                items,
+                clearAll: clearAllWorkNotifications
+            });
+
+        } catch (error) {
+            console.error("헤더 업무 알림 초기화 실패:", error);
+        }
+    }
 
     /**
      * Firestore Timestamp를 epoch millisecond로 변환합니다.
@@ -480,7 +645,10 @@ function initializeHeaderNotification() {
                     + "개 있습니다.",
                 href: contextPath
                     + "/chat/room/"
-                    + encodeURIComponent(room.roomId)
+                    + encodeURIComponent(room.roomId),
+                createdAtEpochMs: messages.length > 0
+                    ? getMessageEpochMs(messages[messages.length - 1])
+                    : 0
             });
         });
 
@@ -614,12 +782,26 @@ function initializeHeaderNotification() {
         items: []
     });
 
+    setSource("work", {
+        badgeCount: 0,
+        items: [],
+        clearAll: clearAllWorkNotifications
+    });
+
     loadChatContext();
+    loadWorkNotifications();
 
     if (chatEnabled) {
         contextRefreshTimer = window.setInterval(
             loadChatContext,
             5000
+        );
+    }
+
+    if (workNotificationEnabled) {
+        workRefreshTimer = window.setInterval(
+            loadWorkNotifications,
+            15000
         );
     }
 
@@ -631,6 +813,10 @@ function initializeHeaderNotification() {
 
         if (contextRefreshTimer !== null) {
             window.clearInterval(contextRefreshTimer);
+        }
+
+        if (workRefreshTimer !== null) {
+            window.clearInterval(workRefreshTimer);
         }
 
         roomSubscriptions.forEach(function(subscription) {

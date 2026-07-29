@@ -32,6 +32,7 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.notification.service.NotificationService;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.search.service.SearchContentStore;
 import com.project.oditji.search.vo.CachedContentVO;
@@ -70,6 +71,7 @@ public class BusinessServiceImpl
         private final ContentService contentService;
         private final SearchContentStore searchContentStore;
         private final TmdbService tmdbService;
+        private final NotificationService notificationService;
         private final Path productUploadDirectory;
 
         /*
@@ -86,6 +88,7 @@ public class BusinessServiceImpl
                         ContentService contentService,
                         SearchContentStore searchContentStore,
                         TmdbService tmdbService,
+                        NotificationService notificationService,
                         @Value("${oditji.upload.product-path:"
                                         + "uploads/product}") String productUploadPath) {
 
@@ -93,6 +96,7 @@ public class BusinessServiceImpl
                 this.contentService = contentService;
                 this.searchContentStore = searchContentStore;
                 this.tmdbService = tmdbService;
+                this.notificationService = notificationService;
 
                 this.productUploadDirectory = Paths.get(
                                 productUploadPath)
@@ -354,6 +358,7 @@ public class BusinessServiceImpl
 
         /* [수정] 이번 달 수수료 입금 확인 요청 */
         @Override
+        @Transactional
         public void requestSettlementConfirmation(long businessNo) {
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
@@ -363,6 +368,14 @@ public class BusinessServiceImpl
                 if (updatedCount <= 0) {
                         throw new IllegalStateException("입금 확인을 요청할 수 있는 이번 달 수수료 내역이 없습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "SETTLEMENT_REQUEST",
+                                "정산 확인 요청",
+                                "사업자가 이번 달 수수료 입금 확인을 요청했습니다.",
+                                "/admin/settlement/main",
+                                "BUSINESS",
+                                businessNo);
         }
 
         /* [수정] 사업자 정산 계좌 조회 */
@@ -628,6 +641,16 @@ public class BusinessServiceImpl
                         if (imageResult != 1) {
                                 throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
                         }
+
+                        notificationService.createForAdmins(
+                                        "PRODUCT_REQUEST",
+                                        "상품 승인 요청",
+                                        goodsManageVO.getProductName()
+                                                        + " 상품의 등록 승인 요청이 접수되었습니다.",
+                                        "/admin/product/list?tab=waiting",
+                                        "PRODUCT",
+                                        goodsManageVO.getProductNo());
+
                         return goodsManageVO.getProductNo();
 
                 } catch (RuntimeException e) {
@@ -1050,6 +1073,15 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+
+                notificationService.createForAdmins(
+                                "PRODUCT_REQUEST",
+                                "상품 재승인 요청",
+                                goodsManageVO.getProductName()
+                                                + " 상품의 수정 승인 요청이 접수되었습니다.",
+                                "/admin/product/list?tab=waiting",
+                                "PRODUCT",
+                                goodsManageVO.getProductNo());
         }
 
         /*
@@ -1151,6 +1183,15 @@ public class BusinessServiceImpl
                         throw new IllegalStateException(
                                         "상품 삭제 요청 처리에 실패했습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "PRODUCT_DELETE_REQUEST",
+                                "상품 삭제 승인 요청",
+                                existingProduct.getProductName()
+                                                + " 상품의 삭제 요청이 접수되었습니다.",
+                                "/admin/product/list?tab=delete",
+                                "PRODUCT",
+                                productNo);
         }
 
         /*
@@ -1245,6 +1286,15 @@ public class BusinessServiceImpl
                                                         "이벤트 상품 연결 등록에 실패했습니다.");
                                 }
                         }
+
+                        notificationService.createForAdmins(
+                                        "EVENT_REQUEST",
+                                        "이벤트 승인 요청",
+                                        eventManageVO.getTitle()
+                                                        + " 이벤트의 등록 승인 요청이 접수되었습니다.",
+                                        "/admin/event/list?tab=waiting",
+                                        "EVENT",
+                                        eventManageVO.getEventNo());
 
                         return eventManageVO.getEventNo();
 
@@ -1465,6 +1515,15 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+
+                notificationService.createForAdmins(
+                                "EVENT_REQUEST",
+                                "이벤트 재승인 요청",
+                                eventManageVO.getTitle()
+                                                + " 이벤트의 수정 승인 요청이 접수되었습니다.",
+                                "/admin/event/list?tab=waiting",
+                                "EVENT",
+                                eventManageVO.getEventNo());
         }
 
         /*
@@ -1552,6 +1611,15 @@ public class BusinessServiceImpl
                         throw new IllegalStateException(
                                         "이벤트 연장 처리에 실패했습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "EVENT_REQUEST",
+                                "이벤트 연장 승인 요청",
+                                existingEvent.getTitle()
+                                                + " 이벤트의 연장 승인 요청이 접수되었습니다.",
+                                "/admin/event/list?tab=waiting",
+                                "EVENT",
+                                eventNo);
         }
 
         /*

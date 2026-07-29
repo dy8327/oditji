@@ -12,6 +12,7 @@ import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.vo.BusinessVO;
+import com.project.oditji.notification.service.NotificationService;
 
 @Service
 public class MemberServiceImpl implements MemberService {
@@ -19,11 +20,18 @@ public class MemberServiceImpl implements MemberService {
     private final MemberDAO memberDAO;
     private final PasswordEncoder passwordEncoder;
     private final BusinessDAO businessDAO;
+    private final NotificationService notificationService;
 
-    public MemberServiceImpl(MemberDAO memberDAO, BusinessDAO businessDAO, PasswordEncoder passwordEncoder) {
-    this.memberDAO = memberDAO;
-    this.businessDAO = businessDAO;
-    this.passwordEncoder = passwordEncoder;
+    public MemberServiceImpl(
+            MemberDAO memberDAO,
+            BusinessDAO businessDAO,
+            PasswordEncoder passwordEncoder,
+            NotificationService notificationService) {
+
+        this.memberDAO = memberDAO;
+        this.businessDAO = businessDAO;
+        this.passwordEncoder = passwordEncoder;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -170,6 +178,16 @@ public class MemberServiceImpl implements MemberService {
         if (inserted != 1) {
             throw new IllegalStateException("사업자 정보 등록에 실패했습니다.");
         }
+
+        /* 사업자 가입 승인 요청을 관리자 업무 알림으로 등록합니다. */
+        notificationService.createForAdmins(
+                "BUSINESS_REQUEST",
+                "사업자 승인 요청",
+                businessVO.getBusinessName()
+                        + "의 사업자 가입 승인 요청이 접수되었습니다.",
+                "/admin/business/list?tab=approval",
+                "BUSINESS",
+                businessVO.getBusinessNo());
     }
 
     /* 일반회원 / 사업자회원 공통 검증 */
