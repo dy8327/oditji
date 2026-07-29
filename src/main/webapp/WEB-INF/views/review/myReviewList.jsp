@@ -176,7 +176,7 @@
 											<form action="${pageContext.request.contextPath}/review/deleteProductReview"
 												method="post"
 												class="mypage-review-delete-form"
-												onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+												onsubmit="return confirmAndSubmit(event, '리뷰를 삭제하시겠습니까?');">
 
 												<input type="hidden"
 													name="reviewNo"
@@ -198,7 +198,7 @@
 											<form action="${pageContext.request.contextPath}/review/deleteContentReview"
 												method="post"
 												class="mypage-review-delete-form"
-												onsubmit="return confirm('리뷰를 삭제하시겠습니까?');">
+												onsubmit="return confirmAndSubmit(event, '리뷰를 삭제하시겠습니까?');">
 
 												<input type="hidden"
 													name="reviewNo"

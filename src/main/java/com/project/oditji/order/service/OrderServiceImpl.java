@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.oditji.admin.service.AdminService;
+
 import com.project.oditji.cart.dao.CartDAO;
 import com.project.oditji.order.dao.OrderDAO;
 import com.project.oditji.order.vo.DeliveryVO;
@@ -31,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
         private final PaymentDAO paymentDAO;
         private final PaymentService paymentService;
         private final NotificationService notificationService;
+        /* [사업자 자동 등급 관리 추가] 결제 완료 후 누적 매출 등급 갱신에 사용한다. */
+        private final AdminService adminService;
 
         /**
          * 의존성 주입을 위한 생성자.
@@ -40,13 +44,15 @@ public class OrderServiceImpl implements OrderService {
                         CartDAO cartDAO,
                         PaymentDAO paymentDAO,
                         PaymentService paymentService,
-                        NotificationService notificationService) {
+                        NotificationService notificationService,
+                        AdminService adminService) {
 
                 this.orderDAO = orderDAO;
                 this.cartDAO = cartDAO;
                 this.paymentDAO = paymentDAO;
                 this.paymentService = paymentService;
                 this.notificationService = notificationService;
+                this.adminService = adminService;
         }
 
         /**
@@ -470,6 +476,14 @@ public class OrderServiceImpl implements OrderService {
                         throw new IllegalStateException(
                                         "결제내역 저장에 실패했습니다.");
                 }
+
+                /*
+                 * [사업자 자동 등급 관리 추가]
+                 * 결제와 주문상품 저장이 모두 완료된 뒤 누적 실매출을 기준으로
+                 * 사업자 등급을 자동 승급한다. 등급을 먼저 갱신해야 아래에서 생성되는
+                 * 이번 주문의 정산 예정 데이터에도 변경된 등급과 수수료율이 적용된다.
+                 */
+                adminService.updateBusinessGradesBySales();
 
                 /*
                  * =========================================================

@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       navigator.clipboard.writeText(trackingNumber).then(function () {
-        alert("운송장 번호가 복사되었습니다.");
+        showAlert("운송장 번호가 복사되었습니다.", "success");
       });
     });
   }

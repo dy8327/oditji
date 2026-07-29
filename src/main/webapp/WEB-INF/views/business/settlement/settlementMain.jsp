@@ -200,6 +200,14 @@
                             <c:when test="${settlementSummary.feeAmount le 0}">
                                 <button class="btn btn-primary" type="button" disabled>요청할 내역 없음</button>
                             </c:when>
+                            <%--
+                                [수정]
+                                관리자 반려 후에는 재요청임을 명확히 표시하고,
+                                새 판매 정산이 생겨 WAITING 상태가 되면 일반 요청 버튼을 표시한다.
+                            --%>
+                            <c:when test="${settlementSummary.status eq 'REJECTED'}">
+                                <button class="btn btn-primary" type="submit">입금 확인 재요청</button>
+                            </c:when>
                             <c:otherwise>
                                 <button class="btn btn-primary" type="submit">입금 확인 요청</button>
                             </c:otherwise>
@@ -220,8 +228,9 @@
 
                             <c:choose>
 
+                                <%-- [수정] DB 상태 의미에 맞게 화면 문구를 입금 대기중으로 통일한다. --%>
                                 <c:when test="${settlementSummary.status eq 'WAITING'}">
-                                    납부 가능
+                                    입금 대기중
                                 </c:when>
 
                                 <c:when test="${settlementSummary.status eq 'REQUESTED'}">
@@ -237,7 +246,7 @@
                                 </c:when>
 
                                 <c:otherwise>
-                                    납부 가능
+                                    입금 대기중
                                 </c:otherwise>
 
                             </c:choose>

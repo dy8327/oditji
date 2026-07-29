@@ -111,8 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!reviewNo) {
 
-                    alert(
-                        "신고 대상 리뷰를 찾을 수 없습니다."
+                    await showAlert(
+                        "신고 대상 리뷰를 찾을 수 없습니다.",
+                        "warning"
                     );
 
                     return;
@@ -120,8 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!reason) {
 
-                    alert(
-                        "신고 사유를 선택해주세요."
+                    await showAlert(
+                        "신고 사유를 선택해주세요.",
+                        "warning"
                     );
 
                     return;
@@ -169,8 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         closeReportModal();
 
                         const moveLogin =
-                            confirm(
-                                "신고는 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+                            await showConfirm(
+                                "신고는 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                                "info"
                             );
 
                         if (moveLogin) {
@@ -189,8 +192,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (response.status === 409) {
 
-                        alert(
-                            "이미 신고한 리뷰입니다."
+                        await showAlert(
+                            "이미 신고한 리뷰입니다.",
+                            "warning"
                         );
 
                         markAsReported();
@@ -208,8 +212,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (data.success) {
 
-                        alert(
-                            "신고가 접수되었습니다."
+                        await showAlert(
+                            "신고가 접수되었습니다.",
+                            "success"
                         );
 
                         markAsReported();
@@ -217,16 +222,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     } else {
 
-                        alert(
+                        await showAlert(
                             data.message
-                            || "신고 처리에 실패했습니다."
+                            || "신고 처리에 실패했습니다.",
+                            "error"
                         );
                     }
 
                 } catch (error) {
 
                     console.error(error);
-                    alert("신고 처리 실패");
+                    await showAlert("신고 처리 실패", "error");
 
                 } finally {
 

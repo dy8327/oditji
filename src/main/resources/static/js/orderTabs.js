@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const checkedBoxes = orderCard.querySelectorAll(".order-item-select:checked");
 
       if (checkedBoxes.length === 0) {
-        alert("취소할 상품을 선택해주세요.");
+        showAlert("취소할 상품을 선택해주세요.", "warning");
         return;
       }
 
@@ -104,14 +104,15 @@ document.addEventListener("DOMContentLoaded", function () {
         return checkbox.dataset.productName || "선택한 상품";
       });
 
-      alert(
+      showAlert(
         "주문번호 " +
           (button.dataset.orderNo || "") +
           "에서 선택한 " +
           checkedBoxes.length +
           "개 상품의 주문 취소를 요청합니다.\n\n" +
           productNames.join(", ") +
-          "\n\n(현재는 화면 UI만 제공되며, 실제 취소 처리는 추후 연동됩니다.)"
+          "\n\n(현재는 화면 UI만 제공되며, 실제 취소 처리는 추후 연동됩니다.)",
+        "info"
       );
     });
   });
@@ -131,14 +132,15 @@ document.addEventListener("DOMContentLoaded", function () {
       const checkedBoxes = document.querySelectorAll(".refund-select:checked");
 
       if (checkedBoxes.length === 0) {
-        alert("환불을 요청할 상품을 선택해주세요.");
+        showAlert("환불을 요청할 상품을 선택해주세요.", "warning");
         return;
       }
 
-      alert(
+      showAlert(
         "선택한 " +
           checkedBoxes.length +
-          "건의 환불을 요청합니다.\n\n(현재는 화면 UI만 제공되며, 실제 환불 처리는 추후 연동됩니다.)"
+          "건의 환불을 요청합니다.\n\n(현재는 화면 UI만 제공되며, 실제 환불 처리는 추후 연동됩니다.)",
+        "info"
       );
     });
   }

@@ -187,9 +187,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (loginRequired) {
 
                     const moveLogin =
-                        confirm(
+                        await showConfirm(
                             "찜 기능은 로그인 후 이용할 수 있습니다.\n"
-                            + "로그인 페이지로 이동하시겠습니까?"
+                            + "로그인 페이지로 이동하시겠습니까?",
+                            "info"
                         );
 
                     if (moveLogin) {
@@ -223,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!Number.isInteger(contentNo)
                         || contentNo <= 0) {
 
-                    alert("콘텐츠 정보를 확인할 수 없습니다.");
+                    await showAlert("콘텐츠 정보를 확인할 수 없습니다.", "warning");
                     return;
                 }
 
@@ -264,9 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         favoriteButton.dataset.loginRequired =
                             "true";
 
-                        alert(
+                        await showAlert(
                             "로그인 정보가 만료되었습니다. "
-                            + "다시 로그인해주세요."
+                            + "다시 로그인해주세요.",
+                            "warning"
                         );
 
                         return;
@@ -310,9 +312,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         error
                     );
 
-                    alert(
-                        error.message
-                        || "찜 처리 중 오류가 발생했습니다."
+                    await showAlert(
+                        "찜 처리 중 오류가 발생했습니다.",
+                        "error"
                     );
 
                 } finally {

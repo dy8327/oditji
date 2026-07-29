@@ -390,44 +390,33 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="businessNumber">사업자등록번호</label>
 
-                    <label for="businessNumber">
-                        사업자등록번호
-                    </label>
-
-                    <div class="row">
-
+                    <div class="row business-number-row">
                         <input type="text"
-                               name="businessNumber"
-                               id="businessNumber"
-                               placeholder="000-00-00000"
-                               maxlength="12">
+                            name="businessNumber"
+                            id="businessNumber"
+                            placeholder="000-00-00000"
+                            maxlength="12">
 
                         <button type="button"
                                 onclick="checkBusinessNumber()">
                             중복확인
                         </button>
 
+                        <button type="button"
+                                id="verifyBusinessBtn"
+                                onclick="verifyBusiness()">
+                            사업자 정보 인증
+                        </button>
                     </div>
-
-                </div>
-
-                <div class="form-group">
-
-                    <button type="button"
-                            id="verifyBusinessBtn"
-                            onclick="verifyBusiness()">
-                        사업자 정보 인증
-                    </button>
 
                     <div id="businessVerifyMessage"
-                         style="margin-top: 8px;">
+                        style="margin-top: 8px;">
                     </div>
-
                 </div>
 
                 <div class="form-group">
-
                     <%--
                         사업자등록증 제목과 파일 선택 버튼을
                         모두 licenseFile 입력창에 연결한다.

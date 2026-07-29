@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:set var="activeMenu" value="business"/>
 <c:set var="currentTab" value="${empty param.tab ? 'info' : param.tab}"/>
@@ -129,6 +130,8 @@
                                 <th>이름</th>
                                 <th>아이디</th>
                                 <th>이메일</th>
+                                <%-- [사업자 자동 등급 관리 추가] 누적 실매출 표시 --%>
+                                <th>누적 실매출</th>
                                 <th>등급</th>
                                 <th>상태</th>
                                 <th>관리</th>
@@ -147,6 +150,8 @@
                                             <td>${business.businessName}</td>
                                             <td>${business.memberId}</td>
                                             <td>${business.email}</td>
+                                            <%-- [사업자 자동 등급 관리 추가] 환불 승인 금액을 제외한 누적 실매출 --%>
+                                            <td><fmt:formatNumber value="${business.totalSales}" pattern="#,##0" />원</td>
                                             <td>${business.gradeName}</td>
                                             <td>
 
@@ -182,7 +187,7 @@
                                 </c:when>
 
                                 <c:otherwise>
-                                    <tr><td colspan="6">조회된 사업자가 없습니다.</td></tr>
+                                    <tr><td colspan="7">조회된 사업자가 없습니다.</td></tr>
                                 </c:otherwise>
 
                             </c:choose>
