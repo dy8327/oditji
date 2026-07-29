@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
             log.warn("잘못된 요청 - {} {} : {}", request.getMethod(), request.getRequestURI(), e.getMessage());
         }
 
-        return createErrorResponse(request, HttpStatus.BAD_REQUEST, e.getMessage(),"error/500");
+        return createErrorResponse(request, HttpStatus.BAD_REQUEST, e.getMessage(),"error/common");
     }
 
     // 필수 요청값 누락
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         if (log.isWarnEnabled()) {
             log.warn("필수 요청값 누락 - {} {} : {}", request.getMethod(), request.getRequestURI(), e.getParameterName());
         }
-        return createErrorResponse(request, HttpStatus.BAD_REQUEST, "필수 입력값이 누락되었습니다.", "error/500");
+        return createErrorResponse(request, HttpStatus.BAD_REQUEST, "필수 입력값이 누락되었습니다.", "error/common");
     }
 
     // 허용되지 않은 요청 방식
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
             log.warn("허용되지 않은 요청 방식 - {} {}", request.getMethod(), request.getRequestURI());
         }
 
-        return createErrorResponse(request, HttpStatus.METHOD_NOT_ALLOWED, "허용되지 않은 요청 방식입니다.", "error/500");
+        return createErrorResponse(request, HttpStatus.METHOD_NOT_ALLOWED, "허용되지 않은 요청 방식입니다.", "error/common");
     }
 
     // 요청값 형식 오류
@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
             log.warn("요청값 형식 오류 - {} {} : {}",request.getMethod(), request.getRequestURI(), e.getName());
         }
 
-        return createErrorResponse(request, HttpStatus.BAD_REQUEST, "요청값 형식이 올바르지 않습니다.", "error/500");
+        return createErrorResponse(request, HttpStatus.BAD_REQUEST, "요청값 형식이 올바르지 않습니다.", "error/common");
     }
 
     // 상태 코드가 지정된 요청 예외
@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
             log.warn("파일 업로드 용량 초과 - {} {}", request.getMethod(), request.getRequestURI());
         }
 
-        return createErrorResponse(request, HttpStatus.CONTENT_TOO_LARGE, "파일은 한 개당 최대 10MB까지 업로드할 수 있습니다.",  "error/500");
+        return createErrorResponse(request, HttpStatus.CONTENT_TOO_LARGE, "파일은 한 개당 최대 10MB까지 업로드할 수 있습니다.",  "error/common");
     }
 
     // 데이터 무결성 및 중복 오류
@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
             log.error("데이터 처리 오류 - {} {}", request.getMethod(), request.getRequestURI(), e);
         }
         return createErrorResponse(request, HttpStatus.CONFLICT,
-                "이미 등록된 정보이거나 처리할 수 없는 데이터입니다.", "error/500");
+                "이미 등록된 정보이거나 처리할 수 없는 데이터입니다.", "error/common");
     }
 
     // 요청 본문 형식 오류(JSON형식 오류 처리)
@@ -118,7 +118,7 @@ public class GlobalExceptionHandler {
             log.warn("요청 본문 형식 오류 - {} {}", request.getMethod(), request.getRequestURI());
         }
         return createErrorResponse(request, HttpStatus.BAD_REQUEST,
-                "요청 데이터 형식이 올바르지 않습니다.", "error/500");
+                "요청 데이터 형식이 올바르지 않습니다.", "error/common");
     }
 
     // 처리되지 않은 전체 예외
@@ -138,6 +138,7 @@ public class GlobalExceptionHandler {
 
         ModelAndView modelAndView = new ModelAndView(viewName);
         modelAndView.setStatus(status);
+        modelAndView.addObject("errorCode", status.value());
         modelAndView.addObject("errorMessage", message);
         return modelAndView;
     }
