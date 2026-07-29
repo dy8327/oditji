@@ -1321,10 +1321,39 @@
             B.ACCOUNT_HOLDER   AS ACCOUNT_HOLDER,
             B.GRADE_NAME       AS GRADE_NAME,
             B.CUSTOM_RATE      AS CUSTOM_RATE,
+            /*
+             * [사업자 자동 등급 관리 추가]
+             * 승인된 취소 요청의 환불액을 제외한 누적 실매출을 조회한다.
+             */
+            NVL(SALES.TOTAL_SALES, 0) AS TOTAL_SALES,
             B.STATUS           AS STATUS,
             B.CREATED_AT       AS CREATED_AT
         FROM BUSINESS B
         JOIN MEMBER M ON M.MEMBER_NO = B.MEMBER_NO
+        LEFT JOIN (
+            SELECT
+                OI.BUSINESS_NO,
+                SUM(
+                    GREATEST(
+                        (OI.PRODUCT_PRICE * OI.QUANTITY)
+                        - NVL(CR.APPROVED_REFUND_AMOUNT, 0),
+                        0
+                    )
+                ) AS TOTAL_SALES
+            FROM ORDER_ITEM OI
+            JOIN PAYMENT PAY ON PAY.ORDER_NO = OI.ORDER_NO
+            LEFT JOIN (
+                SELECT
+                    ORDER_ITEM_NO,
+                    SUM(REFUND_AMOUNT) AS APPROVED_REFUND_AMOUNT
+                FROM CANCEL_REQUEST
+                WHERE STATUS = 'APPROVED'
+                GROUP BY ORDER_ITEM_NO
+            ) CR ON CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+            WHERE PAY.PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
+              AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CANCEL_REQUESTED')
+            GROUP BY OI.BUSINESS_NO
+        ) SALES ON SALES.BUSINESS_NO = B.BUSINESS_NO
         WHERE B.STATUS = 'APPROVED'
         <if test="keyword != null and keyword != ''">
             <choose>
@@ -1460,11 +1489,167 @@
         WHERE BUSINESS_NO = #{businessNo}
     </update>
 
+    <!--
+        [사업자 등급별 수수료율 정산 반영 추가]
+        관리자가 수동으로 등급을 변경하면 해당 사업자의 이번 달 미확정 정산을
+        변경된 등급 정책의 수수료율로 다시 계산한다.
+
+        CUSTOM_RATE가 설정된 사업자는 개별 수수료율을 우선 적용하고,
+        CUSTOM_RATE가 없을 때만 GRADE_POLICY.COMMISSION_RATE를 적용한다.
+        REQUESTED/DONE 상태는 이미 납부 절차가 진행되었으므로 변경하지 않는다.
+    -->
+    <update id="updateCurrentMonthSettlementRateByBusiness">
+        UPDATE SETTLEMENT S
+        SET (
+            S.APPLIED_GRADE,
+            S.APPLIED_RATE,
+            S.FEE_AMOUNT,
+            S.SETTLED_AMOUNT
+        ) = (
+            SELECT
+                B.GRADE_NAME,
+                NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE),
+                S.TOTAL_AMOUNT * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE) / 100,
+                S.TOTAL_AMOUNT * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE) / 100
+            FROM BUSINESS B
+            JOIN GRADE_POLICY GP
+              ON GP.GRADE_NAME = B.GRADE_NAME
+            WHERE B.BUSINESS_NO = S.BUSINESS_NO
+        )
+        WHERE S.BUSINESS_NO = #{businessNo}
+          AND S.CREATED_AT &gt;= TRUNC(SYSDATE, 'MM')
+          AND S.CREATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+          AND S.STATUS IN ('WAITING', 'REJECTED')
+          AND EXISTS (
+              SELECT 1
+              FROM BUSINESS B
+              JOIN GRADE_POLICY GP
+                ON GP.GRADE_NAME = B.GRADE_NAME
+              WHERE B.BUSINESS_NO = S.BUSINESS_NO
+          )
+    </update>
+
+    <!--
+        [사업자 자동 등급별 수수료율 정산 반영 추가]
+        누적 매출에 따른 자동 승급 후 이번 달의 모든 미확정 정산을
+        현재 BUSINESS.GRADE_NAME과 GRADE_POLICY 정책에 맞게 다시 계산한다.
+    -->
+    <update id="updateCurrentMonthSettlementRates">
+        UPDATE SETTLEMENT S
+        SET (
+            S.APPLIED_GRADE,
+            S.APPLIED_RATE,
+            S.FEE_AMOUNT,
+            S.SETTLED_AMOUNT
+        ) = (
+            SELECT
+                B.GRADE_NAME,
+                NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE),
+                S.TOTAL_AMOUNT * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE) / 100,
+                S.TOTAL_AMOUNT * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE) / 100
+            FROM BUSINESS B
+            JOIN GRADE_POLICY GP
+              ON GP.GRADE_NAME = B.GRADE_NAME
+            WHERE B.BUSINESS_NO = S.BUSINESS_NO
+        )
+        WHERE S.CREATED_AT &gt;= TRUNC(SYSDATE, 'MM')
+          AND S.CREATED_AT &lt; ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+          AND S.STATUS IN ('WAITING', 'REJECTED')
+          AND EXISTS (
+              SELECT 1
+              FROM BUSINESS B
+              JOIN GRADE_POLICY GP
+                ON GP.GRADE_NAME = B.GRADE_NAME
+              WHERE B.BUSINESS_NO = S.BUSINESS_NO
+          )
+    </update>
+
     <update id="updateBusinessStatus">
         UPDATE BUSINESS
         SET STATUS = #{status}
         WHERE BUSINESS_NO = #{businessNo}
     </update>
+
+    <!--
+        [사업자 자동 등급 관리 추가]
+        사업자별 누적 실매출을 계산하여 현재 등급보다 높은 등급으로만 자동 승급한다.
+
+        매출 기준:
+        BRONZE   : 20만 원 미만 및 기본 등급
+        SILVER   : 40만 원 이상
+        GOLD     : 60만 원 이상
+        PLATINUM : 80만 원 이상
+        VIP      : 100만 원 이상
+
+        20만 원은 BRONZE 등급 유지 기준으로 GRADE_POLICY에 기록한다.
+        관리자가 매출 기준보다 높은 등급으로 수동 변경한 경우 자동 강등하지 않는다.
+    -->
+    <update id="updateBusinessGradesBySales">
+        MERGE INTO BUSINESS B
+        USING (
+            SELECT
+                SALES.BUSINESS_NO,
+                CASE
+                    WHEN SALES.TOTAL_SALES >= 1000000 THEN 'VIP'
+                    WHEN SALES.TOTAL_SALES >= 800000 THEN 'PLATINUM'
+                    WHEN SALES.TOTAL_SALES >= 600000 THEN 'GOLD'
+                    WHEN SALES.TOTAL_SALES >= 400000 THEN 'SILVER'
+                    ELSE 'BRONZE'
+                END AS CALCULATED_GRADE,
+                CASE
+                    WHEN SALES.TOTAL_SALES >= 1000000 THEN 5
+                    WHEN SALES.TOTAL_SALES >= 800000 THEN 4
+                    WHEN SALES.TOTAL_SALES >= 600000 THEN 3
+                    WHEN SALES.TOTAL_SALES >= 400000 THEN 2
+                    ELSE 1
+                END AS CALCULATED_GRADE_ORDER
+            FROM (
+                SELECT
+                    B2.BUSINESS_NO,
+                    NVL(
+                        SUM(
+                            CASE
+                                WHEN PAY.PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
+                                 AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CANCEL_REQUESTED')
+                                THEN GREATEST(
+                                    (OI.PRODUCT_PRICE * OI.QUANTITY)
+                                    - NVL(CR.APPROVED_REFUND_AMOUNT, 0),
+                                    0
+                                )
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS TOTAL_SALES
+                FROM BUSINESS B2
+                LEFT JOIN ORDER_ITEM OI ON OI.BUSINESS_NO = B2.BUSINESS_NO
+                LEFT JOIN PAYMENT PAY ON PAY.ORDER_NO = OI.ORDER_NO
+                LEFT JOIN (
+                    SELECT
+                        ORDER_ITEM_NO,
+                        SUM(REFUND_AMOUNT) AS APPROVED_REFUND_AMOUNT
+                    FROM CANCEL_REQUEST
+                    WHERE STATUS = 'APPROVED'
+                    GROUP BY ORDER_ITEM_NO
+                ) CR ON CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                WHERE B2.STATUS = 'APPROVED'
+                GROUP BY B2.BUSINESS_NO
+            ) SALES
+        ) GRADE_SALES
+        ON (B.BUSINESS_NO = GRADE_SALES.BUSINESS_NO)
+        WHEN MATCHED THEN
+            UPDATE SET B.GRADE_NAME = GRADE_SALES.CALCULATED_GRADE
+            WHERE GRADE_SALES.CALCULATED_GRADE_ORDER >
+                CASE B.GRADE_NAME
+                    WHEN 'BRONZE' THEN 1
+                    WHEN 'SILVER' THEN 2
+                    WHEN 'GOLD' THEN 3
+                    WHEN 'PLATINUM' THEN 4
+                    WHEN 'VIP' THEN 5
+                    ELSE 1
+                END
+    </update>
+
 
     <!-- ===================== 7. 정산 관리 (SETTLEMENT) ===================== -->
 
