@@ -44,7 +44,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             CR.STATUS,
             CR.MAX_MEMBER,
             CR.IS_DEFAULT,
-            B.BUSINESS_NAME AS CREATOR_NAME,
+            CASE
+                WHEN CR.ROOM_TYPE = 'NOTICE' THEN '관리자'
+                ELSE B.BUSINESS_NAME
+            END AS CREATOR_NAME,
             (
                 SELECT COUNT(*)
                 FROM CHAT_ROOM_MEMBER CRM
@@ -81,7 +84,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             CR.STATUS,
             CR.MAX_MEMBER,
             CR.IS_DEFAULT,
-            B.BUSINESS_NAME AS CREATOR_NAME,
+            CASE
+                WHEN CR.ROOM_TYPE = 'NOTICE' THEN '관리자'
+                ELSE B.BUSINESS_NAME
+            END AS CREATOR_NAME,
             (
                 SELECT COUNT(*)
                 FROM CHAT_ROOM_MEMBER T
@@ -114,7 +120,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             CR.STATUS,
             CR.MAX_MEMBER,
             CR.IS_DEFAULT,
-            B.BUSINESS_NAME AS CREATOR_NAME,
+            CASE
+                WHEN CR.ROOM_TYPE = 'NOTICE' THEN '관리자'
+                ELSE B.BUSINESS_NAME
+            END AS CREATOR_NAME,
             (
                 SELECT COUNT(*)
                 FROM CHAT_ROOM_MEMBER CRM
@@ -239,5 +248,212 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM DUAL
 
     </select>
+
+
+    <!--
+     * 헤더 채팅 알림 계산용 채팅방 매핑
+     * LAST_READ_MESSAGE_ID와 LAST_READ_EPOCH_MS는 현재 로그인 사용자의 값입니다.
+     -->
+    <resultMap id="chatNotificationRoomMap"
+               type="com.project.oditji.chat.vo.ChatNotificationRoomVO">
+
+        <id property="roomId" column="ROOM_ID"/>
+        <result property="roomName" column="ROOM_NAME"/>
+        <result property="roomType" column="ROOM_TYPE"/>
+        <result property="accessStartAt" column="ACCESS_START_AT"/>
+        <result property="lastReadMessageId" column="LAST_READ_MESSAGE_ID"/>
+        <result property="lastReadEpochMs" column="LAST_READ_EPOCH_MS"/>
+
+    </resultMap>
+
+    <!-- 메시지별 미열람 참여자 수 계산용 매핑 -->
+    <resultMap id="chatParticipantReadMap"
+               type="com.project.oditji.chat.vo.ChatParticipantReadVO">
+
+        <id property="memberNo" column="MEMBER_NO"/>
+        <result property="businessNo" column="BUSINESS_NO"/>
+        <result property="displayName" column="DISPLAY_NAME"/>
+        <result property="joinedAt" column="JOINED_AT"/>
+        <result property="lastReadMessageId" column="LAST_READ_MESSAGE_ID"/>
+        <result property="lastReadEpochMs" column="LAST_READ_EPOCH_MS"/>
+
+    </resultMap>
+
+    <!--
+     * 현재 사용자가 알림을 받아야 하는 채팅방을 조회합니다.
+     *
+     * 관리자: 활성 공지방만 조회
+     * 사업자: 활성 공지방 + 현재 CHAT_ROOM_MEMBER에 참가 중인 자유방 조회
+     *
+     * 공지방의 접근 시작 시각은 사업자 생성일을 사용하고,
+     * 자유방은 실제 JOIN_DATE를 사용하여 참가 전 메시지를 미읽음에서 제외합니다.
+     -->
+    <select id="selectNotificationRoomList"
+            resultMap="chatNotificationRoomMap">
+
+        SELECT
+            CR.ROOM_ID,
+            CR.ROOM_NAME,
+            CR.ROOM_TYPE,
+            CASE
+                WHEN #{adminFlag} = 1 THEN CR.CREATED_AT
+                WHEN CR.ROOM_TYPE = 'NOTICE'
+                    THEN NVL(LOGIN_BUSINESS.CREATED_AT, CR.CREATED_AT)
+                ELSE LOGIN_ROOM_MEMBER.JOIN_DATE
+            END AS ACCESS_START_AT,
+            CRS.LAST_READ_MESSAGE_ID,
+            NVL(CRS.LAST_READ_EPOCH_MS, 0) AS LAST_READ_EPOCH_MS
+        FROM CHAT_ROOM CR
+        LEFT JOIN BUSINESS LOGIN_BUSINESS
+            ON LOGIN_BUSINESS.BUSINESS_NO = #{businessNo, jdbcType=NUMERIC}
+        LEFT JOIN CHAT_ROOM_MEMBER LOGIN_ROOM_MEMBER
+            ON LOGIN_ROOM_MEMBER.ROOM_ID = CR.ROOM_ID
+           AND LOGIN_ROOM_MEMBER.BUSINESS_NO = #{businessNo, jdbcType=NUMERIC}
+        LEFT JOIN CHAT_ROOM_READ_STATE CRS
+            ON CRS.ROOM_ID = CR.ROOM_ID
+           AND CRS.MEMBER_NO = #{memberNo}
+        WHERE CR.STATUS = 'ACTIVE'
+          AND (
+                (
+                    #{adminFlag} = 1
+                    AND CR.ROOM_TYPE = 'NOTICE'
+                )
+                OR
+                (
+                    #{adminFlag} = 0
+                    AND (
+                        CR.ROOM_TYPE = 'NOTICE'
+                        OR (
+                            CR.ROOM_TYPE = 'PUBLIC'
+                            AND LOGIN_ROOM_MEMBER.BUSINESS_NO IS NOT NULL
+                        )
+                    )
+                )
+          )
+        ORDER BY
+            CASE
+                WHEN CR.ROOM_TYPE = 'NOTICE' THEN 0
+                ELSE 1
+            END,
+            CR.CREATED_AT DESC
+
+    </select>
+
+    <!-- 자유방 현재 참여자별 마지막 읽음 위치 -->
+    <select id="selectPublicRoomParticipantReadList"
+            parameterType="String"
+            resultMap="chatParticipantReadMap">
+
+        SELECT
+            B.MEMBER_NO,
+            CRM.BUSINESS_NO,
+            B.BUSINESS_NAME AS DISPLAY_NAME,
+            CRM.JOIN_DATE AS JOINED_AT,
+            CRS.LAST_READ_MESSAGE_ID,
+            NVL(CRS.LAST_READ_EPOCH_MS, 0) AS LAST_READ_EPOCH_MS
+        FROM CHAT_ROOM_MEMBER CRM
+        JOIN BUSINESS B
+            ON B.BUSINESS_NO = CRM.BUSINESS_NO
+        JOIN MEMBER M
+            ON M.MEMBER_NO = B.MEMBER_NO
+        LEFT JOIN CHAT_ROOM_READ_STATE CRS
+            ON CRS.ROOM_ID = CRM.ROOM_ID
+           AND CRS.MEMBER_NO = B.MEMBER_NO
+        WHERE CRM.ROOM_ID = #{roomId}
+          AND M.STATUS = 'ACTIVE'
+        ORDER BY CRM.JOIN_DATE ASC
+
+    </select>
+
+    <!--
+     * 공지방의 논리적 참여자는 승인 완료된 활성 사업자 전체입니다.
+     * 별도 CHAT_ROOM_MEMBER 행이 없으므로 BUSINESS와 MEMBER를 기준으로 조회합니다.
+     -->
+    <select id="selectNoticeRoomParticipantReadList"
+            parameterType="String"
+            resultMap="chatParticipantReadMap">
+
+        SELECT
+            B.MEMBER_NO,
+            B.BUSINESS_NO,
+            B.BUSINESS_NAME AS DISPLAY_NAME,
+            B.CREATED_AT AS JOINED_AT,
+            CRS.LAST_READ_MESSAGE_ID,
+            NVL(CRS.LAST_READ_EPOCH_MS, 0) AS LAST_READ_EPOCH_MS
+        FROM BUSINESS B
+        JOIN MEMBER M
+            ON M.MEMBER_NO = B.MEMBER_NO
+        LEFT JOIN CHAT_ROOM_READ_STATE CRS
+            ON CRS.ROOM_ID = #{roomId}
+           AND CRS.MEMBER_NO = B.MEMBER_NO
+        WHERE B.STATUS = 'APPROVED'
+          AND M.STATUS = 'ACTIVE'
+        ORDER BY B.CREATED_AT ASC
+
+    </select>
+
+    <!--
+     * 사용자별 마지막 읽음 위치를 저장합니다.
+     * 네트워크 응답 순서가 뒤바뀌어 이전 위치가 늦게 도착하더라도
+     * LAST_READ_EPOCH_MS가 뒤로 이동하지 않도록 CASE로 보호합니다.
+     -->
+    <update id="mergeChatReadState"
+            parameterType="com.project.oditji.chat.vo.ChatReadStateVO">
+
+        MERGE INTO CHAT_ROOM_READ_STATE TARGET
+        USING (
+            SELECT
+                #{roomId} AS ROOM_ID,
+                #{memberNo} AS MEMBER_NO,
+                #{lastReadMessageId} AS LAST_READ_MESSAGE_ID,
+                #{lastReadEpochMs} AS LAST_READ_EPOCH_MS
+            FROM DUAL
+        ) SOURCE
+        ON (
+            TARGET.ROOM_ID = SOURCE.ROOM_ID
+            AND TARGET.MEMBER_NO = SOURCE.MEMBER_NO
+        )
+        WHEN MATCHED THEN
+            UPDATE SET
+                TARGET.LAST_READ_MESSAGE_ID =
+                    CASE
+                        WHEN SOURCE.LAST_READ_EPOCH_MS
+                                &gt;= TARGET.LAST_READ_EPOCH_MS
+                            THEN SOURCE.LAST_READ_MESSAGE_ID
+                        ELSE TARGET.LAST_READ_MESSAGE_ID
+                    END,
+                TARGET.LAST_READ_EPOCH_MS =
+                    CASE
+                        WHEN SOURCE.LAST_READ_EPOCH_MS
+                                &gt; TARGET.LAST_READ_EPOCH_MS
+                            THEN SOURCE.LAST_READ_EPOCH_MS
+                        ELSE TARGET.LAST_READ_EPOCH_MS
+                    END,
+                TARGET.UPDATED_AT =
+                    CASE
+                        WHEN SOURCE.LAST_READ_EPOCH_MS
+                                &gt;= TARGET.LAST_READ_EPOCH_MS
+                            THEN SYSDATE
+                        ELSE TARGET.UPDATED_AT
+                    END
+        WHEN NOT MATCHED THEN
+            INSERT (
+                ROOM_ID,
+                MEMBER_NO,
+                LAST_READ_MESSAGE_ID,
+                LAST_READ_EPOCH_MS,
+                CREATED_AT,
+                UPDATED_AT
+            )
+            VALUES (
+                SOURCE.ROOM_ID,
+                SOURCE.MEMBER_NO,
+                SOURCE.LAST_READ_MESSAGE_ID,
+                SOURCE.LAST_READ_EPOCH_MS,
+                SYSDATE,
+                SYSDATE
+            )
+
+    </update>
 
 </mapper>

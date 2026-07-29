@@ -11,6 +11,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.oditji.notification.service.NotificationService;
 import com.project.oditji.report.dao.ReportDAO;
 import com.project.oditji.report.vo.ReportVO;
 
@@ -18,9 +19,14 @@ import com.project.oditji.report.vo.ReportVO;
 public class ReportServiceImpl implements ReportService {
 
     private final ReportDAO reportDAO;
+    private final NotificationService notificationService;
 
-    public ReportServiceImpl(ReportDAO reportDAO) {
+    public ReportServiceImpl(
+            ReportDAO reportDAO,
+            NotificationService notificationService) {
+
         this.reportDAO = reportDAO;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -76,6 +82,41 @@ public class ReportServiceImpl implements ReportService {
         report.setDetail(detail == null || detail.trim().isEmpty() ? null : detail.trim());
 
         reportDAO.insertReport(report);
+
+        createReportReceivedNotification(
+                memberNo,
+                normalizedType,
+                contentReviewNo,
+                productReviewNo);
+    }
+
+    /**
+     * 신고 접수가 정상적으로 저장된 경우 신고자 본인에게 접수 알림을 생성합니다.
+     * 신고 대상 리뷰 화면은 처리 과정에서 삭제될 수 있으므로 별도 이동 링크는 두지 않습니다.
+     */
+    private void createReportReceivedNotification(
+            Long memberNo,
+            String reviewType,
+            Integer contentReviewNo,
+            Integer productReviewNo) {
+
+        boolean contentReport = "CONTENT".equals(reviewType);
+        Long reviewNo = contentReport
+                ? Long.valueOf(contentReviewNo)
+                : Long.valueOf(productReviewNo);
+
+        notificationService.createForMember(
+                memberNo,
+                contentReport
+                        ? "CONTENT_REVIEW_REPORT_RECEIVED"
+                        : "PRODUCT_REVIEW_REPORT_RECEIVED",
+                "리뷰 신고 접수",
+                contentReport
+                        ? "콘텐츠 리뷰 신고가 접수되었습니다. 검토 후 결과를 안내해 드리겠습니다."
+                        : "상품 리뷰 신고가 접수되었습니다. 검토 후 결과를 안내해 드리겠습니다.",
+                null,
+                contentReport ? "CONTENT_REVIEW" : "PRODUCT_REVIEW",
+                reviewNo);
     }
 
     @Override

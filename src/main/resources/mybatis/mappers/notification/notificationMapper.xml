@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.notification.dao.NotificationDAO">
+
+    <resultMap id="notificationMap"
+               type="com.project.oditji.notification.vo.NotificationVO">
+        <id property="notificationNo" column="NOTIFICATION_NO"/>
+        <result property="receiverMemberNo" column="RECEIVER_MEMBER_NO"/>
+        <result property="notificationType" column="NOTIFICATION_TYPE"/>
+        <result property="title" column="TITLE"/>
+        <result property="message" column="MESSAGE"/>
+        <result property="linkUrl" column="LINK_URL"/>
+        <result property="referenceType" column="REFERENCE_TYPE"/>
+        <result property="referenceNo" column="REFERENCE_NO"/>
+        <result property="isRead" column="IS_READ"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="readAt" column="READ_AT"/>
+    </resultMap>
+
+    <insert id="insertMemberNotification"
+            parameterType="com.project.oditji.notification.vo.NotificationVO">
+        <selectKey keyProperty="notificationNo"
+                   resultType="long"
+                   order="BEFORE">
+            SELECT SEQ_NOTIFICATION_NO.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        ) VALUES (
+            #{notificationNo},
+            #{receiverMemberNo},
+            #{notificationType},
+            #{title},
+            #{message},
+            #{linkUrl},
+            #{referenceType},
+            #{referenceNo},
+            'N',
+            SYSDATE
+        )
+    </insert>
+
+    <insert id="insertAdminNotification"
+            parameterType="com.project.oditji.notification.vo.NotificationVO">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            M.MEMBER_NO,
+            #{notificationType},
+            #{title},
+            #{message},
+            #{linkUrl},
+            #{referenceType},
+            #{referenceNo},
+            'N',
+            SYSDATE
+        FROM MEMBER M
+        WHERE M.ROLE = 'ADMIN'
+          AND M.STATUS = 'ACTIVE'
+    </insert>
+
+    <insert id="insertBusinessNotification">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            B.MEMBER_NO,
+            #{notification.notificationType},
+            #{notification.title},
+            #{notification.message},
+            #{notification.linkUrl},
+            #{notification.referenceType},
+            #{notification.referenceNo},
+            'N',
+            SYSDATE
+        FROM BUSINESS B
+        JOIN MEMBER M
+          ON M.MEMBER_NO = B.MEMBER_NO
+        WHERE B.BUSINESS_NO = #{businessNo}
+          AND M.STATUS = 'ACTIVE'
+    </insert>
+
+    <insert id="insertOrderBusinessNotifications">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            TARGET_MEMBER.MEMBER_NO,
+            #{notification.notificationType},
+            #{notification.title},
+            #{notification.message},
+            #{notification.linkUrl},
+            #{notification.referenceType},
+            #{notification.referenceNo},
+            'N',
+            SYSDATE
+        FROM (
+            SELECT DISTINCT B.MEMBER_NO
+            FROM ORDER_ITEM OI
+            JOIN BUSINESS B
+              ON B.BUSINESS_NO = OI.BUSINESS_NO
+            JOIN MEMBER M
+              ON M.MEMBER_NO = B.MEMBER_NO
+            WHERE OI.ORDER_NO = #{orderNo}
+              AND M.STATUS = 'ACTIVE'
+        ) TARGET_MEMBER
+    </insert>
+
+    <insert id="insertCancelGroupBusinessNotifications">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            TARGET_MEMBER.MEMBER_NO,
+            #{notification.notificationType},
+            #{notification.title},
+            #{notification.message},
+            #{notification.linkUrl},
+            #{notification.referenceType},
+            #{notification.referenceNo},
+            'N',
+            SYSDATE
+        FROM (
+            SELECT DISTINCT B.MEMBER_NO
+            FROM CANCEL_REQUEST CR
+            JOIN ORDER_ITEM OI
+              ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+            JOIN BUSINESS B
+              ON B.BUSINESS_NO = OI.BUSINESS_NO
+            JOIN MEMBER M
+              ON M.MEMBER_NO = B.MEMBER_NO
+            WHERE CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+              AND M.STATUS = 'ACTIVE'
+        ) TARGET_MEMBER
+    </insert>
+
+    <select id="selectProductOwnerMemberNo"
+            resultType="long">
+        SELECT B.MEMBER_NO
+        FROM PRODUCT P
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = P.BUSINESS_NO
+        WHERE P.PRODUCT_NO = #{productNo}
+    </select>
+
+    <select id="selectEventOwnerMemberNo"
+            resultType="long">
+        SELECT MIN(B.MEMBER_NO)
+        FROM EVENT_PRODUCT EP
+        JOIN PRODUCT P
+          ON P.PRODUCT_NO = EP.PRODUCT_NO
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = P.BUSINESS_NO
+        WHERE EP.EVENT_NO = #{eventNo}
+    </select>
+
+    <select id="selectUnreadNotificationList"
+            resultMap="notificationMap">
+        SELECT *
+        FROM (
+            SELECT
+                N.NOTIFICATION_NO,
+                N.RECEIVER_MEMBER_NO,
+                N.NOTIFICATION_TYPE,
+                N.TITLE,
+                N.MESSAGE,
+                N.LINK_URL,
+                N.REFERENCE_TYPE,
+                N.REFERENCE_NO,
+                N.IS_READ,
+                N.CREATED_AT,
+                N.READ_AT
+            FROM NOTIFICATION N
+            WHERE N.RECEIVER_MEMBER_NO = #{memberNo}
+              AND N.IS_READ = 'N'
+            ORDER BY N.CREATED_AT DESC,
+                     N.NOTIFICATION_NO DESC
+        )
+        WHERE ROWNUM &lt;= #{limit}
+    </select>
+
+    <select id="selectUnreadNotificationCount"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM NOTIFICATION
+        WHERE RECEIVER_MEMBER_NO = #{memberNo}
+          AND IS_READ = 'N'
+    </select>
+
+    <update id="updateNotificationRead">
+        UPDATE NOTIFICATION
+        SET IS_READ = 'Y',
+            READ_AT = SYSDATE
+        WHERE NOTIFICATION_NO = #{notificationNo}
+          AND RECEIVER_MEMBER_NO = #{memberNo}
+          AND IS_READ = 'N'
+    </update>
+
+    <update id="updateAllNotificationRead">
+        UPDATE NOTIFICATION
+        SET IS_READ = 'Y',
+            READ_AT = SYSDATE
+        WHERE RECEIVER_MEMBER_NO = #{memberNo}
+          AND IS_READ = 'N'
+    </update>
+
+</mapper>

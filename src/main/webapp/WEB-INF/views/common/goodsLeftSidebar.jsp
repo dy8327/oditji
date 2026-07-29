@@ -5,63 +5,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!-- =====================================
-     SELECTED PRODUCT TYPES
-====================================== -->
-
-<c:set var="apparelChecked"
-       value="false"/>
-
-<c:set var="figureChecked"
-       value="false"/>
-
-<c:set var="albumChecked"
-       value="false"/>
-
-<c:set var="posterChecked"
-       value="false"/>
-
-<c:set var="accessoryChecked"
-       value="false"/>
-
-<c:set var="etcChecked"
-       value="false"/>
-
-<c:forEach var="selectedType"
-           items="${productTypes}">
-
-    <c:if test="${selectedType eq 'APPAREL'}">
-        <c:set var="apparelChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedType eq 'FIGURE'}">
-        <c:set var="figureChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedType eq 'ALBUM'}">
-        <c:set var="albumChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedType eq 'POSTER'}">
-        <c:set var="posterChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedType eq 'ACCESSORY'}">
-        <c:set var="accessoryChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedType eq 'ETC'}">
-        <c:set var="etcChecked"
-               value="true"/>
-    </c:if>
-
-</c:forEach>
-
-<!-- =====================================
      SELECTED PRICE RANGES
 ====================================== -->
 
@@ -135,71 +78,6 @@
 
 </c:forEach>
 
-<!-- =====================================
-     SELECTED GENRES (원작 콘텐츠 장르)
-====================================== -->
-
-<c:set var="actionChecked"
-       value="false"/>
-
-<c:set var="comedyChecked"
-       value="false"/>
-
-<c:set var="dramaChecked"
-       value="false"/>
-
-<c:set var="thrillerChecked"
-       value="false"/>
-
-<c:set var="romanceChecked"
-       value="false"/>
-
-<c:set var="animationChecked"
-       value="false"/>
-
-<c:set var="documentaryChecked"
-       value="false"/>
-
-<c:forEach var="selectedGenre"
-           items="${genreCodes}">
-
-    <c:if test="${selectedGenre eq 'ACTION'}">
-        <c:set var="actionChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'COMEDY'}">
-        <c:set var="comedyChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'DRAMA'}">
-        <c:set var="dramaChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'THRILLER'}">
-        <c:set var="thrillerChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'ROMANCE'}">
-        <c:set var="romanceChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'ANIMATION'}">
-        <c:set var="animationChecked"
-               value="true"/>
-    </c:if>
-
-    <c:if test="${selectedGenre eq 'DOCUMENTARY'}">
-        <c:set var="documentaryChecked"
-               value="true"/>
-    </c:if>
-
-</c:forEach>
-
 <form id="goodsFilterForm"
       class="search-filter-form"
       action="${pageContext.request.contextPath}/goods/list"
@@ -215,6 +93,10 @@
 
     <!-- =====================================
          PRODUCT TYPE
+
+         availableProductTypes에는 승인된 상품 중
+         실제로 등록되어 있는 상품 종류만 들어온다.
+         따라서 DB에 상품이 존재하는 종류만 화면에 표시한다.
     ====================================== -->
     <section class="filter-group">
 
@@ -235,95 +117,90 @@
 
         </label>
 
-        <label class="filter-option">
+        <c:forEach var="availableType"
+                   items="${availableProductTypes}">
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="APPAREL"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${apparelChecked}">
-                       checked
-                   </c:if>>
+            <c:set var="productTypeChecked"
+                   value="false"/>
 
-            <span>의류</span>
+            <c:forEach var="selectedType"
+                       items="${productTypes}">
 
-        </label>
+                <c:if test="${selectedType eq availableType}">
+                    <c:set var="productTypeChecked"
+                           value="true"/>
+                </c:if>
 
-        <label class="filter-option">
+            </c:forEach>
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="FIGURE"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${figureChecked}">
-                       checked
-                   </c:if>>
+            <label class="filter-option">
 
-            <span>피규어</span>
+                <input type="checkbox"
+                       name="productTypes"
+                       value="<c:out value='${availableType}'/>"
+                       data-filter-checkbox
+                       data-filter-group="productType"
+                       <c:if test="${productTypeChecked}">
+                           checked
+                       </c:if>>
 
-        </label>
+                <span>
+                    <c:choose>
 
-        <label class="filter-option">
+                        <c:when test="${availableType eq 'CLOTHES'}">
+                            의상
+                        </c:when>
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="ALBUM"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${albumChecked}">
-                       checked
-                   </c:if>>
+                        <c:when test="${availableType eq 'APPAREL'}">
+                            의류
+                        </c:when>
 
-            <span>음반</span>
+                        <c:when test="${availableType eq 'PROP'}">
+                            소품
+                        </c:when>
 
-        </label>
+                        <c:when test="${availableType eq 'GOODS'}">
+                            굿즈
+                        </c:when>
 
-        <label class="filter-option">
+                        <c:when test="${availableType eq 'OST'}">
+                            OST
+                        </c:when>
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="POSTER"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${posterChecked}">
-                       checked
-                   </c:if>>
+                        <c:when test="${availableType eq 'ALBUM'}">
+                            음반
+                        </c:when>
 
-            <span>포스터</span>
+                        <c:when test="${availableType eq 'BOOK'}">
+                            도서
+                        </c:when>
 
-        </label>
+                        <c:when test="${availableType eq 'FIGURE'}">
+                            피규어
+                        </c:when>
 
-        <label class="filter-option">
+                        <c:when test="${availableType eq 'POSTER'}">
+                            포스터
+                        </c:when>
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="ACCESSORY"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${accessoryChecked}">
-                       checked
-                   </c:if>>
+                        <c:when test="${availableType eq 'ACCESSORY'}">
+                            액세서리
+                        </c:when>
 
-            <span>액세서리</span>
+                        <c:when test="${availableType eq 'ETC'}">
+                            기타
+                        </c:when>
 
-        </label>
+                        <c:otherwise>
+                            <c:out value="${availableType}"/>
+                        </c:otherwise>
 
-        <label class="filter-option">
+                    </c:choose>
+                </span>
 
-            <input type="checkbox"
-                   name="productTypes"
-                   value="ETC"
-                   data-filter-checkbox
-                   data-filter-group="productType"
-                   <c:if test="${etcChecked}">
-                       checked
-                   </c:if>>
+            </label>
 
-            <span>기타</span>
-
-        </label>
+        </c:forEach>
 
     </section>
 
@@ -475,135 +352,6 @@
                    </c:if>>
 
             <span>품절 포함</span>
-
-        </label>
-
-    </section>
-
-    <!-- =====================================
-         GENRE (원작 콘텐츠 장르)
-    ====================================== -->
-    <section class="filter-group">
-
-        <h2 class="filter-group-title">
-            원작 장르
-        </h2>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   data-filter-all
-                   data-filter-group="genre"
-                   <c:if test="${empty genreCodes}">
-                       checked
-                   </c:if>>
-
-            <span>전체</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="ACTION"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${actionChecked}">
-                       checked
-                   </c:if>>
-
-            <span>액션</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="COMEDY"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${comedyChecked}">
-                       checked
-                   </c:if>>
-
-            <span>코미디</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="DRAMA"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${dramaChecked}">
-                       checked
-                   </c:if>>
-
-            <span>드라마</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="THRILLER"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${thrillerChecked}">
-                       checked
-                   </c:if>>
-
-            <span>스릴러</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="ROMANCE"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${romanceChecked}">
-                       checked
-                   </c:if>>
-
-            <span>로맨스</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="ANIMATION"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${animationChecked}">
-                       checked
-                   </c:if>>
-
-            <span>애니메이션</span>
-
-        </label>
-
-        <label class="filter-option">
-
-            <input type="checkbox"
-                   name="genreCodes"
-                   value="DOCUMENTARY"
-                   data-filter-checkbox
-                   data-filter-group="genre"
-                   <c:if test="${documentaryChecked}">
-                       checked
-                   </c:if>>
-
-            <span>다큐멘터리</span>
 
         </label>
 

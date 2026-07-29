@@ -39,12 +39,15 @@ import com.project.oditji.admin.vo.ReviewStatVO;
 import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.notification.service.NotificationService;
 
 @Service
 public class AdminServiceImpl implements AdminService {
 
-    private final AdminDAO adminDAO;
     private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
+
+    private final AdminDAO adminDAO;
+    private final NotificationService notificationService;
 
     /*
      * 상품 삭제 승인 후 실제 업로드 파일까지 정리하기 위한 경로이다.
@@ -54,9 +57,11 @@ public class AdminServiceImpl implements AdminService {
 
     public AdminServiceImpl(
             AdminDAO adminDAO,
+            NotificationService notificationService,
             @Value("${oditji.upload.product-path:uploads/product}") String productUploadPath) {
 
         this.adminDAO = adminDAO;
+        this.notificationService = notificationService;
         this.productUploadDirectory = Paths.get(productUploadPath)
                 .toAbsolutePath()
                 .normalize();
@@ -283,6 +288,9 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveContentReviewReport(Long reviewNo) {
 
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
+
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "ACCEPTED");
 
         if (updated == 0) {
@@ -290,6 +298,12 @@ public class AdminServiceImpl implements AdminService {
         }
 
         adminDAO.deleteContentReview(reviewNo);
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "CONTENT",
+                true,
+                reviewNo);
     }
 
     /*
@@ -297,13 +311,23 @@ public class AdminServiceImpl implements AdminService {
      * 리뷰는 그대로 둔다.
      */
     @Override
+    @Transactional
     public void rejectContentReviewReport(Long reviewNo) {
+
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "REJECTED");
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
         }
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "CONTENT",
+                false,
+                reviewNo);
     }
 
     /*
@@ -385,6 +409,9 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveProductReviewReport(Long reviewNo) {
 
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
+
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "ACCEPTED");
 
         if (updated == 0) {
@@ -392,6 +419,12 @@ public class AdminServiceImpl implements AdminService {
         }
 
         adminDAO.adminDeleteProductReview(reviewNo);
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "PRODUCT",
+                true,
+                reviewNo);
     }
 
     /*
@@ -399,13 +432,23 @@ public class AdminServiceImpl implements AdminService {
      * 리뷰는 그대로 둔다.
      */
     @Override
+    @Transactional
     public void rejectProductReviewReport(Long reviewNo) {
+
+        List<Long> reporterMemberNos =
+                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "REJECTED");
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
         }
+
+        createReviewReportResultNotifications(
+                reporterMemberNos,
+                "PRODUCT",
+                false,
+                reviewNo);
     }
 
     /*
@@ -440,7 +483,46 @@ public class AdminServiceImpl implements AdminService {
         return skipped;
     }
 
-    // 이벤트 관리 
+    /**
+     * 동일 리뷰를 신고한 모든 회원에게 관리자 검토 결과를 알립니다.
+     *
+     * 상품 리뷰 승인 시 원본 리뷰와 신고 행이 함께 삭제되므로,
+     * 호출 측에서 신고자 목록을 삭제 전에 먼저 조회해야 합니다.
+     */
+    private void createReviewReportResultNotifications(
+            List<Long> reporterMemberNos,
+            String reviewType,
+            boolean accepted,
+            Long reviewNo) {
+
+        if (reporterMemberNos == null || reporterMemberNos.isEmpty()) {
+            return;
+        }
+
+        boolean contentReview = "CONTENT".equals(reviewType);
+        String targetLabel = contentReview ? "콘텐츠 리뷰" : "상품 리뷰";
+        String notificationType = contentReview
+                ? "CONTENT_REVIEW_REPORT_PROCESSED"
+                : "PRODUCT_REVIEW_REPORT_PROCESSED";
+        String message = accepted
+                ? "신고하신 " + targetLabel
+                        + "에서 운영 정책 위반이 확인되어 해당 리뷰를 삭제했습니다."
+                : "신고하신 " + targetLabel
+                        + "를 검토한 결과 운영 정책 위반 사항이 확인되지 않았습니다.";
+
+        for (Long reporterMemberNo : reporterMemberNos) {
+            notificationService.createForMember(
+                    reporterMemberNo,
+                    notificationType,
+                    "리뷰 신고 검토 완료",
+                    message,
+                    null,
+                    contentReview ? "CONTENT_REVIEW" : "PRODUCT_REVIEW",
+                    reviewNo);
+        }
+    }
+
+    // ===================== 이벤트 관리 =====================
 
     @Override
     public List<EventManageVO> getEventList(String tab, String keyword, String period, int page, int pageSize) {
@@ -487,6 +569,15 @@ public class AdminServiceImpl implements AdminService {
                     "이벤트 승인 처리에 실패했습니다.");
         }
 
+        notificationService.createForEventOwner(
+                eventNo,
+                "EVENT_APPROVED",
+                "이벤트 승인 완료",
+                "요청한 이벤트가 승인되었습니다.",
+                "/business/event/list",
+                "EVENT",
+                eventNo);
+
         /*
          * [리팩토링] PRODUCT.DISCOUNT_RATE를 승인 시점에 직접 덮어쓰던
          * 기존 로직을 제거했다.
@@ -516,6 +607,15 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalStateException(
                     "이벤트 반려 처리에 실패했습니다.");
         }
+
+        notificationService.createForEventOwner(
+                eventNo,
+                "EVENT_REJECTED",
+                "이벤트 승인 반려",
+                "요청한 이벤트가 반려되었습니다. 이벤트 목록을 확인해주세요.",
+                "/business/event/list",
+                "EVENT",
+                eventNo);
     }
 
     // 상품 관리 
@@ -573,6 +673,16 @@ public class AdminServiceImpl implements AdminService {
              */
             List<String> imagePathList = adminDAO.selectProductImagePathList(productNo);
 
+            /* 상품 행 삭제 전에 소유 사업자를 조회하여 결과 알림을 저장합니다. */
+            notificationService.createForProductOwner(
+                    productNo,
+                    "PRODUCT_DELETE_APPROVED",
+                    "상품 삭제 완료",
+                    "요청한 상품 삭제가 승인되어 상품이 삭제되었습니다.",
+                    "/business/product/list",
+                    "PRODUCT",
+                    productNo);
+
             // FK 제약조건(ORA-02292) 위반을 막기 위해 자식 테이블부터 삭제한다.
             // REVIEW_REPORT는 FK_REPORT_PRODUCT_REVIEW의 ON DELETE CASCADE로
             // 아래 상품 리뷰 삭제 시 자동으로 함께 정리되므로 별도 단계가 필요 없다.
@@ -598,6 +708,15 @@ public class AdminServiceImpl implements AdminService {
         if (updateResult != 1) {
             throw new IllegalStateException("상품 승인 처리에 실패했습니다.");
         }
+
+        notificationService.createForProductOwner(
+                productNo,
+                "PRODUCT_APPROVED",
+                "상품 승인 완료",
+                "등록 또는 수정한 상품이 승인되었습니다.",
+                "/business/product/list",
+                "PRODUCT",
+                productNo);
     }
 
     @Override
@@ -622,6 +741,23 @@ public class AdminServiceImpl implements AdminService {
         if (updateResult != 1) {
             throw new IllegalStateException("상품 반려 처리에 실패했습니다.");
         }
+
+        boolean deleteRequest = "DELETE_REQUESTED".equals(status);
+
+        notificationService.createForProductOwner(
+                productNo,
+                deleteRequest
+                        ? "PRODUCT_DELETE_REJECTED"
+                        : "PRODUCT_REJECTED",
+                deleteRequest
+                        ? "상품 삭제 요청 반려"
+                        : "상품 승인 반려",
+                deleteRequest
+                        ? "상품 삭제 요청이 반려되어 기존 승인 상태로 복구되었습니다."
+                        : "상품 승인 요청이 반려되었습니다. 상품 목록을 확인해주세요.",
+                "/business/product/list",
+                "PRODUCT",
+                productNo);
     }
 
     // ===================== 주문 조회 (조회 전용) =====================
@@ -696,13 +832,39 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public void approveBusiness(Long businessNo) {
-        adminDAO.updateBusinessStatus(businessNo, "APPROVED");
+
+        if (adminDAO.updateBusinessStatus(businessNo, "APPROVED") != 1) {
+            throw new IllegalStateException("사업자 승인 처리에 실패했습니다.");
+        }
+
+        notificationService.createForBusiness(
+                businessNo,
+                "BUSINESS_APPROVED",
+                "사업자 승인 완료",
+                "사업자 가입 신청이 승인되었습니다.",
+                "/member/mypage",
+                "BUSINESS",
+                businessNo);
     }
 
     @Override
+    @Transactional
     public void rejectBusiness(Long businessNo) {
-        adminDAO.updateBusinessStatus(businessNo, "REJECTED");
+
+        if (adminDAO.updateBusinessStatus(businessNo, "REJECTED") != 1) {
+            throw new IllegalStateException("사업자 반려 처리에 실패했습니다.");
+        }
+
+        notificationService.createForBusiness(
+                businessNo,
+                "BUSINESS_REJECTED",
+                "사업자 승인 반려",
+                "사업자 가입 신청이 반려되었습니다.",
+                "/member/mypage",
+                "BUSINESS",
+                businessNo);
     }
 
     // 정산 관리
@@ -732,20 +894,46 @@ public class AdminServiceImpl implements AdminService {
 
     // [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. 
     @Override
+    @Transactional
     public void confirmSettlement(Long businessNo, String settlementMonth) {
         if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
             throw new IllegalArgumentException("올바르지 않은 정산 요청입니다.");
         }
-        adminDAO.updateSettlementStatus(businessNo, settlementMonth, "DONE");
+
+        if (adminDAO.updateSettlementStatus(businessNo, settlementMonth, "DONE") <= 0) {
+            throw new IllegalStateException("정산 완료 처리할 내역이 없습니다.");
+        }
+
+        notificationService.createForBusiness(
+                businessNo,
+                "SETTLEMENT_APPROVED",
+                "정산 확인 완료",
+                settlementMonth + " 정산 입금 확인이 완료되었습니다.",
+                "/business/settlement/complete",
+                "BUSINESS",
+                businessNo);
     }
 
     // [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다. 
     @Override
+    @Transactional
     public void rejectSettlement(Long businessNo, String settlementMonth) {
         if (businessNo == null || businessNo <= 0 || settlementMonth == null || settlementMonth.isBlank()) {
             throw new IllegalArgumentException("올바르지 않은 정산 요청입니다.");
         }
-        adminDAO.updateSettlementStatus(businessNo, settlementMonth, "REJECTED");
+
+        if (adminDAO.updateSettlementStatus(businessNo, settlementMonth, "REJECTED") <= 0) {
+            throw new IllegalStateException("정산 반려 처리할 내역이 없습니다.");
+        }
+
+        notificationService.createForBusiness(
+                businessNo,
+                "SETTLEMENT_REJECTED",
+                "정산 확인 반려",
+                settlementMonth + " 정산 입금 확인 요청이 반려되었습니다.",
+                "/business/settlement/main",
+                "BUSINESS",
+                businessNo);
     }
 
     // 모니터링

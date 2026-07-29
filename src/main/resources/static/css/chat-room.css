@@ -4,20 +4,23 @@
  * 같은 발신자가 같은 분에 연속으로 보낸 메시지는 한 묶음처럼 표시합니다.
  * 자유방의 내 메시지는 ⋮ 메뉴를 통해 수정/삭제할 수 있습니다.
  */
-* {
+.chat-container,
+.chat-container * {
     box-sizing: border-box;
     font-family: "맑은 고딕", Arial, sans-serif;
 }
 
-body {
+body.chat-page {
     margin: 0;
     background: #f5f5f5;
+    color: #222222;
 }
 
 .chat-container {
     width: 900px;
-    height: 90vh;
-    margin: 30px auto;
+    height: calc(100vh - 120px);
+    min-height: 560px;
+    margin: 20px auto;
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
@@ -420,7 +423,8 @@ body {
 @media (max-width: 960px) {
     .chat-container {
         width: calc(100% - 24px);
-        height: calc(100vh - 24px);
+        height: calc(100vh - 94px);
+        min-height: 520px;
         margin: 12px auto;
     }
 
@@ -431,4 +435,25 @@ body {
     .message-line {
         max-width: 90%;
     }
+}
+
+/*
+ * 메시지를 아직 읽지 않은 채팅방 참여자 수입니다.
+ * 모두 읽으면 JavaScript에서 요소 자체를 제거합니다.
+ */
+.unread-participant-count {
+    min-width: 16px;
+    color: #ef6c00;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.message-row.mine .unread-participant-count {
+    color: #1565c0;
+}
+
+.notice-message-row.mine .unread-participant-count {
+    color: #ef6c00;
 }

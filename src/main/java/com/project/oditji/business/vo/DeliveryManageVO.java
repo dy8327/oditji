@@ -15,6 +15,7 @@ public class DeliveryManageVO {
     private Long deliveryNo;
     private Long orderItemNo;
     private Long orderNo;
+    private Long memberNo;
     private Long businessNo;
     private Integer productNo;
     private String productName;
@@ -54,6 +55,14 @@ public class DeliveryManageVO {
 
     public void setOrderNo(Long orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public Long getMemberNo() {
+        return memberNo;
+    }
+
+    public void setMemberNo(Long memberNo) {
+        this.memberNo = memberNo;
     }
 
     public Long getBusinessNo() {

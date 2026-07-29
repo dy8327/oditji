@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.project.oditji.chat.service.ChatService;
 import com.project.oditji.chat.vo.ChatRoomVO;
+import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -251,10 +252,10 @@ public class ChatController {
             HttpSession session,
             Model model) {
 
-        model.addAttribute("memberNo", getLongSessionValue(session, "memberNo"));
+        model.addAttribute("memberNo", getSessionMemberNo(session));
         model.addAttribute("businessNo", getChatBusinessNo(session));
         model.addAttribute("businessName", getChatDisplayName(session));
-        model.addAttribute("role", session.getAttribute("role"));
+        model.addAttribute("role", getSessionRole(session));
         model.addAttribute("isAdmin", isAdmin(session));
     }
 
@@ -266,12 +267,12 @@ public class ChatController {
      */
     private boolean isAdmin(HttpSession session) {
 
-        Long memberNo = getLongSessionValue(session, "memberNo");
-        Object role = session.getAttribute("role");
+        Long memberNo = getSessionMemberNo(session);
+        String role = getSessionRole(session);
 
         return memberNo != null
-                && memberNo == ADMIN_MEMBER_NO
-                && ROLE_ADMIN.equals(String.valueOf(role));
+                && memberNo.longValue() == ADMIN_MEMBER_NO
+                && ROLE_ADMIN.equals(role);
     }
 
     /**
@@ -306,6 +307,52 @@ public class ChatController {
         }
 
         return getSessionBusinessNo(session);
+    }
+
+    /**
+     * 로그인 방식별 세션 키 차이를 고려해 회원 번호를 조회합니다.
+     */
+    private Long getSessionMemberNo(HttpSession session) {
+
+        Long memberNo = getLongSessionValue(session, "memberNo");
+
+        if (memberNo != null) {
+            return memberNo;
+        }
+
+        memberNo = getLongSessionValue(session, "loginMemberNo");
+
+        if (memberNo != null) {
+            return memberNo;
+        }
+
+        Object loginMember = session.getAttribute("loginMember");
+
+        if (loginMember instanceof MemberVO member) {
+            return member.getMemberNo();
+        }
+
+        return null;
+    }
+
+    /**
+     * 로그인 역할을 세션 문자열 또는 로그인 회원 객체에서 조회합니다.
+     */
+    private String getSessionRole(HttpSession session) {
+
+        Object role = session.getAttribute("role");
+
+        if (role != null && !String.valueOf(role).isBlank()) {
+            return String.valueOf(role);
+        }
+
+        Object loginMember = session.getAttribute("loginMember");
+
+        if (loginMember instanceof MemberVO member) {
+            return member.getRole();
+        }
+
+        return null;
     }
 
     /**

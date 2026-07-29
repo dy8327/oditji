@@ -17,6 +17,7 @@ import com.project.oditji.order.vo.OrderVO;
 import com.project.oditji.payment.dao.PaymentDAO;
 import com.project.oditji.payment.service.PaymentService;
 import com.project.oditji.payment.vo.PaymentVO;
+import com.project.oditji.notification.service.NotificationService;
 
 /**
  * 주문 비즈니스 로직을 처리하는 서비스 구현 클래스.
@@ -29,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
         private final CartDAO cartDAO;
         private final PaymentDAO paymentDAO;
         private final PaymentService paymentService;
+        private final NotificationService notificationService;
 
         /**
          * 의존성 주입을 위한 생성자.
@@ -37,12 +39,14 @@ public class OrderServiceImpl implements OrderService {
                         OrderDAO orderDAO,
                         CartDAO cartDAO,
                         PaymentDAO paymentDAO,
-                        PaymentService paymentService) {
+                        PaymentService paymentService,
+                        NotificationService notificationService) {
 
                 this.orderDAO = orderDAO;
                 this.cartDAO = cartDAO;
                 this.paymentDAO = paymentDAO;
                 this.paymentService = paymentService;
+                this.notificationService = notificationService;
         }
 
         /**
@@ -494,6 +498,17 @@ public class OrderServiceImpl implements OrderService {
                                         memberNo,
                                         usedCartItemNos);
                 }
+
+                /* 같은 주문에 여러 상품이 있어도 사업자별 알림은 한 건만 생성합니다. */
+                notificationService.createForOrderBusinesses(
+                                order.getOrderNo(),
+                                "NEW_ORDER",
+                                "새로운 주문 접수",
+                                "새로운 결제 완료 주문이 접수되었습니다.",
+                                "/business/order/detail?orderNo="
+                                                + order.getOrderNo(),
+                                "ORDER",
+                                order.getOrderNo());
 
                 return order.getOrderNo();
         }

@@ -32,6 +32,7 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.notification.service.NotificationService;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.search.service.SearchContentStore;
 import com.project.oditji.search.vo.CachedContentVO;
@@ -70,6 +71,7 @@ public class BusinessServiceImpl
         private final ContentService contentService;
         private final SearchContentStore searchContentStore;
         private final TmdbService tmdbService;
+        private final NotificationService notificationService;
         private final Path productUploadDirectory;
 
         /*
@@ -86,6 +88,7 @@ public class BusinessServiceImpl
                         ContentService contentService,
                         SearchContentStore searchContentStore,
                         TmdbService tmdbService,
+                        NotificationService notificationService,
                         @Value("${oditji.upload.product-path:"
                                         + "uploads/product}") String productUploadPath) {
 
@@ -93,6 +96,7 @@ public class BusinessServiceImpl
                 this.contentService = contentService;
                 this.searchContentStore = searchContentStore;
                 this.tmdbService = tmdbService;
+                this.notificationService = notificationService;
 
                 this.productUploadDirectory = Paths.get(
                                 productUploadPath)
@@ -354,6 +358,7 @@ public class BusinessServiceImpl
 
         /* [수정] 이번 달 수수료 입금 확인 요청 */
         @Override
+        @Transactional
         public void requestSettlementConfirmation(long businessNo) {
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
@@ -363,6 +368,14 @@ public class BusinessServiceImpl
                 if (updatedCount <= 0) {
                         throw new IllegalStateException("입금 확인을 요청할 수 있는 이번 달 수수료 내역이 없습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "SETTLEMENT_REQUEST",
+                                "정산 확인 요청",
+                                "사업자가 이번 달 수수료 입금 확인을 요청했습니다.",
+                                "/admin/settlement/main",
+                                "BUSINESS",
+                                businessNo);
         }
 
         /* [수정] 사업자 정산 계좌 조회 */
@@ -516,6 +529,68 @@ public class BusinessServiceImpl
                 }
 
                 businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
+
+                if (!normalizedStatus.equals(currentStatus)) {
+                        createDeliveryStatusNotification(
+                                        currentItem,
+                                        normalizedStatus);
+                }
+        }
+
+        /**
+         * 배송 상태가 실제로 다음 단계로 변경된 경우 주문 회원에게 알림을 생성합니다.
+         * 동일 상태 재저장은 알림 생성 대상에서 제외합니다.
+         */
+        private void createDeliveryStatusNotification(
+                        DeliveryManageVO deliveryItem,
+                        String deliveryStatus) {
+
+                if (deliveryItem == null || deliveryStatus == null) {
+                        return;
+                }
+
+                String productName = deliveryItem.getProductName();
+                String productMessage = productName == null
+                                || productName.isBlank()
+                                                ? ""
+                                                : " 상품명: " + productName.trim();
+
+                String notificationType;
+                String title;
+                String message;
+
+                switch (deliveryStatus) {
+                        case "PREPARING" -> {
+                                notificationType = "DELIVERY_PREPARING";
+                                title = "배송 준비 시작";
+                                message = "주문하신 상품의 배송 준비가 시작되었습니다."
+                                                + productMessage;
+                        }
+                        case "SHIPPING" -> {
+                                notificationType = "DELIVERY_SHIPPED";
+                                title = "상품 발송";
+                                message = "주문하신 상품이 발송되었습니다."
+                                                + productMessage;
+                        }
+                        case "DELIVERED" -> {
+                                notificationType = "DELIVERY_DELIVERED";
+                                title = "배송 완료";
+                                message = "주문하신 상품의 배송이 완료되었습니다."
+                                                + productMessage;
+                        }
+                        default -> {
+                                return;
+                        }
+                }
+
+                notificationService.createForMember(
+                                deliveryItem.getMemberNo(),
+                                notificationType,
+                                title,
+                                message,
+                                "/order/list",
+                                "ORDER_ITEM",
+                                deliveryItem.getOrderItemNo());
         }
 
         /* 배송 목록 검색에 사용할 상태값을 검증하고 정규화. */
@@ -628,6 +703,16 @@ public class BusinessServiceImpl
                         if (imageResult != 1) {
                                 throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
                         }
+
+                        notificationService.createForAdmins(
+                                        "PRODUCT_REQUEST",
+                                        "상품 승인 요청",
+                                        goodsManageVO.getProductName()
+                                                        + " 상품의 등록 승인 요청이 접수되었습니다.",
+                                        "/admin/product/list?tab=waiting",
+                                        "PRODUCT",
+                                        goodsManageVO.getProductNo());
+
                         return goodsManageVO.getProductNo();
 
                 } catch (RuntimeException e) {
@@ -1050,6 +1135,15 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+
+                notificationService.createForAdmins(
+                                "PRODUCT_REQUEST",
+                                "상품 재승인 요청",
+                                goodsManageVO.getProductName()
+                                                + " 상품의 수정 승인 요청이 접수되었습니다.",
+                                "/admin/product/list?tab=waiting",
+                                "PRODUCT",
+                                goodsManageVO.getProductNo());
         }
 
         /*
@@ -1151,6 +1245,15 @@ public class BusinessServiceImpl
                         throw new IllegalStateException(
                                         "상품 삭제 요청 처리에 실패했습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "PRODUCT_DELETE_REQUEST",
+                                "상품 삭제 승인 요청",
+                                existingProduct.getProductName()
+                                                + " 상품의 삭제 요청이 접수되었습니다.",
+                                "/admin/product/list?tab=delete",
+                                "PRODUCT",
+                                productNo);
         }
 
         /*
@@ -1245,6 +1348,15 @@ public class BusinessServiceImpl
                                                         "이벤트 상품 연결 등록에 실패했습니다.");
                                 }
                         }
+
+                        notificationService.createForAdmins(
+                                        "EVENT_REQUEST",
+                                        "이벤트 승인 요청",
+                                        eventManageVO.getTitle()
+                                                        + " 이벤트의 등록 승인 요청이 접수되었습니다.",
+                                        "/admin/event/list?tab=waiting",
+                                        "EVENT",
+                                        eventManageVO.getEventNo());
 
                         return eventManageVO.getEventNo();
 
@@ -1465,6 +1577,15 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+
+                notificationService.createForAdmins(
+                                "EVENT_REQUEST",
+                                "이벤트 재승인 요청",
+                                eventManageVO.getTitle()
+                                                + " 이벤트의 수정 승인 요청이 접수되었습니다.",
+                                "/admin/event/list?tab=waiting",
+                                "EVENT",
+                                eventManageVO.getEventNo());
         }
 
         /*
@@ -1552,6 +1673,15 @@ public class BusinessServiceImpl
                         throw new IllegalStateException(
                                         "이벤트 연장 처리에 실패했습니다.");
                 }
+
+                notificationService.createForAdmins(
+                                "EVENT_REQUEST",
+                                "이벤트 연장 승인 요청",
+                                existingEvent.getTitle()
+                                                + " 이벤트의 연장 승인 요청이 접수되었습니다.",
+                                "/admin/event/list?tab=waiting",
+                                "EVENT",
+                                eventNo);
         }
 
         /*
