@@ -25,7 +25,7 @@
 
     <!-- 콘텐츠 목록 화면 전용 레이아웃과 카드 디자인입니다. -->
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=2">
+          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=5">
 
     <script>
         const contextPath = "${pageContext.request.contextPath}";
@@ -163,11 +163,45 @@
                                 <c:forEach var="ageRating"
                                            items="${ageRatings}">
 
+                                    <%--
+                                        관람등급 필터는 카드에서 사용하는 배지와 동일한 색상/숫자를 사용합니다.
+                                        값 자체는 기존 ageRatings 값을 그대로 유지하므로 검색 조건에는 영향이 없습니다.
+                                    --%>
+                                    <c:set var="selectedAgeBadgeLabel" value="?"/>
+                                    <c:set var="selectedAgeBadgeClass" value="unknown"/>
+
+                                    <c:choose>
+                                        <c:when test="${ageRating eq '전체 관람가'}">
+                                            <c:set var="selectedAgeBadgeLabel" value="ALL"/>
+                                            <c:set var="selectedAgeBadgeClass" value="all"/>
+                                        </c:when>
+                                        <c:when test="${ageRating eq '7세 이상 관람가'}">
+                                            <c:set var="selectedAgeBadgeLabel" value="7"/>
+                                            <c:set var="selectedAgeBadgeClass" value="age7"/>
+                                        </c:when>
+                                        <c:when test="${ageRating eq '12세 이상 관람가'}">
+                                            <c:set var="selectedAgeBadgeLabel" value="12"/>
+                                            <c:set var="selectedAgeBadgeClass" value="age12"/>
+                                        </c:when>
+                                        <c:when test="${ageRating eq '15세 이상 관람가'}">
+                                            <c:set var="selectedAgeBadgeLabel" value="15"/>
+                                            <c:set var="selectedAgeBadgeClass" value="age15"/>
+                                        </c:when>
+                                        <c:when test="${ageRating eq '청소년 관람불가'}">
+                                            <c:set var="selectedAgeBadgeLabel" value="19"/>
+                                            <c:set var="selectedAgeBadgeClass" value="adult"/>
+                                        </c:when>
+                                    </c:choose>
+
                                     <button type="button"
                                             class="content-selected-filter-chip"
                                             data-content-filter-chip
                                             data-filter-name="ageRatings"
                                             data-filter-value="${ageRating}">
+                                        <span class="age-rating-badge is-${selectedAgeBadgeClass}"
+                                              aria-hidden="true">
+                                            <c:out value="${selectedAgeBadgeLabel}"/>
+                                        </span>
                                         <span><c:out value="${ageRating}"/></span>
                                         <span aria-hidden="true">×</span>
                                     </button>
@@ -320,6 +354,42 @@
                                 </c:when>
                             </c:choose>
 
+                            <%--
+                                콘텐츠 연령등급을 이미지 파일 없이 CSS 배지로 표시합니다.
+                                청소년 관람불가는 19, 등급이 없거나 알 수 없는 값은 ? 로 표시합니다.
+                            --%>
+                            <c:set var="ageBadgeLabel" value="?"/>
+                            <c:set var="ageBadgeClass" value="unknown"/>
+                            <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+                            <c:choose>
+                                <c:when test="${content.ageRating eq '전체 관람가'}">
+                                    <c:set var="ageBadgeLabel" value="ALL"/>
+                                    <c:set var="ageBadgeClass" value="all"/>
+                                    <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                                </c:when>
+                                <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                                    <c:set var="ageBadgeLabel" value="7"/>
+                                    <c:set var="ageBadgeClass" value="age7"/>
+                                    <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                                </c:when>
+                                <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                                    <c:set var="ageBadgeLabel" value="12"/>
+                                    <c:set var="ageBadgeClass" value="age12"/>
+                                    <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                                </c:when>
+                                <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                                    <c:set var="ageBadgeLabel" value="15"/>
+                                    <c:set var="ageBadgeClass" value="age15"/>
+                                    <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                                </c:when>
+                                <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                                    <c:set var="ageBadgeLabel" value="19"/>
+                                    <c:set var="ageBadgeClass" value="adult"/>
+                                    <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                                </c:when>
+                            </c:choose>
+
                             <article class="content-list-card">
 
                                 <c:url var="detailUrl"
@@ -329,17 +399,6 @@
                                     <c:param name="contentType"
                                              value="${content.contentType}"/>
                                 </c:url>
-
-                                <button type="button"
-                                        class="content-list-favorite-btn"
-                                        data-content-list-favorite
-                                        data-tmdb-id="${content.tmdbId}"
-                                        data-content-type="${content.contentType}"
-                                        aria-pressed="false"
-                                        aria-label="<c:out value='${content.title}'/> 찜하기"
-                                        title="찜하기">
-                                    <span aria-hidden="true">♡</span>
-                                </button>
 
                                 <a class="content-list-card-link"
                                    href="${detailUrl}">
@@ -361,6 +420,14 @@
 
                                         <span class="content-list-type-badge is-${contentBadgeClass}">
                                             <c:out value="${contentBadgeLabel}"/>
+                                        </span>
+
+                                        <span class="content-list-poster-age-rating"
+                                              title="<c:out value='${ageBadgeTitle}'/>">
+                                            <span class="age-rating-badge is-${ageBadgeClass}"
+                                                  aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                <c:out value="${ageBadgeLabel}"/>
+                                            </span>
                                         </span>
 
                                         <c:if test="${not empty content.tmdbScore}">
@@ -400,34 +467,47 @@
                                             </p>
                                         </c:if>
 
-                                        <c:if test="${not empty content.platformList}">
-                                            <div class="content-list-platform-row"
-                                                 aria-label="시청 가능한 OTT 플랫폼">
-
-                                                <c:forEach var="platform"
-                                                           items="${content.platformList}"
-                                                           begin="0"
-                                                           end="2">
-                                                    <c:if test="${not empty platform.logoImage}">
-                                                        <img src="${platform.logoImage}"
-                                                             alt="<c:out value='${platform.platformName}'/>"
-                                                             title="<c:out value='${platform.platformName}'/>"
-                                                             loading="lazy">
-                                                    </c:if>
-                                                </c:forEach>
-
-                                                <c:if test="${fn:length(content.platformList) > 3}">
-                                                    <span class="content-list-platform-more">
-                                                        +${fn:length(content.platformList) - 3}
-                                                    </span>
-                                                </c:if>
-
-                                            </div>
-                                        </c:if>
-
                                     </div>
 
                                 </a>
+
+                                <div class="content-list-card-bottom">
+                                    <c:if test="${not empty content.platformList}">
+                                        <div class="content-list-platform-row"
+                                             aria-label="시청 가능한 OTT 플랫폼">
+
+                                            <c:forEach var="platform"
+                                                       items="${content.platformList}"
+                                                       begin="0"
+                                                       end="2">
+                                                <c:if test="${not empty platform.logoImage}">
+                                                    <img src="${platform.logoImage}"
+                                                         alt="<c:out value='${platform.platformName}'/>"
+                                                         title="<c:out value='${platform.platformName}'/>"
+                                                         loading="lazy">
+                                                </c:if>
+                                            </c:forEach>
+
+                                            <c:if test="${fn:length(content.platformList) > 3}">
+                                                <span class="content-list-platform-more">
+                                                    +${fn:length(content.platformList) - 3}
+                                                </span>
+                                            </c:if>
+
+                                        </div>
+                                    </c:if>
+
+                                    <button type="button"
+                                            class="content-list-favorite-btn"
+                                            data-content-list-favorite
+                                            data-tmdb-id="${content.tmdbId}"
+                                            data-content-type="${content.contentType}"
+                                            aria-pressed="false"
+                                            aria-label="<c:out value='${content.title}'/> 찜하기"
+                                            title="찜하기">
+                                        <span aria-hidden="true">♡</span>
+                                    </button>
+                                </div>
 
                             </article>
 

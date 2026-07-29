@@ -86,11 +86,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
 
-            if (!res.ok) {
-                throw new Error("서버 오류");
-            }
+            // 성공/실패 응답 모두 JSON을 먼저 읽어
+            // 서버에서 내려준 상세 안내 문구를 사용할 수 있게 합니다.
+            const data = await res.json()
+                .catch(() => ({}));
 
-            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(
+                    data.message
+                    || "찜 처리 중 오류가 발생했습니다."
+                );
+            }
 
             if (data.active) {
 

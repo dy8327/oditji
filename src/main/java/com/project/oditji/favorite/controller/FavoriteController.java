@@ -25,6 +25,7 @@ import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.verify.service.VerifyService;
 import com.project.oditji.wish.service.WishService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,13 +37,19 @@ public class FavoriteController {
     private final FavoriteService favoriteService;
     private final ContentService contentService;
     private final WishService wishService;
+    private final VerifyService verifyService;
     private static final Logger log = LoggerFactory.getLogger(FavoriteController.class);
 
-    public FavoriteController(FavoriteService favoriteService, ContentService contentService, WishService wishService) {
+    private static final String ADULT_FAVORITE_RESTRICTION_MESSAGE =
+            "성인인증이 필요한 콘텐츠입니다. 성인인증 후 찜해 주세요.";
+
+    public FavoriteController(FavoriteService favoriteService, ContentService contentService,
+            WishService wishService, VerifyService verifyService) {
 
         this.favoriteService = favoriteService;
         this.contentService = contentService;
         this.wishService = wishService;
+        this.verifyService = verifyService;
     }
 
     @GetMapping("/list")
@@ -80,6 +87,9 @@ public class FavoriteController {
         try {
             favoriteVO.setMemberNo(loginMember.getMemberNo());
 
+            // 이미 찜한 콘텐츠의 해제는 허용하고, 신규 찜일 때만 성인인증을 검사합니다.
+            validateAdultFavoriteAccess(favoriteVO, loginMember);
+
             boolean active = favoriteService.toggleFavorite(favoriteVO);
             Map<String, Object> result = new HashMap<String, Object>();
 
@@ -87,6 +97,12 @@ public class FavoriteController {
             result.put("contentNo", favoriteVO.getContentNo());
 
             return ResponseEntity.ok(result);
+
+        } catch (AdultFavoriteRestrictedException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(createErrorResult(e.getMessage()));
 
         } catch (IllegalArgumentException e) {
 
@@ -128,8 +144,11 @@ public class FavoriteController {
             int contentNo = contentService.prepareContentDetail(tmdbId, contentType);
             FavoriteVO favoriteVO = new FavoriteVO();
 
-            favoriteVO.setMemberNo( loginMember.getMemberNo());
+            favoriteVO.setMemberNo(loginMember.getMemberNo());
             favoriteVO.setContentNo((long) contentNo);
+
+            // 목록 화면에서도 신규 찜일 때 동일한 성인인증 제한을 적용합니다.
+            validateAdultFavoriteAccess(favoriteVO, loginMember);
 
             boolean active = favoriteService.toggleFavorite(favoriteVO);
             Map<String, Object> result = new HashMap<String, Object>();
@@ -140,6 +159,11 @@ public class FavoriteController {
             result.put("contentType", contentType);
 
             return ResponseEntity.ok(result);
+
+        } catch (AdultFavoriteRestrictedException e) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(createErrorResult(e.getMessage()));
 
         } catch (IllegalArgumentException e) {
                 return ResponseEntity
@@ -202,6 +226,70 @@ public class FavoriteController {
             return ResponseEntity
                     .badRequest()
                     .body(createErrorResult(e.getMessage()));
+        }
+    }
+
+    /**
+     * 성인인증이 필요한 콘텐츠의 신규 찜인지 확인합니다.
+     * 이미 찜한 콘텐츠는 찜 해제 요청이므로 제한하지 않습니다.
+     */
+    private void validateAdultFavoriteAccess(FavoriteVO favoriteVO, MemberVO loginMember) {
+
+        if (favoriteVO == null || favoriteVO.getContentNo() == null) {
+            return;
+        }
+
+        if (favoriteService.isFavorite(favoriteVO)) {
+            return;
+        }
+
+        int contentNo = Math.toIntExact(favoriteVO.getContentNo());
+        ContentVO content = contentService.getContentDetail(contentNo);
+
+        if (content == null) {
+            throw new IllegalArgumentException("존재하지 않는 콘텐츠입니다.");
+        }
+
+        if (!isAdultRestrictedContent(content.getAgeRating())) {
+            return;
+        }
+
+        if (!verifyService.isAdultVerified(loginMember.getMemberNo())) {
+            throw new AdultFavoriteRestrictedException(ADULT_FAVORITE_RESTRICTION_MESSAGE);
+        }
+    }
+
+    /**
+     * 콘텐츠 상세페이지의 성인 제한 기준과 동일하게 판별합니다.
+     * 청소년 관람불가, 등급 정보 없음, 값 없음과 해외 미등급 표기를 제한합니다.
+     */
+    private boolean isAdultRestrictedContent(String ageRating) {
+
+        if (ageRating == null || ageRating.isBlank()) {
+            return true;
+        }
+
+        String normalizedAgeRating = ageRating
+                .replaceAll("\\s+", "")
+                .toLowerCase(Locale.ROOT);
+
+        return normalizedAgeRating.contains("청소년관람불가")
+                || normalizedAgeRating.contains("19세")
+                || normalizedAgeRating.contains("등급정보없음")
+                || normalizedAgeRating.contains("notrated")
+                || normalizedAgeRating.contains("unrated")
+                || "nr".equals(normalizedAgeRating);
+    }
+
+    /**
+     * 성인인증이 필요한 신규 찜 요청을 403 응답으로 구분하기 위한 내부 예외입니다.
+     */
+    private static class AdultFavoriteRestrictedException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        AdultFavoriteRestrictedException(String message) {
+            super(message);
         }
     }
 

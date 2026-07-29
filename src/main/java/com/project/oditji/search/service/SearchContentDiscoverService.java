@@ -48,9 +48,14 @@ public class SearchContentDiscoverService {
     private int supplementMaxCandidatesPerType;
 
     private final TmdbApiClient apiClient;
+    private final SearchContentPolicyService contentPolicyService;
 
-    public SearchContentDiscoverService(TmdbApiClient apiClient) {
+    public SearchContentDiscoverService(
+            TmdbApiClient apiClient,
+            SearchContentPolicyService contentPolicyService) {
+
         this.apiClient = apiClient;
+        this.contentPolicyService = contentPolicyService;
     }
 
     public List<CachedContentVO> collectMovieCandidates(
@@ -346,6 +351,12 @@ public class SearchContentDiscoverService {
         return names.isEmpty() ? null : String.join(", ", names);
     }
 
+    /**
+     * TMDB의 adult 플래그와 ODITJI 제목 정책을 함께 적용합니다.
+     *
+     * adult=false로 내려오는 데이터 중에서도 명백한 포르노성 제목은
+     * 공용 정책 서비스에서 추가로 제외합니다.
+     */
     private boolean shouldExcludeContent(JSONObject item) {
         if (item.optBoolean("adult", false)) {
             return true;
@@ -360,23 +371,10 @@ public class SearchContentDiscoverService {
                 item.optString("original_name", null)
         );
 
-        String checkText = normalizeSearchText(
-                safeText(title) + " " + safeText(originalTitle)
+        return contentPolicyService.shouldExcludeByTitle(
+                title,
+                originalTitle
         );
-
-        String[] blockedKeywords = {
-                "성인영화", "에로영화", "에로틱", "포르노", "porn",
-                "porno", "adultmovie", "섹스무비", "무삭제판",
-                "19금에로", "바람난형수님", "형수님참교육"
-        };
-
-        for (String keyword : blockedKeywords) {
-            if (checkText.contains(normalizeSearchText(keyword))) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private List<CachedContentVO> removeDuplicate(List<CachedContentVO> source) {
@@ -389,23 +387,6 @@ public class SearchContentDiscoverService {
             }
         }
         return new ArrayList<CachedContentVO>(map.values());
-    }
-
-    private String normalizeSearchText(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return java.text.Normalizer.normalize(
-                        value,
-                        java.text.Normalizer.Form.NFKC
-                )
-                .toLowerCase(java.util.Locale.ROOT)
-                .replaceAll("[^\\p{L}\\p{N}]", "");
-    }
-
-    private String safeText(String value) {
-        return value == null ? "" : value;
     }
 
     private String firstNonBlank(String first, String second) {

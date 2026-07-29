@@ -16,7 +16,7 @@
     <title>ODITJI | 검색 결과</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/search.css">
+          href="${pageContext.request.contextPath}/css/search.css?v=3">
 
     <script defer
             src="${pageContext.request.contextPath}/js/search.js?v=13"></script>
@@ -34,6 +34,7 @@
                 and empty contentCategories
                 and empty genreCodes
                 and empty providerIds
+                and empty ageRatings
                 and empty productTypes
                 and empty minPrice
                 and empty maxPrice
@@ -44,6 +45,7 @@
        value="${not empty contentCategories
                 or not empty genreCodes
                 or not empty providerIds
+                or not empty ageRatings
                 or not empty productTypes
                 or not empty minPrice
                 or not empty maxPrice
@@ -182,6 +184,47 @@
                             </button>
                         </c:forEach>
 
+                        <c:forEach var="ageRating" items="${ageRatings}">
+                            <c:set var="filterAgeBadgeLabel" value="?"/>
+                            <c:set var="filterAgeBadgeClass" value="unknown"/>
+
+                            <c:choose>
+                                <c:when test="${ageRating eq '전체 관람가'}">
+                                    <c:set var="filterAgeBadgeLabel" value="ALL"/>
+                                    <c:set var="filterAgeBadgeClass" value="all"/>
+                                </c:when>
+                                <c:when test="${ageRating eq '7세 이상 관람가'}">
+                                    <c:set var="filterAgeBadgeLabel" value="7"/>
+                                    <c:set var="filterAgeBadgeClass" value="age7"/>
+                                </c:when>
+                                <c:when test="${ageRating eq '12세 이상 관람가'}">
+                                    <c:set var="filterAgeBadgeLabel" value="12"/>
+                                    <c:set var="filterAgeBadgeClass" value="age12"/>
+                                </c:when>
+                                <c:when test="${ageRating eq '15세 이상 관람가'}">
+                                    <c:set var="filterAgeBadgeLabel" value="15"/>
+                                    <c:set var="filterAgeBadgeClass" value="age15"/>
+                                </c:when>
+                                <c:when test="${ageRating eq '청소년 관람불가'}">
+                                    <c:set var="filterAgeBadgeLabel" value="19"/>
+                                    <c:set var="filterAgeBadgeClass" value="adult"/>
+                                </c:when>
+                            </c:choose>
+
+                            <button type="button"
+                                    class="active-filter-chip"
+                                    data-filter-chip
+                                    data-filter-name="ageRatings"
+                                    data-filter-value="${ageRating}">
+                                <span class="age-rating-badge is-${filterAgeBadgeClass}"
+                                      aria-hidden="true">
+                                    <c:out value="${filterAgeBadgeLabel}"/>
+                                </span>
+                                <c:out value="${ageRating}"/>
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </c:forEach>
+
                         <c:forEach var="provider" items="${providerIds}">
                             <button type="button"
                                     class="active-filter-chip"
@@ -316,6 +359,42 @@
                                         <c:param name="contentType" value="${content.contentType}"/>
                                     </c:url>
 
+                                    <%--
+                                        콘텐츠의 정규화된 연령등급을 카드용 숫자 배지로 변환합니다.
+                                        빈 값이나 알 수 없는 값은 등급 정보 없음(?)으로 처리합니다.
+                                    --%>
+                                    <c:set var="ageBadgeLabel" value="?"/>
+                                    <c:set var="ageBadgeClass" value="unknown"/>
+                                    <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+                                    <c:choose>
+                                        <c:when test="${content.ageRating eq '전체 관람가'}">
+                                            <c:set var="ageBadgeLabel" value="ALL"/>
+                                            <c:set var="ageBadgeClass" value="all"/>
+                                            <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                                        </c:when>
+                                        <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                                            <c:set var="ageBadgeLabel" value="7"/>
+                                            <c:set var="ageBadgeClass" value="age7"/>
+                                            <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                                        </c:when>
+                                        <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                                            <c:set var="ageBadgeLabel" value="12"/>
+                                            <c:set var="ageBadgeClass" value="age12"/>
+                                            <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                                        </c:when>
+                                        <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                                            <c:set var="ageBadgeLabel" value="15"/>
+                                            <c:set var="ageBadgeClass" value="age15"/>
+                                            <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                                        </c:when>
+                                        <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                                            <c:set var="ageBadgeLabel" value="19"/>
+                                            <c:set var="ageBadgeClass" value="adult"/>
+                                            <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                                        </c:when>
+                                    </c:choose>
+
                                     <article class="search-discovery-card">
                                         <a href="${allContentDetailUrl}">
                                             <div class="search-discovery-poster">
@@ -330,6 +409,14 @@
                                                     </c:otherwise>
                                                 </c:choose>
 
+                                                <span class="search-discovery-age-rating"
+                                                      title="<c:out value='${ageBadgeTitle}'/>">
+                                                    <span class="age-rating-badge is-${ageBadgeClass}"
+                                                          aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                        <c:out value="${ageBadgeLabel}"/>
+                                                    </span>
+                                                </span>
+
                                                 <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
                                                     <span class="search-discovery-score">
                                                         ★ <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
@@ -338,16 +425,18 @@
                                             </div>
 
                                             <div class="search-discovery-info">
-                                                <span class="search-content-type-badge">
-                                                    <c:choose>
-                                                        <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
-                                                        <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
-                                                        <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
-                                                        <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
-                                                        <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
-                                                        <c:otherwise>TV</c:otherwise>
-                                                    </c:choose>
-                                                </span>
+                                                <div class="search-discovery-badge-row">
+                                                    <span class="search-content-type-badge">
+                                                        <c:choose>
+                                                            <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
+                                                            <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
+                                                            <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
+                                                            <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
+                                                            <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
+                                                            <c:otherwise>TV</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                </div>
 
                                                 <h3><c:out value="${content.title}"/></h3>
 
@@ -482,6 +571,42 @@
                                     <c:param name="contentType" value="${content.contentType}"/>
                                 </c:url>
 
+                                <%--
+                                    콘텐츠의 정규화된 연령등급을 카드용 숫자 배지로 변환합니다.
+                                    빈 값이나 알 수 없는 값은 등급 정보 없음(?)으로 처리합니다.
+                                --%>
+                                <c:set var="ageBadgeLabel" value="?"/>
+                                <c:set var="ageBadgeClass" value="unknown"/>
+                                <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+                                <c:choose>
+                                    <c:when test="${content.ageRating eq '전체 관람가'}">
+                                        <c:set var="ageBadgeLabel" value="ALL"/>
+                                        <c:set var="ageBadgeClass" value="all"/>
+                                        <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                                    </c:when>
+                                    <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                                        <c:set var="ageBadgeLabel" value="7"/>
+                                        <c:set var="ageBadgeClass" value="age7"/>
+                                        <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                                    </c:when>
+                                    <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                                        <c:set var="ageBadgeLabel" value="12"/>
+                                        <c:set var="ageBadgeClass" value="age12"/>
+                                        <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                                    </c:when>
+                                    <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                                        <c:set var="ageBadgeLabel" value="15"/>
+                                        <c:set var="ageBadgeClass" value="age15"/>
+                                        <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                                    </c:when>
+                                    <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                                        <c:set var="ageBadgeLabel" value="19"/>
+                                        <c:set var="ageBadgeClass" value="adult"/>
+                                        <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                                    </c:when>
+                                </c:choose>
+
                                 <article class="search-content-item">
                                     <a class="search-content-link" href="${contentDetailUrl}">
                                         <div class="search-content-poster">
@@ -495,21 +620,31 @@
                                                     <div class="search-content-no-image">NO IMAGE</div>
                                                 </c:otherwise>
                                             </c:choose>
+
+                                            <span class="search-content-age-rating"
+                                                  title="<c:out value='${ageBadgeTitle}'/>">
+                                                <span class="age-rating-badge is-${ageBadgeClass}"
+                                                      aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                    <c:out value="${ageBadgeLabel}"/>
+                                                </span>
+                                            </span>
                                         </div>
 
                                         <div class="search-content-info">
                                             <div class="search-content-title-row">
                                                 <div>
-                                                    <span class="search-content-type-badge">
-                                                        <c:choose>
-                                                            <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
-                                                            <c:otherwise>TV</c:otherwise>
-                                                        </c:choose>
-                                                    </span>
+                                                    <div class="search-content-badge-row">
+                                                        <span class="search-content-type-badge">
+                                                            <c:choose>
+                                                                <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
+                                                                <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
+                                                                <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
+                                                                <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
+                                                                <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
+                                                                <c:otherwise>TV</c:otherwise>
+                                                            </c:choose>
+                                                        </span>
+                                                    </div>
                                                     <h3 class="search-content-title"><c:out value="${content.title}"/></h3>
                                                 </div>
 
@@ -537,9 +672,6 @@
                                                 </c:if>
                                                 <c:if test="${not empty content.genreText}">
                                                     <span><c:out value="${content.genreText}"/></span>
-                                                </c:if>
-                                                <c:if test="${not empty content.ageRating}">
-                                                    <span><c:out value="${content.ageRating}"/></span>
                                                 </c:if>
                                             </div>
 

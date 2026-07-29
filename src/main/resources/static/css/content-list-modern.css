@@ -233,7 +233,6 @@
 
 .content-list-card-link {
     display: flex;
-    height: 100%;
     flex-direction: column;
     color: inherit;
     text-decoration: none;
@@ -312,6 +311,79 @@
     background: rgba(45, 74, 118, 0.9);
 }
 
+/* =========================================================
+   관람등급 배지
+   - 이미지 파일 대신 CSS로 표현하여 목록/필터에서 같은 모양을 재사용합니다.
+   - 청소년 관람불가는 빨간 19, 등급 정보 없음은 회색 ? 로 구분합니다.
+========================================================= */
+
+.age-rating-badge {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+}
+
+.age-rating-badge.is-all {
+    width: 27px;
+    border-radius: 999px;
+    background: #2f855a;
+    font-size: 7px;
+    letter-spacing: 0;
+}
+
+.age-rating-badge.is-age7 {
+    background: #3478b9;
+}
+
+.age-rating-badge.is-age12 {
+    background: #b88416;
+}
+
+.age-rating-badge.is-age15 {
+    background: #ce6428;
+}
+
+.age-rating-badge.is-adult {
+    background: #c53f45;
+}
+
+.age-rating-badge.is-unknown {
+    background: #555c66;
+}
+
+.content-list-poster-age-rating {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-list-poster-age-rating .age-rating-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 8.5px;
+}
+
+.content-list-poster-age-rating .age-rating-badge.is-all {
+    width: 28px;
+    font-size: 7px;
+}
+
 .content-list-score-badge {
     position: absolute;
     right: 10px;
@@ -337,10 +409,9 @@
 
 .content-list-card-info {
     display: flex;
-    min-height: 112px;
-    flex: 1;
+    min-height: 102px;
     flex-direction: column;
-    padding: 13px 13px 14px;
+    padding: 13px 13px 12px;
 }
 
 .content-list-card-info h2 {
@@ -379,13 +450,21 @@
     white-space: nowrap;
 }
 
+.content-list-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 13px 13px;
+}
+
 .content-list-platform-row {
     display: flex;
     min-height: 24px;
+    flex: 1;
+    min-width: 0;
     align-items: center;
     gap: 5px;
-    margin-top: auto;
-    padding-top: 10px;
 }
 
 .content-list-platform-row img {
@@ -413,13 +492,12 @@
 }
 
 .content-list-favorite-btn {
-    position: absolute;
-    top: 9px;
-    right: 9px;
-    z-index: 5;
+    position: static;
+    z-index: 1;
     display: inline-flex;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -428,7 +506,7 @@
     background: rgba(10, 11, 13, 0.72);
     color: #ffffff;
     font-family: inherit;
-    font-size: 21px;
+    font-size: 19px;
     line-height: 1;
     cursor: pointer;
     backdrop-filter: blur(8px);
@@ -619,6 +697,26 @@
 .content-filter-option:has(input:checked) {
     color: #ffffff;
     font-weight: 700;
+}
+
+.age-rating-option-label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.content-filter-option .age-rating-badge,
+.content-selected-filter-chip .age-rating-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+}
+
+.content-filter-option .age-rating-badge.is-all,
+.content-selected-filter-chip .age-rating-badge.is-all {
+    width: 24px;
+    font-size: 6.5px;
 }
 
 .content-filter-secondary-btn,
@@ -813,7 +911,6 @@
 }
 
 .content-recommend-type {
-    top: 9px;
     left: 9px;
 }
 
