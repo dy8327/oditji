@@ -160,19 +160,19 @@
 
                     <button type="submit" name="action" value="suspend"
                             id="bulkSuspendBtn" class="btn btn-outline" disabled
-                            onclick="return confirmMemberBulkAction('정지');">
+                            onclick="return confirmMemberBulkAction(event, '정지');">
                         정지
                     </button>
 
                     <button type="submit" name="action" value="restore"
                             id="bulkRestoreBtn" class="btn btn-primary" disabled
-                            onclick="return confirmMemberBulkAction('복구');">
+                            onclick="return confirmMemberBulkAction(event, '복구');">
                         복구
                     </button>
 
                     <button type="submit" name="action" value="delete"
                             id="bulkDeleteBtn" class="btn btn-danger" disabled
-                            onclick="return confirmMemberBulkAction('완전삭제');">
+                            onclick="return confirmMemberBulkAction(event, '완전삭제');">
                         탈퇴
                     </button>
 

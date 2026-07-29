@@ -277,7 +277,7 @@
 
                     <button class="btn btn-danger"
                             type="submit"
-                            onclick="return confirm('정말 이 상품의 삭제를 요청하시겠습니까?');">
+                            onclick="return confirmAndSubmit(event, '정말 이 상품의 삭제를 요청하시겠습니까?');">
                         삭제 요청
                     </button>
 

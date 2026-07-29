@@ -30,7 +30,8 @@ pageEncoding="UTF-8"%>
                 <h2>비밀번호 변경</h2>
 
 
-                <form action="${pageContext.request.contextPath}/member/changePw"
+                <form id="changePwForm"
+                action="${pageContext.request.contextPath}/member/changePw"
                 method="post">
 
 
@@ -103,6 +104,9 @@ pageEncoding="UTF-8"%>
  <!--
     수정:기존 member.js의 비밀번호 표시/숨김 기능을 사용한다.
 -->
+<script src="${pageContext.request.contextPath}/js/member.js"></script>
+
+
 <script src="${pageContext.request.contextPath}/js/member.js"></script>
 
 

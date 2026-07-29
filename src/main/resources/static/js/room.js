@@ -237,23 +237,23 @@ document.addEventListener("DOMContentLoaded", function() {
     async function handleEditMessage(message) {
 
         if (roomType !== "PUBLIC") {
-            alert("자유방 메시지만 수정할 수 있습니다.");
+            await showAlert("자유방 메시지만 수정할 수 있습니다.", "warning");
             return;
         }
 
         if (!message || !message.id) {
-            alert("수정할 메시지 정보를 확인할 수 없습니다.");
+            await showAlert("수정할 메시지 정보를 확인할 수 없습니다.", "warning");
             return;
         }
 
         if (!isCurrentUserMessage(message)
                 || message.type !== "CHAT") {
-            alert("본인이 작성한 메시지만 수정할 수 있습니다.");
+            await showAlert("본인이 작성한 메시지만 수정할 수 있습니다.", "warning");
             return;
         }
 
         if (!isWithinEditLimit(message)) {
-            alert("메시지는 전송 후 5분 이내에만 수정할 수 있습니다.");
+            await showAlert("메시지는 전송 후 5분 이내에만 수정할 수 있습니다.", "warning");
             return;
         }
 
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const trimmedMessage = editedMessage.trim();
 
         if (!trimmedMessage) {
-            alert("메시지 내용을 입력해주세요.");
+            await showAlert("메시지 내용을 입력해주세요.", "warning");
             return;
         }
 
@@ -295,22 +295,24 @@ document.addEventListener("DOMContentLoaded", function() {
     async function handleDeleteMessage(message) {
 
         if (roomType !== "PUBLIC") {
-            alert("자유방 메시지만 삭제할 수 있습니다.");
+            await showAlert("자유방 메시지만 삭제할 수 있습니다.", "warning");
             return;
         }
 
         if (!message || !message.id) {
-            alert("삭제할 메시지 정보를 확인할 수 없습니다.");
+            await showAlert("삭제할 메시지 정보를 확인할 수 없습니다.", "warning");
             return;
         }
 
         if (!isCurrentUserMessage(message)
                 || message.type !== "CHAT") {
-            alert("본인이 작성한 메시지만 삭제할 수 있습니다.");
+            await showAlert("본인이 작성한 메시지만 삭제할 수 있습니다.", "warning");
             return;
         }
 
-        if (!confirm("이 메시지를 삭제하시겠습니까?")) {
+        const deleteConfirmed = await showConfirm("이 메시지를 삭제하시겠습니까?", "warning");
+
+        if (!deleteConfirmed) {
             return;
         }
 
@@ -1034,14 +1036,16 @@ document.addEventListener("DOMContentLoaded", function() {
      * 자유방 참가 기록을 삭제하고 채팅방 목록으로 이동합니다.
      * 사업자 번호는 서버 세션에서 확인하므로 요청 본문에는 roomId만 전달합니다.
      */
-    function leaveRoom() {
+    async function leaveRoom() {
 
-        if (!confirm("채팅방에서 나가시겠습니까?")) {
+        const leaveConfirmed = await showConfirm("채팅방에서 나가시겠습니까?", "warning");
+
+        if (!leaveConfirmed) {
             return;
         }
 
         if (!roomId.trim()) {
-            alert("채팅방 정보를 확인할 수 없습니다.");
+            await showAlert("채팅방 정보를 확인할 수 없습니다.", "warning");
             return;
         }
 
@@ -1071,9 +1075,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 throw new Error("서버 응답이 JSON 형식이 아닙니다: " + responseText);
             }
         })
-        .then(function(data) {
+        .then(async function(data) {
 
-            alert(data.message || "채팅방 나가기 처리가 완료되었습니다.");
+            await showAlert(data.message || "채팅방 나가기 처리가 완료되었습니다.", data.success ? "success" : "info");
 
             if (data.success) {
                 location.href = contextPath + "/chat/list";
@@ -1081,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .catch(function(error) {
             console.error("채팅방 나가기 중 오류:", error);
-            alert("채팅방 나가기 중 오류가 발생했습니다.");
+            showAlert("채팅방 나가기 중 오류가 발생했습니다.", "error");
         });
     }
 

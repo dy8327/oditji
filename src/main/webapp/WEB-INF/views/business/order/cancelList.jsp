@@ -19,24 +19,6 @@
         <meta charset="UTF-8">
         <title>ODITJI | 취소/환불 관리</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
-
-        <style>
-        /*
-         * 화면에는 표시하지 않지만 스크린 리더가 읽을 수 있는
-         * 접근성 전용 라벨에 사용하는 공통 스타일입니다.
-         */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-        </style>
     </head>
 
     <body>
@@ -224,7 +206,7 @@
                                                 <form action="${pageContext.request.contextPath}/business/cancel/approve"
                                                       method="post"
                                                       style="display:inline-block;"
-                                                      onsubmit="return confirm('${item.cancelType == 'FULL' ? '내 사업자 상품 전체를 승인하시겠습니까? 모든 사업자의 승인 완료 후 전액 환불됩니다.' : '부분 취소 요청을 승인하고 환불하시겠습니까?'}');">
+                                                      onsubmit="return confirmAndSubmit(event, '${item.cancelType == 'FULL' ? '내 사업자 상품 전체를 승인하시겠습니까? 모든 사업자의 승인 완료 후 전액 환불됩니다.' : '부분 취소 요청을 승인하고 환불하시겠습니까?'}');">
 
                                                     <input type="hidden"
                                                            name="cancelNo"
@@ -259,7 +241,7 @@
                                                 <form action="${pageContext.request.contextPath}/business/cancel/reject"
                                                       method="post"
                                                       style="display:inline-block; margin-left: 8px;"
-                                                      onsubmit="return confirm('취소 요청을 반려하시겠습니까?');">
+                                                      onsubmit="return confirmAndSubmit(event, '취소 요청을 반려하시겠습니까?');">
 
                                                     <input type="hidden"
                                                            name="cancelNo"

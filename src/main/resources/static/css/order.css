@@ -2275,3 +2275,19 @@
     border-top: 1px solid var(--oditji-border);
   }
 }
+
+/*
+ * SonarQube 접근성 이슈 대응:
+ * 화면 디자인은 유지하면서 label을 보조 기술에 제공한다.
+ */
+.order-accessibility-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

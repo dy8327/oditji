@@ -36,7 +36,7 @@ export async function sendMessage(
     const noticeRoom = roomType === "NOTICE";
 
     if (noticeRoom && !isAdmin) {
-        alert("공지방에서는 관리자만 메시지를 작성할 수 있습니다.");
+        await showAlert("공지방에서는 관리자만 메시지를 작성할 수 있습니다.", "warning");
         return false;
     }
 
@@ -61,7 +61,7 @@ export async function sendMessage(
     } catch (error) {
 
         console.error("메시지 전송 실패:", error);
-        alert("메시지 전송에 실패했습니다.");
+        await showAlert("메시지 전송에 실패했습니다.", "error");
         return false;
     }
 }
@@ -76,12 +76,12 @@ export async function sendMessage(
 export async function updateMessage(roomId, messageId, newMessage) {
 
     if (!roomId || !roomId.trim() || !messageId || !messageId.trim()) {
-        alert("수정할 메시지 정보를 확인할 수 없습니다.");
+        await showAlert("수정할 메시지 정보를 확인할 수 없습니다.", "warning");
         return false;
     }
 
     if (!newMessage || newMessage.trim() === "") {
-        alert("메시지 내용을 입력해주세요.");
+        await showAlert("메시지 내용을 입력해주세요.", "warning");
         return false;
     }
 
@@ -101,7 +101,7 @@ export async function updateMessage(roomId, messageId, newMessage) {
     } catch (error) {
 
         console.error("메시지 수정 실패:", error);
-        alert("메시지 수정에 실패했습니다.");
+        await showAlert("메시지 수정에 실패했습니다.", "error");
         return false;
     }
 }
@@ -112,7 +112,7 @@ export async function updateMessage(roomId, messageId, newMessage) {
 export async function deleteMessage(roomId, messageId) {
 
     if (!roomId || !roomId.trim() || !messageId || !messageId.trim()) {
-        alert("삭제할 메시지 정보를 확인할 수 없습니다.");
+        await showAlert("삭제할 메시지 정보를 확인할 수 없습니다.", "warning");
         return false;
     }
 
@@ -127,7 +127,7 @@ export async function deleteMessage(roomId, messageId) {
     } catch (error) {
 
         console.error("메시지 삭제 실패:", error);
-        alert("메시지 삭제에 실패했습니다.");
+        await showAlert("메시지 삭제에 실패했습니다.", "error");
         return false;
     }
 }

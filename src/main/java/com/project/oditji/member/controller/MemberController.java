@@ -834,6 +834,7 @@ public class MemberController {
                 @RequestParam("newPassword") String newPassword,
                 @RequestParam("confirmPassword") String confirmPassword,
                 HttpSession session,
+                RedirectAttributes redirectAttributes,
                 Model model) {
 
 
@@ -842,7 +843,6 @@ public class MemberController {
 
 
         if (memberNo == null) {
-
                 return "redirect:/member/findPw";
         }
 
@@ -865,6 +865,12 @@ public class MemberController {
 
 
         session.removeAttribute("pwChangeMemberNo");
+
+
+        redirectAttributes.addFlashAttribute(
+                "message",
+                "비밀번호가 변경되었습니다."
+        );
 
 
         return "redirect:/member/login";

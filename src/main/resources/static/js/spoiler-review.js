@@ -3,18 +3,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // [추가] 서버에서 전달한 중복 리뷰 안내 메시지를 알림으로 표시한다.
   if (reviewAlertMessage && reviewAlertMessage.dataset.message) {
-    alert(reviewAlertMessage.dataset.message);
+    showAlert(reviewAlertMessage.dataset.message, "info");
   }
 
   const reviewWriteBox = document.getElementById("reviewWriteBox");
   const reviewWriteForm = document.getElementById("contentReviewWriteForm");
 
   if (reviewWriteForm) {
-    reviewWriteForm.addEventListener("submit", function (event) {
+    reviewWriteForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
       // [추가] 본인 리뷰가 이미 있는 경우 서버 요청 전에 중복 작성을 차단한다.
       if (reviewWriteBox && reviewWriteBox.dataset.hasMyReview === "true") {
-        event.preventDefault();
-        alert("계정 하나당 리뷰 1개만 작성이 가능합니다");
+        await showAlert("계정 하나당 리뷰 1개만 작성이 가능합니다", "warning");
         return;
       }
 
@@ -22,12 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // [추가] 스포일러 체크가 없는 경우 등록 의사를 한 번 더 확인한다.
       if (spoilerCheckbox && !spoilerCheckbox.checked) {
-        const confirmed = confirm("스포일러 포함 체크를 안하셨습니다. 그대로 등록하시겠습니까?");
+        const confirmed = await showConfirm("스포일러 포함 체크를 안하셨습니다. 그대로 등록하시겠습니까?", "warning");
 
         if (!confirmed) {
-          event.preventDefault();
+          return;
         }
       }
+
+      reviewWriteForm.submit();
     });
   }
 
@@ -68,28 +71,36 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (editForm) {
-      editForm.addEventListener("submit", function (event) {
+      editForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
         const spoilerCheckbox = editForm.querySelector('input[name="spoilerYn"]');
 
         // [추가] 수정 시에도 스포일러 체크가 없으면 수정 의사를 확인한다.
         if (spoilerCheckbox && !spoilerCheckbox.checked) {
-          const confirmed = confirm("스포일러 포함 체크를 안하셨습니다. 그대로 등록하시겠습니까?");
+          const confirmed = await showConfirm("스포일러 포함 체크를 안하셨습니다. 그대로 등록하시겠습니까?", "warning");
 
           if (!confirmed) {
-            event.preventDefault();
+            return;
           }
         }
+
+        editForm.submit();
       });
     }
 
     if (deleteForm) {
-      deleteForm.addEventListener("submit", function (event) {
+      deleteForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
         // [추가] 리뷰가 즉시 삭제되는 것을 방지하기 위해 삭제 여부를 확인한다.
-        const confirmed = confirm("작성한 리뷰를 삭제하시겠습니까?");
+        const confirmed = await showConfirm("작성한 리뷰를 삭제하시겠습니까?", "warning");
 
         if (!confirmed) {
-          event.preventDefault();
+          return;
         }
+
+        deleteForm.submit();
       });
     }
   });
@@ -102,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * 이벤트 위임 방식으로 처리하여
    * 리뷰 영역이 수정된 이후에도 정상적으로 동작한다.
    */
-  document.addEventListener("click", function (event) {
+  document.addEventListener("click", async function (event) {
     const spoilerOpenButton = event.target.closest("[data-spoiler-open]");
 
     if (!spoilerOpenButton) {
@@ -120,7 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const confirmed = confirm("스포일러가 포함되어 있습니다. 내용을 확인하시겠습니까?");
+    const confirmed = await showConfirm("스포일러가 포함되어 있습니다. 내용을 확인하시겠습니까?", "info");
 
     if (!confirmed) {
       return;

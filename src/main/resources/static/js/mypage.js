@@ -9,11 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
   if (body.dataset.errorMessage) {
-    alert(body.dataset.errorMessage);
+    showAlert(body.dataset.errorMessage, "error");
   }
 
   if (body.dataset.message) {
-    alert(body.dataset.message);
+    showAlert(body.dataset.message, "info");
   }
 
   const modals = {
@@ -174,37 +174,35 @@ document.addEventListener("DOMContentLoaded", () => {
        MEMBER UPDATE VALIDATION
     ========================================================= */
 
-  memberForm?.addEventListener("submit", (e) => {
+  memberForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
     const nickname = nicknameInput?.value.trim() ?? "";
     const email = emailInput?.value.trim() ?? "";
     const socialMember = memberForm.socialMember.value === "true";
 
     if (!isValidNickname(nickname)) {
-      alert("닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.");
+      await showAlert("닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.", "warning");
       nicknameInput?.focus();
-      e.preventDefault();
       return;
     }
 
     if (nickname !== originalNickname && (!nicknameChecked || checkedNickname !== nickname)) {
-      alert("변경한 닉네임의 중복확인을 해주세요.");
+      await showAlert("변경한 닉네임의 중복확인을 해주세요.", "warning");
       nicknameInput?.focus();
-      e.preventDefault();
       return;
     }
 
     if (!socialMember) {
       if (!isValidEmail(email)) {
-        alert("올바른 이메일 형식으로 입력해주세요.");
+        await showAlert("올바른 이메일 형식으로 입력해주세요.", "warning");
         emailInput?.focus();
-        e.preventDefault();
         return;
       }
 
       if (email !== originalEmail && (!emailChecked || checkedEmail !== email)) {
-        alert("변경한 이메일의 중복확인을 해주세요.");
+        await showAlert("변경한 이메일의 중복확인을 해주세요.", "warning");
         emailInput?.focus();
-        e.preventDefault();
         return;
       }
 
@@ -214,24 +212,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (newPw !== "" || newPwCheck !== "") {
         if (currentPw === "") {
-          alert("현재 비밀번호를 입력해주세요.");
-          e.preventDefault();
+          await showAlert("현재 비밀번호를 입력해주세요.", "warning");
           return;
         }
 
         if (!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$/.test(newPw)) {
-          alert("새 비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자로 입력해주세요.");
-          e.preventDefault();
+          await showAlert("새 비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자로 입력해주세요.", "warning");
           return;
         }
 
         if (newPw !== newPwCheck) {
-          alert("새 비밀번호가 일치하지 않습니다.");
-          e.preventDefault();
+          await showAlert("새 비밀번호가 일치하지 않습니다.", "warning");
           return;
         }
       }
     }
+
+    memberForm.submit();
   });
 
   /* =========================================================
@@ -307,14 +304,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateMypageOttCount();
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       const checkedCount = optionList ? optionList.querySelectorAll('input[name="ottList"]:checked').length : 0;
 
       const selectedNoOtt = !!(noOttCheckbox && noOttCheckbox.checked);
 
       if (checkedCount === 0 && !selectedNoOtt) {
-        alert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.");
         e.preventDefault();
+        await showAlert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.", "warning");
       }
     });
   }
@@ -326,21 +323,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteForm = document.getElementById("deleteForm");
   const deleteConfirmInput = document.getElementById("deleteConfirmInput");
 
-  deleteForm?.addEventListener("submit", (e) => {
+  deleteForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
     const confirmText = deleteConfirmInput?.value.trim() ?? "";
 
     if (confirmText !== "탈퇴하겠습니다") {
-      alert("탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요.");
+      showAlert("탈퇴하려면 '탈퇴하겠습니다'를 정확히 입력해주세요.", "warning");
       deleteConfirmInput?.focus();
-      e.preventDefault();
       return;
     }
 
-    const confirmed = confirm("정말 회원을 탈퇴하시겠습니까?\n" + "탈퇴 후 7일 동안 복구할 수 있으며, 이후 데이터가 삭제됩니다.");
+    const confirmed = await showConfirm(
+      "정말 회원을 탈퇴하시겠습니까?\n" + "탈퇴 후 7일 동안 복구할 수 있으며, 이후 데이터가 삭제됩니다.",
+      "warning"
+    );
 
     if (!confirmed) {
-      e.preventDefault();
+      return;
     }
+
+    deleteForm.submit();
   });
 
   /* =========================================================
@@ -433,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return result === "Y";
     } catch (error) {
       console.error(error);
-      alert(`${label} 중복확인 중 오류가 발생했습니다.`);
+      await showAlert(`${label} 중복확인 중 오류가 발생했습니다.`, "error");
       return null;
     }
   }

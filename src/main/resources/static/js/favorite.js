@@ -66,8 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.status === 401) {
 
-                const moveLogin = confirm(
-                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+                const moveLogin = await showConfirm(
+                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                    "info"
                 );
 
                 if (moveLogin) {
@@ -134,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
 
             console.error(err);
-            alert("찜 처리 중 오류가 발생했습니다.");
+            await showAlert("찜 처리 중 오류가 발생했습니다.", "error");
 
         } finally {
 

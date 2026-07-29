@@ -152,13 +152,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const successMessage = document.body.dataset.successMessage;
 
   if (successMessage) {
-    alert(successMessage);
+    showAlert(successMessage, "success");
   }
 
   const errorMessage = document.body.dataset.errorMessage;
 
   if (errorMessage) {
-    alert(errorMessage);
+    showAlert(errorMessage, "error");
   }
 
   /*
@@ -563,7 +563,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!selected) {
         event.preventDefault();
 
-        alert("이벤트에 연결할 상품을 선택해주세요.");
+        showAlert("이벤트에 연결할 상품을 선택해주세요.", "warning");
       }
     });
   }
@@ -583,10 +583,67 @@ document.addEventListener("DOMContentLoaded", function () {
     navigator.clipboard
       .writeText(accountNumber)
       .then(function () {
-        alert("계좌번호가 복사되었습니다.");
+        showAlert("계좌번호가 복사되었습니다.", "success");
       })
       .catch(function () {
-        alert("계좌번호를 복사하지 못했습니다.");
+        showAlert("계좌번호를 복사하지 못했습니다.", "error");
       });
+  };
+
+  window.chooseContent = function (button) {
+
+    const mode = button.dataset.mode;
+    const title = button.dataset.title;
+
+    if (!window.opener
+            || window.opener.closed) {
+
+        showAlert("상품 등록 또는 수정 화면을 찾을 수 없습니다.", "warning");
+        return;
+    }
+
+    /*
+     * 상품 등록 화면은 JSONL의 TMDB 식별값을 전달합니다.
+     * 이 단계에서는 CONTENT 테이블에 저장하지 않습니다.
+     */
+    if (mode === "register") {
+
+        const tmdbId = Number(button.dataset.tmdbId);
+        const contentType = button.dataset.contentType;
+
+        if (!Number.isFinite(tmdbId)
+                || tmdbId <= 0
+                || !contentType) {
+
+            showAlert("올바른 콘텐츠 정보가 아닙니다.", "warning");
+            return;
+        }
+
+        window.opener.selectCachedContent(
+            tmdbId,
+            contentType,
+            title
+        );
+
+        window.close();
+        return;
+    }
+
+    /* 상품 수정 화면은 기존 CONTENT_NO 방식을 유지합니다. */
+    const contentNo = Number(button.dataset.contentNo);
+
+    if (!Number.isFinite(contentNo)
+            || contentNo <= 0) {
+
+        showAlert("올바른 콘텐츠 번호가 아닙니다.", "warning");
+        return;
+    }
+
+    window.opener.selectContent(
+        contentNo,
+        title
+    );
+
+    window.close();
   };
 });
