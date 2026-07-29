@@ -15,7 +15,7 @@
 <title>추천 콘텐츠 | ODITJI</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/content-more.css">
+      href="${pageContext.request.contextPath}/css/content-more.css?v=2">
 
 <script defer
         src="${pageContext.request.contextPath}/js/recommend-content.js"></script>

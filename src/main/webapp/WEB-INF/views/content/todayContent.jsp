@@ -15,7 +15,7 @@
 <title>오늘의 콘텐츠 | ODITJI</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/content-more.css">
+      href="${pageContext.request.contextPath}/css/content-more.css?v=2">
 </head>
 
 <body>
@@ -59,6 +59,39 @@
                     <c:forEach var="content"
                                items="${todayContentList}">
 
+                        <%-- 콘텐츠 연령등급 배지 표시용 값 설정 --%>
+                        <c:set var="ageBadgeLabel" value="?"/>
+                        <c:set var="ageBadgeClass" value="unknown"/>
+                        <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+                        <c:choose>
+                            <c:when test="${content.ageRating eq '전체 관람가'}">
+                                <c:set var="ageBadgeLabel" value="ALL"/>
+                                <c:set var="ageBadgeClass" value="all"/>
+                                <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                                <c:set var="ageBadgeLabel" value="7"/>
+                                <c:set var="ageBadgeClass" value="age7"/>
+                                <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                                <c:set var="ageBadgeLabel" value="12"/>
+                                <c:set var="ageBadgeClass" value="age12"/>
+                                <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                                <c:set var="ageBadgeLabel" value="15"/>
+                                <c:set var="ageBadgeClass" value="age15"/>
+                                <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                                <c:set var="ageBadgeLabel" value="19"/>
+                                <c:set var="ageBadgeClass" value="adult"/>
+                                <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                            </c:when>
+                        </c:choose>
+
                         <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
                            class="content-more-card">
 
@@ -94,6 +127,14 @@
 
                                     </c:choose>
 
+                                </span>
+
+                                <span class="content-more-age-rating"
+                                      title="${ageBadgeTitle}">
+                                    <span class="content-age-rating-badge is-${ageBadgeClass}"
+                                          aria-label="${ageBadgeTitle}">
+                                        ${ageBadgeLabel}
+                                    </span>
                                 </span>
 
                             </div>

@@ -6,7 +6,41 @@
       HTML 숫자 엔티티 &#11088;로 변경했습니다.
     - 브라우저가 HTML 엔티티를 실제 별 문자로 변환하므로
       JSP 파일 저장 인코딩과 무관하게 안정적으로 표시됩니다.
+    - 연령등급 배지를 포스터 오른쪽 위에 표시합니다.
 --%>
+
+<%-- 콘텐츠 연령등급 배지 표시용 값 설정 --%>
+<c:set var="ageBadgeLabel" value="?"/>
+<c:set var="ageBadgeClass" value="unknown"/>
+<c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+<c:choose>
+    <c:when test="${content.ageRating eq '전체 관람가'}">
+        <c:set var="ageBadgeLabel" value="ALL"/>
+        <c:set var="ageBadgeClass" value="all"/>
+        <c:set var="ageBadgeTitle" value="전체 관람가"/>
+    </c:when>
+    <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+        <c:set var="ageBadgeLabel" value="7"/>
+        <c:set var="ageBadgeClass" value="age7"/>
+        <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+    </c:when>
+    <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+        <c:set var="ageBadgeLabel" value="12"/>
+        <c:set var="ageBadgeClass" value="age12"/>
+        <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+    </c:when>
+    <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+        <c:set var="ageBadgeLabel" value="15"/>
+        <c:set var="ageBadgeClass" value="age15"/>
+        <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+    </c:when>
+    <c:when test="${content.ageRating eq '청소년 관람불가'}">
+        <c:set var="ageBadgeLabel" value="19"/>
+        <c:set var="ageBadgeClass" value="adult"/>
+        <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+    </c:when>
+</c:choose>
 
 <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
    class="recommend-card">
@@ -50,6 +84,14 @@
 
             </c:choose>
 
+        </span>
+
+        <span class="recommend-card-age-rating"
+              title="${ageBadgeTitle}">
+            <span class="content-age-rating-badge is-${ageBadgeClass}"
+                  aria-label="${ageBadgeTitle}">
+                ${ageBadgeLabel}
+            </span>
         </span>
 
     </div>
