@@ -552,42 +552,60 @@
             <input type="checkbox" name="ageRatings" value="전체 관람가"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${allAgeChecked}">checked</c:if>>
-            <span>전체 관람가</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-all" aria-hidden="true">ALL</span>
+                <span>전체 관람가</span>
+            </span>
         </label>
 
         <label class="content-filter-option">
             <input type="checkbox" name="ageRatings" value="7세 이상 관람가"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${age7Checked}">checked</c:if>>
-            <span>7세 이상</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-age7" aria-hidden="true">7</span>
+                <span>7세 이상</span>
+            </span>
         </label>
 
         <label class="content-filter-option">
             <input type="checkbox" name="ageRatings" value="12세 이상 관람가"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${age12Checked}">checked</c:if>>
-            <span>12세 이상</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-age12" aria-hidden="true">12</span>
+                <span>12세 이상</span>
+            </span>
         </label>
 
         <label class="content-filter-option">
             <input type="checkbox" name="ageRatings" value="15세 이상 관람가"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${age15Checked}">checked</c:if>>
-            <span>15세 이상</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-age15" aria-hidden="true">15</span>
+                <span>15세 이상</span>
+            </span>
         </label>
 
         <label class="content-filter-option">
             <input type="checkbox" name="ageRatings" value="청소년 관람불가"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${adultAgeChecked}">checked</c:if>>
-            <span>청소년 관람불가</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-adult" aria-hidden="true">19</span>
+                <span>청소년 관람불가</span>
+            </span>
         </label>
 
         <label class="content-filter-option">
             <input type="checkbox" name="ageRatings" value="등급 정보 없음"
                    data-content-filter-item data-content-filter-group="ageRating"
                    <c:if test="${unknownAgeChecked}">checked</c:if>>
-            <span>등급 정보 없음</span>
+            <span class="age-rating-option-label">
+                <span class="age-rating-badge is-unknown" aria-hidden="true">?</span>
+                <span>등급 정보 없음</span>
+            </span>
         </label>
 
     </section>

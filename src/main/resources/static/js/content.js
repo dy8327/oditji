@@ -187,9 +187,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (loginRequired) {
 
                     const moveLogin =
-                        confirm(
+                        await showConfirm(
                             "찜 기능은 로그인 후 이용할 수 있습니다.\n"
-                            + "로그인 페이지로 이동하시겠습니까?"
+                            + "로그인 페이지로 이동하시겠습니까?",
+                            "info"
                         );
 
                     if (moveLogin) {
@@ -223,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!Number.isInteger(contentNo)
                         || contentNo <= 0) {
 
-                    alert("콘텐츠 정보를 확인할 수 없습니다.");
+                    await showAlert("콘텐츠 정보를 확인할 수 없습니다.", "warning");
                     return;
                 }
 
@@ -264,21 +265,33 @@ document.addEventListener("DOMContentLoaded", () => {
                         favoriteButton.dataset.loginRequired =
                             "true";
 
-                        alert(
+                        await showAlert(
                             "로그인 정보가 만료되었습니다. "
-                            + "다시 로그인해주세요."
+                            + "다시 로그인해주세요.",
+                            "warning"
                         );
 
                         return;
                     }
 
                     /*
-                     * 2xx 이외 응답은 오류로 처리합니다.
+                     * 성공/실패 응답 모두 JSON 메시지를 먼저 읽습니다.
+                     * 성인인증이 필요한 콘텐츠의 신규 찜이 차단된 경우
+                     * 서버가 내려준 안내 문구를 그대로 사용자에게 보여줍니다.
+                     */
+                    const result =
+                        await response.json()
+                            .catch(() => ({}));
+
+                    /*
+                     * 2xx 이외 응답은 서버의 안내 메시지를 포함해
+                     * 오류로 처리합니다.
                      */
                     if (!response.ok) {
 
                         throw new Error(
-                            `찜 처리 실패: ${response.status}`
+                            result.message
+                            || `찜 처리 실패: ${response.status}`
                         );
                     }
 
@@ -286,8 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
                      * 서버가 반환한 현재 찜 상태를 읽어
                      * 버튼의 문구와 스타일을 변경합니다.
                      */
-                    const result =
-                        await response.json();
 
                     updateFavoriteButton(
                         favoriteButton,
@@ -301,8 +312,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         error
                     );
 
-                    alert(
-                        "찜 처리 중 오류가 발생했습니다."
+                    await showAlert(
+                        "찜 처리 중 오류가 발생했습니다.",
+                        "error"
                     );
 
                 } finally {

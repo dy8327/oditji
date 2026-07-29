@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const parsedOrderNo = Number(orderNo);
 
     if (!Number.isInteger(parsedOrderNo) || parsedOrderNo <= 0) {
-      alert("취소할 주문 번호가 올바르지 않습니다.");
+      showAlert("취소할 주문 번호가 올바르지 않습니다.", "warning");
       return;
     }
 
@@ -182,13 +182,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function openItemCancelModal(orderItemNo, productName, payMethod) {
     if (portOneTestMode && isEasyPay(payMethod)) {
-      alert("테스트 채널의 간편결제 주문은 상품 부분 취소를 지원하지 않습니다.\n" + "주문 전체 취소를 이용해주세요.");
+      showAlert("테스트 채널의 간편결제 주문은 상품 부분 취소를 지원하지 않습니다.\n" + "주문 전체 취소를 이용해주세요.", "warning");
       return;
     }
     const parsedOrderItemNo = Number(orderItemNo);
 
     if (!Number.isInteger(parsedOrderItemNo) || parsedOrderItemNo <= 0) {
-      alert("취소할 주문 상품 번호가 올바르지 않습니다.");
+      showAlert("취소할 주문 상품 번호가 올바르지 않습니다.", "warning");
       return;
     }
 
@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const confirmed = window.confirm(confirmMessage);
+    const confirmed = await showConfirm(confirmMessage, "warning");
 
     if (!confirmed) {
       return;
@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
         throw new Error(data.message || "취소 요청에 실패했습니다.");
       }
 
-      alert(data.message || "취소 요청이 등록되었습니다.");
+      await showAlert(data.message || "취소 요청이 등록되었습니다.", "success");
 
       window.location.href = contextPath + (data.redirectUrl || "/order/list");
     } catch (error) {

@@ -27,7 +27,7 @@ function selectContent(contentNo, title) {
     if (!Number.isFinite(convertedContentNo)
             || convertedContentNo <= 0) {
 
-        alert("올바른 콘텐츠 번호가 아닙니다.");
+        showAlert("올바른 콘텐츠 번호가 아닙니다.", "warning");
         return;
     }
 
@@ -330,7 +330,7 @@ function updateFileName(input) {
 /* =========================================================
    상품 수정 폼 검증
 ========================================================= */
-function validateProductForm() {
+function validateProductForm(event) {
 
     const productName =
             document.getElementById(
@@ -370,20 +370,20 @@ function validateProductForm() {
 
     if (!productName) {
 
-        alert("상품명을 입력해주세요.");
+        showAlert("상품명을 입력해주세요.", "warning");
         return false;
     }
 
     if (!productType) {
 
-        alert("상품 종류를 선택해주세요.");
+        showAlert("상품 종류를 선택해주세요.", "warning");
         return false;
     }
 
     if (!Number.isFinite(price)
             || price <= 0) {
 
-        alert("가격은 1원 이상 입력해주세요.");
+        showAlert("가격은 1원 이상 입력해주세요.", "warning");
         return false;
     }
 
@@ -391,8 +391,9 @@ function validateProductForm() {
             || discountRate < 0
             || discountRate > 100) {
 
-        alert(
-            "할인율은 0부터 100 사이로 입력해주세요."
+        showAlert(
+            "할인율은 0부터 100 사이로 입력해주세요.",
+            "warning"
         );
 
         return false;
@@ -401,17 +402,18 @@ function validateProductForm() {
     if (!Number.isFinite(stock)
             || stock < 0) {
 
-        alert("재고는 0개 이상 입력해주세요.");
+        showAlert("재고는 0개 이상 입력해주세요.", "warning");
         return false;
     }
 
     if (!contentNo) {
 
-        alert("관련 콘텐츠를 선택해주세요.");
+        showAlert("관련 콘텐츠를 선택해주세요.", "warning");
         return false;
     }
 
-    return confirm(
+    return confirmAndSubmit(
+        event,
         "상품 수정을 요청하시겠습니까?"
     );
 }

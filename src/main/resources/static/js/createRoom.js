@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (!roomName.value) {
             event.preventDefault();
-            alert("채팅방 이름을 입력해주세요.");
+            showAlert("채팅방 이름을 입력해주세요.", "warning");
             roomName.focus();
         }
     }

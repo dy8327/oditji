@@ -377,9 +377,11 @@ function initializeCartButton() {
                 if (!Number.isInteger(productNo)
                         || productNo <= 0) {
 
-                    alert(
-                        "상품 정보가 올바르지 않습니다."
-                    );
+                    await Swal.fire({
+                        icon: "warning",
+                        text: "상품 정보가 올바르지 않습니다.",
+                        confirmButtonText: "확인"
+                    });
 
                     return;
                 }
@@ -448,10 +450,13 @@ function initializeCartButton() {
 
                     if (!result.success) {
 
-                        alert(
-                            result.message
-                                || "주문서 작성에 실패했습니다."
-                        );
+                        await Swal.fire({
+                            icon: "error",
+                            text:
+                                result.message
+                                || "주문서 작성에 실패했습니다.",
+                            confirmButtonText: "확인"
+                        });
 
                         return;
                     }
@@ -467,9 +472,11 @@ function initializeCartButton() {
 
                     console.error(error);
 
-                    alert(
-                        "바로 구매 처리 중 오류가 발생했습니다."
-                    );
+                    await Swal.fire({
+                        icon: "error",
+                        text: "바로 구매 처리 중 오류가 발생했습니다.",
+                        confirmButtonText: "확인"
+                    });
 
                 } finally {
 

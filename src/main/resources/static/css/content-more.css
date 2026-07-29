@@ -63,6 +63,49 @@ a {
     font-size: 13px;
 }
 
+
+.content-age-rating-badge {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 8.5px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+}
+
+.content-age-rating-badge.is-all {
+    width: 28px;
+    border-radius: 999px;
+    background: #2f855a;
+    font-size: 7px;
+}
+
+.content-age-rating-badge.is-age7 {
+    background: #3478b9;
+}
+
+.content-age-rating-badge.is-age12 {
+    background: #b88416;
+}
+
+.content-age-rating-badge.is-age15 {
+    background: #ce6428;
+}
+
+.content-age-rating-badge.is-adult {
+    background: #c53f45;
+}
+
+.content-age-rating-badge.is-unknown {
+    background: #555c66;
+}
+
 .selected-platform-section {
     margin-bottom: 32px;
     padding: 20px;
@@ -204,6 +247,14 @@ a {
     color: #ffffff;
     font-size: 10px;
     font-weight: 700;
+}
+
+.content-more-age-rating,
+.recommend-card-age-rating {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    z-index: 2;
 }
 
 .content-more-info {

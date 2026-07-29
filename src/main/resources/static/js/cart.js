@@ -105,10 +105,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (quantity >= stock) {
 
-                alert(
+                await showAlert(
                     "현재 재고는 "
                     + stock
-                    + "개입니다."
+                    + "개입니다.",
+                    "warning"
                 );
 
                 return;
@@ -168,10 +169,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (quantity > stock) {
 
-            alert(
+            await showAlert(
                 "현재 재고는 "
                 + stock
-                + "개입니다."
+                + "개입니다.",
+                "warning"
             );
 
             quantity =
@@ -209,8 +211,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const confirmed =
-            confirm(
-                "이 상품을 장바구니에서 삭제할까요?"
+            await showConfirm(
+                "이 상품을 장바구니에서 삭제할까요?",
+                "warning"
             );
 
         if (!confirmed) {
@@ -249,8 +252,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             console.error(error);
 
-            alert(
-                "상품 삭제 중 오류가 발생했습니다."
+            await showAlert(
+                "상품 삭제 중 오류가 발생했습니다.",
+                "error"
             );
 
         } finally {
@@ -277,16 +281,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (selectedChecks.length === 0) {
 
-                    alert(
-                        "삭제할 상품을 선택해주세요."
+                    await showAlert(
+                        "삭제할 상품을 선택해주세요.",
+                        "warning"
                     );
 
                     return;
                 }
 
                 const confirmed =
-                    confirm(
-                        "선택한 상품을 장바구니에서 삭제할까요?"
+                    await showConfirm(
+                        "선택한 상품을 장바구니에서 삭제할까요?",
+                        "warning"
                     );
 
                 if (!confirmed) {
@@ -343,8 +349,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     console.error(error);
 
-                    alert(
-                        "선택 상품 삭제 중 오류가 발생했습니다."
+                    await showAlert(
+                        "선택 상품 삭제 중 오류가 발생했습니다.",
+                        "error"
                     );
 
                 } finally {
@@ -373,8 +380,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (selectedChecks.length === 0) {
 
-                    alert(
-                        "주문할 상품을 선택해주세요."
+                    await showAlert(
+                        "주문할 상품을 선택해주세요.",
+                        "warning"
                     );
 
                     return;
@@ -421,8 +429,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     console.error(error);
 
-                    alert(
-                        "주문서 작성 중 오류가 발생했습니다."
+                    await showAlert(
+                        "주문서 작성 중 오류가 발생했습니다.",
+                        "error"
                     );
 
                 } finally {
@@ -498,8 +507,9 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value =
                 previousQuantity;
 
-            alert(
-                "수량 변경 중 오류가 발생했습니다."
+            await showAlert(
+                "수량 변경 중 오류가 발생했습니다.",
+                "error"
             );
 
         } finally {
@@ -738,9 +748,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        alert(
+        showAlert(
             result.message
-                || "요청 처리에 실패했습니다."
+                || "요청 처리에 실패했습니다.",
+            "error"
         );
     }
 

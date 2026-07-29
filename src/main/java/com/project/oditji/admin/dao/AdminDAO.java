@@ -448,6 +448,34 @@ public class AdminDAO {
         return sqlSession.update("updateBusinessGrade", param);
     }
 
+    /*
+     * [사업자 자동 등급 관리 추가]
+     * 결제 완료 후 누적 실매출을 기준으로 현재 등급보다 높은 등급으로 자동 승급한다.
+     */
+    public int updateBusinessGradesBySales() {
+        return sqlSession.update("updateBusinessGradesBySales");
+    }
+
+    /*
+     * [사업자 등급별 수수료율 정산 반영 추가]
+     * 관리자가 수동으로 등급을 변경한 사업자의 이번 달 미확정 정산을
+     * 변경된 등급의 수수료율로 다시 계산한다.
+     */
+    public int updateCurrentMonthSettlementRateByBusiness(Long businessNo) {
+        return sqlSession.update(
+                "updateCurrentMonthSettlementRateByBusiness",
+                businessNo);
+    }
+
+    /*
+     * [사업자 자동 등급별 수수료율 정산 반영 추가]
+     * 자동 승급 처리 후 모든 사업자의 이번 달 미확정 정산을
+     * 현재 등급 정책에 맞게 다시 계산한다.
+     */
+    public int updateCurrentMonthSettlementRates() {
+        return sqlSession.update("updateCurrentMonthSettlementRates");
+    }
+
     public int updateBusinessStatus(Long businessNo, String status) {
         Map<String, Object> param = new HashMap<>();
         param.put("businessNo", businessNo);

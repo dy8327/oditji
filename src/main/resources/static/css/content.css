@@ -1927,7 +1927,7 @@ body.content-ott-modal-open {
 }
 
 body.content-ott-modal-open .content-list-left-sidebar {
-  z-index: 2147483646;
+  z-index: 100000;
 }
 
 body.content-ott-modal-open .content-filter-form {
@@ -1940,7 +1940,7 @@ body.content-ott-modal-open .content-filter-form {
 
 .content-ott-modal {
   position: fixed;
-  z-index: 2147483647;
+  z-index: 100001;
   inset: 0;
   display: flex;
   width: 100vw;

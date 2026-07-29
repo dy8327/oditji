@@ -66,8 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.status === 401) {
 
-                const moveLogin = confirm(
-                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+                const moveLogin = await showConfirm(
+                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                    "info"
                 );
 
                 if (moveLogin) {
@@ -85,11 +86,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
 
-            if (!res.ok) {
-                throw new Error("서버 오류");
-            }
+            // 성공/실패 응답 모두 JSON을 먼저 읽어
+            // 서버에서 내려준 상세 안내 문구를 사용할 수 있게 합니다.
+            const data = await res.json()
+                .catch(() => ({}));
 
-            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(
+                    data.message
+                    || "찜 처리 중 오류가 발생했습니다."
+                );
+            }
 
             if (data.active) {
 
@@ -134,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
 
             console.error(err);
-            alert("찜 처리 중 오류가 발생했습니다.");
+            await showAlert("찜 처리 중 오류가 발생했습니다.", "error");
 
         } finally {
 
