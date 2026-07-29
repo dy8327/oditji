@@ -26,31 +26,35 @@ public class GlobalExceptionHandler {
         return createErrorResponse(request, HttpStatus.NOT_FOUND, "요청한 페이지를 찾을 수 없습니다.", "error/404");
     }
 
+    // 잘못된 요청 및 입력값 예외
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Object handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
+
+        if (log.isWarnEnabled()) {
+            log.warn("잘못된 요청 - {} {} : {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        }
+
+        return createErrorResponse(request, HttpStatus.BAD_REQUEST, e.getMessage(),"error/500");
+    }
+
     // 처리되지 않은 전체 예외
     @ExceptionHandler(Exception.class)
     public Object handleException(Exception e, HttpServletRequest request) {
         if (log.isErrorEnabled()) {
             log.error("처리되지 않은 오류 발생 - {} {}", request.getMethod(), request.getRequestURI(), e);
         }
-        return createErrorResponse(request, HttpStatus.INTERNAL_SERVER_ERROR,
-                "요청 처리 중 오류가 발생했습니다.", "error/500");
+        return createErrorResponse(request, HttpStatus.INTERNAL_SERVER_ERROR,"요청 처리 중 오류가 발생했습니다.", "error/500");
     }
 
-    private Object createErrorResponse(
-            HttpServletRequest request,
-            HttpStatus status,
-            String message,
-            String viewName) {
+    private Object createErrorResponse(HttpServletRequest request, HttpStatus status, String message, String viewName) {
 
         if (isJsonRequest(request)) {
-            return ResponseEntity.status(status).body(Map.of(
-                    "success", false,
-                    "message", message
-            ));
+            return ResponseEntity.status(status).body(Map.of("success", false, "message", message));
         }
 
         ModelAndView modelAndView = new ModelAndView(viewName);
         modelAndView.setStatus(status);
+        modelAndView.addObject("errorMessage", message);
         return modelAndView;
     }
 
@@ -59,8 +63,6 @@ public class GlobalExceptionHandler {
         String accept = request.getHeader("Accept");
         String requestedWith = request.getHeader("X-Requested-With");
 
-        return uri.contains("/api/")
-                || "XMLHttpRequest".equalsIgnoreCase(requestedWith)
-                || accept != null && accept.contains(MediaType.APPLICATION_JSON_VALUE);
+        return uri.contains("/api/") || "XMLHttpRequest".equalsIgnoreCase(requestedWith) || accept != null && accept.contains(MediaType.APPLICATION_JSON_VALUE);
     }
 }
