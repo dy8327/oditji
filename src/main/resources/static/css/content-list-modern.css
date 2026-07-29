@@ -312,6 +312,74 @@
     background: rgba(45, 74, 118, 0.9);
 }
 
+/* =========================================================
+   관람등급 배지
+   - 이미지 파일 대신 CSS로 표현하여 목록/필터에서 같은 모양을 재사용합니다.
+   - 청소년 관람불가는 빨간 19, 등급 정보 없음은 회색 ? 로 구분합니다.
+========================================================= */
+
+.age-rating-badge {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+}
+
+.age-rating-badge.is-all {
+    width: 27px;
+    border-radius: 999px;
+    background: #2f855a;
+    font-size: 7px;
+    letter-spacing: 0;
+}
+
+.age-rating-badge.is-age7 {
+    background: #3478b9;
+}
+
+.age-rating-badge.is-age12 {
+    background: #b88416;
+}
+
+.age-rating-badge.is-age15 {
+    background: #ce6428;
+}
+
+.age-rating-badge.is-adult {
+    background: #c53f45;
+}
+
+.age-rating-badge.is-unknown {
+    background: #555c66;
+}
+
+.content-list-age-rating {
+    display: inline-flex;
+    align-items: center;
+}
+
+.content-list-age-rating .age-rating-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+}
+
+.content-list-age-rating .age-rating-badge.is-all {
+    width: 24px;
+    font-size: 6.5px;
+}
+
 .content-list-score-badge {
     position: absolute;
     right: 10px;
@@ -619,6 +687,26 @@
 .content-filter-option:has(input:checked) {
     color: #ffffff;
     font-weight: 700;
+}
+
+.age-rating-option-label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.content-filter-option .age-rating-badge,
+.content-selected-filter-chip .age-rating-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+}
+
+.content-filter-option .age-rating-badge.is-all,
+.content-selected-filter-chip .age-rating-badge.is-all {
+    width: 24px;
+    font-size: 6.5px;
 }
 
 .content-filter-secondary-btn,

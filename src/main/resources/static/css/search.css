@@ -172,6 +172,24 @@
     font-weight: 700;
 }
 
+.age-rating-option-label {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.filter-option .age-rating-badge {
+    width: 19px;
+    height: 19px;
+    font-size: 8px;
+}
+
+.filter-option .age-rating-badge.is-all {
+    width: 25px;
+    font-size: 6.5px;
+}
+
 .genre-extra-options[hidden] {
     display: none !important;
 }
@@ -475,6 +493,19 @@
     line-height: 1;
 }
 
+/* 관람등급 필터 칩의 숫자 배지는 삭제(X) 아이콘 스타일을 상속하지 않도록 별도 지정합니다. */
+.active-filter-chip .age-rating-badge {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+    font-size: 8px;
+}
+
+.active-filter-chip .age-rating-badge.is-all {
+    width: 24px;
+    font-size: 6.5px;
+}
+
 .active-filter-reset {
     flex: 0 0 auto;
     color: var(--search-text-muted) !important;
@@ -640,6 +671,23 @@
     padding: 12px 2px 0;
 }
 
+.search-discovery-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-discovery-badge-row .age-rating-badge {
+    width: 21px;
+    height: 21px;
+    font-size: 8.5px;
+}
+
+.search-discovery-badge-row .age-rating-badge.is-all {
+    width: 27px;
+    font-size: 7px;
+}
+
 .search-discovery-info h3 {
     overflow: hidden;
     margin: 7px 0 0;
@@ -752,6 +800,64 @@
     color: #c8ccd1;
     font-size: 9px;
     font-weight: 800;
+}
+
+/* =========================================================
+   관람등급 배지
+   - 콘텐츠 목록과 동일한 색상 체계를 사용합니다.
+   - 청소년 관람불가는 19, 등급 정보 없음은 ? 로 구분합니다.
+========================================================= */
+
+.age-rating-badge {
+    display: inline-flex;
+    width: 21px;
+    height: 21px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 8.5px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+}
+
+.age-rating-badge.is-all {
+    width: 27px;
+    border-radius: 999px;
+    background: #2f855a;
+    font-size: 7px;
+    letter-spacing: 0;
+}
+
+.age-rating-badge.is-age7 {
+    background: #3478b9;
+}
+
+.age-rating-badge.is-age12 {
+    background: #b88416;
+}
+
+.age-rating-badge.is-age15 {
+    background: #ce6428;
+}
+
+.age-rating-badge.is-adult {
+    background: #c53f45;
+}
+
+.age-rating-badge.is-unknown {
+    background: #555c66;
+}
+
+.search-content-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .search-content-title {
