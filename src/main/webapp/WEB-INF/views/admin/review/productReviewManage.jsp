@@ -233,13 +233,13 @@
                                         </td>
 
                                         <td>${review.reviewNo}</td>
-                                        <td>${review.nickname}</td>
-                                        <td>${review.productName}</td>
+                                        <td><c:out value="${review.nickname}"/></td>
+                                        <td><c:out value="${review.productName}"/></td>
                                         <td>${review.rating}점</td>
 
                                         <td>
                                             <div class="table-text-clamp">
-                                                ${review.content}
+                                                <c:out value="${review.content}"/>
                                             </div>
                                         </td>
 
