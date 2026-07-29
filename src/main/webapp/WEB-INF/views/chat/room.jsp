@@ -10,16 +10,20 @@
 <meta charset="UTF-8">
 <title>${room.roomName}</title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room.css">
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=2">
 </head>
-<body>
+<body class="chat-page">
+
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 <div id="chatPageData"
      data-context-path="${pageContext.request.contextPath}"
      data-room-id="${room.roomId}"
      data-room-type="${room.roomType}"
+     data-member-no="${memberNo}"
      data-business-no="${businessNo}"
      data-business-name="${businessName}"
+     data-role="${role}"
      data-admin="${isAdmin}">
 </div>
 
@@ -138,7 +142,7 @@
 </div>
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=3"></script>
 
 </body>
 </html>

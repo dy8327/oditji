@@ -2,6 +2,9 @@ package com.project.oditji.chat.service;
 
 import java.util.List;
 
+import com.project.oditji.chat.vo.ChatNotificationRoomVO;
+import com.project.oditji.chat.vo.ChatParticipantReadVO;
+import com.project.oditji.chat.vo.ChatReadStateVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
 
 public interface ChatService {
@@ -59,4 +62,23 @@ public interface ChatService {
      * 자유방 참가 여부 확인
      */
     boolean isChatRoomMember(String roomId, int businessNo);
+
+    /**
+     * 헤더 알림 계산 대상 채팅방과 현재 사용자의 마지막 읽음 위치를 조회합니다.
+     */
+    List<ChatNotificationRoomVO> getNotificationRoomList(
+            long memberNo,
+            Integer businessNo,
+            boolean admin);
+
+    /**
+     * 메시지별 미열람 인원 계산을 위한 채팅방 참여자 읽음 정보를 조회합니다.
+     */
+    List<ChatParticipantReadVO> getChatParticipantReadList(
+            String roomId);
+
+    /**
+     * 현재 사용자의 채팅방 마지막 읽음 위치를 저장합니다.
+     */
+    boolean saveChatReadState(ChatReadStateVO readState);
 }

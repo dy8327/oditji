@@ -10,9 +10,11 @@
 <meta charset="UTF-8">
 <title>사업자 채팅방</title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room-list.css">
+      href="${pageContext.request.contextPath}/css/chat-room-list.css?v=2">
 </head>
-<body>
+<body class="chat-room-list-page">
+
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 <div class="container">
 
@@ -226,7 +228,7 @@
        value="${pageContext.request.contextPath}">
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/roomList.js"></script>
+        src="${pageContext.request.contextPath}/js/roomList.js?v=2"></script>
 
 </body>
 </html>

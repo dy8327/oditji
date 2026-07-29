@@ -10,9 +10,11 @@
 <meta charset="UTF-8">
 <title>채팅방 생성</title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-create-room.css">
+      href="${pageContext.request.contextPath}/css/chat-create-room.css?v=2">
 </head>
-<body>
+<body class="chat-create-page">
+
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 <div class="create-room-container">
 

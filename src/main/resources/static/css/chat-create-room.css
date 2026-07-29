@@ -3,12 +3,13 @@
  * 관리자에게는 공지방/자유방 선택을 제공하고,
  * 일반 사업자에게는 자유방 생성 화면으로 사용합니다.
  */
-* {
+.create-room-container,
+.create-room-container * {
     box-sizing: border-box;
     font-family: "맑은 고딕", Arial, sans-serif;
 }
 
-body {
+body.chat-create-page {
     margin: 0;
     background: #f5f7f9;
     color: #263238;

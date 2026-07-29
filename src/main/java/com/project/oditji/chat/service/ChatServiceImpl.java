@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.chat.dao.ChatDAO;
+import com.project.oditji.chat.vo.ChatNotificationRoomVO;
+import com.project.oditji.chat.vo.ChatParticipantReadVO;
+import com.project.oditji.chat.vo.ChatReadStateVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
 
 @Service
@@ -204,5 +207,65 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public boolean isChatRoomMember(String roomId, int businessNo) {
         return chatDAO.existsChatRoomMember(roomId, businessNo) > 0;
+    }
+
+    /**
+     * 관리자는 공지방만, 사업자는 공지방과 참가 중인 자유방만
+     * 헤더 채팅 알림 계산 대상으로 조회합니다.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatNotificationRoomVO> getNotificationRoomList(
+            long memberNo,
+            Integer businessNo,
+            boolean admin) {
+
+        return chatDAO.selectNotificationRoomList(
+                memberNo,
+                businessNo,
+                admin ? 1 : 0);
+    }
+
+    /**
+     * 공지방은 승인 사업자 전체를, 자유방은 현재 참가자만 조회합니다.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatParticipantReadVO> getChatParticipantReadList(
+            String roomId) {
+
+        ChatRoomVO room = chatDAO.selectChatRoom(roomId);
+
+        if (room == null) {
+            return List.of();
+        }
+
+        if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+            return chatDAO.selectNoticeRoomParticipantReadList(roomId);
+        }
+
+        return chatDAO.selectPublicRoomParticipantReadList(roomId);
+    }
+
+    /**
+     * 읽음 위치는 뒤로 이동하지 않도록 Mapper의 MERGE 문에서 보호합니다.
+     */
+    @Override
+    @Transactional
+    public boolean saveChatReadState(ChatReadStateVO readState) {
+
+        if (readState == null
+                || readState.getRoomId() == null
+                || readState.getRoomId().isBlank()
+                || readState.getMemberNo() == null
+                || readState.getLastReadMessageId() == null
+                || readState.getLastReadMessageId().isBlank()
+                || readState.getLastReadEpochMs() == null
+                || readState.getLastReadEpochMs() < 0L) {
+
+            return false;
+        }
+
+        return chatDAO.mergeChatReadState(readState) > 0;
     }
 }

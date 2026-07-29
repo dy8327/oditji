@@ -13,8 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.vo.ChatNotificationContextVO;
+import com.project.oditji.chat.vo.ChatNotificationRoomVO;
+import com.project.oditji.chat.vo.ChatParticipantReadVO;
+import com.project.oditji.chat.vo.ChatReadStateVO;
 import com.project.oditji.chat.vo.ChatResponseVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
+import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -23,6 +28,7 @@ import jakarta.servlet.http.HttpSession;
 public class ChatApiController {
 
     private static final long ADMIN_MEMBER_NO = 1L;
+    private static final int ADMIN_BUSINESS_NO = 1;
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROOM_TYPE_NOTICE = "NOTICE";
 
@@ -79,31 +85,128 @@ public class ChatApiController {
             @PathVariable("roomId") String roomId,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
-            return null;
+        ChatRoomVO room = getAccessibleRoom(roomId, session);
+        return room;
+    }
+
+    /**
+     * 공통 헤더의 채팅 알림 계산에 필요한 정보를 반환합니다.
+     *
+     * 헤더 숫자는 미읽은 메시지 총개수가 아니라
+     * 미읽은 메시지가 존재하는 채팅방 개수로 계산합니다.
+     */
+    @GetMapping("/notifications/context")
+    public ChatNotificationContextVO getNotificationContext(
+            HttpSession session) {
+
+        Long memberNo = getSessionMemberNo(session);
+        Integer sessionBusinessNo = getSessionBusinessNo(session);
+        String role = getSessionRole(session);
+        boolean admin = isAdmin(session);
+        Integer notificationBusinessNo = admin
+                ? ADMIN_BUSINESS_NO
+                : sessionBusinessNo;
+
+        if (!hasChatAccess(session) || memberNo == null) {
+            return new ChatNotificationContextVO(
+                    false,
+                    memberNo,
+                    notificationBusinessNo,
+                    role,
+                    List.of());
         }
 
-        ChatRoomVO room = chatService.getChatRoom(roomId);
+        List<ChatNotificationRoomVO> roomList =
+                chatService.getNotificationRoomList(
+                        memberNo,
+                        notificationBusinessNo,
+                        admin);
 
-        if (room == null) {
-            return null;
+        return new ChatNotificationContextVO(
+                true,
+                memberNo,
+                notificationBusinessNo,
+                role,
+                roomList);
+    }
+
+    /**
+     * 채팅방 참여자별 마지막 읽음 위치를 반환합니다.
+     *
+     * 자유방은 현재 CHAT_ROOM_MEMBER 참여자를 사용하고,
+     * 공지방은 승인된 활성 사업자 전체를 논리적 참여자로 사용합니다.
+     */
+    @GetMapping("/rooms/{roomId}/readers")
+    public List<ChatParticipantReadVO> getRoomReaders(
+            @PathVariable("roomId") String roomId,
+            HttpSession session) {
+
+        if (getAccessibleRoom(roomId, session) == null) {
+            return List.of();
         }
 
-        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        return chatService.getChatParticipantReadList(roomId);
+    }
 
-        if (isAdmin(session)) {
-            return noticeRoom ? room : null;
+    /**
+     * 현재 사용자의 채팅방 마지막 읽음 위치를 저장합니다.
+     *
+     * 클라이언트가 전달한 MEMBER_NO는 사용하지 않고
+     * 로그인 세션의 회원 번호만 사용합니다.
+     */
+    @PostMapping("/read")
+    public ChatResponseVO saveReadState(
+            @RequestParam("roomId") String roomId,
+            @RequestParam("lastReadMessageId") String lastReadMessageId,
+            @RequestParam("lastReadEpochMs") long lastReadEpochMs,
+            HttpSession session) {
+
+        Long memberNo = getSessionMemberNo(session);
+
+        if (memberNo == null || !hasChatAccess(session)) {
+            return new ChatResponseVO(
+                    false,
+                    ChatResult.FAIL,
+                    "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.");
         }
 
-        if (noticeRoom) {
-            return room;
+        if (getAccessibleRoom(roomId, session) == null) {
+            return new ChatResponseVO(
+                    false,
+                    ChatResult.FAIL,
+                    "읽음 처리 권한이 없는 채팅방입니다.");
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        if (lastReadMessageId == null
+                || lastReadMessageId.isBlank()
+                || lastReadMessageId.length() > 100
+                || lastReadEpochMs < 0L) {
 
-        return chatService.isChatRoomMember(roomId, businessNo)
-                ? room
-                : null;
+            return new ChatResponseVO(
+                    false,
+                    ChatResult.FAIL,
+                    "마지막 읽음 위치가 올바르지 않습니다.");
+        }
+
+        ChatReadStateVO readState = new ChatReadStateVO(
+                roomId,
+                memberNo,
+                lastReadMessageId,
+                lastReadEpochMs);
+
+        boolean saved = chatService.saveChatReadState(readState);
+
+        if (saved) {
+            return new ChatResponseVO(
+                    true,
+                    ChatResult.SUCCESS,
+                    "채팅 읽음 위치를 저장했습니다.");
+        }
+
+        return new ChatResponseVO(
+                false,
+                ChatResult.FAIL,
+                "채팅 읽음 위치 저장에 실패했습니다.");
     }
 
     /**
@@ -289,16 +392,51 @@ public class ChatApiController {
     }
 
     /**
+     * 현재 로그인 사용자가 접근할 수 있는 채팅방인지 확인합니다.
+     */
+    private ChatRoomVO getAccessibleRoom(
+            String roomId,
+            HttpSession session) {
+
+        if (!hasChatAccess(session)) {
+            return null;
+        }
+
+        ChatRoomVO room = chatService.getChatRoom(roomId);
+
+        if (room == null) {
+            return null;
+        }
+
+        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
+
+        if (isAdmin(session)) {
+            return noticeRoom ? room : null;
+        }
+
+        if (noticeRoom) {
+            return room;
+        }
+
+        Integer businessNo = getSessionBusinessNo(session);
+
+        return businessNo != null
+                && chatService.isChatRoomMember(roomId, businessNo)
+                        ? room
+                        : null;
+    }
+
+    /**
      * 관리자 여부를 MEMBER_NO=1, ROLE=ADMIN 기준으로 확인합니다.
      */
     private boolean isAdmin(HttpSession session) {
 
-        Long memberNo = getLongSessionValue(session, "memberNo");
-        Object role = session.getAttribute("role");
+        Long memberNo = getSessionMemberNo(session);
+        String role = getSessionRole(session);
 
         return memberNo != null
-                && memberNo == ADMIN_MEMBER_NO
-                && ROLE_ADMIN.equals(String.valueOf(role));
+                && memberNo.longValue() == ADMIN_MEMBER_NO
+                && ROLE_ADMIN.equals(role);
     }
 
     /**
@@ -317,6 +455,52 @@ public class ChatApiController {
 
         if (value instanceof Number number) {
             return number.intValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * 로그인 방식별 세션 키 차이를 고려해 회원 번호를 조회합니다.
+     */
+    private Long getSessionMemberNo(HttpSession session) {
+
+        Long memberNo = getLongSessionValue(session, "memberNo");
+
+        if (memberNo != null) {
+            return memberNo;
+        }
+
+        memberNo = getLongSessionValue(session, "loginMemberNo");
+
+        if (memberNo != null) {
+            return memberNo;
+        }
+
+        Object loginMember = session.getAttribute("loginMember");
+
+        if (loginMember instanceof MemberVO member) {
+            return member.getMemberNo();
+        }
+
+        return null;
+    }
+
+    /**
+     * 로그인 역할을 세션 문자열 또는 로그인 회원 객체에서 조회합니다.
+     */
+    private String getSessionRole(HttpSession session) {
+
+        Object role = session.getAttribute("role");
+
+        if (role != null && !String.valueOf(role).isBlank()) {
+            return String.valueOf(role);
+        }
+
+        Object loginMember = session.getAttribute("loginMember");
+
+        if (loginMember instanceof MemberVO member) {
+            return member.getRole();
         }
 
         return null;

@@ -1,8 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<c:set var="headerMemberNo"
+       value="${not empty sessionScope.memberNo ? sessionScope.memberNo : sessionScope.loginMember.memberNo}" />
+<c:set var="headerRole"
+       value="${not empty sessionScope.role ? sessionScope.role : sessionScope.loginMember.role}" />
+<c:set var="headerChatEnabled"
+       value="${headerRole eq 'ADMIN' or (headerRole eq 'BUSINESS' and not empty sessionScope.businessNo)}" />
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=6">
-<script defer src="${pageContext.request.contextPath}/js/common.js?v=7"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=8">
+<script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
 
 <header class="header">
     <div class="header-container">
@@ -111,16 +119,85 @@
                 </button>
             </form>
         </div>
+
         <div class="header-right">
             <c:choose>
                 <c:when test="${empty sessionScope.loginMember}">
                     <a href="${pageContext.request.contextPath}/member/join" class="join-btn">회원가입</a>
                     <a href="${pageContext.request.contextPath}/member/login" class="login-btn">로그인</a>
                 </c:when>
+
                 <c:otherwise>
+                    <%--
+                        관리자와 사업자에게만 통합 알림 영역을 표시합니다.
+                        일반 회원에게는 알림 벨과 채팅 진입 링크를 출력하지 않습니다.
+                        현재는 채팅 알림을 연결하고, 이후 환불·배송 알림 스크립트가
+                        동일 알림 센터에 별도 source로 등록할 수 있도록 구성합니다.
+                    --%>
+                    <c:if test="${headerChatEnabled}">
+                        <div class="notification-menu"
+                         id="notificationMenu"
+                         data-context-path="${pageContext.request.contextPath}"
+                         data-member-no="${headerMemberNo}"
+                         data-business-no="${sessionScope.businessNo}"
+                         data-role="${headerRole}"
+                         data-chat-enabled="${headerChatEnabled}">
+
+                        <button type="button"
+                                class="icon-btn notification-btn"
+                                id="notificationBtn"
+                                aria-label="알림 열기"
+                                aria-controls="notificationDropdown"
+                                aria-expanded="false">
+                            <img src="${pageContext.request.contextPath}/images/alarm.svg"
+                                 alt=""
+                                 class="notification-icon"
+                                 aria-hidden="true">
+                            <span class="notification-badge"
+                                  id="notificationBadge"
+                                  aria-label="새 알림 0개"
+                                  hidden></span>
+                        </button>
+
+                        <div class="notification-dropdown"
+                             id="notificationDropdown"
+                             aria-label="알림 상세">
+
+                            <div class="notification-dropdown-header">
+                                <strong>알림</strong>
+                                <span id="notificationSummary">새 알림이 없습니다.</span>
+                            </div>
+
+                            <div class="notification-list"
+                                 id="notificationList"
+                                 aria-live="polite">
+                                <div class="notification-empty">
+                                    새로운 알림이 없습니다.
+                                </div>
+                            </div>
+
+                            <%--
+                                알림은 실제 채팅 메시지를 삭제하지 않고,
+                                현재 로그인 사용자의 마지막 읽음 위치를 일괄 갱신합니다.
+                            --%>
+                            <div class="notification-dropdown-footer">
+                                <button type="button"
+                                        class="notification-clear-all-btn"
+                                        id="notificationClearAllBtn"
+                                        hidden>
+                                    알림 모두 읽음
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    </c:if>
+
                     <%-- 일반 사용자 장바구니 --%>
                     <c:if test="${sessionScope.loginMember.role ne 'ADMIN' and empty sessionScope.businessNo}">
-                        <a href="${pageContext.request.contextPath}/cart" class="icon-btn" title="장바구니" aria-label="장바구니">🛒</a>
+                        <a href="${pageContext.request.contextPath}/cart"
+                           class="icon-btn"
+                           title="장바구니"
+                           aria-label="장바구니">🛒</a>
                     </c:if>
 
                     <div class="profile-menu">
@@ -159,6 +236,10 @@
                 </c:otherwise>
             </c:choose>
         </div>
-        
     </div>
 </header>
+
+<c:if test="${not empty sessionScope.loginMember and headerChatEnabled}">
+    <script type="module"
+            src="${pageContext.request.contextPath}/js/header-notification.js?v=3"></script>
+</c:if>

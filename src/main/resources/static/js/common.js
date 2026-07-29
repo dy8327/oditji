@@ -22,6 +22,22 @@ function initProfileDropdown() {
 
     profileBtn.addEventListener("click", (event) => {
         event.stopPropagation();
+
+        const notificationDropdown = document.getElementById(
+            "notificationDropdown"
+        );
+        const notificationButton = document.getElementById(
+            "notificationBtn"
+        );
+
+        if (notificationDropdown) {
+            notificationDropdown.classList.remove("open");
+        }
+
+        if (notificationButton) {
+            notificationButton.setAttribute("aria-expanded", "false");
+        }
+
         const opened = dropdown.classList.toggle("open");
         profileBtn.setAttribute("aria-expanded", String(opened));
     });

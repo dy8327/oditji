@@ -15,15 +15,17 @@ import {
 /**
  * Firestore에 채팅 메시지를 저장합니다.
  *
- * 공지방에서는 관리자만 호출할 수 있도록 room.jsp에서도 제한하지만,
- * Firebase Authentication 적용 전 단계이므로 이 함수에서도 한 번 더 검사합니다.
+ * 기존 senderBusinessNo는 과거 메시지 및 화면 권한 호환을 위해 유지하고,
+ * 읽음 처리와 향후 사용자 유형 확장을 위해 senderMemberNo와 senderRole을 추가합니다.
  */
 export async function sendMessage(
     roomId,
+    memberNo,
     businessNo,
     senderName,
     message,
     roomType,
+    role,
     isAdmin
 ) {
 
@@ -43,8 +45,10 @@ export async function sendMessage(
         await addDoc(
             collection(db, "chatRooms", roomId, "messages"),
             {
+                senderMemberNo: Number(memberNo),
                 senderBusinessNo: Number(businessNo),
                 senderName: senderName,
+                senderRole: role || (isAdmin ? "ADMIN" : "BUSINESS"),
                 message: message.trim(),
                 sendTime: serverTimestamp(),
                 type: noticeRoom ? "NOTICE" : "CHAT",
@@ -68,11 +72,6 @@ export async function sendMessage(
  * sendTime은 변경하지 않기 때문에 기존 시간순 정렬 및
  * 같은 시간 메시지 묶음 기준은 그대로 유지됩니다.
  * 수정 여부를 화면에 계속 표시할 수 있도록 edited와 editedAt을 저장합니다.
- *
- * @param {string} roomId 채팅방 ID
- * @param {string} messageId 수정할 Firestore 메시지 문서 ID
- * @param {string} newMessage 수정할 메시지 내용
- * @returns {Promise<boolean>} 수정 성공 여부
  */
 export async function updateMessage(roomId, messageId, newMessage) {
 
@@ -109,15 +108,6 @@ export async function updateMessage(roomId, messageId, newMessage) {
 
 /**
  * Firestore에서 특정 채팅 메시지를 완전히 삭제합니다.
- *
- * 실제 삭제 메뉴 노출 여부는 room.js에서
- * "자유방 + 본인이 작성한 일반 메시지" 조건으로 제한합니다.
- * 현재 개발용 Firestore 규칙에서는 delete가 허용되어 있으므로
- * 문서 ID를 이용해 해당 메시지 문서를 직접 삭제합니다.
- *
- * @param {string} roomId 채팅방 ID
- * @param {string} messageId 삭제할 Firestore 메시지 문서 ID
- * @returns {Promise<boolean>} 삭제 성공 여부
  */
 export async function deleteMessage(roomId, messageId) {
 
@@ -152,8 +142,10 @@ export async function sendSystemMessage(roomId, message) {
         await addDoc(
             collection(db, "chatRooms", roomId, "messages"),
             {
+                senderMemberNo: 0,
                 senderBusinessNo: 0,
                 senderName: "SYSTEM",
+                senderRole: "SYSTEM",
                 message: message,
                 sendTime: serverTimestamp(),
                 type: "SYSTEM"
@@ -194,6 +186,18 @@ export function listenMessages(roomId, callback) {
             console.error("메시지 실시간 조회 실패:", error);
         }
     );
+}
+
+/**
+ * Firestore Timestamp를 epoch millisecond로 변환합니다.
+ */
+export function getTimestampMillis(timestamp) {
+
+    if (!timestamp || typeof timestamp.toMillis !== "function") {
+        return 0;
+    }
+
+    return timestamp.toMillis();
 }
 
 /**
