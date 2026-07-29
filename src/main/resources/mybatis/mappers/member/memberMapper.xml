@@ -272,13 +272,30 @@
 
     <select id="findPw" resultType="com.project.oditji.member.vo.MemberVO">
 
-        SELECT MEMBER_PW
+        SELECT
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_NAME,
+            EMAIL
+
         FROM MEMBER
+
         WHERE MEMBER_ID = #{memberId}
         AND MEMBER_NAME = #{memberName}
         AND EMAIL = #{email}
 
     </select>
+
+    <update id="updatePassword">
+
+        UPDATE MEMBER
+
+        SET MEMBER_PW = #{password},
+            UPDATED_AT = SYSDATE
+
+        WHERE MEMBER_NO = #{memberNo}
+
+    </update>
 
     <!--
         SNS(카카오) 자동가입 회원 이메일 등록/수정

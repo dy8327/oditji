@@ -772,27 +772,102 @@ public class MemberController {
                 return "member/findPw";
         }
 
+        @GetMapping("/changePw")
+        public String changePw(HttpSession session) {
+
+        Long memberNo =
+                (Long) session.getAttribute("pwChangeMemberNo");
+
+
+        if (memberNo == null) {
+
+                return "redirect:/member/findPw";
+        }
+
+
+        return "member/changePw";
+        }
+
         @PostMapping("/findPw")
         public String findPwPost(
-                        @RequestParam("memberId") String memberId,
-                        @RequestParam("memberName") String memberName,
-                        @RequestParam("email") String email, Model model) {
+                @RequestParam("memberId") String memberId,
+                @RequestParam("memberName") String memberName,
+                @RequestParam("email") String email,
+                HttpSession session,
+                Model model) {
 
-                MemberVO memberVO = new MemberVO();
-                memberVO.setMemberId(memberId);
-                memberVO.setMemberName(memberName);
-                memberVO.setEmail(email);
 
-                MemberVO result = memberService.findPw(memberVO);
+        MemberVO memberVO = new MemberVO();
 
-                if (result != null) {
-                        model.addAttribute("findPwResult", "회원 정보가 확인되었습니다. 비밀번호 재설정이 필요합니다.");
+        memberVO.setMemberId(memberId);
+        memberVO.setMemberName(memberName);
+        memberVO.setEmail(email);
 
-                } else {
-                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
-                }
+
+        MemberVO result = memberService.findPw(memberVO);
+
+
+        if (result != null) {
+
+                // 비밀번호 변경할 회원 번호 저장
+                session.setAttribute(
+                "pwChangeMemberNo",
+                result.getMemberNo()
+                );
+
+                return "redirect:/member/changePw";
+
+
+        } else {
+
+                model.addAttribute(
+                "errorMessage",
+                "일치하는 회원 정보가 없습니다."
+                );
 
                 return "member/findPw";
+        }
+        }
+
+        @PostMapping("/changePw")
+        public String changePwPost(
+                @RequestParam("newPassword") String newPassword,
+                @RequestParam("confirmPassword") String confirmPassword,
+                HttpSession session,
+                Model model) {
+
+
+        Long memberNo =
+                (Long) session.getAttribute("pwChangeMemberNo");
+
+
+        if (memberNo == null) {
+
+                return "redirect:/member/findPw";
+        }
+
+
+        if (!newPassword.equals(confirmPassword)) {
+
+                model.addAttribute(
+                        "errorMessage",
+                        "비밀번호가 일치하지 않습니다."
+                );
+
+                return "member/changePw";
+        }
+
+
+        memberService.updatePassword(
+                memberNo,
+                newPassword
+        );
+
+
+        session.removeAttribute("pwChangeMemberNo");
+
+
+        return "redirect:/member/login";
         }
 
         /**

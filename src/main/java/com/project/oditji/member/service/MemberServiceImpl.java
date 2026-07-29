@@ -429,6 +429,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public void updatePassword(Long memberNo, String password) {
+
+        memberDAO.updatePassword(memberNo, password);
+
+    }
+
+    @Override
     @Transactional
     public void updateSnsMemberEmail(Long memberNo, String email) {
 

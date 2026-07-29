@@ -87,22 +87,6 @@
 
         </form>
 
-        <c:if test="${not empty findPwResult}">
-
-            <div class="result-box">
-
-                <h3>조회 결과</h3>
-
-                <p>
-                    회원님의 비밀번호는
-                    <strong>${findPwResult}</strong>
-                    입니다.
-                </p>
-
-            </div>
-
-        </c:if>
-
         <c:if test="${not empty errorMessage}">
 
             <div class="error-text">
