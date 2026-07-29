@@ -26,13 +26,12 @@ public class WebConfig implements WebMvcConfigurer {
         this.accessLogInterceptor = accessLogInterceptor;
     }
 
-    /*
-     * 관리자 페이지 접근 권한 체크 + 전체 접속 로그(ACCESS_LOG) 기록
-     */
+    // 관리자 페이지 접근 권한 체크 + 전체 접속 로그(ACCESS_LOG) 기록
+  
 @Override
         public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(adminCheckInterceptor)
-                .addPathPatterns("/admin", "/admin/**");
+                .addPathPatterns("/admin", "/admin/**", "/payment/list");
 
         registry.addInterceptor(businessCheckInterceptor)
                 .addPathPatterns(
