@@ -145,8 +145,12 @@ public class GlobalExceptionHandler {
     private boolean isJsonRequest(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String accept = request.getHeader("Accept");
+        String contentType = request.getContentType();
         String requestedWith = request.getHeader("X-Requested-With");
 
-        return uri.contains("/api/") || "XMLHttpRequest".equalsIgnoreCase(requestedWith) || accept != null && accept.contains(MediaType.APPLICATION_JSON_VALUE);
+        return uri.contains("/api/")
+                || "XMLHttpRequest".equalsIgnoreCase(requestedWith)
+                || accept != null && accept.contains(MediaType.APPLICATION_JSON_VALUE)
+                || contentType != null && contentType.contains(MediaType.APPLICATION_JSON_VALUE);
     }
 }
