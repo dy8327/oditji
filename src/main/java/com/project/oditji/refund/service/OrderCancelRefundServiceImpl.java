@@ -111,9 +111,9 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         notificationService.createForCancelGroupBusinesses(
                 cancelGroupNo,
-                "CANCEL_REQUEST",
-                "주문 취소 요청",
-                "주문번호 " + orderNo + "의 전체 취소 요청이 접수되었습니다.",
+                "REFUND_REQUESTED",
+                "전체 취소/환불 요청",
+                "주문번호 " + orderNo + "의 전체 취소/환불 요청이 접수되었습니다.",
                 "/business/cancel/list",
                 "CANCEL",
                 cancelGroupNo);
@@ -188,10 +188,10 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         notificationService.createForCancelGroupBusinesses(
                 cancelGroupNo,
-                "CANCEL_REQUEST",
-                "상품 부분 취소 요청",
+                "REFUND_REQUESTED",
+                "상품 취소/환불 요청",
                 "주문번호 " + item.getOrderNo()
-                        + "의 상품 부분 취소 요청이 접수되었습니다.",
+                        + "의 상품 취소/환불 요청이 접수되었습니다.",
                 "/business/cancel/list",
                 "CANCEL",
                 cancelGroupNo);
@@ -296,6 +296,16 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
+
+        notificationService.createForMember(
+                request.getMemberNo(),
+                "REFUND_COMPLETED",
+                "환불이 완료되었습니다.",
+                "주문번호 " + request.getOrderNo()
+                        + "의 전체 취소 및 결제 환불이 완료되었습니다.",
+                "/order/list",
+                "CANCEL",
+                request.getCancelGroupNo());
     }
 
     private void approvePartialCancel(OrderCancelRefundVO request) {
@@ -343,6 +353,17 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
+
+        notificationService.createForMember(
+                request.getMemberNo(),
+                "REFUND_COMPLETED",
+                "환불이 완료되었습니다.",
+                buildProductMessage(
+                        request,
+                        "의 취소 및 결제 환불이 완료되었습니다."),
+                "/order/list",
+                "CANCEL",
+                request.getCancelNo());
     }
 
     /*
@@ -383,6 +404,54 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         orderCancelRefundDAO.updateOrderStatusByItems(request.getOrderNo());
+
+        notificationService.createForMember(
+                request.getMemberNo(),
+                "REFUND_REJECTED",
+                "환불 요청이 반려되었습니다.",
+                buildRefundRejectedMessage(request, normalizedReason),
+                "/order/list",
+                "CANCEL",
+                FULL.equals(request.getCancelType())
+                        ? request.getCancelGroupNo()
+                        : request.getCancelNo());
+    }
+
+    /**
+     * 상품명이 있으면 상품명을 사용하고, 없으면 주문번호를 사용해
+     * 일반 사용자 알림 문구를 생성한다.
+     */
+    private String buildProductMessage(
+            OrderCancelRefundVO request,
+            String suffix) {
+
+        if (request.getProductName() != null
+                && !request.getProductName().isBlank()) {
+            return "‘" + request.getProductName().trim() + "’" + suffix;
+        }
+
+        return "주문번호 " + request.getOrderNo() + suffix;
+    }
+
+    /**
+     * 전체 요청과 상품별 요청을 구분해 반려 사유가 포함된 문구를 생성한다.
+     */
+    private String buildRefundRejectedMessage(
+            OrderCancelRefundVO request,
+            String rejectReason) {
+
+        String targetMessage;
+
+        if (FULL.equals(request.getCancelType())) {
+            targetMessage = "주문번호 " + request.getOrderNo()
+                    + "의 전체 취소/환불 요청이 반려되었습니다.";
+        } else {
+            targetMessage = buildProductMessage(
+                    request,
+                    "의 취소/환불 요청이 반려되었습니다.");
+        }
+
+        return targetMessage + " 반려 사유: " + rejectReason;
     }
 
     private OrderCancelRefundVO createRequestVO(
