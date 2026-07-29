@@ -36,35 +36,51 @@ pageEncoding="UTF-8"%>
 
 
                 <div class="form-group">
-
                     <label for="newPassword">
                         새 비밀번호
                     </label>
 
-                    <input type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    autocomplete="new-password"
-                    required>
+                    <!-- 비밀번호 입력창과 토글 버튼을 감싸는 wrapper 추가 -->
+                    <div class="password-input-wrap">
+                        <input type="password"
+                            id="newPassword"
+                            name="newPassword"
+                            placeholder="영문, 숫자, 특수문자 포함 8~20자"
+                            autocomplete="new-password"
+                            required>
 
+                        <button type="button"
+                                class="password-toggle-btn"
+                                data-target="newPassword"
+                                aria-label="새 비밀번호 표시">
+                            보기
+                        </button>
+                    </div>
                 </div>
 
 
 
                 <div class="form-group">
-
                     <label for="confirmPassword">
                         새 비밀번호 확인
                     </label>
 
-                    <input type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    autocomplete="new-password"
-                    required>
+                    <div class="password-input-wrap">
+                        <input type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            placeholder="비밀번호를 한번 더 입력해 주세요"
+                            autocomplete="new-password"
+                            required>
 
+                        <button type="button"
+                                class="password-toggle-btn"
+                                data-target="confirmPassword"
+                                aria-label="새 비밀번호 확인 표시">
+                            보기
+                        </button>
+                    </div>
                 </div>
-
 
 
                 <button type="submit"
@@ -84,6 +100,11 @@ pageEncoding="UTF-8"%>
 
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
+
+ <!--
+    수정:기존 member.js의 비밀번호 표시/숨김 기능을 사용한다.
+-->
+<script src="${pageContext.request.contextPath}/js/member.js"></script>
 
 
 <script src="${pageContext.request.contextPath}/js/member.js"></script>

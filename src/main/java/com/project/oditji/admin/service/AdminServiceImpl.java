@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -67,13 +69,13 @@ public class AdminServiceImpl implements AdminService {
                 .normalize();
     }
 
-    //  대시보드
+    // 대시보드
     @Override
     public AdminVO getDashboardStats() {
         return adminDAO.selectDashboardStats();
     }
 
-    // 회원 관리 
+    // 회원 관리
     // 본인 직접 탈퇴 후 자동삭제까지 유예되는 기간(일). 스케줄러(MemberDeleteScheduler)의 7일 기준과 맞춘다.
     private static final int WITHDRAW_AUTO_DELETE_DAYS = 7;
 
@@ -249,7 +251,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    // 콘텐츠 리뷰 관리 
+    // 콘텐츠 리뷰 관리
 
     @Override
     public List<ReviewManageVO> getContentReviewList(String tab, String keyword, String searchType, int page,
@@ -288,8 +290,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveContentReviewReport(Long reviewNo) {
 
-        List<Long> reporterMemberNos =
-                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
+        List<Long> reporterMemberNos = adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "ACCEPTED");
 
@@ -314,8 +315,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void rejectContentReviewReport(Long reviewNo) {
 
-        List<Long> reporterMemberNos =
-                adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
+        List<Long> reporterMemberNos = adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "REJECTED");
 
@@ -409,8 +409,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveProductReviewReport(Long reviewNo) {
 
-        List<Long> reporterMemberNos =
-                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
+        List<Long> reporterMemberNos = adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "ACCEPTED");
 
@@ -435,8 +434,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void rejectProductReviewReport(Long reviewNo) {
 
-        List<Long> reporterMemberNos =
-                adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
+        List<Long> reporterMemberNos = adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
         int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "REJECTED");
 
@@ -547,7 +545,6 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectAdminEventListCount(param);
     }
 
-
     @Override
     public EventStatVO getEventStats() {
 
@@ -618,7 +615,7 @@ public class AdminServiceImpl implements AdminService {
                 eventNo);
     }
 
-    // 상품 관리 
+    // 상품 관리
 
     @Override
     public List<ProductManageVO> getProductRequestList(String tab, String keyword, String searchType, int page,
@@ -797,10 +794,27 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectRefundListCount(param);
     }
 
-    // 사업자 관리 
+    // 사업자 관리
 
     @Override
+    @Transactional
     public List<BusinessManageVO> getBusinessList(String keyword, String searchType, int page, int pageSize) {
+        /*
+         * [사업자 자동 등급 관리 추가]
+         * 관리자 화면에서도 최신 누적 실매출 기준 등급을 확인할 수 있도록
+         * 목록 조회 직전에 자동 승급을 한 번 더 반영한다.
+         */
+        int updatedGradeCount = adminDAO.updateBusinessGradesBySales();
+
+        /*
+         * [사업자 자동 등급별 수수료율 정산 반영 추가]
+         * 관리자 목록 조회 시 자동 승급된 사업자가 있다면
+         * 이번 달 미확정 정산의 적용 등급과 수수료율도 함께 갱신한다.
+         */
+        if (updatedGradeCount > 0) {
+            adminDAO.updateCurrentMonthSettlementRates();
+        }
+
         return adminDAO.selectBusinessList(withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize));
     }
 
@@ -827,8 +841,65 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public void updateBusinessGrade(Long businessNo, String gradeName) {
-        adminDAO.updateBusinessGrade(businessNo, gradeName);
+
+        if (businessNo == null || businessNo <= 0) {
+            throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+        }
+
+        if (gradeName == null || gradeName.isBlank()) {
+            throw new IllegalArgumentException("변경할 사업자 등급을 선택해주세요.");
+        }
+
+        /*
+         * [사업자 수동 등급 변경 보완]
+         * 화면 값을 임의로 변경하여 허용되지 않은 등급이 저장되는 것을 방지한다.
+         */
+        String normalizedGradeName = gradeName.trim().toUpperCase(Locale.ROOT);
+        Set<String> allowedGradeNames = Set.of(
+                "BRONZE",
+                "SILVER",
+                "GOLD",
+                "PLATINUM",
+                "VIP");
+
+        if (!allowedGradeNames.contains(normalizedGradeName)) {
+            throw new IllegalArgumentException("올바르지 않은 사업자 등급입니다.");
+        }
+
+        int updateResult = adminDAO.updateBusinessGrade(
+                businessNo,
+                normalizedGradeName);
+
+        if (updateResult != 1) {
+            throw new IllegalStateException("사업자 등급 변경에 실패했습니다.");
+        }
+
+        /*
+         * [사업자 등급별 수수료율 정산 반영 추가]
+         * 수동 등급 변경이 완료되면 이번 달 WAITING/REJECTED 정산을
+         * 변경된 등급의 GRADE_POLICY.COMMISSION_RATE로 다시 계산한다.
+         * 이미 납부 요청 또는 납부 완료된 REQUESTED/DONE 정산은 변경하지 않는다.
+         */
+        adminDAO.updateCurrentMonthSettlementRateByBusiness(businessNo);
+    }
+
+    @Override
+    @Transactional
+    public int updateBusinessGradesBySales() {
+        int updatedCount = adminDAO.updateBusinessGradesBySales();
+
+        /*
+         * [사업자 자동 등급별 수수료율 정산 반영 추가]
+         * 누적 매출에 따른 자동 승급 이후 이번 달 미확정 정산에도
+         * BRONZE 15%, SILVER 10%, GOLD 8%, PLATINUM 6%, VIP 5%를 반영한다.
+         */
+        if (updatedCount > 0) {
+            adminDAO.updateCurrentMonthSettlementRates();
+        }
+
+        return updatedCount;
     }
 
     @Override
@@ -892,7 +963,7 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectSettlementStats();
     }
 
-    // [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다. 
+    // [수정] 월별 입금 확인 요청 건 전체를 완료 처리한다.
     @Override
     @Transactional
     public void confirmSettlement(Long businessNo, String settlementMonth) {
@@ -914,7 +985,7 @@ public class AdminServiceImpl implements AdminService {
                 businessNo);
     }
 
-    // [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다. 
+    // [수정] 월별 입금 확인 요청 건 전체를 반려 처리한다.
     @Override
     @Transactional
     public void rejectSettlement(Long businessNo, String settlementMonth) {
@@ -1030,7 +1101,7 @@ public class AdminServiceImpl implements AdminService {
         deletePhysicalImageFiles(copiedImagePathList);
     }
 
-    //  서버에 저장된 실제 상품 이미지 파일 삭제
+    // 서버에 저장된 실제 상품 이미지 파일 삭제
     private void deletePhysicalImageFiles(List<String> imagePathList) {
 
         for (String imagePath : imagePathList) {
