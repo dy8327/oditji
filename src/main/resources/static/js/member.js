@@ -93,7 +93,7 @@ async function checkId() {
   const memberId = getValue("memberId");
 
   if (!regex.id.test(memberId)) {
-    alert("아이디는 5~12자의 소문자/숫자만 가능합니다.");
+    await showAlert("아이디는 5~12자의 소문자/숫자만 가능합니다.", "warning");
     idChecked = false;
     checkedIdValue = "";
     setBorder("memberId", false);
@@ -108,14 +108,14 @@ async function checkId() {
     const result = await response.text();
 
     if (!response.ok) {
-      alert("아이디 중복확인 요청 실패: " + response.status);
+      await showAlert("아이디 중복확인 요청 실패: " + response.status, "error");
       idChecked = false;
       checkedIdValue = "";
       return;
     }
 
     if (result.trim() === "Y") {
-      alert("사용 가능한 아이디입니다.");
+      await showAlert("사용 가능한 아이디입니다.", "success");
       idChecked = true;
       checkedIdValue = memberId;
       setBorder("memberId", true);
@@ -123,7 +123,7 @@ async function checkId() {
     }
 
     if (result.trim() === "N") {
-      alert("이미 사용 중인 아이디입니다.");
+      await showAlert("이미 사용 중인 아이디입니다.", "warning");
       idChecked = false;
       checkedIdValue = "";
       setBorder("memberId", false);
@@ -131,12 +131,12 @@ async function checkId() {
       return;
     }
 
-    alert("알 수 없는 서버 응답입니다: " + result);
+    await showAlert("알 수 없는 서버 응답입니다: " + result, "error");
     idChecked = false;
     checkedIdValue = "";
   } catch (error) {
     console.error("아이디 중복확인 오류:", error);
-    alert("아이디 중복확인 중 오류가 발생했습니다.");
+    await showAlert("아이디 중복확인 중 오류가 발생했습니다.", "error");
     idChecked = false;
     checkedIdValue = "";
   }
@@ -150,7 +150,7 @@ async function checkNickname() {
   const nickname = getValue("nickname");
 
   if (!regex.nick.test(nickname)) {
-    alert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.");
+    await showAlert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.", "warning");
     nicknameChecked = false;
     checkedNicknameValue = "";
     setBorder("nickname", false);
@@ -166,14 +166,14 @@ async function checkNickname() {
     const result = await response.text();
 
     if (!response.ok) {
-      alert("닉네임 중복확인 요청 실패: " + response.status);
+      await showAlert("닉네임 중복확인 요청 실패: " + response.status, "error");
       nicknameChecked = false;
       checkedNicknameValue = "";
       return;
     }
 
     if (result.trim() === "Y") {
-      alert("사용 가능한 닉네임입니다.");
+      await showAlert("사용 가능한 닉네임입니다.", "success");
       nicknameChecked = true;
       checkedNicknameValue = nickname;
       setBorder("nickname", true);
@@ -181,7 +181,7 @@ async function checkNickname() {
     }
 
     if (result.trim() === "N") {
-      alert("이미 사용 중인 닉네임입니다.");
+      await showAlert("이미 사용 중인 닉네임입니다.", "warning");
       nicknameChecked = false;
       checkedNicknameValue = "";
       setBorder("nickname", false);
@@ -189,12 +189,12 @@ async function checkNickname() {
       return;
     }
 
-    alert("알 수 없는 서버 응답입니다: " + result);
+    await showAlert("알 수 없는 서버 응답입니다: " + result, "error");
     nicknameChecked = false;
     checkedNicknameValue = "";
   } catch (error) {
     console.error("닉네임 중복확인 오류:", error);
-    alert("닉네임 중복확인 중 오류가 발생했습니다.");
+    await showAlert("닉네임 중복확인 중 오류가 발생했습니다.", "error");
     nicknameChecked = false;
     checkedNicknameValue = "";
   }
@@ -215,7 +215,7 @@ async function checkEmail() {
    * 이메일 형식 확인
    */
   if (!regex.email.test(email)) {
-    alert("올바른 이메일 형식으로 입력해주세요.");
+    await showAlert("올바른 이메일 형식으로 입력해주세요.", "warning");
 
     emailChecked = false;
     checkedEmailValue = "";
@@ -238,7 +238,7 @@ async function checkEmail() {
     const result = await response.text();
 
     if (!response.ok) {
-      alert("이메일 중복확인 요청 실패: " + response.status);
+      await showAlert("이메일 중복확인 요청 실패: " + response.status, "error");
 
       emailChecked = false;
       checkedEmailValue = "";
@@ -250,7 +250,7 @@ async function checkEmail() {
      * 사용 가능한 이메일
      */
     if (result.trim() === "Y") {
-      alert("사용 가능한 이메일입니다.");
+      await showAlert("사용 가능한 이메일입니다.", "success");
 
       emailChecked = true;
       checkedEmailValue = email;
@@ -264,7 +264,7 @@ async function checkEmail() {
      * 이미 사용 중인 이메일
      */
     if (result.trim() === "N") {
-      alert("이미 사용 중인 이메일입니다.");
+      await showAlert("이미 사용 중인 이메일입니다.", "warning");
 
       emailChecked = false;
       checkedEmailValue = "";
@@ -275,14 +275,14 @@ async function checkEmail() {
       return;
     }
 
-    alert("알 수 없는 서버 응답입니다: " + result);
+    await showAlert("알 수 없는 서버 응답입니다: " + result, "error");
 
     emailChecked = false;
     checkedEmailValue = "";
   } catch (error) {
     console.error("이메일 중복확인 오류:", error);
 
-    alert("이메일 중복확인 중 오류가 발생했습니다.");
+    await showAlert("이메일 중복확인 중 오류가 발생했습니다.", "error");
 
     emailChecked = false;
     checkedEmailValue = "";
@@ -297,7 +297,7 @@ async function checkBusinessNumber() {
   const businessNumber = getValue("businessNumber");
 
   if (!regex.businessNumber.test(businessNumber)) {
-    alert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.");
+    await showAlert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.", "warning");
     businessNumberChecked = false;
     checkedBusinessNumberValue = "";
     setBorder("businessNumber", false);
@@ -312,14 +312,14 @@ async function checkBusinessNumber() {
     const result = await response.text();
 
     if (!response.ok) {
-      alert("사업자등록번호 중복확인 요청 실패: " + response.status);
+      await showAlert("사업자등록번호 중복확인 요청 실패: " + response.status, "error");
       businessNumberChecked = false;
       checkedBusinessNumberValue = "";
       return;
     }
 
     if (result.trim() === "Y") {
-      alert("등록 가능한 사업자등록번호입니다.");
+      await showAlert("등록 가능한 사업자등록번호입니다.", "success");
       businessNumberChecked = true;
       checkedBusinessNumberValue = businessNumber;
       setBorder("businessNumber", true);
@@ -327,7 +327,7 @@ async function checkBusinessNumber() {
     }
 
     if (result.trim() === "N") {
-      alert("이미 등록된 사업자등록번호입니다.");
+      await showAlert("이미 등록된 사업자등록번호입니다.", "warning");
       businessNumberChecked = false;
       checkedBusinessNumberValue = "";
       setBorder("businessNumber", false);
@@ -335,12 +335,12 @@ async function checkBusinessNumber() {
       return;
     }
 
-    alert("알 수 없는 서버 응답입니다: " + result);
+    await showAlert("알 수 없는 서버 응답입니다: " + result, "error");
     businessNumberChecked = false;
     checkedBusinessNumberValue = "";
   } catch (error) {
     console.error("사업자등록번호 중복확인 오류:", error);
-    alert("사업자등록번호 중복확인 중 오류가 발생했습니다.");
+    await showAlert("사업자등록번호 중복확인 중 오류가 발생했습니다.", "error");
     businessNumberChecked = false;
     checkedBusinessNumberValue = "";
   }
@@ -356,28 +356,28 @@ async function verifyBusiness() {
 
   /* 사업자번호 형식 */
   if (!regex.businessNumber.test(businessNumber)) {
-    alert("사업자등록번호 형식을 확인해주세요.");
+    await showAlert("사업자등록번호 형식을 확인해주세요.", "warning");
     focusInput("businessNumber");
     return;
   }
 
   /* 중복확인 여부 */
   if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumber) {
-    alert("먼저 사업자등록번호 중복확인을 해주세요.");
+    await showAlert("먼저 사업자등록번호 중복확인을 해주세요.", "warning");
     focusInput("businessNumber");
     return;
   }
 
   /* 대표자명 */
   if (!representativeName) {
-    alert("대표자명을 입력해주세요.");
+    await showAlert("대표자명을 입력해주세요.", "warning");
     focusInput("representativeName");
     return;
   }
 
   /* 개업일 */
   if (!regex.openDate.test(openDate)) {
-    alert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.");
+    await showAlert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.", "warning");
     focusInput("openDate");
     return;
   }
@@ -405,7 +405,7 @@ async function verifyBusiness() {
         messageEl.textContent = "사업자 인증 요청 중 오류가 발생했습니다.";
       }
 
-      alert("사업자 인증 요청 실패: " + response.status);
+      await showAlert("사업자 인증 요청 실패: " + response.status, "error");
       return;
     }
 
@@ -422,7 +422,7 @@ async function verifyBusiness() {
         messageEl.style.color = "green";
       }
 
-      alert(result.message || "사업자 정보가 확인되었습니다.");
+      await showAlert(result.message || "사업자 정보가 확인되었습니다.", "success");
 
       return;
     }
@@ -439,7 +439,7 @@ async function verifyBusiness() {
       messageEl.style.color = "red";
     }
 
-    alert(result.message || "사업자 정보를 확인할 수 없습니다.");
+    await showAlert(result.message || "사업자 정보를 확인할 수 없습니다.", "warning");
   } catch (error) {
     console.error("국세청 사업자 인증 오류:", error);
 
@@ -450,7 +450,7 @@ async function verifyBusiness() {
       messageEl.style.color = "red";
     }
 
-    alert("사업자 인증 중 오류가 발생했습니다.");
+    await showAlert("사업자 인증 중 오류가 발생했습니다.", "error");
   }
 }
 
@@ -717,7 +717,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const extension = file.name.split(".").pop().toLowerCase();
 
       if (!allowedExtensions.includes(extension)) {
-        alert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+        showAlert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.", "warning");
 
         licenseFile.value = "";
         licenseFileName.textContent = "선택된 파일 없음";
@@ -730,7 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* 최종 회원가입 유효성 검사*/
-  function validateJoin() {
+  async function validateJoin() {
     const currentJoinType = joinType ? joinType.value : "USER";
 
     const isBusinessJoin = currentJoinType === "BUSINESS";
@@ -744,31 +744,31 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ---------- 공통 필드 검증 (일반/사업자 동일) ---------- */
 
     if (!regex.id.test(idValue)) {
-      alert("아이디는 5~12자의 소문자/숫자만 가능합니다.");
+      await showAlert("아이디는 5~12자의 소문자/숫자만 가능합니다.", "warning");
       focusInput("memberId");
       return false;
     }
 
     if (!idChecked || checkedIdValue !== idValue) {
-      alert("아이디 중복확인을 해주세요.");
+      await showAlert("아이디 중복확인을 해주세요.", "warning");
       focusInput("memberId");
       return false;
     }
 
     if (!regex.pw.test(pwValue)) {
-      alert("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.");
+      await showAlert("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.", "warning");
       focusInput("memberPw");
       return false;
     }
 
     if (pwValue !== pwCheckValue) {
-      alert("비밀번호가 일치하지 않습니다.");
+      await showAlert("비밀번호가 일치하지 않습니다.", "warning");
       focusInput("memberPwCheck");
       return false;
     }
 
     if (!regex.email.test(emailValue)) {
-      alert("이메일 형식이 올바르지 않습니다.");
+      await showAlert("이메일 형식이 올바르지 않습니다.", "warning");
       focusInput("email");
       return false;
     }
@@ -782,14 +782,14 @@ document.addEventListener("DOMContentLoaded", () => {
      * =========================================================
      */
     if (!emailChecked || checkedEmailValue !== emailValue) {
-      alert("이메일 중복확인을 해주세요.");
+      await showAlert("이메일 중복확인을 해주세요.", "warning");
       focusInput("email");
       return false;
     }
 
     /* 일반회원은 전화번호 필수 */
     if (!isBusinessJoin && (phoneValue === "" || phoneValue === "010-")) {
-      alert("전화번호를 입력해주세요.");
+      await showAlert("전화번호를 입력해주세요.", "warning");
       focusInput("phone");
       return false;
     }
@@ -799,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
       phone.value = "";
     } else if (phoneValue !== "" && !regex.phone.test(phoneValue)) {
       phone.value = "";
-      alert("전화번호는 010-1234-5678 형식으로 입력해주세요.");
+      await showAlert("전화번호는 010-1234-5678 형식으로 입력해주세요.", "warning");
       focusInput("phone");
       return false;
     }
@@ -807,21 +807,21 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ---------- 유형별 분기 검증 ---------- */
 
     if (isBusinessJoin) {
-      return validateBusinessFields();
+      return await validateBusinessFields();
     }
 
-    return validateUserFields();
+    return await validateUserFields();
   }
 
   /* 일반회원 전용 - OTT 선택 검증 */
-  function validateUserFields() {
+  async function validateUserFields() {
     const nameValue = memberName ? memberName.value.trim() : "";
 
     const nicknameValue = nickname ? nickname.value.trim() : "";
 
     /* 이름 */
     if (nameValue.length < 2) {
-      alert("이름은 2자 이상 입력해주세요.");
+      await showAlert("이름은 2자 이상 입력해주세요.", "warning");
       focusInput("memberName");
 
       return false;
@@ -829,7 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 닉네임 */
     if (!regex.nick.test(nicknameValue)) {
-      alert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.");
+      await showAlert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.", "warning");
       focusInput("nickname");
 
       return false;
@@ -837,17 +837,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 닉네임 중복확인 */
     if (!nicknameChecked || checkedNicknameValue !== nicknameValue) {
-      alert("닉네임 중복확인을 해주세요.");
+      await showAlert("닉네임 중복확인을 해주세요.", "warning");
       focusInput("nickname");
 
       return false;
     }
 
     /* OTT */
-    return validateUserOttFields();
+    return await validateUserOttFields();
   }
 
-  function validateUserOttFields() {
+  async function validateUserOttFields() {
     const ottCount = Array.from(ottCheckboxes).filter((checkbox) => checkbox.checked).length;
 
     const noOttSelected = noOttCheckbox && noOttCheckbox.checked;
@@ -856,7 +856,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * 실제 OTT 또는 OTT 없음 중 하나는 반드시 선택한다.
      */
     if (ottCount < 1 && !noOttSelected) {
-      alert("사용 중인 OTT를 선택하거나 OTT 없음을 선택해주세요.");
+      await showAlert("사용 중인 OTT를 선택하거나 OTT 없음을 선택해주세요.", "warning");
       return false;
     }
 
@@ -864,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* 사업자 전용 - 사업자/정산 정보 검증 */
-  function validateBusinessFields() {
+  async function validateBusinessFields() {
     const businessName = document.getElementById("businessName");
 
     const representativeName = document.getElementById("representativeName");
@@ -883,7 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 상호명 */
     if (!businessName || businessName.value.trim().length === 0) {
-      alert("상호명을 입력해주세요.");
+      await showAlert("상호명을 입력해주세요.", "warning");
       focusInput("businessName");
 
       return false;
@@ -891,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 대표자명 */
     if (!representativeName || representativeName.value.trim().length === 0) {
-      alert("대표자명을 입력해주세요.");
+      await showAlert("대표자명을 입력해주세요.", "warning");
       focusInput("representativeName");
 
       return false;
@@ -899,7 +899,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 개업일 */
     if (!openDate || !regex.openDate.test(openDate.value.trim())) {
-      alert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.");
+      await showAlert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.", "warning");
       focusInput("openDate");
 
       return false;
@@ -907,7 +907,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 사업자등록번호 */
     if (!regex.businessNumber.test(businessNumberValue)) {
-      alert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.");
+      await showAlert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.", "warning");
       focusInput("businessNumber");
 
       return false;
@@ -915,7 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 사업자번호 중복 확인 */
     if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumberValue) {
-      alert("사업자등록번호 중복확인을 해주세요.");
+      await showAlert("사업자등록번호 중복확인을 해주세요.", "warning");
       focusInput("businessNumber");
 
       return false;
@@ -923,14 +923,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 국세청 사업자 진위확인 */
     if (!businessVerified || verifiedBusinessNumber !== businessNumberValue || verifiedRepresentativeName !== representativeName.value.trim() || verifiedOpenDate !== openDate.value.trim()) {
-      alert("사업자 정보 인증을 완료해주세요.");
+      await showAlert("사업자 정보 인증을 완료해주세요.", "warning");
 
       return false;
     }
 
     /* 사업자등록증 */
     if (!licenseFile || licenseFile.files.length === 0) {
-      alert("사업자등록증을 첨부해주세요.");
+      await showAlert("사업자등록증을 첨부해주세요.", "warning");
       focusInput("licenseFile");
 
       return false;
@@ -942,14 +942,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
 
     if (!allowedExtensions.includes(extension)) {
-      alert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+      await showAlert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.", "warning");
 
       return false;
     }
 
     /* 은행명 */
     if (!bankName || bankName.value.trim().length === 0) {
-      alert("은행명을 입력해주세요.");
+      await showAlert("은행명을 입력해주세요.", "warning");
       focusInput("bankName");
 
       return false;
@@ -957,7 +957,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 계좌번호 */
     if (!accountNumber || accountNumber.value.trim().length === 0) {
-      alert("계좌번호를 입력해주세요.");
+      await showAlert("계좌번호를 입력해주세요.", "warning");
       focusInput("accountNumber");
 
       return false;
@@ -965,7 +965,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 예금주 */
     if (!accountHolder || accountHolder.value.trim().length === 0) {
-      alert("예금주를 입력해주세요.");
+      await showAlert("예금주를 입력해주세요.", "warning");
       focusInput("accountHolder");
 
       return false;
@@ -975,9 +975,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* SUBMIT HANDLER */
-  form.addEventListener("submit", (event) => {
-    if (!validateJoin()) {
-      event.preventDefault();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (await validateJoin()) {
+      form.submit();
     }
   });
 });
@@ -987,7 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoginPageAlerts();
 });
 
-function initLoginPageAlerts() {
+async function initLoginPageAlerts() {
   const authContainer = document.querySelector(".auth-container");
 
   if (!authContainer) {
@@ -1006,28 +1008,28 @@ function initLoginPageAlerts() {
 
   // 우선순위대로 하나씩만 알림 (서로 겹칠 일은 없지만 방어적으로 순서 지정)
   if (message) {
-    alert(message);
+    await showAlert(message, "info");
   } else if (errorMessage) {
-    alert(errorMessage);
+    await showAlert(errorMessage, "error");
   } else if (restoredMessage) {
-    alert(restoredMessage);
+    await showAlert(restoredMessage, "success");
   } else if (blockedMessage) {
-    alert(blockedMessage);
+    await showAlert(blockedMessage, "warning");
   } else if (withdrawnMessage) {
-    openRestoreConfirm(withdrawnMessage);
+    await openRestoreConfirm(withdrawnMessage);
   }
 
   initRestoreModal();
 }
 
-function openRestoreConfirm(withdrawnMessage) {
+async function openRestoreConfirm(withdrawnMessage) {
   const restoreModal = document.getElementById("restoreModal");
 
   if (!restoreModal) {
     return;
   }
 
-  const wantsRestore = confirm(withdrawnMessage + "\n\n계정을 복구하시겠습니까?");
+  const wantsRestore = await showConfirm(withdrawnMessage + "\n\n계정을 복구하시겠습니까?", "warning");
 
   if (wantsRestore) {
     restoreModal.classList.add("active");
@@ -1251,27 +1253,29 @@ function initSnsOttSelect() {
 
   updateSnsOttCount();
 
-  form.addEventListener("submit", (event) => {
-    if (!validateSnsOttSelect()) {
-      event.preventDefault();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (await validateSnsOttSelect()) {
+      form.submit();
     }
   });
 }
 
-function validateSnsOttSelect() {
+async function validateSnsOttSelect() {
   const emailInput = document.getElementById("email");
 
   if (emailInput) {
     const email = emailInput.value.trim();
 
     if (email === "") {
-      alert("이메일을 입력해주세요.");
+      await showAlert("이메일을 입력해주세요.", "warning");
       emailInput.focus();
       return false;
     }
 
     if (!regex.email.test(email)) {
-      alert("올바른 이메일 형식으로 입력해주세요.");
+      await showAlert("올바른 이메일 형식으로 입력해주세요.", "warning");
       emailInput.focus();
       return false;
     }
@@ -1282,7 +1286,7 @@ function validateSnsOttSelect() {
      * 중복확인 후 이메일을 변경한 경우 진행하지 않는다.
      */
     if (!emailChecked || checkedEmailValue !== email) {
-      alert("이메일 중복확인을 해주세요.");
+      await showAlert("이메일 중복확인을 해주세요.", "warning");
       emailInput.focus();
       return false;
     }
@@ -1296,7 +1300,7 @@ function validateSnsOttSelect() {
   const selectedNoOtt = !!(noOttCheckbox && noOttCheckbox.checked);
 
   if (checkedList.length === 0 && !selectedNoOtt) {
-    alert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.");
+    await showAlert("이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.", "warning");
     return false;
   }
 
@@ -1316,34 +1320,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmPassword = document.getElementById("confirmPassword");
 
 
-    changePwForm.addEventListener("submit", (event) => {
+    changePwForm.addEventListener("submit", async (event) => {
+
+        event.preventDefault();
 
         const password = newPassword.value.trim();
-        const confirm = confirmPassword.value.trim();
+        const confirmValue = confirmPassword.value.trim();
 
 
         if (!regex.pw.test(password)) {
 
-            alert(
-                "비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다."
+            await showAlert(
+                "비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.",
+                "warning"
             );
 
-            event.preventDefault();
             newPassword.focus();
 
             return;
         }
 
 
-        if (password !== confirm) {
+        if (password !== confirmValue) {
 
-            alert("비밀번호가 일치하지 않습니다.");
+            await showAlert("비밀번호가 일치하지 않습니다.", "warning");
 
-            event.preventDefault();
             confirmPassword.focus();
 
             return;
         }
+
+        changePwForm.submit();
 
     });
 

@@ -69,7 +69,7 @@ const savedTmdbActorId =
             <form action="${pageContext.request.contextPath}/business/product/register"
                   method="post"
                   enctype="multipart/form-data"
-                  onsubmit="return validateProductForm();">
+                  onsubmit="return validateProductForm(event);">
 
                 <div class="form-group">
 

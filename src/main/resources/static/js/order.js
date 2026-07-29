@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const phone = document.getElementById("phone").value;
 
       if (!receiver || !address || !phone) {
-        alert("배송 정보를 입력하세요");
+        await showAlert("배송 정보를 입력하세요", "warning");
         return;
       }
 
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = `/order/complete?orderId=${data.orderId}`;
       } catch (err) {
         console.error(err);
-        alert("주문 실패");
+        await showAlert("주문 실패", "error");
       }
     });
   }
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const reviewMessage = reviewMessageData.dataset.message;
 
     if (reviewMessage) {
-      alert(reviewMessage);
+      showAlert(reviewMessage, "info");
     }
   }
 });

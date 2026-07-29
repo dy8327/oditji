@@ -85,13 +85,14 @@ function memberRestore(memberNo) {
 
 function memberWithdraw(memberNo) {
 
-    var confirmed = confirm('해당 회원 데이터를 완전히 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.');
+    showConfirm('해당 회원 데이터를 완전히 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.').then(function (confirmed) {
 
-    if (!confirmed) {
-        return;
-    }
+        if (!confirmed) {
+            return;
+        }
 
-    submitMemberAction('/admin/member/withdraw', memberNo);
+        submitMemberAction('/admin/member/withdraw', memberNo);
+    });
 }
 
 /* 헤더의 "전체 선택" 체크박스와 각 행 체크박스를 동기화한다. */
@@ -131,13 +132,17 @@ function updateSelectedMemberCount() {
     });
 }
 
-/* 일괄처리 버튼(정지/복구/삭제) 클릭 시 선택 인원을 확인시켜준다. */
-function confirmMemberBulkAction(label) {
+/*
+ * 일괄처리 버튼(정지/복구/삭제) 클릭 시 선택 인원을 확인시켜준다.
+ * 호출하는 JSP의 onclick에서 event를 함께 넘겨줘야 한다.
+ * (예: onclick="return confirmMemberBulkAction(event, '정지');")
+ */
+function confirmMemberBulkAction(event, label) {
 
     var count = document.querySelectorAll('.member-check:checked').length;
 
     if (count === 0) {
-        alert('선택된 회원이 없습니다.');
+        showAlert('선택된 회원이 없습니다.', 'warning');
         return false;
     }
 
@@ -147,7 +152,7 @@ function confirmMemberBulkAction(label) {
         message += '\n삭제 후 복구할 수 없습니다.';
     }
 
-    return confirm(message);
+    return confirmAndSubmit(event, message);
 }
 
 
@@ -194,12 +199,12 @@ function updateSelectedReviewCount() {
 }
 
 /* 일괄처리 버튼(삭제/승인/반려) 클릭 시 선택 건수를 확인시켜준다. */
-function confirmReviewBulkAction(label) {
+function confirmReviewBulkAction(event, label) {
 
     var count = document.querySelectorAll('.review-check:checked').length;
 
     if (count === 0) {
-        alert('선택된 리뷰가 없습니다.');
+        showAlert('선택된 리뷰가 없습니다.', 'warning');
         return false;
     }
 
@@ -209,7 +214,7 @@ function confirmReviewBulkAction(label) {
         message += '\n삭제된 리뷰는 복구할 수 없습니다.';
     }
 
-    return confirm(message);
+    return confirmAndSubmit(event, message);
 }
 
 /*
@@ -282,47 +287,53 @@ function openReviewContentModal(button) {
 
 function deleteContentReview(reviewNo) {
 
-    if (!confirm('이 리뷰를 삭제하시겠습니까?')) {
-        return;
-    }
+    showConfirm('이 리뷰를 삭제하시겠습니까?').then(function (confirmed) {
 
-    var form = document.createElement('form');
+        if (!confirmed) {
+            return;
+        }
 
-    form.method = 'post';
-    form.action = '/oditji/admin/review/delete';
+        var form = document.createElement('form');
 
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'reviewNo';
-    input.value = reviewNo;
+        form.method = 'post';
+        form.action = '/oditji/admin/review/delete';
 
-    form.appendChild(input);
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'reviewNo';
+        input.value = reviewNo;
 
-    document.body.appendChild(form);
-    form.submit();
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    });
 }
 
 
 function deleteProductReview(reviewNo) {
 
-    if (!confirm('이 리뷰를 삭제하시겠습니까?')) {
-        return;
-    }
+    showConfirm('이 리뷰를 삭제하시겠습니까?').then(function (confirmed) {
 
-    var form = document.createElement('form');
+        if (!confirmed) {
+            return;
+        }
 
-    form.method = 'post';
-    form.action = '/oditji/admin/productReview/delete';
+        var form = document.createElement('form');
 
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'reviewNo';
-    input.value = reviewNo;
+        form.method = 'post';
+        form.action = '/oditji/admin/productReview/delete';
 
-    form.appendChild(input);
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'reviewNo';
+        input.value = reviewNo;
 
-    document.body.appendChild(form);
-    form.submit();
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    });
 }
 
 
@@ -678,24 +689,24 @@ function getProductRequestRawStatus() {
     return statusInput ? statusInput.value : '';
 }
 
-function confirmProductApprove() {
+function confirmProductApprove(event) {
     var status = getProductRequestRawStatus();
 
-    if (status === 'DELETE_REQUESTED') {
-        return confirm('삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?');
-    }
+    var message = (status === 'DELETE_REQUESTED')
+        ? '삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?'
+        : '이 상품 요청을 승인하시겠습니까?';
 
-    return confirm('이 상품 요청을 승인하시겠습니까?');
+    return confirmAndSubmit(event, message);
 }
 
-function confirmProductReject() {
+function confirmProductReject(event) {
     var status = getProductRequestRawStatus();
 
-    if (status === 'DELETE_REQUESTED') {
-        return confirm('이 상품의 삭제 요청을 반려하시겠습니까?');
-    }
+    var message = (status === 'DELETE_REQUESTED')
+        ? '이 상품의 삭제 요청을 반려하시겠습니까?'
+        : '이 상품 요청을 반려하시겠습니까?';
 
-    return confirm('이 상품 요청을 반려하시겠습니까?');
+    return confirmAndSubmit(event, message);
 }
 
 

@@ -88,11 +88,11 @@ function joinAndEnterRoom(contextPath, roomId, button) {
             return;
         }
 
-        alert(data.message || "채팅방 참가에 실패했습니다.");
+        showAlert(data.message || "채팅방 참가에 실패했습니다.", "error");
     })
     .catch(function(error) {
         console.error("채팅방 참가 중 오류:", error);
-        alert("채팅방 참가 중 오류가 발생했습니다.");
+        showAlert("채팅방 참가 중 오류가 발생했습니다.", "error");
     })
     .finally(function() {
         button.disabled = false;
