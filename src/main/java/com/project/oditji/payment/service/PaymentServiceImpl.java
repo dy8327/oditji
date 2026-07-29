@@ -9,7 +9,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -79,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
             if (paidAmount != expectedAmount.longValue()) {
 
                 throw new IllegalArgumentException("결제 금액이 일치하지 않습니다. " + "서버 주문 금액: "
-                                + expectedAmount + "원, 포트원 결제 금액: " + paidAmount + "원");
+                        + expectedAmount + "원, 포트원 결제 금액: " + paidAmount + "원");
             }
 
             String portOneOrderName = readString(payment, "orderName");
@@ -127,15 +126,38 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         validatePaymentId(paymentVO.getPaymentId());
-        if (!PAID_STATUS.equals(paymentVO.getPaymentStatus())) {
+        if (!PAID_STATUS.equals(paymentVO.getPaymentStatus())
+                && !"PARTIAL_CANCELED".equals(paymentVO.getPaymentStatus())) {
             if (CANCELED_STATUS.equals(paymentVO.getPaymentStatus())) {
                 throw new IllegalArgumentException("이미 취소된 결제입니다.");
             }
-            throw new IllegalArgumentException("결제 완료 상태의 결제만 취소할 수 있습니다.");
+            throw new IllegalArgumentException("결제 완료 또는 부분 취소 상태의 결제만 취소할 수 있습니다.");
         }
 
         // 2. 취소 사유 정형화 (공백 처리 및 기본값 세팅)
         String normalizedReason = normalizeCancelReason(reason);
+
+        /*
+         * =========================================================
+         * [수정] 포트원 선조회로 중복 취소 방지
+         *
+         * 포트원/PG 취소는 성공했지만 DB 트랜잭션이 롤백된 경우,
+         * 다시 승인하면 PG에서 "기승인 취소된 거래"를 반환할 수 있다.
+         * 취소 요청 전에 포트원 실제 상태를 조회하여 이미 전액 취소된
+         * 결제라면 API를 다시 호출하지 않고 DB 반영용 결과를 반환한다.
+         * =========================================================
+         */
+        Map<String, Object> currentPayment;
+
+        try {
+            currentPayment = requestPortOnePayment(paymentVO.getPaymentId());
+        } catch (RestClientResponseException e) {
+            throw createPortOneException("결제 취소 전 포트원 상태 조회에 실패했습니다.", e);
+        }
+
+        if (isFullyCanceledPayment(currentPayment, paymentVO.getPaymentAmount())) {
+            return createCanceledPaymentVO(paymentVO, currentPayment, normalizedReason);
+        }
 
         // 3. 포트원 API 요청 바디 세팅
         Map<String, Object> cancelRequestBody = new HashMap<String, Object>();
@@ -151,23 +173,35 @@ public class PaymentServiceImpl implements PaymentService {
                     .body(new ParameterizedTypeReference<Map<String, Object>>() {
                     });
 
-        } catch (HttpClientErrorException.Conflict e) {
+        } catch (RestClientResponseException e) {
 
             /*
-             * 동일 결제가 포트원에서 이미 취소된 경우에도
-             * 현재 결제 상태를 재조회하여 DB 상태를 동기화한다.
+             * =========================================================
+             * [수정] PG의 중복 취소 응답(예: 502 / pgCode 8023) 동기화
+             *
+             * PG 응답 코드가 409가 아닌 502로 전달되는 경우도 있으므로
+             * HTTP 상태만 보지 않고 응답 본문의 "기승인 취소된 거래"를
+             * 확인한다. 중복 취소 응답이면 포트원 결제를 다시 조회하여
+             * 실제 전액 취소가 확인될 때만 성공으로 처리한다.
+             * =========================================================
              */
-            String responseBody = e.getResponseBodyAsString();
-            // 이미 취소된 에러 코드가 아닌 진짜 충돌 예외라면 예외를 발생시킨다.
-            if (responseBody == null
-                    || (!responseBody.contains("PAYMENT_ALREADY_CANCELLED")
-                            && !responseBody.contains("ALREADY_CANCELLED"))) {
-
-                throw createPortOneException("포트원 결제 취소 요청이 충돌했습니다.", e);
+            if (!isAlreadyCanceledResponse(e)) {
+                throw createPortOneException("포트원 결제 취소에 실패했습니다.", e);
             }
 
-        } catch (RestClientResponseException e) {
-            throw createPortOneException("포트원 결제 취소에 실패했습니다.", e);
+            try {
+                currentPayment = requestPortOnePayment(paymentVO.getPaymentId());
+            } catch (RestClientResponseException lookupException) {
+                throw createPortOneException("중복 취소 응답 후 포트원 상태 조회에 실패했습니다.", lookupException);
+            }
+
+            if (!isFullyCanceledPayment(currentPayment, paymentVO.getPaymentAmount())) {
+                throw createPortOneException(
+                        "PG에서는 이미 취소된 거래라고 응답했지만 포트원 결제 상태에서 전액 취소를 확인하지 못했습니다.",
+                        e);
+            }
+
+            return createCanceledPaymentVO(paymentVO, currentPayment, normalizedReason);
         }
 
         // 5. 취소 처리 후 최종 결제 상태 확증을 위한 포트원 재조회
@@ -179,24 +213,15 @@ public class PaymentServiceImpl implements PaymentService {
             throw createPortOneException("취소 후 포트원 결제 상태 조회에 실패했습니다.", e);
         }
 
-        // 6. 취소 상태 검증 (CANCELLED 또는 CANCELED 여부 확인)
-        String portOneStatus = readString(canceledPayment, "status");
-        if (!CANCELLED_STATUS.equals(portOneStatus)
-                && !CANCELED_STATUS.equals(portOneStatus)) {
-            throw new IllegalStateException("포트원 결제 상태가 취소 상태가 아닙니다. 현재 상태: " + portOneStatus);
+        // 6. 상태 문자열뿐 아니라 취소 누적 금액까지 확인한다.
+        if (!isFullyCanceledPayment(canceledPayment, paymentVO.getPaymentAmount())) {
+            throw new IllegalStateException(
+                    "포트원 결제에서 전액 취소를 확인하지 못했습니다. 현재 상태: "
+                            + readString(canceledPayment, "status"));
         }
 
         // 7. DB 업데이트를 위한 취소 정보 VO 객체 구성 및 반환
-        PaymentVO canceledPaymentVO = new PaymentVO();
-
-        canceledPaymentVO.setPaymentNo(paymentVO.getPaymentNo());
-        canceledPaymentVO.setOrderNo(paymentVO.getOrderNo());
-        canceledPaymentVO.setPaymentId(paymentVO.getPaymentId());
-        canceledPaymentVO.setPaymentStatus(CANCELED_STATUS);
-        canceledPaymentVO.setCanceledAt(extractCanceledAt(canceledPayment));
-        canceledPaymentVO.setCancelReason(normalizedReason);
-
-        return canceledPaymentVO;
+        return createCanceledPaymentVO(paymentVO, canceledPayment, normalizedReason);
     }
 
     /*
@@ -271,7 +296,7 @@ public class PaymentServiceImpl implements PaymentService {
         result.setPaymentId(paymentVO.getPaymentId());
         result.setPaymentAmount(paymentVO.getPaymentAmount());
         result.setCanceledAmount(canceledTotal);
-        result.setPaymentStatus( canceledTotal >= paymentVO.getPaymentAmount() ? CANCELED_STATUS : "PARTIAL_CANCELED");
+        result.setPaymentStatus(canceledTotal >= paymentVO.getPaymentAmount() ? CANCELED_STATUS : "PARTIAL_CANCELED");
         result.setCanceledAt(OffsetDateTime.now().toString());
         result.setCancelReason(normalizedReason);
 
@@ -420,6 +445,119 @@ public class PaymentServiceImpl implements PaymentService {
          * PAYMENT.CANCELED_AT은 VARCHAR2 컬럼이므로 ISO 문자열로 저장한다.
          */
         return OffsetDateTime.now().toString();
+    }
+
+    /*
+     * =========================================================
+     * [신규] 포트원/PG의 중복 취소 응답 여부 확인
+     * =========================================================
+     */
+    private boolean isAlreadyCanceledResponse(RestClientResponseException e) {
+
+        if (e == null) {
+            return false;
+        }
+
+        String responseBody = e.getResponseBodyAsString();
+        if (responseBody == null || responseBody.isBlank()) {
+            return false;
+        }
+
+        String normalized = responseBody.toUpperCase();
+
+        return normalized.contains("PAYMENT_ALREADY_CANCELLED")
+                || normalized.contains("ALREADY_CANCELLED")
+                || normalized.contains("ALREADY_CANCELED")
+                || responseBody.contains("\"pgCode\":\"8023\"")
+                || responseBody.contains("기승인 취소된 거래");
+    }
+
+    /*
+     * =========================================================
+     * [신규] 포트원 결제의 전액 취소 여부 확인
+     *
+     * PG사별 응답 차이를 고려하여 status와 cancellations의
+     * 누적 취소 금액을 함께 확인한다.
+     * =========================================================
+     */
+    private boolean isFullyCanceledPayment(Map<String, Object> payment, Long expectedPaymentAmount) {
+
+        if (payment == null || payment.isEmpty()) {
+            return false;
+        }
+
+        String status = readString(payment, "status");
+        if (CANCELLED_STATUS.equals(status) || CANCELED_STATUS.equals(status)) {
+            return true;
+        }
+
+        if (expectedPaymentAmount == null || expectedPaymentAmount <= 0) {
+            return false;
+        }
+
+        return extractTotalCanceledAmount(payment) >= expectedPaymentAmount.longValue();
+    }
+
+    /*
+     * =========================================================
+     * [신규] 포트원 cancellations 배열의 누적 취소 금액 계산
+     * =========================================================
+     */
+    private long extractTotalCanceledAmount(Map<String, Object> payment) {
+
+        Object cancellationsObject = payment.get("cancellations");
+        if (!(cancellationsObject instanceof List<?> cancellations)) {
+            return 0L;
+        }
+
+        long totalCanceledAmount = 0L;
+
+        for (Object cancellationObject : cancellations) {
+            if (!(cancellationObject instanceof Map<?, ?> cancellationMap)) {
+                continue;
+            }
+
+            Long amount = parseLong(cancellationMap.get("totalAmount"));
+
+            if (amount == null) {
+                Object amountObject = cancellationMap.get("amount");
+                if (amountObject instanceof Map<?, ?> amountMap) {
+                    amount = parseLong(amountMap.get("total"));
+                } else {
+                    amount = parseLong(amountObject);
+                }
+            }
+
+            if (amount != null && amount > 0) {
+                totalCanceledAmount += amount.longValue();
+            }
+        }
+
+        return totalCanceledAmount;
+    }
+
+    /*
+     * =========================================================
+     * [신규] 포트원 실제 취소 상태를 DB 반영용 PaymentVO로 변환
+     * =========================================================
+     */
+    private PaymentVO createCanceledPaymentVO(
+            PaymentVO paymentVO,
+            Map<String, Object> canceledPayment,
+            String normalizedReason) {
+
+        PaymentVO result = new PaymentVO();
+
+        result.setPaymentNo(paymentVO.getPaymentNo());
+        result.setOrderNo(paymentVO.getOrderNo());
+        result.setPaymentId(paymentVO.getPaymentId());
+        result.setPaymentAmount(paymentVO.getPaymentAmount());
+        result.setCanceledAmount(paymentVO.getPaymentAmount());
+        result.setPaymentStatus(CANCELED_STATUS);
+        result.setCanceledAt(extractCanceledAt(canceledPayment));
+        result.setCancelReason(normalizedReason);
+
+        return result;
     }
 
     /**

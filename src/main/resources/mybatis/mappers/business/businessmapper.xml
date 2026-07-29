@@ -1010,16 +1010,46 @@
 
 
     <!-- =====================================================
-         마이페이지 대시보드 - 입금 대기 정산 금액 합계
+        마이페이지 대시보드 - 입금 대기 정산 금액 합계
+
+        [수정]
+        정상 판매 주문상품에 연결된 정산만 집계한다.
+
+        주문상품별로 저장된 소수점 정산금액을 모두 합산한 뒤,
+        대시보드 화면에 표시할 최종 금액만 원 단위로 반올림한다.
+
+        CANCEL_REQUEST, CANCELED, REFUNDED 상태의 주문상품은
+        정상 판매가 아니므로 입금 대기 금액에서 제외한다.
     ====================================================== -->
     <select id="selectWaitingSettlementAmountByBusinessNo"
             parameterType="long"
             resultType="long">
 
-        SELECT NVL(SUM(SETTLED_AMOUNT), 0)
-        FROM SETTLEMENT
-        WHERE BUSINESS_NO = #{businessNo}
-          AND STATUS = 'WAITING'
+        SELECT NVL(
+                ROUND(
+                    SUM(S.SETTLED_AMOUNT)
+                ),
+                0
+            )
+        FROM SETTLEMENT S
+        WHERE S.BUSINESS_NO = #{businessNo}
+        AND S.STATUS = 'WAITING'
+
+        <!--
+            [수정]
+            실제 판매로 인정되는 주문상품의 정산만 포함한다.
+        -->
+        AND EXISTS (
+                SELECT 1
+                FROM ORDER_ITEM OI
+                WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                AND OI.STATUS IN (
+                        'PAID',
+                        'PREPARING',
+                        'SHIPPING',
+                        'DELIVERED'
+                )
+        )
 
     </select>
 
@@ -1459,68 +1489,361 @@
     </select>
 
     <!-- =====================================================
-         [수정] 사업자 수수료 관리 - 이번 달 요약
-         SETTLEMENT은 주문상품 단위이므로 월 단위로 합산한다.
+        [수정] 사업자 수수료 관리 - 이번 달 요약
+
+        SETTLEMENT는 주문상품 단위로 생성되므로
+        이번 달 정상 판매 주문상품의 정산 데이터를 월 단위로 합산한다.
+
+        CANCEL_REQUEST, CANCELED, REFUNDED 상태의 주문상품은
+        이번 달 매출, 플랫폼 수수료, 주문 수에서 제외한다.
+
+        SETTLEMENT.STATUS의 REJECTED는 주문 취소가 아니라
+        수수료 납부 요청 반려 상태이므로 매출과 수수료에는 포함한다.
     ====================================================== -->
     <select id="selectMonthlySettlementSummary"
             resultType="com.project.oditji.business.vo.SettlementManageVO">
+
         SELECT
-            NVL(SUM(S.TOTAL_AMOUNT), 0) AS MONTH_SALES,
-            NVL(SUM(S.FEE_AMOUNT), 0) AS FEE_AMOUNT,
-            NVL(MAX(S.APPLIED_RATE), NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)) AS FEE_RATE,
-            TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1) + 9, 'YYYY-MM-DD') AS EXPECTED_DATE,
+            /*
+             * [수정]
+             * 취소되지 않은 정상 판매 주문상품의 판매금액만 합산한다.
+             */
+            NVL(
+                SUM(S.TOTAL_AMOUNT),
+                0
+            ) AS MONTH_SALES,
+
+            /*
+             * [수정]
+             * 주문상품별로 저장된 정확한 수수료를 모두 합산한 후
+             * 화면에 표시할 때 마지막 한 번만 원 단위 반올림한다.
+             */
+            NVL(
+                ROUND(
+                    SUM(S.FEE_AMOUNT)
+                ),
+                0
+            ) AS FEE_AMOUNT,
+
+            /*
+             * 주문 당시 정산에 저장된 적용 수수료율을 우선 사용한다.
+             *
+             * 이번 달 정산 내역이 없다면 사업자 개별 수수료율을 사용하고,
+             * 개별 수수료율도 없다면 등급 기본 수수료율을 사용한다.
+             */
+            NVL(
+                MAX(S.APPLIED_RATE),
+                NVL(
+                    B.CUSTOM_RATE,
+                    GP.COMMISSION_RATE
+                )
+            ) AS FEE_RATE,
+
+            /*
+             * 다음 달 10일을 플랫폼 수수료 납부 예정일로 표시한다.
+             */
+            TO_CHAR(
+                ADD_MONTHS(
+                    TRUNC(SYSDATE, 'MM'),
+                    1
+                ) + 9,
+                'YYYY-MM-DD'
+            ) AS EXPECTED_DATE,
+
+            /*
+             * 정상 판매 정산들의 현재 수수료 납부 처리 상태를 계산한다.
+             *
+             * REQUESTED : 사업자가 납부 확인을 요청한 상태
+             * REJECTED  : 관리자가 납부 요청을 반려한 상태
+             * DONE      : 관리자가 납부를 확인한 상태
+             * WAITING   : 아직 요청하지 않은 상태
+             */
             CASE
-                WHEN COUNT(S.SETTLEMENT_NO) = 0 THEN 'WAITING'
-                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
-                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
-                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(S.SETTLEMENT_NO) THEN 'APPROVED'
+                WHEN COUNT(S.SETTLEMENT_NO) = 0
+                    THEN 'WAITING'
+
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'REQUESTED'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'REQUESTED'
+
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'REJECTED'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'REJECTED'
+
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'DONE'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) = COUNT(S.SETTLEMENT_NO)
+                    THEN 'APPROVED'
+
                 ELSE 'WAITING'
             END AS STATUS,
-            COUNT(DISTINCT OI.ORDER_NO) AS MONTH_ORDER_COUNT
+
+            /*
+             * [수정]
+             * 취소되지 않은 정상 판매 주문 건수만 계산한다.
+             *
+             * 한 주문에 해당 사업자의 상품이 여러 개 있어도
+             * 주문번호는 한 건으로 계산한다.
+             */
+            COUNT(
+                DISTINCT OI.ORDER_NO
+            ) AS MONTH_ORDER_COUNT
+
         FROM BUSINESS B
-        JOIN GRADE_POLICY GP ON GP.GRADE_NAME = B.GRADE_NAME
+
+        JOIN GRADE_POLICY GP
+          ON GP.GRADE_NAME = B.GRADE_NAME
+
+        /*
+         * [수정]
+         * 이번 달에 생성된 정산 중 실제 정상 판매 주문상품과
+         * 연결된 정산 데이터만 포함한다.
+         */
         LEFT JOIN SETTLEMENT S
           ON S.BUSINESS_NO = B.BUSINESS_NO
-         AND S.CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE, 'MM')
-         AND S.CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
-        LEFT JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+
+         AND S.CREATED_AT <![CDATA[ >= ]]>
+                TRUNC(SYSDATE, 'MM')
+
+         AND S.CREATED_AT <![CDATA[ < ]]>
+                ADD_MONTHS(
+                    TRUNC(SYSDATE, 'MM'),
+                    1
+                )
+
+         /*
+          * [수정]
+          * 실제 판매로 인정되는 주문상품 상태만 정산에 포함한다.
+          *
+          * REJECTED는 수수료 납부 요청 반려 상태이므로
+          * SETTLEMENT.STATUS 조건으로 제외하지 않는다.
+          */
+         AND EXISTS (
+                SELECT 1
+                FROM ORDER_ITEM OI_CHECK
+                WHERE OI_CHECK.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                  AND OI_CHECK.STATUS IN (
+                        'PAID',
+                        'PREPARING',
+                        'SHIPPING',
+                        'DELIVERED'
+                  )
+         )
+
+        LEFT JOIN ORDER_ITEM OI
+          ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+
         WHERE B.BUSINESS_NO = #{businessNo}
-        GROUP BY B.CUSTOM_RATE, GP.COMMISSION_RATE
+
+        GROUP BY
+            B.CUSTOM_RATE,
+            GP.COMMISSION_RATE
+
     </select>
 
-    <!-- [수정] 사업자 월별 수수료 납부 내역 -->
+    <!-- =====================================================
+        [수정] 사업자 월별 수수료 납부 내역
+
+        정상 판매 주문상품에 연결된 정산만 월별로 합산한다.
+
+        취소 요청, 취소 완료, 환불 완료 주문상품은
+        월 매출과 플랫폼 수수료에서 제외한다.
+
+        REJECTED는 수수료 납부 요청 반려 상태이므로
+        매출 및 수수료 금액에서는 제외하지 않는다.
+    ====================================================== -->
     <select id="selectSettlementPaymentHistory"
             resultType="com.project.oditji.business.vo.SettlementManageVO">
+
         SELECT
-            TO_CHAR(TRUNC(S.CREATED_AT, 'MM'), 'YYYY-MM') AS SETTLEMENT_MONTH,
+            TO_CHAR(
+                TRUNC(S.CREATED_AT, 'MM'),
+                'YYYY-MM'
+            ) AS SETTLEMENT_MONTH,
+
+            /*
+             * [수정]
+             * 정상 판매 주문상품의 월 판매금액만 합산한다.
+             */
             SUM(S.TOTAL_AMOUNT) AS MONTH_SALES,
-            SUM(S.FEE_AMOUNT) AS FEE_AMOUNT,
+
+            /*
+             * [수정]
+             * 주문상품별 정확한 수수료를 월 단위로 합산한 뒤
+             * 최종 표시 금액만 원 단위로 반올림한다.
+             */
+            ROUND(
+                SUM(S.FEE_AMOUNT)
+            ) AS FEE_AMOUNT,
+
+            /*
+             * 해당 월 정산에 실제 적용된 수수료율을 표시한다.
+             */
             MAX(S.APPLIED_RATE) AS FEE_RATE,
-            COUNT(DISTINCT OI.ORDER_NO) AS MONTH_ORDER_COUNT,
+
+            /*
+             * 해당 월 정상 판매 주문 수를 계산한다.
+             *
+             * 동일 주문에 여러 상품이 있어도 한 주문으로 계산한다.
+             */
+            COUNT(
+                DISTINCT OI.ORDER_NO
+            ) AS MONTH_ORDER_COUNT,
+
+            /*
+             * 해당 월 수수료 납부 상태를 계산한다.
+             */
             CASE
-                WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
-                WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
-                WHEN SUM(CASE WHEN S.STATUS = 'DONE' THEN 1 ELSE 0 END) = COUNT(*) THEN 'APPROVED'
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'REQUESTED'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'REQUESTED'
+
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'REJECTED'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'REJECTED'
+
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'DONE'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) = COUNT(*)
+                    THEN 'APPROVED'
+
                 ELSE 'WAITING'
             END AS STATUS,
-            TRUNC(MIN(CASE WHEN S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED') THEN S.CREATED_AT END)) AS REQUESTED_AT,
-            TRUNC(MAX(S.SETTLED_AT)) AS SETTLED_AT
+
+            /*
+             * 수수료 납부 확인을 처음 요청하거나
+             * 관리자가 처리한 날짜를 표시한다.
+             */
+            TRUNC(
+                MIN(
+                    CASE
+                        WHEN S.STATUS IN (
+                            'REQUESTED',
+                            'DONE',
+                            'REJECTED'
+                        )
+                        THEN S.CREATED_AT
+                    END
+                )
+            ) AS REQUESTED_AT,
+
+            /*
+             * 관리자가 최종 납부 확인한 날짜를 표시한다.
+             */
+            TRUNC(
+                MAX(S.SETTLED_AT)
+            ) AS SETTLED_AT
+
         FROM SETTLEMENT S
-        JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+
+        JOIN ORDER_ITEM OI
+          ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+
         WHERE S.BUSINESS_NO = #{businessNo}
-        GROUP BY TRUNC(S.CREATED_AT, 'MM')
-        ORDER BY TRUNC(S.CREATED_AT, 'MM') DESC
+
+          /*
+           * [수정]
+           * 취소 요청, 취소 완료, 환불 완료 주문상품은
+           * 월별 매출 및 수수료 납부 내역에서 제외한다.
+           */
+          AND OI.STATUS IN (
+                'PAID',
+                'PREPARING',
+                'SHIPPING',
+                'DELIVERED'
+          )
+
+        GROUP BY
+            TRUNC(S.CREATED_AT, 'MM')
+
+        ORDER BY
+            TRUNC(S.CREATED_AT, 'MM') DESC
+
     </select>
 
-    <!-- [수정] 반려 건은 다시 요청할 수 있으며, 현재 달 데이터만 변경한다. -->
+    <!-- =====================================================
+        [수정] 사업자 수수료 납부 확인 요청
+
+        현재 달의 정상 판매 주문상품에 연결된 정산만
+        REQUESTED 상태로 변경한다.
+
+        관리자가 반려한 REJECTED 정산은 다시 요청할 수 있다.
+
+        취소 요청, 취소 완료, 환불 완료 주문상품의 정산은
+        플랫폼 수수료 납부 요청 대상에서 제외한다.
+    ====================================================== -->
     <update id="updateSettlementRequestStatus">
-        UPDATE SETTLEMENT
-        SET STATUS = 'REQUESTED',
-            SETTLED_AT = NULL
-        WHERE BUSINESS_NO = #{businessNo}
-          AND CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE, 'MM')
-          AND CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
-          AND STATUS IN ('WAITING', 'REJECTED')
+
+        UPDATE SETTLEMENT S
+
+        SET S.STATUS = 'REQUESTED',
+            S.SETTLED_AT = NULL
+
+        WHERE S.BUSINESS_NO = #{businessNo}
+
+          AND S.CREATED_AT <![CDATA[ >= ]]>
+                TRUNC(SYSDATE, 'MM')
+
+          AND S.CREATED_AT <![CDATA[ < ]]>
+                ADD_MONTHS(
+                    TRUNC(SYSDATE, 'MM'),
+                    1
+                )
+
+          /*
+           * WAITING 상태의 정산은 최초 요청할 수 있고,
+           * REJECTED 상태의 정산은 반려 후 다시 요청할 수 있다.
+           */
+          AND S.STATUS IN (
+                'WAITING',
+                'REJECTED'
+          )
+
+          /*
+           * [수정]
+           * 실제 판매로 인정되는 정상 주문상품의 정산만
+           * 플랫폼 수수료 납부 요청 상태로 변경한다.
+           */
+          AND EXISTS (
+                SELECT 1
+                FROM ORDER_ITEM OI
+                WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                  AND OI.STATUS IN (
+                        'PAID',
+                        'PREPARING',
+                        'SHIPPING',
+                        'DELIVERED'
+                  )
+          )
+
     </update>
 
     <!-- [수정] 사업자 정산 계좌 조회 -->

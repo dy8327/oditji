@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import com.project.oditji.order.vo.DeliveryVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderSheetItemVO;
 import com.project.oditji.order.vo.OrderVO;
@@ -134,4 +135,17 @@ public interface OrderDAO {
          */
         List<OrderItemVO> selectOrderItemListByOrderNo(
                         @Param("orderNo") Long orderNo);
+
+        /*
+         * =========================================================
+         * [배송 조회 화면 추가]
+         * =========================================================
+         */
+
+        /**
+         * 로그인 회원 소유의 주문상품 배송 조회 단건 (소유 검증 포함)
+         */
+        DeliveryVO selectDeliveryDetailByMember(
+                        @Param("memberNo") Long memberNo,
+                        @Param("orderItemNo") Long orderItemNo);
 }

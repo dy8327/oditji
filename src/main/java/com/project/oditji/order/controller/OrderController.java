@@ -24,6 +24,7 @@ import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
+import com.project.oditji.order.vo.DeliveryVO;
 import com.project.oditji.order.vo.OrderCheckoutRequestVO;
 import com.project.oditji.order.vo.OrderDirectRequestVO;
 import com.project.oditji.order.vo.OrderPaymentCancelRequestVO;
@@ -435,6 +436,52 @@ public class OrderController {
                 model.addAttribute("portOneTestMode", portOneTestMode);
 
                 return "order/orderList";
+        }
+
+        /*
+         * =========================================================
+         * [배송 조회 화면 추가]
+         *
+         * orderList.jsp에서 "배송조회" 버튼을 눌러 모달을 열 때
+         * 호출하는 AJAX 전용 API이다. 화면 이동 없이 선택한
+         * 주문상품의 배송 정보만 JSON으로 내려준다.
+         * =========================================================
+         */
+        @GetMapping("/delivery")
+        @ResponseBody
+        public Map<String, Object> orderDeliveryDetail(
+                        @RequestParam(name = "orderItemNo") Long orderItemNo,
+                        HttpSession session) {
+
+                MemberVO loginMember = getLoginMember(session);
+
+                if (loginMember == null) {
+                        return loginRequiredResponse();
+                }
+
+                if (orderItemNo == null) {
+                        return failResponse("조회할 주문상품 번호가 없습니다.");
+                }
+
+                try {
+                        DeliveryVO delivery = orderService.getDeliveryDetail(
+                                        loginMember.getMemberNo(),
+                                        orderItemNo);
+
+                        Map<String, Object> response = successResponse("배송 정보를 조회했습니다.");
+                        response.put("delivery", delivery);
+
+                        return response;
+
+                } catch (IllegalArgumentException e) {
+                        return failResponse(e.getMessage());
+
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("배송 조회 처리 중 오류 - orderItemNo: {}", orderItemNo, e);
+                        }
+                        return failResponse("배송 정보 조회 중 오류가 발생했습니다.");
+                }
         }
 
         // 세션에서 현재 로그인된 사용자 정보를 검증 및 반환한다.

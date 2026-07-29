@@ -19,6 +19,8 @@ public class EventManageVO {
 
     private String title; // = EVENT.TITLE (이벤트 제목)
 
+    private String bannerImage; // = EVENT.BANNER_IMAGE (사업자가 등록한 이벤트 배너 이미지 경로)
+
     private Date startDate; // = EVENT.START_DATE (이벤트 시작일)
 
     private Date endDate; // = EVENT.END_DATE (이벤트 종료일)
@@ -76,6 +78,14 @@ public class EventManageVO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getBannerImage() {
+        return bannerImage;
+    }
+
+    public void setBannerImage(String bannerImage) {
+        this.bannerImage = bannerImage;
     }
 
     public Date getStartDate() {

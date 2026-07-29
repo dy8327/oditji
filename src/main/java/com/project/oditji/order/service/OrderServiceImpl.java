@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.cart.dao.CartDAO;
 import com.project.oditji.order.dao.OrderDAO;
+import com.project.oditji.order.vo.DeliveryVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderPaymentPrepareVO;
 import com.project.oditji.order.vo.OrderSheetItemVO;
@@ -757,6 +758,39 @@ public class OrderServiceImpl implements OrderService {
                 order.setItems(orderItemList);
 
                 return order;
+        }
+
+        /**
+         * [배송 조회 화면 추가]
+         * 로그인 회원 소유의 주문상품 배송 정보를 조회한다.
+         *
+         * @param memberNo    로그인 회원 번호
+         * @param orderItemNo 조회할 주문상품 번호
+         * @return 배송 조회 객체
+         */
+        @Override
+        @Transactional(readOnly = true)
+        public DeliveryVO getDeliveryDetail(
+                        Long memberNo,
+                        Long orderItemNo) {
+
+                validateMemberNo(memberNo);
+
+                if (orderItemNo == null || orderItemNo <= 0) {
+                        throw new IllegalArgumentException(
+                                        "주문 상품 번호가 올바르지 않습니다.");
+                }
+
+                DeliveryVO delivery = orderDAO.selectDeliveryDetailByMember(
+                                memberNo,
+                                orderItemNo);
+
+                if (delivery == null) {
+                        throw new IllegalArgumentException(
+                                        "존재하지 않는 주문상품이거나 조회 권한이 없습니다.");
+                }
+
+                return delivery;
         }
 
         /**

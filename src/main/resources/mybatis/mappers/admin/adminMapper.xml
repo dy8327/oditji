@@ -39,7 +39,32 @@
 
             (SELECT COUNT(*) FROM EVENT WHERE STATUS = 'WAITING') AS EVENT_REQUEST_COUNT,
 
-            (SELECT COUNT(*) FROM SETTLEMENT WHERE STATUS = 'WAITING') AS SETTLEMENT_WAITING_COUNT,
+            <!--
+                [수정] 관리자 대시보드의 '입금 확인 대기'는
+                결제 직후 자동 생성되는 WAITING 행 수가 아니라,
+                사업자가 입금 확인을 요청한 REQUESTED 상태를 사업자/월 단위로 집계한다.
+
+                정산 관리 화면의 '입금 대기' 카드 및 목록과 동일한 기준이다.
+            -->
+            (
+                SELECT COUNT(*)
+                FROM (
+                    SELECT
+                        S.BUSINESS_NO,
+                        TRUNC(S.CREATED_AT, 'MM') AS SETTLEMENT_MONTH
+                    FROM SETTLEMENT S
+                    WHERE S.STATUS IN ('REQUESTED', 'DONE', 'REJECTED')
+                    GROUP BY
+                        S.BUSINESS_NO,
+                        TRUNC(S.CREATED_AT, 'MM')
+                    HAVING SUM(
+                        CASE
+                            WHEN S.STATUS = 'REQUESTED' THEN 1
+                            ELSE 0
+                        END
+                    ) > 0
+                ) REQUESTED_SETTLEMENT_GROUP
+            ) AS SETTLEMENT_WAITING_COUNT,
 
             (SELECT COUNT(DISTINCT MEMBER_NO)
             FROM ACCESS_LOG
@@ -752,6 +777,7 @@
 
             E.EVENT_NO AS eventNo,
             E.TITLE AS title,
+            E.BANNER_IMAGE AS bannerImage,
             E.START_DATE AS startDate,
             E.END_DATE AS endDate,
             E.CREATED_AT AS createdAt,
@@ -848,6 +874,7 @@
         GROUP BY
             E.EVENT_NO,
             E.TITLE,
+            E.BANNER_IMAGE,
             E.START_DATE,
             E.END_DATE,
             E.CREATED_AT,
@@ -1451,8 +1478,12 @@
             SUM(S.TOTAL_AMOUNT) AS TOTAL_AMOUNT,
             MAX(S.APPLIED_GRADE) AS APPLIED_GRADE,
             MAX(S.APPLIED_RATE) AS APPLIED_RATE,
-            SUM(S.FEE_AMOUNT) AS FEE_AMOUNT,
-            SUM(S.FEE_AMOUNT) AS SETTLED_AMOUNT,
+            /*
+             * [수정] 주문상품별 소수 수수료를 월 단위로 모두 합산한 뒤
+             * 관리자 화면에 표시할 최종 납부 금액만 원 단위로 반올림한다.
+             */
+            ROUND(SUM(S.FEE_AMOUNT)) AS FEE_AMOUNT,
+            ROUND(SUM(S.FEE_AMOUNT)) AS SETTLED_AMOUNT,
             CASE
                 WHEN SUM(CASE WHEN S.STATUS = 'REQUESTED' THEN 1 ELSE 0 END) > 0 THEN 'REQUESTED'
                 WHEN SUM(CASE WHEN S.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'

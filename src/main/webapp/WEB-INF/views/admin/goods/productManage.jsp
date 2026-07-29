@@ -224,6 +224,24 @@
                                     </c:otherwise>
                                 </c:choose>
 
+                                <%--
+                                    사업자가 등록한 상품 대표 이미지(PRODUCT_IMAGE.IS_MAIN='Y') URL.
+                                    ProductManageVO.mainImage / adminMapper.xml selectProductRequestList의
+                                    MAIN_IMAGE 컬럼은 이미 조회되어 있었으나 화면에서는 쓰이지 않고 있었다.
+                                    DB에는 웹에서 바로 접근 가능한 경로(contextPath 기준 상대경로, 예:
+                                    /upload/product/xxx.jpg)가 저장되어 있다고 가정하고 contextPath만 붙인다.
+                                    실제 정적 리소스 매핑 경로가 다르면 이 부분만 맞춰 조정하면 된다.
+                                --%>
+                                <c:choose>
+                                    <c:when test="${not empty req.mainImage}">
+                                        <c:set var="reqMainImageUrl"
+                                               value="${pageContext.request.contextPath}${req.mainImage}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="reqMainImageUrl" value=""/>
+                                    </c:otherwise>
+                                </c:choose>
+
                                 <tr>
 
                                     <td>${req.productNo}</td>
@@ -280,6 +298,7 @@
                                                 data-business-name="${fn:escapeXml(req.businessName)}"
                                                 data-product-name="${fn:escapeXml(req.productName)}"
                                                 data-content-title="${fn:escapeXml(req.contentTitle)}"
+                                                data-main-image="${fn:escapeXml(reqMainImageUrl)}"
                                                 data-price="${req.price}"
                                                 data-discount-rate="${req.discountRate}"
                                                 data-stock="${req.stock}"
@@ -399,6 +418,16 @@
                 &times;
             </button>
 
+        </div>
+
+        <%--
+            사업자가 등록한 상품 대표 이미지. 이미지가 없는 상품(등록 초기 또는 이미지 미첨부)도
+            있을 수 있어, 이미지가 없을 때는 안내 문구만 보여주는 빈 상태를 함께 둔다.
+            openProductRequestModal()이 data-main-image 값을 보고 둘 중 하나를 보여준다.
+        --%>
+        <div class="detail-image-box" id="reqProductImageBox">
+            <img id="reqProductImage" src="" alt="상품 이미지" style="display:none">
+            <span id="reqProductImageEmpty" class="detail-image-empty">등록된 이미지가 없습니다.</span>
         </div>
 
         <div class="target-info-box">

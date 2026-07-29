@@ -58,6 +58,8 @@ public interface MemberService {
 
     MemberVO findPw(MemberVO memberVO);
 
+    void updatePassword(Long memberNo, String password);
+
     /**
      * SNS(카카오) 자동가입 회원의 이메일을 등록한다.
      *

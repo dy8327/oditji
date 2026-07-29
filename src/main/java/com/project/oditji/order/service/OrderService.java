@@ -2,6 +2,7 @@ package com.project.oditji.order.service;
 
 import java.util.List;
 
+import com.project.oditji.order.vo.DeliveryVO;
 import com.project.oditji.order.vo.OrderPaymentPrepareVO;
 import com.project.oditji.order.vo.OrderSheetItemVO;
 import com.project.oditji.order.vo.OrderVO;
@@ -85,4 +86,11 @@ public interface OrderService {
         OrderVO getOrderDetail(
                         Long memberNo,
                         Long orderNo);
+
+        /**
+         * 로그인 회원 소유의 주문상품 배송 조회 (orderList 배송 조회 모달에서 사용)
+         */
+        DeliveryVO getDeliveryDetail(
+                        Long memberNo,
+                        Long orderItemNo);
 }

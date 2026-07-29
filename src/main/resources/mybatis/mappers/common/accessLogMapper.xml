@@ -13,7 +13,7 @@
             CREATED_AT
         ) VALUES (
             SEQ_ACCESS_LOG_NO.NEXTVAL,
-            #{memberNo},
+            #{memberNo, jdbcType=NUMERIC},
             #{accessIp},
             #{userAgent},
             #{accessUrl},

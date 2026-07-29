@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.project.oditji.business.vo.NtsBusinessVerifyVO;
 
 @Service
@@ -15,6 +18,7 @@ public class NtsBusinessServiceImpl
         implements NtsBusinessService {
 
     private final RestClient restClient;
+    private static final Logger log = LoggerFactory.getLogger(NtsBusinessServiceImpl.class);
 
     @Value("${nts.business.service-key}")
     private String serviceKey;
@@ -111,9 +115,9 @@ public class NtsBusinessServiceImpl
                     + "국세청 등록정보와 일치하지 않습니다.");
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
+            if (log.isErrorEnabled()) {
+                log.error("국세청 사업자 진위 확인 실패", e);
+            }
             return new NtsBusinessVerifyVO(false, null, "국세청 사업자 확인 중 오류가 발생했습니다.");
         }
     }
@@ -135,8 +139,7 @@ public class NtsBusinessServiceImpl
         try {
 
             Map<?, ?> response = restClient.post()
-                    .uri(uriBuilder ->
-                            uriBuilder
+                    .uri(uriBuilder ->uriBuilder
                                     .scheme("https")
                                     .host("api.odcloud.kr")
                                     .path("/api/nts-businessman/v1/status")
@@ -185,9 +188,9 @@ public class NtsBusinessServiceImpl
             return new NtsBusinessVerifyVO(false, businessStatus, businessStatus + " 상태의 사업자는 가입할 수 없습니다.");
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
+            if (log.isErrorEnabled()) {
+                log.error("국세청 사업자 상태조회 실패", e);
+            }
             return new NtsBusinessVerifyVO(false, null, "국세청 사업자 상태조회 중 오류가 발생했습니다.");
         }
     }
