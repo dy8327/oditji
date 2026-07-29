@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     modalTitle.textContent = "주문 전체 취소 요청";
 
-    modalDescription.textContent = "주문번호 " + parsedOrderNo + "번의 전체 취소를 요청합니다. " + "주문에 포함된 모든 사업자가 승인하면 " + "전액 환불됩니다.";
+    modalDescription.textContent = "해당 상품의 전체 취소를 요청합니다. " + "주문에 포함된 모든 사업자가 승인하면 " + "전액 환불됩니다.";
 
     reasonInput.placeholder = "주문 전체 취소 사유를 입력해주세요.";
 
