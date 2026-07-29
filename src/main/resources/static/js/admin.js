@@ -404,7 +404,8 @@ function openEventDetailModal(
     createdAt,
     status,
     statusLabel,
-    productDetail
+    productDetail,
+    bannerImage
 ) {
 
     document.getElementById('reqeventNo').value = eventNo;
@@ -413,6 +414,20 @@ function openEventDetailModal(
     document.getElementById('reqEventPeriod').textContent = period;
     document.getElementById('reqCreatedAt').textContent = createdAt;
     document.getElementById('reqStatus').textContent = statusLabel;
+
+    // 사업자가 등록한 이벤트 배너 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
+    var imageEl = document.getElementById('reqEventImage');
+    var imageEmptyEl = document.getElementById('reqEventImageEmpty');
+
+    if (bannerImage) {
+        imageEl.src = bannerImage;
+        imageEl.style.display = '';
+        imageEmptyEl.style.display = 'none';
+    } else {
+        imageEl.removeAttribute('src');
+        imageEl.style.display = 'none';
+        imageEmptyEl.style.display = '';
+    }
 
     var tbody = document.getElementById('reqProductTableBody');
     var items = (productDetail || '')
@@ -609,6 +624,21 @@ function openProductRequestModal(button) {
     document.getElementById('reqProductName').textContent = button.dataset.productName || '';
     document.getElementById('reqProductContentTitle').textContent = button.dataset.contentTitle || '';
     document.getElementById('reqProductPrice').textContent = formatProductWon(button.dataset.price || 0);
+
+    // 사업자가 등록한 상품 대표 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
+    var mainImage = button.dataset.mainImage || '';
+    var imageEl = document.getElementById('reqProductImage');
+    var imageEmptyEl = document.getElementById('reqProductImageEmpty');
+
+    if (mainImage) {
+        imageEl.src = mainImage;
+        imageEl.style.display = '';
+        imageEmptyEl.style.display = 'none';
+    } else {
+        imageEl.removeAttribute('src');
+        imageEl.style.display = 'none';
+        imageEmptyEl.style.display = '';
+    }
 
     var discountRate = Number(button.dataset.discountRate);
     document.getElementById('reqProductDiscountRate').textContent =
