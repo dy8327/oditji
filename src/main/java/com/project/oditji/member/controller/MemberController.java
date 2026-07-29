@@ -105,13 +105,6 @@ public class MemberController {
                         Model model,
                         RedirectAttributes redirectAttributes) {
 
-                System.out.println("===== 회원가입 요청 들어옴 =====");
-                System.out.println("memberId = " + memberVO.getMemberId());
-                System.out.println("memberName = " + memberVO.getMemberName());
-                System.out.println("nickname = " + memberVO.getNickname());
-                System.out.println("email = " + memberVO.getEmail());
-                System.out.println("ottList = " + ottList);
-
                 /*
                  * 가입 실패로 join.jsp가 다시 렌더링되는 경우에도
                  * OTT 선택 영역(로고/목록)이 그대로 보이도록 미리 담아둔다.
@@ -141,8 +134,6 @@ public class MemberController {
                                 //DB에는 경로가 아닌 저장된 파일명만 저장한다.
                                 
                                 memberVO.setProfileImage(saveFileName);
-
-                                System.out.println("저장된 프로필 파일명 = " + saveFileName);
                         }
 
                         // 회원 유형별 가입 처리
@@ -514,8 +505,6 @@ public class MemberController {
         @ResponseBody
         public String checkNickname(@RequestParam("nickname") String nickname) {
 
-                System.out.println("===== 닉네임 중복확인 요청 =====");
-                System.out.println("nickname = "+ nickname);
                 boolean duplicate = memberService.isDuplicateNickname( nickname);
 
                 if (duplicate) {
@@ -691,9 +680,6 @@ public class MemberController {
         @ResponseBody
         public String checkUpdateNickname(@RequestParam("nickname") String nickname, HttpSession session) {
 
-                System.out.println("===== 회원정보 수정 닉네임 중복확인 요청 =====");
-                System.out.println("nickname = " + nickname);
-
                 // 현재 로그인한 회원 정보를 세션에서 조회한다.
                 MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
 
@@ -702,29 +688,23 @@ public class MemberController {
                  * 정상적인 중복확인을 진행할 수 없다.
                  */
                 if (loginMember == null || loginMember.getMemberNo() == null) {
-                        System.out.println("닉네임 중복확인 실패: 로그인 회원 정보 없음");
 
                         return "N";
                 }
 
                 // 공백만 입력된 닉네임은 검사하지 않는다.
                 if (nickname == null || nickname.isBlank()) {
-                        System.out.println("닉네임 중복확인 실패: 닉네임 값 없음");
 
                         return "N";
                 }
 
                 String trimmedNickname = nickname.trim();
                 Long memberNo = loginMember.getMemberNo();
-                System.out.println("로그인 회원번호 = " + memberNo);
-
                 /*
                  * 현재 로그인한 회원을 제외하고
                  * 같은 닉네임을 사용하는 회원이 있는지 검사한다.
                  */
                 boolean available = memberService.checkUpdateNickname(memberNo, trimmedNickname);
-
-                System.out.println("닉네임 사용 가능 여부 = " + available);
 
                 return available ? "Y" : "N";
         }
