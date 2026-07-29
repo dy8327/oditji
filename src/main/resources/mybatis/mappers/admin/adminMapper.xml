@@ -730,6 +730,7 @@
 
             E.EVENT_NO AS eventNo,
             E.TITLE AS title,
+            E.BANNER_IMAGE AS bannerImage,
             E.START_DATE AS startDate,
             E.END_DATE AS endDate,
             E.CREATED_AT AS createdAt,
@@ -826,6 +827,7 @@
         GROUP BY
             E.EVENT_NO,
             E.TITLE,
+            E.BANNER_IMAGE,
             E.START_DATE,
             E.END_DATE,
             E.CREATED_AT,
