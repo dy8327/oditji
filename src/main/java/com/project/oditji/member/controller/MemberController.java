@@ -4,6 +4,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+
+import javax.imageio.ImageIO;
+
 import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
@@ -109,31 +112,10 @@ public class MemberController {
                  * 가입 실패로 join.jsp가 다시 렌더링되는 경우에도
                  * OTT 선택 영역(로고/목록)이 그대로 보이도록 미리 담아둔다.
                  */
-                model.addAttribute(
-                                "platformList",
-                                memberPlatformService.findPlatformList());
+                model.addAttribute("platformList", memberPlatformService.findPlatformList());
                 try {
                         if (profileImageFile != null && !profileImageFile.isEmpty()) {
-                                String uploadDir = "C:/oditji/uploads/profile/";
-                                File dir = new File(uploadDir);
-
-                                if (!dir.exists()) {
-                                        dir.mkdirs();
-                                }
-
-                                String originalFileName = profileImageFile.getOriginalFilename();
-                                String ext = "";
-                                if (originalFileName != null && originalFileName.contains(".")) {
-                                        ext = originalFileName.substring(originalFileName.lastIndexOf("."));
-                                }
-
-                                String saveFileName = UUID.randomUUID().toString() + ext;
-                                File saveFile = new File(uploadDir + saveFileName);
-                                profileImageFile.transferTo(saveFile);
-
-                                //DB에는 경로가 아닌 저장된 파일명만 저장한다.
-                                
-                                memberVO.setProfileImage(saveFileName);
+                                memberVO.setProfileImage(saveProfileImage(profileImageFile));
                         }
 
                         // 회원 유형별 가입 처리
@@ -604,26 +586,10 @@ public class MemberController {
                 // 프로필 이미지
                 if (profileImageFile != null && !profileImageFile.isEmpty()) {
                         try {
-                                String uploadDir = "C:/oditji/uploads/profile/";
-                                File dir = new File(uploadDir);
-
-                                if (!dir.exists()) {
-                                        dir.mkdirs();
-                                }
-
-                                String original = profileImageFile.getOriginalFilename();
-                                String ext = "";
-
-                                if (original != null && original.contains(".")) {
-                                        ext = original.substring(original.lastIndexOf("."));
-                                }
-
-                                String saveName = UUID.randomUUID() + ext;
-                                profileImageFile.transferTo(new File(uploadDir + saveName));
-                                memberVO.setProfileImage(saveName);
-
+                                memberVO.setProfileImage(saveProfileImage(profileImageFile));
+                        } catch (IllegalArgumentException e) {
+                                return redirectWithError(redirectAttributes, e.getMessage());
                         } catch (Exception e) {
-
                                 return redirectWithError(redirectAttributes, "이미지 업로드에 실패했습니다.");
                         }
                 }
@@ -965,5 +931,39 @@ public class MemberController {
                 }
 
                 return path.startsWith("/");
+        }
+
+        // 프로필 이미지 검증 및 저장
+        private String saveProfileImage(MultipartFile profileImageFile) throws Exception {
+                if (profileImageFile.getSize() > 5 * 1024 * 1024) {
+                        throw new IllegalArgumentException("프로필 이미지는 5MB 이하만 등록할 수 있습니다.");
+                }
+
+                String contentType = profileImageFile.getContentType();
+                String ext;
+
+                if ("image/jpeg".equals(contentType)) {
+                        ext = ".jpg";
+                } else if ("image/png".equals(contentType)) {
+                        ext = ".png";
+                } else {
+                        throw new IllegalArgumentException("프로필 이미지는 JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+                }
+
+                if (ImageIO.read(profileImageFile.getInputStream()) == null) {
+                        throw new IllegalArgumentException("정상적인 이미지 파일이 아닙니다.");
+                }
+
+                String uploadDir = "C:/oditji/uploads/profile/";
+                File dir = new File(uploadDir);
+
+                if (!dir.exists() && !dir.mkdirs()) {
+                        throw new IllegalStateException("프로필 이미지 저장 폴더를 생성할 수 없습니다.");
+                }
+
+                String saveFileName = UUID.randomUUID() + ext;
+                profileImageFile.transferTo(new File(dir, saveFileName));
+
+                return saveFileName;
         }
 }
