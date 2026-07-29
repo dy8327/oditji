@@ -30,18 +30,21 @@ pageEncoding="UTF-8"%>
                 <h2>비밀번호 변경</h2>
 
 
-                <form action="${pageContext.request.contextPath}/member/changePw"
+                <form id="changePwForm"
+                action="${pageContext.request.contextPath}/member/changePw"
                 method="post">
 
 
                 <div class="form-group">
 
-                    <label>
+                    <label for="newPassword">
                         새 비밀번호
                     </label>
 
                     <input type="password"
+                    id="newPassword"
                     name="newPassword"
+                    autocomplete="new-password"
                     required>
 
                 </div>
@@ -50,12 +53,14 @@ pageEncoding="UTF-8"%>
 
                 <div class="form-group">
 
-                    <label>
+                    <label for="confirmPassword">
                         새 비밀번호 확인
                     </label>
 
                     <input type="password"
+                    id="confirmPassword"
                     name="confirmPassword"
+                    autocomplete="new-password"
                     required>
 
                 </div>
@@ -79,6 +84,9 @@ pageEncoding="UTF-8"%>
 
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
+
+
+<script src="${pageContext.request.contextPath}/js/member.js"></script>
 
 
 </body>

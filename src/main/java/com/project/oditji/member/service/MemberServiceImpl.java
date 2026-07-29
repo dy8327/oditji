@@ -447,10 +447,24 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void updatePassword(Long memberNo, String password) {
 
-        memberDAO.updatePassword(memberNo, password);
+        if (memberNo == null) {
+            throw new IllegalArgumentException("회원 정보가 없습니다.");
+        }
 
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("비밀번호를 입력해주세요.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(password);
+
+        int updated = memberDAO.updatePassword(memberNo, encodedPassword);
+
+        if (updated != 1) {
+            throw new IllegalStateException("비밀번호 변경에 실패했습니다.");
+        }
     }
 
     @Override

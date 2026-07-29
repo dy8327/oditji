@@ -1302,3 +1302,49 @@ function validateSnsOttSelect() {
 
   return true;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const changePwForm = document.getElementById("changePwForm");
+
+    if (!changePwForm) {
+        return;
+    }
+
+
+    const newPassword = document.getElementById("newPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+
+
+    changePwForm.addEventListener("submit", (event) => {
+
+        const password = newPassword.value.trim();
+        const confirm = confirmPassword.value.trim();
+
+
+        if (!regex.pw.test(password)) {
+
+            alert(
+                "비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다."
+            );
+
+            event.preventDefault();
+            newPassword.focus();
+
+            return;
+        }
+
+
+        if (password !== confirm) {
+
+            alert("비밀번호가 일치하지 않습니다.");
+
+            event.preventDefault();
+            confirmPassword.focus();
+
+            return;
+        }
+
+    });
+
+});
