@@ -183,146 +183,176 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
-    function initializeCartButton() {
+function initializeCartButton() {
 
-        document.addEventListener(
-            "click",
-            async function (event) {
+    document.addEventListener(
+        "click",
+        async function (event) {
 
-                const cartButton =
-                    event.target.closest(
-                        ".cart-btn"
-                    );
+            const cartButton =
+                event.target.closest(
+                    ".cart-btn"
+                );
 
-                if (!cartButton
-                        || cartButton.disabled) {
+            if (!cartButton
+                    || cartButton.disabled) {
 
-                    return;
-                }
+                return;
+            }
 
-                const productNo =
-                    Number(
-                        cartButton.dataset.productNo
-                    );
+            const productNo =
+                Number(
+                    cartButton.dataset.productNo
+                );
 
-                if (!Number.isInteger(productNo)
-                        || productNo <= 0) {
+            if (!Number.isInteger(productNo)
+                    || productNo <= 0) {
 
-                    alert(
-                        "상품 정보가 올바르지 않습니다."
-                    );
+                await Swal.fire({
+                    icon: "warning",
+                    text: "상품 정보가 올바르지 않습니다.",
+                    confirmButtonText: "확인"
+                });
 
-                    return;
-                }
+                return;
+            }
 
-                cartButton.disabled = true;
+            cartButton.disabled = true;
 
-                const originalText =
-                    cartButton.textContent;
+            const originalText =
+                cartButton.textContent;
 
-                cartButton.textContent =
-                    "담는 중...";
+            cartButton.textContent =
+                "담는 중...";
 
-                try {
+            try {
 
-                    const response =
-                        await fetch(
-                            contextPath
-                                + "/cart/add",
-                            {
-                                method: "POST",
+                const response =
+                    await fetch(
+                        contextPath
+                            + "/cart/add",
+                        {
+                            method: "POST",
 
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                                body:
-                                    JSON.stringify(
-                                        {
-                                            productNo:
-                                                productNo,
+                            body:
+                                JSON.stringify(
+                                    {
+                                        productNo:
+                                            productNo,
 
-                                            quantity:
-                                                1
-                                        }
-                                    )
-                            }
-                        );
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            "HTTP "
-                                + response.status
-                        );
-                    }
-
-                    const result =
-                        await response.json();
-
-                    if (result.loginRequired) {
-
-                        const moveLogin = confirm(
-                            "장바구니는 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
-                        );
-
-                        if (moveLogin) {
-
-                            const currentUrl =
-                                window.location.pathname
-                                + window.location.search;
-
-                            window.location.href =
-                                contextPath
-                                + "/member/login?redirect="
-                                + encodeURIComponent(currentUrl);
+                                        quantity:
+                                            1
+                                    }
+                                )
                         }
+                    );
 
-                        return;
-                    }
 
-                    if (!result.success) {
+                if (!response.ok) {
 
-                        alert(
-                            result.message
-                                || "장바구니 처리에 실패했습니다."
-                        );
+                    throw new Error(
+                        "HTTP "
+                            + response.status
+                    );
+                }
 
-                        return;
-                    }
 
-                    const goToCart =
-                        confirm(
-                            "장바구니에 상품을 담았습니다.\n"
-                            + "장바구니로 이동할까요?"
-                        );
+                const result =
+                    await response.json();
 
-                    if (goToCart) {
+
+                if (result.loginRequired) {
+
+                    const moveLogin =
+                        await Swal.fire({
+                            icon: "info",
+                            text:
+                                "장바구니는 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                            showCancelButton: true,
+                            confirmButtonText: "이동",
+                            cancelButtonText: "취소"
+                        });
+
+
+                    if (moveLogin.isConfirmed) {
+
+                        const currentUrl =
+                            window.location.pathname
+                            + window.location.search;
+
 
                         window.location.href =
                             contextPath
-                            + "/cart";
+                            + "/member/login?redirect="
+                            + encodeURIComponent(currentUrl);
                     }
 
-                } catch (error) {
 
-                    console.error(error);
-
-                    alert(
-                        "장바구니 처리 중 오류가 발생했습니다."
-                    );
-
-                } finally {
-
-                    cartButton.disabled = false;
-
-                    cartButton.textContent =
-                        originalText;
+                    return;
                 }
+
+
+                if (!result.success) {
+
+                    await Swal.fire({
+                        icon: "error",
+                        text:
+                            result.message
+                            || "장바구니 처리에 실패했습니다.",
+                        confirmButtonText: "확인"
+                    });
+
+                    return;
+                }
+
+
+                const goToCart =
+                    await Swal.fire({
+                        icon: "success",
+                        text:
+                            "장바구니에 상품을 담았습니다.\n장바구니로 이동할까요?",
+                        showCancelButton: true,
+                        confirmButtonText: "이동",
+                        cancelButtonText: "계속 쇼핑"
+                    });
+
+
+                if (goToCart.isConfirmed) {
+
+                    window.location.href =
+                        contextPath
+                        + "/cart";
+                }
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                await Swal.fire({
+                    icon: "error",
+                    text:
+                        "장바구니 처리 중 오류가 발생했습니다.",
+                    confirmButtonText: "확인"
+                });
+
+
+            } finally {
+
+                cartButton.disabled = false;
+
+                cartButton.textContent =
+                    originalText;
             }
-        );
-    }
+        }
+    );
+}
 
     function initializeBuyButton() {
 
@@ -451,4 +481,41 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         );
     }
+});
+
+/*
+ * 상품 카드 이미지 로딩 실패 처리를 HTML의 onerror 속성에서 분리한다.
+ * 비상호작용 요소인 img에 인라인 이벤트 속성을 지정하지 않으면서
+ * 기존 NO IMAGE 대체 화면 동작은 그대로 유지한다.
+ */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const cardImages =
+        document.querySelectorAll(
+            ".goods-card-image[data-fallback-target]"
+        );
+
+    cardImages.forEach(function (image) {
+
+        image.addEventListener(
+            "error",
+            function () {
+
+                const fallbackId =
+                    image.dataset.fallbackTarget;
+
+                const fallbackElement =
+                    document.getElementById(
+                        fallbackId
+                    );
+
+                image.style.display = "none";
+
+                if (fallbackElement) {
+                    fallbackElement.style.display = "flex";
+                }
+            },
+            { once: true }
+        );
+    });
 });

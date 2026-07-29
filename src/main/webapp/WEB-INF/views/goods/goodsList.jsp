@@ -37,45 +37,6 @@
         src="${pageContext.request.contextPath}/js/favorite.js">
 </script>
 
-<script>
-/*
- * 상품 카드 이미지 로딩 실패 처리를 HTML의 onerror 속성에서 분리한다.
- * 비상호작용 요소인 img에 인라인 이벤트 속성을 지정하지 않으면서
- * 기존 NO IMAGE 대체 화면 동작은 그대로 유지한다.
- */
-document.addEventListener("DOMContentLoaded", function () {
-
-    const cardImages =
-        document.querySelectorAll(
-            ".goods-card-image[data-fallback-target]"
-        );
-
-    cardImages.forEach(function (image) {
-
-        image.addEventListener(
-            "error",
-            function () {
-
-                const fallbackId =
-                    image.dataset.fallbackTarget;
-
-                const fallbackElement =
-                    document.getElementById(
-                        fallbackId
-                    );
-
-                image.style.display = "none";
-
-                if (fallbackElement) {
-                    fallbackElement.style.display = "flex";
-                }
-            },
-            { once: true }
-        );
-    });
-});
-</script>
-
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">
