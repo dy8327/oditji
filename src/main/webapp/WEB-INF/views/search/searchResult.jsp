@@ -16,7 +16,7 @@
     <title>ODITJI | 검색 결과</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/search.css?v=2">
+          href="${pageContext.request.contextPath}/css/search.css?v=3">
 
     <script defer
             src="${pageContext.request.contextPath}/js/search.js?v=13"></script>
@@ -409,6 +409,14 @@
                                                     </c:otherwise>
                                                 </c:choose>
 
+                                                <span class="search-discovery-age-rating"
+                                                      title="<c:out value='${ageBadgeTitle}'/>">
+                                                    <span class="age-rating-badge is-${ageBadgeClass}"
+                                                          aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                        <c:out value="${ageBadgeLabel}"/>
+                                                    </span>
+                                                </span>
+
                                                 <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
                                                     <span class="search-discovery-score">
                                                         ★ <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
@@ -427,12 +435,6 @@
                                                             <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
                                                             <c:otherwise>TV</c:otherwise>
                                                         </c:choose>
-                                                    </span>
-
-                                                    <span class="age-rating-badge is-${ageBadgeClass}"
-                                                          title="<c:out value='${ageBadgeTitle}'/>"
-                                                          aria-label="<c:out value='${ageBadgeTitle}'/>">
-                                                        <c:out value="${ageBadgeLabel}"/>
                                                     </span>
                                                 </div>
 
@@ -618,6 +620,14 @@
                                                     <div class="search-content-no-image">NO IMAGE</div>
                                                 </c:otherwise>
                                             </c:choose>
+
+                                            <span class="search-content-age-rating"
+                                                  title="<c:out value='${ageBadgeTitle}'/>">
+                                                <span class="age-rating-badge is-${ageBadgeClass}"
+                                                      aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                    <c:out value="${ageBadgeLabel}"/>
+                                                </span>
+                                            </span>
                                         </div>
 
                                         <div class="search-content-info">
@@ -633,12 +643,6 @@
                                                                 <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
                                                                 <c:otherwise>TV</c:otherwise>
                                                             </c:choose>
-                                                        </span>
-
-                                                        <span class="age-rating-badge is-${ageBadgeClass}"
-                                                              title="<c:out value='${ageBadgeTitle}'/>"
-                                                              aria-label="<c:out value='${ageBadgeTitle}'/>">
-                                                            <c:out value="${ageBadgeLabel}"/>
                                                         </span>
                                                     </div>
                                                     <h3 class="search-content-title"><c:out value="${content.title}"/></h3>

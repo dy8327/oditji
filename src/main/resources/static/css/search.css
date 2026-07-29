@@ -677,13 +677,21 @@
     gap: 6px;
 }
 
-.search-discovery-badge-row .age-rating-badge {
+.search-discovery-age-rating {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    z-index: 2;
+    display: inline-flex;
+}
+
+.search-discovery-age-rating .age-rating-badge {
     width: 21px;
     height: 21px;
     font-size: 8.5px;
 }
 
-.search-discovery-badge-row .age-rating-badge.is-all {
+.search-discovery-age-rating .age-rating-badge.is-all {
     width: 27px;
     font-size: 7px;
 }
@@ -743,6 +751,7 @@
 }
 
 .search-content-poster {
+    position: relative;
     overflow: hidden;
     width: 92px;
     height: 138px;
@@ -852,6 +861,25 @@
 
 .age-rating-badge.is-unknown {
     background: #555c66;
+}
+
+.search-content-age-rating {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 2;
+    display: inline-flex;
+}
+
+.search-content-age-rating .age-rating-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 8px;
+}
+
+.search-content-age-rating .age-rating-badge.is-all {
+    width: 26px;
+    font-size: 6.7px;
 }
 
 .search-content-badge-row {

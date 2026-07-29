@@ -25,7 +25,7 @@
 
     <!-- 콘텐츠 목록 화면 전용 레이아웃과 카드 디자인입니다. -->
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=3">
+          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=5">
 
     <script>
         const contextPath = "${pageContext.request.contextPath}";
@@ -400,17 +400,6 @@
                                              value="${content.contentType}"/>
                                 </c:url>
 
-                                <button type="button"
-                                        class="content-list-favorite-btn"
-                                        data-content-list-favorite
-                                        data-tmdb-id="${content.tmdbId}"
-                                        data-content-type="${content.contentType}"
-                                        aria-pressed="false"
-                                        aria-label="<c:out value='${content.title}'/> 찜하기"
-                                        title="찜하기">
-                                    <span aria-hidden="true">♡</span>
-                                </button>
-
                                 <a class="content-list-card-link"
                                    href="${detailUrl}">
 
@@ -431,6 +420,14 @@
 
                                         <span class="content-list-type-badge is-${contentBadgeClass}">
                                             <c:out value="${contentBadgeLabel}"/>
+                                        </span>
+
+                                        <span class="content-list-poster-age-rating"
+                                              title="<c:out value='${ageBadgeTitle}'/>">
+                                            <span class="age-rating-badge is-${ageBadgeClass}"
+                                                  aria-label="<c:out value='${ageBadgeTitle}'/>">
+                                                <c:out value="${ageBadgeLabel}"/>
+                                            </span>
                                         </span>
 
                                         <c:if test="${not empty content.tmdbScore}">
@@ -461,14 +458,6 @@
                                                 </c:choose>
                                             </span>
 
-                                            <span class="content-list-age-rating"
-                                                  title="<c:out value='${ageBadgeTitle}'/>">
-                                                <span class="age-rating-badge is-${ageBadgeClass}"
-                                                      aria-label="<c:out value='${ageBadgeTitle}'/>">
-                                                    <c:out value="${ageBadgeLabel}"/>
-                                                </span>
-                                            </span>
-
                                             <span><c:out value="${contentBadgeLabel}"/></span>
                                         </div>
 
@@ -478,34 +467,47 @@
                                             </p>
                                         </c:if>
 
-                                        <c:if test="${not empty content.platformList}">
-                                            <div class="content-list-platform-row"
-                                                 aria-label="시청 가능한 OTT 플랫폼">
-
-                                                <c:forEach var="platform"
-                                                           items="${content.platformList}"
-                                                           begin="0"
-                                                           end="2">
-                                                    <c:if test="${not empty platform.logoImage}">
-                                                        <img src="${platform.logoImage}"
-                                                             alt="<c:out value='${platform.platformName}'/>"
-                                                             title="<c:out value='${platform.platformName}'/>"
-                                                             loading="lazy">
-                                                    </c:if>
-                                                </c:forEach>
-
-                                                <c:if test="${fn:length(content.platformList) > 3}">
-                                                    <span class="content-list-platform-more">
-                                                        +${fn:length(content.platformList) - 3}
-                                                    </span>
-                                                </c:if>
-
-                                            </div>
-                                        </c:if>
-
                                     </div>
 
                                 </a>
+
+                                <div class="content-list-card-bottom">
+                                    <c:if test="${not empty content.platformList}">
+                                        <div class="content-list-platform-row"
+                                             aria-label="시청 가능한 OTT 플랫폼">
+
+                                            <c:forEach var="platform"
+                                                       items="${content.platformList}"
+                                                       begin="0"
+                                                       end="2">
+                                                <c:if test="${not empty platform.logoImage}">
+                                                    <img src="${platform.logoImage}"
+                                                         alt="<c:out value='${platform.platformName}'/>"
+                                                         title="<c:out value='${platform.platformName}'/>"
+                                                         loading="lazy">
+                                                </c:if>
+                                            </c:forEach>
+
+                                            <c:if test="${fn:length(content.platformList) > 3}">
+                                                <span class="content-list-platform-more">
+                                                    +${fn:length(content.platformList) - 3}
+                                                </span>
+                                            </c:if>
+
+                                        </div>
+                                    </c:if>
+
+                                    <button type="button"
+                                            class="content-list-favorite-btn"
+                                            data-content-list-favorite
+                                            data-tmdb-id="${content.tmdbId}"
+                                            data-content-type="${content.contentType}"
+                                            aria-pressed="false"
+                                            aria-label="<c:out value='${content.title}'/> 찜하기"
+                                            title="찜하기">
+                                        <span aria-hidden="true">♡</span>
+                                    </button>
+                                </div>
 
                             </article>
 
