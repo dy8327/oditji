@@ -382,8 +382,9 @@ async function toggleContentListFavorite(
 
     if (!tmdbId || !contentType) {
 
-        alert(
-            "콘텐츠 정보를 확인할 수 없습니다."
+        await showAlert(
+            "콘텐츠 정보를 확인할 수 없습니다.",
+            "warning"
         );
 
         return;
@@ -415,8 +416,9 @@ async function toggleContentListFavorite(
 
         if (response.status === 401) {
 
-            const moveLogin = confirm(
-                "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?"
+            const moveLogin = await showConfirm(
+                "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                "info"
             );
 
             if (moveLogin) {
@@ -460,9 +462,10 @@ async function toggleContentListFavorite(
 
         console.error(error);
 
-        alert(
+        await showAlert(
             error.message
-            || "찜 처리 중 오류가 발생했습니다."
+            || "찜 처리 중 오류가 발생했습니다.",
+            "error"
         );
 
     } finally {

@@ -470,7 +470,7 @@
                 <button type="submit"
                         id="productApproveBtn"
                         class="btn btn-success"
-                        onclick="return confirmProductApprove();">
+                        onclick="return confirmProductApprove(event);">
                     승인
                 </button>
 
@@ -478,7 +478,7 @@
                         id="productRejectBtn"
                         formaction="${pageContext.request.contextPath}/admin/product/reject"
                         class="btn btn-danger"
-                        onclick="return confirmProductReject();">
+                        onclick="return confirmProductReject(event);">
                     반려
                 </button>
 

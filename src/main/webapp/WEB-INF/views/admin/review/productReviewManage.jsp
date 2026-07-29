@@ -159,13 +159,13 @@
 
                             <button type="submit" name="action" value="approve"
                                     id="bulkApproveReviewBtn" class="btn btn-danger" disabled
-                                    onclick="return confirmReviewBulkAction('승인');">
+                                    onclick="return confirmReviewBulkAction(event, '승인');">
                                 선택 승인 (리뷰 삭제)
                             </button>
 
                             <button type="submit" name="action" value="reject"
                                     id="bulkRejectReviewBtn" class="btn btn-secondary" disabled
-                                    onclick="return confirmReviewBulkAction('반려');">
+                                    onclick="return confirmReviewBulkAction(event, '반려');">
                                 선택 반려
                             </button>
 
@@ -175,7 +175,7 @@
 
                             <button type="submit" name="action" value="delete"
                                     id="bulkDeleteReviewBtn" class="btn btn-danger" disabled
-                                    onclick="return confirmReviewBulkAction('삭제');">
+                                    onclick="return confirmReviewBulkAction(event, '삭제');">
                                 선택 삭제
                             </button>
 
@@ -289,7 +289,7 @@
 
                                                             <button type="submit"
                                                                     class="btn btn-danger"
-                                                                    onclick="return confirm('신고를 승인하여 리뷰를 삭제하시겠습니까?');">
+                                                                    onclick="return confirmAndSubmit(event, '신고를 승인하여 리뷰를 삭제하시겠습니까?');">
                                                                 승인 (리뷰 삭제)
                                                             </button>
 
@@ -307,7 +307,7 @@
 
                                                             <button type="submit"
                                                                     class="btn btn-secondary"
-                                                                    onclick="return confirm('신고를 반려하시겠습니까?');">
+                                                                    onclick="return confirmAndSubmit(event, '신고를 반려하시겠습니까?');">
                                                                 반려
                                                             </button>
 
@@ -461,14 +461,14 @@
                         <button type="submit"
                                 formaction="${pageContext.request.contextPath}/admin/productReview/report/approve"
                                 class="btn btn-danger"
-                                onclick="return confirm('신고를 승인하여 리뷰를 삭제하시겠습니까?');">
+                                onclick="return confirmAndSubmit(event, '신고를 승인하여 리뷰를 삭제하시겠습니까?');">
                             승인 (리뷰 삭제)
                         </button>
 
                         <button type="submit"
                                 formaction="${pageContext.request.contextPath}/admin/productReview/report/reject"
                                 class="btn btn-secondary"
-                                onclick="return confirm('신고를 반려하시겠습니까?');">
+                                onclick="return confirmAndSubmit(event, '신고를 반려하시겠습니까?');">
                             반려
                         </button>
 
@@ -479,7 +479,7 @@
                         <button type="submit"
                                 formaction="${pageContext.request.contextPath}/admin/productReview/delete"
                                 class="btn btn-danger"
-                                onclick="return confirm('이 리뷰를 삭제하시겠습니까?');">
+                                onclick="return confirmAndSubmit(event, '이 리뷰를 삭제하시겠습니까?');">
                             리뷰 삭제
                         </button>
 

@@ -74,7 +74,7 @@ const savedActorNo =
             <form action="${pageContext.request.contextPath}/business/product/update"
                   method="post"
                   enctype="multipart/form-data"
-                  onsubmit="return validateProductForm();">
+                  onsubmit="return validateProductForm(event);">
 
 
                 <input type="hidden"

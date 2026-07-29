@@ -185,8 +185,9 @@ function initializeHeaderNotification() {
             closeDropdown();
         } catch (error) {
             console.error("알림 전체 읽음 처리 실패:", error);
-            window.alert(
-                "알림 전체 읽음 처리 중 오류가 발생했습니다."
+            await showAlert(
+                "알림 전체 읽음 처리 중 오류가 발생했습니다.",
+                "error"
             );
         } finally {
             clearAllButton.disabled = false;
