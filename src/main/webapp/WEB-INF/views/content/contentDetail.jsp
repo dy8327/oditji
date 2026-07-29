@@ -32,7 +32,7 @@
 <script defer src="${pageContext.request.contextPath}/js/spoiler-review.js"></script>
 
 <%-- [수정] 콘텐츠 리뷰 중복 안내, 인라인 수정, 삭제 확인 기능 --%>
-<script defer src="${pageContext.request.contextPath}/js/content-review.js"></script>
+<%--<script defer src="${pageContext.request.contextPath}/js/content-review.js"></script>--%>
 </head>
 
 <body>
