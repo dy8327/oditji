@@ -1571,6 +1571,23 @@
                      ) > 0
                     THEN 'REQUESTED'
 
+                /*
+                 * [수정]
+                 * 반려 이후 같은 달에 새로운 판매 정산(WAITING)이 생기면
+                 * 이전 반려 상태를 계속 표시하지 않고 다시 입금 대기 상태로 표시한다.
+                 *
+                 * 새로 발생한 WAITING 정산까지 포함하여 사업자가 다시 요청하면
+                 * updateSettlementRequestStatus에서 WAITING/REJECTED를 함께 REQUESTED로 변경한다.
+                 */
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'WAITING'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'WAITING'
+
                 WHEN SUM(
                         CASE
                             WHEN S.STATUS = 'REJECTED'
@@ -1716,6 +1733,23 @@
                         END
                      ) > 0
                     THEN 'REQUESTED'
+
+                /*
+                 * [수정]
+                 * 반려 이후 같은 달에 새로운 판매 정산(WAITING)이 생기면
+                 * 이전 반려 상태를 계속 표시하지 않고 다시 입금 대기 상태로 표시한다.
+                 *
+                 * 새로 발생한 WAITING 정산까지 포함하여 사업자가 다시 요청하면
+                 * updateSettlementRequestStatus에서 WAITING/REJECTED를 함께 REQUESTED로 변경한다.
+                 */
+                WHEN SUM(
+                        CASE
+                            WHEN S.STATUS = 'WAITING'
+                                THEN 1
+                            ELSE 0
+                        END
+                     ) > 0
+                    THEN 'WAITING'
 
                 WHEN SUM(
                         CASE
