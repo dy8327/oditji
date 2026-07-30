@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -150,13 +151,17 @@
                             <div class="favorite-meta">
                                 <c:choose>
                                     <c:when test="${g.discountRate > 0}">
-                                        <span class="price-original">₩ ${g.price}</span>
+                                        <span class="price-original">
+                                            ₩ <fmt:formatNumber value="${g.price}" pattern="#,###"/>
+                                        </span>
                                         <span class="price-final">
-                                            ₩ ${g.price - (g.price * g.discountRate / 100)}
+                                            ₩ <fmt:formatNumber value="${g.discountPrice}" pattern="#,###"/>
                                         </span>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="price-final">₩ ${g.price}</span>
+                                        <span class="price-final">
+                                            ₩ <fmt:formatNumber value="${g.price}" pattern="#,###"/>
+                                        </span>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
