@@ -38,6 +38,9 @@ public class OrderCancelRefundVO {
     private Long refundAmount;
     private Integer itemCount;
 
+    /* [추가] 사용자 취소/환불 내역 조회 전용 필드 */
+    private String historyType;
+
     public Long getCancelNo() {
         return cancelNo;
     }
@@ -180,6 +183,14 @@ public class OrderCancelRefundVO {
 
     public void setRefundAmount(Long refundAmount) {
         this.refundAmount = refundAmount;
+    }
+
+    public String getHistoryType() {
+        return historyType;
+    }
+
+    public void setHistoryType(String historyType) {
+        this.historyType = historyType;
     }
 
     public Integer getItemCount() {

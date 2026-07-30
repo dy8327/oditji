@@ -600,7 +600,7 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
-                if (!Set.of("PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
+                if (!Set.of("CONFIRMED", "PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
                         throw new IllegalArgumentException("올바르지 않은 배송 상태 검색 조건입니다.");
                 }
 
@@ -625,6 +625,7 @@ public class BusinessServiceImpl
         private void validateDeliveryStatusTransition(String currentStatus, String nextStatus) {
                 Map<String, Integer> statusOrder = Map.of(
                                 "PAID", 0,
+                                "CONFIRMED", 0,
                                 "PREPARING", 1,
                                 "SHIPPING", 2,
                                 "DELIVERED", 3);
@@ -635,7 +636,7 @@ public class BusinessServiceImpl
                 if (currentStep != null && nextStep != null && nextStep < currentStep) {
                         throw new IllegalStateException("배송 상태는 이전 단계로 되돌릴 수 없습니다.");
                 }
-        }        
+        }
 
         /* 사업자등록번호 사용 가능 여부 확인 */
         @Override
@@ -773,11 +774,9 @@ public class BusinessServiceImpl
                 String normalizedKeyword = keyword.trim()
                                 .toLowerCase(Locale.ROOT);
 
-                List<ContentSearchVO> resultList =
-                                new ArrayList<ContentSearchVO>();
+                List<ContentSearchVO> resultList = new ArrayList<ContentSearchVO>();
 
-                for (CachedContentVO cachedContent
-                                : searchContentStore.getAll()) {
+                for (CachedContentVO cachedContent : searchContentStore.getAll()) {
 
                         if (cachedContent == null
                                         || cachedContent.getTmdbId() == null
@@ -795,8 +794,7 @@ public class BusinessServiceImpl
                                         convertToContentSearchVO(
                                                         cachedContent));
 
-                        if (resultList.size()
-                                        >= CONTENT_SEARCH_LIMIT) {
+                        if (resultList.size() >= CONTENT_SEARCH_LIMIT) {
                                 break;
                         }
                 }
@@ -821,18 +819,16 @@ public class BusinessServiceImpl
                                 tmdbId,
                                 contentType);
 
-                List<ActorVO> actorList =
-                                tmdbService.getContentActorPreview(
-                                                tmdbId,
-                                                contentType);
+                List<ActorVO> actorList = tmdbService.getContentActorPreview(
+                                tmdbId,
+                                contentType);
 
                 if (actorList == null
                                 || actorList.isEmpty()) {
                         return Collections.emptyList();
                 }
 
-                List<ActorSearchVO> resultList =
-                                new ArrayList<ActorSearchVO>();
+                List<ActorSearchVO> resultList = new ArrayList<ActorSearchVO>();
 
                 for (ActorVO actor : actorList) {
 
@@ -841,8 +837,7 @@ public class BusinessServiceImpl
                                 continue;
                         }
 
-                        ActorSearchVO result =
-                                        new ActorSearchVO();
+                        ActorSearchVO result = new ActorSearchVO();
 
                         result.setTmdbActorId(
                                         actor.getTmdbActorId());
@@ -2060,10 +2055,9 @@ public class BusinessServiceImpl
                                         tmdbId,
                                         contentType);
 
-                        int contentNo =
-                                        contentService.ensureContentStored(
-                                                        tmdbId,
-                                                        contentType);
+                        int contentNo = contentService.ensureContentStored(
+                                        tmdbId,
+                                        contentType);
 
                         goodsManageVO.setContentNo(
                                         contentNo);
@@ -2080,9 +2074,8 @@ public class BusinessServiceImpl
                                         "콘텐츠를 선택해주세요.");
                 }
 
-                ContentSearchVO content =
-                                businessDAO.selectContentByNo(
-                                                goodsManageVO.getContentNo());
+                ContentSearchVO content = businessDAO.selectContentByNo(
+                                goodsManageVO.getContentNo());
 
                 if (content == null) {
                         throw new IllegalArgumentException(
@@ -2098,8 +2091,7 @@ public class BusinessServiceImpl
         private void resolveProductActor(
                         GoodsManageVO goodsManageVO) {
 
-                Long tmdbActorId =
-                                goodsManageVO.getTmdbActorId();
+                Long tmdbActorId = goodsManageVO.getTmdbActorId();
 
                 if (tmdbActorId == null
                                 || tmdbActorId <= 0) {
@@ -2108,9 +2100,8 @@ public class BusinessServiceImpl
                         return;
                 }
 
-                List<ActorSearchVO> actorList =
-                                businessDAO.selectActorListByContentNo(
-                                                goodsManageVO.getContentNo());
+                List<ActorSearchVO> actorList = businessDAO.selectActorListByContentNo(
+                                goodsManageVO.getContentNo());
 
                 if (actorList == null) {
                         actorList = Collections.emptyList();
@@ -2119,8 +2110,7 @@ public class BusinessServiceImpl
                 for (ActorSearchVO actor : actorList) {
 
                         if (actor != null
-                                        && actor.getTmdbActorId()
-                                                == tmdbActorId.longValue()) {
+                                        && actor.getTmdbActorId() == tmdbActorId.longValue()) {
 
                                 goodsManageVO.setActorNo(
                                                 actor.getActorNo());
@@ -2150,9 +2140,8 @@ public class BusinessServiceImpl
                                         "올바른 콘텐츠를 선택해주세요.");
                 }
 
-                String normalizedType =
-                                contentType.trim()
-                                                .toUpperCase(Locale.ROOT);
+                String normalizedType = contentType.trim()
+                                .toUpperCase(Locale.ROOT);
 
                 if (!"MOVIE".equals(normalizedType)
                                 && !"TV".equals(normalizedType)) {
@@ -2161,11 +2150,10 @@ public class BusinessServiceImpl
                                         "지원하지 않는 콘텐츠 유형입니다.");
                 }
 
-                CachedContentVO cachedContent =
-                                searchContentStore
-                                                .findByTmdbIdAndContentType(
-                                                                tmdbId,
-                                                                normalizedType);
+                CachedContentVO cachedContent = searchContentStore
+                                .findByTmdbIdAndContentType(
+                                                tmdbId,
+                                                normalizedType);
 
                 if (cachedContent == null) {
                         throw new IllegalArgumentException(
@@ -2200,8 +2188,7 @@ public class BusinessServiceImpl
         private ContentSearchVO convertToContentSearchVO(
                         CachedContentVO cachedContent) {
 
-                ContentSearchVO result =
-                                new ContentSearchVO();
+                ContentSearchVO result = new ContentSearchVO();
 
                 result.setTmdbId(
                                 cachedContent.getTmdbId());

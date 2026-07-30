@@ -1,6 +1,9 @@
 package com.project.oditji.refund.service;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,52 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
     /*
      * =========================================================
+     * [추가] 사용자 취소/환불 내역 조건 조회
+     * 조회 유형은 CANCEL/REFUND, 처리 상태는 WAITING/APPROVED/REJECTED만 허용한다.
+     * 종료일은 Mapper에서 다음 날 미만으로 비교하여 선택 날짜 전체를 포함한다.
+     * =========================================================
+     */
+    @Override
+    public List<OrderCancelRefundVO> getMemberCancelRefundHistory(
+            Long memberNo, String historyType, String status, LocalDate startDate, LocalDate endDate) {
+
+        validateMemberNo(memberNo);
+
+        String normalizedType = normalizeHistoryFilter(historyType, SetType.HISTORY_TYPE);
+        String normalizedStatus = normalizeHistoryFilter(status, SetType.STATUS);
+
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("조회 시작일은 종료일보다 늦을 수 없습니다.");
+        }
+
+        return orderCancelRefundDAO.selectMemberCancelRefundHistory(
+                memberNo, normalizedType, normalizedStatus,
+                startDate == null ? null : Date.valueOf(startDate),
+                endDate == null ? null : Date.valueOf(endDate));
+    }
+
+    private enum SetType {
+        HISTORY_TYPE, STATUS
+    }
+
+    private String normalizeHistoryFilter(String value, SetType type) {
+        if (value == null || value.isBlank() || "ALL".equalsIgnoreCase(value)) {
+            return null;
+        }
+
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        boolean valid = type == SetType.HISTORY_TYPE
+                ? ("CANCEL".equals(normalized) || "REFUND".equals(normalized))
+                : ("WAITING".equals(normalized) || "APPROVED".equals(normalized) || "REJECTED".equals(normalized));
+
+        if (!valid) {
+            throw new IllegalArgumentException("올바르지 않은 취소/환불 조회 조건입니다.");
+        }
+        return normalized;
+    }
+
+    /*
+     * =========================================================
      * [주문 전체 취소 요청 기능 수정]
      *
      * 사용자 화면에서는 주문 전체 취소를 한 건으로 요청한다.
@@ -78,7 +127,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         if (itemList == null || itemList.isEmpty()) {
             throw new IllegalArgumentException(
-                    "전체 취소를 요청할 수 있는 주문상품이 없습니다. 배송이 시작된 상품은 취소할 수 없습니다.");
+                    "전체 취소 또는 전체 환불을 요청할 수 있는 주문상품이 없습니다.");
         }
 
         for (OrderItemVO item : itemList) {
@@ -121,6 +170,35 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
     /*
      * =========================================================
+     * [추가] 선택 상품 일괄 취소/환불 요청
+     * 하나라도 실패하면 전체 요청을 롤백하여 일부 상품만 접수되는 문제를 방지한다.
+     * =========================================================
+     */
+    @Override
+    @Transactional
+    public void requestOrderItemsCancel(Long memberNo, List<Long> orderItemNos, String reason) {
+        validateMemberNo(memberNo);
+
+        if (orderItemNos == null || orderItemNos.isEmpty()) {
+            throw new IllegalArgumentException("선택한 주문상품이 없습니다.");
+        }
+
+        List<Long> distinctItemNos = orderItemNos.stream()
+                .filter(itemNo -> itemNo != null && itemNo > 0)
+                .distinct()
+                .toList();
+
+        if (distinctItemNos.size() != orderItemNos.size()) {
+            throw new IllegalArgumentException("선택한 주문상품 정보가 올바르지 않습니다.");
+        }
+
+        for (Long orderItemNo : distinctItemNos) {
+            requestOrderItemCancel(memberNo, orderItemNo, reason);
+        }
+    }
+
+    /*
+     * =========================================================
      * [상품별 부분 취소 요청 기능 추가]
      *
      * 사용자가 선택한 ORDER_ITEM 한 건만 PARTIAL 유형으로 요청한다.
@@ -145,7 +223,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         if (item == null) {
             throw new IllegalArgumentException(
-                    "부분 취소를 요청할 수 없는 상품입니다. 배송이 시작된 상품은 취소할 수 없습니다.");
+                    "주문 확인중 상품만 취소할 수 있고, 배송 완료 상품만 환불할 수 있습니다.");
         }
 
         /*

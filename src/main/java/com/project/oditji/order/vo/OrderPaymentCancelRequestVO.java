@@ -1,5 +1,7 @@
 package com.project.oditji.order.vo;
 
+import java.util.List;
+
 /**
  * 사용자 주문 내역에서 결제 전액 취소를 요청할 때 사용하는 VO.
  *
@@ -13,6 +15,9 @@ public class OrderPaymentCancelRequestVO {
 
     /* [상품별 부분 취소 기능 추가] */
     private Long orderItemNo;
+
+    /* [추가] 선택 상품 일괄 취소/환불 요청 번호 목록 */
+    private List<Long> orderItemNos;
 
     private String reason;
 
@@ -33,6 +38,14 @@ public class OrderPaymentCancelRequestVO {
 
     public void setOrderItemNo(Long orderItemNo) {
         this.orderItemNo = orderItemNo;
+    }
+
+    public List<Long> getOrderItemNos() {
+        return orderItemNos;
+    }
+
+    public void setOrderItemNos(List<Long> orderItemNos) {
+        this.orderItemNos = orderItemNos;
     }
 
     public String getReason() {

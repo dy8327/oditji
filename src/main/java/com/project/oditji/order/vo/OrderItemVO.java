@@ -20,6 +20,18 @@ public class OrderItemVO {
 
     /*
      * =========================================================
+     * [수정] 사용자 주문내역 버튼 노출 판단용 배송 상태
+     *
+     * CONFIRMED : 주문 확인중(취소 가능)
+     * PREPARING : 배송 준비 중(취소/환불 버튼 숨김)
+     * SHIPPING : 배송 중(취소/환불 버튼 숨김)
+     * DELIVERED : 배송 완료(환불 가능)
+     * =========================================================
+     */
+    private String deliveryStatus;
+
+    /*
+     * =========================================================
      * [부분 취소 처리 결과 표시용 필드 추가]
      *
      * 사용자 주문내역에서 최근 부분 취소 요청의 상태와
@@ -111,6 +123,24 @@ public class OrderItemVO {
 
     public void setMainImage(String mainImage) {
         this.mainImage = mainImage;
+    }
+
+    public String getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(String deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
+
+    /** 결제 완료이면서 배송 상태가 주문 확인중인 상품만 주문 취소 가능 */
+    public boolean isCancelEligible() {
+        return "PAID".equals(status) && "CONFIRMED".equals(deliveryStatus);
+    }
+
+    /** 배송 완료 상품만 환불 신청 가능 */
+    public boolean isRefundEligible() {
+        return "DELIVERED".equals(status) && "DELIVERED".equals(deliveryStatus);
     }
 
     public String getBusinessName() {

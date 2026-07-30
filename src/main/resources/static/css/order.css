@@ -1692,7 +1692,9 @@
 
   cursor: pointer;
 
-  transition: border-color 0.2s var(--oditji-ease), color 0.2s var(--oditji-ease);
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
 }
 
 .tracking-copy-btn:hover {
@@ -1843,7 +1845,9 @@
   font-size: 20px;
   line-height: 1;
 
-  transition: left 0.3s var(--oditji-ease), transform 0.3s var(--oditji-ease);
+  transition:
+    left 0.3s var(--oditji-ease),
+    transform 0.3s var(--oditji-ease);
 }
 
 .delivery-progress[data-status="SHIPPING"] .delivery-progress-truck {
@@ -1945,7 +1949,9 @@
 
   cursor: pointer;
 
-  transition: border-color 0.2s var(--oditji-ease), color 0.2s var(--oditji-ease);
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
 }
 
 .delivery-detail-modal-footer-close:hover {
@@ -1969,7 +1975,9 @@
 
   cursor: pointer;
 
-  transition: border-color 0.2s var(--oditji-ease), color 0.2s var(--oditji-ease);
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
 }
 
 .order-item-actions .delivery-detail-btn:hover {
@@ -2281,13 +2289,708 @@
  * 화면 디자인은 유지하면서 label을 보조 기술에 제공한다.
  */
 .order-accessibility-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================
+   [추가] 취소/환불 내역 조회 조건
+   최초 제공된 주문내역 화면의 흰색 카드/회색 테두리 디자인 유지
+========================================================= */
+.cancel-refund-filter-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  background: #fff;
+}
+.cancel-refund-filter-box label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+.cancel-refund-filter-box select,
+.cancel-refund-filter-box input {
+  min-width: 145px;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  background: #fff;
+}
+.cancel-refund-filter-box button {
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid #222;
+  border-radius: 6px;
+  background: #222;
+  color: #fff;
+  cursor: pointer;
+}
+.cancel-refund-filter-box #historyResetBtn {
+  background: #fff;
+  color: #222;
+}
+
+/* =========================================================
+   [추가] 전체 주문 취소/환불 버튼 및 조회 조건 디자인
+   기존 주문 카드 색상 구조는 유지하고 전체 버튼만 구분색을 적용한다.
+========================================================= */
+.full-order-cancel-btn {
+  background: #b94a48;
+  border-color: #b94a48;
+  color: #fff;
+}
+.full-order-refund-btn {
+  background: #4b67a1;
+  border-color: #4b67a1;
+  color: #fff;
+}
+.selected-refund-btn {
+  border-color: #4b67a1;
+  color: #4b67a1;
+  background: #fff;
+}
+.refund-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background: #fff;
+}
+.refund-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.refund-search-field label {
+  font-weight: 700;
+  font-size: 14px;
+}
+.refund-search-field select,
+.refund-search-field input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d7d7d7;
+  border-radius: 8px;
+  background: #fff;
+}
+.refund-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.refund-search-actions {
+  display: flex;
+  gap: 8px;
+}
+.history-search-btn,
+.history-reset-btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid #222;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.history-search-btn {
+  background: #222;
+  color: #fff;
+}
+.history-reset-btn {
+  background: #fff;
+  color: #222;
+}
+.refund-type-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.refund-type-badge.cancel {
+  background: #fff1e8;
+  color: #a64b12;
+}
+.refund-type-badge.refund {
+  background: #eaf0ff;
+  color: #37558e;
+}
+.delivery-product-without-image .delivery-product-info {
+  width: 100%;
+}
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-fill {
+  width: 0%;
+}
+.delivery-progress[data-status="PREPARING"] .delivery-progress-fill {
+  width: 33.333%;
+}
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-fill {
+  width: 66.666%;
+}
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-fill {
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .refund-search-form,
+  .refund-date-range {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .refund-search-field,
+  .refund-search-actions {
+    width: 100%;
+  }
+}
+
+/* [수정] 4단계 배송 진행 위치 및 활성 라벨 */
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-truck {
+  left: 0%;
+}
+.delivery-progress[data-status="PREPARING"] .delivery-progress-truck {
+  left: 33.333%;
+  transform: translate(-50%, -50%);
+}
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-truck {
+  left: 66.666%;
+  transform: translate(-50%, -50%);
+}
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-truck {
+  left: 100%;
+  transform: translate(-100%, -50%);
+}
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label {
+  color: var(--oditji-text);
+  font-weight: 700;
+}
+
+/* =========================================================
+   [수정] 구매내역·취소/환불 내역 화면 디자인 정리
+   - 기존 ODITJI 다크 테마와 녹색 포인트 컬러를 그대로 유지한다.
+   - 기존 JSP 구조와 조회/취소/환불 기능은 변경하지 않고 CSS만 보완한다.
+   - 주문 카드의 과도한 빈 공간을 줄이고, 검색 영역의 흰색 배경을
+     다크 테마 카드 형태로 통일한다.
+========================================================= */
+
+/* [수정] 탭과 제목 사이 간격 및 페이지 상단 정렬을 통일한다. */
+.order-list-container .order-tabs {
+  margin-bottom: 28px;
+  padding: 5px;
+  border-color: #38383e;
+  background: #1b1b1e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.order-list-container .order-tab-btn {
+  min-width: 132px;
+  min-height: 42px;
+  padding: 10px 22px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.order-list-container .order-tab-btn.active {
+  background: linear-gradient(135deg, #52bc58, #45a94a);
+  color: #0d160e;
+  box-shadow: 0 5px 14px rgba(76, 175, 80, 0.2);
+}
+
+.order-list-container .order-tab-panel > h1 {
+  margin-bottom: 24px;
+  font-size: 25px;
+  letter-spacing: -0.035em;
+}
+
+/* [수정] 구매내역 카드가 내용보다 지나치게 높아지지 않도록 정렬한다. */
+.order-list-container .order-card {
+  margin-bottom: 24px;
+  padding: 24px;
+  border-color: #34343a;
+  background: #1a1a1d;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
+}
+
+.order-list-container .order-card-main {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 28px;
+}
+
+.order-list-container .order-product-section,
+.order-list-container .order-info-section {
+  align-self: start;
+}
+
+/* [수정] 주문번호와 주문일시를 한 줄에서 더 선명하게 구분한다. */
+.order-list-container .order-card-header {
+  min-height: auto;
+  margin-bottom: 14px;
+  padding: 0 2px;
+  color: #aeb0b7;
+}
+
+.order-list-container .order-card-header strong {
+  color: #7f8189;
+  font-weight: 600;
+}
+
+.order-list-container .order-card-header > div:first-child span {
+  margin-left: 6px;
+  color: #f3f3f4;
+  font-weight: 700;
+}
+
+/* [수정] 상품 행의 썸네일·정보·버튼 간격을 정돈한다. */
+.order-list-container .order-card .order-item {
+  min-height: 112px;
+  padding: 16px 16px 16px 14px;
+  border-color: #35353b;
+  background: #19191c;
+  transition:
+    border-color 0.18s var(--oditji-ease),
+    background-color 0.18s var(--oditji-ease);
+}
+
+.order-list-container .order-card .order-item:hover {
+  border-color: #44454c;
+  background: #1d1d20;
+}
+
+.order-list-container .order-card .order-item > a > img,
+.order-list-container .order-card .order-item > a > .no-image {
+  width: 86px;
+  height: 86px;
+  border-radius: 10px;
+}
+
+.order-list-container .order-item-info > div:first-child {
+  margin-bottom: 7px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.order-list-container .order-item-info > div {
+  margin-top: 4px;
+  color: #a8a9af;
+}
+
+/* [수정] 배송조회·리뷰 버튼을 카드 톤에 맞게 정리한다. */
+.order-list-container .order-item-actions {
+  width: 118px;
+  gap: 9px;
+}
+
+.order-list-container .order-item-actions button,
+.order-list-container .order-item-actions a {
+  min-height: 38px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* [수정] 우측 주문 정보 영역을 독립 카드처럼 표현한다. */
+.order-list-container .order-info-section {
+  padding: 22px 20px;
+  border-color: #37373d;
+  background: #18181b;
+}
+
+.order-list-container .order-info-title {
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+  font-size: 17px;
+}
+
+.order-list-container .order-info-row {
+  grid-template-columns: 106px minmax(0, 1fr);
+  gap: 16px;
+  padding: 13px 0;
+}
+
+.order-list-container .order-info-label {
+  color: #9a9ca4;
+}
+
+.order-list-container .order-info-value {
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* [수정] 카드 하단 금액과 주문 취소/환불 버튼 영역을 명확하게 분리한다. */
+.order-list-container .order-card .ticket-divider {
+  margin-top: 22px;
+  margin-bottom: 16px;
+}
+
+.order-list-container .order-card-footer {
+  min-height: 48px;
+  gap: 12px;
+}
+
+.order-list-container .order-total {
+  gap: 10px;
+  font-size: 16px;
+}
+
+.order-list-container .order-total-price {
+  font-size: 17px;
+}
+
+.order-list-container .order-cancel-action {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.order-list-container .bulk-action-btn {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+}
+
+/* [수정] 전체/선택 주문 취소 버튼 공통 디자인
+   두 버튼의 크기와 외곽선 형태를 동일하게 유지한다. */
+.order-list-container .full-order-cancel-btn,
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn) {
+  min-width: 160px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  background-color: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* [수정] 전체 상품 주문 취소 버튼은 초록색 외곽선 스타일로 표시한다. */
+.order-list-container .full-order-cancel-btn {
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+/* [추가] 전체 상품 주문 취소 버튼 마우스 오버 효과 */
+.order-list-container .full-order-cancel-btn:hover {
+  background-color: #4caf50;
+  border-color: #4caf50;
+  color: #ffffff;
+}
+
+/* [수정] 선택 상품 주문 취소 버튼은 기존 빨간색 외곽선 스타일을 유지한다. */
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn) {
+  color: #ef5350;
+  border: 1px solid #ef5350;
+}
+
+/* [추가] 선택 상품 주문 취소 버튼 마우스 오버 효과 */
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn):hover {
+  background-color: #ef5350;
+  border-color: #ef5350;
+  color: #ffffff;
+}
+
+/* [수정] 전체/선택 환불 버튼은 취소 버튼과 다른 파란 계열로 구분한다. */
+.order-list-container .full-order-refund-btn {
+  border-color: #6286d9;
+  background: #6286d9;
+  color: #fff;
+}
+
+.order-list-container .selected-refund-btn {
+  border-color: #6f93e6;
+  background: rgba(98, 134, 217, 0.1);
+  color: #87a8f0;
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 검색 영역
+   흰색 배경과 밝은 입력창을 제거하고 ODITJI 다크 카드로 통일한다.
+========================================================= */
+.order-list-container .refund-search-form {
+  display: grid;
+  grid-template-columns: 160px 180px minmax(420px, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 22px;
+  border: 1px solid #34343a;
+  border-radius: 12px;
+  background: #1a1a1d;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.order-list-container .refund-search-field {
+  min-width: 0;
+  gap: 9px;
+}
+
+.order-list-container .refund-search-field > label {
+  color: #b6b7bd;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.order-list-container .refund-search-field select,
+.order-list-container .refund-search-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #3a3a41;
+  border-radius: 8px;
+  outline: none;
+  background-color: #151517;
+  color: #f2f2f3;
+  font-family: var(--font-body);
+  font-size: 14px;
+  transition:
+    border-color 0.18s var(--oditji-ease),
+    box-shadow 0.18s var(--oditji-ease);
+  color-scheme: dark;
+}
+
+.order-list-container .refund-search-field select:focus,
+.order-list-container .refund-search-field input:focus {
+  border-color: var(--oditji-accent);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+.order-list-container .refund-date-range {
+  display: grid;
+  grid-template-columns: minmax(155px, 1fr) auto minmax(155px, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.order-list-container .refund-date-range > span {
+  color: #777981;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.order-list-container .refund-search-actions {
+  align-items: center;
+  gap: 9px;
+}
+
+.order-list-container .history-search-btn,
+.order-list-container .history-reset-btn {
+  min-width: 76px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.order-list-container .history-search-btn {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+  color: #101610;
+}
+
+.order-list-container .history-search-btn:hover {
+  border-color: #5ac25f;
+  background: #5ac25f;
+}
+
+.order-list-container .history-reset-btn {
+  border-color: #46464d;
+  background: transparent;
+  color: #c9cad0;
+}
+
+.order-list-container .history-reset-btn:hover {
+  border-color: #606169;
+  background: #242428;
+  color: #fff;
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 표
+   헤더·행·상태 배지의 대비를 높이고 기존 테이블 구조는 유지한다.
+========================================================= */
+.order-list-container .refund-table-wrap {
+  border-color: #34343a;
+  background: #19191c;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.order-list-container .refund-table {
+  table-layout: fixed;
+}
+
+.order-list-container .refund-table thead {
+  background: #1e1e22;
+}
+
+.order-list-container .refund-table thead th {
+  padding: 16px 18px;
+  border-bottom-color: #36363c;
+  color: #aeb0b7;
+  font-size: 13px;
+}
+
+.order-list-container .refund-table tbody td {
+  padding: 17px 18px;
+  border-bottom-color: #303036;
+  color: #ececef;
+  line-height: 1.5;
+}
+
+.order-list-container .refund-table tbody tr {
+  transition: background-color 0.16s var(--oditji-ease);
+}
+
+.order-list-container .refund-table tbody tr:hover {
+  background: #202024;
+}
+
+/* [수정] 각 열 너비를 실제 정보량에 맞춘다. */
+.order-list-container .refund-table th:nth-child(1),
+.order-list-container .refund-table td:nth-child(1) {
+  width: 96px;
+}
+.order-list-container .refund-table th:nth-child(2),
+.order-list-container .refund-table td:nth-child(2) {
+  width: 110px;
+}
+.order-list-container .refund-table th:nth-child(4),
+.order-list-container .refund-table td:nth-child(4) {
+  width: 140px;
+}
+.order-list-container .refund-table th:nth-child(5),
+.order-list-container .refund-table td:nth-child(5) {
+  width: 130px;
+}
+.order-list-container .refund-table th:nth-child(6),
+.order-list-container .refund-table td:nth-child(6) {
+  width: 130px;
+}
+.order-list-container .refund-table th:nth-child(7),
+.order-list-container .refund-table td:nth-child(7) {
+  width: 150px;
+}
+
+.order-list-container .refund-type-badge,
+.order-list-container .refund-badge {
+  min-width: 54px;
+  box-sizing: border-box;
+  padding: 6px 11px;
+  text-align: center;
+}
+
+.order-list-container .refund-type-badge.cancel {
+  background: rgba(232, 148, 86, 0.14);
+  color: #f1a66d;
+}
+
+.order-list-container .refund-type-badge.refund {
+  background: rgba(98, 134, 217, 0.16);
+  color: #8eacf0;
+}
+
+/* [수정] 태블릿 이하에서는 카드·검색 폼을 한 열로 자연스럽게 배치한다. */
+@media (max-width: 1100px) {
+  .order-list-container .order-card-main {
+    grid-template-columns: 1fr;
+  }
+
+  .order-list-container .refund-search-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .order-list-container .refund-date-field,
+  .order-list-container .refund-search-actions {
+    grid-column: 1 / -1;
+  }
+
+  .order-list-container .refund-search-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* [수정] 모바일에서는 기존 기능을 유지하면서 버튼과 입력창을 전체 너비로 표시한다. */
+@media (max-width: 720px) {
+  .order-list-container .order-tabs {
+    margin-bottom: 22px;
+  }
+
+  .order-list-container .order-tab-panel > h1 {
+    font-size: 22px;
+  }
+
+  .order-list-container .order-card {
+    padding: 18px;
+  }
+
+  .order-list-container .order-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .order-list-container .order-card-header > div:last-child {
+    margin-left: 0;
+  }
+
+  .order-list-container .order-card .order-item {
+    min-height: 0;
+  }
+
+  .order-list-container .order-cancel-action,
+  .order-list-container .bulk-action-btn {
+    width: 100%;
+  }
+
+  .order-list-container .refund-search-form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    padding: 18px;
+  }
+
+  .order-list-container .refund-date-range {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .order-list-container .refund-date-range > span {
+    display: none;
+  }
+
+  .order-list-container .refund-search-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }

@@ -31,7 +31,9 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 <main class="order-list-container"
-      data-context-path="${pageContext.request.contextPath}">
+      data-context-path="${pageContext.request.contextPath}"
+      data-portone-test-mode="${portOneTestMode}"
+      data-active-tab="${activeTab}">
 
     <%--
         [추가] 상품 리뷰 작성 실패 메시지를 외부 JavaScript에서 읽을 수 있도록 저장한다.
@@ -62,29 +64,30 @@
          aria-label="주문/환불 내역 탭">
 
         <button type="button"
-                class="order-tab-btn active"
+                class="order-tab-btn ${activeTab eq 'history' ? '' : 'active'}"
                 data-tab-target="orderTabPanel"
                 role="tab"
-                aria-selected="true">
-            주문 내역
+                aria-selected="${activeTab eq 'history' ? 'false' : 'true'}">
+            구매내역
         </button>
 
         <button type="button"
-                class="order-tab-btn"
+                class="order-tab-btn ${activeTab eq 'history' ? 'active' : ''}"
                 data-tab-target="refundTabPanel"
                 role="tab"
-                aria-selected="false">
-            환불 내역
+                aria-selected="${activeTab eq 'history' ? 'true' : 'false'}">
+            취소/환불 내역
         </button>
 
     </div>
 
     <!-- 주문 내역 탭 패널 -->
     <div id="orderTabPanel"
-         class="order-tab-panel active"
-         role="tabpanel">
+         class="order-tab-panel ${activeTab eq 'history' ? '' : 'active'}"
+         role="tabpanel"
+         ${activeTab eq 'history' ? 'hidden' : ''}>
 
-    <h1>주문 내역</h1>
+    <h1>구매내역</h1>
 
     <!-- 주문 내역 없음 -->
     <c:if test="${empty orderList}">
@@ -146,19 +149,16 @@
                                     실제 취소 로직은 이번 작업 범위에 포함하지 않는다.
                                     =========================================================
                                 --%>
-                                <c:if test="${i.status eq 'ORDERED'
-                                        || i.status eq 'PAID'
-                                        || i.status eq 'PREPARING'
-                                        || i.status eq 'SHIPPING'}">
+                                <c:if test="${i.cancelEligible || i.refundEligible}">
 
+                                    <%-- [수정] 주문 확인중은 취소, 배송 완료는 환불 선택 가능 --%>
                                     <label class="order-item-select-label">
-
                                         <input type="checkbox"
                                                class="order-item-select"
                                                value="${i.orderItemNo}"
-                                               data-product-name="${i.productName}"
-                                               aria-label="${i.productName} 선택">
-
+                                               data-product-name="${fn:escapeXml(i.productName)}"
+                                               data-action-type="${i.refundEligible ? 'REFUND' : 'CANCEL'}"
+                                               aria-label="${fn:escapeXml(i.productName)} 선택">
                                     </label>
 
                                 </c:if>
@@ -438,7 +438,7 @@
                                 </c:when>
 
                                 <c:otherwise>
-                                    사업자가 전체 주문 취소 요청을 반려했습니다.
+                                    사업자가 전체 취소/환불 요청을 반려했습니다.
                                 </c:otherwise>
 
                             </c:choose>
@@ -500,21 +500,39 @@
                     요청할 수 있도록 기존 버튼을 표시한다.
                     =========================================================
                 --%>
-                <c:if test="${(empty o.fullCancelStatus || o.fullCancelStatus eq 'REJECTED')
-                        && (o.orderStatus eq 'PAID'
-                        || o.orderStatus eq 'ORDERED'
-                        || o.orderStatus eq 'PREPARING')}">
-
+                <c:if test="${empty o.fullCancelStatus || o.fullCancelStatus eq 'REJECTED'}">
                     <div class="order-cancel-action">
+                        <%-- [추가] 상품 선택 없이 주문 전체 취소 --%>
+                        <c:if test="${o.allCancelEligible}">
+                            <button type="button"
+                                    class="bulk-action-btn payment-cancel-btn full-order-cancel-btn"
+                                    data-order-no="${o.orderNo}">
+                                전체 상품 주문 취소
+                            </button>
+                            <button type="button"
+                                    class="bulk-action-btn order-select-cancel-btn"
+                                    data-action-type="CANCEL"
+                                    data-order-no="${o.orderNo}">
+                                선택 상품 주문 취소
+                            </button>
+                        </c:if>
 
-                        <button type="button"
-                                class="bulk-action-btn order-select-cancel-btn"
-                                data-order-no="${o.orderNo}">
-                            선택 상품 주문 취소
-                        </button>
-
+                        <%-- [추가] 배송 완료 주문은 취소 대신 환불 버튼 노출 --%>
+                        <c:if test="${o.allRefundEligible}">
+                            <button type="button"
+                                    class="bulk-action-btn payment-cancel-btn full-order-refund-btn"
+                                    data-order-no="${o.orderNo}"
+                                    data-request-kind="REFUND">
+                                전체 상품 환불
+                            </button>
+                            <button type="button"
+                                    class="bulk-action-btn order-select-cancel-btn selected-refund-btn"
+                                    data-action-type="REFUND"
+                                    data-order-no="${o.orderNo}">
+                                선택 상품 환불
+                            </button>
+                        </c:if>
                     </div>
-
                 </c:if>
 
             </div>
@@ -600,201 +618,103 @@
         =========================================================
     --%>
     <div id="refundTabPanel"
-         class="order-tab-panel"
+         class="order-tab-panel ${activeTab eq 'history' ? 'active' : ''}"
          role="tabpanel"
-         hidden>
+         ${activeTab eq 'history' ? '' : 'hidden'}>
 
-        <h1>환불 내역</h1>
+        <h1>취소/환불 내역</h1>
 
-        <div class="refund-table-wrap">
+        <%-- =========================================================
+             [추가] 취소/환불 유형·처리상태·기간 서버 조회 조건
+             달력 입력값은 GET 파라미터로 Controller/Mapper까지 전달된다.
+        ========================================================== --%>
+        <form class="refund-search-form"
+              action="${pageContext.request.contextPath}/order/list"
+              method="get">
+            <input type="hidden" name="tab" value="history">
 
-            <table class="refund-table">
-
-                <thead>
-
-                    <tr>
-                        <th scope="col">주문번호</th>
-                        <th scope="col">상품명</th>
-                        <th scope="col">신청일</th>
-                        <th scope="col">환불금액</th>
-                        <th scope="col">환불상태</th>
-                        <th scope="col">관리</th>
-                    </tr>
-
-                </thead>
-
-                <tbody id="refundTableBody">
-
-                    <c:forEach var="o"
-                               items="${orderList}">
-
-                        <%-- 주문 전체 취소 요청 1행 --%>
-                        <c:if test="${not empty o.fullCancelStatus}">
-
-                            <tr class="refund-row">
-
-                                <td data-label="주문번호">
-                                    ${o.orderNo}
-                                </td>
-
-                                <td data-label="상품명">
-                                    전체 상품 (${fn:length(o.items)}건)
-                                </td>
-
-                                <td data-label="신청일">
-                                    <fmt:formatDate
-                                        value="${o.createdAt}"
-                                        pattern="yyyy.MM.dd"/>
-                                </td>
-
-                                <td data-label="환불금액">
-                                    ₩
-                                    <fmt:formatNumber
-                                        value="${o.totalAmount}"
-                                        pattern="#,###"/>
-                                </td>
-
-                                <td data-label="환불상태">
-
-                                    <c:choose>
-
-                                        <c:when test="${o.fullCancelStatus eq 'WAITING'}">
-                                            <span class="refund-badge waiting">승인 대기</span>
-                                        </c:when>
-
-                                        <c:when test="${o.fullCancelStatus eq 'REJECTED'}">
-                                            <span class="refund-badge rejected">승인 거절</span>
-                                        </c:when>
-
-                                        <c:when test="${o.fullCancelStatus eq 'APPROVED'}">
-                                            <span class="refund-badge completed">환불 완료</span>
-                                        </c:when>
-
-                                    </c:choose>
-
-                                </td>
-
-                                <td data-label="관리">
-
-                                    <label class="refund-select-label">
-
-                                        <input type="checkbox"
-                                               class="refund-select"
-                                               value="full-${o.orderNo}"
-                                               aria-label="주문번호 ${o.orderNo} 전체 취소 건 선택">
-
-                                    </label>
-
-                                </td>
-
-                            </tr>
-
-                        </c:if>
-
-                        <%-- 상품 부분 취소 요청 행 --%>
-                        <c:forEach var="i"
-                                   items="${o.items}">
-
-                            <c:if test="${not empty i.cancelRequestStatus}">
-
-                                <tr class="refund-row">
-
-                                    <td data-label="주문번호">
-                                        ${o.orderNo}
-                                    </td>
-
-                                    <td data-label="상품명">
-                                        <c:out value="${i.productName}"/>
-                                    </td>
-
-                                    <td data-label="신청일">
-                                        <fmt:formatDate
-                                            value="${o.createdAt}"
-                                            pattern="yyyy.MM.dd"/>
-                                    </td>
-
-                                    <td data-label="환불금액">
-                                        ₩
-                                        <fmt:formatNumber
-                                            value="${i.itemTotalPrice}"
-                                            pattern="#,###"/>
-                                    </td>
-
-                                    <td data-label="환불상태">
-
-                                        <c:choose>
-
-                                            <c:when test="${i.cancelRequestStatus eq 'WAITING'}">
-                                                <span class="refund-badge waiting">승인 대기</span>
-                                            </c:when>
-
-                                            <c:when test="${i.cancelRequestStatus eq 'REJECTED'}">
-                                                <span class="refund-badge rejected">승인 거절</span>
-                                            </c:when>
-
-                                            <c:when test="${i.cancelRequestStatus eq 'APPROVED'}">
-                                                <span class="refund-badge completed">환불 완료</span>
-                                            </c:when>
-
-                                        </c:choose>
-
-                                    </td>
-
-                                    <td data-label="관리">
-
-                                        <label class="refund-select-label">
-
-                                            <input type="checkbox"
-                                                   class="refund-select"
-                                                   value="item-${i.orderItemNo}"
-                                                   aria-label="${i.productName} 환불 건 선택">
-
-                                        </label>
-
-                                    </td>
-
-                                </tr>
-
-                            </c:if>
-
-                        </c:forEach>
-
-                    </c:forEach>
-
-                </tbody>
-
-            </table>
-
-            <!-- 환불 신청 내역 없음 (orderTabs.js에서 행 개수에 따라 표시) -->
-            <div id="refundEmptyBox"
-                 class="empty-box"
-                 style="display:none;">
-                환불 신청 내역이 없습니다.
+            <div class="refund-search-field">
+                <label for="historyTypeFilter">구분</label>
+                <select id="historyTypeFilter" name="historyType">
+                    <option value="ALL" ${historyType eq 'ALL' ? 'selected' : ''}>전체</option>
+                    <option value="REFUND" ${historyType eq 'REFUND' ? 'selected' : ''}>환불</option>
+                    <option value="CANCEL" ${historyType eq 'CANCEL' ? 'selected' : ''}>취소</option>
+                </select>
             </div>
 
-        </div>
+            <div class="refund-search-field">
+                <label for="historyStatusFilter">처리 상태</label>
+                <select id="historyStatusFilter" name="historyStatus">
+                    <option value="ALL" ${historyStatus eq 'ALL' ? 'selected' : ''}>전체</option>
+                    <option value="WAITING" ${historyStatus eq 'WAITING' ? 'selected' : ''}>승인 대기</option>
+                    <option value="APPROVED" ${historyStatus eq 'APPROVED' ? 'selected' : ''}>승인</option>
+                    <option value="REJECTED" ${historyStatus eq 'REJECTED' ? 'selected' : ''}>반려</option>
+                </select>
+            </div>
 
-        <%--
-            =========================================================
-            [선택 상품 환불 버튼 추가]
+            <div class="refund-search-field refund-date-field">
+                <label for="historyStartDate">조회 기간</label>
+                <div class="refund-date-range">
+                    <input id="historyStartDate" type="date" name="startDate" value="${historyStartDate}">
+                    <span>부터</span>
+                    <input id="historyEndDate" type="date" name="endDate" value="${historyEndDate}">
+                    <span>까지</span>
+                </div>
+            </div>
 
-            체크박스로 선택한 환불 신청 건을 일괄 처리하기 위한
-            버튼이다. 현재는 화면(UI)만 구현하며 실제 환불 처리는
-            하지 않는다.
-            =========================================================
-        --%>
-        <div class="order-bulk-actions">
+            <div class="refund-search-actions">
+                <button type="submit" class="history-search-btn">조회</button>
+                <a class="history-reset-btn" href="${pageContext.request.contextPath}/order/list?tab=history">초기화</a>
+            </div>
+        </form>
 
-            <button type="button"
-                    id="bulkRefundBtn"
-                    class="bulk-action-btn">
-                선택 상품 환불
-            </button>
-
-        </div>
-
+        <c:choose>
+            <c:when test="${empty cancelRefundHistory}">
+                <div class="empty-box">조회된 취소/환불 내역이 없습니다.</div>
+            </c:when>
+            <c:otherwise>
+                <div class="refund-table-wrap">
+                    <table class="refund-table">
+                        <thead>
+                            <tr>
+                                <th>구분</th>
+                                <th>주문번호</th>
+                                <th>상품명</th>
+                                <th>신청일</th>
+                                <th>금액</th>
+                                <th>처리 상태</th>
+                                <th>반려 사유</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="history" items="${cancelRefundHistory}">
+                                <tr class="refund-row">
+                                    <td data-label="구분">
+                                        <span class="refund-type-badge ${history.historyType eq 'REFUND' ? 'refund' : 'cancel'}">
+                                            ${history.historyType eq 'REFUND' ? '환불' : '취소'}
+                                        </span>
+                                    </td>
+                                    <td data-label="주문번호">${history.orderNo}</td>
+                                    <td data-label="상품명"><c:out value="${history.productName}"/></td>
+                                    <td data-label="신청일"><fmt:formatDate value="${history.createdAt}" pattern="yyyy.MM.dd"/></td>
+                                    <td data-label="금액">₩ <fmt:formatNumber value="${history.refundAmount}" pattern="#,###"/></td>
+                                    <td data-label="처리 상태">
+                                        <c:choose>
+                                            <c:when test="${history.status eq 'APPROVED'}"><span class="refund-badge completed">승인</span></c:when>
+                                            <c:when test="${history.status eq 'REJECTED'}"><span class="refund-badge rejected">반려</span></c:when>
+                                            <c:otherwise><span class="refund-badge waiting">승인 대기</span></c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td data-label="반려 사유"><c:out value="${empty history.rejectReason ? '-' : history.rejectReason}"/></td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </div>
-    <!-- // 환불 내역 탭 패널 -->
+    <!-- // 취소/환불 내역 탭 패널 -->
 
     <%--
         =========================================================
@@ -852,7 +772,7 @@
 
                 <div id="deliveryProgress"
                      class="delivery-progress"
-                     data-status="PREPARING">
+                     data-status="CONFIRMED">
 
                     <div class="delivery-progress-bar">
                         <div class="delivery-progress-fill"></div>
@@ -862,8 +782,13 @@
                     <div class="delivery-progress-labels">
 
                         <span class="delivery-progress-label"
+                              data-step="CONFIRMED">
+                            주문 확인중
+                        </span>
+
+                        <span class="delivery-progress-label"
                               data-step="PREPARING">
-                            상품 준비 중
+                            배송 준비 중
                         </span>
 
                         <span class="delivery-progress-label"
@@ -880,13 +805,9 @@
 
                 </div>
 
-                <div class="delivery-product">
+                <div class="delivery-product delivery-product-without-image">
 
-                    <div id="deliveryMainImageWrap"
-                         class="delivery-product-image">
-                        <div class="no-image">NO IMAGE</div>
-                    </div>
-
+                    <%-- [수정] 배송조회 화면에서는 상품 이미지를 표시하지 않는다. --%>
                     <div class="order-info-list delivery-product-info">
 
                         <div class="order-info-row">
@@ -1068,7 +989,7 @@
 
     </div>
 
-    <!-- 주문 취소 요청 모달 -->
+    <!-- 취소/환불 요청 모달 -->
     <div id="orderCancelModal"
          class="payment-cancel-modal"
          aria-hidden="true">
@@ -1080,7 +1001,7 @@
 
             <h2 id="orderCancelModalTitle"
                 class="payment-cancel-modal-title">
-                주문 취소 요청
+                취소/환불 요청
             </h2>
 
             <p id="orderCancelModalDescription"
@@ -1089,13 +1010,13 @@
 
             <label for="orderCancelReason"
                    class="payment-cancel-label">
-                취소 사유
+                취소/환불 사유
             </label>
 
             <textarea id="orderCancelReason"
                       class="payment-cancel-reason"
                       maxlength="500"
-                      placeholder="취소 사유를 입력해주세요."></textarea>
+                      placeholder="취소/환불 사유를 입력해주세요."></textarea>
 
             <p id="orderCancelError"
                class="payment-cancel-error"
@@ -1113,7 +1034,7 @@
                 <button type="button"
                         id="orderCancelSubmitBtn"
                         class="payment-cancel-submit-btn">
-                    결제 취소 요청
+                    요청하기
                 </button>
 
             </div>
