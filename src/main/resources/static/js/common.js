@@ -102,9 +102,12 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfileDropdown();
     initNavigationDropdowns();
     initMobileNavigation();
+    initMobileSearchToggle();
     initHeaderScroll();
+    initBackToTop();
     initActiveMenu();
     initHeaderSearch();
+    initMobileFilterToggle();
 });
 
 /** 프로필 드롭다운 */
@@ -201,6 +204,7 @@ function initMobileNavigation() {
         event.stopPropagation();
         const opened = nav.classList.toggle("open");
         toggle.setAttribute("aria-expanded", String(opened));
+        if (opened) closeMobileSearch();
     });
 
     nav.addEventListener("click", (event) => {
@@ -224,10 +228,76 @@ function initMobileNavigation() {
     });
 }
 
-/** 스크롤 효과 */
+/**
+ * 모바일(768px 이하) 헤더 검색 토글.
+ * headerSearchToggle 버튼을 누르면 header-search(#headerSearch)가
+ * 헤더 바로 아래로 펼쳐지고, 다시 누르거나 바깥을 클릭하면 닫힌다.
+ * 열릴 때는 입력창에 자동으로 포커스를 준다.
+ */
+function initMobileSearchToggle() {
+    const toggle = document.getElementById("headerSearchToggle");
+    const search = document.getElementById("headerSearch");
+
+    if (!toggle || !search) return;
+
+    const input = search.querySelector("input");
+
+    toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const opened = search.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(opened));
+
+        if (opened) {
+            const nav = document.getElementById("headerNav");
+            const navToggle = document.getElementById("headerNavToggle");
+            nav?.classList.remove("open");
+            navToggle?.setAttribute("aria-expanded", "false");
+            closeNavigationDropdowns();
+
+            if (input && window.innerWidth <= 768) {
+                input.focus();
+            }
+        }
+    });
+
+    search.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
+    document.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+            closeMobileSearch();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeMobileSearch();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) {
+            closeMobileSearch();
+        }
+    });
+}
+
+function closeMobileSearch() {
+    const toggle = document.getElementById("headerSearchToggle");
+    const search = document.getElementById("headerSearch");
+    if (!toggle || !search) return;
+
+    search.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+}
+
+/** 스크롤 효과 (헤더 숨김에 맞춰 맨 위로 버튼도 함께 노출) */
 function initHeaderScroll() {
     const header = document.querySelector(".header");
     if (!header) return;
+
+    const backToTopBtn = document.getElementById("backToTopBtn");
 
     let lastScroll = 0;
 
@@ -238,12 +308,26 @@ function initHeaderScroll() {
         if (currentScroll > lastScroll && currentScroll > 150) {
             header.classList.add("hide");
             header.classList.remove("show");
+            backToTopBtn?.classList.add("show");
         } else {
             header.classList.remove("hide");
             header.classList.add("show");
+            if (currentScroll <= 150) {
+                backToTopBtn?.classList.remove("show");
+            }
         }
 
         lastScroll = currentScroll;
+    });
+}
+
+/** 맨 위로 이동 버튼 클릭 처리 */
+function initBackToTop() {
+    const backToTopBtn = document.getElementById("backToTopBtn");
+    if (!backToTopBtn) return;
+
+    backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
     });
 }
 
@@ -285,6 +369,44 @@ function initHeaderSearch() {
 
     searchInput.addEventListener("blur", () => {
         searchInput.parentElement?.classList.remove("focus");
+    });
+}
+
+/**
+ * 상품/콘텐츠/검색 목록 화면의 모바일 필터 사이드바 펼치기·접기.
+ * data-mobile-filter-toggle 버튼을 클릭하면 가장 가까운 <aside>에
+ * "is-open" 클래스를 토글해서 그 안의 필터 패널이 펼쳐지도록 한다.
+ * 데스크톱 화면에서는 버튼 자체가 CSS로 숨겨져 있어 영향이 없다.
+ */
+function initMobileFilterToggle() {
+    const toggleButtons = document.querySelectorAll(
+        "[data-mobile-filter-toggle]"
+    );
+
+    toggleButtons.forEach((button) => {
+        const sidebar = button.closest("aside") || button.parentElement;
+
+        if (!sidebar) return;
+
+        button.addEventListener("click", () => {
+            const isOpen = sidebar.classList.toggle("is-open");
+            button.setAttribute("aria-expanded", String(isOpen));
+        });
+    });
+
+    // 화면을 데스크톱 크기로 늘렸을 때 접힘 상태가 남아 레이아웃이
+    // 꼬이지 않도록, 데스크톱 폭으로 돌아가면 열림 상태를 초기화한다.
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 992) {
+            document.querySelectorAll("aside.is-open").forEach((sidebar) => {
+                sidebar.classList.remove("is-open");
+                sidebar
+                    .querySelectorAll("[data-mobile-filter-toggle]")
+                    .forEach((button) => {
+                        button.setAttribute("aria-expanded", "false");
+                    });
+            });
+        }
     });
 }
 // 브라우저 뒤로가기로 이전 페이지가 표시되면 서버 상태 다시 확인

@@ -870,6 +870,11 @@
   min-width: 0;
 }
 
+/* 데스크톱에서는 모바일 전용 펼치기 버튼을 숨기고 필터를 항상 노출 */
+.goods-mobile-filter-toggle {
+  display: none;
+}
+
 /* =========================================================
    LEFT FILTER SIDEBAR (상품 검색 필터)
 ========================================================= */
@@ -1093,6 +1098,41 @@
 
   .goods-right-sidebar {
     display: none;
+  }
+
+  /* 모바일: 필터 사이드바를 접어두고 버튼으로 펼치기 */
+  .goods-mobile-filter-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: #1c1c1c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .goods-mobile-filter-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-panel {
+    max-height: 2000px;
   }
 
   .search-filter-form {
