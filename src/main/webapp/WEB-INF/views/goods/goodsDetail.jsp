@@ -190,7 +190,9 @@
 
 <div class="goods-detail-main">
 
-<section class="detail-header">
+<%-- [수정] 상품 이미지와 상품 정보를 하나의 카드형 레이아웃으로 묶고,
+     상품 상세 화면에서 구매 수량과 총 상품 금액을 함께 확인할 수 있도록 한다. --%>
+<section class="detail-header goods-detail-card">
 
     <div class="detail-poster">
 
@@ -264,101 +266,217 @@
 
     <div class="detail-info">
 
-        <p class="detail-brand">
-            <c:out value="${goods.businessName}"/>
-        </p>
+        <%-- [수정] 판매자 정보를 작은 라벨과 함께 표시한다. --%>
+        <div class="detail-brand-row">
+
+            <span class="detail-brand-label">
+                판매자
+            </span>
+
+            <p class="detail-brand">
+                <c:out value="${goods.businessName}"/>
+            </p>
+
+        </div>
 
         <h1 class="detail-title">
             <c:out value="${goods.productName}"/>
         </h1>
 
+        <%-- [수정] 상품 종류, 판매 상태, 재고를 각각 구분된 정보 카드로 표시한다. --%>
         <div class="detail-meta">
 
-            <span>
-                <c:out value="${goods.productType}"/>
+            <span class="detail-meta-item">
+
+                <span class="detail-meta-label">
+                    상품 종류
+                </span>
+
+                <strong>
+                    <c:out value="${goods.productType}"/>
+                </strong>
+
             </span>
 
-            <span class="divider">
-                |
-            </span>
+            <span class="detail-meta-item">
 
-            <c:choose>
+                <span class="detail-meta-label">
+                    판매 상태
+                </span>
 
-                <c:when test="${goods.stock <= 0}">
+                <c:choose>
 
-                    <span class="status-badge sold-out">
-                        품절
-                    </span>
+                    <c:when test="${goods.stock <= 0}">
 
-                </c:when>
-
-                <c:otherwise>
-
-                    <span class="status-badge on-sale">
-                        판매중
-                    </span>
-
-                </c:otherwise>
-
-            </c:choose>
-
-            <span class="divider">
-                |
-            </span>
-
-            <span>
-                재고
-                <fmt:formatNumber
-                    value="${goods.stock}"
-                    pattern="#,###"/>개
-            </span>
-
-        </div>
-
-        <div class="price-box">
-
-            <c:choose>
-
-                <c:when test="${goods.discountRate > 0}">
-
-                    <span class="price-original">
-                        ₩
-                        <fmt:formatNumber
-                            value="${goods.price}"
-                            pattern="#,###"/>
-                    </span>
-
-                    <span class="price-final">
-
-                        <span class="rate">
-                            ${goods.discountRate}%
+                        <span class="status-badge sold-out">
+                            품절
                         </span>
 
-                        ₩
-                        <fmt:formatNumber
-                            value="${goods.discountPrice}"
-                            pattern="#,###"/>
+                    </c:when>
 
-                    </span>
+                    <c:otherwise>
 
-                </c:when>
+                        <span class="status-badge on-sale">
+                            판매중
+                        </span>
 
-                <c:otherwise>
+                    </c:otherwise>
 
-                    <span class="price-final">
-                        ₩
-                        <fmt:formatNumber
-                            value="${goods.price}"
-                            pattern="#,###"/>
-                    </span>
+                </c:choose>
 
-                </c:otherwise>
+            </span>
 
-            </c:choose>
+            <span class="detail-meta-item">
+
+                <span class="detail-meta-label">
+                    남은 재고
+                </span>
+
+                <strong>
+                    <fmt:formatNumber
+                        value="${goods.stock}"
+                        pattern="#,###"/>개
+                </strong>
+
+            </span>
 
         </div>
 
-        <p class="detail-desc"><c:out value="${goods.description}"/></p>
+        <%-- [수정] 가격 정보를 별도 영역으로 분리해 핵심 정보가 강조되도록 한다. --%>
+        <div class="price-box">
+
+            <div class="price-label">
+                판매가
+            </div>
+
+            <div class="price-value">
+
+                <c:choose>
+
+                    <c:when test="${goods.discountRate > 0}">
+
+                        <span class="price-original">
+                            ₩
+                            <fmt:formatNumber
+                                value="${goods.price}"
+                                pattern="#,###"/>
+                        </span>
+
+                        <span class="price-final">
+
+                            <span class="rate">
+                                ${goods.discountRate}%
+                            </span>
+
+                            ₩
+                            <fmt:formatNumber
+                                value="${goods.discountPrice}"
+                                pattern="#,###"/>
+
+                        </span>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <span class="price-final">
+                            ₩
+                            <fmt:formatNumber
+                                value="${goods.price}"
+                                pattern="#,###"/>
+                        </span>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+        </div>
+
+        <%-- [수정] 상품 설명을 별도의 박스로 표시한다. --%>
+        <div class="detail-description-box">
+
+            <span class="detail-description-title">
+                상품 설명
+            </span>
+
+            <p class="detail-desc"><c:out value="${goods.description}"/></p>
+
+        </div>
+
+        <%-- [추가] 바로 구매와 장바구니에 사용할 상품 수량을 선택한다. --%>
+        <div class="detail-purchase-option">
+
+            <div class="detail-purchase-option-header">
+
+                <div class="detail-purchase-option-title">
+
+                    <strong>
+                        구매 수량
+                    </strong>
+
+                    <span>
+                        최대
+                        <fmt:formatNumber
+                            value="${goods.stock}"
+                            pattern="#,###"/>개까지 선택할 수 있습니다.
+                    </span>
+
+                </div>
+
+                <%-- [추가] 선택한 수량에 따른 총 상품 금액을 표시한다. --%>
+                <div class="detail-total-price">
+
+                    <span>
+                        총 상품 금액
+                    </span>
+
+                    <strong id="detailTotalPrice">
+                        ₩
+                        <fmt:formatNumber
+                            value="${goods.discountRate > 0 ? goods.discountPrice : goods.price}"
+                            pattern="#,###"/>
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <%-- [추가] 수량은 최소 1개부터 현재 재고까지만 선택할 수 있다. --%>
+            <div class="detail-quantity-control"
+                 data-unit-price="${goods.discountRate > 0 ? goods.discountPrice : goods.price}"
+                 data-stock="${goods.stock}">
+
+                <button type="button"
+                        id="detailQuantityMinus"
+                        class="detail-quantity-button"
+                        aria-label="수량 줄이기"
+                        ${goods.stock <= 0 ? 'disabled' : ''}>
+                    −
+                </button>
+
+                <input type="number"
+                       id="detailQuantity"
+                       class="detail-quantity-input"
+                       value="${goods.stock > 0 ? 1 : 0}"
+                       min="${goods.stock > 0 ? 1 : 0}"
+                       max="${goods.stock}"
+                       inputmode="numeric"
+                       aria-label="구매 수량"
+                       ${goods.stock <= 0 ? 'disabled' : ''}>
+
+                <button type="button"
+                        id="detailQuantityPlus"
+                        class="detail-quantity-button"
+                        aria-label="수량 늘리기"
+                        ${goods.stock <= 0 ? 'disabled' : ''}>
+                    +
+                </button>
+
+            </div>
+
+        </div>
 
         <div class="action-box">
 
@@ -387,58 +505,111 @@
 
             </button>
 
+            <%-- [수정] 선택한 수량과 재고 정보를 장바구니 처리에서 사용한다. --%>
             <button type="button"
                     class="btn cart-btn"
                     data-product-no="${goods.productNo}"
+                    data-stock="${goods.stock}"
                     ${goods.stock <= 0 ? 'disabled' : ''}>
                 🛒 장바구니
             </button>
 
+            <%-- [수정] 선택한 수량과 재고 정보를 바로 구매 처리에서 사용한다. --%>
             <button type="button"
                     class="btn btn-primary buy-btn"
                     data-product-no="${goods.productNo}"
+                    data-stock="${goods.stock}"
                     ${goods.stock <= 0 ? 'disabled' : ''}>
                 바로 구매
             </button>
 
         </div>
 
+        <%-- [추가] 품절 상태일 때 구매 불가 안내 문구를 표시한다. --%>
+        <c:if test="${goods.stock <= 0}">
+
+            <p class="sold-out-guide">
+                현재 품절된 상품입니다.
+            </p>
+
+        </c:if>
+
     </div>
 
 </section>
 
+<%-- [수정] 상품 리뷰 영역을 독립된 카드로 표시한다. --%>
 <section id="reviewSection"
-         class="detail-section">
+         class="detail-section review-section-card">
 
-    <h2>
-        상품 리뷰
-    </h2>
+    <div class="review-section-header">
 
-    <div class="score-box">
+        <div class="review-section-title">
 
-        <c:choose>
+            <span class="review-section-eyebrow">
+                REVIEW
+            </span>
 
-            <c:when test="${reviewCount > 0 and not empty avgRating}">
+            <h2>
+                상품 리뷰
+            </h2>
 
-                <span class="score-user">
-                    ⭐
-                    <fmt:formatNumber
-                        value="${avgRating}"
-                        pattern="0.0"/>
-                    (${reviewCount}건)
-                </span>
+            <p>
+                실제 구매 회원이 작성한 상품 후기를 확인해보세요.
+            </p>
 
-            </c:when>
+        </div>
 
-            <c:otherwise>
+        <div class="score-box">
 
-                <span class="score-user">
-                    아직 등록된 리뷰가 없습니다
-                </span>
+            <c:choose>
 
-            </c:otherwise>
+                <c:when test="${reviewCount > 0 and not empty avgRating}">
 
-        </c:choose>
+                    <span class="review-score-star"
+                          aria-hidden="true">
+                        ★
+                    </span>
+
+                    <div class="review-score-info">
+
+                        <strong>
+                            <fmt:formatNumber
+                                value="${avgRating}"
+                                pattern="0.0"/>
+                        </strong>
+
+                        <span>
+                            총
+                            <fmt:formatNumber
+                                value="${reviewCount}"
+                                pattern="#,###"/>개의 리뷰
+                        </span>
+
+                    </div>
+
+                </c:when>
+
+                <c:otherwise>
+
+                    <div class="review-score-empty">
+
+                        <span class="review-score-star"
+                              aria-hidden="true">
+                            ☆
+                        </span>
+
+                        <span>
+                            등록된 평점 없음
+                        </span>
+
+                    </div>
+
+                </c:otherwise>
+
+            </c:choose>
+
+        </div>
 
     </div>
 
@@ -543,8 +714,22 @@
 
             <c:otherwise>
 
-                <div class="empty-state">
-                    구매 후 첫 리뷰를 남겨보세요
+                <%-- [수정] 리뷰가 없을 때 완성된 빈 상태 화면을 표시한다. --%>
+                <div class="empty-state product-review-empty">
+
+                    <div class="product-review-empty-icon"
+                         aria-hidden="true">
+                        ☆
+                    </div>
+
+                    <strong>
+                        아직 등록된 상품 리뷰가 없습니다
+                    </strong>
+
+                    <p>
+                        상품을 구매한 후 첫 번째 리뷰를 남겨보세요.
+                    </p>
+
                 </div>
 
             </c:otherwise>

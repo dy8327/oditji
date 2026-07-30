@@ -91,7 +91,8 @@
                     </c:when>
 
                     <c:when test="${type eq 'category'}">
-                        카테고리별 상품
+                        <%-- [수정] 선택한 세부 카테고리명을 목록 제목으로 표시합니다. --%>
+                        <c:out value="${selectedCategoryName}"/>
                     </c:when>
 
                     <c:otherwise>
