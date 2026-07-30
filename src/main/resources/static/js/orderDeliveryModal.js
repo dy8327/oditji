@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const deliveryProgress = document.getElementById("deliveryProgress");
 
-  const deliveryMainImageWrap = document.getElementById("deliveryMainImageWrap");
   const deliveryProductName = document.getElementById("deliveryProductName");
   const deliveryQuantity = document.getElementById("deliveryQuantity");
   const deliveryItemTotalPrice = document.getElementById("deliveryItemTotalPrice");
@@ -109,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function showDeliveryState(state, message) {
     if (state === "loading" && deliveryProgress) {
-      deliveryProgress.dataset.status = "PREPARING";
+      deliveryProgress.dataset.status = "CONFIRMED";
     }
 
     if (deliveryDetailLoading) {
@@ -136,7 +135,8 @@ document.addEventListener("DOMContentLoaded", function () {
    */
 
   function renderDeliverySteps(status) {
-    const normalizedStatus = status === "SHIPPING" || status === "DELIVERED" ? status : "PREPARING";
+    const allowedStatuses = ["CONFIRMED", "PREPARING", "SHIPPING", "DELIVERED"];
+    const normalizedStatus = allowedStatuses.includes(status) ? status : "CONFIRMED";
 
     if (deliveryProgress) {
       deliveryProgress.dataset.status = normalizedStatus;
@@ -167,17 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return String(n).padStart(2, "0");
     }
 
-    return (
-      date.getFullYear() +
-      "." +
-      pad(date.getMonth() + 1) +
-      "." +
-      pad(date.getDate()) +
-      " " +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
-    );
+    return date.getFullYear() + "." + pad(date.getMonth() + 1) + "." + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes());
   }
 
   function formatPrice(value) {
@@ -227,18 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
         escapeHtml(trackingNumber) +
         '">복사</button></span>';
     } else {
-      deliveryTrackingWrap.innerHTML =
-        '<span class="delivery-empty-note">아직 운송장 번호가 등록되지 않았습니다.</span>';
+      deliveryTrackingWrap.innerHTML = '<span class="delivery-empty-note">아직 운송장 번호가 등록되지 않았습니다.</span>';
     }
   }
 
   function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   /*
@@ -249,20 +233,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderDelivery(delivery) {
     renderDeliverySteps(delivery.status);
-
-    if (deliveryMainImageWrap) {
-      if (delivery.mainImage) {
-        deliveryMainImageWrap.innerHTML =
-          '<img src="' +
-          contextPath +
-          escapeHtml(delivery.mainImage) +
-          '" alt="' +
-          escapeHtml(delivery.productName || "") +
-          '">';
-      } else {
-        deliveryMainImageWrap.innerHTML = '<div class="no-image">NO IMAGE</div>';
-      }
-    }
 
     if (deliveryProductName) {
       deliveryProductName.textContent = delivery.productName || "-";
@@ -311,15 +281,12 @@ document.addEventListener("DOMContentLoaded", function () {
     showDeliveryState("loading");
 
     try {
-      const response = await fetch(
-        contextPath + "/order/delivery?orderItemNo=" + encodeURIComponent(orderItemNo),
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await fetch(contextPath + "/order/delivery?orderItemNo=" + encodeURIComponent(orderItemNo), {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
       let data;
 
