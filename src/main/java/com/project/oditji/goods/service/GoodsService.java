@@ -14,10 +14,42 @@ public interface GoodsService {
             Integer maxPrice,
             boolean discountOnly,
             boolean inStockOnly,
+            List<String> priceRanges,
+            List<String> stockStatus,
             String type,
             int page,
             int pageSize
     );
+
+    /**
+     * 기존 호출부 호환용 메서드입니다.
+     * priceRanges, stockStatus를 전달하지 않으면 해당 조건 없이 조회합니다.
+     */
+    default List<GoodsVO> searchGoods(
+            String keyword,
+            List<String> productTypes,
+            Integer minPrice,
+            Integer maxPrice,
+            boolean discountOnly,
+            boolean inStockOnly,
+            String type,
+            int page,
+            int pageSize) {
+
+        return searchGoods(
+                keyword,
+                productTypes,
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly,
+                null,
+                null,
+                type,
+                page,
+                pageSize
+        );
+    }
 
     /**
      * 기존 호출부 호환용 메서드입니다.
@@ -40,6 +72,8 @@ public interface GoodsService {
                 maxPrice,
                 discountOnly,
                 inStockOnly,
+                null,
+                null,
                 "all",
                 page,
                 pageSize
@@ -52,8 +86,34 @@ public interface GoodsService {
             Integer minPrice,
             Integer maxPrice,
             boolean discountOnly,
-            boolean inStockOnly
+            boolean inStockOnly,
+            List<String> priceRanges,
+            List<String> stockStatus
     );
+
+    /**
+     * 기존 호출부 호환용 메서드입니다.
+     * priceRanges, stockStatus를 전달하지 않으면 해당 조건 없이 조회합니다.
+     */
+    default int countSearchGoods(
+            String keyword,
+            List<String> productTypes,
+            Integer minPrice,
+            Integer maxPrice,
+            boolean discountOnly,
+            boolean inStockOnly) {
+
+        return countSearchGoods(
+                keyword,
+                productTypes,
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly,
+                null,
+                null
+        );
+    }
 
     List<GoodsVO> getRecommendedGoods(int limit);
 

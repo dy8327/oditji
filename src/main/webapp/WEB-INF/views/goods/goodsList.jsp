@@ -371,6 +371,22 @@
 
             </c:forEach>
 
+            <c:forEach var="selectedRange"
+                       items="${priceRanges}">
+
+                <c:param name="priceRanges"
+                         value="${selectedRange}"/>
+
+            </c:forEach>
+
+            <c:forEach var="selectedStock"
+                       items="${stockStatus}">
+
+                <c:param name="stockStatus"
+                         value="${selectedStock}"/>
+
+            </c:forEach>
+
         </c:url>
 
         <c:url var="nextPageUrl"
@@ -410,6 +426,22 @@
 
                 <c:param name="productTypes"
                          value="${selectedType}"/>
+
+            </c:forEach>
+
+            <c:forEach var="selectedRange"
+                       items="${priceRanges}">
+
+                <c:param name="priceRanges"
+                         value="${selectedRange}"/>
+
+            </c:forEach>
+
+            <c:forEach var="selectedStock"
+                       items="${stockStatus}">
+
+                <c:param name="stockStatus"
+                         value="${selectedStock}"/>
 
             </c:forEach>
 

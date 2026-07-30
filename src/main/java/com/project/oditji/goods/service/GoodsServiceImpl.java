@@ -29,6 +29,8 @@ public class GoodsServiceImpl implements GoodsService {
             Integer maxPrice,
             boolean discountOnly,
             boolean inStockOnly,
+            List<String> priceRanges,
+            List<String> stockStatus,
             String type,
             int page,
             int pageSize) {
@@ -37,6 +39,8 @@ public class GoodsServiceImpl implements GoodsService {
         List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
         Integer normalizedMinPrice = normalizePrice(minPrice);
         Integer normalizedMaxPrice = normalizePrice(maxPrice);
+        List<String> normalizedPriceRanges = normalizePriceRanges(priceRanges);
+        List<String> normalizedStockStatus = normalizeStockStatus(stockStatus);
 
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
@@ -60,6 +64,8 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizedMaxPrice,
                 discountOnly,
                 inStockOnly,
+                normalizedPriceRanges,
+                normalizedStockStatus,
                 normalizedType,
                 startRow,
                 endRow
@@ -77,12 +83,16 @@ public class GoodsServiceImpl implements GoodsService {
             Integer minPrice,
             Integer maxPrice,
             boolean discountOnly,
-            boolean inStockOnly) {
+            boolean inStockOnly,
+            List<String> priceRanges,
+            List<String> stockStatus) {
 
         String normalizedKeyword = normalizeKeyword(keyword);
         List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
         Integer normalizedMinPrice = normalizePrice(minPrice);
         Integer normalizedMaxPrice = normalizePrice(maxPrice);
+        List<String> normalizedPriceRanges = normalizePriceRanges(priceRanges);
+        List<String> normalizedStockStatus = normalizeStockStatus(stockStatus);
 
         if (normalizedMinPrice != null
                 && normalizedMaxPrice != null
@@ -99,7 +109,9 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizedMinPrice,
                 normalizedMaxPrice,
                 discountOnly,
-                inStockOnly
+                inStockOnly,
+                normalizedPriceRanges,
+                normalizedStockStatus
         );
     }
 
@@ -213,6 +225,71 @@ public class GoodsServiceImpl implements GoodsService {
             String normalized = productType.trim();
 
             if (!normalized.isEmpty()
+                    && !normalizedList.contains(normalized)) {
+
+                normalizedList.add(normalized);
+            }
+        }
+
+        return normalizedList;
+    }
+
+    private static final List<String> VALID_PRICE_RANGES = java.util.Arrays.asList(
+            "UNDER_10000",
+            "RANGE_10000_30000",
+            "RANGE_30000_50000",
+            "RANGE_50000_100000",
+            "OVER_100000"
+    );
+
+    private static final List<String> VALID_STOCK_STATUS = java.util.Arrays.asList(
+            "IN_STOCK",
+            "SOLD_OUT"
+    );
+
+    private List<String> normalizePriceRanges(List<String> sourceList) {
+
+        List<String> normalizedList = new ArrayList<String>();
+
+        if (sourceList == null) {
+            return normalizedList;
+        }
+
+        for (String priceRange : sourceList) {
+
+            if (priceRange == null) {
+                continue;
+            }
+
+            String normalized = priceRange.trim();
+
+            if (VALID_PRICE_RANGES.contains(normalized)
+                    && !normalizedList.contains(normalized)) {
+
+                normalizedList.add(normalized);
+            }
+        }
+
+        return normalizedList;
+    }
+
+    private List<String> normalizeStockStatus(List<String> sourceList) {
+
+        List<String> normalizedList = new ArrayList<String>();
+
+        if (sourceList == null) {
+            return normalizedList;
+        }
+
+        for (String status : sourceList) {
+
+            if (status == null) {
+                continue;
+            }
+
+            String normalized = status.trim();
+
+            if (VALID_STOCK_STATUS.contains(normalized)
                     && !normalizedList.contains(normalized)) {
 
                 normalizedList.add(normalized);

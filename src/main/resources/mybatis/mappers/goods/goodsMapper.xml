@@ -122,6 +122,27 @@
 
 
     <!-- =====================================================
+         할인 반영 실판매가 계산식
+
+         "지금 노출되는 실제 할인율"(진행 중 이벤트 할인율 우선,
+         없으면 상품 기본 할인율) 기준으로 계산한다.
+         minPrice/maxPrice, priceRanges 조건에서 공통으로 사용한다.
+    ====================================================== -->
+    <sql id="effectivePriceExpr">
+
+        FLOOR(
+            P.PRICE
+            * (
+                100
+                - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
+            )
+            / 100
+        )
+
+    </sql>
+
+
+    <!-- =====================================================
          사용자 상품 검색 공통 조건
 
          관리자 승인 완료 상태인 APPROVED 상품만 공개한다.
@@ -174,28 +195,16 @@
 
         <if test="minPrice != null">
 
-            AND FLOOR(
-                    P.PRICE
-                    * (
-                        100
-                        - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
-                    )
-                    / 100
-                ) <![CDATA[ >= ]]> #{minPrice}
+            AND <include refid="effectivePriceExpr"/>
+                <![CDATA[ >= ]]> #{minPrice}
 
         </if>
 
 
         <if test="maxPrice != null">
 
-            AND FLOOR(
-                    P.PRICE
-                    * (
-                        100
-                        - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
-                    )
-                    / 100
-                ) <![CDATA[ <= ]]> #{maxPrice}
+            AND <include refid="effectivePriceExpr"/>
+                <![CDATA[ <= ]]> #{maxPrice}
 
         </if>
 
@@ -210,6 +219,95 @@
         <if test="inStockOnly">
 
             AND NVL(P.STOCK, 0) > 0
+
+        </if>
+
+
+        <!--
+            가격대 다중 선택 필터.
+            좌측 사이드바 체크박스는 여러 가격대를 동시에 선택할 수 있으므로
+            선택된 가격대들을 OR로 묶는다.
+        -->
+        <if test="priceRanges != null and priceRanges.size() > 0">
+
+            AND (
+                <foreach collection="priceRanges"
+                         item="priceRange"
+                         separator=" OR ">
+
+                    <choose>
+
+                        <when test="priceRange == 'UNDER_10000'">
+                            ( <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 10000 )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_10000_30000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 10000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 30000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_30000_50000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 30000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 50000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_50000_100000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 50000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 100000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'OVER_100000'">
+                            ( <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 100000 )
+                        </when>
+
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+
+                    </choose>
+
+                </foreach>
+            )
+
+        </if>
+
+
+        <!--
+            재고 상태 다중 선택 필터.
+            "판매중"과 "품절 포함"을 동시에 선택하면 전체 상품을 의미하므로
+            선택된 상태들을 OR로 묶는다.
+        -->
+        <if test="stockStatus != null and stockStatus.size() > 0">
+
+            AND (
+                <foreach collection="stockStatus"
+                         item="status"
+                         separator=" OR ">
+
+                    <choose>
+
+                        <when test="status == 'IN_STOCK'">
+                            NVL(P.STOCK, 0) > 0
+                        </when>
+
+                        <when test="status == 'SOLD_OUT'">
+                            NVL(P.STOCK, 0) <![CDATA[ <= ]]> 0
+                        </when>
+
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+
+                    </choose>
+
+                </foreach>
+            )
 
         </if>
 
