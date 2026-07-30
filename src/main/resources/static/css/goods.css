@@ -1075,6 +1075,11 @@
 }
 
 @media (max-width: 850px) {
+  .goods-list-container,
+  .goods-detail-container {
+    padding: 28px 24px;
+  }
+
   .goods-layout {
     grid-template-columns: 1fr;
   }
@@ -1152,6 +1157,15 @@
 @media (max-width: 480px) {
   .card-list {
     grid-template-columns: 1fr;
+  }
+
+  .goods-list-container,
+  .goods-detail-container {
+    padding: 20px 16px;
+  }
+
+  .card-poster {
+    height: 200px;
   }
 
   .detail-info .action-box {

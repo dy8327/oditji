@@ -514,6 +514,18 @@ a {
     }
 }
 
+@media (max-width: 768px) {
+
+    .hero-box {
+        min-height: 170px;
+    }
+
+    .card {
+        width: 155px;
+        min-width: 155px;
+    }
+}
+
 @media (max-width: 600px) {
 
     .main {

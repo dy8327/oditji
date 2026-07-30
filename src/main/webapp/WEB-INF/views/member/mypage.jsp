@@ -89,7 +89,7 @@
 
                     <img class="profile-img"
                          src="${loginMember.profileImage}"
-                         alt="카카오 프로필">
+                         alt="${loginProvider eq 'NAVER' ? '네이버 프로필' : (loginProvider eq 'GOOGLE' ? '구글 프로필' : '카카오 프로필')}">
 
                 </c:when>
 

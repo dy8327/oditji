@@ -290,3 +290,18 @@
     }
 
 }
+
+@media (max-width:768px){
+
+    .favorite-container{
+        padding:20px;
+    }
+
+    .favorite-tab{
+        flex-wrap:wrap;
+    }
+
+    .favorite-poster{
+        height:200px;
+    }
+}

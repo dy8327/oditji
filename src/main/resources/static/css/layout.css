@@ -13,6 +13,7 @@
 html{
 
     scroll-behavior:smooth;
+    overflow-x:hidden;
 
 }
 
@@ -22,6 +23,7 @@ body{
     color:#F5F5F5;
     font-family:"Pretendard","Noto Sans KR",sans-serif;
     line-height:1.5;
+    overflow-x:hidden;
 
 }
 
@@ -60,5 +62,22 @@ img{
 
     display:block;
     max-width:100%;
+
+}
+
+/* =========================================================
+   Responsive - Mobile Safe Defaults
+   (모바일 320~768px 기준: 입력창 자동 확대 방지 등 전역 안전장치)
+========================================================= */
+
+@media (max-width:768px){
+
+    input,
+    textarea,
+    select{
+
+        font-size:16px;
+
+    }
 
 }

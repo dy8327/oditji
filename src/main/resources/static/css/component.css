@@ -188,11 +188,45 @@
     color: #555555;
 }
 
+@media (max-width:1024px) {
+  .card-list {
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+}
+
 @media (max-width:768px) {
+  .card-list {
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+  }
+
+  .list-header {
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
   .detail-header {        flex-direction:column;
     }
 
   .detail-poster {        width:100%;
+        max-width:280px;
+        margin:0 auto;
     }
 
+  .detail-title {
+    font-size:22px;
+  }
+
+  .pagination {
+    gap:6px;
+    flex-wrap:wrap;
+  }
+}
+
+@media (max-width:400px) {
+  .card-list {
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
+  }
 }

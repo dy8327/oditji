@@ -534,8 +534,11 @@ public class MemberController {
                 }
 
                 // SNS 로그인 회원 여부
-                boolean socialMember = session.getAttribute("loginProvider") != null;
+                Object loginProvider = session.getAttribute("loginProvider");
+                boolean socialMember = loginProvider != null;
                 model.addAttribute("socialMember", socialMember);
+                // 프로필 alt 텍스트 등에서 SNS 종류(KAKAO/NAVER/GOOGLE)를 구분하기 위해 전달
+                model.addAttribute("loginProvider", loginProvider);
 
                 // 로그인 회원이 선택한 활성 OTT 목록 조회
                 List<PlatformVO> ottList = memberPlatformService.findMemberPlatformList(loginMember.getMemberNo());

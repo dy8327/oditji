@@ -126,3 +126,21 @@ body.chat-create-page {
         padding: 24px;
     }
 }
+
+@media (max-width: 480px) {
+    .create-room-container {
+        padding: 18px;
+    }
+
+    .create-room-header h2 {
+        font-size: 22px;
+    }
+
+    .button-area {
+        flex-direction: column-reverse;
+    }
+
+    .button-area button {
+        width: 100%;
+    }
+}

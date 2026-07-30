@@ -592,6 +592,26 @@
    RESPONSIVE
 ========================= */
 
+@media (max-width: 768px) {
+  .event-section,
+  .event-detail {
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .product-section h2 {
+    font-size: 20px;
+  }
+
+  .event-description-section {
+    padding: 22px 20px;
+  }
+}
+
 @media (max-width: 640px) {
   .event-list-heading {
     flex-direction: column;
