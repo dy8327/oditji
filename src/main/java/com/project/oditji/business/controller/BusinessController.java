@@ -727,15 +727,15 @@ public class BusinessController {
          * EVENT 테이블에는 BUSINESS_NO가 없으므로
          * 사업자별 조회를 위해 연결 상품 선택은 필수로 처리한다.
          *
-         * EVENT 테이블에는 이벤트 설명 컬럼이 없으므로
-         * eventContent는 현재 서버 로그 확인용으로만 사용한다.
+         * [수정] EVENT 테이블에 DESCRIPTION 컬럼이 추가되어
+         * description은 이제 EVENT.DESCRIPTION에 그대로 저장된다.
          * =========================================================
          */
         @PostMapping("/event/register")
         public String eventRegisterProcess(
 
                         @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "eventContent", required = false) String eventContent,
+                        @RequestParam(value = "description", required = false) String description,
                         @RequestParam("startDate") LocalDate startDate,
                         @RequestParam("endDate") LocalDate endDate,
 
@@ -783,6 +783,7 @@ public class BusinessController {
 
                 eventManageVO.setBusinessNo(business.getBusinessNo());
                 eventManageVO.setTitle(eventTitle);
+                eventManageVO.setDescription(description);
                 eventManageVO.setStartDate(startDate);
                 eventManageVO.setEndDate(endDate);
 
@@ -885,7 +886,7 @@ public class BusinessController {
         public String eventUpdateProcess(
                         @RequestParam("eventNo") long eventNo,
                         @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "eventContent", required = false) String eventContent,
+                        @RequestParam(value = "description", required = false) String description,
                         @RequestParam("startDate") LocalDate startDate,
                         @RequestParam("endDate") LocalDate endDate,
                         @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
@@ -927,6 +928,7 @@ public class BusinessController {
                 eventManageVO.setEventNo(eventNo);
                 eventManageVO.setBusinessNo(business.getBusinessNo());
                 eventManageVO.setTitle(eventTitle);
+                eventManageVO.setDescription(description);
                 eventManageVO.setStartDate(startDate);
                 eventManageVO.setEndDate(endDate);
 

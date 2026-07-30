@@ -13,6 +13,7 @@
         SELECT
             EVENT_NO,
             TITLE,
+            DESCRIPTION,
             BANNER_IMAGE,
             START_DATE,
             END_DATE,
@@ -69,6 +70,7 @@
         SELECT
             E.EVENT_NO,
             E.TITLE,
+            E.DESCRIPTION,
             E.BANNER_IMAGE,
             E.START_DATE,
             E.END_DATE,
@@ -105,6 +107,7 @@
 
         <id property="eventNo" column="EVENT_NO"/>
         <result property="title" column="TITLE"/>
+        <result property="description" column="DESCRIPTION"/>
         <result property="bannerImage" column="BANNER_IMAGE"/>
         <result property="startDate" column="START_DATE"/>
         <result property="endDate" column="END_DATE"/>

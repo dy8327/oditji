@@ -73,17 +73,13 @@
                 <div class="form-group">
 
                     <label class="form-label"
-                           for="eventContent">
+                           for="description">
                         이벤트 설명
                     </label>
 
-                    <!--
-                        현재 EVENT 테이블에는 이벤트 설명 컬럼이 없으므로
-                        입력값은 등록 요청 로그 확인용으로만 전달된다.
-                    -->
                     <textarea class="form-textarea"
-                              id="eventContent"
-                              name="eventContent"
+                              id="description"
+                              name="description"
                               placeholder="이벤트에 대한 설명을 입력하세요."></textarea>
 
                 </div>

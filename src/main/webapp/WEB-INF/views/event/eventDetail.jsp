@@ -3,6 +3,7 @@ pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 
@@ -35,38 +36,26 @@ pageEncoding="UTF-8"%>
 
             <section class="event-detail">
 
-                <div class="event-header">
+                <a href="${pageContext.request.contextPath}/event/list"
+                   class="event-back-link">
+                    &larr; 이벤트 목록
+                </a>
 
-                    <h1>
-                        ${event.title}
-                    </h1>
-
-                    <p>
-                        <fmt:formatDate
-                                value="${event.startDate}"
-                                pattern="yyyy.MM.dd"/>
-                        ~
-                        <fmt:formatDate
-                                value="${event.endDate}"
-                                pattern="yyyy.MM.dd"/>
-                    </p>
-
-                </div>
-
-                <div class="detail-banner">
+                <div class="event-hero event-hero--${period}">
 
                     <c:choose>
 
                         <c:when test="${not empty event.bannerImage}">
 
-                            <img src="${pageContext.request.contextPath}${event.bannerImage}"
+                            <img class="event-hero-image"
+                                 src="${pageContext.request.contextPath}${event.bannerImage}"
                                  alt="${event.title}">
 
                         </c:when>
 
                         <c:otherwise>
 
-                            <div class="no-img">
+                            <div class="event-hero-image no-img">
                                 NO IMAGE
                             </div>
 
@@ -74,15 +63,60 @@ pageEncoding="UTF-8"%>
 
                     </c:choose>
 
+                    <div class="event-hero-scrim"></div>
+
+                    <div class="event-hero-content">
+
+                        <span class="event-hero-badge">
+                            ${periodBadge} 이벤트
+                        </span>
+
+                        <h1 class="event-hero-title">
+                            ${event.title}
+                        </h1>
+
+                        <p class="event-period">
+                            <fmt:formatDate
+                                    value="${event.startDate}"
+                                    pattern="yyyy.MM.dd"/>
+                            ~
+                            <fmt:formatDate
+                                    value="${event.endDate}"
+                                    pattern="yyyy.MM.dd"/>
+                        </p>
+
+                    </div>
+
                 </div>
+
+                <c:if test="${not empty event.description}">
+
+                    <section class="event-description-section">
+
+                        <h2>이벤트 안내</h2>
+
+                        <p class="event-description-text">
+                            <c:out value="${event.description}"/>
+                        </p>
+
+                    </section>
+
+                </c:if>
 
                 <section class="product-section">
 
                     <h2>
                         이벤트 상품
+                        <span class="product-count">
+                            <c:out value="${fn:length(event.products)}"/>개
+                        </span>
                     </h2>
 
-                    <div class="product-grid">
+                    <c:choose>
+
+                        <c:when test="${not empty event.products}">
+
+                            <div class="product-grid">
 
                         <c:forEach var="product"
                                    items="${event.products}">
@@ -110,6 +144,12 @@ pageEncoding="UTF-8"%>
                                         </c:otherwise>
 
                                     </c:choose>
+
+                                    <c:if test="${product.eventDiscountRate > 0}">
+                                        <span class="product-discount-badge">
+                                            ${product.eventDiscountRate}%
+                                        </span>
+                                    </c:if>
 
                                 </div>
 
@@ -161,7 +201,19 @@ pageEncoding="UTF-8"%>
 
                         </c:forEach>
 
-                    </div>
+                            </div>
+
+                        </c:when>
+
+                        <c:otherwise>
+
+                            <div class="empty">
+                                이벤트에 등록된 상품이 없습니다.
+                            </div>
+
+                        </c:otherwise>
+
+                    </c:choose>
 
                 </section>
 

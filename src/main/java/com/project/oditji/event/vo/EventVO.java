@@ -8,6 +8,7 @@ public class EventVO {
     // EVENT
     private Long eventNo;
     private String title;
+    private String description;
     private String bannerImage;
     private Date startDate;
     private Date endDate;
@@ -33,6 +34,14 @@ public class EventVO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getBannerImage() {
