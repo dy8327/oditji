@@ -29,6 +29,26 @@
 /* =========================================================
    Header
 ========================================================= */
+/* 본문 바로가기 */
+.skip-link{
+    position:fixed;
+    top:12px;
+    left:12px;
+    z-index:10000;
+    padding:10px 16px;
+    border-radius:8px;
+    background:#FFFFFF;
+    color:#181818;
+    font-weight:700;
+    transform:translateY(-150%);
+    transition:transform .2s ease;
+}
+
+.skip-link:focus{
+    transform:translateY(0);
+    outline:3px solid #5EA3FF;
+    outline-offset:2px;
+}
 
 .header{
 
