@@ -11,6 +11,7 @@
 
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ODITJI | 상품 수정 요청</title>
 

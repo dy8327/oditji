@@ -5,6 +5,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI MAIN</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
@@ -15,6 +16,42 @@
 <body>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+<%--
+    모바일 전용 검색창.
+    768px 이하에서는 header.jsp의 검색창이 숨겨지므로,
+    메인 화면에서만 헤더 바로 아래에 별도의 검색창을 노출한다.
+    데스크톱에서는 main.css에서 display:none 처리되어 보이지 않는다.
+--%>
+<div class="main-mobile-search" role="search">
+    <form action="${pageContext.request.contextPath}/search" method="get">
+        <label for="mainMobileSearchKeyword"
+               style="position:absolute;
+                      width:1px;
+                      height:1px;
+                      padding:0;
+                      margin:-1px;
+                      overflow:hidden;
+                      clip:rect(0, 0, 0, 0);
+                      white-space:nowrap;
+                      border:0;">
+            통합 검색어
+        </label>
+
+        <input type="text"
+               id="mainMobileSearchKeyword"
+               name="keyword"
+               placeholder="작품, 배우, 감독, 상품 검색"
+               autocomplete="off">
+
+        <button type="submit" aria-label="검색">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        </button>
+    </form>
+</div>
 
 <main class="main">
 

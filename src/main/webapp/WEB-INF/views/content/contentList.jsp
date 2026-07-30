@@ -51,7 +51,23 @@
 
         <!-- 왼쪽 영역은 검색 조건만 담당하도록 유지합니다. -->
         <aside class="content-list-left-sidebar">
-            <jsp:include page="/WEB-INF/views/common/contentLeftSidebar.jsp"/>
+
+            <!-- 모바일 전용 필터 펼치기 버튼 (데스크톱에서는 숨김) -->
+            <button type="button"
+                    class="content-list-mobile-filter-toggle"
+                    data-mobile-filter-toggle
+                    aria-expanded="false"
+                    aria-controls="contentListMobileFilterPanel">
+                <span>필터</span>
+                <span class="mobile-filter-toggle-arrow" aria-hidden="true">⌄</span>
+            </button>
+
+            <div class="content-list-mobile-filter-panel"
+                 id="contentListMobileFilterPanel"
+                 data-mobile-filter-panel>
+                <jsp:include page="/WEB-INF/views/common/contentLeftSidebar.jsp"/>
+            </div>
+
         </aside>
 
         <section class="content-list-main">
