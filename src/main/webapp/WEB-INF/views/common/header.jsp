@@ -13,6 +13,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
+<a href="#mainContent" class="skip-link">본문 바로가기</a>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <header class="header">
     <div class="header-container">
