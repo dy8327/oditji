@@ -83,6 +83,11 @@
     border-radius: 3px;
 }
 
+/* 데스크톱에서는 모바일 전용 펼치기 버튼을 숨기고 필터를 항상 노출 */
+.search-mobile-filter-toggle {
+    display: none;
+}
+
 .search-filter-form {
     overflow: hidden;
     border: 1px solid var(--search-border);
@@ -1398,6 +1403,41 @@ body.search-modal-open {
         margin-bottom: 24px;
         max-height: none;
         overflow-y: visible;
+    }
+
+    /* 모바일: 필터 사이드바를 접어두고 버튼으로 펼치기 */
+    .search-mobile-filter-toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        border: 1px solid var(--search-border);
+        border-radius: 10px;
+        background: rgba(22, 24, 26, 0.96);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .search-mobile-filter-toggle .mobile-filter-toggle-arrow {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .search-left-sidebar.is-open .search-mobile-filter-toggle .mobile-filter-toggle-arrow {
+        transform: rotate(180deg);
+    }
+
+    .search-mobile-filter-panel {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.25s ease;
+    }
+
+    .search-left-sidebar.is-open .search-mobile-filter-panel {
+        max-height: 3000px;
     }
 
     .search-filter-form {

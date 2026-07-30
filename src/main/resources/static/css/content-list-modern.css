@@ -41,6 +41,11 @@
     min-width: 0;
 }
 
+/* 데스크톱에서는 모바일 전용 펼치기 버튼을 숨기고 필터를 항상 노출 */
+.content-list-mobile-filter-toggle {
+    display: none;
+}
+
 /* =========================================================
    PAGE HEADER
 ========================================================= */
@@ -1015,6 +1020,41 @@
         overflow-y: visible;
     }
 
+    /* 모바일: 필터 사이드바를 접어두고 버튼으로 펼치기 */
+    .content-list-mobile-filter-toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        background: #1c1c1c;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .content-list-mobile-filter-toggle .mobile-filter-toggle-arrow {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .content-list-left-sidebar.is-open .content-list-mobile-filter-toggle .mobile-filter-toggle-arrow {
+        transform: rotate(180deg);
+    }
+
+    .content-list-mobile-filter-panel {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.25s ease;
+    }
+
+    .content-list-left-sidebar.is-open .content-list-mobile-filter-panel {
+        max-height: 2000px;
+    }
+
     .content-filter-form {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1074,12 +1114,13 @@
 
     .content-list-card-grid,
     .content-recommend-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 10px;
     }
 
     .content-list-card-poster,
     .content-recommend-poster {
-        aspect-ratio: 2 / 2.5;
+        aspect-ratio: 2 / 2.9;
     }
 }
 

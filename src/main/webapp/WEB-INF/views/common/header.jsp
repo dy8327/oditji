@@ -90,7 +90,12 @@
             </ul>
         </nav>
 
-        <div class="header-search">
+        <%--
+            768px 이하 모바일에서는 이 검색창이 기본적으로 숨겨져 있다가,
+            header-search-toggle 버튼을 누르면 헤더 아래로 펼쳐지는 형태로 노출된다.
+            (js/common.js의 initMobileSearchToggle 참고)
+        --%>
+        <div class="header-search" id="headerSearch">
             <form id="headerSearchForm" action="${pageContext.request.contextPath}/search" method="get">
                 <%--
                     공통 검색창에 고유 id와 label을 연결하여
@@ -125,6 +130,23 @@
         </div>
 
         <div class="header-right">
+            <%--
+                모바일 전용 검색 토글 버튼.
+                768px 이하에서만 아이콘으로 노출되며, 클릭 시 header-search(#headerSearch)를
+                헤더 바로 아래에 펼쳐서 보여준다. 데스크톱에서는 CSS로 숨김 처리된다.
+            --%>
+            <button type="button"
+                    class="icon-btn header-search-toggle"
+                    id="headerSearchToggle"
+                    aria-controls="headerSearch"
+                    aria-expanded="false"
+                    aria-label="검색 열기">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
+
             <c:choose>
                 <c:when test="${empty sessionScope.loginMember}">
                     <a href="${pageContext.request.contextPath}/member/join" class="join-btn">회원가입</a>
@@ -241,6 +263,24 @@
         </div>
     </div>
 </header>
+
+<%--
+    맨 위로 이동 버튼.
+    스크롤을 내리다가 헤더가 자동으로 숨겨지는 시점(js/common.js의 initHeaderScroll)에 맞춰
+    우측 하단에 노출되며, 클릭 시 페이지 맨 위로 부드럽게 스크롤한다.
+--%>
+<button type="button"
+        class="back-to-top-btn"
+        id="backToTopBtn"
+        aria-label="맨 위로 이동">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 19V5M12 5L5 12M12 5L19 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </svg>
+</button>
 
 <c:if test="${not empty sessionScope.loginMember}">
     <script type="module"
