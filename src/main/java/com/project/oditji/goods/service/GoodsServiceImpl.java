@@ -129,6 +129,23 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     @Override
+    public List<GoodsVO> getGoodsByContentNo(int contentNo, int limit) {
+
+        if (contentNo <= 0) {
+            return new ArrayList<GoodsVO>();
+        }
+
+        int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
+
+        List<GoodsVO> resultList =
+                goodsDAO.selectGoodsByContentNo(contentNo, normalizedLimit);
+
+        return resultList == null
+                ? new ArrayList<GoodsVO>()
+                : resultList;
+    }
+
+    @Override
     public List<String> getSearchProductTypes() {
 
         List<String> productTypes =

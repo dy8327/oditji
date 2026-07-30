@@ -59,6 +59,136 @@
 
 </div>
 
+<div class="goods-detail-layout">
+
+<aside class="goods-detail-left-sidebar">
+
+    <c:if test="${not empty content}">
+
+        <section class="detail-side-card">
+
+            <div class="detail-side-card-header">
+                <h2>관련 콘텐츠</h2>
+            </div>
+
+            <div class="detail-side-card-body">
+
+                <a class="side-content-item"
+                   href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">
+
+                    <div class="side-content-poster">
+
+                        <c:choose>
+
+                            <c:when test="${not empty content.posterPath}">
+
+                                <img src="https://image.tmdb.org/t/p/w342${content.posterPath}"
+                                     alt="<c:out value='${content.title}'/>">
+
+                            </c:when>
+
+                            <c:otherwise>
+
+                                <div class="no-img">
+                                    NO IMAGE
+                                </div>
+
+                            </c:otherwise>
+
+                        </c:choose>
+
+                    </div>
+
+                    <div class="side-content-info">
+
+                        <strong>
+                            <c:out value="${content.title}"/>
+                        </strong>
+
+                        <span>
+
+                            <c:out value="${content.contentType}"/>
+
+                            <c:if test="${not empty content.tmdbScore}">
+                                ·
+                                ⭐
+                                <fmt:formatNumber
+                                    value="${content.tmdbScore}"
+                                    pattern="0.0"/>
+                            </c:if>
+
+                        </span>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </c:if>
+
+    <c:if test="${not empty actor}">
+
+        <section class="detail-side-card">
+
+            <div class="detail-side-card-header">
+                <h2>관련 배우</h2>
+            </div>
+
+            <div class="detail-side-card-body">
+
+                <div class="actor-card"
+                     onclick="location.href='${pageContext.request.contextPath}/content/person/${actor.tmdbActorId}'">
+
+                    <div class="actor-card__photo">
+
+                        <c:choose>
+
+                            <c:when test="${not empty actor.profilePath}">
+
+                                <img src="https://image.tmdb.org/t/p/w185${actor.profilePath}"
+                                     alt="<c:out value='${actor.actorName}'/>">
+
+                            </c:when>
+
+                            <c:otherwise>
+
+                                <div class="actor-card__no-image">
+                                    NO IMAGE
+                                </div>
+
+                            </c:otherwise>
+
+                        </c:choose>
+
+                    </div>
+
+                    <div class="actor-card__info">
+
+                        <strong>
+                            <c:out value="${actor.actorName}"/>
+                        </strong>
+
+                        <span>
+                            출연 배우
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </c:if>
+
+</aside>
+
+<div class="goods-detail-main">
+
 <section class="detail-header">
 
     <div class="detail-poster">
@@ -275,89 +405,6 @@
     </div>
 
 </section>
-
-<c:if test="${not empty content}">
-
-<section class="detail-section">
-
-    <h2>
-        원작 콘텐츠
-    </h2>
-
-    <div class="content-grid">
-
-        <article class="content-card">
-
-            <a class="content-card__link"
-               href="${pageContext.request.contextPath}/content/contentDetail/${content.contentNo}">
-
-                <div class="content-card__poster">
-
-                    <c:choose>
-
-                        <c:when test="${not empty content.posterPath}">
-
-                            <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
-                                 alt="<c:out value='${content.title}'/>">
-
-                        </c:when>
-
-                        <c:otherwise>
-
-                            <div class="no-img">
-                                NO IMAGE
-                            </div>
-
-                        </c:otherwise>
-
-                    </c:choose>
-
-                </div>
-
-                <div class="content-card__info">
-
-                    <h3 class="content-card__title">
-                        <c:out value="${content.title}"/>
-                    </h3>
-
-                    <div class="content-card__meta">
-
-                        <span>
-                            <c:out value="${content.contentType}"/>
-                        </span>
-
-                        <c:if test="${not empty content.tmdbScore}">
-                            <span>
-                                ⭐
-                                <fmt:formatNumber
-                                    value="${content.tmdbScore}"
-                                    pattern="0.0"/>
-                            </span>
-                        </c:if>
-
-                    </div>
-
-                </div>
-
-            </a>
-
-        </article>
-
-    </div>
-
-    <c:if test="${not empty actor}">
-
-        <p class="card-sub"
-           style="margin-top:12px;">
-            출연 :
-            <c:out value="${actor.actorName}"/>
-        </p>
-
-    </c:if>
-
-</section>
-
-</c:if>
 
 <section id="reviewSection"
          class="detail-section">
@@ -580,6 +627,16 @@
         </div>
 
     </div>
+
+</div>
+
+</div>
+
+<aside class="goods-detail-sidebar">
+
+    <jsp:include page="/WEB-INF/views/common/goodsRightSidebar.jsp"/>
+
+</aside>
 
 </div>
 

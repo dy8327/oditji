@@ -38,6 +38,15 @@ public interface GoodsDAO {
             @Param("limit") int limit
     );
 
+    /**
+     * 콘텐츠 상세페이지의 "관련 상품" 영역에서 사용합니다.
+     * 해당 콘텐츠(CONTENT_NO)에 연결된 승인 완료(APPROVED) 상품만 조회합니다.
+     */
+    List<GoodsVO> selectGoodsByContentNo(
+            @Param("contentNo") int contentNo,
+            @Param("limit") int limit
+    );
+
     List<String> selectSearchProductTypes();
 
     GoodsVO selectGoodsDetail(

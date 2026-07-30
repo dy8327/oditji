@@ -588,8 +588,8 @@
          기존 SEQ_EVENT_NO 시퀀스로 EVENT_NO를 먼저 생성한 뒤
          EVENT 테이블에 이벤트 기본 정보를 저장한다.
 
-         EVENT 테이블에는 이벤트 설명 컬럼이 없으므로
-         eventContent는 INSERT 대상에 포함하지 않는다.
+         [수정] EVENT 테이블에 DESCRIPTION 컬럼을 추가하여
+         이벤트 설명(description)도 함께 저장한다.
     ====================================================== -->
     <insert id="insertEvent"
             parameterType="com.project.oditji.business.vo.EventManageVO">
@@ -606,6 +606,7 @@
         INSERT INTO EVENT (
             EVENT_NO,
             TITLE,
+            DESCRIPTION,
             BANNER_IMAGE,
             START_DATE,
             END_DATE,
@@ -615,6 +616,7 @@
         VALUES (
             #{eventNo},
             #{title},
+            #{description, jdbcType=VARCHAR},
             #{bannerImage, jdbcType=VARCHAR},
             #{startDate, jdbcType=DATE},
             #{endDate, jdbcType=DATE},
@@ -798,6 +800,7 @@
         SELECT
             E.EVENT_NO,
             E.TITLE,
+            E.DESCRIPTION,
             E.BANNER_IMAGE,
             E.START_DATE,
             E.END_DATE,
@@ -832,6 +835,7 @@
         UPDATE EVENT E
         SET
             TITLE = #{title},
+            DESCRIPTION = #{description, jdbcType=VARCHAR},
             BANNER_IMAGE = #{bannerImage, jdbcType=VARCHAR},
             START_DATE = #{startDate, jdbcType=DATE},
             END_DATE = #{endDate, jdbcType=DATE},

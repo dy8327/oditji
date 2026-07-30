@@ -1,5 +1,6 @@
 package com.project.oditji.goods.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -152,6 +153,30 @@ public class GoodsController {
         Double avgRating = reviewService.getProductAvgRating(productNo);
         int reviewCount = reviewService.getProductReviewCount(productNo);
 
+        /*
+         * 오른쪽 사이드바(추천 상품)에 사용할 목록입니다.
+         * 지금 보고 있는 상품 자신이 추천 목록에 함께 뜨지 않도록
+         * 여유분(+1)을 조회한 뒤 현재 productNo를 제외하고
+         * 원래 노출 개수(RECOMMEND_GOODS_SIZE)만큼만 잘라서 사용합니다.
+         */
+        List<GoodsVO> recommendedGoodsCandidates =
+                goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE + 1);
+
+        List<GoodsVO> recommendedGoodsList = new ArrayList<>();
+
+        for (GoodsVO recommend : recommendedGoodsCandidates) {
+
+            if (recommend.getProductNo() == productNo) {
+                continue;
+            }
+
+            if (recommendedGoodsList.size() >= RECOMMEND_GOODS_SIZE) {
+                break;
+            }
+
+            recommendedGoodsList.add(recommend);
+        }
+
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
         Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
         goodsService.addProductClickLog(productNo, loginMemberNo);
@@ -177,6 +202,7 @@ public class GoodsController {
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("reportedReviewSet", reportedReviewSet);
         model.addAttribute("wishActive", wishActive);
+        model.addAttribute("recommendedGoodsList", recommendedGoodsList);
 
         return "goods/goodsDetail";
     }

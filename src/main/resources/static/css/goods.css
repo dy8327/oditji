@@ -477,7 +477,7 @@
 }
 
 /* =========================================================
-   DETAIL SECTION (설명 / 관련 콘텐츠 / 리뷰 공통)
+   DETAIL SECTION (설명 / 리뷰 공통)
 ========================================================= */
 
 .detail-section {
@@ -491,66 +491,242 @@
 }
 
 /* =========================================================
-   RELATED CONTENT GRID (goodsDetail -> 원작 콘텐츠)
+   GOODS DETAIL 2-COLUMN LAYOUT (본문 + 오른쪽 사이드바)
 ========================================================= */
 
-.content-grid {
+.goods-detail-layout {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: start;
+
+  margin-top: 24px;
+}
+
+.goods-detail-main {
+  min-width: 0;
+}
+
+.goods-detail-left-sidebar {
+  position: sticky;
+  top: 90px;
+
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-.content-card {
-  background: #1e1e1e;
-  border-radius: 12px;
+.goods-detail-sidebar {
+  position: sticky;
+  top: 90px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================================
+   SIDEBAR CARD 공통 (관련 콘텐츠 / 관련 배우)
+   RIGHT RECOMMEND SIDEBAR(추천 상품)와 동일한 톤으로 맞춘다.
+========================================================= */
+
+.detail-side-card {
   overflow: hidden;
-
-  transition: 0.25s;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: #181818;
 }
 
-.content-card:hover {
-  transform: translateY(-5px);
+.detail-side-card-header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.content-card__link {
-  display: block;
+.detail-side-card-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.detail-side-card-body {
+  padding: 12px;
+}
+
+/* 관련 콘텐츠 카드 (작은 포스터 + 정보) */
+
+.side-content-item {
+  display: flex;
+  gap: 10px;
+
   color: inherit;
+  text-decoration: none;
 }
 
-.content-card__poster {
-  width: 100%;
-  height: 180px;
-  background: #111;
+.side-content-poster {
+  width: 64px;
+  height: 96px;
+  flex-shrink: 0;
+
   overflow: hidden;
+  border-radius: 7px;
+  background: #111;
 }
 
-.content-card__poster img {
+.side-content-poster img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.content-card__info {
-  padding: 10px;
+.side-content-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
 }
 
-.content-card__title {
+.side-content-info strong {
+  display: block;
+  overflow: hidden;
+  color: #fff;
   font-size: 13px;
   font-weight: 600;
-
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.side-content-info span {
+  color: #999;
+  font-size: 11px;
+}
+
+/* =========================================================
+   ACTOR CARD (goodsDetail -> 관련 배우)
+   콘텐츠 상세 페이지의 person-card와 동일한 톤으로 맞춘다.
+========================================================= */
+
+.actor-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: #1b1b1b;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.actor-card:hover {
+  background: #242424;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* 배우 이미지 */
+.actor-card__photo {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+
+  overflow: hidden;
+  border-radius: 50%;
+  background: #101010;
+}
+
+.actor-card__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* 이미지 없음 */
+.actor-card__no-image {
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #666;
+  background: #101010;
+
+  font-size: 10px;
+}
+
+
+/* 배우 정보 */
+.actor-card__info {
+  min-width: 0;
+}
+
+.actor-card__info strong,
+.actor-card__info span {
+  display: block;
+
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.content-card__meta {
-  margin-top: 6px;
-  display: flex;
-  justify-content: space-between;
 
-  font-size: 12px;
-  color: #999;
+.actor-card__info strong {
+  color: #fff;
+  font-size: 13px;
 }
+
+
+.actor-card__info span {
+  margin-top: 5px;
+
+  color: #888;
+  font-size: 11px;
+}
+
+@media (max-width: 1300px) {
+  .goods-detail-layout {
+    grid-template-columns: 200px minmax(0, 1fr) 260px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .goods-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-detail-left-sidebar,
+  .goods-detail-sidebar {
+    position: static;
+  }
+
+  /* 모바일 1열 스택 시 상품 정보를 가장 먼저 보여주기 위해
+     DOM 순서(왼쪽사이드바 → 본문 → 오른쪽사이드바)와 무관하게
+     시각적 순서만 재배치한다. */
+  .goods-detail-main {
+    order: 1;
+  }
+
+  .goods-detail-left-sidebar {
+    order: 2;
+  }
+
+  .goods-detail-sidebar {
+    order: 3;
+  }
+}
+
 
 .more-btn {
   display: inline-block;
@@ -890,22 +1066,19 @@
 ========================================================= */
 
 @media (max-width: 1400px) {
-  .card-list,
-  .content-grid {
+  .card-list {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 1100px) {
-  .card-list,
-  .content-grid {
+  .card-list {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .card-list,
-  .content-grid {
+  .card-list {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -915,8 +1088,7 @@
 }
 
 @media (max-width: 480px) {
-  .card-list,
-  .content-grid {
+  .card-list {
     grid-template-columns: 1fr;
   }
 
