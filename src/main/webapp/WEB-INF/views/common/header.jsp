@@ -68,7 +68,28 @@
                         <div class="header-submenu-heading">상품 탐색</div>
                         <a href="${pageContext.request.contextPath}/goods/list?type=all" role="menuitem">전체 상품</a>
                         <a href="${pageContext.request.contextPath}/goods/list?type=popular" role="menuitem">인기 상품</a>
-                        <a href="${pageContext.request.contextPath}/goods/list?type=category#goods-category-filter" role="menuitem">카테고리별 상품</a>
+
+                        <%--
+                            [수정] 카테고리별 상품은 자체 목록 페이지로 이동하지 않고
+                            마우스를 올리거나 클릭했을 때 세부 카테고리를 표시합니다.
+                            클릭하면 메뉴가 고정되고 ESC 또는 메뉴 바깥 클릭 시 닫힙니다.
+                        --%>
+                        <div class="header-category-menu" data-category-menu>
+                            <button type="button"
+                                    class="header-category-trigger"
+                                    aria-expanded="false"
+                                    aria-haspopup="true">
+                                <span>카테고리별 상품</span>
+                                <span class="header-category-arrow" aria-hidden="true">›</span>
+                            </button>
+
+                            <div class="header-category-submenu" role="menu" aria-label="상품 세부 카테고리">
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=BOOK" role="menuitem">도서</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=CLOTHES" role="menuitem">의상</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=OST" role="menuitem">OST</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=PROP" role="menuitem">소품</a>
+                            </div>
+                        </div>
                     </div>
                 </li>
 
