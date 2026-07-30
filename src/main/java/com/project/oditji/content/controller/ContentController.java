@@ -476,6 +476,17 @@ public class ContentController {
                                 "person",
                                 person);
 
+                // [관련 상품 추가] 이 인물이 배우로 연결된 승인 완료 상품 목록입니다.
+                // 상품 등록 시 관련 배우가 지정되어 있을 때만 값이 채워지며,
+                // 없으면 빈 목록이 반환되어 JSP에서 관련 상품 탭을 감춥니다.
+                List<GoodsVO> relatedGoodsList = goodsService.getGoodsByTmdbActorId(
+                                tmdbPersonId,
+                                RELATED_GOODS_SIZE);
+
+                model.addAttribute(
+                                "relatedGoodsList",
+                                relatedGoodsList);
+
                 return "content/personFilmography";
         }
 
