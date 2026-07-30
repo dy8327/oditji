@@ -1,10 +1,12 @@
 package com.project.oditji.order.controller;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -72,7 +74,8 @@ public class OrderController {
         // 장바구니에서 선택한 상품으로 주문서 작성 준비
         @PostMapping("/checkout")
         @ResponseBody
-        public Map<String, Object> checkoutFromCart(@RequestBody OrderCheckoutRequestVO requestVO, HttpSession session) {
+        public Map<String, Object> checkoutFromCart(@RequestBody OrderCheckoutRequestVO requestVO,
+                        HttpSession session) {
 
                 MemberVO loginMember = getLoginMember(session);
 
@@ -102,7 +105,7 @@ public class OrderController {
 
                         return failResponse("주문서 작성 중 오류가 발생했습니다.");
                 }
-                
+
         }
 
         // 상품 상세 바로 구매 주문서 작성 준비
@@ -118,7 +121,7 @@ public class OrderController {
 
                 try {
                         List<OrderSheetItemVO> sheetItems = orderService.prepareDirectOrder(
-                                        loginMember.getMemberNo(),requestVO.getProductNo(), requestVO.getQuantity());
+                                        loginMember.getMemberNo(), requestVO.getProductNo(), requestVO.getQuantity());
 
                         session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
                         session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
@@ -151,7 +154,8 @@ public class OrderController {
                 }
 
                 @SuppressWarnings("unchecked")
-                List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session.getAttribute(ORDER_SHEET_SESSION_KEY);
+                List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session
+                                .getAttribute(ORDER_SHEET_SESSION_KEY);
 
                 if (sheetItems == null || sheetItems.isEmpty()) {
 
@@ -185,7 +189,8 @@ public class OrderController {
                 }
 
                 @SuppressWarnings("unchecked")
-                List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session.getAttribute(ORDER_SHEET_SESSION_KEY);
+                List<OrderSheetItemVO> sheetItems = (List<OrderSheetItemVO>) session
+                                .getAttribute(ORDER_SHEET_SESSION_KEY);
 
                 if (sheetItems == null || sheetItems.isEmpty()) {
 
@@ -230,7 +235,8 @@ public class OrderController {
         // 포트원 결제 완료 후 서버 검증 및 주문 확정
         @PostMapping("/payment/complete")
         @ResponseBody
-        public Map<String, Object> completePayment(@RequestBody OrderPaymentCompleteRequestVO requestVO, HttpSession session) {
+        public Map<String, Object> completePayment(@RequestBody OrderPaymentCompleteRequestVO requestVO,
+                        HttpSession session) {
 
                 MemberVO loginMember = getLoginMember(session);
 
@@ -243,7 +249,8 @@ public class OrderController {
                         return failResponse("결제 ID가 없습니다.");
                 }
 
-                OrderPaymentPrepareVO prepareVO = (OrderPaymentPrepareVO) session.getAttribute(PAYMENT_PREPARE_SESSION_KEY);
+                OrderPaymentPrepareVO prepareVO = (OrderPaymentPrepareVO) session
+                                .getAttribute(PAYMENT_PREPARE_SESSION_KEY);
 
                 if (prepareVO == null) {
                         return failResponse("결제 준비 정보가 만료되었습니다. " + "주문서를 다시 작성해주세요.");
@@ -280,7 +287,8 @@ public class OrderController {
         // 사용자 주문 결제 전액 취소
         @PostMapping("/payment/cancel")
         @ResponseBody
-        public Map<String, Object> cancelPayment(@RequestBody OrderPaymentCancelRequestVO requestVO, HttpSession session) {
+        public Map<String, Object> cancelPayment(@RequestBody OrderPaymentCancelRequestVO requestVO,
+                        HttpSession session) {
 
                 MemberVO loginMember = getLoginMember(session);
 
@@ -334,7 +342,8 @@ public class OrderController {
          */
         @PostMapping("/payment/cancel/item")
         @ResponseBody
-        public Map<String, Object> cancelOrderItem(@RequestBody OrderPaymentCancelRequestVO requestVO, HttpSession session) {
+        public Map<String, Object> cancelOrderItem(@RequestBody OrderPaymentCancelRequestVO requestVO,
+                        HttpSession session) {
 
                 MemberVO loginMember = getLoginMember(session);
 
@@ -359,11 +368,54 @@ public class OrderController {
                 } catch (IllegalArgumentException e) {
                         return failResponse(e.getMessage());
 
-               } catch (Exception e) {
+                } catch (Exception e) {
                         if (log.isErrorEnabled()) {
                                 log.error("상품 부분 취소 요청 처리 중 오류 - orderItemNo: {}", requestVO.getOrderItemNo(), e);
                         }
                         return failResponse("상품 부분 취소 요청 처리 중 오류가 발생했습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * [추가] 선택 상품 일괄 취소/환불 요청
+         * Service의 단일 트랜잭션으로 처리하여 일부 성공을 방지한다.
+         * =========================================================
+         */
+        @PostMapping("/payment/cancel/items")
+        @ResponseBody
+        public Map<String, Object> cancelOrderItems(
+                        @RequestBody OrderPaymentCancelRequestVO requestVO,
+                        HttpSession session) {
+
+                MemberVO loginMember = getLoginMember(session);
+                if (loginMember == null) {
+                        return loginRequiredResponse();
+                }
+
+                if (requestVO == null || requestVO.getOrderItemNos() == null
+                                || requestVO.getOrderItemNos().isEmpty()) {
+                        return failResponse("선택한 주문상품이 없습니다.");
+                }
+
+                try {
+                        orderCancelRefundService.requestOrderItemsCancel(
+                                        loginMember.getMemberNo(),
+                                        requestVO.getOrderItemNos(),
+                                        requestVO.getReason());
+
+                        Map<String, Object> response = successResponse(
+                                        "선택한 상품의 취소/환불 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
+                        response.put("redirectUrl", "/order/list");
+                        return response;
+
+                } catch (IllegalArgumentException e) {
+                        return failResponse(e.getMessage());
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("선택 상품 일괄 취소/환불 요청 처리 중 오류", e);
+                        }
+                        return failResponse("선택 상품 취소/환불 요청 처리 중 오류가 발생했습니다.");
                 }
         }
 
@@ -398,6 +450,12 @@ public class OrderController {
         @GetMapping("/list")
         public String orderList(
                         @RequestParam(name = "page", defaultValue = "1") int page,
+                        /* [추가] 취소/환불 내역 조회 조건 */
+                        @RequestParam(name = "historyType", defaultValue = "ALL") String historyType,
+                        @RequestParam(name = "historyStatus", defaultValue = "ALL") String historyStatus,
+                        @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                        @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                        @RequestParam(name = "tab", defaultValue = "order") String tab,
                         HttpSession session, Model model) {
 
                 MemberVO loginMember = getLoginMember(session);
@@ -434,6 +492,17 @@ public class OrderController {
                 model.addAttribute("orderList", orderList);
                 model.addAttribute("pageVO", pageVO);
                 model.addAttribute("portOneTestMode", portOneTestMode);
+
+                /* [추가] 취소/환불 내역은 주문 페이지네이션과 분리하여 조건 조회한다. */
+                model.addAttribute("cancelRefundHistory",
+                                orderCancelRefundService.getMemberCancelRefundHistory(
+                                                loginMember.getMemberNo(), historyType, historyStatus, startDate,
+                                                endDate));
+                model.addAttribute("historyType", historyType);
+                model.addAttribute("historyStatus", historyStatus);
+                model.addAttribute("historyStartDate", startDate);
+                model.addAttribute("historyEndDate", endDate);
+                model.addAttribute("activeTab", "history".equalsIgnoreCase(tab) ? "history" : "order");
 
                 return "order/orderList";
         }
