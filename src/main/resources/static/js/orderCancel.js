@@ -234,14 +234,60 @@ document.addEventListener("DOMContentLoaded", function () {
   function openBulkItemCancelModal(button) {
     const actionType = button.dataset.actionType || "CANCEL";
     const card = button.closest(".order-card");
-    const checked = card
-      ? Array.from(card.querySelectorAll(".order-item-select:checked")).filter(function (checkbox) {
-          return checkbox.dataset.actionType === actionType;
-        })
-      : [];
 
-    if (checked.length === 0) {
+    /*
+     * =========================================================
+     * [추가] 선택 상품의 배송 상태와 누른 버튼이 맞는지 먼저 확인
+     *
+     * 배송 완료 상품은 취소가 아니라 환불만 가능하고,
+     * 주문 확인중 상품은 환불이 아니라 취소만 가능하므로
+     * 잘못된 버튼을 누르면 요청 모달을 열지 않고 안내한다.
+     * =========================================================
+     */
+    const allChecked = card ? Array.from(card.querySelectorAll(".order-item-select:checked")) : [];
+
+    if (allChecked.length === 0) {
       showAlert(actionType === "REFUND" ? "환불할 상품을 선택해주세요." : "취소할 상품을 선택해주세요.", "warning");
+      return;
+    }
+
+    const hasCancelOnlyItem = allChecked.some(function (checkbox) {
+      return checkbox.dataset.actionType === "CANCEL";
+    });
+
+    const hasRefundOnlyItem = allChecked.some(function (checkbox) {
+      return checkbox.dataset.actionType === "REFUND";
+    });
+
+    if (actionType === "CANCEL" && hasRefundOnlyItem) {
+      showAlert("배송 완료된 상품입니다. 해당 상품은 취소는 불가하고 환불 처리만 가능합니다.", "warning");
+      return;
+    }
+
+    if (actionType === "REFUND" && hasCancelOnlyItem) {
+      showAlert("아직 배송 전인 상품입니다. 해당 상품은 취소만 가능합니다.", "warning");
+      return;
+    }
+
+    const checked = allChecked.filter(function (checkbox) {
+      return checkbox.dataset.actionType === actionType;
+    });
+
+    /*
+     * =========================================================
+     * [추가] 테스트 채널 간편결제 부분 취소/환불 사전 차단
+     *
+     * 테스트 채널에서 간편결제 부분 취소가 지원되지 않는 경우
+     * 서버 요청 전에 안내하여 DB 상태만 변경되는 일을 막는다.
+     * =========================================================
+     */
+    if (portOneTestMode && isEasyPay(button.dataset.payMethod)) {
+      showAlert(
+        "테스트 채널의 간편결제 주문은 선택 상품 부분 " +
+          (actionType === "REFUND" ? "환불" : "취소") +
+          "를 지원하지 않습니다.\n주문 전체 취소를 이용하거나 실제 부분 환불이 가능한 결제수단으로 테스트해주세요.",
+        "warning",
+      );
       return;
     }
 

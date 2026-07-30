@@ -464,6 +464,20 @@ public class OrderController {
                         return "redirect:/member/login?redirect=/order/list";
                 }
 
+                /*
+                 * =========================================================
+                 * [추가] 취소/환불 내역 조회 시작일 기본값
+                 *
+                 * 최초 진입 또는 초기화로 시작일이 전달되지 않은 경우
+                 * 현재 날짜를 기본 조회 시작일로 설정한다.
+                 * 사용자가 달력에서 다른 날짜를 선택한 경우에는
+                 * 전달받은 날짜를 그대로 사용한다.
+                 * =========================================================
+                 */
+                if (startDate == null) {
+                        startDate = LocalDate.now();
+                }
+
                 final int pageSize = 3;
                 final int pageBlockSize = 5;
 

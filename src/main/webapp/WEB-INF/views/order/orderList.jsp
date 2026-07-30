@@ -158,6 +158,8 @@
                                                value="${i.orderItemNo}"
                                                data-product-name="${fn:escapeXml(i.productName)}"
                                                data-action-type="${i.refundEligible ? 'REFUND' : 'CANCEL'}"
+                                               <%-- [추가] 잘못된 취소/환불 버튼 클릭 시 배송 상태에 맞는 안내를 표시한다. --%>
+                                               data-delivery-status="${i.deliveryStatus}"
                                                aria-label="${fn:escapeXml(i.productName)} 선택">
                                     </label>
 
@@ -503,21 +505,28 @@
                 <c:if test="${empty o.fullCancelStatus || o.fullCancelStatus eq 'REJECTED'}">
                     <div class="order-cancel-action">
                         <%-- [추가] 상품 선택 없이 주문 전체 취소 --%>
+                        <%-- [수정] 전체 상품이 모두 취소 가능할 때만 전체 취소 버튼 노출 --%>
                         <c:if test="${o.allCancelEligible}">
                             <button type="button"
                                     class="bulk-action-btn payment-cancel-btn full-order-cancel-btn"
                                     data-order-no="${o.orderNo}">
                                 전체 상품 주문 취소
                             </button>
+                        </c:if>
+
+                        <%-- [수정] 취소 가능한 상품이 하나라도 남아 있으면 선택 취소 버튼 유지 --%>
+                        <c:if test="${o.anyCancelEligible}">
                             <button type="button"
                                     class="bulk-action-btn order-select-cancel-btn"
                                     data-action-type="CANCEL"
-                                    data-order-no="${o.orderNo}">
+                                    data-order-no="${o.orderNo}"
+                                    <%-- [추가] 테스트 채널 간편결제의 부분 취소 가능 여부를 JavaScript에서 확인한다. --%>
+                                    data-pay-method="${fn:escapeXml(o.payMethod)}">
                                 선택 상품 주문 취소
                             </button>
                         </c:if>
 
-                        <%-- [추가] 배송 완료 주문은 취소 대신 환불 버튼 노출 --%>
+                        <%-- [수정] 모든 상품이 배송 완료 상태일 때만 전체 환불 버튼 노출 --%>
                         <c:if test="${o.allRefundEligible}">
                             <button type="button"
                                     class="bulk-action-btn payment-cancel-btn full-order-refund-btn"
@@ -525,10 +534,16 @@
                                     data-request-kind="REFUND">
                                 전체 상품 환불
                             </button>
+                        </c:if>
+
+                        <%-- [수정] 환불 가능한 상품이 하나라도 남아 있으면 선택 환불 버튼 유지 --%>
+                        <c:if test="${o.anyRefundEligible}">
                             <button type="button"
                                     class="bulk-action-btn order-select-cancel-btn selected-refund-btn"
                                     data-action-type="REFUND"
-                                    data-order-no="${o.orderNo}">
+                                    data-order-no="${o.orderNo}"
+                                    <%-- [추가] 테스트 채널 간편결제의 부분 환불 가능 여부를 JavaScript에서 확인한다. --%>
+                                    data-pay-method="${fn:escapeXml(o.payMethod)}">
                                 선택 상품 환불
                             </button>
                         </c:if>
