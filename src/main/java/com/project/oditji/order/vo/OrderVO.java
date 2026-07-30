@@ -166,4 +166,19 @@ public class OrderVO {
     public boolean isAllRefundEligible() {
         return !items.isEmpty() && items.stream().allMatch(OrderItemVO::isRefundEligible);
     }
+
+    /*
+     * =========================================================
+     * [추가] 선택 상품 취소/환불 버튼 노출 판단
+     * 전체 상품이 가능하지 않더라도 요청 가능한 상품이 하나 이상
+     * 남아 있으면 선택 상품 버튼을 계속 표시한다.
+     * =========================================================
+     */
+    public boolean isAnyCancelEligible() {
+        return items.stream().anyMatch(OrderItemVO::isCancelEligible);
+    }
+
+    public boolean isAnyRefundEligible() {
+        return items.stream().anyMatch(OrderItemVO::isRefundEligible);
+    }
 }
