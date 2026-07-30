@@ -11,7 +11,9 @@
     <title>ODITJI | OTT 선택</title>
     <link rel="stylesheet" href="${contextPath}/css/layout.css">
     <link rel="stylesheet" href="${contextPath}/css/member.css">
-    <script defer src="${contextPath}/js/member.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
+    <script src="${pageContext.request.contextPath}/js/member.js"></script>
 </head>
 <body data-context-path="${contextPath}">
 
