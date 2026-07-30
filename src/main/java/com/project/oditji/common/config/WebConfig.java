@@ -36,6 +36,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns(
                         "/member/mypage",
+                        "/member/update",
+                        "/member/updateOtt",
+                        "/member/withdraw",
                         "/cart",
                         "/favorite/list",
                         "/review/myReviewList",

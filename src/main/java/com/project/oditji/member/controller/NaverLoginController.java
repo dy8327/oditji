@@ -19,6 +19,7 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.NaverLoginResultVO;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 기존 login.jsp의 네이버 로그인 버튼 요청을 처리하는 컨트롤러입니다.
@@ -69,7 +70,7 @@ public class NaverLoginController {
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "error_description", required = false) String errorDescription,
-            HttpSession session, RedirectAttributes redirectAttributes) {
+            HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
 
         String savedState = (String) session.getAttribute(NAVER_OAUTH_STATE);
 
@@ -111,6 +112,7 @@ public class NaverLoginController {
                 return "redirect:/member/login";
             }
 
+            request.changeSessionId();
             String displayName = getDisplayName(member);
             member.setMemberName(displayName);
 
@@ -146,6 +148,8 @@ public class NaverLoginController {
              * 네이버 OAuth 인증이 완료된 상태이므로 본인 확인이 끝난 것으로 보고
              * 기존 카카오 로그인과 동일한 계정 복구 절차를 사용합니다.
              */
+
+            request.changeSessionId();
             session.setAttribute("restoreMemberNo", e.getMemberNo());
             session.setAttribute("restoreProvider", PROVIDER_NAVER);
 

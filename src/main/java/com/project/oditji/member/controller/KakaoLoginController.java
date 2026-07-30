@@ -15,6 +15,7 @@ import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberVO;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -36,34 +37,34 @@ public class KakaoLoginController {
 
     @GetMapping("/member/kakao/login")
     public String kakaoLogin() {
+        
         return "redirect:" + kakaoLoginService.getKakaoLoginUrl();
     }
 
     @GetMapping("/member/kakao/callback")
-    public String kakaoCallback(
-            @RequestParam("code") String code,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+    public String kakaoCallback(@RequestParam("code") String code,HttpServletRequest request,
+        HttpSession session,RedirectAttributes redirectAttributes) {
 
         try {
 
             KakaoLoginResultVO result = kakaoLoginService.kakaoLogin(code);
-
             if (result == null || result.getMember() == null) {
+                
                 return "redirect:/member/login";
             }
 
             MemberSocialJoinVO member = result.getMember();
-
             if (member.getMemberNo() <= 0) {
+                
                 return "redirect:/member/login";
             }
+
+            request.changeSessionId();
 
             String displayName = getDisplayName(member);
             member.setMemberName(displayName);
 
             int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
-
             if (result.isNewMember() || platformCount == 0) {
 
                 session.setAttribute("pendingMemberNo", member.getMemberNo());
@@ -79,13 +80,12 @@ public class KakaoLoginController {
             }
 
             MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
-
             if (loginMember == null) {
+                
                 return "redirect:/member/login";
             }
 
-            if (loginMember.getMemberName() == null
-                    || loginMember.getMemberName().isBlank()) {
+            if (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank()) {
                 loginMember.setMemberName(displayName);
             }
 
@@ -108,33 +108,28 @@ public class KakaoLoginController {
              * 별도 비밀번호 확인 없이 세션에 복구 대상 회원번호만 저장해둔다.
              * 로그인 화면(login.jsp)에서 이 값을 신뢰해 /member/restore를 호출한다.
              */
+
+            request.changeSessionId();
             session.setAttribute("restoreMemberNo", e.getMemberNo());
             session.setAttribute("restoreProvider", "KAKAO");
 
-            redirectAttributes.addFlashAttribute(
-                    "withdrawnMessage",
-                    WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
+            redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
             return "redirect:/member/login";
 
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "카카오 로그인 처리 중 오류가 발생했습니다.");
+            
             return "redirect:/member/login";
         }
     }
 
-    private void saveLoginSession(
-            HttpSession session,
-            MemberVO loginMember,
-            String provider,
-            String displayName) {
-
+    private void saveLoginSession(HttpSession session, MemberVO loginMember, String provider, String displayName) {
         /*
          * 핵심:
          * loginMember에는 반드시 MemberVO 저장
          */
         session.setAttribute("loginMember", loginMember);
-
         /*
          * 일반 로그인 쪽에서 쓰는 세션명도 같이 저장
          */
