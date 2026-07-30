@@ -146,6 +146,23 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     @Override
+    public List<GoodsVO> getGoodsByTmdbActorId(long tmdbActorId, int limit) {
+
+        if (tmdbActorId <= 0) {
+            return new ArrayList<GoodsVO>();
+        }
+
+        int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
+
+        List<GoodsVO> resultList =
+                goodsDAO.selectGoodsByTmdbActorId(tmdbActorId, normalizedLimit);
+
+        return resultList == null
+                ? new ArrayList<GoodsVO>()
+                : resultList;
+    }
+
+    @Override
     public List<String> getSearchProductTypes() {
 
         List<String> productTypes =

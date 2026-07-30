@@ -120,6 +120,9 @@ public interface GoodsService {
     /** 콘텐츠 상세페이지의 "관련 상품" 목록을 조회합니다. */
     List<GoodsVO> getGoodsByContentNo(int contentNo, int limit);
 
+    /** 인물 필모그래피 페이지의 "관련 상품" 목록을 조회합니다. */
+    List<GoodsVO> getGoodsByTmdbActorId(long tmdbActorId, int limit);
+
     List<String> getSearchProductTypes();
 
     GoodsVO getGoodsDetail(int productNo);

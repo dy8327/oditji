@@ -437,6 +437,25 @@ body.chat-page {
     }
 }
 
+@media (max-width: 480px) {
+    .chat-header {
+        padding: 14px;
+    }
+
+    .message-area {
+        padding: 14px;
+    }
+
+    .input-area {
+        padding: 10px;
+    }
+
+    .input-area button {
+        width: 64px;
+        font-size: 13px;
+    }
+}
+
 /*
  * 메시지를 아직 읽지 않은 채팅방 참여자 수입니다.
  * 모두 읽으면 JavaScript에서 요소 자체를 제거합니다.

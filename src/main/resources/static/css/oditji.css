@@ -781,6 +781,14 @@ ul {
   .filter-panel {
     position: static;
   }
+
+  .admin-panel {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 640px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -827,6 +835,21 @@ ul {
 
   .watch-grid {
     grid-template-columns: 1fr;
+  }
+
+  .detail-title {
+    font-size: 28px;
+  }
+
+  .detail-panel {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 }
 

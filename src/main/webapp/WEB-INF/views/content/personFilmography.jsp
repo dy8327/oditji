@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -130,6 +131,24 @@
                 제작 참여
                 <span>${person.productionList.size()}</span>
             </button>
+
+            <%--
+                관련 상품 탭은 상품 등록 시 이 인물이 관련 배우로
+                연결되어 있고, 그 상품이 승인 완료된 경우에만 표출됩니다.
+            --%>
+            <c:if test="${not empty relatedGoodsList}">
+                <button type="button"
+                        class="filmography-tab-button"
+                        id="filmography-tab-goods"
+                        role="tab"
+                        aria-controls="filmography-panel-goods"
+                        aria-selected="false"
+                        tabindex="-1"
+                        data-tab-target="goods">
+                    관련 상품
+                    <span>${relatedGoodsList.size()}</span>
+                </button>
+            </c:if>
         </div>
 
         <div class="filmography-tab-panels">
@@ -405,6 +424,92 @@
                     </c:otherwise>
                 </c:choose>
             </section>
+
+            <%--
+                관련 상품 패널도 탭 버튼과 동일하게
+                relatedGoodsList가 비어있지 않을 때만 렌더링합니다.
+            --%>
+            <c:if test="${not empty relatedGoodsList}">
+                <section class="filmography-tab-panel"
+                         id="filmography-panel-goods"
+                         role="tabpanel"
+                         aria-labelledby="filmography-tab-goods"
+                         data-tab-panel="goods"
+                         hidden>
+
+                    <div class="filmography-grid">
+                        <c:forEach var="goods"
+                                   items="${relatedGoodsList}">
+
+                            <c:url var="goodsDetailUrl"
+                                   value="/goods/goodsDetail/${goods.productNo}"/>
+
+                            <%--
+                                mainImage는 "/uploads/product/파일명"처럼
+                                컨텍스트 패스가 붙지 않은 루트 상대경로로 저장되어 있으므로,
+                                c:url로 감싸 현재 배포 컨텍스트 패스를 자동으로 붙여줍니다.
+                            --%>
+                            <c:if test="${not empty goods.mainImage}">
+                                <c:url var="goodsMainImageUrl"
+                                       value="${goods.mainImage}"/>
+                            </c:if>
+
+                            <a href="${goodsDetailUrl}"
+                               class="filmography-card">
+
+                                <div class="filmography-poster">
+                                    <c:choose>
+                                        <c:when test="${not empty goods.mainImage}">
+                                            <img src="${goodsMainImageUrl}"
+                                                 alt="${goods.productName}">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="filmography-no-image">
+                                                NO IMAGE
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <span class="filmography-type">
+                                        ${goods.productType}
+                                    </span>
+                                </div>
+
+                                <div class="filmography-info">
+                                    <h3>${goods.productName}</h3>
+
+                                    <div class="filmography-meta">
+                                        <span>${goods.businessName}</span>
+
+                                        <c:if test="${goods.stock <= 0}">
+                                            <span>품절</span>
+                                        </c:if>
+                                    </div>
+
+                                    <div class="filmography-role">
+                                        <span class="filmography-role-label">
+                                            가격
+                                        </span>
+                                        <span class="filmography-role-value">
+                                            <c:choose>
+                                                <c:when test="${goods.discountRate > 0}">
+                                                    <fmt:formatNumber value="${goods.discountPrice}"
+                                                                       type="number"/>원
+                                                    (${goods.discountRate}% 할인)
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <fmt:formatNumber value="${goods.price}"
+                                                                       type="number"/>원
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        </c:forEach>
+                    </div>
+                </section>
+            </c:if>
         </div>
     </section>
 </main>

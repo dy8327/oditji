@@ -587,6 +587,90 @@
 
 
     <!-- =====================================================
+         인물 필모그래피 페이지 - 관련 상품 조회
+
+         해당 TMDB_ACTOR_ID(=TMDB 인물 ID)로 등록된 배우와
+         연결된 APPROVED 상품만 조회한다.
+         재고 있는 상품, 할인율 높은 순, 최신 등록순으로 정렬한다.
+    ====================================================== -->
+    <select id="selectGoodsByTmdbActorId"
+            resultMap="goodsResultMap">
+
+        SELECT
+            RELATED.PRODUCT_NO,
+            RELATED.BUSINESS_NO,
+            RELATED.CONTENT_NO,
+            RELATED.ACTOR_NO,
+            RELATED.PRODUCT_NAME,
+            RELATED.PRODUCT_TYPE,
+            RELATED.PRICE,
+            RELATED.DISCOUNT_RATE,
+            RELATED.STOCK,
+            RELATED.DESCRIPTION,
+            RELATED.STATUS,
+            RELATED.BUSINESS_NAME,
+            RELATED.MAIN_IMAGE
+
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        CASE
+                            WHEN NVL(P.STOCK, 0) > 0
+                            THEN 0
+                            ELSE 1
+                        END,
+                        NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN ACTOR A
+                ON A.ACTOR_NO = P.ACTOR_NO
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
+
+            WHERE P.STATUS = 'APPROVED'
+              AND A.TMDB_ACTOR_ID = #{tmdbActorId}
+
+        ) RELATED
+
+        WHERE RELATED.RN BETWEEN
+            1 AND #{limit}
+
+        ORDER BY RELATED.RN
+
+    </select>
+
+
+    <!-- =====================================================
          사용자 검색 필터용 상품 종류
     ====================================================== -->
     <select id="selectSearchProductTypes"

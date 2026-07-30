@@ -93,3 +93,25 @@
     background:rgba(255,255,255,0.12);
     transform:translateY(-2px);
 }
+
+@media (max-width:480px){
+    .error-card{
+        padding:36px 22px;
+    }
+
+    .error-code{
+        font-size:64px;
+    }
+
+    .error-title{
+        font-size:17px;
+    }
+
+    .error-btns{
+        flex-direction:column;
+    }
+
+    .btn{
+        width:100%;
+    }
+}

@@ -299,3 +299,26 @@ button.report-btn:hover {
     background:#f40612;
 
 }
+
+@media (max-width:768px) {
+    .modal-box {
+        width:92%;
+        max-width:460px;
+        padding:24px;
+    }
+}
+
+@media (max-width:480px) {
+    .modal-box h3 {
+        font-size:19px;
+    }
+
+    .modal-actions {
+        flex-direction:column-reverse;
+        gap:8px;
+    }
+
+    .modal-actions .btn {
+        width:100%;
+    }
+}

@@ -725,6 +725,14 @@
   .business-wrap .business-hero {
     flex-direction: column;
     align-items: flex-start;
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .business-wrap .business-panel,
+  .business-wrap .content-panel,
+  .business-wrap .form-panel {
+    padding: 20px;
   }
 }
 
@@ -898,6 +906,18 @@
 @media (max-width: 768px) {
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .business-content,
+  .analysis-section {
+    grid-template-columns: 1fr;
+  }
+
+  .business-wrap .data-table,
+  .business-wrap .business-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
 
@@ -1954,61 +1974,61 @@
    콘텐츠 검색 (contentSearch.jsp)
 ========================================================= */
 .content-search-wrap {
-    padding: 30px;
+  padding: 30px;
 }
 
 .content-search-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .content-search-form .form-input {
-    flex: 1;
+  flex: 1;
 }
 
 .content-search-guide {
-    margin: -10px 0 20px;
-    color: #777777;
-    font-size: 13px;
+  margin: -10px 0 20px;
+  color: #777777;
+  font-size: 13px;
 }
 
 .content-search-table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .content-search-table th,
 .content-search-table td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    vertical-align: middle;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  vertical-align: middle;
 }
 
 .content-poster {
-    width: 60px;
-    height: 85px;
-    object-fit: cover;
-    border-radius: 4px;
+  width: 60px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .no-poster {
-    width: 60px;
-    height: 85px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #eeeeee;
-    color: #777777;
-    font-size: 11px;
-    border-radius: 4px;
+  width: 60px;
+  height: 85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eeeeee;
+  color: #777777;
+  font-size: 11px;
+  border-radius: 4px;
 }
 
 .empty-result {
-    padding: 60px 0;
-    text-align: center;
-    color: #777777;
+  padding: 60px 0;
+  text-align: center;
+  color: #777777;
 }
 
 /* =========================================================
@@ -2018,13 +2038,410 @@
    상품 검색 입력창의 label을 시각적으로 숨길 때 사용합니다.
 ========================================================= */
 .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================
+   취소/환불 관리 화면 정렬 개선 (cancelList.jsp)
+
+   기존 공통 카드와 버튼 디자인은 유지하면서 취소/환불 관리
+   화면 내부의 열, 간격, 작업 영역만 전용 클래스로 정리합니다.
+========================================================= */
+.cancel-manage-page {
+  padding-top: 0;
+}
+
+.cancel-filter-tabs {
+  margin-bottom: 24px;
+  padding: 0 0 14px;
+  gap: 8px;
+}
+
+.cancel-filter-tabs a {
+  min-width: 78px;
+  padding: 12px 18px;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.cancel-card-list {
+  gap: 18px;
+}
+
+.business-wrap .cancel-request-card {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: var(--biz-surface-2);
+  border: 1px solid #465e7e;
+  border-radius: 12px;
+}
+
+.cancel-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 94px;
+  padding: 20px 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--biz-border);
+}
+
+.cancel-card-title-area {
+  min-width: 0;
+}
+
+.cancel-request-type {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--biz-point);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cancel-card-title {
+  margin: 0;
+  color: var(--biz-text);
+  font-size: 20px;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.cancel-status-badge {
+  flex-shrink: 0;
+  min-width: 76px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.cancel-card-body {
+  padding: 24px;
+}
+
+.cancel-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 48px;
+  row-gap: 28px;
+  margin: 0;
+}
+
+.cancel-info-item {
+  min-width: 0;
+  margin: 0;
+}
+
+.cancel-info-item dt {
+  margin: 0 0 8px;
+  color: var(--biz-text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.cancel-info-item dd {
+  min-height: 21px;
+  margin: 0;
+  color: var(--biz-text-sub);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.cancel-info-amount dd {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cancel-info-product {
+  grid-column: span 1;
+}
+
+.cancel-info-reason {
+  grid-column: span 2;
+}
+
+.cancel-info-reason dd,
+.cancel-info-reject-reason dd {
+  padding: 12px 14px;
+  border: 1px solid #393d46;
+  border-radius: 8px;
+  background: #202228;
+  color: #e5e7eb;
+}
+
+.cancel-info-reject-reason {
+  grid-column: 1 / -1;
+}
+
+.cancel-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--biz-border);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.cancel-approve-form {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.cancel-approve-button {
+  min-width: 150px;
+  height: 44px;
+}
+
+.cancel-reject-form {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: min(100%, 480px);
+  margin: 0 !important;
+}
+
+.cancel-reject-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border: 1px solid #414550;
+  border-radius: 8px;
+  outline: none;
+  background: #1f2025;
+  color: #ffffff;
+  font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cancel-reject-input::placeholder {
+  color: #8f96a3;
+}
+
+.cancel-reject-input:focus {
+  border-color: var(--biz-point);
+  box-shadow: 0 0 0 3px rgba(92, 157, 255, 0.12);
+}
+
+.cancel-reject-button {
+  flex-shrink: 0;
+  min-width: 72px;
+  height: 44px;
+}
+
+.business-wrap .cancel-empty-card {
+  justify-content: center;
+  min-height: 140px;
+  color: var(--biz-text-dim);
+}
+
+@media (max-width: 1100px) {
+  .cancel-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+
+  .cancel-info-reason {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .cancel-card-header {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .cancel-card-title {
+    font-size: 18px;
+  }
+
+  .cancel-card-body {
+    padding: 20px 18px;
+  }
+
+  .cancel-info-grid {
+    grid-template-columns: 1fr;
+    row-gap: 22px;
+  }
+
+  .cancel-info-product,
+  .cancel-info-reason,
+  .cancel-info-date,
+  .cancel-info-reject-reason {
+    grid-column: auto;
+  }
+
+  .cancel-card-actions {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px 18px;
+  }
+
+  .cancel-approve-form,
+  .cancel-approve-button,
+  .cancel-reject-form {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .cancel-filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cancel-filter-tabs a {
+    width: 100%;
+  }
+
+  .cancel-reject-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cancel-reject-button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   [추가] 사업자 취소/환불 관리 처리 결과 메시지
+   기존 다크 테마를 유지하면서 성공·오류 메시지를 알림 박스로 표시한다.
+   ========================================================= */
+
+.cancel-alert-area {
+  width: 100%;
+  margin: 22px 0 18px;
+}
+
+.cancel-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  width: 100%;
+  min-height: 72px;
+  padding: 16px 18px;
+
+  border: 1px solid;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.cancel-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 30px;
+  height: 30px;
+
+  margin-top: 1px;
+
+  border-radius: 50%;
+
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cancel-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cancel-alert-title {
+  display: block;
+  margin: 0 0 5px;
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.cancel-alert-message {
+  margin: 0;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 성공 메시지 */
+.cancel-alert-success {
+  background-color: rgba(67, 160, 71, 0.1);
+  border-color: rgba(76, 175, 80, 0.42);
+}
+
+.cancel-alert-success .cancel-alert-icon {
+  color: #ffffff;
+  background-color: #43a047;
+}
+
+.cancel-alert-success .cancel-alert-title {
+  color: #81c784;
+}
+
+.cancel-alert-success .cancel-alert-message {
+  color: #d7ead8;
+}
+
+/* 오류 메시지 */
+.cancel-alert-error {
+  background-color: rgba(239, 83, 80, 0.09);
+  border-color: rgba(239, 83, 80, 0.42);
+}
+
+.cancel-alert-error .cancel-alert-icon {
+  color: #ffffff;
+  background-color: #d9534f;
+}
+
+.cancel-alert-error .cancel-alert-title {
+  color: #ef9a9a;
+}
+
+.cancel-alert-error .cancel-alert-message {
+  color: #f2d7d7;
+}
+
+/* 반응형 처리 */
+@media (max-width: 768px) {
+  .cancel-alert-area {
+    margin: 18px 0 14px;
+  }
+
+  .cancel-alert {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .cancel-alert-title,
+  .cancel-alert-message {
+    font-size: 13px;
+  }
 }

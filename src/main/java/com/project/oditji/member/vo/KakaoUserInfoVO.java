@@ -48,6 +48,17 @@ public class KakaoUserInfoVO {
         @JsonProperty("thumbnail_image_url")
         private String thumbnailImageUrl;
 
+        /*
+         * 카카오가 프로필 사진 대신 자체 기본(실루엣) 이미지를
+         * 내려준 경우 true입니다.
+         *
+         * 사용자가 실제로 사진을 등록하지 않았는데도
+         * profile_image_url 자체는 항상 채워져서 내려오므로,
+         * 이 값을 확인하지 않으면 "사진 없음"을 구분할 수 없습니다.
+         */
+        @JsonProperty("is_default_image")
+        private Boolean defaultImage;
+
         public Profile() {
         }
 
@@ -73,6 +84,14 @@ public class KakaoUserInfoVO {
 
         public void setThumbnailImageUrl(String thumbnailImageUrl) {
             this.thumbnailImageUrl = thumbnailImageUrl;
+        }
+
+        public Boolean getDefaultImage() {
+            return defaultImage;
+        }
+
+        public void setDefaultImage(Boolean defaultImage) {
+            this.defaultImage = defaultImage;
         }
     }
 
@@ -116,6 +135,9 @@ public class KakaoUserInfoVO {
 
     /**
      * 카카오 프로필 원본 이미지 URL 반환
+     *
+     * 카카오가 자체 기본(실루엣) 이미지를 내려준 경우에는
+     * 사용자가 실제로 등록한 사진이 아니므로 null을 반환합니다.
      */
     public String getProfileImageUrl() {
         Profile profile = getProfile();
@@ -124,7 +146,28 @@ public class KakaoUserInfoVO {
             return null;
         }
 
+        if (isDefaultImage()) {
+            return null;
+        }
+
         return profile.getProfileImageUrl();
+    }
+
+    /**
+     * 카카오가 프로필 사진 대신 자체 기본(실루엣) 이미지를
+     * 내려준 것인지 여부를 반환합니다.
+     *
+     * profile이 없거나 is_default_image 값이 내려오지 않은 경우에도
+     * 실제 사진 여부를 신뢰할 수 없으므로 기본 이미지로 취급합니다.
+     */
+    public boolean isDefaultImage() {
+        Profile profile = getProfile();
+
+        if (profile == null) {
+            return true;
+        }
+
+        return !Boolean.FALSE.equals(profile.getDefaultImage());
     }
 
     /**

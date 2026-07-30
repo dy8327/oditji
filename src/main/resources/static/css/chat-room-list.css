@@ -216,3 +216,22 @@ body.chat-room-list-page {
         width: 100%;
     }
 }
+
+@media (max-width: 480px) {
+    .room-card {
+        padding: 14px;
+    }
+
+    .last-message-box {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .last-message {
+        white-space: normal;
+    }
+
+    .section-title-area {
+        flex-wrap: wrap;
+    }
+}

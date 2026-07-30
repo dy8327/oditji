@@ -218,3 +218,32 @@
 #closeReviewModal:hover {
   background: #444;
 }
+
+@media (max-width:768px) {
+  .mypage-review-tabs {
+    flex-wrap: wrap;
+  }
+
+  .review-modal-content {
+    width: 92%;
+    max-width: 460px;
+    padding: 24px;
+  }
+}
+
+@media (max-width:480px) {
+  .review-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .review-modal-content h2 {
+    font-size: 19px;
+  }
+
+  .review-modal-content button {
+    width: 100%;
+    margin-right: 0;
+    margin-top: 10px;
+  }
+}

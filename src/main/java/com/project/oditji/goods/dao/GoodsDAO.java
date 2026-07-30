@@ -47,6 +47,16 @@ public interface GoodsDAO {
             @Param("limit") int limit
     );
 
+    /**
+     * 인물 필모그래피 페이지의 "관련 상품" 영역에서 사용합니다.
+     * 해당 TMDB 인물 ID(TMDB_ACTOR_ID)로 등록된 배우와 연결된
+     * 승인 완료(APPROVED) 상품만 조회합니다.
+     */
+    List<GoodsVO> selectGoodsByTmdbActorId(
+            @Param("tmdbActorId") long tmdbActorId,
+            @Param("limit") int limit
+    );
+
     List<String> selectSearchProductTypes();
 
     GoodsVO selectGoodsDetail(
