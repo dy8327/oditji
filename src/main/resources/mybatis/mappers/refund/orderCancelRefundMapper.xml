@@ -23,37 +23,144 @@
         <result property="cancelGroupNo" column="CANCEL_GROUP_NO"/>
         <result property="refundAmount" column="REFUND_AMOUNT"/>
         <result property="itemCount" column="ITEM_COUNT"/>
+        <!-- [추가] CANCEL(주문 취소) / REFUND(배송 완료 후 환불) 구분 -->
+        <result property="historyType" column="HISTORY_TYPE"/>
     </resultMap>
 
+
+    <!-- =========================================================
+         [추가] 사용자 취소/환불 내역 조건 조회
+         FULL 요청은 그룹당 한 행, PARTIAL 요청은 상품당 한 행으로 표시한다.
+         요청 당시 배송 완료 상품이면 REFUND, 그 외에는 CANCEL로 구분한다.
+    ========================================================== -->
+    <select id="selectMemberCancelRefundHistory" resultMap="cancelRequestResultMap">
+        SELECT *
+        FROM (
+            SELECT MIN(CR.CANCEL_NO) AS CANCEL_NO,
+                   MIN(CR.ORDER_ITEM_NO) AS ORDER_ITEM_NO,
+                   CR.ORDER_NO,
+                   MIN(CR.MEMBER_NO) AS MEMBER_NO,
+                   NULL AS BUSINESS_NO,
+                   NULL AS PRODUCT_NO,
+                   '전체 상품 (' || COUNT(*) || '건)' AS PRODUCT_NAME,
+                   NULL AS PRODUCT_PRICE,
+                   SUM(OI.QUANTITY) AS QUANTITY,
+                   SUM(CR.REFUND_AMOUNT) AS CANCEL_AMOUNT,
+                   MIN(CR.REASON) AS REASON,
+                   CASE
+                       WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) &gt; 0 THEN 'REJECTED'
+                       WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) &gt; 0 THEN 'WAITING'
+                       ELSE 'APPROVED'
+                   END AS STATUS,
+                   MIN(CR.CREATED_AT) AS CREATED_AT,
+                   MAX(CR.PROCESSED_AT) AS PROCESSED_AT,
+                   MAX(CR.REJECT_REASON) AS REJECT_REASON,
+                   CR.CANCEL_TYPE,
+                   CR.CANCEL_GROUP_NO,
+                   SUM(CR.REFUND_AMOUNT) AS REFUND_AMOUNT,
+                   COUNT(*) AS ITEM_COUNT,
+                   CASE
+                       WHEN MIN(CASE WHEN NVL(D.STATUS, 'CONFIRMED') = 'DELIVERED' THEN 1 ELSE 0 END) = 1
+                           THEN 'REFUND'
+                       ELSE 'CANCEL'
+                   END AS HISTORY_TYPE
+              FROM CANCEL_REQUEST CR
+              JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+              LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+             WHERE CR.MEMBER_NO = #{memberNo}
+               AND CR.CANCEL_TYPE = 'FULL'
+             GROUP BY CR.ORDER_NO, CR.CANCEL_TYPE, CR.CANCEL_GROUP_NO
+
+            UNION ALL
+
+            SELECT CR.CANCEL_NO,
+                   CR.ORDER_ITEM_NO,
+                   CR.ORDER_NO,
+                   CR.MEMBER_NO,
+                   OI.BUSINESS_NO,
+                   OI.PRODUCT_NO,
+                   P.PRODUCT_NAME,
+                   OI.PRODUCT_PRICE,
+                   OI.QUANTITY,
+                   CR.REFUND_AMOUNT AS CANCEL_AMOUNT,
+                   CR.REASON,
+                   CR.STATUS,
+                   CR.CREATED_AT,
+                   CR.PROCESSED_AT,
+                   CR.REJECT_REASON,
+                   CR.CANCEL_TYPE,
+                   CR.CANCEL_GROUP_NO,
+                   CR.REFUND_AMOUNT,
+                   1 AS ITEM_COUNT,
+                   CASE WHEN NVL(D.STATUS, 'CONFIRMED') = 'DELIVERED' THEN 'REFUND' ELSE 'CANCEL' END AS HISTORY_TYPE
+              FROM CANCEL_REQUEST CR
+              JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+              JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+              LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+             WHERE CR.MEMBER_NO = #{memberNo}
+               AND CR.CANCEL_TYPE = 'PARTIAL'
+        ) H
+        <where>
+            <if test="historyType != null and historyType != ''">
+                H.HISTORY_TYPE = #{historyType}
+            </if>
+            <if test="status != null and status != ''">
+                AND H.STATUS = #{status}
+            </if>
+            <if test="startDate != null">
+                AND H.CREATED_AT &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND H.CREATED_AT &lt; #{endDate} + 1
+            </if>
+        </where>
+        ORDER BY H.CREATED_AT DESC, H.CANCEL_NO DESC
+    </select>
+
     <select id="selectCancelableItemsByOrder" resultType="com.project.oditji.order.vo.OrderItemVO">
-        SELECT OI.ORDER_ITEM_NO AS orderItemNo,
-               OI.ORDER_NO AS orderNo,
-               OI.PRODUCT_NO AS productNo,
-               OI.BUSINESS_NO AS businessNo,
-               OI.PRODUCT_PRICE AS productPrice,
-               OI.QUANTITY AS quantity,
-               OI.STATUS AS status
+        SELECT OI.ORDER_ITEM_NO AS orderItemNo, OI.ORDER_NO AS orderNo,
+               OI.PRODUCT_NO AS productNo, OI.BUSINESS_NO AS businessNo,
+               OI.PRODUCT_PRICE AS productPrice, OI.QUANTITY AS quantity,
+               OI.STATUS AS status, NVL(D.STATUS, 'CONFIRMED') AS deliveryStatus
           FROM ORDER_ITEM OI
           JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+          LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
          WHERE O.MEMBER_NO = #{memberNo}
            AND O.ORDER_NO = #{orderNo}
-           AND OI.STATUS IN ('ORDERED', 'PAID', 'PREPARING')
+           AND (
+                (OI.STATUS = 'PAID' AND NVL(D.STATUS, 'CONFIRMED') = 'CONFIRMED')
+                OR
+                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED')
+           )
+           AND NOT EXISTS (
+               SELECT 1 FROM ORDER_ITEM X
+               LEFT JOIN DELIVERY XD ON XD.ORDER_ITEM_NO = X.ORDER_ITEM_NO
+               WHERE X.ORDER_NO = OI.ORDER_NO
+                 AND X.STATUS NOT IN ('CANCELED', 'REFUNDED')
+                 AND NOT (
+                    (X.STATUS = OI.STATUS AND OI.STATUS = 'PAID' AND NVL(XD.STATUS, 'CONFIRMED') = 'CONFIRMED')
+                    OR
+                    (X.STATUS = OI.STATUS AND OI.STATUS = 'DELIVERED' AND NVL(XD.STATUS, 'DELIVERED') = 'DELIVERED')
+                 )
+           )
          ORDER BY OI.ORDER_ITEM_NO
     </select>
 
     <select id="selectCancelableItem" resultType="com.project.oditji.order.vo.OrderItemVO">
-        SELECT OI.ORDER_ITEM_NO AS orderItemNo,
-               OI.ORDER_NO AS orderNo,
-               OI.PRODUCT_NO AS productNo,
-               OI.BUSINESS_NO AS businessNo,
-               OI.PRODUCT_PRICE AS productPrice,
-               OI.QUANTITY AS quantity,
-               OI.STATUS AS status
+        SELECT OI.ORDER_ITEM_NO AS orderItemNo, OI.ORDER_NO AS orderNo,
+               OI.PRODUCT_NO AS productNo, OI.BUSINESS_NO AS businessNo,
+               OI.PRODUCT_PRICE AS productPrice, OI.QUANTITY AS quantity,
+               OI.STATUS AS status, NVL(D.STATUS, 'CONFIRMED') AS deliveryStatus
           FROM ORDER_ITEM OI
           JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+          LEFT JOIN DELIVERY D ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
          WHERE O.MEMBER_NO = #{memberNo}
            AND OI.ORDER_ITEM_NO = #{orderItemNo}
-           AND OI.STATUS IN ('ORDERED', 'PAID', 'PREPARING')
+           AND (
+                (OI.STATUS = 'PAID' AND NVL(D.STATUS, 'CONFIRMED') = 'CONFIRMED')
+                OR
+                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED')
+           )
     </select>
 
     <select id="countWaitingCancelByOrderItemNo" resultType="int">
@@ -89,7 +196,7 @@
         UPDATE ORDER_ITEM
            SET STATUS = 'CANCEL_REQUEST'
          WHERE ORDER_ITEM_NO = #{orderItemNo}
-           AND STATUS IN ('ORDERED', 'PAID', 'PREPARING')
+           AND STATUS IN ('PAID', 'DELIVERED')
     </update>
 
     <!-- =========================================================
@@ -220,12 +327,21 @@
     </select>
 
     <update id="restoreOrderItemStatus">
-        UPDATE ORDER_ITEM SET STATUS = 'PAID'
-         WHERE ORDER_ITEM_NO = #{orderItemNo} AND STATUS = 'CANCEL_REQUEST'
+        UPDATE ORDER_ITEM OI
+           SET OI.STATUS = CASE
+               WHEN EXISTS (SELECT 1 FROM DELIVERY D WHERE D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO AND D.STATUS = 'DELIVERED')
+                   THEN 'DELIVERED'
+               ELSE 'PAID'
+           END
+         WHERE OI.ORDER_ITEM_NO = #{orderItemNo} AND OI.STATUS = 'CANCEL_REQUEST'
     </update>
 
     <update id="restoreOrderItemsByGroup">
-        UPDATE ORDER_ITEM OI SET OI.STATUS = 'PAID'
+        UPDATE ORDER_ITEM OI SET OI.STATUS = CASE
+               WHEN EXISTS (SELECT 1 FROM DELIVERY D WHERE D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO AND D.STATUS = 'DELIVERED')
+                   THEN 'DELIVERED'
+               ELSE 'PAID'
+           END
          WHERE OI.STATUS = 'CANCEL_REQUEST'
            AND EXISTS (
                SELECT 1 FROM CANCEL_REQUEST CR
