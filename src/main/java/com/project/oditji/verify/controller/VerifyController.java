@@ -125,20 +125,6 @@ public class VerifyController {
         }
     }
 
-    // 4. 성인인증 성공 페이지
-    @GetMapping("/adult/success")
-    public String success() {
-        return "verify/adultVerifySuccess";
-    }
-
-    // 5. 성인인증 실패 페이지
-    @GetMapping("/adult/fail")
-    public String fail(@RequestParam(value = "message", required = false, defaultValue = "성인인증에 실패했습니다.") String message,
-            Model model) {
-        model.addAttribute("message", message);
-        return "verify/adultVerifyFail";
-    }
-
     // URL 오픈 리다이렉트 취약점 방지용 유틸 메서드
     private String sanitizeReturnUrl(String returnUrl) {
         if (returnUrl == null || returnUrl.isBlank() || returnUrl.startsWith("http://") || 
