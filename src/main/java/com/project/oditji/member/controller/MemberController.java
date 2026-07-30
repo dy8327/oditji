@@ -243,8 +243,7 @@ public class MemberController {
         @GetMapping("/login")
         public String loginForm(
                         @RequestParam(value = "redirect", required = false) String redirect,
-                        HttpServletRequest request,
-                        HttpSession session) {
+                        HttpServletRequest request, HttpSession session) {
 
                 /*
                  * URL 파라미터로 돌아갈 주소가 전달되었다면
@@ -266,9 +265,7 @@ public class MemberController {
                  */
                if (isUsableRedirectUrl(redirectUrl)) {
                         session.setAttribute(LOGIN_REDIRECT_SESSION_KEY, redirectUrl);
-                        } else {
-                        session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
-                }
+                        } 
 
                 return "member/login";
         }
