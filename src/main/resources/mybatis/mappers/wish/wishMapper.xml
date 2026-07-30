@@ -65,7 +65,7 @@
             P.PRODUCT_NAME,
             P.PRODUCT_TYPE,
             P.PRICE,
-            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
             NVL(P.STOCK, 0) AS STOCK,
             P.DESCRIPTION,
             P.STATUS,
@@ -81,7 +81,7 @@
             ON B.BUSINESS_NO = P.BUSINESS_NO
 
         <include refid="com.project.oditji.goods.dao.GoodsDAO.mainImageJoin"/>
-
+        <include refid="com.project.oditji.goods.dao.GoodsDAO.activeEventDiscountJoin"/>
         WHERE W.MEMBER_NO = #{memberNo}
           AND P.STATUS = 'APPROVED'
 
