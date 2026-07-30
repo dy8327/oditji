@@ -51,8 +51,8 @@ public class GoodsController {
     /**
      * 전체, 인기, 카테고리별 상품 목록을 같은 화면에서 제공합니다.
      *
-     * type=all      : 최신 등록순
-     * type=popular  : 재고 상품 우선, 할인율 높은 순, 최신순
+     * type=all : 최신 등록순
+     * type=popular : 재고 상품 우선, 할인율 높은 순, 최신순
      * type=category : 전체 목록을 보여주되 왼쪽 카테고리 필터로 이동
      */
     @GetMapping("/goods/list")
@@ -71,6 +71,20 @@ public class GoodsController {
             Model model) {
 
         String normalizedType = normalizeListType(type);
+
+        /*
+         * [수정] 카테고리 상품 화면은 반드시 도서/의상/OST/소품 중
+         * 하나를 선택한 상태에서만 열리도록 처리합니다.
+         * 세부 카테고리 없이 type=category만 전달된 기존 주소는
+         * 전체 상품 화면으로 돌려 "카테고리별 상품 + 전체 상품" 화면이
+         * 별도로 노출되지 않게 합니다.
+         */
+        String selectedCategoryName = getSelectedCategoryName(productTypes);
+
+        if ("category".equals(normalizedType) && selectedCategoryName == null) {
+            return "redirect:/goods/list?type=all";
+        }
+
         int normalizedPage = page <= 0 ? 1 : page;
 
         int totalCount = goodsService.countSearchGoods(
@@ -81,13 +95,11 @@ public class GoodsController {
                 discountOnly,
                 inStockOnly,
                 priceRanges,
-                stockStatus
-        );
+                stockStatus);
 
         int totalPage = Math.max(
                 1,
-                (int) Math.ceil((double) totalCount / GOODS_PAGE_SIZE)
-        );
+                (int) Math.ceil((double) totalCount / GOODS_PAGE_SIZE));
 
         if (normalizedPage > totalPage) {
             normalizedPage = totalPage;
@@ -104,8 +116,7 @@ public class GoodsController {
                 stockStatus,
                 normalizedType,
                 normalizedPage,
-                GOODS_PAGE_SIZE
-        );
+                GOODS_PAGE_SIZE);
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
         Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
@@ -123,6 +134,8 @@ public class GoodsController {
         model.addAttribute("priceRanges", priceRanges);
         model.addAttribute("stockStatus", stockStatus);
         model.addAttribute("type", normalizedType);
+        // [추가] 선택한 세부 카테고리명을 목록 제목에 표시합니다.
+        model.addAttribute("selectedCategoryName", selectedCategoryName);
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("page", normalizedPage);
         model.addAttribute("totalPage", totalPage);
@@ -142,8 +155,7 @@ public class GoodsController {
         if (goods == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "존재하지 않거나 현재 공개되지 않은 상품입니다."
-            );
+                    "존재하지 않거나 현재 공개되지 않은 상품입니다.");
         }
 
         List<Map<String, Object>> imageList = goodsService.getGoodsImageList(productNo);
@@ -159,8 +171,7 @@ public class GoodsController {
          * 여유분(+1)을 조회한 뒤 현재 productNo를 제외하고
          * 원래 노출 개수(RECOMMEND_GOODS_SIZE)만큼만 잘라서 사용합니다.
          */
-        List<GoodsVO> recommendedGoodsCandidates =
-                goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE + 1);
+        List<GoodsVO> recommendedGoodsCandidates = goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE + 1);
 
         List<GoodsVO> recommendedGoodsList = new ArrayList<>();
 
@@ -205,6 +216,38 @@ public class GoodsController {
         model.addAttribute("recommendedGoodsList", recommendedGoodsList);
 
         return "goods/goodsDetail";
+    }
+
+    /**
+     * [추가] 헤더의 세부 카테고리 메뉴에서 허용하는 상품 종류를
+     * 화면 표시명으로 변환합니다. 카테고리 화면에서는 한 종류만
+     * 선택할 수 있으므로 값이 없거나 여러 개이면 null을 반환합니다.
+     */
+    private String getSelectedCategoryName(List<String> productTypes) {
+
+        if (productTypes == null || productTypes.size() != 1) {
+            return null;
+        }
+
+        String productType = productTypes.get(0);
+
+        if ("BOOK".equals(productType)) {
+            return "도서";
+        }
+
+        if ("CLOTHES".equals(productType)) {
+            return "의상";
+        }
+
+        if ("OST".equals(productType)) {
+            return "OST";
+        }
+
+        if ("PROP".equals(productType)) {
+            return "소품";
+        }
+
+        return null;
     }
 
     /** 잘못된 상품 목록 유형은 전체 상품으로 처리합니다. */
