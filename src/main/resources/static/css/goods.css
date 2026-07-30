@@ -604,7 +604,25 @@
   align-items: start;
 }
 
-.goods-left-sidebar,
+.goods-left-sidebar {
+  position: sticky;
+  top: 90px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.goods-left-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.goods-left-sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
 .goods-right-sidebar {
   position: sticky;
   top: 90px;
@@ -826,6 +844,8 @@
   .goods-left-sidebar,
   .goods-right-sidebar {
     position: static;
+    max-height: none;
+    overflow-y: visible;
   }
 
   .goods-right-sidebar {

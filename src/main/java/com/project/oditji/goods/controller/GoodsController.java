@@ -62,6 +62,8 @@ public class GoodsController {
             @RequestParam(required = false) Integer maxPrice,
             @RequestParam(required = false, defaultValue = "false") boolean discountOnly,
             @RequestParam(required = false, defaultValue = "false") boolean inStockOnly,
+            @RequestParam(required = false) List<String> priceRanges,
+            @RequestParam(required = false) List<String> stockStatus,
             @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(required = false, defaultValue = "1") int page,
             HttpSession session,
@@ -76,7 +78,9 @@ public class GoodsController {
                 minPrice,
                 maxPrice,
                 discountOnly,
-                inStockOnly
+                inStockOnly,
+                priceRanges,
+                stockStatus
         );
 
         int totalPage = Math.max(
@@ -95,6 +99,8 @@ public class GoodsController {
                 maxPrice,
                 discountOnly,
                 inStockOnly,
+                priceRanges,
+                stockStatus,
                 normalizedType,
                 normalizedPage,
                 GOODS_PAGE_SIZE
@@ -113,6 +119,8 @@ public class GoodsController {
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("discountOnly", discountOnly);
         model.addAttribute("inStockOnly", inStockOnly);
+        model.addAttribute("priceRanges", priceRanges);
+        model.addAttribute("stockStatus", stockStatus);
         model.addAttribute("type", normalizedType);
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("page", normalizedPage);

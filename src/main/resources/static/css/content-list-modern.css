@@ -21,6 +21,20 @@
 .content-list-left-sidebar {
     position: sticky;
     top: 92px;
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.content-list-left-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content-list-left-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
 }
 
 .content-list-main {
@@ -997,6 +1011,8 @@
 
     .content-list-left-sidebar {
         position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .content-filter-form {
