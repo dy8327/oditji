@@ -1,5 +1,6 @@
 package com.project.oditji.mail.service;
 
-public class MailService {
-    
+public interface MailService {
+
+    void sendPasswordResetCode(String email, String authCode);
 }

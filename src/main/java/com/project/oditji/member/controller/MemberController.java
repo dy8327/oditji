@@ -4,10 +4,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
 import javax.imageio.ImageIO;
-
 import java.util.Locale;
+import java.security.SecureRandom;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,6 +31,7 @@ import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.service.NtsBusinessService;
 import com.project.oditji.business.vo.NtsBusinessVerifyVO;
+import com.project.oditji.mail.service.MailService;
 import com.project.oditji.business.vo.BusinessVO;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,23 +43,35 @@ public class MemberController {
 
         private static final String LOGIN_REDIRECT_SESSION_KEY = "redirectAfterLogin";
         private static final Logger log = LoggerFactory.getLogger(MemberController.class);
+        private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+        private static final String PW_RESET_MEMBER_NO = "pwResetMemberNo";
+        private static final String PW_RESET_EMAIL = "pwResetEmail";
+        private static final String PW_RESET_CODE = "pwResetCode";
+        private static final String PW_RESET_EXPIRES_AT = "pwResetExpiresAt";
+        private static final String PW_RESET_VERIFIED = "pwResetVerified";
+        private static final String PW_RESET_ATTEMPTS = "pwResetAttempts";
+        private static final int PW_RESET_MAX_ATTEMPTS = 5;
+        private static final long PW_RESET_VALID_TIME = 5 * 60 * 1000L;
 
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
         private final BusinessService businessService;
         private final NtsBusinessService ntsBusinessService;
+        private final MailService mailService;
 
         public MemberController(
                         MemberService memberService,
                         MemberPlatformService memberPlatformService,
                         BusinessService businessService,
-                        NtsBusinessService ntsBusinessService) {
+                        NtsBusinessService ntsBusinessService,
+                        MailService mailService) {
 
                 this.memberService = memberService;
                 this.memberPlatformService = memberPlatformService;
                 this.businessService = businessService;
                 this.ntsBusinessService = ntsBusinessService;
-        }
+                this.mailService = mailService;
+                }
 
         @GetMapping("/join")
         public String joinForm(Model model) {
@@ -768,26 +780,12 @@ public class MemberController {
         }
 
         @GetMapping("/findPw")
-        public String findPw() {
+        public String findPw(HttpSession session) {
+                clearPwResetSession(session);
                 return "member/findPw";
-        }
+                }
 
-        @GetMapping("/changePw")
-        public String changePw(HttpSession session) {
-
-        Long memberNo =
-                (Long) session.getAttribute("pwChangeMemberNo");
-
-
-        if (memberNo == null) {
-
-                return "redirect:/member/findPw";
-        }
-
-
-        return "member/changePw";
-        }
-
+        // 회원정보 확인 후 인증번호 발송
         @PostMapping("/findPw")
         public String findPwPost(
                 @RequestParam("memberId") String memberId,
@@ -796,37 +794,117 @@ public class MemberController {
                 HttpSession session,
                 Model model) {
 
+                MemberVO memberVO = new MemberVO();
+                memberVO.setMemberId(memberId.trim());
+                memberVO.setMemberName(memberName.trim());
+                memberVO.setEmail(email.trim());
 
-        MemberVO memberVO = new MemberVO();
+                MemberVO result = memberService.findPw(memberVO);
 
-        memberVO.setMemberId(memberId);
-        memberVO.setMemberName(memberName);
-        memberVO.setEmail(email);
+                if (result == null) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
+                        
+                        return "member/findPw";
+                }
 
+                String authCode = String.format("%06d", SECURE_RANDOM.nextInt(1000000));
+                long expiresAt = System.currentTimeMillis() + PW_RESET_VALID_TIME;
 
-        MemberVO result = memberService.findPw(memberVO);
+                clearPwResetSession(session);
+                session.setAttribute(PW_RESET_MEMBER_NO, result.getMemberNo());
+                session.setAttribute(PW_RESET_EMAIL, result.getEmail());
+                session.setAttribute(PW_RESET_CODE, authCode);
+                session.setAttribute(PW_RESET_EXPIRES_AT, expiresAt);
+                session.setAttribute(PW_RESET_ATTEMPTS, 0);
+                session.setAttribute(PW_RESET_VERIFIED, false);
 
+                try {
+                        mailService.sendPasswordResetCode(result.getEmail(), authCode);
+                } catch (IllegalStateException e) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", e.getMessage());
+                        
+                        return "member/findPw";
+                }
 
-        if (result != null) {
-
-                // 비밀번호 변경할 회원 번호 저장
-                session.setAttribute(
-                "pwChangeMemberNo",
-                result.getMemberNo()
-                );
-
-                return "redirect:/member/changePw";
-
-
-        } else {
-
-                model.addAttribute(
-                "errorMessage",
-                "일치하는 회원 정보가 없습니다."
-                );
+                model.addAttribute("verificationStep", true);
+                model.addAttribute("maskedEmail", maskEmail(result.getEmail()));
+                model.addAttribute("message", "이메일로 인증번호를 발송했습니다.");
 
                 return "member/findPw";
+                }
+
+        // 인증번호 확인
+        @PostMapping("/verifyPwCode")
+        public String verifyPwCode(@RequestParam("authCode") String authCode, HttpSession session, Model model) {
+
+                Long memberNo = (Long) session.getAttribute(PW_RESET_MEMBER_NO);
+                String savedCode = (String) session.getAttribute(PW_RESET_CODE);
+                Long expiresAt = (Long) session.getAttribute(PW_RESET_EXPIRES_AT);
+                Integer attempts = (Integer) session.getAttribute(PW_RESET_ATTEMPTS);
+                String email = (String) session.getAttribute(PW_RESET_EMAIL);
+
+                if (memberNo == null || savedCode == null || expiresAt == null) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", "인증 요청 정보가 없습니다. 다시 진행해 주세요.");
+                       
+                        return "member/findPw";
+                }
+
+                if (System.currentTimeMillis() > expiresAt) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", "인증번호가 만료되었습니다. 다시 요청해 주세요.");
+                        
+                        return "member/findPw";
+                }
+
+                int currentAttempts = attempts == null ? 0 : attempts;
+
+                if (currentAttempts >= PW_RESET_MAX_ATTEMPTS) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
+                        
+                        return "member/findPw";
+                }
+
+                if (authCode == null || !savedCode.equals(authCode.trim())) {
+                        currentAttempts++;
+                        session.setAttribute(PW_RESET_ATTEMPTS, currentAttempts);
+
+                        if (currentAttempts >= PW_RESET_MAX_ATTEMPTS) {
+                        clearPwResetSession(session);
+                        model.addAttribute("errorMessage", "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
+                        
+                        return "member/findPw";
+                        }
+
+                        model.addAttribute("verificationStep", true);
+                        model.addAttribute("maskedEmail", maskEmail(email));
+                        model.addAttribute("errorMessage", "인증번호가 일치하지 않습니다. 남은 횟수: "
+                                        + (PW_RESET_MAX_ATTEMPTS - currentAttempts) + "회");
+
+                        return "member/findPw";
+                }
+
+                session.setAttribute(PW_RESET_VERIFIED, true);
+                session.setAttribute(PW_RESET_EXPIRES_AT, System.currentTimeMillis() + PW_RESET_VALID_TIME);
+                session.removeAttribute(PW_RESET_CODE);
+                session.removeAttribute(PW_RESET_ATTEMPTS);
+
+                return "redirect:/member/changePw";
         }
+
+        @GetMapping("/changePw")
+        public String changePw(HttpSession session) {
+
+                if (!isPwResetAvailable(session)) {
+                        clearPwResetSession(session);
+
+                        return "redirect:/member/findPw";
+                }
+
+                return "member/changePw";
         }
 
         @PostMapping("/changePw")
@@ -836,44 +914,79 @@ public class MemberController {
                 HttpSession session,
                 RedirectAttributes redirectAttributes,
                 Model model) {
+                
+                if (!isPwResetAvailable(session)) {
+                        clearPwResetSession(session);
 
+                        return "redirect:/member/findPw";
+                }
 
-        Long memberNo =
-                (Long) session.getAttribute("pwChangeMemberNo");
+                Long memberNo = ((Number) session.getAttribute(PW_RESET_MEMBER_NO)).longValue();
+                boolean verified = Boolean.TRUE.equals(session.getAttribute(PW_RESET_VERIFIED));
 
+                if (memberNo == null || !verified) {
+                        clearPwResetSession(session);
+                        
+                        return "redirect:/member/findPw";
+                }
 
-        if (memberNo == null) {
-                return "redirect:/member/findPw";
+                if (!newPassword.equals(confirmPassword)) {
+                        model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
+                        
+                        return "member/changePw";
+                }
+
+                try {
+                        memberService.updatePassword(memberNo, newPassword);
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        model.addAttribute("errorMessage", e.getMessage());
+                        
+                        return "member/changePw";
+                }
+
+                clearPwResetSession(session);
+                redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
+
+                return "redirect:/member/login";
         }
 
+        // 비밀번호 재설정 인증 상태 확인
+        private boolean isPwResetAvailable(HttpSession session) {
+                Object memberNo = session.getAttribute(PW_RESET_MEMBER_NO);
+                Long expiresAt = (Long) session.getAttribute(PW_RESET_EXPIRES_AT);
+                boolean verified = Boolean.TRUE.equals(session.getAttribute(PW_RESET_VERIFIED));
 
-        if (!newPassword.equals(confirmPassword)) {
-
-                model.addAttribute(
-                        "errorMessage",
-                        "비밀번호가 일치하지 않습니다."
-                );
-
-                return "member/changePw";
+                return memberNo != null && verified && expiresAt != null && System.currentTimeMillis() <= expiresAt;
         }
 
+        // 비밀번호 재설정 세션 삭제
+        private void clearPwResetSession(HttpSession session) {
+                session.removeAttribute(PW_RESET_MEMBER_NO);
+                session.removeAttribute(PW_RESET_EMAIL);
+                session.removeAttribute(PW_RESET_CODE);
+                session.removeAttribute(PW_RESET_EXPIRES_AT);
+                session.removeAttribute(PW_RESET_VERIFIED);
+                session.removeAttribute(PW_RESET_ATTEMPTS);
+        }
 
-        memberService.updatePassword(
-                memberNo,
-                newPassword
-        );
+        // 이메일 일부 숨김
+        private String maskEmail(String email) {
+                if (email == null || !email.contains("@")) {
+                        return "";
+                }
 
+                String[] parts = email.split("@", 2);
+                String id = parts[0];
+                String maskedId;
 
-        session.removeAttribute("pwChangeMemberNo");
+                if (id.length() <= 2) {
+                        maskedId = id.substring(0, 1) + "*";
+                } else {
+                        maskedId = id.substring(0, 2)
+                                + "*".repeat(id.length() - 2);
+                }
 
-
-        redirectAttributes.addFlashAttribute(
-                "message",
-                "비밀번호가 변경되었습니다."
-        );
-
-
-        return "redirect:/member/login";
+                return maskedId + "@" + parts[1];
         }
 
         /**
