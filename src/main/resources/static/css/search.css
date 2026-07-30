@@ -67,6 +67,20 @@
     position: sticky;
     top: 92px;
     min-width: 0;
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.search-left-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-left-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
 }
 
 .search-filter-form {
@@ -1382,6 +1396,8 @@ body.search-modal-open {
     .search-left-sidebar {
         position: static;
         margin-bottom: 24px;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .search-filter-form {
