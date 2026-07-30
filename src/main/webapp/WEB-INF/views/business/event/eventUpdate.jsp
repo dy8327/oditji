@@ -80,18 +80,14 @@
                 <div class="form-group">
 
                     <label class="form-label"
-                           for="eventContent">
+                           for="description">
                         이벤트 설명
                     </label>
 
-                    <!--
-                        현재 EVENT 테이블에는 이벤트 설명 컬럼이 없으므로
-                        입력값은 수정 처리 로그 확인용으로만 전달됩니다.
-                    -->
                     <textarea class="form-textarea"
-                              id="eventContent"
-                              name="eventContent"
-                              placeholder="이벤트에 대한 설명을 입력하세요."></textarea>
+                              id="description"
+                              name="description"
+                              placeholder="이벤트에 대한 설명을 입력하세요."><c:out value='${event.description}'/></textarea>
 
                 </div>
 

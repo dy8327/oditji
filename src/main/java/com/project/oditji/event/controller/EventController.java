@@ -1,5 +1,8 @@
 package com.project.oditji.event.controller;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
@@ -58,8 +61,51 @@ public class EventController {
             );
         }
 
+        /*
+         * [수정] 상세 페이지 뱃지는 EVENT.STATUS(관리자 승인 상태)만 보고
+         * "진행 중"으로 고정 표시되던 문제가 있었다.
+         * 목록 조회(selectEventList)와 동일하게 시작일/종료일을 기준으로
+         * 실제 진행 상태(예정/진행 중/종료)를 계산해서 뱃지에 반영한다.
+         */
+        String actualPeriod = resolveActualPeriod(event);
+
         model.addAttribute("event", event);
+        model.addAttribute("period", actualPeriod);
+        model.addAttribute("periodBadge", createPeriodBadge(actualPeriod));
+
         return "event/eventDetail";
+    }
+
+    /**
+     * EVENT.STATUS가 'END'이거나 종료일이 지났으면 종료,
+     * 시작일이 아직 오지 않았으면 예정, 그 외는 진행 중으로 판단한다.
+     *
+     * selectEventList의 TRUNC(START_DATE) / TRUNC(END_DATE) 비교와
+     * 동일한 기준(날짜 단위 비교)을 애플리케이션 레벨에서 맞춘다.
+     */
+    private String resolveActualPeriod(EventVO event) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = toLocalDate(event.getStartDate());
+        LocalDate endDate = toLocalDate(event.getEndDate());
+
+        if ("END".equals(event.getStatus())) {
+            return "ended";
+        }
+
+        if (endDate != null && endDate.isBefore(today)) {
+            return "ended";
+        }
+
+        if (startDate != null && startDate.isAfter(today)) {
+            return "upcoming";
+        }
+
+        return "ongoing";
+    }
+
+    private LocalDate toLocalDate(Date date) {
+        if (date == null) return null;
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     private String normalizePeriod(String period) {

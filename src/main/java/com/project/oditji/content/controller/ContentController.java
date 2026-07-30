@@ -23,6 +23,8 @@ import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
+import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ContentReviewVO;
@@ -49,6 +51,10 @@ public class ContentController {
         private final TmdbDAO tmdbDAO;
         // [성인 콘텐츠 접근 제한 추가] 회원의 DB 성인인증 완료 여부를 확인합니다.
         private final VerifyService verifyService;
+        // [관련 상품 추가] 콘텐츠 상세페이지에 연결된 상품을 조회할 때 사용합니다.
+        private final GoodsService goodsService;
+
+        private static final int RELATED_GOODS_SIZE = 8;
 
         public ContentController(
                         ContentService contentService,
@@ -56,7 +62,9 @@ public class ContentController {
                         FavoriteService favoriteService,
                         TmdbDAO tmdbDAO,
                         // [성인 콘텐츠 접근 제한 추가] 기존 성인인증 서비스를 주입받습니다.
-                        VerifyService verifyService) {
+                        VerifyService verifyService,
+                        // [관련 상품 추가] GoodsService를 주입받습니다.
+                        GoodsService goodsService) {
 
                 this.contentService = contentService;
                 this.reviewService = reviewService;
@@ -64,6 +72,7 @@ public class ContentController {
                 this.tmdbDAO = tmdbDAO;
                 // [성인 콘텐츠 접근 제한 추가] DB의 MEMBER.ADULT_VERIFIED 값을 확인할 때 사용합니다.
                 this.verifyService = verifyService;
+                this.goodsService = goodsService;
         }
 
         @GetMapping("/prepare")
@@ -265,6 +274,11 @@ public class ContentController {
                 List<SearchResultVO> relatedContentList = contentService.getRelatedContentList(
                                 contentNo);
 
+                // [관련 상품 추가] 이 콘텐츠에 연결된 승인 완료 상품 목록입니다.
+                List<GoodsVO> goodsList = goodsService.getGoodsByContentNo(
+                                contentNo,
+                                RELATED_GOODS_SIZE);
+
                 List<ContentReviewVO> reviewList = reviewService.getContentReviewList(
                                 contentNo);
 
@@ -316,6 +330,10 @@ public class ContentController {
                 model.addAttribute(
                                 "relatedContentList",
                                 relatedContentList);
+
+                model.addAttribute(
+                                "goodsList",
+                                goodsList);
 
                 model.addAttribute(
                                 "reviewList",

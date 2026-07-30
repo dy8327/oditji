@@ -709,20 +709,20 @@
             <c:forEach var="g"
                        items="${goodsList}">
 
-                <a href="${pageContext.request.contextPath}/goods/detail?goodsNo=${g.goodsNo}"
+                <a href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}"
                    class="goods-card">
 
-                    <img src="${g.image}"
-                         alt="${g.name}">
+                    <img src="${pageContext.request.contextPath}${g.mainImage}"
+                         alt="${g.productName}">
 
                     <div class="goods-info">
 
                         <p class="name">
-                            ${g.name}
+                            ${g.productName}
                         </p>
 
                         <p class="price">
-                            ₩ ${g.price}
+                            ₩ ${g.discountPrice}
                         </p>
 
                     </div>

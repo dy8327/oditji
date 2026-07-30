@@ -117,6 +117,9 @@ public interface GoodsService {
 
     List<GoodsVO> getRecommendedGoods(int limit);
 
+    /** 콘텐츠 상세페이지의 "관련 상품" 목록을 조회합니다. */
+    List<GoodsVO> getGoodsByContentNo(int contentNo, int limit);
+
     List<String> getSearchProductTypes();
 
     GoodsVO getGoodsDetail(int productNo);

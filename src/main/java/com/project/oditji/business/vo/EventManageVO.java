@@ -9,6 +9,7 @@ public class EventManageVO {
     // EVENT
     private long eventNo;
     private String title;
+    private String description;
     private String bannerImage;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -88,6 +89,16 @@ public class EventManageVO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+
+    public String getDescription() {
+        return description;
+    }
+
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 
@@ -253,6 +264,7 @@ public class EventManageVO {
         return "EventManageVO{" +
                 "eventNo=" + eventNo +
                 ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
                 ", bannerImage='" + bannerImage + '\'' +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
