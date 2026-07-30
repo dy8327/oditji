@@ -42,6 +42,10 @@
         <result property="businessName"
                 column="BUSINESS_NAME"/>
 
+        <!-- [추가] 주문내역 취소/환불 버튼 판단용 배송 상태 -->
+        <result property="deliveryStatus"
+                column="DELIVERY_STATUS"/>
+
         <result property="mainImage"
                 column="MAIN_IMAGE"/>
 
@@ -142,6 +146,10 @@
 
         <result property="businessName"
                 column="BUSINESS_NAME"/>
+
+        <!-- [추가] 주문내역 취소/환불 버튼 판단용 배송 상태 -->
+        <result property="deliveryStatus"
+                column="DELIVERY_STATUS"/>
 
         <!-- =====================================================
              [부분 취소 요청 상태 및 반려 사유 표시용 매핑]
@@ -723,6 +731,13 @@
             P.PRODUCT_TYPE,
             B.BUSINESS_NAME,
             PI.MAIN_IMAGE,
+            /* [추가] DELIVERY 미등록 결제 상품은 주문 확인중으로 처리 */
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+            ) AS DELIVERY_STATUS,
 
             /* =====================================================
                [최근 부분 취소 요청 상태 및 반려 사유 조회]
@@ -781,6 +796,10 @@
             ON B.BUSINESS_NO = OI.BUSINESS_NO
 
         <include refid="mainImageJoin"/>
+
+        /* [추가] 사용자 버튼 노출 판단을 위한 배송 상태 조인 */
+        LEFT JOIN DELIVERY D
+          ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
 
         WHERE O.MEMBER_NO = #{memberNo}
 
@@ -877,6 +896,13 @@
             P.PRODUCT_TYPE,
             B.BUSINESS_NAME,
             PI.MAIN_IMAGE,
+            /* [추가] DELIVERY 미등록 결제 상품은 주문 확인중으로 처리 */
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+            ) AS DELIVERY_STATUS,
 
             /* =====================================================
                [최근 부분 취소 요청 상태 및 반려 사유 조회]
@@ -933,6 +959,10 @@
 
         <include refid="mainImageJoin"/>
 
+        /* [추가] 주문 상세에서도 배송 상태를 함께 조회 */
+        LEFT JOIN DELIVERY D
+          ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
         WHERE OI.ORDER_NO = #{orderNo}
 
         ORDER BY OI.ORDER_ITEM_NO ASC
@@ -957,7 +987,6 @@
             OI.ORDER_NO,
             OI.PRODUCT_NO,
             P.PRODUCT_NAME,
-            PI.MAIN_IMAGE,
             OI.PRODUCT_PRICE,
             OI.QUANTITY,
             O.RECEIVER_NAME,
@@ -968,7 +997,7 @@
             NVL(D.STATUS,
                 CASE
                     WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
-                    ELSE 'PREPARING'
+                    ELSE 'CONFIRMED'
                 END
             ) AS STATUS,
             O.CREATED_AT AS ORDER_CREATED_AT
@@ -983,7 +1012,7 @@
         LEFT JOIN DELIVERY D
             ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
 
-        <include refid="mainImageJoin"/>
+
 
         WHERE O.MEMBER_NO = #{memberNo}
           AND OI.ORDER_ITEM_NO = #{orderItemNo}
