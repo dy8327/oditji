@@ -21,6 +21,7 @@ import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Google 로그인 시작 및 콜백 처리를 담당하는 컨트롤러입니다.
@@ -85,7 +86,7 @@ public class GoogleLoginController {
             @RequestParam(value = "state", required = false)
             String state,
             @RequestParam(value = "error", required = false)
-            String error, HttpSession session, RedirectAttributes redirectAttributes) {
+            String error, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
 
         String expectedState = (String) session.getAttribute(GOOGLE_OAUTH_STATE);
         session.removeAttribute(GOOGLE_OAUTH_STATE);
@@ -117,6 +118,7 @@ public class GoogleLoginController {
                 return "redirect:/member/login";
             }
 
+            request.changeSessionId();
             String displayName = getDisplayName(member);
 
             /*
@@ -156,6 +158,7 @@ public class GoogleLoginController {
              * Google OAuth 인증에 성공했으므로 본인 확인이 끝난 상태입니다.
              * 기존 탈퇴 복구 흐름과 동일하게 복구 대상 번호를 세션에 보관합니다.
              */
+            request.changeSessionId();
             session.setAttribute("restoreMemberNo", e.getMemberNo());
             session.setAttribute("restoreProvider", "GOOGLE");
             redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage( e.getWithdrawnAt()));
