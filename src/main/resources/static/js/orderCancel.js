@@ -69,6 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let cancelType = null;
   let selectedOrderNo = null;
   let selectedOrderItemNo = null;
+  // [신규] 주문 카드에서 체크한 여러 상품을 한 번에 요청하기 위한 목록
+  let selectedOrderItemNos = [];
 
   /*
    * =========================================================
@@ -113,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * =========================================================
    */
 
-  function openOrderCancelModal(orderNo) {
+  function openOrderCancelModal(orderNo, requestKind) {
     const parsedOrderNo = Number(orderNo);
 
     if (!Number.isInteger(parsedOrderNo) || parsedOrderNo <= 0) {
@@ -122,14 +124,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     cancelType = "ORDER";
+    const isRefund = requestKind === "REFUND";
     selectedOrderNo = parsedOrderNo;
     selectedOrderItemNo = null;
 
-    modalTitle.textContent = "주문 전체 취소 요청";
+    modalTitle.textContent = isRefund ? "전체 상품 환불 요청" : "전체 상품 주문 취소 요청";
 
-    modalDescription.textContent = "해당 상품의 전체 취소를 요청합니다. " + "주문에 포함된 모든 사업자가 승인하면 " + "전액 환불됩니다.";
+    modalDescription.textContent = isRefund
+      ? "배송 완료된 전체 상품의 환불을 요청합니다. 모든 사업자가 승인하면 전액 환불됩니다."
+      : "주문 확인중인 전체 상품의 주문 취소를 요청합니다. 모든 사업자가 승인하면 전액 환불됩니다.";
 
-    reasonInput.placeholder = "주문 전체 취소 사유를 입력해주세요.";
+    reasonInput.placeholder = isRefund ? "전체 상품 환불 사유를 입력해주세요." : "전체 주문 취소 사유를 입력해주세요.";
 
     reasonInput.value = "";
 
@@ -222,6 +227,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /*
    * =========================================================
+   * [신규] 체크한 여러 상품 취소/환불 모달 열기
+   * 배송 준비중/배송중 상품은 JSP에서 체크박스 자체를 숨긴다.
+   * =========================================================
+   */
+  function openBulkItemCancelModal(button) {
+    const actionType = button.dataset.actionType || "CANCEL";
+    const card = button.closest(".order-card");
+    const checked = card
+      ? Array.from(card.querySelectorAll(".order-item-select:checked")).filter(function (checkbox) {
+          return checkbox.dataset.actionType === actionType;
+        })
+      : [];
+
+    if (checked.length === 0) {
+      showAlert(actionType === "REFUND" ? "환불할 상품을 선택해주세요." : "취소할 상품을 선택해주세요.", "warning");
+      return;
+    }
+
+    selectedOrderItemNos = checked
+      .map(function (checkbox) {
+        return Number(checkbox.value);
+      })
+      .filter(function (value) {
+        return Number.isInteger(value) && value > 0;
+      });
+
+    if (selectedOrderItemNos.length !== checked.length) {
+      showAlert("선택한 주문상품 정보가 올바르지 않습니다.", "warning");
+      return;
+    }
+
+    cancelType = "BULK_ITEM";
+    selectedOrderNo = null;
+    selectedOrderItemNo = null;
+    modalTitle.textContent = actionType === "REFUND" ? "선택 상품 환불 요청" : "선택 상품 주문 취소 요청";
+    modalDescription.textContent = "선택한 " + selectedOrderItemNos.length + "개 상품의 " + (actionType === "REFUND" ? "환불" : "주문 취소") + "를 요청합니다.";
+    reasonInput.placeholder = "선택 상품의 " + (actionType === "REFUND" ? "환불" : "취소") + " 사유를 입력해주세요.";
+    reasonInput.value = "";
+    clearError();
+    restoreButtons();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    window.setTimeout(function () {
+      reasonInput.focus();
+    }, 0);
+  }
+
+  /*
+   * =========================================================
    * 모달 닫기
    * =========================================================
    */
@@ -240,6 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
     cancelType = null;
     selectedOrderNo = null;
     selectedOrderItemNo = null;
+    selectedOrderItemNos = [];
 
     reasonInput.value = "";
 
@@ -348,6 +404,32 @@ document.addEventListener("DOMContentLoaded", function () {
       };
 
       confirmMessage = "선택한 상품의 부분 취소를 요청하시겠습니까?";
+    } else if (cancelType === "BULK_ITEM") {
+      if (!Array.isArray(selectedOrderItemNos) || selectedOrderItemNos.length === 0) {
+        showError("선택한 주문상품이 없습니다.");
+        return;
+      }
+
+      const selectedAction = document.querySelector(".order-select-cancel-btn[data-active-request='true']");
+      const requestText = selectedAction && selectedAction.dataset.actionType === "REFUND" ? "환불" : "주문 취소";
+      const confirmed = await showConfirm("선택한 " + selectedOrderItemNos.length + "개 상품의 " + requestText + "를 요청하시겠습니까?", "warning");
+      if (!confirmed) return;
+
+      disableButtons();
+      try {
+        const data = await sendCancelRequest("/order/payment/cancel/items", {
+          orderItemNos: selectedOrderItemNos,
+          reason: reason,
+        });
+        if (!data.success) throw new Error(data.message || "선택 상품 요청에 실패했습니다.");
+        await showAlert(data.message || "선택한 상품의 취소/환불 요청이 접수되었습니다.", "success");
+        window.location.href = contextPath + (data.redirectUrl || "/order/list");
+      } catch (error) {
+        console.error("선택 상품 일괄 요청 오류:", error);
+        showError(error.message || "선택 상품 요청 중 오류가 발생했습니다.");
+        restoreButtons();
+      }
+      return;
     } else {
       showError("취소 요청 유형이 올바르지 않습니다.");
 
@@ -387,6 +469,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  document.querySelectorAll(".order-select-cancel-btn").forEach(function (button) {
+    button.addEventListener("click", function () {
+      document.querySelectorAll(".order-select-cancel-btn").forEach(function (item) {
+        delete item.dataset.activeRequest;
+      });
+      button.dataset.activeRequest = "true";
+      openBulkItemCancelModal(button);
+    });
+  });
+
   /*
    * =========================================================
    * 주문 전체 취소 버튼
@@ -395,7 +487,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll(".payment-cancel-btn").forEach(function (button) {
     button.addEventListener("click", function () {
-      openOrderCancelModal(button.dataset.orderNo);
+      openOrderCancelModal(button.dataset.orderNo, button.dataset.requestKind || "CANCEL");
     });
   });
 
