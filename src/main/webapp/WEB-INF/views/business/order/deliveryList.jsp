@@ -40,7 +40,9 @@
                     <label for="delivery-status-filter">배송 상태</label>
                     <select id="delivery-status-filter" name="status" class="form-input">
                         <option value="">전체</option>
-                        <option value="PREPARING" ${selectedStatus eq 'PREPARING' ? 'selected' : ''}>상품 준비 중</option>
+                        <%-- [추가] 결제 직후 사업자 확인 전 단계 --%>
+                        <option value="CONFIRMED" ${selectedStatus eq 'CONFIRMED' ? 'selected' : ''}>주문 확인중</option>
+                        <option value="PREPARING" ${selectedStatus eq 'PREPARING' ? 'selected' : ''}>배송 준비 중</option>
                         <option value="SHIPPING" ${selectedStatus eq 'SHIPPING' ? 'selected' : ''}>배송 중</option>
                         <option value="DELIVERED" ${selectedStatus eq 'DELIVERED' ? 'selected' : ''}>배송 완료</option>
                     </select>
@@ -76,8 +78,11 @@
                                         <c:when test="${delivery.status eq 'SHIPPING'}">
                                             <span class="status waiting">배송 중</span>
                                         </c:when>
+                                        <c:when test="${delivery.status eq 'PREPARING'}">
+                                            <span class="status waiting">배송 준비 중</span>
+                                        </c:when>
                                         <c:otherwise>
-                                            <span class="status waiting">상품 준비 중</span>
+                                            <span class="status waiting">주문 확인중</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -127,7 +132,7 @@
                                     <div class="delivery-form-field">
                                         <label for="status-${delivery.orderItemNo}">배송 상태</label>
                                         <select id="status-${delivery.orderItemNo}" name="status" class="form-input">
-                                            <option value="PREPARING" ${delivery.status eq 'PREPARING' ? 'selected' : ''}>상품 준비 중</option>
+                                            <option value="PREPARING" ${delivery.status eq 'PREPARING' ? 'selected' : ''}>배송 준비 중</option>
                                             <option value="SHIPPING" ${delivery.status eq 'SHIPPING' ? 'selected' : ''}>배송 중</option>
                                             <option value="DELIVERED" ${delivery.status eq 'DELIVERED' ? 'selected' : ''}>배송 완료</option>
                                         </select>
