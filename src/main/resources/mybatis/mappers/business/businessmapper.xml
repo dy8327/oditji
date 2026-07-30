@@ -953,6 +953,7 @@
 
           AND OI.STATUS IN (
               'PAID',
+              'CONFIRMED',
               'PREPARING',
               'SHIPPING',
               'DELIVERED'
@@ -983,6 +984,7 @@
         WHERE OI.BUSINESS_NO = #{businessNo}
           AND OI.STATUS IN (
               'PAID',
+              'CONFIRMED',
               'PREPARING',
               'SHIPPING',
               'DELIVERED'
@@ -1283,7 +1285,7 @@
             NVL(D.STATUS,
                 CASE
                     WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
-                    ELSE 'PREPARING'
+                    ELSE 'CONFIRMED'
                 END
             ) AS STATUS,
             O.CREATED_AT AS ORDER_CREATED_AT,
@@ -1301,7 +1303,7 @@
           AND NVL(D.STATUS,
                 CASE
                     WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
-                    ELSE 'PREPARING'
+                    ELSE 'CONFIRMED'
                 END
               ) = #{status}
         </if>
