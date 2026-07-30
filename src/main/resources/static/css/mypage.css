@@ -624,7 +624,7 @@
   }
 
   .mypage-account-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -684,7 +684,30 @@
   }
 
   .mypage-activity-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .mypage-activity-card {
+    padding: 20px 12px;
+  }
+
+  .mypage-activity-icon {
+    margin-bottom: 10px;
+    font-size: 26px;
+  }
+
+  .mypage-activity-count {
+    margin-bottom: 6px;
+    font-size: 26px;
+  }
+
+  .mypage-account-grid {
+    gap: 12px;
+  }
+
+  .mypage-account-card {
+    padding: 18px;
   }
 
   .mypage-review-top {

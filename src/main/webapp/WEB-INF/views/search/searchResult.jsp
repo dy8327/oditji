@@ -57,7 +57,23 @@
 
         <aside class="search-left-sidebar"
                aria-label="검색 필터">
-            <jsp:include page="/WEB-INF/views/common/leftSidebar.jsp"/>
+
+            <!-- 모바일 전용 필터 펼치기 버튼 (데스크톱에서는 숨김) -->
+            <button type="button"
+                    class="search-mobile-filter-toggle"
+                    data-mobile-filter-toggle
+                    aria-expanded="false"
+                    aria-controls="searchMobileFilterPanel">
+                <span>필터</span>
+                <span class="mobile-filter-toggle-arrow" aria-hidden="true">⌄</span>
+            </button>
+
+            <div class="search-mobile-filter-panel"
+                 id="searchMobileFilterPanel"
+                 data-mobile-filter-panel>
+                <jsp:include page="/WEB-INF/views/common/leftSidebar.jsp"/>
+            </div>
+
         </aside>
 
         <section class="search-result-area"

@@ -8,6 +8,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>사업자 채팅방</title>
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-room-list.css?v=2">

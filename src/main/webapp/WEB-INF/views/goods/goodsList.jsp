@@ -14,6 +14,7 @@
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ODITJI | 상품</title>
 
@@ -53,8 +54,24 @@
     ================================================== -->
     <aside class="goods-left-sidebar" id="goods-category-filter">
 
-        <jsp:include
-            page="/WEB-INF/views/common/goodsLeftSidebar.jsp"/>
+        <!-- 모바일 전용 필터 펼치기 버튼 (데스크톱에서는 숨김) -->
+        <button type="button"
+                class="goods-mobile-filter-toggle"
+                data-mobile-filter-toggle
+                aria-expanded="false"
+                aria-controls="goodsMobileFilterPanel">
+            <span>필터</span>
+            <span class="mobile-filter-toggle-arrow" aria-hidden="true">⌄</span>
+        </button>
+
+        <div class="goods-mobile-filter-panel"
+             id="goodsMobileFilterPanel"
+             data-mobile-filter-panel>
+
+            <jsp:include
+                page="/WEB-INF/views/common/goodsLeftSidebar.jsp"/>
+
+        </div>
 
     </aside>
 
