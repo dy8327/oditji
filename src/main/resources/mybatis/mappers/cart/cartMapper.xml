@@ -64,6 +64,18 @@
 
     </resultMap>
 
+    <!-- 진행 중인 이벤트 할인율 조회 -->
+    <sql id="activeEventDiscountJoin">
+        LEFT JOIN (
+            SELECT EP.PRODUCT_NO, MAX(EP.EVENT_DISCOUNT_RATE) AS ACTIVE_EVENT_DISCOUNT_RATE
+            FROM EVENT_PRODUCT EP
+            INNER JOIN EVENT E ON E.EVENT_NO = EP.EVENT_NO
+            WHERE E.STATUS = 'APPROVED'
+            AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+            GROUP BY EP.PRODUCT_NO
+        ) AED ON AED.PRODUCT_NO = P.PRODUCT_NO
+    </sql>
+
     <!-- 회원 장바구니 조회 -->
     <select id="selectCartByMemberNo"
             resultMap="cartResultMap">
@@ -112,7 +124,7 @@
             P.PRODUCT_NAME,
             P.PRODUCT_TYPE,
             P.PRICE,
-            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
             NVL(P.STOCK, 0) AS STOCK,
             P.STATUS,
             B.BUSINESS_NAME,
@@ -121,7 +133,7 @@
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
-
+        <include refid="activeEventDiscountJoin"/>
         LEFT JOIN (
             SELECT
                 PRODUCT_NO,
@@ -178,7 +190,7 @@
             P.PRODUCT_NAME,
             P.PRODUCT_TYPE,
             P.PRICE,
-            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
             NVL(P.STOCK, 0) AS STOCK,
             P.STATUS,
             B.BUSINESS_NAME,
@@ -193,7 +205,7 @@
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
-
+        <include refid="activeEventDiscountJoin"/>
         LEFT JOIN (
             SELECT
                 PRODUCT_NO,
@@ -320,7 +332,7 @@
             P.PRODUCT_NAME,
             P.PRODUCT_TYPE,
             P.PRICE,
-            NVL(P.DISCOUNT_RATE, 0) AS DISCOUNT_RATE,
+            NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
             NVL(P.STOCK, 0) AS STOCK,
             P.STATUS,
             B.BUSINESS_NAME,
@@ -335,7 +347,7 @@
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
-
+        <include refid="activeEventDiscountJoin"/>
         LEFT JOIN (
             SELECT
                 PRODUCT_NO,
