@@ -8,31 +8,48 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.project.oditji.common.interceptor.AccessLogInterceptor;
 import com.project.oditji.common.interceptor.AdminCheckInterceptor;
 import com.project.oditji.common.interceptor.BusinessCheckInterceptor;
+import com.project.oditji.common.interceptor.LoginCheckInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private final LoginCheckInterceptor loginCheckInterceptor;
     private final AdminCheckInterceptor adminCheckInterceptor;
     private final BusinessCheckInterceptor businessCheckInterceptor;
     private final AccessLogInterceptor accessLogInterceptor;
 
     public WebConfig(
+            LoginCheckInterceptor loginCheckInterceptor,
             AdminCheckInterceptor adminCheckInterceptor,
             BusinessCheckInterceptor businessCheckInterceptor,
             AccessLogInterceptor accessLogInterceptor) {
 
+        this.loginCheckInterceptor = loginCheckInterceptor;
         this.adminCheckInterceptor = adminCheckInterceptor;
         this.businessCheckInterceptor = businessCheckInterceptor;
         this.accessLogInterceptor = accessLogInterceptor;
     }
 
-    // 관리자 페이지 접근 권한 체크 + 전체 접속 로그(ACCESS_LOG) 기록
-  
-@Override
-        public void addInterceptors(InterceptorRegistry registry) {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 일반회원 로그인 필수 화면
+        registry.addInterceptor(loginCheckInterceptor)
+                .addPathPatterns(
+                        "/member/mypage",
+                        "/cart",
+                        "/favorite/list",
+                        "/review/myReviewList",
+                        "/order/list",
+                        "/order/delivery",
+                        "/order/complete/**",
+                        "/verify/adult"
+                );
+
+        // 관리자 페이지 접근 권한 체크
         registry.addInterceptor(adminCheckInterceptor)
                 .addPathPatterns("/admin", "/admin/**", "/payment/list");
 
+        // 사업자 페이지 접근 권한 체크
         registry.addInterceptor(businessCheckInterceptor)
                 .addPathPatterns(
                         "/business",
@@ -41,6 +58,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/chat/**"
                 );
 
+        // 전체 접속 로그 기록
         registry.addInterceptor(accessLogInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
@@ -51,29 +69,17 @@ public class WebConfig implements WebMvcConfigurer {
                         "/favicon.ico",
                         "/error"
                 );
-}
+    }
 
-        @Override
-        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/profile/**")
+                .addResourceLocations("file:///C:/oditji/uploads/profile/");
 
-                registry.addResourceHandler("/uploads/profile/**")
-                                .addResourceLocations("file:///C:/oditji/uploads/profile/");
+        registry.addResourceHandler("/uploads/product/**")
+                .addResourceLocations("file:///C:/oditji/uploads/product/");
 
-                registry.addResourceHandler("/uploads/product/**")
-                                .addResourceLocations("file:///C:/oditji/uploads/product/");
-
-                /*
-                 * =========================================================
-                 * 이벤트 이미지 외부 업로드 폴더 연결
-                 *
-                 * 실제 저장 경로:
-                 * C:/oditji/uploads/event/
-                 *
-                 * 브라우저 접근 경로:
-                 * /oditji/uploads/event/파일명
-                 * =========================================================
-                 */
-                registry.addResourceHandler("/uploads/event/**")
-                                .addResourceLocations("file:///C:/oditji/uploads/event/");
-        }
+        registry.addResourceHandler("/uploads/event/**")
+                .addResourceLocations("file:///C:/oditji/uploads/event/");
+    }
 }
