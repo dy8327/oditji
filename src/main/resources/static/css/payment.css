@@ -607,6 +607,19 @@ body.modal-open {
     overflow-x: auto;
   }
 
+  body > .container table {
+    min-width: 560px;
+  }
+
+  body > .container th,
+  body > .container td {
+    white-space: nowrap;
+  }
+
+  body > .container .long-text {
+    white-space: normal;
+  }
+
   .payment-cancel-modal {
     padding: 16px;
   }

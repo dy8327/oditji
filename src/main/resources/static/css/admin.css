@@ -1596,6 +1596,16 @@
   .admin-wrap .item-actions {
     flex-wrap: wrap;
   }
+
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .admin-wrap .table-text-clamp {
+    white-space: normal;
+  }
 }
 
 /* =====================================================

@@ -629,6 +629,12 @@
 }
 
 @media (max-width: 768px) {
+  .mypage-container {
+    width: 100%;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
   .mypage-profile {
     flex-direction: column;
 
