@@ -152,4 +152,18 @@ public class OrderVO {
     public void setItems(List<OrderItemVO> items) {
         this.items = items == null ? new ArrayList<OrderItemVO>() : items;
     }
+
+    /*
+     * =========================================================
+     * [추가] 주문 카드 전체 취소/전체 환불 버튼 노출 판단
+     * 모든 주문상품이 동일한 요청 가능 상태일 때만 전체 버튼을 표시한다.
+     * =========================================================
+     */
+    public boolean isAllCancelEligible() {
+        return !items.isEmpty() && items.stream().allMatch(OrderItemVO::isCancelEligible);
+    }
+
+    public boolean isAllRefundEligible() {
+        return !items.isEmpty() && items.stream().allMatch(OrderItemVO::isRefundEligible);
+    }
 }
