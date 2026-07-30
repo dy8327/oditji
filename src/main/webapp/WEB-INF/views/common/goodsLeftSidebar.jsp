@@ -91,6 +91,23 @@
            name="page"
            value="1">
 
+    <%-- [추가] 현재 목록 유형을 필터 적용 후에도 유지합니다. --%>
+    <input type="hidden"
+           name="type"
+           value="<c:out value='${type}'/>">
+
+    <%--
+        [수정] 세부 카테고리를 선택한 화면에서는 상품 종류 체크박스를
+        숨기고, 선택한 카테고리 값을 hidden으로 계속 전달합니다.
+    --%>
+    <c:if test="${type eq 'category'}">
+        <c:forEach var="selectedType" items="${productTypes}">
+            <input type="hidden"
+                   name="productTypes"
+                   value="<c:out value='${selectedType}'/>">
+        </c:forEach>
+    </c:if>
+
     <!-- =====================================
          PRODUCT TYPE
 
@@ -98,6 +115,8 @@
          실제로 등록되어 있는 상품 종류만 들어온다.
          따라서 DB에 상품이 존재하는 종류만 화면에 표시한다.
     ====================================== -->
+    <%-- [수정] 카테고리 화면에서는 가격대/재고 상태 필터만 표시합니다. --%>
+    <c:if test="${type ne 'category'}">
     <section class="filter-group">
 
         <h2 class="filter-group-title">
@@ -203,6 +222,8 @@
         </c:forEach>
 
     </section>
+
+    </c:if>
 
     <!-- =====================================
          PRICE RANGE
@@ -369,6 +390,18 @@
 
             <c:param name="keyword"
                      value="${keyword}"/>
+
+            <%-- [수정] 초기화 시에도 현재 목록 유형을 유지합니다. --%>
+            <c:param name="type"
+                     value="${type}"/>
+
+            <%-- [수정] 카테고리 화면에서는 선택한 세부 카테고리도 유지합니다. --%>
+            <c:if test="${type eq 'category'}">
+                <c:forEach var="selectedType" items="${productTypes}">
+                    <c:param name="productTypes"
+                             value="${selectedType}"/>
+                </c:forEach>
+            </c:if>
 
         </c:url>
 
