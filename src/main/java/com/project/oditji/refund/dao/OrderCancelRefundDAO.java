@@ -1,5 +1,6 @@
 package com.project.oditji.refund.dao;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -10,6 +11,14 @@ import com.project.oditji.refund.vo.OrderCancelRefundVO;
 
 @Mapper
 public interface OrderCancelRefundDAO {
+
+        /* [추가] 사용자 취소/환불 내역 조건 조회 */
+        List<OrderCancelRefundVO> selectMemberCancelRefundHistory(
+                        @Param("memberNo") Long memberNo,
+                        @Param("historyType") String historyType,
+                        @Param("status") String status,
+                        @Param("startDate") Date startDate,
+                        @Param("endDate") Date endDate);
 
         List<OrderItemVO> selectCancelableItemsByOrder(@Param("memberNo") Long memberNo,
                         @Param("orderNo") Long orderNo);
@@ -70,8 +79,7 @@ public interface OrderCancelRefundDAO {
          */
         int rejectSettlementsByCancelGroupNo(@Param("cancelGroupNo") Long cancelGroupNo);
 
-        int restoreProductStock(@Param("productNo") Long productNo,
-                        @Param("quantity") Integer quantity);
+        int restoreProductStock(@Param("productNo") Long productNo, @Param("quantity") Integer quantity);
 
         int updateOrderStatusByItems(@Param("orderNo") Long orderNo);
 }
