@@ -108,6 +108,13 @@ public class SearchContentCollectorService {
         ageRatingService.applyManualOverrides(filteredPreviousSnapshot);
         ageRatingService.recheckUnknownAgeRatings(filteredPreviousSnapshot);
 
+        /*
+         * 기존 JSONL에 이미 저장된 청소년 관람불가/등급 미확인 콘텐츠 중
+         * 새 원본 등급 제외 정책을 아직 확인하지 않은 항목을 한 번 재검사합니다.
+         * R18+, NC-17, TV-MA-S 계열이 확인되면 이 단계에서 목록에서 제거됩니다.
+         */
+        ageRatingService.recheckRestrictedAgeRatings(filteredPreviousSnapshot);
+
         TmdbProviderRegistry providerRegistry = providerService.loadRegistry();
 
         Map<String, CachedContentVO> previousMap =

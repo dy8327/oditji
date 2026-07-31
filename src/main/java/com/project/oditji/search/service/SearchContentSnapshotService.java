@@ -304,6 +304,12 @@ public class SearchContentSnapshotService {
                 content.getAgeRatingLastCheckedAt()
         );
 
+        putNullable(
+                json,
+                "ageRatingRestrictionChecked",
+                content.getAgeRatingRestrictionChecked()
+        );
+
         /*
          * 영화 러닝타임 또는 TV 대표 회차 러닝타임을
          * 분 단위로 스냅샷에 저장합니다.
@@ -475,6 +481,16 @@ public class SearchContentSnapshotService {
                         "ageRatingLastCheckedAt"
                 )
         );
+
+        if (json.has("ageRatingRestrictionChecked")
+                && !json.isNull("ageRatingRestrictionChecked")) {
+
+            content.setAgeRatingRestrictionChecked(
+                    json.getBoolean(
+                            "ageRatingRestrictionChecked"
+                    )
+            );
+        }
 
         /*
          * 기존 스냅샷에는 runtime 키가 없을 수 있으므로
