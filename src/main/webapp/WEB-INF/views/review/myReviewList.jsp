@@ -141,7 +141,7 @@
 
 											</span>
 
-											<h3>${review.title}</h3>
+											<h3><c:out value="${review.title}"/></h3>
 
 											<span>
 
@@ -162,7 +162,7 @@
 
 									<p class="mypage-review-content">
 
-										${review.content}
+										<c:out value="${review.content}"/>
 
 									</p>
 
