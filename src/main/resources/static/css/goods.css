@@ -1813,3 +1813,53 @@
     border-radius: 15px;
   }
 }
+
+/* =========================================================
+   [상품 옵션 기능 추가]
+   - 팀원 기존 goods.css 전체 유지
+   - 상품 상세 페이지 안에서만 적용되도록 범위 제한
+   - 다른 페이지의 동일 클래스명과 충돌 방지
+========================================================= */
+
+.goods-detail-container .detail-product-options {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 18px;
+  padding: 18px;
+
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.goods-detail-container .detail-product-options .detail-option-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.goods-detail-container .detail-product-options .detail-option-stock {
+  grid-column: 2 / 5;
+
+  color: #666666;
+  font-size: 14px;
+}
+
+/* 좁은 화면에서는 옵션명을 위아래로 배치 */
+@media (max-width: 600px) {
+  .goods-detail-container .detail-product-options {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-detail-container .detail-product-options .detail-option-stock {
+    grid-column: auto;
+  }
+}
