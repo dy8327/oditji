@@ -150,8 +150,8 @@
                         <ul>
                           <%--  <c:forEach var="order" items="${businessMain.recentOrders}">
                                 <li>
-                                    <span>${order.productName}</span>
-                                    <strong>${order.status}</strong>
+                                    <span><c:out value="${order.productName}"/></span>
+                                    <strong><c:out value="${order.status}"/></strong>
                                 </li>
                             </c:forEach>
                             <c:if test="${empty businessMain.recentOrders}">--%>
@@ -165,8 +165,8 @@
                         <ul>
                           <%--  <c:forEach var="review" items="${businessMain.recentReviews}">
                                 <li>
-                                    <span>${review.content}</span>
-                                    <strong>${review.rating}점</strong>
+                                    <span><c:out value="${review.content}"/></span>
+                                    <strong><c:out value="${review.rating}"/>점</strong>
                                 </li>
                             </c:forEach>
                             <c:if test="${empty businessMain.recentReviews}"> --%>

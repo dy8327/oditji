@@ -78,7 +78,7 @@
                             <c:forEach var="msg" items="${chatMessageList}">
 
                                 <div class="bubble ${msg.mine ? 'me' : ''}">
-                                    ${msg.content}
+                                    <c:out value="${msg.content}"/>
                                 </div>
 
                             </c:forEach>

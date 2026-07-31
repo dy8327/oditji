@@ -204,6 +204,10 @@
                                                 의상
                                             </c:when>
 
+                                            <c:when test="${product.productType == 'SHOES'}">
+                                                신발
+                                            </c:when>
+
                                             <c:when test="${product.productType == 'PROP'}">
                                                 소품
                                             </c:when>
@@ -222,6 +226,10 @@
 
                                             <c:when test="${product.productType == 'FIGURE'}">
                                                 피규어
+                                            </c:when>
+
+                                            <c:when test="${product.productType == 'POSTER'}">
+                                                포스터
                                             </c:when>
 
                                             <c:otherwise>

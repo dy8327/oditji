@@ -55,7 +55,6 @@
 
         </div>
 
-
         <%--
             상단 통계 카드.
             각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
@@ -90,7 +89,6 @@
 
         </div>
 
-
         <section class="admin-content-box">
 
             <%--
@@ -122,7 +120,6 @@
 
             </div>
 
-
             <div class="toolbar">
 
                 <form method="get"
@@ -137,21 +134,17 @@
                         상태 필터
                     </label>
 
-                    <select id="eventStatusFilter"
-                            name="tab"
-                            class="filter-select">
+                    <select id="eventStatusFilter" name="tab" class="filter-select">
                         <option value=""         ${empty currentTab ? 'selected' : ''}>상태 전체</option>
                         <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
                         <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
                         <option value="end"      ${currentTab == 'end' ? 'selected' : ''}>종료</option>
                     </select>
 
-
                     <%--
                         기간 필터. 이벤트의 요청일(등록일) 기준으로 최근 건만 좁혀 볼 때 사용한다.
                     --%>
-                    <label for="eventPeriodFilter"
-                           class="sr-only">
+                    <label for="eventPeriodFilter" class="sr-only">
                         기간 필터
                     </label>
 
@@ -164,32 +157,25 @@
                         <option value="month" ${currentPeriod == 'month' ? 'selected' : ''}>최근 30일</option>
                     </select>
 
-
                     <%--
                         검색창과 label을 for/id로 연결하여
                         키보드 사용자와 화면 낭독기가 검색 목적을 명확히 인식하도록 합니다.
                     --%>
-                    <label for="eventKeyword"
-                           class="sr-only">
+                    <label for="eventKeyword" class="sr-only">
                         사업자명 또는 이벤트명 검색
                     </label>
 
-                    <input type="text"
-                           id="eventKeyword"
-                           class="page-search"
-                           name="keyword"
+                    <input type="text" id="eventKeyword" class="page-search" name="keyword"
                            value="${param.keyword}"
                            placeholder="사업자명, 이벤트명 검색">
 
-                    <button type="submit"
-                            class="btn btn-dark search-btn">
+                    <button type="submit" class="btn btn-dark search-btn">
                         검색
                     </button>
 
                 </form>
 
             </div>
-
 
             <table class="data-table">
 
@@ -209,7 +195,6 @@
                     </tr>
 
                 </thead>
-
 
                 <tbody>
 
@@ -391,9 +376,13 @@
 
                                     </td>
 
-
                                     <td>
 
+                                        <%--
+                                            businessName/title/productDetail 등에 따옴표나 줄바꿈이
+                                            섞여도 onclick 인라인 문자열이 깨지지 않도록
+                                            data-* 속성으로 값을 전달한다.
+                                        --%>
                                         <button type="button"
                                                 class="btn btn-dark"
                                                 onclick="openEventDetailModal(
@@ -460,7 +449,6 @@
 
             </table>
 
-
             <div class="pagination">
 
                 <!-- 이전 블록 -->
@@ -469,13 +457,11 @@
                     <<
                 </a>
 
-
                 <!-- 이전 페이지 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
-
 
                 <!-- 페이지 번호 -->
                 <c:forEach var="p"
@@ -489,29 +475,21 @@
 
                 </c:forEach>
 
-
                 <!-- 다음 페이지 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
-
                 <!-- 다음 블록 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>
-
             </div>
-
-
         </section>
-
     </main>
-
 </div>
-
 
 <%--
     이벤트 요청 상세 및 승인·반려 팝업입니다.
@@ -525,15 +503,10 @@
     aria-labelledby:
     팝업 제목 요소와 모달을 연결합니다.
 --%>
-<div class="modal-overlay"
-     id="eventRequestModal"
-     role="dialog"
-     aria-modal="true"
+<div class="modal-overlay" id="eventRequestModal" role="dialog" aria-modal="true"
      aria-labelledby="eventRequestModalTitle">
 
-
     <div class="modal-box modal-box-lg">
-
 
         <div class="modal-header">
 
@@ -541,22 +514,18 @@
                 이벤트 상세
             </h3>
 
-
             <%--
                 클릭 가능한 span 대신 기본 키보드 동작을 지원하는 button을 사용합니다.
 
                 aria-label은 화면에 표시된 닫기 기호(×)의 목적을
                 화면 낭독기 사용자에게 명확하게 전달합니다.
             --%>
-            <button type="button"
-                    class="modal-close"
-                    aria-label="이벤트 상세 팝업 닫기"
+            <button type="button" class="modal-close" aria-label="이벤트 상세 팝업 닫기"
                     onclick="closeModal('eventRequestModal')">
                 &times;
             </button>
 
         </div>
-
 
         <div class="detail-section-title">
             이벤트 정보
@@ -600,7 +569,6 @@
 
         </div>
 
-
         <div class="detail-section-title">
             적용 상품
         </div>
@@ -623,32 +591,14 @@
 
         </table>
 
-
-        <form id="eventRequestForm"
-              action="${pageContext.request.contextPath}/admin/event/approve"
+        <form id="eventRequestForm" action="${pageContext.request.contextPath}/admin/event/approve"
               method="post">
 
-
-            <input type="hidden"
-                   name="eventNo"
-                   id="reqeventNo">
-
-
-            <input type="hidden"
-                   name="tab"
-                   value="${currentTab}">
-
-            <input type="hidden"
-                   name="period"
-                   value="${currentPeriod}">
-
-            <input type="hidden"
-                   name="keyword"
-                   value="${param.keyword}">
-
-            <input type="hidden"
-                   name="page"
-                   value="${pagination.currentPage}">
+            <input type="hidden" name="eventNo" id="reqeventNo">
+            <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="period" value="${currentPeriod}">
+            <input type="hidden" name="keyword"value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
 
 
             <%--
@@ -658,54 +608,32 @@
                 그래서 대기 상태가 아닐 때는 승인/반려 버튼 대신 안내 문구만 보여주고,
                 실제 표시 여부는 openEventDetailModal()이 상태값을 보고 JS로 전환한다.
             --%>
-            <p id="eventReadonlyNote"
-               class="modal-readonly-note"
-               style="display:none">
+            <p id="eventReadonlyNote" class="modal-readonly-note" style="display:none">
                 이미 처리된 요청이라 승인·반려할 수 없습니다.
             </p>
 
-            <div class="modal-footer"
-                 id="eventRequestActions">
+            <div class="modal-footer" id="eventRequestActions">
 
-
-                <button type="submit"
-                        id="eventApproveBtn"
-                        class="btn btn-success">
+                <button type="submit" id="eventApproveBtn" class="btn btn-success">
                     승인
                 </button>
-
-
-                <button type="submit"
-                        id="eventRejectBtn"
-                        formaction="${pageContext.request.contextPath}/admin/event/reject"
+                <button type="submit" id="eventRejectBtn" formaction="${pageContext.request.contextPath}/admin/event/reject"
                         class="btn btn-danger">
                     반려
                 </button>
-
-
-                <button type="button"
-                        class="btn btn-outline"
-                        onclick="closeModal('eventRequestModal')">
+                <button type="button" class="btn btn-outline" onclick="closeModal('eventRequestModal')">
                     닫기
                 </button>
-
             </div>
-
         </form>
-
     </div>
-
 </div>
 
-
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
-
 
 <script defer
         src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
-
 </body>
-
 </html>

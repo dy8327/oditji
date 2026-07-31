@@ -510,17 +510,17 @@ function formatEventWon(value) {
  * (WAITING이 아닌 이벤트에 승인/반려를 시도하면 adminMapper.xml의 updateEventStatus가
  * 0건을 갱신해 500 오류로 이어지던 문제를 화면에서 원천적으로 막기 위함이다.)
  */
-function openEventDetailModal(
-    eventNo,
-    businessName,
-    title,
-    period,
-    createdAt,
-    status,
-    statusLabel,
-    productDetail,
-    bannerImage
-) {
+function openEventDetailModal(button) {
+
+    var eventNo = button.dataset.eventNo;
+    var businessName = button.dataset.businessName;
+    var title = button.dataset.title;
+    var period = button.dataset.period;
+    var createdAt = button.dataset.createdAt;
+    var status = button.dataset.status;
+    var statusLabel = button.dataset.statusLabel;
+    var productDetail = button.dataset.productDetail;
+    var bannerImage = button.dataset.bannerImage;
 
     document.getElementById('reqeventNo').value = eventNo;
     document.getElementById('reqBusinessName').textContent = businessName;
@@ -669,11 +669,11 @@ function openOrderDetailModal(
     document.getElementById('orderDetailModal').classList.add('open');
 }
 
-function openRefundDetailModal(
-    cancelNo, orderNo, orderItemNo, productName, memberId, cancelType,
-    quantity, refundAmount, reason, cancelStatus, rejectReason,
-    createdAt, processedAt
-) {
+function openRefundDetailModal(button) {
+
+    var cancelStatus = button.dataset.cancelStatus;
+    var cancelType = button.dataset.cancelType;
+
     var statusLabel = cancelStatus;
     if (cancelStatus === 'WAITING') {
         statusLabel = '처리 대기';
@@ -685,17 +685,17 @@ function openRefundDetailModal(
 
     var typeLabel = (cancelType === 'FULL') ? '전체 취소' : '상품 부분 취소';
 
-    document.getElementById('refundDetailOrderNo').textContent = displayOrDash(orderNo);
-    document.getElementById('refundDetailProductName').textContent = displayOrDash(productName);
-    document.getElementById('refundDetailMemberId').textContent = displayOrDash(memberId);
+    document.getElementById('refundDetailOrderNo').textContent = displayOrDash(button.dataset.orderNo);
+    document.getElementById('refundDetailProductName').textContent = displayOrDash(button.dataset.productName);
+    document.getElementById('refundDetailMemberId').textContent = displayOrDash(button.dataset.memberId);
     document.getElementById('refundDetailType').textContent = typeLabel;
-    document.getElementById('refundDetailQuantity').textContent = displayOrDash(quantity) + '개';
-    document.getElementById('refundDetailAmount').textContent = formatWon(refundAmount);
+    document.getElementById('refundDetailQuantity').textContent = displayOrDash(button.dataset.quantity) + '개';
+    document.getElementById('refundDetailAmount').textContent = formatWon(button.dataset.refundAmount);
     document.getElementById('refundDetailStatus').textContent = displayOrDash(statusLabel);
-    document.getElementById('refundDetailCreatedAt').textContent = displayOrDash(createdAt);
-    document.getElementById('refundDetailProcessedAt').textContent = displayOrDash(processedAt);
-    document.getElementById('refundDetailReason').value = displayOrDash(reason);
-    document.getElementById('refundDetailRejectReason').value = displayOrDash(rejectReason);
+    document.getElementById('refundDetailCreatedAt').textContent = displayOrDash(button.dataset.createdAt);
+    document.getElementById('refundDetailProcessedAt').textContent = displayOrDash(button.dataset.processedAt);
+    document.getElementById('refundDetailReason').value = displayOrDash(button.dataset.reason);
+    document.getElementById('refundDetailRejectReason').value = displayOrDash(button.dataset.rejectReason);
 
     document.getElementById('refundDetailModal').classList.add('open');
 }

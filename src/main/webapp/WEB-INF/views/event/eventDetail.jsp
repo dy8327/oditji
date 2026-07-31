@@ -21,7 +21,7 @@ pageEncoding="UTF-8"%>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <title>
-            ${event.title}
+            <c:out value="${event.title}"/>
         </title>
 
         <link rel="stylesheet"
@@ -50,7 +50,7 @@ pageEncoding="UTF-8"%>
 
                             <img class="event-hero-image"
                                  src="${pageContext.request.contextPath}${event.bannerImage}"
-                                 alt="${event.title}">
+                                 alt="${fn:escapeXml(event.title)}">
 
                         </c:when>
 
@@ -73,7 +73,7 @@ pageEncoding="UTF-8"%>
                         </span>
 
                         <h1 class="event-hero-title">
-                            ${event.title}
+                            <c:out value="${event.title}"/>
                         </h1>
 
                         <p class="event-period">
