@@ -31,6 +31,9 @@ import com.project.oditji.admin.vo.VisitorTrendVO;
 @Repository
 public class AdminDAO {
 
+    private static final String PARAM_STATUS = "status";
+    private static final String PARAM_BUSINESS_NO = "businessNo";
+
     private final SqlSessionTemplate sqlSession;
 
     public AdminDAO(SqlSessionTemplate sqlSession) {
@@ -73,7 +76,7 @@ public class AdminDAO {
         Map<String, Object> param = new HashMap<>();
 
         param.put("memberNo", memberNo);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
 
         return sqlSession.update("updateMemberStatus", param);
     }
@@ -259,7 +262,7 @@ public class AdminDAO {
     public int updateContentReviewReportStatus(Long reviewNo, String status) {
         Map<String, Object> param = new HashMap<>();
         param.put("reviewNo", reviewNo);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         return sqlSession.update("adminUpdateContentReviewReportStatus", param);
     }
 
@@ -269,7 +272,7 @@ public class AdminDAO {
     public int updateProductReviewReportStatus(Long reviewNo, String status) {
         Map<String, Object> param = new HashMap<>();
         param.put("reviewNo", reviewNo);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         return sqlSession.update("adminUpdateProductReviewReportStatus", param);
     }
 
@@ -299,7 +302,7 @@ public class AdminDAO {
         Map<String, Object> param = new HashMap<>();
 
         param.put("eventNo", eventNo);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
 
         return sqlSession.update(
                 "updateEventStatus",
@@ -331,7 +334,7 @@ public class AdminDAO {
     public int updateProductStatus(Long productNo, String status) {
         Map<String, Object> param = new HashMap<>();
         param.put("productNo", productNo);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         return sqlSession.update("updateProductStatus", param);
     }
 
@@ -443,7 +446,7 @@ public class AdminDAO {
 
     public int updateBusinessGrade(Long businessNo, String gradeName) {
         Map<String, Object> param = new HashMap<>();
-        param.put("businessNo", businessNo);
+        param.put(PARAM_BUSINESS_NO, businessNo);
         param.put("gradeName", gradeName);
         return sqlSession.update("updateBusinessGrade", param);
     }
@@ -478,8 +481,8 @@ public class AdminDAO {
 
     public int updateBusinessStatus(Long businessNo, String status) {
         Map<String, Object> param = new HashMap<>();
-        param.put("businessNo", businessNo);
-        param.put("status", status);
+        param.put(PARAM_BUSINESS_NO, businessNo);
+        param.put(PARAM_STATUS, status);
         return sqlSession.update("updateBusinessStatus", param);
     }
 
@@ -500,9 +503,9 @@ public class AdminDAO {
     /* [수정] 월별로 묶인 수수료 요청을 사업자/정산월 기준으로 일괄 처리한다. */
     public int updateSettlementStatus(Long businessNo, String settlementMonth, String status) {
         Map<String, Object> param = new HashMap<>();
-        param.put("businessNo", businessNo);
+        param.put(PARAM_BUSINESS_NO, businessNo);
         param.put("settlementMonth", settlementMonth);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         return sqlSession.update("updateSettlementStatus", param);
     }
 

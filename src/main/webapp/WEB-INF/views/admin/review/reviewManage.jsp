@@ -202,7 +202,7 @@
                             <th class="checkbox-col">
                                 <input type="checkbox" id="reviewCheckAll"
                                        aria-label="전체 선택"
-                                       onclick="toggleAllReviews(this)">
+                                       onchange="toggleAllReviews(this)">
                             </th>
                             <th class="col-mobile-hide">번호</th>
                             <th>작성자</th>
@@ -238,7 +238,7 @@
                                                    name="reviewNos"
                                                    value="${review.reviewNo}"
                                                    aria-label="${review.reviewNo}번 리뷰 선택"
-                                                   onclick="updateSelectedReviewCount()">
+                                                   onchange="updateSelectedReviewCount()">
                                         </td>
 
                                         <td class="col-mobile-hide">${review.reviewNo}</td>

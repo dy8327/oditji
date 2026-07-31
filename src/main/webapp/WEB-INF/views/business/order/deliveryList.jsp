@@ -49,7 +49,9 @@
                     </select>
                 </div>
 
+                <label for="delivery-keyword" class="sr-only">배송 검색어</label>
                 <input type="text"
+                       id="delivery-keyword"
                        name="keyword"
                        class="form-input delivery-keyword-input"
                        value="${fn:escapeXml(keyword)}"
