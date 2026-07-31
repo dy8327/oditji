@@ -1,6 +1,4 @@
-<%@ page language="java"
-    contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -31,7 +29,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main id="mainContent" class="order-list-container"
+<main class="order-list-container"
       data-context-path="${pageContext.request.contextPath}"
       data-portone-test-mode="${portOneTestMode}"
       data-active-tab="${activeTab}">
@@ -193,6 +191,36 @@
                                             <c:out value="${i.productName}"/>
                                         </div>
 
+                                        <%--
+                                            =========================================================
+                                            [상품 옵션 정보 표시 추가]
+
+                                            구매 당시 선택한 상품 옵션이 존재하는 경우에만
+                                            색상과 사이즈 정보를 주문 내역에 표시한다.
+                                            =========================================================
+                                        --%>
+                                        <c:if test="${not empty i.optionNo}">
+                                            <div class="order-item-option">
+
+                                                <span class="option-label">옵션</span>
+
+                                                <c:if test="${not empty i.colorName}">
+                                                    <span>
+                                                        색상:
+                                                        <c:out value="${i.colorName}"/>
+                                                    </span>
+                                                </c:if>
+
+                                                <c:if test="${not empty i.sizeName}">
+                                                    <span>
+                                                        사이즈:
+                                                        <c:out value="${i.sizeName}"/>
+                                                    </span>
+                                                </c:if>
+
+                                            </div>
+                                        </c:if>
+
                                         <div>
                                             수량: ${i.quantity}
                                         </div>
@@ -208,7 +236,6 @@
                                         </div>
 
                                     </div>
-
                                 </a>
 
                                 <div class="order-item-actions">
