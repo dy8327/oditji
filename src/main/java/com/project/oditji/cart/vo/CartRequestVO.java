@@ -6,6 +6,8 @@ public class CartRequestVO {
 
     private Long cartItemNo;
     private Integer productNo;
+    // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 번호
+    private Long optionNo;
     private Integer quantity;
     private List<Long> cartItemNos;
 
@@ -26,6 +28,14 @@ public class CartRequestVO {
 
     public void setProductNo(Integer productNo) {
         this.productNo = productNo;
+    }
+
+    public Long getOptionNo() {
+        return optionNo;
+    }
+
+    public void setOptionNo(Long optionNo) {
+        this.optionNo = optionNo;
     }
 
     public Integer getQuantity() {
