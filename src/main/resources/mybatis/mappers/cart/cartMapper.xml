@@ -362,7 +362,18 @@
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
-        LEFT JOIN PRODUCT_OPTION PO ON PO.OPTION_NO = CI.OPTION_NO
+
+        <!--
+            =========================================================
+            [상품 옵션 조회 조건 보완]
+
+            장바구니에 저장된 OPTION_NO뿐 아니라
+            해당 옵션이 현재 상품에 속한 옵션인지 함께 검증한다.
+            =========================================================
+        -->
+        LEFT JOIN PRODUCT_OPTION PO
+            ON PO.OPTION_NO = CI.OPTION_NO AND PO.PRODUCT_NO = CI.PRODUCT_NO
+
         <include refid="activeEventDiscountJoin"/>
         LEFT JOIN (
             SELECT
