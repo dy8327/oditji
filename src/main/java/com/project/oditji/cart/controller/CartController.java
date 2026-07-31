@@ -74,11 +74,12 @@ public class CartController {
 
         try {
             int cartCount = cartService.addCartItem(
-                            loginMember.getMemberNo(),
-                            requestVO.getProductNo(),
-                            requestVO.getQuantity());
+                    loginMember.getMemberNo(),
+                    requestVO.getProductNo(),
+                    requestVO.getOptionNo(),
+                    requestVO.getQuantity());
 
-            Map<String, Object> response = successResponse("장바구니에 상품을 담았습니다." );
+            Map<String, Object> response = successResponse("장바구니에 상품을 담았습니다.");
             response.put("cartCount", cartCount);
 
             return response;
@@ -88,10 +89,10 @@ public class CartController {
             return failResponse(e.getMessage());
 
         } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("장바구니 상품 추가 중 오류 - productNo: {}", requestVO.getProductNo(), e);
-                }
-                return failResponse("장바구니 처리 중 오류가 발생했습니다.");
+            if (log.isErrorEnabled()) {
+                log.error("장바구니 상품 추가 중 오류 - productNo: {}", requestVO.getProductNo(), e);
+            }
+            return failResponse("장바구니 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -119,10 +120,10 @@ public class CartController {
             return failResponse(e.getMessage());
 
         } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("장바구니 수량 변경 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
-                }
-                return failResponse("수량 변경 중 오류가 발생했습니다.");
+            if (log.isErrorEnabled()) {
+                log.error("장바구니 수량 변경 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
+            }
+            return failResponse("수량 변경 중 오류가 발생했습니다.");
         }
     }
 
@@ -150,10 +151,10 @@ public class CartController {
             return failResponse(e.getMessage());
 
         } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("장바구니 상품 삭제 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
-                }
-                return failResponse("상품 삭제 중 오류가 발생했습니다.");
+            if (log.isErrorEnabled()) {
+                log.error("장바구니 상품 삭제 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
+            }
+            return failResponse("상품 삭제 중 오류가 발생했습니다.");
         }
     }
 
@@ -170,7 +171,7 @@ public class CartController {
         try {
             cartService.deleteSelectedCartItems(loginMember.getMemberNo(), requestVO.getCartItemNos());
 
-            Map<String, Object> response =successResponse("선택한 상품을 삭제했습니다.");
+            Map<String, Object> response = successResponse("선택한 상품을 삭제했습니다.");
             response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
 
             return response;
@@ -180,10 +181,10 @@ public class CartController {
             return failResponse(e.getMessage());
 
         } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("선택한 장바구니 상품 삭제 중 오류", e);
-                }
-                return failResponse("선택 상품 삭제 중 오류가 발생했습니다.");
+            if (log.isErrorEnabled()) {
+                log.error("선택한 장바구니 상품 삭제 중 오류", e);
+            }
+            return failResponse("선택 상품 삭제 중 오류가 발생했습니다.");
         }
     }
 
@@ -201,8 +202,8 @@ public class CartController {
             return response;
         }
 
-        response.put("success",true);
-        response.put("cartCount",cartService.countCartItems(loginMember.getMemberNo()));
+        response.put("success", true);
+        response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
 
         return response;
     }
