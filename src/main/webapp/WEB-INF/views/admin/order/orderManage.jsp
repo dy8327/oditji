@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:set var="activeMenu" value="order"/>
 <c:set var="currentTab" value="${empty param.tab ? 'order' : param.tab}"/>
@@ -275,10 +276,10 @@
                                         <tr>
 
                                             <td>${refund.orderNo}</td>
-                                            <td>${refund.productName}</td>
-                                            <td>${refund.contentTitle}</td>
-                                            <td>${refund.memberId}</td>
-                                            <td>${refund.reason}</td>
+                                            <td><c:out value="${refund.productName}"/></td>
+                                            <td><c:out value="${refund.contentTitle}"/></td>
+                                            <td><c:out value="${refund.memberId}"/></td>
+                                            <td><c:out value="${refund.reason}"/></td>
 
                                             <td>
                                                 <span class="badge ${refund.cancelStatus == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
@@ -292,23 +293,27 @@
                                             </td>
 
                                             <td>
+                                                <%--
+                                                    환불 사유/반려 사유에 따옴표나 줄바꿈이 섞여도
+                                                    onclick 인라인 문자열이 깨지지 않도록
+                                                    data-* 속성으로 값을 전달한다.
+                                                --%>
                                                 <div class="item-actions">
                                                     <button type="button" class="btn btn-dark"
-                                                            onclick="openRefundDetailModal(
-                                                                '${refund.cancelNo}',
-                                                                '${refund.orderNo}',
-                                                                '${refund.orderItemNo}',
-                                                                '${refund.productName}',
-                                                                '${refund.memberId}',
-                                                                '${refund.cancelType}',
-                                                                '${refund.quantity}',
-                                                                '${refund.refundAmount}',
-                                                                '${refund.reason}',
-                                                                '${refund.cancelStatus}',
-                                                                '${refund.rejectReason}',
-                                                                '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
-                                                                '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
-                                                            )">
+                                                            data-cancel-no="${refund.cancelNo}"
+                                                            data-order-no="${refund.orderNo}"
+                                                            data-order-item-no="${refund.orderItemNo}"
+                                                            data-product-name="${fn:escapeXml(refund.productName)}"
+                                                            data-member-id="${fn:escapeXml(refund.memberId)}"
+                                                            data-cancel-type="${refund.cancelType}"
+                                                            data-quantity="${refund.quantity}"
+                                                            data-refund-amount="${refund.refundAmount}"
+                                                            data-reason="${fn:escapeXml(refund.reason)}"
+                                                            data-cancel-status="${refund.cancelStatus}"
+                                                            data-reject-reason="${fn:escapeXml(refund.rejectReason)}"
+                                                            data-created-at="<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>"
+                                                            data-processed-at="<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>"
+                                                            onclick="openRefundDetailModal(this)">
                                                         상세보기
                                                     </button>
                                                 </div>
