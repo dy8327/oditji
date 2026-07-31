@@ -56,7 +56,7 @@ public class SearchContentAgeRatingService {
      * 최초 상세 보강 이후 허용할 추가 등급 재조회 횟수입니다.
      * 기본값 1이면 기존 "등급 정보 없음" 콘텐츠를 한 번만 다시 확인합니다.
      */
-    @Value("${search.content-cache.age-rating-retry-max-attempts:1}")
+    @Value("${search.content-cache.age-rating-retry-max-attempts:2}")
     private int retryMaxAttempts;
 
     /**
@@ -524,6 +524,9 @@ public class SearchContentAgeRatingService {
                         "results"
                 );
 
+        /*
+         * 1순위는 국내(KR) 등급입니다.
+         */
         String koreaRating =
                 findMovieCertification(
                         countries,
@@ -536,6 +539,34 @@ public class SearchContentAgeRatingService {
             );
         }
 
+        /*
+         * 국내 등급이 없을 때 일본(JP) 영화 등급을 보조 기준으로 사용합니다.
+         * 프로젝트 정책:
+         * - PG12  -> 15세 이상 관람가
+         * - R15+  -> 청소년 관람불가
+         */
+        String japanRating =
+                findMovieCertification(
+                        countries,
+                        "JP"
+                );
+
+        if (hasText(japanRating)) {
+            String convertedJapanRating =
+                    convertJapanMovieAgeRating(
+                            japanRating
+                    );
+
+            if (!AGE_UNKNOWN.equals(
+                    convertedJapanRating
+            )) {
+                return convertedJapanRating;
+            }
+        }
+
+        /*
+         * KR/JP에서 사용할 수 있는 등급이 없을 때 기존 US 변환을 사용합니다.
+         */
         String usRating =
                 findMovieCertification(
                         countries,
@@ -741,6 +772,39 @@ public class SearchContentAgeRatingService {
         }
 
         return AGE_UNKNOWN;
+    }
+
+    /**
+     * 일본 영화 등급을 ODITJI 내부 연령등급으로 변환합니다.
+     *
+     * 현재 프로젝트에서 확정한 수동 변환 정책만 적용합니다.
+     * 알 수 없는 일본 등급은 임의로 추정하지 않고 기존 US 보조 조회로 넘깁니다.
+     */
+    private String convertJapanMovieAgeRating(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return AGE_UNKNOWN;
+        }
+
+        String normalized =
+                rawRating.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .replace(" ", "")
+                        .replace("_", "-")
+                        .replace("-", "");
+
+        switch (normalized) {
+            case "PG12":
+                return AGE_15;
+
+            case "R15+":
+            case "R15":
+                return AGE_ADULT;
+
+            default:
+                return AGE_UNKNOWN;
+        }
     }
 
     private String convertUsMovieAgeRating(
