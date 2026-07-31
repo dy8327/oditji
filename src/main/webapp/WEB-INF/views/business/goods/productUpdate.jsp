@@ -72,7 +72,12 @@ const savedActorNo =
             </c:if>
 
 
-            <form action="${pageContext.request.contextPath}/business/product/update"
+            <%-- multipart POST는 Security Filter 단계에서 CSRF를 확인할 수 있도록 토큰을 URL 파라미터로 전달한다. --%>
+            <c:url var="productUpdateAction" value="/business/product/update">
+                <c:param name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            </c:url>
+
+            <form action="${productUpdateAction}"
                   method="post"
                   enctype="multipart/form-data"
                   onsubmit="return validateProductForm(event);">
