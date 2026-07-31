@@ -5,6 +5,226 @@
  */
 
 /**
+ * ===========================================
+ * CSRF Protection
+ * ===========================================
+ *
+ * SecurityConfig에서 Spring Security의 CSRF 보호를 활성화하면
+ * POST/PUT/PATCH/DELETE 같은 상태 변경 요청에는 CSRF 토큰이 필요합니다.
+ *
+ * ODITJI는 일반 HTML form과 fetch 요청을 함께 사용하므로,
+ * 공통 스크립트에서 두 요청 방식 모두에 토큰을 자동으로 추가합니다.
+ *
+ * - 일반 form: hidden input(_csrf)을 자동 추가
+ * - fetch: X-CSRF-TOKEN 헤더를 자동 추가
+ * - multipart/form-data: Spring Security 필터가 multipart body를 읽기 전에도
+ *   검증할 수 있도록 form action의 query parameter에 토큰을 추가
+ * - 외부 도메인 요청에는 토큰을 절대 전달하지 않음
+ */
+function getCsrfConfig() {
+  const tokenMeta = document.querySelector('meta[name="_csrf"]');
+  const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+  const parameterMeta = document.querySelector('meta[name="_csrf_parameter"]');
+
+  const token = tokenMeta?.getAttribute("content");
+
+  if (!token) {
+    return null;
+  }
+
+  return {
+    token,
+    headerName: headerMeta?.getAttribute("content") || "X-CSRF-TOKEN",
+    parameterName: parameterMeta?.getAttribute("content") || "_csrf",
+  };
+}
+
+function isCsrfSafeMethod(method) {
+  const normalizedMethod = String(method || "GET").toUpperCase();
+  return ["GET", "HEAD", "OPTIONS", "TRACE"].includes(normalizedMethod);
+}
+
+function isSameOriginUrl(url) {
+  try {
+    return new URL(url, window.location.href).origin === window.location.origin;
+  } catch (error) {
+    return false;
+  }
+}
+
+function resolveFormMethod(form, submitter) {
+  // formmethod 속성을 실제로 지정한 submit 버튼만 form의 method를 덮어쓴다.
+  // HTMLButtonElement.formMethod 프로퍼티는 브라우저 기본값을 반환할 수 있으므로
+  // 속성 존재 여부를 확인하지 않으면 POST form이 GET으로 오인될 수 있다.
+  if (submitter?.hasAttribute("formmethod")) {
+    return submitter.formMethod;
+  }
+
+  return form.method || "GET";
+}
+
+function resolveFormAction(form, submitter) {
+  if (submitter?.hasAttribute("formaction")) {
+    return submitter.formAction;
+  }
+
+  return form.action || window.location.href;
+}
+
+function resolveFormEnctype(form, submitter) {
+  // formenctype 역시 버튼에 명시된 경우에만 form의 enctype을 덮어쓴다.
+  if (submitter?.hasAttribute("formenctype")) {
+    return submitter.formEnctype;
+  }
+
+  return form.enctype || "application/x-www-form-urlencoded";
+}
+
+function upsertCsrfHiddenInput(form, csrfConfig) {
+  let csrfInput = form.querySelector(
+    `input[type="hidden"][name="${csrfConfig.parameterName}"]`
+  );
+
+  if (!csrfInput) {
+    csrfInput = document.createElement("input");
+    csrfInput.type = "hidden";
+    csrfInput.name = csrfConfig.parameterName;
+    form.appendChild(csrfInput);
+  }
+
+  csrfInput.value = csrfConfig.token;
+}
+
+function appendCsrfToMultipartAction(form, submitter, csrfConfig) {
+  const action = resolveFormAction(form, submitter);
+
+  if (!isSameOriginUrl(action)) {
+    return;
+  }
+
+  const actionUrl = new URL(action, window.location.href);
+  actionUrl.searchParams.set(csrfConfig.parameterName, csrfConfig.token);
+
+  if (submitter?.hasAttribute("formaction")) {
+    submitter.setAttribute("formaction", actionUrl.toString());
+  } else {
+    form.setAttribute("action", actionUrl.toString());
+  }
+}
+
+function attachCsrfToForm(form, submitter) {
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+
+  const csrfConfig = getCsrfConfig();
+
+  if (!csrfConfig) {
+    return;
+  }
+
+  const method = resolveFormMethod(form, submitter);
+
+  if (isCsrfSafeMethod(method)) {
+    return;
+  }
+
+  const action = resolveFormAction(form, submitter);
+
+  if (!isSameOriginUrl(action)) {
+    return;
+  }
+
+  const enctype = resolveFormEnctype(form, submitter).toLowerCase();
+
+  if (enctype === "multipart/form-data") {
+    appendCsrfToMultipartAction(form, submitter, csrfConfig);
+    return;
+  }
+
+  upsertCsrfHiddenInput(form, csrfConfig);
+}
+
+function installCsrfProtection() {
+  /**
+   * form.submit()은 submit 이벤트를 발생시키지 않으므로,
+   * 기존 프로젝트 코드에서 직접 form.submit()을 호출하는 경우도 보호합니다.
+   */
+  const nativeFormSubmit = HTMLFormElement.prototype.submit;
+
+  HTMLFormElement.prototype.submit = function csrfProtectedSubmit() {
+    attachCsrfToForm(this, null);
+    return nativeFormSubmit.call(this);
+  };
+
+  /**
+   * 사용자가 일반 제출 버튼을 누르거나 requestSubmit()을 사용하는 경우.
+   * capture 단계에서 먼저 토큰을 붙여 이후 이벤트 처리와 충돌하지 않게 합니다.
+   */
+  document.addEventListener(
+    "submit",
+    function attachCsrfOnSubmit(event) {
+      attachCsrfToForm(event.target, event.submitter || null);
+    },
+    true
+  );
+
+  /**
+   * 페이지에 이미 존재하는 POST form도 미리 토큰을 준비합니다.
+   * 이후 동적으로 만들어진 form은 submit 이벤트 또는 prototype 패치가 처리합니다.
+   */
+  function prepareExistingForms() {
+    document.querySelectorAll("form").forEach(function prepareForm(form) {
+      attachCsrfToForm(form, null);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", prepareExistingForms, {
+      once: true,
+    });
+  } else {
+    prepareExistingForms();
+  }
+
+  /**
+   * 기존 각 기능 JS를 일일이 수정하지 않도록 window.fetch를 한 번 감쌉니다.
+   * 같은 출처(same-origin)의 unsafe method에만 CSRF 헤더를 추가합니다.
+   */
+  if (typeof window.fetch === "function") {
+    const nativeFetch = window.fetch.bind(window);
+
+    window.fetch = function csrfProtectedFetch(input, init) {
+      const csrfConfig = getCsrfConfig();
+      const requestInit = init ? { ...init } : {};
+      const requestMethod =
+        requestInit.method || (input instanceof Request ? input.method : "GET");
+      const requestUrl = input instanceof Request ? input.url : input;
+
+      if (
+        csrfConfig &&
+        !isCsrfSafeMethod(requestMethod) &&
+        isSameOriginUrl(requestUrl)
+      ) {
+        const sourceHeaders =
+          requestInit.headers || (input instanceof Request ? input.headers : undefined);
+        const headers = new Headers(sourceHeaders);
+
+        if (!headers.has(csrfConfig.headerName)) {
+          headers.set(csrfConfig.headerName, csrfConfig.token);
+        }
+
+        requestInit.headers = headers;
+      }
+
+      return nativeFetch(input, requestInit);
+    };
+  }
+}
+
+installCsrfProtection();
+
+/**
  * SweetAlert2가 프로젝트 자체 모달(마이페이지 모달, 주문취소 모달,
  * 리뷰 모달, OTT 선택 모달, 탈퇴/복구 모달 등) 뒤에 가려지는 문제 방지.
  *
