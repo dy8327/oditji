@@ -159,6 +159,8 @@ public class GoodsController {
         }
 
         List<Map<String, Object>> imageList = goodsService.getGoodsImageList(productNo);
+        // [상품 옵션 기능 추가] 의상/신발의 색상-사이즈별 재고를 상세 화면에 전달합니다.
+        model.addAttribute("productOptionList", goodsService.getProductOptionList(productNo));
         Map<String, Object> content = goodsService.getGoodsContent(productNo);
         Map<String, Object> actor = goodsService.getGoodsActor(productNo);
         List<ProductReviewVO> reviewList = reviewService.getProductReviewList(productNo);
