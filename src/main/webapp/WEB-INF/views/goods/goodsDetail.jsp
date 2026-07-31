@@ -49,7 +49,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="goods-detail-container">
+<main id="mainContent" class="goods-detail-container">
 
 <div class="back-area">
 

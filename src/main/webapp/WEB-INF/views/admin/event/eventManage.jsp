@@ -36,7 +36,7 @@
 
     <jsp:include page="/WEB-INF/views/common/adminSidebar.jsp"/>
 
-    <main class="main-content">
+    <main id="mainContent" class="main-content">
 
         <div class="admin-page-header">
 
@@ -252,7 +252,7 @@
 
 
                                     <td>
-                                        <c:out value="${req.businessName}"/>
+                                        ${req.businessName}
                                     </td>
 
 
@@ -267,25 +267,25 @@
 
                                                     <c:when test="${req.status == 'APPROVED'}">
                                                         <span class="event-title-text event-title-approved">
-                                                            <c:out value="${req.title}"/>
+                                                            ${req.title}
                                                         </span>
                                                     </c:when>
 
                                                     <c:when test="${req.status == 'REJECTED'}">
                                                         <span class="event-title-text event-title-rejected">
-                                                            <c:out value="${req.title}"/>
+                                                            ${req.title}
                                                         </span>
                                                     </c:when>
 
                                                     <c:when test="${req.status == 'END'}">
                                                         <span class="event-title-text event-title-end">
-                                                            <c:out value="${req.title}"/>
+                                                            ${req.title}
                                                         </span>
                                                     </c:when>
 
                                                     <c:otherwise>
                                                         <span class="event-title-text event-title-waiting">
-                                                            <c:out value="${req.title}"/>
+                                                            ${req.title}
                                                         </span>
                                                     </c:otherwise>
 
@@ -297,7 +297,7 @@
 
                                             <!-- PC용 -->
                                             <span class="pc-event-title">
-                                                <c:out value="${req.title}"/>
+                                                ${req.title}
                                             </span>
 
 
@@ -385,16 +385,17 @@
                                         --%>
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                data-event-no="${req.eventNo}"
-                                                data-business-name="${fn:escapeXml(req.businessName)}"
-                                                data-title="${fn:escapeXml(req.title)}"
-                                                data-period="${reqStartDateStr} ~ ${reqEndDateStr}"
-                                                data-created-at="${reqCreatedAtStr}"
-                                                data-status="${req.status}"
-                                                data-status-label="${reqStatusLabel}"
-                                                data-product-detail="${fn:escapeXml(req.productDetail)}"
-                                                data-banner-image="${fn:escapeXml(reqBannerImageUrl)}"
-                                                onclick="openEventDetailModal(this)">
+                                                onclick="openEventDetailModal(
+                                                    '${req.eventNo}',
+                                                    '${fn:escapeXml(req.businessName)}',
+                                                    '${fn:escapeXml(req.title)}',
+                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
+                                                    '${reqCreatedAtStr}',
+                                                    '${req.status}',
+                                                    '${reqStatusLabel}',
+                                                    '${fn:escapeXml(req.productDetail)}',
+                                                    '${fn:escapeXml(reqBannerImageUrl)}'
+                                                )">
 
                                             상세보기
 

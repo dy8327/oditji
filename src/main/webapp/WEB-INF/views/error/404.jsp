@@ -14,7 +14,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<div class="error-wrap">
+<div id="mainContent" class="error-wrap">
 
     <div class="error-card">
 

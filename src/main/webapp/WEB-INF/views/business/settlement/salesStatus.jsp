@@ -30,7 +30,7 @@
         <%-- 사업자 전용 메뉴 사이드바를 불러온다. --%>
         <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
-        <main class="main-content">
+        <main id="mainContent" class="main-content">
 
             <a href="${pageContext.request.contextPath}/business/main"
                class="back-link">

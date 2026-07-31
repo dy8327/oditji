@@ -44,7 +44,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="goods-list-container goods-page-container">
+<main id="mainContent" class="goods-list-container goods-page-container">
 
 
 <div class="goods-layout">

@@ -25,7 +25,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="main">
+<main id="mainContent" class="main">
 
     <section class="hero">
 

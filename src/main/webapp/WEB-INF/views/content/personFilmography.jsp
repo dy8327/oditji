@@ -20,7 +20,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="filmography-container">
+<main id="mainContent" class="filmography-container">
 
     <div class="back-area">
         <button type="button"

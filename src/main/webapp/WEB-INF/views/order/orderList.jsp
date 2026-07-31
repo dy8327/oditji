@@ -31,7 +31,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="order-list-container"
+<main id="mainContent" class="order-list-container"
       data-context-path="${pageContext.request.contextPath}"
       data-portone-test-mode="${portOneTestMode}"
       data-active-tab="${activeTab}">

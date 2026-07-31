@@ -17,7 +17,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<div class="create-room-container">
+<div id="mainContent" class="create-room-container">
 
     <div class="create-room-header">
         <h2>

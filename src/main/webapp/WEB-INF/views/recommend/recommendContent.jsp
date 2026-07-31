@@ -25,7 +25,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="content-more-page recommend-page">
+<main id="mainContent" class="content-more-page recommend-page">
 
     <section class="content-more-hero">
 

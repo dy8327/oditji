@@ -22,7 +22,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="content-more-page">
+<main id="mainContent" class="content-more-page">
 
     <section class="content-more-hero">
 

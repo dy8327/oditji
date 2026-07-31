@@ -30,7 +30,7 @@
 
             <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
-            <main class="main-content">
+            <main id="mainContent" class="main-content">
 
                 <div class="business-page-header">
                     <h1 class="business-page-title">취소/환불 관리</h1>

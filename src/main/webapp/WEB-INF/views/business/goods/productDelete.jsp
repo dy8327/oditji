@@ -35,7 +35,7 @@
     <jsp:include
         page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
-    <main class="main-content">
+    <main id="mainContent" class="main-content">
 
         <a href="${pageContext.request.contextPath}/business/product/list"
            class="back-link">

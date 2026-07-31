@@ -45,7 +45,7 @@
      hidden>
 </div>
 
-<main class="detail-container">
+<main id="mainContent" class="detail-container">
 
 <div class="back-area">
 

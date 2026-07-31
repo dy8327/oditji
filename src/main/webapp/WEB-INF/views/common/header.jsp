@@ -15,6 +15,8 @@
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<a href="#mainContent" class="skip-link">본문 바로가기</a>
+
 <header class="header">
     <div class="header-container">
         <div class="header-left">

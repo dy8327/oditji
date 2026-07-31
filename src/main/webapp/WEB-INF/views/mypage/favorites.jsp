@@ -13,7 +13,7 @@
 <body>
 <%@ include file="/WEB-INF/views/common/header.jsp" %>
 
-<main class="odi-page">
+<main id="mainContent" class="odi-page">
   <section class="mypage-layout">
     <aside class="mypage-panel">
       <div class="profile-box">

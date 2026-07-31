@@ -14,7 +14,7 @@
 <div class="business-wrap">
     <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp" />
 
-    <main class="main-content">
+    <main id="mainContent" class="main-content">
         <a href="${pageContext.request.contextPath}/business/main" class="back-link">← 뒤로가기</a>
         <h1 class="page-title">수수료 관리</h1>
 

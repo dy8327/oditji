@@ -40,7 +40,7 @@
 
     <jsp:include page="/WEB-INF/views/common/adminSidebar.jsp"/>
 
-    <main class="main-content">
+    <main id="mainContent" class="main-content">
 
         <div class="admin-page-header">
 

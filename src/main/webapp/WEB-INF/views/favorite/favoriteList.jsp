@@ -27,7 +27,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="favorite-container">
+<main id="mainContent" class="favorite-container">
 
     <!-- HEADER -->
     <section class="favorite-header">

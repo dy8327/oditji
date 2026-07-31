@@ -23,7 +23,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="order-container">
+<main id="mainContent" class="order-container">
 
     <h1>주문서</h1>
 
