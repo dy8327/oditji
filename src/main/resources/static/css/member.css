@@ -158,7 +158,7 @@
 
   cursor: pointer;
 
-  background: #3b82f6;
+  background: #1e6ff5;
 
   color: white;
 
@@ -304,7 +304,7 @@
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #ffffff;
-  background: #3b82f6;
+  background: #1e6ff5;
   padding: 5px 12px;
   border-radius: 8px;
 }
@@ -559,7 +559,7 @@
   margin-top: 28px;
   border: none;
   border-radius: 12px;
-  background: #3b82f6;
+  background: #1e6ff5;
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;
@@ -935,7 +935,8 @@
 
 .oditji-btn-restore {
   background: #cfcfcf;
-  color: #fff;
+  /* [수정] 흰 글자 on #cfcfcf 는 대비 약 1.56:1로 매우 부족해 어두운 글자로 교체 */
+  color: #575757;
   cursor: not-allowed;
 }
 

@@ -15,6 +15,13 @@
 
   --color-point: #5ea3ff;
 
+  /* [수정] --color-point(#5ea3ff)는 테두리·링크 등 용도로는 대비가 충분하지만,
+     흰 글자를 얹는 "꽉 찬 배경"(버튼/active 상태)에서는 흰색 텍스트와의
+     대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
+     이런 채워진 배경 전용으로 더 진한 톤을 별도로 둔다. (대비 약 4.6:1) */
+  --color-point-strong: #2f6fe4;
+  --color-point-strong-hover: #2559c4;
+
   --header-height: 80px;
 
   --radius: 14px;
@@ -507,7 +514,8 @@
 
   border-radius: 999px;
 
-  background: var(--color-point);
+  /* [수정] --color-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --color-point-strong으로 교체 */
+  background: var(--color-point-strong);
 
   color: #fff;
 
@@ -877,7 +885,6 @@
     height: 70px;
   }
 }
-
 @media (max-width:768px){
 
     .header{
@@ -984,7 +991,6 @@
 
         display:none;
     }
-
   .header-search {
     display: none;
   }
@@ -1154,7 +1160,8 @@ html {
 
 .event-period-links a:hover,
 .event-period-links a.active {
-  background: var(--color-point);
+  /* [수정] --color-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --color-point-strong으로 교체 */
+  background: var(--color-point-strong);
   color: var(--color-white);
 }
 
@@ -1204,7 +1211,8 @@ html {
   padding: 0 5px;
   border: 2px solid var(--color-bg);
   border-radius: 999px;
-  background: #e53935;
+  /* [수정] 흰 글자 on #e53935는 대비 약 4.23:1로 부족해 더 진한 톤으로 교체 */
+  background: #e32a26;
   color: #ffffff;
   font-size: 10px;
   font-weight: 800;

@@ -113,7 +113,8 @@ body.chat-room-list-page {
 
 .notice-badge {
     background: #fff3e0;
-    color: #ef6c00;
+    /* [수정] #ef6c00 on #fff3e0는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
+    color: #b65200;
 }
 
 .public-badge {
@@ -197,7 +198,8 @@ body.chat-room-list-page {
     border-radius: 10px;
     padding: 34px;
     text-align: center;
-    color: #777777;
+    /* [수정] #777777 on #ffffff는 대비 약 4.48:1로 근소하게 부족해 살짝 어둡게 교체 */
+    color: #767676;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 

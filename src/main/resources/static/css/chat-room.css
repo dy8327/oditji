@@ -82,7 +82,8 @@ body.chat-page {
 .readonly-notice {
     padding: 12px 20px;
     background: #fff8e1;
-    color: #8d6e63;
+    /* [수정] #8d6e63 on #fff8e1는 대비 약 4.35:1로 근소하게 부족해 살짝 어둡게 교체 */
+    color: #896b60;
     border-bottom: 1px solid #ffe0b2;
     font-size: 14px;
     font-weight: 700;
@@ -194,9 +195,10 @@ body.chat-page {
 }
 
 .notice-message-row.mine .bubble {
-    background: #ef6c00;
+    /* [수정] 흰 글자 on #ef6c00는 대비 약 3.1:1로 부족해 더 진한 톤으로 교체 */
+    background: #c25700;
     color: #ffffff;
-    border-color: #ef6c00;
+    border-color: #c25700;
 }
 
 /*
@@ -390,7 +392,8 @@ body.chat-page {
     padding: 17px 20px;
     border-top: 1px solid #ffe0b2;
     background: #fff8e1;
-    color: #8d6e63;
+    /* [수정] #8d6e63 on #fff8e1는 대비 약 4.35:1로 근소하게 부족해 살짝 어둡게 교체 */
+    color: #896b60;
     text-align: center;
     font-weight: 700;
 }
@@ -400,7 +403,8 @@ body.chat-page {
 }
 
 .top-btn-area button {
-    background: #607d8b;
+    /* [수정] 흰 글자 on #607d8b는 대비 약 4.37:1로 근소하게 부족해 살짝 어둡게 교체 */
+    background: #5e7a88;
     color: #ffffff;
     border: none;
     border-radius: 6px;

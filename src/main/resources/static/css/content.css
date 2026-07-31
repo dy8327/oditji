@@ -416,7 +416,8 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: #666;
+  /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
+  color: #7d7d7d;
   background: #101010;
   font-size: 10px;
 }
@@ -1005,7 +1006,8 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: #666666;
+  /* [수정] #666666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
+  color: #7d7d7d;
   background: #101010;
   font-size: 11px;
 }
@@ -1246,7 +1248,8 @@
   min-height: 198px;
   align-items: center;
   justify-content: center;
-  color: #666666;
+  /* [수정] #666666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
+  color: #7d7d7d;
   background: #101010;
   font-size: 10px;
 }
@@ -1377,7 +1380,8 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   background: #181818;
-  color: #777777;
+  /* [수정] #777777 on #181818은 대비 약 4.0:1로 부족해 더 밝게 교체 */
+  color: #818181;
   font-size: 13px;
   text-align: center;
 }

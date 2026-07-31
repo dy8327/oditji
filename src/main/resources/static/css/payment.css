@@ -351,9 +351,10 @@ body > .container > a.sub-link:hover,
 }
 
 .payment-cancel-btn:hover {
-  border-color: #ef4444;
+  /* [수정] 흰 글자 on #ef4444는 대비 약 3.76:1로 부족해 더 진한 톤으로 교체 */
+  border-color: #eb1414;
 
-  background: #ef4444;
+  background: #eb1414;
   color: #ffffff;
 }
 
@@ -556,9 +557,10 @@ body.modal-open {
 }
 
 .payment-cancel-submit-btn {
-  border: 1px solid #ef4444;
+  /* [수정] 흰 글자 on #ef4444는 대비 약 3.76:1로 부족해 더 진한 톤으로 교체 */
+  border: 1px solid #eb1414;
 
-  background: #ef4444;
+  background: #eb1414;
   color: #ffffff;
 }
 

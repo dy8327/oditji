@@ -33,7 +33,8 @@
 /* COUNT BADGE */
 .fav-count-badge{
 
-    background:#E63946;
+    /* [수정] 흰 글자 on #E63946는 대비 약 4.17:1로 부족해 더 진한 톤으로 교체 */
+    background:#e42735;
     color:#fff;
 
     padding:3px 10px;
@@ -177,7 +178,8 @@
     padding:4px 8px;
     border-radius:6px;
 
-    background:#E63946;
+    background:#e42735;
+    /* [수정] 흰 글자 on #E63946는 대비 약 4.17:1로 부족해 더 진한 톤으로 교체 */
     color:#fff;
 
     font-size:12px;

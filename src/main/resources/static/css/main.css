@@ -491,7 +491,8 @@ a {
     justify-content: center;
     border-radius: 10px;
     background: #1c1c1c;
-    color: #777777;
+    /* [수정] #777777 on #1c1c1c는 대비 약 3.8:1로 부족해 더 밝게 교체 */
+    color: #858585;
     font-size: 14px;
 }
 
