@@ -647,6 +647,7 @@
 
                         <label class="filter-option"
                                for="productType-${typeStatus.index}">
+                            <span class="search-sr-only">상품 유형 </span>
                             <input type="checkbox"
                                    id="productType-${typeStatus.index}"
                                    name="productTypes"

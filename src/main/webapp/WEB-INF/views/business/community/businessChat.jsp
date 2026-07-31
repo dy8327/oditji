@@ -106,7 +106,9 @@
                            name="roomId"
                            value="${activeRoom.roomId}">
 
+                    <label for="chatMessage" class="sr-only">메시지 입력</label>
                     <input type="text"
+                           id="chatMessage"
                            name="message"
                            placeholder="메시지를 입력하세요">
 

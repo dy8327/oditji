@@ -187,7 +187,7 @@
                             <th class="checkbox-col">
                                 <input type="checkbox" id="memberCheckAll"
                                        aria-label="전체 선택"
-                                       onclick="toggleAllMembers(this)">
+                                       onchange="toggleAllMembers(this)">
                             </th>
                             <th>회원번호</th>
                             <th>아이디</th>
@@ -266,7 +266,7 @@
                                                            name="memberNos"
                                                            value="${member.memberNo}"
                                                            aria-label="${member.memberName} 선택"
-                                                           onclick="updateSelectedMemberCount()">
+                                                           onchange="updateSelectedMemberCount()">
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>

@@ -13,17 +13,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ODITJI | 성인인증</title>
 
-    <%--
-        [CSRF 보호]
-        이 화면은 공통 header.jsp를 사용하지 않는 독립 화면이므로
-        Spring Security가 제공하는 CSRF 토큰을 이 JSP에서 직접 노출합니다.
-        verify.js가 /verify/adult/ready, /verify/adult/complete POST 요청에
-        이 토큰을 HTTP 헤더로 전송합니다.
-    --%>
-    <meta name="_csrf" content="${_csrf.token}">
-    <meta name="_csrf_header" content="${_csrf.headerName}">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+          crossorigin="anonymous">
     <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/verify.css">
@@ -129,21 +122,17 @@
     </main>
 </div>
 
-<%--
-    [성인인증 JavaScript 값 전달]
-    외부 정적 JavaScript에서는 JSP 표현식을 사용할 수 없으므로
-    contextPath, returnUrl과 CSRF 정보를 window.verifyConfig로 전달합니다.
---%>
+<%-- [성인인증 JavaScript 값 전달 수정]
+     외부 정적 JavaScript 파일에서는 JSP 표현식을 해석할 수 없으므로,
+     JSP 화면에서 contextPath와 returnUrl을 전역 변수로 전달합니다. --%>
 <script>
     window.verifyConfig = {
         contextPath: "<%= contextPath %>",
-        returnUrl: "<%= returnUrl %>",
-        csrfToken: document.querySelector('meta[name="_csrf"]')?.content || "",
-        csrfHeader: document.querySelector('meta[name="_csrf_header"]')?.content || "X-CSRF-TOKEN"
+        returnUrl: "<%= returnUrl %>"
     };
 </script>
 
-<script defer src="${pageContext.request.contextPath}/js/verify.js?v=2"></script>
+<script defer src="${pageContext.request.contextPath}/js/verify.js"></script>
 
 </body>
 </html>

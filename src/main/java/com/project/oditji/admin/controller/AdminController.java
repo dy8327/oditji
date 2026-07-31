@@ -28,6 +28,15 @@ public class AdminController {
     // 관리자 목록 화면 공용 페이징 설정 (한 페이지 10건, 페이지 번호 5개 단위 블록)
     private static final int ADMIN_PAGE_SIZE = 10;
     private static final int ADMIN_PAGE_BLOCK_SIZE = 5;
+    private static final String ATTR_ACTIVE_MENU = "activeMenu";
+    private static final String ATTR_PAGINATION = "pagination";
+    private static final String PARAM_SEARCH_TYPE = "searchType";
+    private static final String PARAM_STATUS = "status";
+    private static final String REDIRECT_PREFIX = "redirect:";
+    private static final String FLASH_MESSAGE = "message";
+    private static final String PARAM_KEYWORD = "keyword";
+    private static final String TAB_APPROVAL = "approval";
+    private static final String REDIRECT_ADMIN_CONTENT_LIST = "redirect:/admin/content/list";
 
     private final AdminService adminService;
 
@@ -40,7 +49,7 @@ public class AdminController {
     // 관리자 메인 페이지 (대시보드)
     @GetMapping("/main")
     public String adminMain(Model model) {
-        model.addAttribute("activeMenu", "main");
+        model.addAttribute(ATTR_ACTIVE_MENU, "main");
         model.addAttribute("adminMain", adminService.getDashboardStats());
         return "admin/main/adminMain";
     }
@@ -62,14 +71,14 @@ public class AdminController {
         int totalCount = adminService.getMemberListCount(keyword, searchType, status, memberType);
         PageVO pagination = buildMemberPagination(page, totalCount);
 
-        model.addAttribute("activeMenu", "member");
+        model.addAttribute(ATTR_ACTIVE_MENU, "member");
         model.addAttribute("memberList",
                 adminService.getMemberList(keyword, searchType, status, memberType, pagination.getCurrentPage(),
                         MEMBER_PAGE_SIZE));
         model.addAttribute("memberStats", adminService.getMemberStats());
-        model.addAttribute("pagination", pagination);
-        model.addAttribute("searchType", searchType);
-        model.addAttribute("status", status);
+        model.addAttribute(ATTR_PAGINATION, pagination);
+        model.addAttribute(PARAM_SEARCH_TYPE, searchType);
+        model.addAttribute(PARAM_STATUS, status);
         model.addAttribute("memberType", memberType);
 
         return "admin/member/memberManage";
@@ -85,7 +94,7 @@ public class AdminController {
             @RequestParam(required = false, defaultValue = "1") int page) {
 
         adminService.suspendMember(memberNo);
-        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+        return REDIRECT_PREFIX + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     @PostMapping("/member/withdraw")
@@ -101,12 +110,12 @@ public class AdminController {
         // 관리자가 탈퇴 처리하면 대기 상태 없이 즉시 DB에서 완전히 삭제한다.
         try {
             adminService.deleteMember(memberNo);
-            ra.addFlashAttribute("message", "회원 정보가 완전히 삭제되었습니다.");
+            ra.addFlashAttribute(FLASH_MESSAGE, "회원 정보가 완전히 삭제되었습니다.");
         } catch (IllegalStateException e) {
-            ra.addFlashAttribute("message", e.getMessage());
+            ra.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+        return REDIRECT_PREFIX + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     @PostMapping("/member/restore")
@@ -119,7 +128,7 @@ public class AdminController {
             @RequestParam(required = false, defaultValue = "1") int page) {
 
         adminService.restoreMember(memberNo);
-        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+        return REDIRECT_PREFIX + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     /**
@@ -137,8 +146,8 @@ public class AdminController {
             RedirectAttributes ra) {
 
         if (memberNos == null || memberNos.isEmpty()) {
-            ra.addFlashAttribute("message", "선택된 회원이 없습니다.");
-            return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+            ra.addFlashAttribute(FLASH_MESSAGE, "선택된 회원이 없습니다.");
+            return REDIRECT_PREFIX + memberListRedirectUrl(keyword, searchType, status, memberType, page);
         }
 
         try {
@@ -151,13 +160,13 @@ public class AdminController {
                 // 우회 요청 등으로 포함된 경우를 대비해 실제로 몇 명이 제외되었는지 안내한다.
                 message.append(" (자동삭제 예정 회원 ").append(skippedCount).append("명은 처리에서 제외되었습니다.)");
             }
-            ra.addFlashAttribute("message", message.toString());
+            ra.addFlashAttribute(FLASH_MESSAGE, message.toString());
 
         } catch (IllegalArgumentException e) {
-            ra.addFlashAttribute("message", e.getMessage());
+            ra.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + memberListRedirectUrl(keyword, searchType, status, memberType, page);
+        return REDIRECT_PREFIX + memberListRedirectUrl(keyword, searchType, status, memberType, page);
     }
 
     /**
@@ -179,13 +188,13 @@ public class AdminController {
                 .queryParam("page", page);
 
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
         if (searchType != null && !searchType.isBlank()) {
-            builder.queryParam("searchType", searchType);
+            builder.queryParam(PARAM_SEARCH_TYPE, searchType);
         }
         if (status != null && !status.isBlank()) {
-            builder.queryParam("status", status);
+            builder.queryParam(PARAM_STATUS, status);
         }
         if (memberType != null && !memberType.isBlank()) {
             builder.queryParam("memberType", memberType);
@@ -207,11 +216,11 @@ public class AdminController {
         int totalCount = adminService.getContentReviewListCount(tab, keyword, searchType);
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        model.addAttribute("activeMenu", "review");
+        model.addAttribute(ATTR_ACTIVE_MENU, "review");
         model.addAttribute("reviewList", adminService.getContentReviewList(tab, keyword, searchType,
                 pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         model.addAttribute("reviewStats", adminService.getContentReviewStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
         return "admin/review/reviewManage";
     }
 
@@ -223,8 +232,8 @@ public class AdminController {
             @RequestParam(required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
         adminService.deleteContentReview(reviewNo);
-        redirectAttributes.addFlashAttribute("message", "리뷰를 삭제했습니다.");
-        return "redirect:" + reviewListRedirectUrl(tab, keyword, searchType, page);
+        redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "리뷰를 삭제했습니다.");
+        return REDIRECT_PREFIX + reviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     // 신고 승인: 신고를 인정하여 리뷰를 삭제 처리한다.
@@ -239,12 +248,12 @@ public class AdminController {
 
         try {
             adminService.approveContentReviewReport(reviewNo);
-            redirectAttributes.addFlashAttribute("message", "신고를 승인하여 리뷰를 삭제했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "신고를 승인하여 리뷰를 삭제했습니다.");
         } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + reviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + reviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     // 신고 반려: 신고를 기각하고 리뷰는 그대로 유지한다.
@@ -259,12 +268,12 @@ public class AdminController {
 
         try {
             adminService.rejectContentReviewReport(reviewNo);
-            redirectAttributes.addFlashAttribute("message", "신고를 반려했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "신고를 반려했습니다.");
         } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + reviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + reviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     /**
@@ -282,8 +291,8 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         if (reviewNos == null || reviewNos.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "선택된 리뷰가 없습니다.");
-            return "redirect:" + reviewListRedirectUrl(tab, keyword, searchType, page);
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "선택된 리뷰가 없습니다.");
+            return REDIRECT_PREFIX + reviewListRedirectUrl(tab, keyword, searchType, page);
         }
 
         String label = switch (action) {
@@ -301,13 +310,13 @@ public class AdminController {
             if (skipped > 0) {
                 message.append(" (이미 처리되었거나 대상이 아닌 ").append(skipped).append("건은 제외되었습니다.)");
             }
-            redirectAttributes.addFlashAttribute("message", message.toString());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, message.toString());
 
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + reviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + reviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     /** 콘텐츠 리뷰 처리 후 방금 보고 있던 탭·검색기준·검색어·페이지 상태 그대로 목록으로 돌아가기 위한 URL. */
@@ -318,10 +327,10 @@ public class AdminController {
             builder.queryParam("tab", tab);
         }
         if (searchType != null && !searchType.isBlank()) {
-            builder.queryParam("searchType", searchType);
+            builder.queryParam(PARAM_SEARCH_TYPE, searchType);
         }
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
         return builder.build().toUriString();
     }
@@ -337,11 +346,11 @@ public class AdminController {
         int totalCount = adminService.getProductReviewListCount(tab, keyword, searchType);
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        model.addAttribute("activeMenu", "productReview");
+        model.addAttribute(ATTR_ACTIVE_MENU, "productReview");
         model.addAttribute("productReviewList", adminService.getProductReviewList(tab, keyword, searchType,
                 pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         model.addAttribute("productReviewStats", adminService.getProductReviewStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
         return "admin/review/productReviewManage";
     }
 
@@ -353,8 +362,8 @@ public class AdminController {
             @RequestParam(required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
         adminService.deleteProductReview(reviewNo);
-        redirectAttributes.addFlashAttribute("message", "리뷰를 삭제했습니다.");
-        return "redirect:" + productReviewListRedirectUrl(tab, keyword, searchType, page);
+        redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "리뷰를 삭제했습니다.");
+        return REDIRECT_PREFIX + productReviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     // 신고 승인: 신고를 인정하여 상품 리뷰를 삭제 처리한다.
@@ -369,12 +378,12 @@ public class AdminController {
 
         try {
             adminService.approveProductReviewReport(reviewNo);
-            redirectAttributes.addFlashAttribute("message", "신고를 승인하여 리뷰를 삭제했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "신고를 승인하여 리뷰를 삭제했습니다.");
         } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + productReviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + productReviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     // 신고 반려: 신고를 기각하고 리뷰는 그대로 유지한다.
@@ -389,12 +398,12 @@ public class AdminController {
 
         try {
             adminService.rejectProductReviewReport(reviewNo);
-            redirectAttributes.addFlashAttribute("message", "신고를 반려했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "신고를 반려했습니다.");
         } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + productReviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + productReviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     /**
@@ -412,8 +421,8 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         if (reviewNos == null || reviewNos.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "선택된 리뷰가 없습니다.");
-            return "redirect:" + productReviewListRedirectUrl(tab, keyword, searchType, page);
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "선택된 리뷰가 없습니다.");
+            return REDIRECT_PREFIX + productReviewListRedirectUrl(tab, keyword, searchType, page);
         }
 
         String label = switch (action) {
@@ -431,13 +440,13 @@ public class AdminController {
             if (skipped > 0) {
                 message.append(" (이미 처리되었거나 대상이 아닌 ").append(skipped).append("건은 제외되었습니다.)");
             }
-            redirectAttributes.addFlashAttribute("message", message.toString());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, message.toString());
 
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + productReviewListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + productReviewListRedirectUrl(tab, keyword, searchType, page);
     }
 
     /** 상품 리뷰 처리 후 방금 보고 있던 탭·검색기준·검색어·페이지 상태 그대로 목록으로 돌아가기 위한 URL. */
@@ -448,10 +457,10 @@ public class AdminController {
             builder.queryParam("tab", tab);
         }
         if (searchType != null && !searchType.isBlank()) {
-            builder.queryParam("searchType", searchType);
+            builder.queryParam(PARAM_SEARCH_TYPE, searchType);
         }
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
         return builder.build().toUriString();
     }
@@ -469,14 +478,14 @@ public class AdminController {
         int totalCount = adminService.getEventListCount(tab, keyword, period);
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        model.addAttribute("activeMenu", "event");
+        model.addAttribute(ATTR_ACTIVE_MENU, "event");
 
         model.addAttribute(
                 "eventRequestList",
                 adminService.getEventList(tab, keyword, period, pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
 
         model.addAttribute("eventStats", adminService.getEventStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
 
         return "admin/event/eventManage";
     }
@@ -490,11 +499,11 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
         try {
             adminService.approveEvent(eventNo);
-            redirectAttributes.addFlashAttribute("message", "이벤트 요청을 승인했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "이벤트 요청을 승인했습니다.");
         } catch (IllegalArgumentException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
-        return "redirect:" + eventListRedirectUrl(tab, period, keyword, page);
+        return REDIRECT_PREFIX + eventListRedirectUrl(tab, period, keyword, page);
     }
 
     @PostMapping("/event/reject")
@@ -506,11 +515,11 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
         try {
             adminService.rejectEvent(eventNo);
-            redirectAttributes.addFlashAttribute("message", "이벤트 요청을 반려했습니다.");
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "이벤트 요청을 반려했습니다.");
         } catch (IllegalArgumentException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
-        return "redirect:" + eventListRedirectUrl(tab, period, keyword, page);
+        return REDIRECT_PREFIX + eventListRedirectUrl(tab, period, keyword, page);
     }
 
 
@@ -529,7 +538,7 @@ public class AdminController {
             builder.queryParam("period", period);
         }
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
 
         return builder.build().toUriString();
@@ -552,11 +561,11 @@ public class AdminController {
         int totalCount = adminService.getProductRequestListCount(tab, keyword, searchType);
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        model.addAttribute("activeMenu", "product");
+        model.addAttribute(ATTR_ACTIVE_MENU, "product");
         model.addAttribute("productRequestList", adminService.getProductRequestList(tab, keyword, searchType,
                 pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         model.addAttribute("productStats", adminService.getProductStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
 
         return "admin/goods/productManage";
     }
@@ -578,16 +587,16 @@ public class AdminController {
             // (모달을 열 때 넘겨받은 해당 상품의 상태값을 기준으로 판단하므로,
             //  '전체' 탭에서 삭제 요청 건을 승인하는 경우에도 정확한 안내 문구가 나온다.)
             if ("DELETE_REQUESTED".equals(status)) {
-                redirectAttributes.addFlashAttribute("message", "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
+                redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
             } else {
-                redirectAttributes.addFlashAttribute("message", "상품 요청을 승인했습니다.");
+                redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "상품 요청을 승인했습니다.");
             }
 
         } catch (IllegalArgumentException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + productListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + productListRedirectUrl(tab, keyword, searchType, page);
     }
 
     @PostMapping("/product/reject")
@@ -605,16 +614,16 @@ public class AdminController {
 
             // 삭제 요청 반려 시에는 상품을 기존 승인 상태로 복구한다.
             if ("DELETE_REQUESTED".equals(status)) {
-                redirectAttributes.addFlashAttribute("message", "상품 삭제 요청을 반려했습니다.");
+                redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "상품 삭제 요청을 반려했습니다.");
             } else {
-                redirectAttributes.addFlashAttribute("message", "상품 요청을 반려했습니다.");
+                redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "상품 요청을 반려했습니다.");
             }
 
         } catch (IllegalArgumentException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
         }
 
-        return "redirect:" + productListRedirectUrl(tab, keyword, searchType, page);
+        return REDIRECT_PREFIX + productListRedirectUrl(tab, keyword, searchType, page);
     }
 
     /**
@@ -632,10 +641,10 @@ public class AdminController {
             builder.queryParam("tab", tab);
         }
         if (searchType != null && !searchType.isBlank()) {
-            builder.queryParam("searchType", searchType);
+            builder.queryParam(PARAM_SEARCH_TYPE, searchType);
         }
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
 
         return builder.build().toUriString();
@@ -651,7 +660,7 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "1") int page) {
-        model.addAttribute("activeMenu", "order");
+        model.addAttribute(ATTR_ACTIVE_MENU, "order");
 
         int totalCount;
         if ("refund".equals(tab)) {
@@ -669,7 +678,7 @@ public class AdminController {
                     adminService.getOrderList(keyword, pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         }
         model.addAttribute("orderStats", adminService.getOrderStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
 
         return "admin/order/orderManage";
     }
@@ -682,17 +691,17 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String searchType,
             @RequestParam(required = false, defaultValue = "1") int page) {
-        model.addAttribute("activeMenu", "business");
+        model.addAttribute(ATTR_ACTIVE_MENU, "business");
 
         int totalCount;
-        if ("approval".equals(tab)) {
+        if (TAB_APPROVAL.equals(tab)) {
             totalCount = adminService.getBusinessApprovalListCount(keyword, searchType);
         } else {
             totalCount = adminService.getBusinessListCount(keyword, searchType);
         }
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        if ("approval".equals(tab)) {
+        if (TAB_APPROVAL.equals(tab)) {
             model.addAttribute("approvalList", adminService.getBusinessApprovalList(keyword, searchType,
                     pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         } else {
@@ -700,7 +709,7 @@ public class AdminController {
                     adminService.getBusinessList(keyword, searchType, pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         }
         model.addAttribute("businessStats", adminService.getBusinessStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
 
         return "admin/business/businessManage";
     }
@@ -711,7 +720,7 @@ public class AdminController {
             @RequestParam(required = false) String searchType,
             @RequestParam(required = false, defaultValue = "1") int page) {
         adminService.updateBusinessGrade(businessNo, gradeName);
-        return "redirect:" + businessListRedirectUrl("info", keyword, searchType, page);
+        return REDIRECT_PREFIX + businessListRedirectUrl("info", keyword, searchType, page);
     }
 
     @PostMapping("/business/approve")
@@ -720,7 +729,7 @@ public class AdminController {
             @RequestParam(required = false) String searchType,
             @RequestParam(required = false, defaultValue = "1") int page) {
         adminService.approveBusiness(businessNo);
-        return "redirect:" + businessListRedirectUrl("approval", keyword, searchType, page);
+        return REDIRECT_PREFIX + businessListRedirectUrl(TAB_APPROVAL, keyword, searchType, page);
     }
 
     @PostMapping("/business/reject")
@@ -729,7 +738,7 @@ public class AdminController {
             @RequestParam(required = false) String searchType,
             @RequestParam(required = false, defaultValue = "1") int page) {
         adminService.rejectBusiness(businessNo);
-        return "redirect:" + businessListRedirectUrl("approval", keyword, searchType, page);
+        return REDIRECT_PREFIX + businessListRedirectUrl(TAB_APPROVAL, keyword, searchType, page);
     }
 
     /** 사업자 등급 변경/승인/반려 처리 후 방금 보고 있던 탭·검색기준·검색어·페이지 상태 그대로 목록으로 돌아가기 위한 URL. */
@@ -738,10 +747,10 @@ public class AdminController {
                 .queryParam("tab", tab)
                 .queryParam("page", page);
         if (searchType != null && !searchType.isBlank()) {
-            builder.queryParam("searchType", searchType);
+            builder.queryParam(PARAM_SEARCH_TYPE, searchType);
         }
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
         return builder.build().toUriString();
     }
@@ -758,11 +767,11 @@ public class AdminController {
         int totalCount = adminService.getSettlementListCount(keyword, status, period);
         PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
 
-        model.addAttribute("activeMenu", "settlement");
+        model.addAttribute(ATTR_ACTIVE_MENU, "settlement");
         model.addAttribute("settlementList", adminService.getSettlementList(keyword, status, period,
                 pagination.getCurrentPage(), ADMIN_PAGE_SIZE));
         model.addAttribute("settlementStats", adminService.getSettlementStats());
-        model.addAttribute("pagination", pagination);
+        model.addAttribute(ATTR_PAGINATION, pagination);
         return "admin/settlement/settlementManage";
     }
 
@@ -776,7 +785,7 @@ public class AdminController {
             @RequestParam(required = false) String period,
             @RequestParam(required = false, defaultValue = "1") int page) {
         adminService.confirmSettlement(businessNo, settlementMonth);
-        return "redirect:" + settlementListRedirectUrl(keyword, status, period, page);
+        return REDIRECT_PREFIX + settlementListRedirectUrl(keyword, status, period, page);
     }
 
     /* [수정] 화면에서 전달한 사업자 번호와 정산 월을 기준으로 일괄 반려한다. */
@@ -789,7 +798,7 @@ public class AdminController {
             @RequestParam(required = false) String period,
             @RequestParam(required = false, defaultValue = "1") int page) {
         adminService.rejectSettlement(businessNo, settlementMonth);
-        return "redirect:" + settlementListRedirectUrl(keyword, status, period, page);
+        return REDIRECT_PREFIX + settlementListRedirectUrl(keyword, status, period, page);
     }
 
     /** 정산 확인/반려 처리 후 방금 보고 있던 상태·기간·검색어·페이지 상태 그대로 목록으로 돌아가기 위한 URL. */
@@ -797,10 +806,10 @@ public class AdminController {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/settlement/main")
                 .queryParam("page", page);
         if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword);
+            builder.queryParam(PARAM_KEYWORD, keyword);
         }
         if (status != null && !status.isBlank()) {
-            builder.queryParam("status", status);
+            builder.queryParam(PARAM_STATUS, status);
         }
         if (period != null && !period.isBlank()) {
             builder.queryParam("period", period);
@@ -812,7 +821,7 @@ public class AdminController {
 
     @GetMapping("/monitoring")
     public String monitoring(Model model) {
-        model.addAttribute("activeMenu", "monitoring");
+        model.addAttribute(ATTR_ACTIVE_MENU, "monitoring");
         model.addAttribute("monitoringList", adminService.getMonitoringList());
 
         List<VisitorTrendVO> visitorTrend = adminService.getVisitorTrend();
@@ -848,7 +857,7 @@ public class AdminController {
 
     @GetMapping("/content/list")
     public String contentList(Model model, @RequestParam(required = false) String keyword) {
-        model.addAttribute("activeMenu", "content");
+        model.addAttribute(ATTR_ACTIVE_MENU, "content");
         model.addAttribute("contentList", adminService.getContentList(keyword));
         model.addAttribute("platformList", adminService.getPlatformList());
         return "admin/content/contentManage";
@@ -877,7 +886,7 @@ public class AdminController {
 
         adminService.updateContent(content, platformNos);
 
-        return "redirect:/admin/content/list";
+        return REDIRECT_ADMIN_CONTENT_LIST;
     }
 
     @PostMapping("/content/platform/register")
@@ -893,7 +902,7 @@ public class AdminController {
 
         adminService.registerPlatform(platform);
 
-        return "redirect:/admin/content/list";
+        return REDIRECT_ADMIN_CONTENT_LIST;
     }
 
     @PostMapping("/content/platform/update")
@@ -908,6 +917,6 @@ public class AdminController {
 
         adminService.updatePlatform(platform);
 
-        return "redirect:/admin/content/list";
+        return REDIRECT_ADMIN_CONTENT_LIST;
     }
 }

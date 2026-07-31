@@ -189,6 +189,24 @@
   font-weight: 500;
 }
 
+/* =====================================================
+   [상품 옵션 정보 표시 추가]
+   주문서에서 사용자가 선택한 색상·사이즈를 구분하여 표시한다.
+====================================================== */
+.order-item-option {
+  display: inline-block;
+
+  margin: 4px 0 !important;
+  padding: 4px 8px;
+
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
 .order-subtotal {
   flex: none;
 

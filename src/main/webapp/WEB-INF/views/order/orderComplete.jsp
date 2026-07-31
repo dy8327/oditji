@@ -1,6 +1,4 @@
-<%@ page language="java"
-    contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -23,7 +21,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main id="mainContent" class="order-complete-container">
+<main class="order-complete-container">
 
     <section class="complete-box">
 
@@ -80,11 +78,52 @@
                     </c:choose>
 
                     <div class="complete-item-info">
-                        <div>${item.productName}</div>
-                        <div>수량: ${item.quantity}</div>
+
                         <div>
-                            ₩ <fmt:formatNumber value="${item.itemTotalPrice}" pattern="#,###"/>
+                            <c:out value="${item.productName}"/>
                         </div>
+
+                        <%--
+                            =========================================================
+                            [상품 옵션 정보 표시 추가]
+
+                            주문 시 선택한 상품 옵션이 존재하는 경우에만
+                            색상과 사이즈 정보를 구매 완료 화면에 표시한다.
+                            =========================================================
+                        --%>
+                        <c:if test="${not empty item.optionNo}">
+                            <div class="order-item-option">
+
+                                <span class="option-label">옵션</span>
+
+                                <c:if test="${not empty item.colorName}">
+                                    <span>
+                                        색상:
+                                        <c:out value="${item.colorName}"/>
+                                    </span>
+                                </c:if>
+
+                                <c:if test="${not empty item.sizeName}">
+                                    <span>
+                                        사이즈:
+                                        <c:out value="${item.sizeName}"/>
+                                    </span>
+                                </c:if>
+
+                            </div>
+                        </c:if>
+
+                        <div>
+                            수량: ${item.quantity}
+                        </div>
+
+                        <div>
+                            ₩
+                            <fmt:formatNumber
+                                value="${item.itemTotalPrice}"
+                                pattern="#,###"/>
+                        </div>
+
                     </div>
 
                 </div>
