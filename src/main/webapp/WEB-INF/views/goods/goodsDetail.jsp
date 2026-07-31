@@ -405,6 +405,18 @@
 
         </div>
 
+        <%-- [상품 옵션 기능 추가] 의상/신발 색상과 사이즈를 선택하고 조합 재고를 확인합니다. --%>
+        <c:if test="${not empty productOptionList}">
+            <div class="detail-product-options">
+                <label for="detailColor">색상</label>
+                <select id="detailColor" class="detail-option-select"><option value="">색상 선택</option></select>
+                <label for="detailSize">사이즈</label>
+                <select id="detailSize" class="detail-option-select" disabled><option value="">사이즈 선택</option></select>
+                <span id="detailOptionStock" class="detail-option-stock">색상과 사이즈를 선택해주세요.</span>
+            </div>
+            <script type="application/json" id="productOptionData">[<c:forEach var="opt" items="${productOptionList}" varStatus="st">{"optionNo":${opt.optionNo},"color":"${fn:escapeXml(opt.colorName)}","size":"${fn:escapeXml(opt.sizeName)}","stock":${opt.stock}}<c:if test="${not st.last}">,</c:if></c:forEach>]</script>
+        </c:if>
+
         <%-- [추가] 바로 구매와 장바구니에 사용할 상품 수량을 선택한다. --%>
         <div class="detail-purchase-option">
 

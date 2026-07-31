@@ -68,8 +68,7 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizedStockStatus,
                 normalizedType,
                 startRow,
-                endRow
-        );
+                endRow);
 
         return resultList == null
                 ? new ArrayList<GoodsVO>()
@@ -111,8 +110,7 @@ public class GoodsServiceImpl implements GoodsService {
                 discountOnly,
                 inStockOnly,
                 normalizedPriceRanges,
-                normalizedStockStatus
-        );
+                normalizedStockStatus);
     }
 
     @Override
@@ -120,8 +118,7 @@ public class GoodsServiceImpl implements GoodsService {
 
         int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
 
-        List<GoodsVO> resultList =
-                goodsDAO.selectRecommendedGoods(normalizedLimit);
+        List<GoodsVO> resultList = goodsDAO.selectRecommendedGoods(normalizedLimit);
 
         return resultList == null
                 ? new ArrayList<GoodsVO>()
@@ -137,8 +134,7 @@ public class GoodsServiceImpl implements GoodsService {
 
         int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
 
-        List<GoodsVO> resultList =
-                goodsDAO.selectGoodsByContentNo(contentNo, normalizedLimit);
+        List<GoodsVO> resultList = goodsDAO.selectGoodsByContentNo(contentNo, normalizedLimit);
 
         return resultList == null
                 ? new ArrayList<GoodsVO>()
@@ -154,8 +150,7 @@ public class GoodsServiceImpl implements GoodsService {
 
         int normalizedLimit = limit <= 0 ? 5 : Math.min(limit, 20);
 
-        List<GoodsVO> resultList =
-                goodsDAO.selectGoodsByTmdbActorId(tmdbActorId, normalizedLimit);
+        List<GoodsVO> resultList = goodsDAO.selectGoodsByTmdbActorId(tmdbActorId, normalizedLimit);
 
         return resultList == null
                 ? new ArrayList<GoodsVO>()
@@ -165,12 +160,18 @@ public class GoodsServiceImpl implements GoodsService {
     @Override
     public List<String> getSearchProductTypes() {
 
-        List<String> productTypes =
-                goodsDAO.selectSearchProductTypes();
+        List<String> productTypes = goodsDAO.selectSearchProductTypes();
 
         return productTypes == null
                 ? new ArrayList<String>()
                 : productTypes;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<com.project.oditji.goods.vo.ProductOptionVO> getProductOptionList(int productNo) {
+        java.util.List<com.project.oditji.goods.vo.ProductOptionVO> list = goodsDAO.selectProductOptionList(productNo);
+        return list == null ? java.util.Collections.emptyList() : list;
     }
 
     @Override
@@ -190,8 +191,7 @@ public class GoodsServiceImpl implements GoodsService {
             return Collections.emptyList();
         }
 
-        List<Map<String, Object>> imageList =
-                goodsDAO.selectGoodsImageList(productNo);
+        List<Map<String, Object>> imageList = goodsDAO.selectGoodsImageList(productNo);
 
         return imageList == null
                 ? Collections.emptyList()
@@ -273,13 +273,11 @@ public class GoodsServiceImpl implements GoodsService {
             "RANGE_10000_30000",
             "RANGE_30000_50000",
             "RANGE_50000_100000",
-            "OVER_100000"
-    );
+            "OVER_100000");
 
     private static final List<String> VALID_STOCK_STATUS = java.util.Arrays.asList(
             "IN_STOCK",
-            "SOLD_OUT"
-    );
+            "SOLD_OUT");
 
     private List<String> normalizePriceRanges(List<String> sourceList) {
 

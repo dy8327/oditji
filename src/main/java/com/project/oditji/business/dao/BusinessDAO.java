@@ -33,6 +33,9 @@ public interface BusinessDAO {
         int insertProduct(GoodsManageVO goodsManageVO);
 
         // 상품 대표 이미지 등록
+        // [상품 옵션 기능 추가] 색상-사이즈 조합별 재고 저장
+        int insertProductOption(com.project.oditji.goods.vo.ProductOptionVO productOptionVO);
+
         int insertProductImage(GoodsManageVO goodsManageVO);
 
         // 콘텐츠 검색 목록

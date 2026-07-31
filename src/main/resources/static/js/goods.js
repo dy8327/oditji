@@ -246,6 +246,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const stock = Number(cartButton.dataset.stock);
 
       const quantity = quantityInput ? Number(quantityInput.value) : 1;
+      const optionDataElement = document.getElementById("productOptionData");
+      const selectedOption = window.getSelectedProductOption ? window.getSelectedProductOption() : null;
+      if (optionDataElement && !selectedOption) {
+        alert("색상과 사이즈를 선택해주세요.");
+        return;
+      }
 
       if (!Number.isInteger(quantity) || quantity <= 0) {
         await Swal.fire({
@@ -290,6 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             /* [수정] 상세 화면에서 선택한 수량을 전달한다. */
             quantity: quantity,
+            optionNo: window.getSelectedProductOption && window.getSelectedProductOption() ? window.getSelectedProductOption().optionNo : null,
           }),
         });
 
@@ -380,6 +387,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const stock = Number(buyButton.dataset.stock);
 
       const quantity = quantityInput ? Number(quantityInput.value) : 1;
+      const optionDataElement = document.getElementById("productOptionData");
+      const selectedOption = window.getSelectedProductOption ? window.getSelectedProductOption() : null;
+      if (optionDataElement && !selectedOption) {
+        alert("색상과 사이즈를 선택해주세요.");
+        return;
+      }
 
       if (!Number.isInteger(quantity) || quantity <= 0) {
         await Swal.fire({
@@ -440,6 +453,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             /* [수정] 선택한 수량으로 주문서를 생성한다. */
             quantity: quantity,
+            optionNo: window.getSelectedProductOption && window.getSelectedProductOption() ? window.getSelectedProductOption().optionNo : null,
           }),
         });
 
@@ -510,4 +524,52 @@ document.addEventListener("DOMContentLoaded", function () {
       { once: true },
     );
   });
+});
+
+/* [상품 옵션 기능 추가] 색상 선택 후 가능한 사이즈와 조합 재고를 갱신합니다. */
+document.addEventListener("DOMContentLoaded", function () {
+  const dataEl = document.getElementById("productOptionData");
+  const colorEl = document.getElementById("detailColor");
+  const sizeEl = document.getElementById("detailSize");
+  const stockText = document.getElementById("detailOptionStock");
+  if (!dataEl || !colorEl || !sizeEl) {
+    window.getSelectedProductOption = () => null;
+    return;
+  }
+  let options = [];
+  try {
+    options = JSON.parse(dataEl.textContent);
+  } catch (e) {
+    options = [];
+  }
+  [...new Set(options.map((o) => o.color))].forEach((color) => colorEl.add(new Option(color, color)));
+  function selected() {
+    return options.find((o) => o.color === colorEl.value && o.size === sizeEl.value) || null;
+  }
+  function syncQuantity(option) {
+    const control = document.querySelector(".detail-quantity-control");
+    const input = document.getElementById("detailQuantity");
+    const buttons = document.querySelectorAll(".cart-btn,.buy-btn");
+    const stock = option ? Number(option.stock) : 0;
+    if (control) control.dataset.stock = String(stock);
+    if (input) {
+      input.max = String(stock);
+      input.value = stock > 0 ? "1" : "0";
+      input.disabled = stock <= 0;
+      input.dispatchEvent(new Event("change"));
+    }
+    buttons.forEach((btn) => {
+      btn.dataset.stock = String(stock);
+      btn.disabled = stock <= 0;
+    });
+    if (stockText) stockText.textContent = option ? `선택 옵션 재고: ${stock.toLocaleString()}개` : "색상과 사이즈를 선택해주세요.";
+  }
+  colorEl.addEventListener("change", () => {
+    sizeEl.innerHTML = '<option value="">사이즈 선택</option>';
+    options.filter((o) => o.color === colorEl.value).forEach((o) => sizeEl.add(new Option(o.size, o.size)));
+    sizeEl.disabled = !colorEl.value;
+    syncQuantity(null);
+  });
+  sizeEl.addEventListener("change", () => syncQuantity(selected()));
+  window.getSelectedProductOption = selected;
 });

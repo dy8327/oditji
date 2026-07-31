@@ -660,6 +660,16 @@ public class BusinessServiceImpl
                 }
 
                 validateProduct(goodsManageVO);
+                // [상품 옵션 기능 추가] PRODUCT.STOCK에는 옵션 재고 합계를 저장합니다.
+                if (("CLOTHES".equals(goodsManageVO.getProductType()) || "SHOES".equals(goodsManageVO.getProductType()))
+                                && goodsManageVO.getOptionList() != null) {
+                        int optionTotalStock = goodsManageVO.getOptionList().stream()
+                                        .filter(java.util.Objects::nonNull)
+                                        .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
+                                        .filter(java.util.Objects::nonNull)
+                                        .mapToInt(Integer::intValue).sum();
+                        goodsManageVO.setStock(optionTotalStock);
+                }
                 validateProductImage(productImage);
 
                 /*
@@ -688,6 +698,9 @@ public class BusinessServiceImpl
                                 throw new IllegalStateException("등록된 상품 번호를 확인할 수 없습니다.");
                         }
 
+                        // [상품 옵션 기능 추가] 옵션 상품은 조합별 재고를 저장하고 PRODUCT.STOCK에는 총재고를 유지합니다.
+                        saveProductOptions(goodsManageVO);
+
                         int imageResult = businessDAO.insertProductImage(goodsManageVO);
 
                         if (imageResult != 1) {
@@ -710,6 +723,38 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+        }
+
+        /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장 */
+        private void saveProductOptions(GoodsManageVO goodsManageVO) {
+                String type = goodsManageVO.getProductType();
+                if (!"CLOTHES".equals(type) && !"SHOES".equals(type)) {
+                        return;
+                }
+                if (goodsManageVO.getOptionList() == null || goodsManageVO.getOptionList().isEmpty()) {
+                        throw new IllegalArgumentException("의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.");
+                }
+                java.util.Set<String> duplicateCheck = new java.util.HashSet<String>();
+                int totalStock = 0;
+                for (com.project.oditji.goods.vo.ProductOptionVO option : goodsManageVO.getOptionList()) {
+                        if (option == null || option.getColorName() == null || option.getColorName().isBlank()
+                                        || option.getSizeName() == null || option.getSizeName().isBlank()
+                                        || option.getStock() == null || option.getStock() < 0) {
+                                throw new IllegalArgumentException("모든 옵션의 색상, 사이즈, 재고를 올바르게 입력해주세요.");
+                        }
+                        option.setColorName(option.getColorName().trim());
+                        option.setSizeName(option.getSizeName().trim());
+                        String key = option.getColorName().toUpperCase() + "|" + option.getSizeName().toUpperCase();
+                        if (!duplicateCheck.add(key)) {
+                                throw new IllegalArgumentException("동일한 색상과 사이즈 조합은 중복 등록할 수 없습니다.");
+                        }
+                        option.setProductNo(goodsManageVO.getProductNo());
+                        totalStock += option.getStock();
+                        if (businessDAO.insertProductOption(option) != 1) {
+                                throw new IllegalStateException("상품 옵션 저장에 실패했습니다.");
+                        }
+                }
+                goodsManageVO.setStock(totalStock);
         }
 
         /*

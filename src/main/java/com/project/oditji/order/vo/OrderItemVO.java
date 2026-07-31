@@ -5,6 +5,10 @@ public class OrderItemVO {
     private Long orderItemNo;
     private Long orderNo;
     private Integer productNo;
+    // [상품 옵션 기능 추가] 선택한 색상-사이즈 옵션
+    private Long optionNo;
+    private String colorName;
+    private String sizeName;
     private Integer businessNo;
     private Integer productPrice;
     private Integer quantity;
@@ -59,6 +63,30 @@ public class OrderItemVO {
 
     public void setOrderNo(Long orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public Long getOptionNo() {
+        return optionNo;
+    }
+
+    public void setOptionNo(Long optionNo) {
+        this.optionNo = optionNo;
+    }
+
+    public String getColorName() {
+        return colorName;
+    }
+
+    public void setColorName(String colorName) {
+        this.colorName = colorName;
+    }
+
+    public String getSizeName() {
+        return sizeName;
+    }
+
+    public void setSizeName(String sizeName) {
+        this.sizeName = sizeName;
     }
 
     public Integer getProductNo() {

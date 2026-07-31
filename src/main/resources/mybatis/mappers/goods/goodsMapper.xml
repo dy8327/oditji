@@ -836,4 +836,12 @@
 
     </insert>
 
+    <!-- [상품 옵션 기능 추가] 상품 상세 색상-사이즈별 재고 -->
+    <select id="selectProductOptionList" resultType="com.project.oditji.goods.vo.ProductOptionVO">
+        SELECT OPTION_NO, PRODUCT_NO, COLOR_NAME, SIZE_NAME, STOCK
+        FROM PRODUCT_OPTION
+        WHERE PRODUCT_NO = #{productNo}
+        ORDER BY COLOR_NAME, OPTION_NO
+    </select>
+
 </mapper>

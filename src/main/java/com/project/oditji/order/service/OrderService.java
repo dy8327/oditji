@@ -23,6 +23,7 @@ public interface OrderService {
         List<OrderSheetItemVO> prepareDirectOrder(
                         Long memberNo,
                         Integer productNo,
+                        Long optionNo,
                         Integer quantity);
 
         /**

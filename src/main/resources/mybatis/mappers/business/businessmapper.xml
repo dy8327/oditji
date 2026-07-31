@@ -151,6 +151,15 @@
     </insert>
 
 
+    <!-- [상품 옵션 기능 추가] 의상/신발 색상-사이즈 조합별 재고 등록 -->
+    <insert id="insertProductOption" parameterType="com.project.oditji.goods.vo.ProductOptionVO">
+        <selectKey keyProperty="optionNo" resultType="long" order="BEFORE">
+            SELECT SEQ_PRODUCT_OPTION_NO.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO PRODUCT_OPTION (OPTION_NO, PRODUCT_NO, COLOR_NAME, SIZE_NAME, STOCK)
+        VALUES (#{optionNo}, #{productNo}, #{colorName}, #{sizeName}, #{stock})
+    </insert>
+
     <!-- =====================================================
          상품 대표 이미지 등록
     ====================================================== -->
