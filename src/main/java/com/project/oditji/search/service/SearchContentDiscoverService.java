@@ -371,7 +371,9 @@ public class SearchContentDiscoverService {
                 item.optString("original_name", null)
         );
 
-        return contentPolicyService.shouldExcludeByTitle(
+        return contentPolicyService.shouldExcludeContent(
+                null,
+                null,
                 title,
                 originalTitle
         );

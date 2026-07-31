@@ -36,6 +36,14 @@ public class SearchContentSnapshotService {
     @Value("${search.content-cache.snapshot-path:C:/oditji/cache/search-content-cache.jsonl}")
     private String snapshotPath;
 
+    private final SearchContentPolicyService contentPolicyService;
+
+    public SearchContentSnapshotService(
+            SearchContentPolicyService contentPolicyService) {
+
+        this.contentPolicyService = contentPolicyService;
+    }
+
     /**
      * 저장된 JSONL 스냅샷을 읽습니다.
      *
@@ -76,11 +84,16 @@ public class SearchContentSnapshotService {
 
                 try {
 
-                    result.add(
+                    CachedContentVO content =
                             fromJson(
                                     new JSONObject(line)
-                            )
-                    );
+                            );
+
+                    if (contentPolicyService.shouldExcludeContent(content)) {
+                        continue;
+                    }
+
+                    result.add(content);
 
                 } catch (RuntimeException e) {
 
@@ -148,7 +161,8 @@ public class SearchContentSnapshotService {
                     for (CachedContentVO content
                             : contents) {
 
-                        if (content == null) {
+                        if (content == null
+                                || contentPolicyService.shouldExcludeContent(content)) {
                             continue;
                         }
 
@@ -272,6 +286,22 @@ public class SearchContentSnapshotService {
                 json,
                 "ageRating",
                 content.getAgeRating()
+        );
+
+        /*
+         * "등급 정보 없음" 콘텐츠의 추가 재조회 상태를 함께 저장합니다.
+         * 기존 JSONL에는 두 키가 없어도 정상 복원됩니다.
+         */
+        putNullable(
+                json,
+                "ageRatingRetryCount",
+                content.getAgeRatingRetryCount()
+        );
+
+        putNullable(
+                json,
+                "ageRatingLastCheckedAt",
+                content.getAgeRatingLastCheckedAt()
         );
 
         /*
@@ -422,6 +452,27 @@ public class SearchContentSnapshotService {
                 nullableString(
                         json,
                         "ageRating"
+                )
+        );
+
+        /*
+         * 기존 JSONL에는 등급 재조회 상태 키가 없으므로
+         * 존재하는 경우에만 복원합니다.
+         */
+        if (json.has("ageRatingRetryCount")
+                && !json.isNull("ageRatingRetryCount")) {
+
+            content.setAgeRatingRetryCount(
+                    json.getInt(
+                            "ageRatingRetryCount"
+                    )
+            );
+        }
+
+        content.setAgeRatingLastCheckedAt(
+                nullableString(
+                        json,
+                        "ageRatingLastCheckedAt"
                 )
         );
 

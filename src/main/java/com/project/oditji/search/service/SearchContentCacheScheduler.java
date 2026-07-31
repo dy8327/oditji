@@ -111,7 +111,8 @@ public class SearchContentCacheScheduler {
 
                         List<CachedContentVO> refreshed =
                                 collectorService.collect(
-                                        previous
+                                        previous,
+                                        snapshotService::saveSnapshot
                                 );
 
                         if (refreshed == null

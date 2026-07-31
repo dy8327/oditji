@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.project.oditji.search.vo.CachedContentVO;
@@ -25,6 +26,9 @@ import com.project.oditji.search.vo.CachedContentVO;
  */
 @Service
 public class SearchContentPolicyService {
+
+    @Value("${search.content-cache.korean-english-title-only:true}")
+    private boolean koreanEnglishTitleOnly;
 
     /**
      * 직접 확인한 노출 제외 작품입니다.
@@ -112,7 +116,51 @@ public class SearchContentPolicyService {
             String originalTitle) {
 
         return shouldExcludeByContentKey(tmdbId, contentType)
-                || shouldExcludeByTitle(title, originalTitle);
+                || shouldExcludeByTitle(title, originalTitle)
+                || shouldExcludeByDisplayTitleLanguage(title);
+    }
+
+
+    /**
+     * 화면에 표시되는 제목이 한글/라틴 문자 기반인지 확인합니다.
+     *
+     * TMDB language=ko-KR에서도 한국어 번역 제목이 없으면 원어 제목이
+     * title/name에 그대로 내려올 수 있습니다. 이 경우 태국어, 텔루구어,
+     * 일본어, 중국어, 키릴 문자 등은 공용 검색 캐시에서 제외합니다.
+     *
+     * originalTitle은 검사하지 않습니다. 예를 들어 title이 "귀멸의 칼날"이고
+     * originalTitle이 일본어인 정상 콘텐츠는 유지하기 위함입니다.
+     * 숫자, 공백, 일반 기호는 허용합니다.
+     */
+    public boolean shouldExcludeByDisplayTitleLanguage(String title) {
+
+        if (!koreanEnglishTitleOnly
+                || title == null
+                || title.isBlank()) {
+            return false;
+        }
+
+        for (int index = 0; index < title.length();) {
+
+            int codePoint = title.codePointAt(index);
+            index += Character.charCount(codePoint);
+
+            if (!Character.isLetter(codePoint)) {
+                continue;
+            }
+
+            Character.UnicodeScript script =
+                    Character.UnicodeScript.of(codePoint);
+
+            if (script == Character.UnicodeScript.HANGUL
+                    || script == Character.UnicodeScript.LATIN) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
