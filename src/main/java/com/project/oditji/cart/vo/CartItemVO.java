@@ -7,6 +7,8 @@ public class CartItemVO {
     private Long cartItemNo;
     private Long cartNo;
     private Integer productNo;
+    // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 번호
+    private Long optionNo;
     private Integer quantity;
     private Date createdAt;
 
@@ -21,6 +23,9 @@ public class CartItemVO {
     private String status;
     private String businessName;
     private String mainImage;
+    // [상품 옵션 기능 추가] 장바구니 표시용 선택 옵션
+    private String colorName;
+    private String sizeName;
 
     public CartItemVO() {
     }
@@ -47,6 +52,14 @@ public class CartItemVO {
 
     public void setProductNo(Integer productNo) {
         this.productNo = productNo;
+    }
+
+    public Long getOptionNo() {
+        return optionNo;
+    }
+
+    public void setOptionNo(Long optionNo) {
+        this.optionNo = optionNo;
     }
 
     public Integer getQuantity() {
@@ -127,6 +140,22 @@ public class CartItemVO {
 
     public void setMainImage(String mainImage) {
         this.mainImage = mainImage;
+    }
+
+    public String getColorName() {
+        return colorName;
+    }
+
+    public void setColorName(String colorName) {
+        this.colorName = colorName;
+    }
+
+    public String getSizeName() {
+        return sizeName;
+    }
+
+    public void setSizeName(String sizeName) {
+        this.sizeName = sizeName;
     }
 
     public int getDiscountPrice() {
