@@ -19,7 +19,8 @@ public interface OrderDAO {
          * 바로 구매(직접 구매)용 상품 단건 조회 (판매 상태/재고 검증용)
          */
         OrderSheetItemVO selectProductForOrder(
-                        @Param("productNo") Integer productNo);
+                        @Param("productNo") Integer productNo,
+                        @Param("optionNo") Long optionNo);
 
         /**
          * 장바구니에서 선택한 상품들을 주문서 작성용으로 조회.
@@ -53,6 +54,9 @@ public interface OrderDAO {
          * WHERE 조건에 재고 수량을 포함해 동시성 문제로 인한
          * 재고 초과 차감을 방지한다 (영향받은 행이 없으면 재고 부족으로 판단).
          */
+        // [상품 옵션 기능 추가] 옵션 조합 재고를 조건부 차감합니다.
+        int decreaseProductOptionStock(@Param("optionNo") Long optionNo, @Param("quantity") Integer quantity);
+
         int decreaseProductStock(
                         @Param("productNo") Integer productNo,
                         @Param("quantity") Integer quantity);
@@ -76,6 +80,9 @@ public interface OrderDAO {
          *
          * 아직 PAID 상태인 주문상품만 집계하여 중복 복구를 방지한다.
          */
+        // [상품 옵션 기능 추가] 취소 시 색상-사이즈 조합 재고도 복구합니다.
+        int restoreProductOptionStockByOrderNo(@Param("orderNo") Long orderNo);
+
         int restoreProductStockByOrderNo(
                         @Param("orderNo") Long orderNo);
 
