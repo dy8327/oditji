@@ -29,6 +29,35 @@
     var address2Input =
         document.getElementById("address2");
 
+    function createJsonHeaders() {
+
+        var headers = {
+            "Content-Type": "application/json"
+        };
+
+        var csrfTokenMeta =
+            document.querySelector('meta[name="_csrf"]');
+
+        var csrfHeaderMeta =
+            document.querySelector('meta[name="_csrf_header"]');
+
+        var csrfToken =
+            csrfTokenMeta
+                ? csrfTokenMeta.getAttribute("content")
+                : "";
+
+        var csrfHeader =
+            csrfHeaderMeta
+                ? csrfHeaderMeta.getAttribute("content")
+                : "";
+
+        if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
+        }
+
+        return headers;
+    }
+
     /*
      * =========================================================
      * 오류 메시지 출력
@@ -238,9 +267,8 @@
 
                 method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers:
+                    createJsonHeaders(),
 
                 body: JSON.stringify(
                     deliveryInformation
@@ -346,9 +374,8 @@
 
                 method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers:
+                    createJsonHeaders(),
 
                 body: JSON.stringify({
 

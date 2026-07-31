@@ -5,6 +5,34 @@ document.addEventListener("DOMContentLoaded", function () {
     const contextPath =
         body.dataset.contextPath || "";
 
+    function createJsonHeaders() {
+        const headers = {
+            "Content-Type": "application/json"
+        };
+
+        const csrfTokenMeta =
+            document.querySelector('meta[name="_csrf"]');
+
+        const csrfHeaderMeta =
+            document.querySelector('meta[name="_csrf_header"]');
+
+        const csrfToken =
+            csrfTokenMeta
+                ? csrfTokenMeta.getAttribute("content")
+                : "";
+
+        const csrfHeader =
+            csrfHeaderMeta
+                ? csrfHeaderMeta.getAttribute("content")
+                : "";
+
+        if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
+        }
+
+        return headers;
+    }
+
     const selectAll =
         document.getElementById("selectAll");
 
@@ -707,10 +735,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 {
                     method: "POST",
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+                    headers:
+                        createJsonHeaders(),
 
                     body:
                         JSON.stringify(
