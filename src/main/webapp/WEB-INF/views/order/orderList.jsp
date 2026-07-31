@@ -700,7 +700,7 @@
                 <div class="refund-date-range">
                     <input id="historyStartDate" type="date" name="startDate" value="${historyStartDate}">
                     <span>부터</span>
-                    <input id="historyEndDate" type="date" name="endDate" value="${historyEndDate}">
+                    <input id="historyEndDate" type="date" name="endDate" value="${historyEndDate}" aria-label="조회 종료일">
                     <span>까지</span>
                 </div>
             </div>
