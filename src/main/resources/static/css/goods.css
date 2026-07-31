@@ -68,7 +68,8 @@
 
   padding: 3px 8px;
 
-  background: #e63946;
+  /* [수정] 흰 글자 on #e63946는 대비 약 4.17:1로 부족해 더 진한 톤으로 교체 */
+  background: #e42735;
   color: #fff;
 
   border-radius: 999px;
@@ -619,7 +620,8 @@
   align-items: center;
   justify-content: center;
 
-  color: #666;
+  /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
+  color: #7d7d7d;
   background: #101010;
 
   font-size: 10px;
@@ -712,7 +714,8 @@
   align-items: center;
   justify-content: center;
 
-  color: #666;
+  /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
+  color: #7d7d7d;
   background: #101010;
 
   font-size: 10px;

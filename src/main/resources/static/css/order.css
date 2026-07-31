@@ -6,7 +6,10 @@
   --oditji-border: #313136;
   --oditji-text: #f3f3f3;
   --oditji-text-muted: #a6a6ab;
-  --oditji-text-faint: #6f6f75;
+  /* [수정] #6f6f75는 --oditji-surface-raised(#262629) 위에서 대비 약 3.0:1로
+     부족해 모든 사용처(썸네일 placeholder, 비활성 버튼 등)에 공통 적용되는
+     이 토큰 자체를 밝게 조정 (가장 밝은 표면 기준으로도 4.5:1 이상 확보) */
+  --oditji-text-faint: #8d8d93;
 
   /* ---- accent ---- */
   --oditji-accent: #4caf50;
@@ -2717,8 +2720,9 @@
 
 /* [추가] 전체 상품 주문 취소 버튼 마우스 오버 효과 */
 .order-list-container .full-order-cancel-btn:hover {
-  background-color: #4caf50;
-  border-color: #4caf50;
+  /* [수정] 흰 글자 on #4caf50는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #3a853d;
+  border-color: #3a853d;
   color: #ffffff;
 }
 
@@ -2730,15 +2734,17 @@
 
 /* [추가] 선택 상품 주문 취소 버튼 마우스 오버 효과 */
 .order-list-container .order-select-cancel-btn:not(.selected-refund-btn):hover {
-  background-color: #ef5350;
-  border-color: #ef5350;
+  /* [수정] 흰 글자 on #ef5350는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #ea1a16;
+  border-color: #ea1a16;
   color: #ffffff;
 }
 
 /* [수정] 전체/선택 환불 버튼은 취소 버튼과 다른 파란 계열로 구분한다. */
 .order-list-container .full-order-refund-btn {
-  border-color: #6286d9;
-  background: #6286d9;
+  /* [수정] 흰 글자 on #6286d9는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
+  border-color: #4972d3;
+  background: #4972d3;
   color: #fff;
 }
 

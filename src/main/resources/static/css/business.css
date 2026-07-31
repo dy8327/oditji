@@ -25,6 +25,13 @@
 
   /* ---- Accent / Status ---- */
   --biz-point: var(--color-point, #5ea3ff);
+  /* [수정] --biz-point(#5ea3ff)는 테두리·링크 등 용도로는 대비가 충분하지만,
+     흰 글자를 얹는 "꽉 찬 배경"(버튼/뱃지/active 탭·페이지네이션)에서는
+     흰색 텍스트와의 대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
+     (admin.css --adm-point-strong과 동일한 수정) */
+  --biz-point-strong: #2f6fe4;
+  --biz-point-strong-hover: #2559c4;
+  --biz-point-bg: rgba(94, 163, 255, 0.15);
   --biz-success: #4ade80;
   --biz-success-bg: rgba(74, 222, 128, 0.12);
   --biz-warning: #facc15;
@@ -383,14 +390,16 @@
 }
 
 .btn-primary {
-  background: var(--biz-point);
+  /* [수정] --biz-point(#5ea3ff) 위 흰 글자는 대비 약 2.6:1로 부족해
+     --biz-point-strong으로 교체 (대비 약 4.6:1) */
+  background: var(--biz-point-strong);
   color: #fff;
 
   box-shadow: 0 4px 12px rgba(94, 163, 255, 0.25);
 }
 
 .btn-primary:hover {
-  background: #7bb5ff;
+  background: var(--biz-point-strong-hover);
 }
 
 .btn-dark {
@@ -675,7 +684,8 @@
 }
 
 .business-wrap .pagination a.active {
-  background: var(--biz-point);
+  /* [수정] --biz-point 원색은 흰 글자와 대비가 낮아 --biz-point-strong으로 교체 */
+  background: var(--biz-point-strong);
 
   color: var(--biz-text);
 }
@@ -947,7 +957,8 @@
 }
 
 .btn-copy:hover {
-  background: #4f8cff;
+  /* [수정] 흰 글자 on #4f8cff는 대비 약 3.2:1로 부족해 더 진한 톤으로 교체 */
+  background: #1d6bff;
   color: #fff;
 }
 
@@ -1085,7 +1096,8 @@
 }
 
 .tab-menu a.active {
-  background: var(--biz-point);
+  /* [수정] --biz-point 원색은 흰 글자와 대비가 낮아 --biz-point-strong으로 교체 */
+  background: var(--biz-point-strong);
   color: #fff;
   font-weight: bold;
 }
@@ -1099,16 +1111,21 @@
   font-weight: 600;
 }
 .badge-blue {
-  background-color: var(--biz-point);
-  color: #fff;
+  /* [수정] --biz-point 원색 + 흰 글자는 대비 약 2.6:1로 부족.
+     admin.css .badge-blue와 동일하게 "연한 배경 + 진한 글자" 톤으로 교체 */
+  background-color: var(--biz-point-bg);
+  color: var(--biz-point);
 }
 .badge-gray {
   background-color: var(--biz-border);
-  color: var(--biz-text-dim);
+  /* [수정] --biz-text-dim(#8c919b) on #3d4148은 대비 약 3.2:1로 부족해
+     이 배지에서만 조금 더 밝은 톤으로 교체 (공용 텍스트 토큰은 유지) */
+  color: #a9acb4;
 }
 .badge-yellow {
-  background-color: #f59e0b;
-  color: white;
+  /* [수정] #f59e0b + 흰 글자는 대비 약 2.2:1로 부족. 동일한 톤으로 교체 */
+  background-color: var(--biz-warning-bg);
+  color: var(--biz-warning);
 }
 
 /* 3. 카드 내부 레이아웃 개선 */
@@ -1210,7 +1227,8 @@
 }
 
 .product-action-btn:hover {
-  background-color: var(--biz-point);
+  /* [수정] --biz-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --biz-point-strong으로 교체 */
+  background-color: var(--biz-point-strong);
   color: white;
 }
 
@@ -1222,7 +1240,8 @@
 }
 
 .product-search-form button {
-  background-color: var(--biz-point);
+  /* [수정] --biz-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --biz-point-strong으로 교체 */
+  background-color: var(--biz-point-strong);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -1241,7 +1260,8 @@
 }
 
 .product-register-btn:hover {
-  background-color: var(--biz-point);
+  /* [수정] --biz-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --biz-point-strong으로 교체 */
+  background-color: var(--biz-point-strong);
   color: white;
 }
 
@@ -1281,7 +1301,8 @@
   overflow: hidden;
   background-color: #e9ecef;
   border-radius: 8px;
-  color: #9ca3af;
+  /* [수정] #9ca3af on #e9ecef는 대비 약 2.1:1로 부족해 더 어두운 톤으로 교체 */
+  color: #626a79;
   font-size: 14px;
 }
 
@@ -2184,7 +2205,8 @@
   align-items: center;
   justify-content: center;
   background: #eeeeee;
-  color: #777777;
+  /* [수정] #777777 on #eeeeee는 대비 약 3.9:1로 부족해 더 어두운 톤으로 교체 */
+  color: #6c6c6c;
   font-size: 11px;
   border-radius: 4px;
 }
@@ -2563,7 +2585,8 @@
 
 .cancel-alert-success .cancel-alert-icon {
   color: #ffffff;
-  background-color: #43a047;
+  /* [수정] 흰 글자 on #43a047는 대비 약 3.3:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #38863c;
 }
 
 .cancel-alert-success .cancel-alert-title {
@@ -2582,7 +2605,8 @@
 
 .cancel-alert-error .cancel-alert-icon {
   color: #ffffff;
-  background-color: #d9534f;
+  /* [수정] 흰 글자 on #d9534f는 대비 약 4.0:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #d5403c;
 }
 
 .cancel-alert-error .cancel-alert-title {

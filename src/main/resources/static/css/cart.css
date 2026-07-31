@@ -455,9 +455,10 @@
 }
 
 .checkout-btn:disabled {
-  background: #333333;
-  color: #777777;
-  cursor: not-allowed;
+    background: #333333;
+    /* [수정] #777777 on #333333는 대비 약 2.82:1로 부족해 더 밝게 교체 */
+    color: #9c9c9c;
+    cursor: not-allowed;
 }
 
 /* =========================================================

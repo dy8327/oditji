@@ -74,7 +74,8 @@
 
 /* primary */
 .btn.primary{
-    background:#3b82f6;
+    /* [수정] 흰 글자 on #3b82f6는 대비 약 3.7:1로 부족해 더 진한 톤으로 교체 */
+    background:#1e6ff5;
     color:#fff;
 }
 

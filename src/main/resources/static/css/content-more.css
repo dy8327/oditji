@@ -328,7 +328,8 @@ a {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
     background: #1b1b1b;
-    color: #777777;
+    /* [수정] #777777 on #1b1b1b는 대비 약 3.85:1로 부족해 더 밝게 교체 */
+    color: #838383;
     font-size: 14px;
 }
 
@@ -550,7 +551,8 @@ a {
     justify-content: center;
     border-radius: 12px;
     background: #1b1b1b;
-    color: #777777;
+    /* [수정] #777777 on #1b1b1b는 대비 약 3.85:1로 부족해 더 밝게 교체 */
+    color: #838383;
     font-size: 13px;
 }
 
