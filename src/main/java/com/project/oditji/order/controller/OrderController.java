@@ -121,7 +121,8 @@ public class OrderController {
 
                 try {
                         List<OrderSheetItemVO> sheetItems = orderService.prepareDirectOrder(
-                                        loginMember.getMemberNo(), requestVO.getProductNo(), requestVO.getQuantity());
+                                        loginMember.getMemberNo(), requestVO.getProductNo(), requestVO.getOptionNo(),
+                                        requestVO.getQuantity());
 
                         session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
                         session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
