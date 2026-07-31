@@ -122,6 +122,7 @@ public class OrderServiceImpl implements OrderService {
         public List<OrderSheetItemVO> prepareDirectOrder(
                         Long memberNo,
                         Integer productNo,
+                        Long optionNo,
                         Integer quantity) {
 
                 /*
@@ -135,11 +136,16 @@ public class OrderServiceImpl implements OrderService {
                  * 주문 대상 상품 기본 정보 조회
                  */
                 OrderSheetItemVO item = orderDAO.selectProductForOrder(
-                                productNo);
+                                productNo, optionNo);
 
                 if (item == null) {
                         throw new IllegalArgumentException(
-                                        "존재하지 않는 상품입니다.");
+                                        "존재하지 않는 상품이거나 선택한 옵션이 올바르지 않습니다.");
+                }
+                // [상품 옵션 기능 추가] 의상/신발은 옵션 없는 직접 구매를 허용하지 않습니다.
+                if (("CLOTHES".equals(item.getProductType()) || "SHOES".equals(item.getProductType()))
+                                && item.getOptionNo() == null) {
+                        throw new IllegalArgumentException("색상과 사이즈 옵션을 선택해주세요.");
                 }
 
                 /*
@@ -212,7 +218,7 @@ public class OrderServiceImpl implements OrderService {
                         }
 
                         OrderSheetItemVO currentItem = orderDAO.selectProductForOrder(
-                                        requestedItem.getProductNo());
+                                        requestedItem.getProductNo(), requestedItem.getOptionNo());
 
                         if (currentItem == null) {
                                 throw new IllegalArgumentException(
@@ -340,7 +346,7 @@ public class OrderServiceImpl implements OrderService {
                 for (OrderSheetItemVO preparedItem : preparedItems) {
 
                         OrderSheetItemVO currentItem = orderDAO.selectProductForOrder(
-                                        preparedItem.getProductNo());
+                                        preparedItem.getProductNo(), preparedItem.getOptionNo());
 
                         if (currentItem == null) {
                                 throw new IllegalArgumentException(
@@ -416,6 +422,8 @@ public class OrderServiceImpl implements OrderService {
                         orderItem.setProductNo(
                                         item.getProductNo());
 
+                        orderItem.setOptionNo(item.getOptionNo());
+
                         orderItem.setBusinessNo(
                                         item.getBusinessNo());
 
@@ -441,9 +449,18 @@ public class OrderServiceImpl implements OrderService {
                         /*
                          * DB 상품 재고 감소 (동시성 방지를 위한 조건부 차감)
                          */
-                        int stockUpdateResult = orderDAO.decreaseProductStock(
-                                        item.getProductNo(),
-                                        item.getQuantity());
+                        int stockUpdateResult;
+                        if (item.getOptionNo() != null) {
+                                // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 재고를 우선 차감합니다.
+                                stockUpdateResult = orderDAO.decreaseProductOptionStock(item.getOptionNo(),
+                                                item.getQuantity());
+                                if (stockUpdateResult > 0) {
+                                        orderDAO.decreaseProductStock(item.getProductNo(), item.getQuantity());
+                                }
+                        } else {
+                                stockUpdateResult = orderDAO.decreaseProductStock(item.getProductNo(),
+                                                item.getQuantity());
+                        }
 
                         if (stockUpdateResult <= 0) {
                                 throw new IllegalArgumentException(
@@ -625,6 +642,8 @@ public class OrderServiceImpl implements OrderService {
                 /*
                  * 상태 변경 전에 PAID 주문상품 기준으로 재고를 복구한다.
                  */
+                // [상품 옵션 기능 추가] 전체 재고와 옵션 조합 재고를 함께 복구합니다.
+                orderDAO.restoreProductOptionStockByOrderNo(orderNo);
                 int restoredProductCount = orderDAO.restoreProductStockByOrderNo(
                                 orderNo);
 
