@@ -97,59 +97,58 @@ const savedTmdbActorId =
                         상품 종류
                     </label>
 
-                    <select class="form-input"
-                            id="productType"
-                            name="productType"
-                            required>
+                    <select class="form-input" id="productType" name="productType" required>
 
-                        <option value="">
+                        <option value="" disabled hidden ${productForm.productType == null ? 'selected' : ''}>
                             상품 종류를 선택하세요
                         </option>
 
                         <option value="CLOTHES"
-                            ${productForm.productType == 'CLOTHES'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'CLOTHES' ? 'selected' : ''}>
                             의상
                         </option>
 
+                        <option value="SHOES"
+                            ${productForm.productType == 'SHOES' ? 'selected' : ''}>
+                            신발
+                        </option>
+
                         <option value="PROP"
-                            ${productForm.productType == 'PROP'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'PROP' ? 'selected' : ''}>
                             소품
                         </option>
 
                         <option value="GOODS"
-                            ${productForm.productType == 'GOODS'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'GOODS' ? 'selected' : ''}>
                             굿즈
                         </option>
 
                         <option value="OST"
-                            ${productForm.productType == 'OST'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'OST' ? 'selected' : ''}>
                             OST
                         </option>
 
                         <option value="BOOK"
-                            ${productForm.productType == 'BOOK'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'BOOK' ? 'selected' : ''}>
                             도서
                         </option>
 
                         <option value="FIGURE"
-                            ${productForm.productType == 'FIGURE'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'FIGURE' ? 'selected' : ''}>
                             피규어
                         </option>
 
+                        <option value="POSTER"
+                            ${productForm.productType == 'POSTER' ? 'selected' : ''}>
+                            포스터
+                        </option>
+
                         <option value="ETC"
-                            ${productForm.productType == 'ETC'
-                                ? 'selected' : ''}>
+                            ${productForm.productType == 'ETC' ? 'selected' : ''}>
                             기타
                         </option>
 
                     </select>
-
                 </div>
 
                 <div class="form-group">

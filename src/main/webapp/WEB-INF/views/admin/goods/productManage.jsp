@@ -181,14 +181,14 @@
                 <thead>
 
                     <tr>
-                        <th>번호</th>
+                        <th class="col-mobile-hide">번호</th>
                         <th>사업자명</th>
                         <th>상품명</th>
-                        <th>관련 콘텐츠</th>
-                        <th>가격</th>
-                        <th>할인율</th>
-                        <th>재고</th>
-                        <th>요청일</th>
+                        <th class="col-mobile-hide">관련 콘텐츠</th>
+                        <th class="col-mobile-hide">가격</th>
+                        <th class="col-mobile-hide">할인율</th>
+                        <th class="col-mobile-hide">재고</th>
+                        <th class="col-mobile-hide">요청일</th>
                         <th>상태</th>
                         <th>관리</th>
                     </tr>
@@ -245,17 +245,17 @@
 
                                 <tr>
 
-                                    <td>${req.productNo}</td>
+                                    <td class="col-mobile-hide">${req.productNo}</td>
 
                                     <td>${req.businessName}</td>
 
                                     <td>${req.productName}</td>
 
-                                    <td>${req.contentTitle}</td>
+                                    <td class="col-mobile-hide">${req.contentTitle}</td>
 
-                                    <td><fmt:formatNumber value="${req.price}" pattern="#,##0"/>원</td>
+                                    <td class="col-mobile-hide"><fmt:formatNumber value="${req.price}" pattern="#,##0"/>원</td>
 
-                                    <td>
+                                    <td class="col-mobile-hide">
                                         <c:choose>
                                             <c:when test="${not empty req.discountRate and req.discountRate > 0}">
                                                 ${req.discountRate}%
@@ -264,9 +264,9 @@
                                         </c:choose>
                                     </td>
 
-                                    <td>${req.stock}</td>
+                                    <td class="col-mobile-hide">${req.stock}</td>
 
-                                    <td>${reqCreatedAtStr}</td>
+                                    <td class="col-mobile-hide">${reqCreatedAtStr}</td>
 
                                     <td>
 

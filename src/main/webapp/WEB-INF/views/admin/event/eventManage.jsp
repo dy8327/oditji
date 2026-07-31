@@ -55,7 +55,6 @@
 
         </div>
 
-
         <%--
             상단 통계 카드.
             각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
@@ -90,7 +89,6 @@
 
         </div>
 
-
         <section class="admin-content-box">
 
             <%--
@@ -122,7 +120,6 @@
 
             </div>
 
-
             <div class="toolbar">
 
                 <form method="get"
@@ -137,21 +134,17 @@
                         상태 필터
                     </label>
 
-                    <select id="eventStatusFilter"
-                            name="tab"
-                            class="filter-select">
+                    <select id="eventStatusFilter" name="tab" class="filter-select">
                         <option value=""         ${empty currentTab ? 'selected' : ''}>상태 전체</option>
                         <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
                         <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
                         <option value="end"      ${currentTab == 'end' ? 'selected' : ''}>종료</option>
                     </select>
 
-
                     <%--
                         기간 필터. 이벤트의 요청일(등록일) 기준으로 최근 건만 좁혀 볼 때 사용한다.
                     --%>
-                    <label for="eventPeriodFilter"
-                           class="sr-only">
+                    <label for="eventPeriodFilter" class="sr-only">
                         기간 필터
                     </label>
 
@@ -164,25 +157,19 @@
                         <option value="month" ${currentPeriod == 'month' ? 'selected' : ''}>최근 30일</option>
                     </select>
 
-
                     <%--
                         검색창과 label을 for/id로 연결하여
                         키보드 사용자와 화면 낭독기가 검색 목적을 명확히 인식하도록 합니다.
                     --%>
-                    <label for="eventKeyword"
-                           class="sr-only">
+                    <label for="eventKeyword" class="sr-only">
                         사업자명 또는 이벤트명 검색
                     </label>
 
-                    <input type="text"
-                           id="eventKeyword"
-                           class="page-search"
-                           name="keyword"
+                    <input type="text" id="eventKeyword" class="page-search" name="keyword"
                            value="${param.keyword}"
                            placeholder="사업자명, 이벤트명 검색">
 
-                    <button type="submit"
-                            class="btn btn-dark search-btn">
+                    <button type="submit" class="btn btn-dark search-btn">
                         검색
                     </button>
 
@@ -190,26 +177,24 @@
 
             </div>
 
-
             <table class="data-table">
 
                 <thead>
 
                     <tr>
 
-                        <th>번호</th>
+                        <th class="col-mobile-hide">번호</th>
                         <th>사업자명</th>
                         <th>이벤트명</th>
-                        <th>적용 상품</th>
-                        <th>이벤트 기간</th>
-                        <th>요청일</th>
-                        <th>상태</th>
+                        <th class="col-mobile-hide">적용 상품</th>
+                        <th class="col-mobile-hide">이벤트 기간</th>
+                        <th class="col-mobile-hide">요청일</th>
+                        <th class="col-mobile-hide">상태</th>
                         <th>관리</th>
 
                     </tr>
 
                 </thead>
-
 
                 <tbody>
 
@@ -261,37 +246,105 @@
 
                                 <tr>
 
-                                    <td>${req.eventNo}</td>
+                                    <td class="col-mobile-hide">
+                                        ${req.eventNo}
+                                    </td>
 
-                                    <td>${req.businessName}</td>
 
-                                    <td>${req.title}</td>
+                                    <td>
+                                        <c:out value="${req.businessName}"/>
+                                    </td>
+
+
+                                    <td class="event-title-cell">
+
+                                        <div class="event-title-wrapper">
+
+                                            <!-- 모바일용 -->
+                                            <div class="mobile-event-title">
+
+                                                <c:choose>
+
+                                                    <c:when test="${req.status == 'APPROVED'}">
+                                                        <span class="event-title-text event-title-approved">
+                                                            <c:out value="${req.title}"/>
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:when test="${req.status == 'REJECTED'}">
+                                                        <span class="event-title-text event-title-rejected">
+                                                            <c:out value="${req.title}"/>
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:when test="${req.status == 'END'}">
+                                                        <span class="event-title-text event-title-end">
+                                                            <c:out value="${req.title}"/>
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:otherwise>
+                                                        <span class="event-title-text event-title-waiting">
+                                                            <c:out value="${req.title}"/>
+                                                        </span>
+                                                    </c:otherwise>
+
+
+                                                </c:choose>
+
+                                            </div>
+
+
+                                            <!-- PC용 -->
+                                            <span class="pc-event-title">
+                                                <c:out value="${req.title}"/>
+                                            </span>
+
+
+                                        </div>
+
+                                    </td>
+
 
                                     <%--
-                                        목록에서는 상품별 할인 내역까지 다 펼치지 않고
-                                        연결된 상품 개수만 간단히 보여주고, 자세한 내역은
-                                        상세보기 팝업의 "적용 상품" 표에서 확인하도록 한다.
+                                        연결 상품 개수
+                                        모바일 숨김
                                     --%>
-                                    <td>
+                                    <td class="col-mobile-hide">
+
                                         <c:choose>
+
                                             <c:when test="${not empty req.productDetail}">
                                                 ${fn:length(fn:split(req.productDetail, ';'))}개 상품
                                             </c:when>
+
                                             <c:otherwise>
                                                 -
                                             </c:otherwise>
+
                                         </c:choose>
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 이벤트 기간 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
+
                                         ${reqStartDateStr} ~ ${reqEndDateStr}
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 요청일 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
+
                                         ${reqCreatedAtStr}
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 상태 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
 
                                         <c:choose>
 
@@ -323,26 +376,32 @@
 
                                     </td>
 
-
                                     <td>
 
+                                        <%--
+                                            businessName/title/productDetail 등에 따옴표나 줄바꿈이
+                                            섞여도 onclick 인라인 문자열이 깨지지 않도록
+                                            data-* 속성으로 값을 전달한다.
+                                        --%>
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                onclick="openEventDetailModal(
-                                                    '${req.eventNo}',
-                                                    '${fn:escapeXml(req.businessName)}',
-                                                    '${fn:escapeXml(req.title)}',
-                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
-                                                    '${reqCreatedAtStr}',
-                                                    '${req.status}',
-                                                    '${reqStatusLabel}',
-                                                    '${fn:escapeXml(req.productDetail)}',
-                                                    '${fn:escapeXml(reqBannerImageUrl)}'
-                                                )">
+                                                data-event-no="${req.eventNo}"
+                                                data-business-name="${fn:escapeXml(req.businessName)}"
+                                                data-title="${fn:escapeXml(req.title)}"
+                                                data-period="${reqStartDateStr} ~ ${reqEndDateStr}"
+                                                data-created-at="${reqCreatedAtStr}"
+                                                data-status="${req.status}"
+                                                data-status-label="${reqStatusLabel}"
+                                                data-product-detail="${fn:escapeXml(req.productDetail)}"
+                                                data-banner-image="${fn:escapeXml(reqBannerImageUrl)}"
+                                                onclick="openEventDetailModal(this)">
+
                                             상세보기
+
                                         </button>
 
                                     </td>
+
 
                                 </tr>
 
@@ -389,7 +448,6 @@
 
             </table>
 
-
             <div class="pagination">
 
                 <!-- 이전 블록 -->
@@ -398,13 +456,11 @@
                     <<
                 </a>
 
-
                 <!-- 이전 페이지 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage - 1}"
                 class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                     <
                 </a>
-
 
                 <!-- 페이지 번호 -->
                 <c:forEach var="p"
@@ -418,29 +474,21 @@
 
                 </c:forEach>
 
-
                 <!-- 다음 페이지 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.currentPage + 1}"
                 class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                     >
                 </a>
 
-
                 <!-- 다음 블록 -->
                 <a href="?tab=${currentTab}&keyword=${param.keyword}&page=${pagination.endPage + 1}"
                 class="${!pagination.next ? 'disabled' : ''}">
                     >>
                 </a>
-
             </div>
-
-
         </section>
-
     </main>
-
 </div>
-
 
 <%--
     이벤트 요청 상세 및 승인·반려 팝업입니다.
@@ -454,15 +502,10 @@
     aria-labelledby:
     팝업 제목 요소와 모달을 연결합니다.
 --%>
-<div class="modal-overlay"
-     id="eventRequestModal"
-     role="dialog"
-     aria-modal="true"
+<div class="modal-overlay" id="eventRequestModal" role="dialog" aria-modal="true"
      aria-labelledby="eventRequestModalTitle">
 
-
     <div class="modal-box modal-box-lg">
-
 
         <div class="modal-header">
 
@@ -470,22 +513,18 @@
                 이벤트 상세
             </h3>
 
-
             <%--
                 클릭 가능한 span 대신 기본 키보드 동작을 지원하는 button을 사용합니다.
 
                 aria-label은 화면에 표시된 닫기 기호(×)의 목적을
                 화면 낭독기 사용자에게 명확하게 전달합니다.
             --%>
-            <button type="button"
-                    class="modal-close"
-                    aria-label="이벤트 상세 팝업 닫기"
+            <button type="button" class="modal-close" aria-label="이벤트 상세 팝업 닫기"
                     onclick="closeModal('eventRequestModal')">
                 &times;
             </button>
 
         </div>
-
 
         <div class="detail-section-title">
             이벤트 정보
@@ -529,7 +568,6 @@
 
         </div>
 
-
         <div class="detail-section-title">
             적용 상품
         </div>
@@ -552,32 +590,14 @@
 
         </table>
 
-
-        <form id="eventRequestForm"
-              action="${pageContext.request.contextPath}/admin/event/approve"
+        <form id="eventRequestForm" action="${pageContext.request.contextPath}/admin/event/approve"
               method="post">
 
-
-            <input type="hidden"
-                   name="eventNo"
-                   id="reqeventNo">
-
-
-            <input type="hidden"
-                   name="tab"
-                   value="${currentTab}">
-
-            <input type="hidden"
-                   name="period"
-                   value="${currentPeriod}">
-
-            <input type="hidden"
-                   name="keyword"
-                   value="${param.keyword}">
-
-            <input type="hidden"
-                   name="page"
-                   value="${pagination.currentPage}">
+            <input type="hidden" name="eventNo" id="reqeventNo">
+            <input type="hidden" name="tab" value="${currentTab}">
+            <input type="hidden" name="period" value="${currentPeriod}">
+            <input type="hidden" name="keyword"value="${param.keyword}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
 
 
             <%--
@@ -587,54 +607,32 @@
                 그래서 대기 상태가 아닐 때는 승인/반려 버튼 대신 안내 문구만 보여주고,
                 실제 표시 여부는 openEventDetailModal()이 상태값을 보고 JS로 전환한다.
             --%>
-            <p id="eventReadonlyNote"
-               class="modal-readonly-note"
-               style="display:none">
+            <p id="eventReadonlyNote" class="modal-readonly-note" style="display:none">
                 이미 처리된 요청이라 승인·반려할 수 없습니다.
             </p>
 
-            <div class="modal-footer"
-                 id="eventRequestActions">
+            <div class="modal-footer" id="eventRequestActions">
 
-
-                <button type="submit"
-                        id="eventApproveBtn"
-                        class="btn btn-success">
+                <button type="submit" id="eventApproveBtn" class="btn btn-success">
                     승인
                 </button>
-
-
-                <button type="submit"
-                        id="eventRejectBtn"
-                        formaction="${pageContext.request.contextPath}/admin/event/reject"
+                <button type="submit" id="eventRejectBtn" formaction="${pageContext.request.contextPath}/admin/event/reject"
                         class="btn btn-danger">
                     반려
                 </button>
-
-
-                <button type="button"
-                        class="btn btn-outline"
-                        onclick="closeModal('eventRequestModal')">
+                <button type="button" class="btn btn-outline" onclick="closeModal('eventRequestModal')">
                     닫기
                 </button>
-
             </div>
-
         </form>
-
     </div>
-
 </div>
 
-
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
-
 
 <script defer
         src="${pageContext.request.contextPath}/js/admin.js">
 </script>
 
-
 </body>
-
 </html>

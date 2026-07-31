@@ -170,8 +170,8 @@
                             의상
                         </c:when>
 
-                        <c:when test="${availableType eq 'APPAREL'}">
-                            의류
+                        <c:when test="${availableType eq 'SHOES'}">
+                            신발
                         </c:when>
 
                         <c:when test="${availableType eq 'PROP'}">
@@ -186,10 +186,6 @@
                             OST
                         </c:when>
 
-                        <c:when test="${availableType eq 'ALBUM'}">
-                            음반
-                        </c:when>
-
                         <c:when test="${availableType eq 'BOOK'}">
                             도서
                         </c:when>
@@ -200,10 +196,6 @@
 
                         <c:when test="${availableType eq 'POSTER'}">
                             포스터
-                        </c:when>
-
-                        <c:when test="${availableType eq 'ACCESSORY'}">
-                            액세서리
                         </c:when>
 
                         <c:when test="${availableType eq 'ETC'}">

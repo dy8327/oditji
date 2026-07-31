@@ -204,12 +204,12 @@
                                        aria-label="전체 선택"
                                        onclick="toggleAllReviews(this)">
                             </th>
-                            <th>번호</th>
+                            <th class="col-mobile-hide">번호</th>
                             <th>작성자</th>
                             <th>콘텐츠</th>
-                            <th>별점</th>
-                            <th>내용</th>
-                            <th>작성일</th>
+                            <th class="col-mobile-hide">별점</th>
+                            <th class="col-mobile-hide">내용</th>
+                            <th class="col-mobile-hide">작성일</th>
                             <c:if test="${currentTab == 'report'}">
                                 <th>신고 건수</th>
                             </c:if>
@@ -241,18 +241,18 @@
                                                    onclick="updateSelectedReviewCount()">
                                         </td>
 
-                                        <td>${review.reviewNo}</td>
+                                        <td class="col-mobile-hide">${review.reviewNo}</td>
                                         <td><c:out value="${review.nickname}"/></td>
                                         <td><c:out value="${review.contentTitle}"/></td>
-                                        <td>${review.rating}점</td>
+                                        <td class="col-mobile-hide">${review.rating}점</td>
 
-                                        <td>
+                                        <td class="col-mobile-hide">
                                             <div class="table-text-clamp">
                                                 <c:out value="${review.content}"/>
                                             </div>
                                         </td>
 
-                                        <td>${reviewCreatedAtStr}</td>
+                                        <td class="col-mobile-hide">${reviewCreatedAtStr}</td>
 
                                         <c:if test="${currentTab == 'report'}">
                                             <td>
@@ -268,9 +268,14 @@
 
                                                 <%-- 리뷰 내용이 길어도 팝업으로 전체 내용을 그대로 확인할 수 있다.
                                                      따옴표/줄바꿈이 섞여도 안전하도록 onclick 인라인 문자열이 아닌
-                                                     data-* 속성으로 값을 전달한다. --%>
+                                                     data-* 속성으로 값을 전달한다.
+                                                     [수정] row-detail-trigger를 붙여 모바일에서는 이 버튼만 남고
+                                                     아래 승인/반려·삭제 버튼은 숨긴다(모달 안에 동일한 처리 버튼이
+                                                     이미 폼으로 들어있어 기능 손실이 없다). memberManage와 동일하게
+                                                     최소화된 크기로 축소하고 라벨도 "내용"으로 줄인다. --%>
                                                 <button type="button"
-                                                        class="btn btn-outline"
+                                                        class="btn btn-outline row-detail-trigger"
+                                                        aria-label="${fn:escapeXml(review.nickname)} 리뷰 내용보기"
                                                         data-review-no="${review.reviewNo}"
                                                         data-writer="${fn:escapeXml(review.nickname)}"
                                                         data-target="${fn:escapeXml(review.contentTitle)}"
@@ -279,7 +284,7 @@
                                                         data-content="${fn:escapeXml(review.content)}"
                                                         <c:if test="${currentTab == 'report'}">data-report-reason="${fn:escapeXml(review.reportReason)}"</c:if>
                                                         onclick="openReviewContentModal(this)">
-                                                    내용보기
+                                                    내용
                                                 </button>
 
                                                 <c:choose>

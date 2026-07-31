@@ -14,6 +14,95 @@ function closeModal(id) {
 
 
 /* =========================================================
+ * [모바일 리팩토링] 공통 - 관리자 목록 표 "상세보기" 모달
+ *
+ * memberManage / businessManage / eventManage / productManage / orderManage /
+ * reviewManage / productReviewManage / settlementManage / monitoring 등
+ * .data-table을 쓰는 모든 관리자 목록 화면이 공유하는 범용 엔진이다.
+ * 화면마다 다른 컬럼 구성에 맞춰 새 JS 함수를 추가하지 않아도 되도록,
+ * "상세보기" 버튼의 data-* 값을 모달 안 data-detail-field 요소에 그대로
+ * 채워 넣는 방식으로 동작한다.
+ *
+ * 사용법 (JSP 쪽):
+ *   1) 각 행의 "상세보기" 버튼에 class="row-detail-trigger"와 필요한 값을
+ *      data-* 속성으로 담고, onclick="openRowDetailModal('모달id', this)"를 건다.
+ *      예) <button class="btn btn-outline row-detail-trigger"
+ *                  data-member-no="${member.memberNo}"
+ *                  data-status="${member.status}"
+ *                  onclick="openRowDetailModal('memberDetailModal', this)">상세보기</button>
+ *   2) 모달 안에서 그 값을 보여줄 요소에는 data-detail-field="memberNo" 처럼
+ *      버튼의 data-* 이름(카멜케이스)과 같은 값을 지정한다. 텍스트 요소는
+ *      textContent가, input/textarea/select는 value가 채워진다.
+ *   3) 상태에 따라 관리 버튼을 보이거나 숨기고 싶으면 data-detail-toggle=
+ *      "필드명:보일값1,보일값2"를 붙인다. (예: data-detail-toggle="status:ACTIVE")
+ * ========================================================= */
+function openRowDetailModal(modalId, triggerButton) {
+
+    var modal = document.getElementById(modalId);
+
+    if (!modal || !triggerButton) {
+        return;
+    }
+
+    var dataset = triggerButton.dataset;
+
+    Object.keys(dataset).forEach(function (key) {
+
+        var value = dataset[key];
+        var targets = modal.querySelectorAll('[data-detail-field="' + key + '"]');
+
+        targets.forEach(function (el) {
+
+            var tag = el.tagName;
+
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+                el.value = value;
+            } else {
+                el.textContent = value;
+            }
+        });
+    });
+
+    modal.querySelectorAll('[data-detail-toggle]').forEach(function (el) {
+
+        var parts = el.dataset.detailToggle.split(':');
+        var field = parts[0];
+        var allowedValues = (parts[1] || '').split(',');
+
+        el.style.display = (allowedValues.indexOf(dataset[field]) !== -1) ? '' : 'none';
+    });
+
+    modal.classList.add('open');
+}
+
+/* =========================================================
+ * 모바일 회원 아이디 말줄임 / 클릭 확대
+ * ========================================================= */
+document.addEventListener('click', function (e) {
+
+    var target = e.target.closest('.member-id-text');
+
+    if (!target) {
+        return;
+    }
+
+    // 이미 펼쳐진 상태면 닫기
+    if (target.classList.contains('expanded')) {
+        target.classList.remove('expanded');
+        return;
+    }
+
+    // 말줄임(...) 상태가 아니면 클릭 무시
+    if (target.scrollWidth <= target.clientWidth) {
+        return;
+    }
+
+    target.classList.add('expanded');
+
+});
+
+
+/* =========================================================
  * memberManage.jsp - 회원 관리 (필터/일괄처리/개별처리)
  * ========================================================= */
 
@@ -340,12 +429,19 @@ function deleteProductReview(reviewNo) {
 /* =========================================================
  * businessManage.jsp - 사업자 관리
  * ========================================================= */
-function openGradeModal(businessNo, name, memberId, email, currentGrade) {
+function openGradeModal(businessNo, name, memberId, email, currentGrade, totalSales) {
     document.getElementById('gradeBusinessNo').value = businessNo;
     document.getElementById('gradeBusinessName').textContent = name;
     document.getElementById('gradeBusinessId').textContent = memberId;
     document.getElementById('gradeBusinessEmail').textContent = email;
     document.getElementById('gradeBusinessCurrent').textContent = currentGrade;
+
+    // [모바일 리팩토링] 누적 실매출 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+    var salesEl = document.getElementById('gradeBusinessSales');
+    if (salesEl) {
+        var amount = Number(totalSales);
+        salesEl.textContent = isNaN(amount) ? '-' : amount.toLocaleString('ko-KR') + '원';
+    }
 
     var radios = document.getElementsByName('gradeName');
     for (var i = 0; i < radios.length; i++) {
@@ -355,12 +451,19 @@ function openGradeModal(businessNo, name, memberId, email, currentGrade) {
     document.getElementById('gradeModal').classList.add('open');
 }
 
-function openApprovalModal(businessNo, businessName, memberId, email, businessNumber) {
+function openApprovalModal(businessNo, businessName, memberId, email, businessNumber, settlementAccount) {
     document.getElementById('approvalBusinessNo').value = businessNo;
     document.getElementById('approvalBusinessName').textContent = businessName;
     document.getElementById('approvalMemberId').textContent = memberId;
     document.getElementById('approvalEmail').textContent = email;
     document.getElementById('approvalBusinessNumber').textContent = businessNumber;
+
+    // [모바일 리팩토링] 정산 계좌 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+    var accountEl = document.getElementById('approvalAccount');
+    if (accountEl) {
+        accountEl.textContent = settlementAccount;
+    }
+
     document.getElementById('approvalModal').classList.add('open');
 }
 
@@ -407,17 +510,17 @@ function formatEventWon(value) {
  * (WAITING이 아닌 이벤트에 승인/반려를 시도하면 adminMapper.xml의 updateEventStatus가
  * 0건을 갱신해 500 오류로 이어지던 문제를 화면에서 원천적으로 막기 위함이다.)
  */
-function openEventDetailModal(
-    eventNo,
-    businessName,
-    title,
-    period,
-    createdAt,
-    status,
-    statusLabel,
-    productDetail,
-    bannerImage
-) {
+function openEventDetailModal(button) {
+
+    var eventNo = button.dataset.eventNo;
+    var businessName = button.dataset.businessName;
+    var title = button.dataset.title;
+    var period = button.dataset.period;
+    var createdAt = button.dataset.createdAt;
+    var status = button.dataset.status;
+    var statusLabel = button.dataset.statusLabel;
+    var productDetail = button.dataset.productDetail;
+    var bannerImage = button.dataset.bannerImage;
 
     document.getElementById('reqeventNo').value = eventNo;
     document.getElementById('reqBusinessName').textContent = businessName;
@@ -566,11 +669,11 @@ function openOrderDetailModal(
     document.getElementById('orderDetailModal').classList.add('open');
 }
 
-function openRefundDetailModal(
-    cancelNo, orderNo, orderItemNo, productName, memberId, cancelType,
-    quantity, refundAmount, reason, cancelStatus, rejectReason,
-    createdAt, processedAt
-) {
+function openRefundDetailModal(button) {
+
+    var cancelStatus = button.dataset.cancelStatus;
+    var cancelType = button.dataset.cancelType;
+
     var statusLabel = cancelStatus;
     if (cancelStatus === 'WAITING') {
         statusLabel = '처리 대기';
@@ -582,17 +685,17 @@ function openRefundDetailModal(
 
     var typeLabel = (cancelType === 'FULL') ? '전체 취소' : '상품 부분 취소';
 
-    document.getElementById('refundDetailOrderNo').textContent = displayOrDash(orderNo);
-    document.getElementById('refundDetailProductName').textContent = displayOrDash(productName);
-    document.getElementById('refundDetailMemberId').textContent = displayOrDash(memberId);
+    document.getElementById('refundDetailOrderNo').textContent = displayOrDash(button.dataset.orderNo);
+    document.getElementById('refundDetailProductName').textContent = displayOrDash(button.dataset.productName);
+    document.getElementById('refundDetailMemberId').textContent = displayOrDash(button.dataset.memberId);
     document.getElementById('refundDetailType').textContent = typeLabel;
-    document.getElementById('refundDetailQuantity').textContent = displayOrDash(quantity) + '개';
-    document.getElementById('refundDetailAmount').textContent = formatWon(refundAmount);
+    document.getElementById('refundDetailQuantity').textContent = displayOrDash(button.dataset.quantity) + '개';
+    document.getElementById('refundDetailAmount').textContent = formatWon(button.dataset.refundAmount);
     document.getElementById('refundDetailStatus').textContent = displayOrDash(statusLabel);
-    document.getElementById('refundDetailCreatedAt').textContent = displayOrDash(createdAt);
-    document.getElementById('refundDetailProcessedAt').textContent = displayOrDash(processedAt);
-    document.getElementById('refundDetailReason').value = displayOrDash(reason);
-    document.getElementById('refundDetailRejectReason').value = displayOrDash(rejectReason);
+    document.getElementById('refundDetailCreatedAt').textContent = displayOrDash(button.dataset.createdAt);
+    document.getElementById('refundDetailProcessedAt').textContent = displayOrDash(button.dataset.processedAt);
+    document.getElementById('refundDetailReason').value = displayOrDash(button.dataset.reason);
+    document.getElementById('refundDetailRejectReason').value = displayOrDash(button.dataset.rejectReason);
 
     document.getElementById('refundDetailModal').classList.add('open');
 }
