@@ -103,6 +103,9 @@ public class SearchContentEnrichmentService {
         target.setDirector(source.getDirector());
         target.setCastNames(source.getCastNames());
         target.setAgeRating(source.getAgeRating());
+        target.setAgeRatingRestrictionChecked(
+                source.getAgeRatingRestrictionChecked()
+        );
         target.setPlatformKeys(source.getPlatformKeys() == null
                 ? new ArrayList<String>()
                 : new ArrayList<String>(source.getPlatformKeys()));
@@ -222,6 +225,36 @@ public class SearchContentEnrichmentService {
 
             return null;
         }
+
+        /*
+         * TMDB 원본 등급 기준으로 서비스 제외 대상을 먼저 차단합니다.
+         *
+         * 영화:
+         * - JP R18+  -> 제외
+         * - US NC-17 -> 제외
+         *
+         * TV:
+         * - US TV-MA-S
+         * - US TV-MA-LS
+         * - US TV-MA-SV
+         * - US TV-MA-LSV
+         *
+         * TV-MA, TV-MA-L, TV-MA-V는 유지합니다.
+         */
+        if (hasRestrictedSourceAgeRating(
+                candidate.getContentType(),
+                detail
+        )) {
+            return null;
+        }
+
+        /*
+         * 상세 응답의 원본 등급을 실제로 검사한 콘텐츠임을 기록합니다.
+         * 기존 JSONL은 이 값이 없으므로 별도 재검사를 한 번 수행합니다.
+         */
+        candidate.setAgeRatingRestrictionChecked(
+                Boolean.TRUE
+        );
 
         /*
          * 수동 보완 JSON에서 직접 추가한 후보는 Discover 응답을
@@ -577,6 +610,193 @@ public class SearchContentEnrichmentService {
         return names.isEmpty()
                 ? null
                 : String.join(", ", names);
+    }
+
+    /**
+     * 상세 응답에 서비스 제외 대상 원본 등급이 포함되어 있는지 확인합니다.
+     *
+     * KR 등급이 먼저 존재하더라도 JP R18+ 또는 US NC-17이 확인되면
+     * 콘텐츠 자체를 공용 저장소에서 제외합니다.
+     */
+    private boolean hasRestrictedSourceAgeRating(
+            String contentType,
+            JSONObject detail) {
+
+        if (detail == null
+                || !hasText(contentType)) {
+            return false;
+        }
+
+        if (MOVIE.equalsIgnoreCase(contentType)) {
+
+            JSONObject releaseDatesRoot =
+                    detail.optJSONObject(
+                            "release_dates"
+                    );
+
+            JSONArray countries =
+                    releaseDatesRoot == null
+                            ? null
+                            : releaseDatesRoot.optJSONArray(
+                                    "results"
+                            );
+
+            return containsMovieCertification(
+                    countries,
+                    "JP",
+                    "R18+"
+            )
+                    || containsMovieCertification(
+                            countries,
+                            "US",
+                            "NC17"
+                    );
+        }
+
+        if (TV.equalsIgnoreCase(contentType)) {
+
+            JSONObject contentRatingsRoot =
+                    detail.optJSONObject(
+                            "content_ratings"
+                    );
+
+            JSONArray ratings =
+                    contentRatingsRoot == null
+                            ? null
+                            : contentRatingsRoot.optJSONArray(
+                                    "results"
+                            );
+
+            String usRating =
+                    findTvRating(
+                            ratings,
+                            "US"
+                    );
+
+            return isRestrictedUsTvRating(
+                    usRating
+            );
+        }
+
+        return false;
+    }
+
+    /**
+     * 특정 국가의 영화 release_dates 중 제한 등급이 하나라도 있는지 확인합니다.
+     */
+    private boolean containsMovieCertification(
+            JSONArray countries,
+            String countryCode,
+            String restrictedCode) {
+
+        if (countries == null
+                || !hasText(countryCode)
+                || !hasText(restrictedCode)) {
+            return false;
+        }
+
+        String normalizedRestrictedCode =
+                normalizeRatingCode(
+                        restrictedCode
+                );
+
+        for (int index = 0;
+             index < countries.length();
+             index++) {
+
+            JSONObject country =
+                    countries.optJSONObject(index);
+
+            if (country == null
+                    || !countryCode.equalsIgnoreCase(
+                            country.optString(
+                                    "iso_3166_1",
+                                    ""
+                            )
+                    )) {
+                continue;
+            }
+
+            JSONArray releaseDates =
+                    country.optJSONArray(
+                            "release_dates"
+                    );
+
+            if (releaseDates == null) {
+                continue;
+            }
+
+            for (int releaseIndex = 0;
+                 releaseIndex < releaseDates.length();
+                 releaseIndex++) {
+
+                JSONObject release =
+                        releaseDates.optJSONObject(
+                                releaseIndex
+                        );
+
+                if (release == null) {
+                    continue;
+                }
+
+                String certification =
+                        release.optString(
+                                "certification",
+                                ""
+                        );
+
+                if (normalizedRestrictedCode.equals(
+                        normalizeRatingCode(
+                                certification
+                        )
+                )) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 미국 TV 등급 중 성적 상황(S) 설명자가 명시된 TV-MA 조합만 제외합니다.
+     *
+     * 제외:
+     * TV-MA-S, TV-MA-LS, TV-MA-SV, TV-MA-LSV
+     *
+     * 유지:
+     * TV-MA, TV-MA-L, TV-MA-V
+     */
+    private boolean isRestrictedUsTvRating(
+            String rawRating) {
+
+        String normalized =
+                normalizeRatingCode(
+                        rawRating
+                );
+
+        return "TVMAS".equals(normalized)
+                || "TVMALS".equals(normalized)
+                || "TVMASV".equals(normalized)
+                || "TVMALSV".equals(normalized);
+    }
+
+    /**
+     * 등급 코드 비교용 문자열을 생성합니다.
+     * 공백, 하이픈, 밑줄은 제거하고 + 기호는 유지합니다.
+     */
+    private String normalizeRatingCode(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return "";
+        }
+
+        return rawRating.trim()
+                .toUpperCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("_", "");
     }
 
     private String parseMovieAgeRating(
@@ -959,6 +1179,10 @@ public class SearchContentEnrichmentService {
 
             case "TV-MA":
             case "TVMA":
+            case "TV-MA-S":
+            case "TV-MA-LS":
+            case "TV-MA-SV":
+            case "TV-MA-LSV":
                 return "청소년 관람불가";
 
             case "NR":

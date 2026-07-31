@@ -41,6 +41,15 @@ public class CachedContentVO {
      */
     private String ageRatingLastCheckedAt;
 
+    /**
+     * 현재 연령등급 제외 정책(R18+, NC-17, 성적 설명자가 포함된 TV-MA 계열)을
+     * TMDB 원본 등급으로 확인했는지 여부입니다.
+     *
+     * 기존 JSONL에는 이 값이 없으므로 null은 아직 정책 검사를 수행하지 않은
+     * 상태로 처리합니다.
+     */
+    private Boolean ageRatingRestrictionChecked;
+
     private Double tmdbScore;
     private Double popularity;
 
@@ -156,6 +165,14 @@ public class CachedContentVO {
 
     public void setAgeRatingLastCheckedAt(String ageRatingLastCheckedAt) {
         this.ageRatingLastCheckedAt = ageRatingLastCheckedAt;
+    }
+
+    public Boolean getAgeRatingRestrictionChecked() {
+        return ageRatingRestrictionChecked;
+    }
+
+    public void setAgeRatingRestrictionChecked(Boolean ageRatingRestrictionChecked) {
+        this.ageRatingRestrictionChecked = ageRatingRestrictionChecked;
     }
 
     public Double getTmdbScore() {
