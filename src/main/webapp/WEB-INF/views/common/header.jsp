@@ -11,11 +11,18 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=8">
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"
-        integrity="sha512-pnPZhx5S+z5FSVwy62gcyG2Mun8h6R+PG01MidzU+NGF06/ytcm2r6+AaWMBXAnDHsdHWtsxS0dH8FBKA84FlQ=="
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<%--
+    Spring Security CSRF 토큰을 공통 JavaScript에서 사용할 수 있도록 노출합니다.
+    Spring Security가 GET 요청에 제공하는 _csrf request attribute를 직접 참조하여
+    deferred CSRF token도 실제 값으로 확정되도록 합니다.
+--%>
+<meta name="_csrf" content="${_csrf.token}">
+<meta name="_csrf_header" content="${_csrf.headerName}">
+<meta name="_csrf_parameter" content="${_csrf.parameterName}">
 
 <a href="#mainContent" class="skip-link">본문 바로가기</a>
 
