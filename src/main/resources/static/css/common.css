@@ -879,6 +879,7 @@
   .header {
     height: 70px;
   }
+}
 
 @media (max-width:768px){
 
@@ -963,6 +964,7 @@
     .join-btn{
 
         display:none;
+    }
 
   .header-search {
     display: none;
