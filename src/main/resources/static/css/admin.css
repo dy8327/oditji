@@ -1309,6 +1309,29 @@
   border-radius: 16px;
 
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+
+  /* Firefox: 스크롤바를 팝업 톤에 맞춰 얇고 어둡게 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--adm-border, #2b2b2b) transparent;
+}
+
+/* Chrome / Edge / Safari 스크롤바 커스텀 */
+.modal-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-box::-webkit-scrollbar-thumb {
+  background-color: var(--adm-border, #2b2b2b);
+  border-radius: 8px;
+  border: 2px solid var(--color-bg2, #202020);
+}
+
+.modal-box::-webkit-scrollbar-thumb:hover {
+  background-color: var(--adm-point, #5ea3ff);
 }
 
 .modal-header {

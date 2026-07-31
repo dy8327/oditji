@@ -252,7 +252,7 @@
 
 
                                     <td>
-                                        ${req.businessName}
+                                        <c:out value="${req.businessName}"/>
                                     </td>
 
 
@@ -267,25 +267,25 @@
 
                                                     <c:when test="${req.status == 'APPROVED'}">
                                                         <span class="event-title-text event-title-approved">
-                                                            ${req.title}
+                                                            <c:out value="${req.title}"/>
                                                         </span>
                                                     </c:when>
 
                                                     <c:when test="${req.status == 'REJECTED'}">
                                                         <span class="event-title-text event-title-rejected">
-                                                            ${req.title}
+                                                            <c:out value="${req.title}"/>
                                                         </span>
                                                     </c:when>
 
                                                     <c:when test="${req.status == 'END'}">
                                                         <span class="event-title-text event-title-end">
-                                                            ${req.title}
+                                                            <c:out value="${req.title}"/>
                                                         </span>
                                                     </c:when>
 
                                                     <c:otherwise>
                                                         <span class="event-title-text event-title-waiting">
-                                                            ${req.title}
+                                                            <c:out value="${req.title}"/>
                                                         </span>
                                                     </c:otherwise>
 
@@ -297,7 +297,7 @@
 
                                             <!-- PC용 -->
                                             <span class="pc-event-title">
-                                                ${req.title}
+                                                <c:out value="${req.title}"/>
                                             </span>
 
 
@@ -385,17 +385,16 @@
                                         --%>
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                onclick="openEventDetailModal(
-                                                    '${req.eventNo}',
-                                                    '${fn:escapeXml(req.businessName)}',
-                                                    '${fn:escapeXml(req.title)}',
-                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
-                                                    '${reqCreatedAtStr}',
-                                                    '${req.status}',
-                                                    '${reqStatusLabel}',
-                                                    '${fn:escapeXml(req.productDetail)}',
-                                                    '${fn:escapeXml(reqBannerImageUrl)}'
-                                                )">
+                                                data-event-no="${req.eventNo}"
+                                                data-business-name="${fn:escapeXml(req.businessName)}"
+                                                data-title="${fn:escapeXml(req.title)}"
+                                                data-period="${reqStartDateStr} ~ ${reqEndDateStr}"
+                                                data-created-at="${reqCreatedAtStr}"
+                                                data-status="${req.status}"
+                                                data-status-label="${reqStatusLabel}"
+                                                data-product-detail="${fn:escapeXml(req.productDetail)}"
+                                                data-banner-image="${fn:escapeXml(reqBannerImageUrl)}"
+                                                onclick="openEventDetailModal(this)">
 
                                             상세보기
 
