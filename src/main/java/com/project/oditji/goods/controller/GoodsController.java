@@ -239,12 +239,32 @@ public class GoodsController {
             return "의상";
         }
 
+        if ("SHOES".equals(productType)) {
+            return "신발";
+        }
+
         if ("OST".equals(productType)) {
             return "OST";
         }
 
         if ("PROP".equals(productType)) {
             return "소품";
+        }
+
+        if ("GOODS".equals(productType)) {
+            return "굿즈";
+        }
+
+        if ("FIGURE".equals(productType)) {
+            return "피규어";
+        }
+
+        if ("POSTER".equals(productType)) {
+            return "포스터";
+        }
+
+        if ("ETC".equals(productType)) {
+            return "기타";
         }
 
         return null;

@@ -119,7 +119,7 @@ const savedActorNo =
                             name="productType"
                             required>
 
-                        <option value="">
+                        <option value="" disabled hidden ${productForm.productType == null ? 'selected' : ''}>
                             상품 종류를 선택하세요
                         </option>
 
@@ -127,6 +127,12 @@ const savedActorNo =
                             ${productForm.productType == 'CLOTHES'
                                 ? 'selected' : ''}>
                             의상
+                        </option>
+
+                        <option value="SHOES"
+                            ${productForm.productType == 'SHOES'
+                                ? 'selected' : ''}>
+                            신발
                         </option>
 
                         <option value="PROP"
@@ -157,6 +163,12 @@ const savedActorNo =
                             ${productForm.productType == 'FIGURE'
                                 ? 'selected' : ''}>
                             피규어
+                        </option>
+
+                        <option value="POSTER"
+                            ${productForm.productType == 'POSTER'
+                                ? 'selected' : ''}>
+                            포스터
                         </option>
 
                         <option value="ETC"

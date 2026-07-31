@@ -51,21 +51,10 @@ public class BusinessServiceImpl
         /* JSONL 콘텐츠 검색 팝업에 한 번에 표시할 최대 건수 */
         private static final int CONTENT_SEARCH_LIMIT = 100;
 
-        private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
-                        "jpg",
-                        "jpeg",
-                        "png",
-                        "gif",
-                        "webp");
+        private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
-        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of(
-                        "CLOTHES",
-                        "PROP",
-                        "GOODS",
-                        "OST",
-                        "BOOK",
-                        "FIGURE",
-                        "ETC");
+        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of("CLOTHES", "PROP", "GOODS", "OST", "BOOK",
+                        "FIGURE", "SHOES", "POSTER", "ETC");
 
         private final BusinessDAO businessDAO;
         private final ContentService contentService;

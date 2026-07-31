@@ -13,7 +13,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
-<a href="#mainContent" class="skip-link">본문 바로가기</a>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <header class="header">
@@ -86,8 +85,13 @@
                             <div class="header-category-submenu" role="menu" aria-label="상품 세부 카테고리">
                                 <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=BOOK" role="menuitem">도서</a>
                                 <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=CLOTHES" role="menuitem">의상</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=SHOES" role="menuitem">신발</a>
                                 <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=OST" role="menuitem">OST</a>
                                 <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=PROP" role="menuitem">소품</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=FIGURE" role="menuitem">피규어</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=POSTER" role="menuitem">포스터</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=GOODS" role="menuitem">굿즈</a>
+                                <a href="${pageContext.request.contextPath}/goods/list?type=category&amp;productTypes=ETC" role="menuitem">기타</a>
                             </div>
                         </div>
                     </div>
