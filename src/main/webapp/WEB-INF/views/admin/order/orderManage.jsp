@@ -149,12 +149,12 @@
 
                         <thead>
                             <tr>
-                                <th>주문번호</th>
+                                <th class="col-mobile-hide">주문번호</th>
                                 <th>상품명</th>
-                                <th>관련 콘텐츠</th>
-                                <th>가격</th>
+                                <th class="col-mobile-hide">관련 콘텐츠</th>
+                                <th class="col-mobile-hide">가격</th>
                                 <th>주문상태</th>
-                                <th>배송상태</th>
+                                <th class="col-mobile-hide">배송상태</th>
                                 <th>관리</th>
                             </tr>
                         </thead>
@@ -169,10 +169,10 @@
 
                                         <tr>
 
-                                            <td>${order.orderNo}</td>
+                                            <td class="col-mobile-hide">${order.orderNo}</td>
                                             <td>${order.productName}</td>
-                                            <td>${order.contentTitle}</td>
-                                            <td><fmt:formatNumber value="${order.productPrice}" pattern="#,###"/>원</td>
+                                            <td class="col-mobile-hide">${order.contentTitle}</td>
+                                            <td class="col-mobile-hide"><fmt:formatNumber value="${order.productPrice}" pattern="#,###"/>원</td>
 
                                             <td>
                                                 <span class="badge ${order.orderStatus == 'CANCEL_REQUEST' ? 'badge-yellow' : 'badge-gray'}">
@@ -191,7 +191,7 @@
                                                 </span>
                                             </td>
 
-                                            <td>
+                                            <td class="col-mobile-hide">
                                                 <span class="badge ${order.status == 'SHIPPING' ? 'badge-blue' : 'badge-gray'}">
                                                     <c:choose>
                                                         <c:when test="${order.status == 'PREPARING'}">상품 준비 중</c:when>
@@ -204,9 +204,16 @@
                                             </td>
 
                                             <td>
-                                                <div class="item-actions">
-                                                    <button type="button" class="btn btn-dark"
-                                                            onclick="openOrderDetailModal(
+                                                <%--
+                                                    [수정] 이 버튼을 감싸던 .item-actions div를 제거한다.
+                                                    모바일 공통 규칙(.data-table td .item-actions > *:not(.row-detail-trigger)
+                                                    { display:none; })이 row-detail-trigger 클래스가 없는 이 버튼까지
+                                                    숨겨버려서, 조회 전용인 이 화면은 모바일에서 상세보기 버튼 자체가
+                                                    사라지는 문제가 있었다. eventManage/productManage처럼 래퍼 없이
+                                                    버튼만 두면 데스크톱/모바일 모두에서 정상적으로 보인다.
+                                                --%>
+                                                <button type="button" class="btn btn-dark"
+                                                        onclick="openOrderDetailModal(
                                                                 '${order.orderNo}',
                                                                 '${order.orderItemNo}',
                                                                 '${order.productName}',
@@ -223,9 +230,8 @@
                                                                 '${order.courier}',
                                                                 '<fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>'
                                                             )">
-                                                        상세보기
-                                                    </button>
-                                                </div>
+                                                    상세보기
+                                                </button>
                                             </td>
 
                                         </tr>
@@ -255,11 +261,11 @@
 
                         <thead>
                             <tr>
-                                <th>주문번호</th>
+                                <th class="col-mobile-hide">주문번호</th>
                                 <th>상품명</th>
-                                <th>관련 콘텐츠</th>
+                                <th class="col-mobile-hide">관련 콘텐츠</th>
                                 <th>구매자</th>
-                                <th>사유</th>
+                                <th class="col-mobile-hide">사유</th>
                                 <th>처리상태</th>
                                 <th>관리</th>
                             </tr>
@@ -275,11 +281,11 @@
 
                                         <tr>
 
-                                            <td>${refund.orderNo}</td>
-                                            <td><c:out value="${refund.productName}"/></td>
-                                            <td><c:out value="${refund.contentTitle}"/></td>
-                                            <td><c:out value="${refund.memberId}"/></td>
-                                            <td><c:out value="${refund.reason}"/></td>
+                                            <td class="col-mobile-hide">${refund.orderNo}</td>
+                                            <td>${refund.productName}</td>
+                                            <td class="col-mobile-hide">${refund.contentTitle}</td>
+                                            <td>${refund.memberId}</td>
+                                            <td class="col-mobile-hide">${refund.reason}</td>
 
                                             <td>
                                                 <span class="badge ${refund.cancelStatus == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
@@ -293,30 +299,25 @@
                                             </td>
 
                                             <td>
-                                                <%--
-                                                    환불 사유/반려 사유에 따옴표나 줄바꿈이 섞여도
-                                                    onclick 인라인 문자열이 깨지지 않도록
-                                                    data-* 속성으로 값을 전달한다.
-                                                --%>
-                                                <div class="item-actions">
-                                                    <button type="button" class="btn btn-dark"
-                                                            data-cancel-no="${refund.cancelNo}"
-                                                            data-order-no="${refund.orderNo}"
-                                                            data-order-item-no="${refund.orderItemNo}"
-                                                            data-product-name="${fn:escapeXml(refund.productName)}"
-                                                            data-member-id="${fn:escapeXml(refund.memberId)}"
-                                                            data-cancel-type="${refund.cancelType}"
-                                                            data-quantity="${refund.quantity}"
-                                                            data-refund-amount="${refund.refundAmount}"
-                                                            data-reason="${fn:escapeXml(refund.reason)}"
-                                                            data-cancel-status="${refund.cancelStatus}"
-                                                            data-reject-reason="${fn:escapeXml(refund.rejectReason)}"
-                                                            data-created-at="<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>"
-                                                            data-processed-at="<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>"
-                                                            onclick="openRefundDetailModal(this)">
-                                                        상세보기
-                                                    </button>
-                                                </div>
+                                                <%-- [수정] 주문 조회 표와 동일한 이유로 .item-actions 래퍼를 제거한다. --%>
+                                                <button type="button" class="btn btn-dark"
+                                                        onclick="openRefundDetailModal(
+                                                                '${refund.cancelNo}',
+                                                                '${refund.orderNo}',
+                                                                '${refund.orderItemNo}',
+                                                                '${refund.productName}',
+                                                                '${refund.memberId}',
+                                                                '${refund.cancelType}',
+                                                                '${refund.quantity}',
+                                                                '${refund.refundAmount}',
+                                                                '${refund.reason}',
+                                                                '${refund.cancelStatus}',
+                                                                '${refund.rejectReason}',
+                                                                '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
+                                                                '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
+                                                            )">
+                                                    상세보기
+                                                </button>
                                             </td>
 
                                         </tr>

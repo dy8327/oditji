@@ -14,6 +14,95 @@ function closeModal(id) {
 
 
 /* =========================================================
+ * [모바일 리팩토링] 공통 - 관리자 목록 표 "상세보기" 모달
+ *
+ * memberManage / businessManage / eventManage / productManage / orderManage /
+ * reviewManage / productReviewManage / settlementManage / monitoring 등
+ * .data-table을 쓰는 모든 관리자 목록 화면이 공유하는 범용 엔진이다.
+ * 화면마다 다른 컬럼 구성에 맞춰 새 JS 함수를 추가하지 않아도 되도록,
+ * "상세보기" 버튼의 data-* 값을 모달 안 data-detail-field 요소에 그대로
+ * 채워 넣는 방식으로 동작한다.
+ *
+ * 사용법 (JSP 쪽):
+ *   1) 각 행의 "상세보기" 버튼에 class="row-detail-trigger"와 필요한 값을
+ *      data-* 속성으로 담고, onclick="openRowDetailModal('모달id', this)"를 건다.
+ *      예) <button class="btn btn-outline row-detail-trigger"
+ *                  data-member-no="${member.memberNo}"
+ *                  data-status="${member.status}"
+ *                  onclick="openRowDetailModal('memberDetailModal', this)">상세보기</button>
+ *   2) 모달 안에서 그 값을 보여줄 요소에는 data-detail-field="memberNo" 처럼
+ *      버튼의 data-* 이름(카멜케이스)과 같은 값을 지정한다. 텍스트 요소는
+ *      textContent가, input/textarea/select는 value가 채워진다.
+ *   3) 상태에 따라 관리 버튼을 보이거나 숨기고 싶으면 data-detail-toggle=
+ *      "필드명:보일값1,보일값2"를 붙인다. (예: data-detail-toggle="status:ACTIVE")
+ * ========================================================= */
+function openRowDetailModal(modalId, triggerButton) {
+
+    var modal = document.getElementById(modalId);
+
+    if (!modal || !triggerButton) {
+        return;
+    }
+
+    var dataset = triggerButton.dataset;
+
+    Object.keys(dataset).forEach(function (key) {
+
+        var value = dataset[key];
+        var targets = modal.querySelectorAll('[data-detail-field="' + key + '"]');
+
+        targets.forEach(function (el) {
+
+            var tag = el.tagName;
+
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+                el.value = value;
+            } else {
+                el.textContent = value;
+            }
+        });
+    });
+
+    modal.querySelectorAll('[data-detail-toggle]').forEach(function (el) {
+
+        var parts = el.dataset.detailToggle.split(':');
+        var field = parts[0];
+        var allowedValues = (parts[1] || '').split(',');
+
+        el.style.display = (allowedValues.indexOf(dataset[field]) !== -1) ? '' : 'none';
+    });
+
+    modal.classList.add('open');
+}
+
+/* =========================================================
+ * 모바일 회원 아이디 말줄임 / 클릭 확대
+ * ========================================================= */
+document.addEventListener('click', function (e) {
+
+    var target = e.target.closest('.member-id-text');
+
+    if (!target) {
+        return;
+    }
+
+    // 이미 펼쳐진 상태면 닫기
+    if (target.classList.contains('expanded')) {
+        target.classList.remove('expanded');
+        return;
+    }
+
+    // 말줄임(...) 상태가 아니면 클릭 무시
+    if (target.scrollWidth <= target.clientWidth) {
+        return;
+    }
+
+    target.classList.add('expanded');
+
+});
+
+
+/* =========================================================
  * memberManage.jsp - 회원 관리 (필터/일괄처리/개별처리)
  * ========================================================= */
 
@@ -340,12 +429,19 @@ function deleteProductReview(reviewNo) {
 /* =========================================================
  * businessManage.jsp - 사업자 관리
  * ========================================================= */
-function openGradeModal(businessNo, name, memberId, email, currentGrade) {
+function openGradeModal(businessNo, name, memberId, email, currentGrade, totalSales) {
     document.getElementById('gradeBusinessNo').value = businessNo;
     document.getElementById('gradeBusinessName').textContent = name;
     document.getElementById('gradeBusinessId').textContent = memberId;
     document.getElementById('gradeBusinessEmail').textContent = email;
     document.getElementById('gradeBusinessCurrent').textContent = currentGrade;
+
+    // [모바일 리팩토링] 누적 실매출 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+    var salesEl = document.getElementById('gradeBusinessSales');
+    if (salesEl) {
+        var amount = Number(totalSales);
+        salesEl.textContent = isNaN(amount) ? '-' : amount.toLocaleString('ko-KR') + '원';
+    }
 
     var radios = document.getElementsByName('gradeName');
     for (var i = 0; i < radios.length; i++) {
@@ -355,12 +451,19 @@ function openGradeModal(businessNo, name, memberId, email, currentGrade) {
     document.getElementById('gradeModal').classList.add('open');
 }
 
-function openApprovalModal(businessNo, businessName, memberId, email, businessNumber) {
+function openApprovalModal(businessNo, businessName, memberId, email, businessNumber, settlementAccount) {
     document.getElementById('approvalBusinessNo').value = businessNo;
     document.getElementById('approvalBusinessName').textContent = businessName;
     document.getElementById('approvalMemberId').textContent = memberId;
     document.getElementById('approvalEmail').textContent = email;
     document.getElementById('approvalBusinessNumber').textContent = businessNumber;
+
+    // [모바일 리팩토링] 정산 계좌 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+    var accountEl = document.getElementById('approvalAccount');
+    if (accountEl) {
+        accountEl.textContent = settlementAccount;
+    }
+
     document.getElementById('approvalModal').classList.add('open');
 }
 

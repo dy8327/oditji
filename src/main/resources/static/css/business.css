@@ -68,6 +68,10 @@
   border-bottom: 1px solid var(--biz-border);
 }
 
+.business-wrap .sidebar-mobile-toggle {
+  display: none;
+}
+
 .business-wrap .sidebar-menu {
   padding: 20px 16px;
 }
@@ -86,11 +90,13 @@
 
 .business-wrap .menu-group a {
   display: block;
-  padding: 11px 14px;
+  margin-bottom: 2px;
+  padding: 11px 16px;
   border-left: 3px solid transparent;
   border-radius: var(--biz-radius-sm);
   font-size: 14px;
-  color: var(--biz-text-sub);
+  letter-spacing: 0.1px;
+  color: var(--biz-text-dim);
   transition: var(--biz-transition);
 }
 
@@ -678,7 +684,7 @@
    Responsive
    ===================================================== */
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .business-wrap .summary-grid,
   .business-wrap .settlement-summary-grid,
   .business-wrap .dashboard-grid {
@@ -687,7 +693,7 @@
 
   .business-wrap .main-content,
   .business-wrap .business-main {
-    padding: 20px;
+    padding: 24px;
   }
 
   .business-wrap .business-sidebar {
@@ -698,6 +704,16 @@
 @media (max-width: 768px) {
   .business-wrap {
     flex-direction: column;
+    /*
+     * [수정] business-wrap의 align-items: flex-start는 데스크톱(가로 배치)에서
+     * 사이드바/본문 높이를 각자 콘텐츠에 맞게 정렬하기 위한 값인데,
+     * 768px 이하에서 flex-direction이 column으로 바뀌면 교차축이 세로->가로로
+     * 바뀌면서 main-content(business-main)가 화면 너비를 채우지 않고 내부
+     * 콘텐츠(표/그리드/폼)의 실제 필요 너비만큼 늘어나 버렸다. 이게 전체 화면이
+     * 가로로 잘려 보이고 가로 스크롤이 생기던 원인. stretch로 재정의해 항상
+     * 100% 너비를 채우게 한다.
+     */
+    align-items: stretch;
   }
 
   .business-wrap .business-sidebar {
@@ -705,16 +721,109 @@
     border-right: none;
     border-bottom: 1px solid var(--biz-border);
   }
+
+  .business-wrap .sidebar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: var(--biz-text);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .business-wrap .sidebar-mobile-toggle-arrow {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .business-wrap .business-sidebar.is-open .sidebar-mobile-toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .business-wrap .sidebar-menu {
+    overflow: hidden;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .business-wrap .business-sidebar.is-open .sidebar-menu {
+    max-height: 2000px;
+    padding-top: 4px;
+    padding-bottom: 20px;
+  }
+
+  .business-wrap .main-content,
+  .business-wrap .business-main {
+    padding: 20px 16px 48px;
+  }
+
+  .business-wrap .business-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .business-wrap .hero-left h1 {
+    margin-bottom: 10px;
+    font-size: 21px;
+  }
+
+  .business-wrap .business-page-header {
+    margin-bottom: 20px;
+  }
+
+  .business-wrap .business-page-title,
+  .business-wrap .page-title {
+    font-size: 20px;
+  }
+
+  .business-wrap .business-panel,
+  .business-wrap .content-panel,
+  .business-wrap .form-panel {
+    padding: 18px;
+  }
+
+  .business-wrap .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .business-wrap .page-search,
+  .business-wrap .product-search-form input,
+  .business-wrap .filter-select {
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {
   .business-wrap .summary-grid,
   .business-wrap .settlement-summary-grid,
   .business-wrap .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  .business-wrap .toolbar,
+  .business-wrap .summary-card,
+  .business-wrap .settlement-card,
+  .business-wrap .dashboard-card {
+    padding: 16px 14px;
+  }
+
+  .business-wrap .summary-card strong,
+  .business-wrap .settlement-card strong,
+  .business-wrap .dashboard-card strong {
+    font-size: 20px;
+  }
+
   .business-wrap .item-card,
   .business-wrap .product-item {
     flex-direction: column;
@@ -722,17 +831,43 @@
     align-items: stretch;
   }
 
-  .business-wrap .business-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 24px;
-    gap: 20px;
+  /*
+   * [수정] 사업자 메인 '인기 상품' 카드(.panel > ul > div 안의 .item-card)가
+   * 위 규칙 때문에 세로형 카드가 1줄에 1개씩 배치되어 스크롤이 불필요하게
+   * 길어졌다. 이 카드 목록만 2열 그리드로 배치하고 카드 자체도 소형
+   * 타일 형태로 축소한다. .panel 스코프로 한정해 주문상세/취소요청 페이지의
+   * .item-card(가로형 상세 카드)에는 영향 없도록 함.
+   */
+  .business-wrap .panel > ul > div {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
-  .business-wrap .business-panel,
-  .business-wrap .content-panel,
-  .business-wrap .form-panel {
-    padding: 20px;
+  .business-wrap .panel .item-card {
+    align-items: center;
+    padding: 12px;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .business-wrap .panel .product-thumb {
+    width: 100%;
+    height: 80px;
+  }
+
+  .business-wrap .panel .item-info {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .business-wrap .panel .product-name {
+    font-size: 13px;
+  }
+
+  .business-wrap .panel .meta {
+    justify-content: center;
+    font-size: 12px;
   }
 }
 
@@ -918,6 +1053,13 @@
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  .business-wrap .data-table th,
+  .business-wrap .data-table td,
+  .business-wrap .business-table th,
+  .business-wrap .business-table td {
+    padding: 12px 10px;
   }
 }
 
@@ -1332,6 +1474,7 @@
 .product-search-result {
   max-height: 55vh;
   overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid #3b3e46;
   border-radius: 10px;
 }
@@ -1399,6 +1542,15 @@
 
   .product-search-bar {
     flex-direction: column;
+  }
+
+  .product-search-table {
+    white-space: nowrap;
+  }
+
+  .product-search-table th,
+  .product-search-table td {
+    padding: 10px;
   }
 }
 
@@ -1995,6 +2147,7 @@
 
 .content-search-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
 }
 
@@ -2004,6 +2157,17 @@
   border-bottom: 1px solid #ddd;
   text-align: left;
   vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .content-search-wrap {
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .content-search-form {
+    flex-direction: column;
+  }
 }
 
 .content-poster {
@@ -2443,5 +2607,67 @@
   .cancel-alert-title,
   .cancel-alert-message {
     font-size: 13px;
+  }
+}
+
+/* =====================================================
+   [모바일 리팩토링] 좁은 화면(480px 이하)에서 히어로/패널/카드를
+   한 번 더 축소해 스크롤 길이를 줄인다. (admin.css와 동일한 기준)
+   ===================================================== */
+@media (max-width: 480px) {
+  .business-wrap .main-content,
+  .business-wrap .business-main {
+    padding: 16px 14px 40px;
+  }
+
+  .business-wrap .business-hero {
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .business-wrap .hero-left h1 {
+    font-size: 19px;
+  }
+
+  .business-wrap .business-panel,
+  .business-wrap .content-panel,
+  .business-wrap .form-panel {
+    padding: 14px;
+  }
+
+  .business-wrap .summary-grid,
+  .business-wrap .settlement-summary-grid,
+  .business-wrap .dashboard-grid {
+    gap: 10px;
+  }
+
+  .business-wrap .summary-card,
+  .business-wrap .settlement-card,
+  .business-wrap .dashboard-card {
+    padding: 14px 12px;
+  }
+
+  .business-wrap .summary-card span,
+  .business-wrap .settlement-card span,
+  .business-wrap .dashboard-card span {
+    font-size: 12px;
+  }
+
+  .business-wrap .summary-card strong,
+  .business-wrap .settlement-card strong,
+  .business-wrap .dashboard-card strong {
+    font-size: 18px;
+  }
+
+  .business-wrap .item-card,
+  .business-wrap .product-item {
+    padding: 14px 16px;
+    gap: 14px;
+  }
+
+  .business-wrap .thumb,
+  .business-wrap .product-thumb {
+    width: 60px;
+    height: 60px;
   }
 }

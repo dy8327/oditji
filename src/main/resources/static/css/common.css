@@ -876,10 +876,84 @@
   .header {
     height: 70px;
   }
+}
+@media (max-width:768px){
 
-  .header-container {
-    gap: 15px;
-  }
+    .header{
+
+        height:70px;
+
+    }
+
+    .header-container{
+
+        gap:15px;
+
+    }
+
+    .header-search-toggle{
+
+        display:flex;
+
+    }
+
+    .header-search{
+
+        position:absolute;
+
+        top:calc(100% + 1px);
+
+        left:2%;
+
+        right:2%;
+
+        margin:0;
+
+        padding:12px;
+
+        background:#23262B;
+
+        border:1px solid var(--color-border);
+
+        border-radius:0 0 16px 16px;
+
+        box-shadow:0 18px 35px rgba(0,0,0,.36);
+
+        opacity:0;
+
+        visibility:hidden;
+
+        transform:translateY(-8px);
+
+        pointer-events:none;
+
+        transition:var(--transition);
+
+    }
+
+    .header-search.open{
+
+        opacity:1;
+
+        visibility:visible;
+
+        transform:translateY(0);
+
+        pointer-events:auto;
+
+    }
+
+    .header-search form{
+
+        width:100%;
+
+        max-width:none;
+
+    }
+
+    .profile-btn span{
+
+        display:none;
 
   /* [수정] 팀원 코드의 모바일 기본 레이아웃과 모바일 검색 토글 기능을 함께 사용합니다. */
   .header-search-toggle {
@@ -907,16 +981,10 @@
     transition: var(--transition);
   }
 
-  .header-search.open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  .header-search form {
-    width: 100%;
-    max-width: none;
+        display:none;
+    }
+  .header-search {
+    display: none;
   }
 
   .profile-btn span {
@@ -1395,11 +1463,13 @@ html {
   border-color: var(--color-point);
 }
 
-@media (max-width: 576px) {
-  .back-to-top-btn {
-    right: 16px;
-    bottom: 16px;
-    width: 44px;
-    height: 44px;
-  }
+@media (max-width:576px){
+
+    .back-to-top-btn{
+        right:16px;
+        bottom:16px;
+        width:44px;
+        height:44px;
+    }
+
 }

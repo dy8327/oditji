@@ -183,13 +183,13 @@
 
                     <tr>
 
-                        <th>번호</th>
+                        <th class="col-mobile-hide">번호</th>
                         <th>사업자명</th>
                         <th>이벤트명</th>
-                        <th>적용 상품</th>
-                        <th>이벤트 기간</th>
-                        <th>요청일</th>
-                        <th>상태</th>
+                        <th class="col-mobile-hide">적용 상품</th>
+                        <th class="col-mobile-hide">이벤트 기간</th>
+                        <th class="col-mobile-hide">요청일</th>
+                        <th class="col-mobile-hide">상태</th>
                         <th>관리</th>
 
                     </tr>
@@ -246,37 +246,105 @@
 
                                 <tr>
 
-                                    <td>${req.eventNo}</td>
+                                    <td class="col-mobile-hide">
+                                        ${req.eventNo}
+                                    </td>
 
-                                    <td><c:out value="${req.businessName}"/></td>
 
-                                    <td><c:out value="${req.title}"/></td>
+                                    <td>
+                                        ${req.businessName}
+                                    </td>
+
+
+                                    <td class="event-title-cell">
+
+                                        <div class="event-title-wrapper">
+
+                                            <!-- 모바일용 -->
+                                            <div class="mobile-event-title">
+
+                                                <c:choose>
+
+                                                    <c:when test="${req.status == 'APPROVED'}">
+                                                        <span class="event-title-text event-title-approved">
+                                                            ${req.title}
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:when test="${req.status == 'REJECTED'}">
+                                                        <span class="event-title-text event-title-rejected">
+                                                            ${req.title}
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:when test="${req.status == 'END'}">
+                                                        <span class="event-title-text event-title-end">
+                                                            ${req.title}
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:otherwise>
+                                                        <span class="event-title-text event-title-waiting">
+                                                            ${req.title}
+                                                        </span>
+                                                    </c:otherwise>
+
+
+                                                </c:choose>
+
+                                            </div>
+
+
+                                            <!-- PC용 -->
+                                            <span class="pc-event-title">
+                                                ${req.title}
+                                            </span>
+
+
+                                        </div>
+
+                                    </td>
+
 
                                     <%--
-                                        목록에서는 상품별 할인 내역까지 다 펼치지 않고
-                                        연결된 상품 개수만 간단히 보여주고, 자세한 내역은
-                                        상세보기 팝업의 "적용 상품" 표에서 확인하도록 한다.
+                                        연결 상품 개수
+                                        모바일 숨김
                                     --%>
-                                    <td>
+                                    <td class="col-mobile-hide">
+
                                         <c:choose>
+
                                             <c:when test="${not empty req.productDetail}">
                                                 ${fn:length(fn:split(req.productDetail, ';'))}개 상품
                                             </c:when>
+
                                             <c:otherwise>
                                                 -
                                             </c:otherwise>
+
                                         </c:choose>
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 이벤트 기간 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
+
                                         ${reqStartDateStr} ~ ${reqEndDateStr}
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 요청일 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
+
                                         ${reqCreatedAtStr}
+
                                     </td>
 
-                                    <td>
+
+                                    <!-- 상태 : 모바일 숨김 -->
+                                    <td class="col-mobile-hide">
 
                                         <c:choose>
 
@@ -317,20 +385,24 @@
                                         --%>
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                data-event-no="${req.eventNo}"
-                                                data-business-name="${fn:escapeXml(req.businessName)}"
-                                                data-title="${fn:escapeXml(req.title)}"
-                                                data-period="${reqStartDateStr} ~ ${reqEndDateStr}"
-                                                data-created-at="${reqCreatedAtStr}"
-                                                data-status="${req.status}"
-                                                data-status-label="${reqStatusLabel}"
-                                                data-product-detail="${fn:escapeXml(req.productDetail)}"
-                                                data-banner-image="${fn:escapeXml(reqBannerImageUrl)}"
-                                                onclick="openEventDetailModal(this)">
+                                                onclick="openEventDetailModal(
+                                                    '${req.eventNo}',
+                                                    '${fn:escapeXml(req.businessName)}',
+                                                    '${fn:escapeXml(req.title)}',
+                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
+                                                    '${reqCreatedAtStr}',
+                                                    '${req.status}',
+                                                    '${reqStatusLabel}',
+                                                    '${fn:escapeXml(req.productDetail)}',
+                                                    '${fn:escapeXml(reqBannerImageUrl)}'
+                                                )">
+
                                             상세보기
+
                                         </button>
 
                                     </td>
+
 
                                 </tr>
 

@@ -10,8 +10,18 @@
         ODITJI BUSINESS
     </div>
 
+    <!-- 모바일 전용 메뉴 펼치기 버튼 (데스크톱에서는 숨김) -->
+    <button type="button"
+            class="sidebar-mobile-toggle"
+            data-mobile-filter-toggle
+            aria-expanded="false"
+            aria-controls="businessSidebarMenu">
+        <span>전체 메뉴</span>
+        <span class="sidebar-mobile-toggle-arrow" aria-hidden="true">⌄</span>
+    </button>
 
-    <nav class="sidebar-menu">
+
+    <nav class="sidebar-menu" id="businessSidebarMenu">
 
 
         <!-- 사업자 홈 -->
