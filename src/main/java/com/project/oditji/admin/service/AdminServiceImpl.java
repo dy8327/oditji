@@ -47,6 +47,18 @@ import com.project.oditji.notification.service.NotificationService;
 public class AdminServiceImpl implements AdminService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
+    private static final String PARAM_KEYWORD = "keyword";
+    private static final String PARAM_STATUS = "status";
+    private static final String ACTION_DELETE = "delete";
+    private static final String TAB_REPORT = "report";
+    private static final String REFERENCE_CONTENT = "CONTENT";
+    private static final String STATUS_REJECTED = "REJECTED";
+    private static final String REFERENCE_PRODUCT = "PRODUCT";
+    private static final String PARAM_PERIOD = "period";
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_DELETE_REQUESTED = "DELETE_REQUESTED";
+    private static final String BUSINESS_PRODUCT_LIST_URL = "/business/product/list";
+    private static final String REFERENCE_BUSINESS = "BUSINESS";
 
     private final AdminDAO adminDAO;
     private final NotificationService notificationService;
@@ -109,7 +121,7 @@ public class AdminServiceImpl implements AdminService {
     // keyword 하나만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼.
     private Map<String, Object> keywordParam(String keyword) {
         Map<String, Object> param = new HashMap<>();
-        param.put("keyword", keyword);
+        param.put(PARAM_KEYWORD, keyword);
         return param;
     }
 
@@ -126,16 +138,16 @@ public class AdminServiceImpl implements AdminService {
     // keyword + searchType만 필요한 목록 조회를 위한 파라미터 Map 생성 헬퍼. (memberSearchParam의 축소판)
     private Map<String, Object> keywordSearchTypeParam(String keyword, String searchType) {
         Map<String, Object> param = new HashMap<>();
-        param.put("keyword", keyword);
+        param.put(PARAM_KEYWORD, keyword);
         param.put("searchType", searchType);
         return param;
     }
 
     private Map<String, Object> memberSearchParam(String keyword, String searchType, String status, String memberType) {
         Map<String, Object> param = new HashMap<>();
-        param.put("keyword", keyword);
+        param.put(PARAM_KEYWORD, keyword);
         param.put("searchType", searchType);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         param.put("memberType", memberType);
         return param;
     }
@@ -171,7 +183,7 @@ public class AdminServiceImpl implements AdminService {
 
     /*
      * 목록 화면에서 체크박스로 선택한 회원들을 한 번의 요청으로 일괄 처리한다.
-     * delete는 기존 deleteMember(단건)를 그대로 재사용해 FK 정리 순서를 그대로 유지한다.
+     * delete는 단건 삭제와 동일한 내부 삭제 로직을 재사용해 FK 정리 순서를 그대로 유지한다.
      * 화면 체크박스에서 이미 선택 자체를 막고 있지만, 본인이 직접 탈퇴하여 자동삭제 대기 중인
      * (STATUS = 'WITHDRAWN') 회원이 우회 요청 등으로 포함되어 들어올 경우를 대비해
      * 서버에서 한 번 더 걸러내고, 걸러낸 회원 수를 반환한다.
@@ -195,7 +207,7 @@ public class AdminServiceImpl implements AdminService {
             switch (action) {
                 case "suspend" -> adminDAO.updateMemberStatus(memberNo, "BLOCKED");
                 case "restore" -> adminDAO.updateMemberStatus(memberNo, "ACTIVE");
-                case "delete" -> deleteMember(memberNo);
+                case ACTION_DELETE -> deleteMemberInternal(memberNo);
                 default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
             }
         }
@@ -206,6 +218,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void deleteMember(Long memberNo) {
+        deleteMemberInternal(memberNo);
+    }
+
+    private void deleteMemberInternal(Long memberNo) {
 
         // 회원 삭제 전 FK 참조 데이터 제거
 
@@ -247,7 +263,7 @@ public class AdminServiceImpl implements AdminService {
         List<Long> memberList = adminDAO.selectExpiredWithdrawMembers();
 
         for (Long memberNo : memberList) {
-            deleteMember(memberNo);
+            deleteMemberInternal(memberNo);
         }
     }
 
@@ -257,7 +273,7 @@ public class AdminServiceImpl implements AdminService {
     public List<ReviewManageVO> getContentReviewList(String tab, String keyword, String searchType, int page,
             int pageSize) {
         Map<String, Object> param = withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize);
-        if ("report".equals(tab)) {
+        if (TAB_REPORT.equals(tab)) {
             return adminDAO.selectContentReviewReportList(param);
         }
         return adminDAO.selectContentReviewList(param);
@@ -265,7 +281,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public int getContentReviewListCount(String tab, String keyword, String searchType) {
-        if ("report".equals(tab)) {
+        if (TAB_REPORT.equals(tab)) {
             return adminDAO.selectContentReviewReportListCount(keywordSearchTypeParam(keyword, searchType));
         }
         return adminDAO.selectContentReviewListCount(keywordSearchTypeParam(keyword, searchType));
@@ -289,6 +305,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void approveContentReviewReport(Long reviewNo) {
+        approveContentReviewReportInternal(reviewNo);
+    }
+
+    private void approveContentReviewReportInternal(Long reviewNo) {
 
         List<Long> reporterMemberNos = adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
@@ -302,7 +322,7 @@ public class AdminServiceImpl implements AdminService {
 
         createReviewReportResultNotifications(
                 reporterMemberNos,
-                "CONTENT",
+                REFERENCE_CONTENT,
                 true,
                 reviewNo);
     }
@@ -314,10 +334,14 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void rejectContentReviewReport(Long reviewNo) {
+        rejectContentReviewReportInternal(reviewNo);
+    }
+
+    private void rejectContentReviewReportInternal(Long reviewNo) {
 
         List<Long> reporterMemberNos = adminDAO.selectWaitingContentReviewReporterMemberNos(reviewNo);
 
-        int updated = adminDAO.updateContentReviewReportStatus(reviewNo, "REJECTED");
+        int updated = adminDAO.updateContentReviewReportStatus(reviewNo, STATUS_REJECTED);
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
@@ -325,7 +349,7 @@ public class AdminServiceImpl implements AdminService {
 
         createReviewReportResultNotifications(
                 reporterMemberNos,
-                "CONTENT",
+                REFERENCE_CONTENT,
                 false,
                 reviewNo);
     }
@@ -333,7 +357,7 @@ public class AdminServiceImpl implements AdminService {
     /*
      * 목록 화면에서 체크박스로 선택한 콘텐츠 리뷰들을 한 번의 요청으로 일괄 처리한다.
      * bulkMemberAction과 동일하게, 이미 처리되어 대상이 아닌 건(예: 이미 처리된 신고)은
-     * 건너뛰고 몇 건을 건너뛰었는지 반환한다. 각 처리는 기존 단건 메서드를 그대로
+     * 건너뛰고 몇 건을 건너뛰었는지 반환한다. 각 처리는 단건 처리와 공용 내부 로직을
      * 재사용해 삭제/상태 변경 로직을 중복 작성하지 않는다.
      */
     @Override
@@ -350,9 +374,9 @@ public class AdminServiceImpl implements AdminService {
 
             try {
                 switch (action) {
-                    case "delete" -> deleteContentReview(reviewNo);
-                    case "approve" -> approveContentReviewReport(reviewNo);
-                    case "reject" -> rejectContentReviewReport(reviewNo);
+                    case ACTION_DELETE -> deleteContentReview(reviewNo);
+                    case "approve" -> approveContentReviewReportInternal(reviewNo);
+                    case "reject" -> rejectContentReviewReportInternal(reviewNo);
                     default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
                 }
             } catch (IllegalStateException e) {
@@ -370,7 +394,7 @@ public class AdminServiceImpl implements AdminService {
     public List<ReviewManageVO> getProductReviewList(String tab, String keyword, String searchType, int page,
             int pageSize) {
         Map<String, Object> param = withPaging(keywordSearchTypeParam(keyword, searchType), page, pageSize);
-        if ("report".equals(tab)) {
+        if (TAB_REPORT.equals(tab)) {
             return adminDAO.selectProductReviewReportList(param);
         }
         return adminDAO.selectProductReviewList(param);
@@ -378,7 +402,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public int getProductReviewListCount(String tab, String keyword, String searchType) {
-        if ("report".equals(tab)) {
+        if (TAB_REPORT.equals(tab)) {
             return adminDAO.selectProductReviewReportListCount(keywordSearchTypeParam(keyword, searchType));
         }
         return adminDAO.selectProductReviewListCount(keywordSearchTypeParam(keyword, searchType));
@@ -408,6 +432,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void approveProductReviewReport(Long reviewNo) {
+        approveProductReviewReportInternal(reviewNo);
+    }
+
+    private void approveProductReviewReportInternal(Long reviewNo) {
 
         List<Long> reporterMemberNos = adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
@@ -421,7 +449,7 @@ public class AdminServiceImpl implements AdminService {
 
         createReviewReportResultNotifications(
                 reporterMemberNos,
-                "PRODUCT",
+                REFERENCE_PRODUCT,
                 true,
                 reviewNo);
     }
@@ -433,10 +461,14 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void rejectProductReviewReport(Long reviewNo) {
+        rejectProductReviewReportInternal(reviewNo);
+    }
+
+    private void rejectProductReviewReportInternal(Long reviewNo) {
 
         List<Long> reporterMemberNos = adminDAO.selectWaitingProductReviewReporterMemberNos(reviewNo);
 
-        int updated = adminDAO.updateProductReviewReportStatus(reviewNo, "REJECTED");
+        int updated = adminDAO.updateProductReviewReportStatus(reviewNo, STATUS_REJECTED);
 
         if (updated == 0) {
             throw new IllegalStateException("처리 대기 중인 신고 내역이 없습니다.");
@@ -444,7 +476,7 @@ public class AdminServiceImpl implements AdminService {
 
         createReviewReportResultNotifications(
                 reporterMemberNos,
-                "PRODUCT",
+                REFERENCE_PRODUCT,
                 false,
                 reviewNo);
     }
@@ -468,9 +500,9 @@ public class AdminServiceImpl implements AdminService {
 
             try {
                 switch (action) {
-                    case "delete" -> deleteProductReview(reviewNo);
-                    case "approve" -> approveProductReviewReport(reviewNo);
-                    case "reject" -> rejectProductReviewReport(reviewNo);
+                    case ACTION_DELETE -> deleteProductReview(reviewNo);
+                    case "approve" -> approveProductReviewReportInternal(reviewNo);
+                    case "reject" -> rejectProductReviewReportInternal(reviewNo);
                     default -> throw new IllegalArgumentException("알 수 없는 처리 유형입니다.");
                 }
             } catch (IllegalStateException e) {
@@ -497,7 +529,7 @@ public class AdminServiceImpl implements AdminService {
             return;
         }
 
-        boolean contentReview = "CONTENT".equals(reviewType);
+        boolean contentReview = REFERENCE_CONTENT.equals(reviewType);
         String targetLabel = contentReview ? "콘텐츠 리뷰" : "상품 리뷰";
         String notificationType = contentReview
                 ? "CONTENT_REVIEW_REPORT_PROCESSED"
@@ -527,8 +559,8 @@ public class AdminServiceImpl implements AdminService {
 
         Map<String, Object> param = new HashMap<>();
         param.put("tab", tab);
-        param.put("keyword", keyword);
-        param.put("period", period);
+        param.put(PARAM_KEYWORD, keyword);
+        param.put(PARAM_PERIOD, period);
         withPaging(param, page, pageSize);
 
         return adminDAO.selectAdminEventList(param);
@@ -539,8 +571,8 @@ public class AdminServiceImpl implements AdminService {
 
         Map<String, Object> param = new HashMap<>();
         param.put("tab", tab);
-        param.put("keyword", keyword);
-        param.put("period", period);
+        param.put(PARAM_KEYWORD, keyword);
+        param.put(PARAM_PERIOD, period);
 
         return adminDAO.selectAdminEventListCount(param);
     }
@@ -559,7 +591,7 @@ public class AdminServiceImpl implements AdminService {
 
         int updateResult = adminDAO.updateEventStatus(
                 eventNo,
-                "APPROVED");
+                STATUS_APPROVED);
 
         if (updateResult != 1) {
             throw new IllegalStateException(
@@ -598,7 +630,7 @@ public class AdminServiceImpl implements AdminService {
 
         int updateResult = adminDAO.updateEventStatus(
                 eventNo,
-                "REJECTED");
+                STATUS_REJECTED);
 
         if (updateResult != 1) {
             throw new IllegalStateException(
@@ -653,7 +685,7 @@ public class AdminServiceImpl implements AdminService {
          * 사업자가 삭제 요청한 상품이면 단순 상태 변경이 아니라
          * PRODUCT를 참조하는 자식 데이터부터 삭제한 후 상품을 최종 삭제한다.
          */
-        if ("DELETE_REQUESTED".equals(status)) {
+        if (STATUS_DELETE_REQUESTED.equals(status)) {
 
             /*
              * ORDER_ITEM은 주문·결제·정산 이력을 보존해야 하므로
@@ -676,8 +708,8 @@ public class AdminServiceImpl implements AdminService {
                     "PRODUCT_DELETE_APPROVED",
                     "상품 삭제 완료",
                     "요청한 상품 삭제가 승인되어 상품이 삭제되었습니다.",
-                    "/business/product/list",
-                    "PRODUCT",
+                    BUSINESS_PRODUCT_LIST_URL,
+                    REFERENCE_PRODUCT,
                     productNo);
 
             // FK 제약조건(ORA-02292) 위반을 막기 위해 자식 테이블부터 삭제한다.
@@ -700,7 +732,7 @@ public class AdminServiceImpl implements AdminService {
             return;
         }
 
-        int updateResult = adminDAO.updateProductStatus(productNo, "APPROVED");
+        int updateResult = adminDAO.updateProductStatus(productNo, STATUS_APPROVED);
 
         if (updateResult != 1) {
             throw new IllegalStateException("상품 승인 처리에 실패했습니다.");
@@ -711,8 +743,8 @@ public class AdminServiceImpl implements AdminService {
                 "PRODUCT_APPROVED",
                 "상품 승인 완료",
                 "등록 또는 수정한 상품이 승인되었습니다.",
-                "/business/product/list",
-                "PRODUCT",
+                BUSINESS_PRODUCT_LIST_URL,
+                REFERENCE_PRODUCT,
                 productNo);
     }
 
@@ -729,9 +761,9 @@ public class AdminServiceImpl implements AdminService {
         }
 
         // 삭제 요청 반려 시 상품 자체를 삭제하지 않고 삭제 요청 전 승인 상태로 되돌린다.
-        String nextStatus = "DELETE_REQUESTED".equals(status)
-                ? "APPROVED"
-                : "REJECTED";
+        String nextStatus = STATUS_DELETE_REQUESTED.equals(status)
+                ? STATUS_APPROVED
+                : STATUS_REJECTED;
 
         int updateResult = adminDAO.updateProductStatus(productNo, nextStatus);
 
@@ -739,7 +771,7 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalStateException("상품 반려 처리에 실패했습니다.");
         }
 
-        boolean deleteRequest = "DELETE_REQUESTED".equals(status);
+        boolean deleteRequest = STATUS_DELETE_REQUESTED.equals(status);
 
         notificationService.createForProductOwner(
                 productNo,
@@ -752,8 +784,8 @@ public class AdminServiceImpl implements AdminService {
                 deleteRequest
                         ? "상품 삭제 요청이 반려되어 기존 승인 상태로 복구되었습니다."
                         : "상품 승인 요청이 반려되었습니다. 상품 목록을 확인해주세요.",
-                "/business/product/list",
-                "PRODUCT",
+                BUSINESS_PRODUCT_LIST_URL,
+                REFERENCE_PRODUCT,
                 productNo);
     }
 
@@ -782,7 +814,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<OrderManageVO> getRefundList(String keyword, String status, int page, int pageSize) {
         Map<String, Object> param = keywordParam(keyword);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         withPaging(param, page, pageSize);
         return adminDAO.selectRefundList(param);
     }
@@ -790,7 +822,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public int getRefundListCount(String keyword, String status) {
         Map<String, Object> param = keywordParam(keyword);
-        param.put("status", status);
+        param.put(PARAM_STATUS, status);
         return adminDAO.selectRefundListCount(param);
     }
 
@@ -906,7 +938,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveBusiness(Long businessNo) {
 
-        if (adminDAO.updateBusinessStatus(businessNo, "APPROVED") != 1) {
+        if (adminDAO.updateBusinessStatus(businessNo, STATUS_APPROVED) != 1) {
             throw new IllegalStateException("사업자 승인 처리에 실패했습니다.");
         }
 
@@ -916,7 +948,7 @@ public class AdminServiceImpl implements AdminService {
                 "사업자 승인 완료",
                 "사업자 가입 신청이 승인되었습니다.",
                 "/member/mypage",
-                "BUSINESS",
+                REFERENCE_BUSINESS,
                 businessNo);
     }
 
@@ -924,7 +956,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void rejectBusiness(Long businessNo) {
 
-        if (adminDAO.updateBusinessStatus(businessNo, "REJECTED") != 1) {
+        if (adminDAO.updateBusinessStatus(businessNo, STATUS_REJECTED) != 1) {
             throw new IllegalStateException("사업자 반려 처리에 실패했습니다.");
         }
 
@@ -934,7 +966,7 @@ public class AdminServiceImpl implements AdminService {
                 "사업자 승인 반려",
                 "사업자 가입 신청이 반려되었습니다.",
                 "/member/mypage",
-                "BUSINESS",
+                REFERENCE_BUSINESS,
                 businessNo);
     }
 
@@ -944,8 +976,8 @@ public class AdminServiceImpl implements AdminService {
     public List<SettlementManageVO> getSettlementList(String keyword, String status, String period, int page,
             int pageSize) {
         Map<String, Object> param = keywordParam(keyword);
-        param.put("status", status);
-        param.put("period", period);
+        param.put(PARAM_STATUS, status);
+        param.put(PARAM_PERIOD, period);
         withPaging(param, page, pageSize);
         return adminDAO.selectSettlementList(param);
     }
@@ -953,8 +985,8 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public int getSettlementListCount(String keyword, String status, String period) {
         Map<String, Object> param = keywordParam(keyword);
-        param.put("status", status);
-        param.put("period", period);
+        param.put(PARAM_STATUS, status);
+        param.put(PARAM_PERIOD, period);
         return adminDAO.selectSettlementListCount(param);
     }
 
@@ -981,7 +1013,7 @@ public class AdminServiceImpl implements AdminService {
                 "정산 확인 완료",
                 settlementMonth + " 정산 입금 확인이 완료되었습니다.",
                 "/business/settlement/complete",
-                "BUSINESS",
+                REFERENCE_BUSINESS,
                 businessNo);
     }
 
@@ -993,7 +1025,7 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalArgumentException("올바르지 않은 정산 요청입니다.");
         }
 
-        if (adminDAO.updateSettlementStatus(businessNo, settlementMonth, "REJECTED") <= 0) {
+        if (adminDAO.updateSettlementStatus(businessNo, settlementMonth, STATUS_REJECTED) <= 0) {
             throw new IllegalStateException("정산 반려 처리할 내역이 없습니다.");
         }
 
@@ -1003,7 +1035,7 @@ public class AdminServiceImpl implements AdminService {
                 "정산 확인 반려",
                 settlementMonth + " 정산 입금 확인 요청이 반려되었습니다.",
                 "/business/settlement/main",
-                "BUSINESS",
+                REFERENCE_BUSINESS,
                 businessNo);
     }
 
@@ -1105,42 +1137,46 @@ public class AdminServiceImpl implements AdminService {
     private void deletePhysicalImageFiles(List<String> imagePathList) {
 
         for (String imagePath : imagePathList) {
+            deletePhysicalImageFile(imagePath);
+        }
+    }
 
-            if (imagePath == null || imagePath.isBlank()) {
-                continue;
+    private void deletePhysicalImageFile(String imagePath) {
+
+        if (imagePath == null || imagePath.isBlank()) {
+            return;
+        }
+
+        try {
+            String normalizedPath = imagePath.replace("\\", "/");
+            int lastSlashIndex = normalizedPath.lastIndexOf('/');
+
+            String filename = lastSlashIndex >= 0
+                    ? normalizedPath.substring(lastSlashIndex + 1)
+                    : normalizedPath;
+
+            if (filename.isBlank()) {
+                return;
             }
 
-            try {
-                String normalizedPath = imagePath.replace("\\", "/");
-                int lastSlashIndex = normalizedPath.lastIndexOf('/');
+            Path targetPath = productUploadDirectory
+                    .resolve(filename)
+                    .normalize();
 
-                String filename = lastSlashIndex >= 0
-                        ? normalizedPath.substring(lastSlashIndex + 1)
-                        : normalizedPath;
-
-                if (filename.isBlank()) {
-                    continue;
+            // 상위 경로 이동 공격을 방지한다.
+            if (!targetPath.startsWith(productUploadDirectory)) {
+                if (log.isWarnEnabled()) {
+                    log.warn("허용되지 않은 상품 이미지 경로: {}", targetPath);
                 }
+                return;
+            }
 
-                Path targetPath = productUploadDirectory
-                        .resolve(filename)
-                        .normalize();
+            Files.deleteIfExists(targetPath);
 
-                // 상위 경로 이동 공격을 방지한다.
-                if (!targetPath.startsWith(productUploadDirectory)) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("허용되지 않은 상품 이미지 경로: {}", targetPath);
-                    }
-                    continue;
-                }
-
-                Files.deleteIfExists(targetPath);
-
-            } catch (IOException e) {
-                // DB 삭제는 유지하고 파일 삭제 실패만 로그로 기록한다.
-                if (log.isErrorEnabled()) {
-                    log.error("상품 이미지 실제 파일 삭제 실패: {}", imagePath, e);
-                }
+        } catch (IOException e) {
+            // DB 삭제는 유지하고 파일 삭제 실패만 로그로 기록한다.
+            if (log.isErrorEnabled()) {
+                log.error("상품 이미지 실제 파일 삭제 실패: {}", imagePath, e);
             }
         }
     }
