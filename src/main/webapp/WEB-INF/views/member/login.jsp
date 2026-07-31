@@ -33,6 +33,15 @@
         <!-- 로그인 폼 -->
         <form action="${pageContext.request.contextPath}/member/login" method="post">
 
+            <%--
+                로그인 POST는 Spring Security CSRF 검증 대상이다.
+                JavaScript 실행 여부와 관계없이 반드시 토큰이 전송되도록
+                로그인 폼에 서버가 생성한 CSRF 값을 직접 포함한다.
+            --%>
+            <input type="hidden"
+                   name="${_csrf.parameterName}"
+                   value="${_csrf.token}">
+
             <div class="form-group">
                 <label for="loginMemberId">아이디</label>
                 <input type="text"
@@ -169,6 +178,11 @@
 
         <form action="${pageContext.request.contextPath}/member/restore"
               method="post">
+
+            <%-- 계정 복구 POST도 동일하게 CSRF 토큰을 직접 포함한다. --%>
+            <input type="hidden"
+                   name="${_csrf.parameterName}"
+                   value="${_csrf.token}">
 
             <%-- 복구 확인 입력창에 접근 가능한 이름을 제공한다. --%>
             <label for="restoreConfirmInput"

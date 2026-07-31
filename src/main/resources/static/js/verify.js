@@ -5,6 +5,28 @@
  */
 const contextPath = window.verifyConfig?.contextPath || "";
 const returnUrl = window.verifyConfig?.returnUrl || "/";
+const csrfToken = window.verifyConfig?.csrfToken || "";
+const csrfHeader = window.verifyConfig?.csrfHeader || "X-CSRF-TOKEN";
+
+/**
+ * Spring Security CSRF 보호가 활성화되어 있으므로
+ * 성인인증 화면의 POST fetch 요청에 CSRF 헤더를 직접 추가합니다.
+ *
+ * 이 화면은 공통 header.jsp를 사용하지 않기 때문에
+ * common.js에 의존하지 않고 verify.js 자체에서 처리합니다.
+ */
+function createJsonHeaders() {
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  if (csrfToken) {
+    headers[csrfHeader] = csrfToken;
+  }
+
+  return headers;
+}
 
 function openMethodPanel() {
   document.getElementById("startArea").style.display = "none";
@@ -40,6 +62,14 @@ async function startAdultVerify(methodType) {
 
   try {
     /*
+     * CSRF 토큰이 없는 상태에서 POST 요청을 보내면 Spring Security가 403으로 차단합니다.
+     * 화면 렌더링 단계에서 토큰이 전달되지 않았다면 요청 전에 명확한 오류를 표시합니다.
+     */
+    if (!csrfToken) {
+      throw new Error("보안 토큰을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해주세요.");
+    }
+
+    /*
      * [포트원 SDK 로드 상태 확인 추가]
      * CDN 차단 또는 SDK 로딩 실패 시 requestIdentityVerification 호출에서
      * 원인을 알 수 없는 오류가 발생하지 않도록 사용자에게 정확한 메시지를 표시합니다.
@@ -51,10 +81,7 @@ async function startAdultVerify(methodType) {
     // 1) 서버에 성인인증 준비 요청 (가맹점 식별값 및 서버 발급 고유 ID 획득)
     const readyResponse = await fetch(contextPath + "/verify/adult/ready", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: createJsonHeaders(),
     });
 
     /*
@@ -70,7 +97,9 @@ async function startAdultVerify(methodType) {
         const readyErrorData = JSON.parse(readyErrorText);
         readyErrorMessage = readyErrorData.message || readyErrorData.error || readyErrorMessage;
       } catch (e) {
-        // JSON 응답이 아니면 기본 오류 메시지를 사용합니다.
+        if (readyErrorText && readyErrorText.trim()) {
+          readyErrorMessage = readyErrorText.trim();
+        }
       }
 
       throw new Error(readyErrorMessage);
@@ -111,14 +140,14 @@ async function startAdultVerify(methodType) {
     showSuccess("인증 모달 완료. 최종 성인인증 승인 검증을 진행 중입니다...");
 
     // 3) 서버 최종 이력 비교 검증 및 세션 바인딩 완료 처리 요청
-    const completeResponse = await fetch(contextPath + "/verify/adult/complete?returnUrl=" + encodeURIComponent(returnUrl), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ verifyId: readyData.verifyId }),
-    });
+    const completeResponse = await fetch(
+      contextPath + "/verify/adult/complete?returnUrl=" + encodeURIComponent(returnUrl),
+      {
+        method: "POST",
+        headers: createJsonHeaders(),
+        body: JSON.stringify({ verifyId: readyData.verifyId }),
+      }
+    );
 
     const completeText = await completeResponse.text();
     let completeData;
@@ -126,6 +155,10 @@ async function startAdultVerify(methodType) {
     try {
       completeData = JSON.parse(completeText);
     } catch (e) {
+      if (!completeResponse.ok && completeText && completeText.trim()) {
+        throw new Error(completeText.trim());
+      }
+
       throw new Error("서버 검증 완료 처리 중 부적절한 데이터 형식이 수신되었습니다.");
     }
 
