@@ -198,6 +198,36 @@
 
                                 </a>
 
+                                <%--
+                                    =========================================================
+                                    [상품 옵션 정보 표시 추가]
+
+                                    사용자가 선택한 상품 옵션이 있는 경우에만
+                                    색상과 사이즈 정보를 장바구니 화면에 표시한다.
+                                    =========================================================
+                                --%>
+                                <c:if test="${not empty item.optionNo}">
+                                    <p class="cart-item-option">
+
+                                        <span class="option-label">옵션</span>
+
+                                        <c:if test="${not empty item.colorName}">
+                                            <span>
+                                                색상:
+                                                <c:out value="${item.colorName}"/>
+                                            </span>
+                                        </c:if>
+
+                                        <c:if test="${not empty item.sizeName}">
+                                            <span>
+                                                사이즈:
+                                                <c:out value="${item.sizeName}"/>
+                                            </span>
+                                        </c:if>
+
+                                    </p>
+                                </c:if>
+
                                 <p class="cart-item-type">
                                     ${item.productType}
                                 </p>

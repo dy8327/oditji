@@ -1,6 +1,4 @@
-<%@ page language="java"
-    contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -67,6 +65,27 @@
                         수량: ${item.quantity}
                     </p>
 
+                    <%--
+                        [상품 옵션 정보 표시 추가]
+                        의상·신발처럼 옵션이 존재하는 상품만
+                        사용자가 선택한 색상과 사이즈를 주문서에 표시한다.
+                    --%>
+                    <c:if test="${not empty item.optionNo}">
+                        <p class="order-item-option">
+                            옵션:
+                            <c:if test="${not empty item.colorName}">
+                                ${item.colorName}
+                            </c:if>
+
+                            <c:if test="${not empty item.colorName and not empty item.sizeName}">
+                                /
+                            </c:if>
+
+                            <c:if test="${not empty item.sizeName}">
+                                ${item.sizeName}
+                            </c:if>
+                        </p>
+                    </c:if>
                     <p>
                         단가: ₩
                         <fmt:formatNumber

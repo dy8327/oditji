@@ -2671,3 +2671,64 @@
     height: 60px;
   }
 }
+
+/* =====================================================
+   [상품 옵션 기능 추가]
+   - 팀원 기존 business.css는 그대로 유지
+   - 상품 옵션 등록 영역에만 적용되도록 .business-wrap 범위로 제한
+   - 기존 전역 .form-help 스타일은 덮어쓰지 않음
+   ===================================================== */
+
+.business-wrap .product-option-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.business-wrap .product-option-row .form-input,
+.business-wrap .product-option-row input,
+.business-wrap .product-option-row select {
+  min-width: 0;
+}
+
+.business-wrap .option-remove-btn {
+  padding: 11px 14px;
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+  background: var(--biz-surface-2);
+  color: var(--biz-text-sub);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--biz-transition);
+}
+
+.business-wrap .option-remove-btn:hover {
+  border-color: var(--biz-danger);
+  background: var(--biz-danger-bg);
+  color: var(--biz-danger);
+}
+
+.business-wrap .option-remove-btn:focus-visible {
+  outline: 2px solid var(--biz-danger);
+  outline-offset: 2px;
+}
+
+/*
+ * 수정본의 전역 .form-help 규칙은 기존 팀원 CSS의 .form-help와 충돌하므로
+ * 상품 옵션 행 바로 다음에 위치한 안내 문구에만 필요한 여백을 추가한다.
+ */
+.business-wrap .product-option-row + .form-help {
+  margin: 10px 0 0;
+}
+
+@media (max-width: 760px) {
+  .business-wrap .product-option-row {
+    grid-template-columns: 1fr;
+  }
+
+  .business-wrap .option-remove-btn {
+    width: 100%;
+  }
+}
