@@ -129,10 +129,10 @@
                         <thead>
                             <tr>
                                 <th>이름</th>
-                                <th>아이디</th>
-                                <th>이메일</th>
+                                <th class="col-mobile-hide">아이디</th>
+                                <th class="col-mobile-hide">이메일</th>
                                 <%-- [사업자 자동 등급 관리 추가] 누적 실매출 표시 --%>
-                                <th>누적 실매출</th>
+                                <th class="col-mobile-hide">누적 실매출</th>
                                 <th>등급</th>
                                 <th>상태</th>
                                 <th>관리</th>
@@ -149,10 +149,10 @@
 
                                         <tr>
                                             <td>${business.businessName}</td>
-                                            <td>${business.memberId}</td>
-                                            <td>${business.email}</td>
+                                            <td class="col-mobile-hide">${business.memberId}</td>
+                                            <td class="col-mobile-hide">${business.email}</td>
                                             <%-- [사업자 자동 등급 관리 추가] 환불 승인 금액을 제외한 누적 실매출 --%>
-                                            <td><fmt:formatNumber value="${business.totalSales}" pattern="#,##0" />원</td>
+                                            <td class="col-mobile-hide"><fmt:formatNumber value="${business.totalSales}" pattern="#,##0" />원</td>
                                             <td>${business.gradeName}</td>
                                             <td>
 
@@ -169,6 +169,12 @@
                                                 </c:choose>
 
                                             </td>
+                                            <%--
+                                                이 버튼은 모바일 전용 트리거가 아니라 원래부터 화면의 유일한
+                                                관리 액션이라, 숨겨진 컬럼(아이디/이메일/누적 실매출)까지 포함한
+                                                전체 정보와 등급 변경 폼을 gradeModal이 그대로 보여준다.
+                                                별도 모바일 상세보기 모달을 새로 만들 필요가 없다.
+                                            --%>
                                             <td>
                                                 <button type="button" class="btn btn-dark"
                                                         onclick="openGradeModal(
@@ -176,7 +182,8 @@
                                                             '${business.businessName}',
                                                             '${business.memberId}',
                                                             '${business.email}',
-                                                            '${business.gradeName}'
+                                                            '${business.gradeName}',
+                                                            '${business.totalSales}'
                                                         )">
                                                     등급 관리
                                                 </button>
@@ -206,10 +213,10 @@
                         <thead>
                             <tr>
                                 <th>사업자명</th>
-                                <th>아이디</th>
-                                <th>이메일</th>
+                                <th class="col-mobile-hide">아이디</th>
+                                <th class="col-mobile-hide">이메일</th>
                                 <th>사업자등록번호</th>
-                                <th>정산 계좌</th>
+                                <th class="col-mobile-hide">정산 계좌</th>
                                 <th>관리</th>
                             </tr>
                         </thead>
@@ -224,10 +231,10 @@
 
                                         <tr>
                                             <td>${req.businessName}</td>
-                                            <td>${req.memberId}</td>
-                                            <td>${req.email}</td>
+                                            <td class="col-mobile-hide">${req.memberId}</td>
+                                            <td class="col-mobile-hide">${req.email}</td>
                                             <td>${req.businessNumber}</td>
-                                            <td>${req.bankName} ${req.accountNumber} (${req.accountHolder})</td>
+                                            <td class="col-mobile-hide">${req.bankName} ${req.accountNumber} (${req.accountHolder})</td>
                                             <td>
                                                 <button type="button" class="btn btn-dark"
                                                         onclick="openApprovalModal(
@@ -235,7 +242,8 @@
                                                             '${req.businessName}',
                                                             '${req.memberId}',
                                                             '${req.email}',
-                                                            '${req.businessNumber}'
+                                                            '${req.businessNumber}',
+                                                            '${req.bankName} ${req.accountNumber} (${req.accountHolder})'
                                                         )">
                                                     상세보기
                                                 </button>
@@ -343,6 +351,7 @@
                 <p><span>이름</span><strong id="gradeBusinessName"></strong></p>
                 <p><span>아이디</span><strong id="gradeBusinessId"></strong></p>
                 <p><span>이메일</span><strong id="gradeBusinessEmail"></strong></p>
+                <p><span>누적 실매출</span><strong id="gradeBusinessSales"></strong></p>
                 <p><span>사업자 등급</span><strong id="gradeBusinessCurrent"></strong></p>
             </div>
 
@@ -395,6 +404,7 @@
             <p><span>아이디</span><strong id="approvalMemberId"></strong></p>
             <p><span>이메일</span><strong id="approvalEmail"></strong></p>
             <p><span>사업자등록번호</span><strong id="approvalBusinessNumber"></strong></p>
+            <p><span>정산 계좌</span><strong id="approvalAccount"></strong></p>
         </div>
 
         <form id="approvalForm" action="${pageContext.request.contextPath}/admin/business/approve" method="post">
