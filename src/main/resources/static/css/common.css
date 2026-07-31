@@ -877,6 +877,7 @@
     height: 70px;
   }
 }
+
 @media (max-width:768px){
 
     .header{
@@ -983,6 +984,7 @@
 
         display:none;
     }
+
   .header-search {
     display: none;
   }

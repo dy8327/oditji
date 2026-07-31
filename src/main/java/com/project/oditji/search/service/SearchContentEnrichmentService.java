@@ -591,6 +591,9 @@ public class SearchContentEnrichmentService {
                         "results"
                 );
 
+        /*
+         * 1순위는 국내(KR) 등급입니다.
+         */
         String koreaRating =
                 findMovieCertification(
                         countries,
@@ -604,6 +607,34 @@ public class SearchContentEnrichmentService {
             );
         }
 
+        /*
+         * 국내 등급이 없을 때 일본(JP) 영화 등급을 보조 기준으로 사용합니다.
+         * 프로젝트 정책:
+         * - PG12  -> 15세 이상 관람가
+         * - R15+  -> 청소년 관람불가
+         */
+        String japanRating =
+                findMovieCertification(
+                        countries,
+                        "JP"
+                );
+
+        if (hasText(japanRating)) {
+            String convertedJapanRating =
+                    convertJapanMovieAgeRating(
+                            japanRating
+                    );
+
+            if (!"등급 정보 없음".equals(
+                    convertedJapanRating
+            )) {
+                return convertedJapanRating;
+            }
+        }
+
+        /*
+         * KR/JP에서 사용할 수 있는 등급이 없을 때 기존 US 변환을 사용합니다.
+         */
         String usRating =
                 findMovieCertification(
                         countries,
@@ -820,6 +851,39 @@ public class SearchContentEnrichmentService {
          * 알 수 없는 한국 등급 원문은 그대로 노출하지 않습니다.
          */
         return "등급 정보 없음";
+    }
+
+    /**
+     * 일본 영화 등급을 ODITJI 내부 연령등급으로 변환합니다.
+     *
+     * 현재 프로젝트에서 확정한 수동 변환 정책만 적용합니다.
+     * 알 수 없는 일본 등급은 임의로 추정하지 않고 기존 US 보조 조회로 넘깁니다.
+     */
+    private String convertJapanMovieAgeRating(
+            String rawRating) {
+
+        if (!hasText(rawRating)) {
+            return "등급 정보 없음";
+        }
+
+        String normalized =
+                rawRating.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .replace(" ", "")
+                        .replace("_", "-")
+                        .replace("-", "");
+
+        switch (normalized) {
+            case "PG12":
+                return "15세 이상 관람가";
+
+            case "R15+":
+            case "R15":
+                return "청소년 관람불가";
+
+            default:
+                return "등급 정보 없음";
+        }
     }
 
     private String convertUsMovieAgeRating(

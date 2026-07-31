@@ -20,6 +20,8 @@ import com.project.oditji.recommend.service.RecommendService;
 import com.project.oditji.recommend.vo.RecommendOttResultVO;
 import com.project.oditji.recommend.vo.RecommendPlatformSectionVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.service.SearchContentStore;
+import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 
@@ -33,17 +35,20 @@ public class RecommendController {
     private static final int NEW_CONTENT_MONTHS = 1;
 
     private final SearchContentPageCacheService searchContentPageCacheService;
+    private final SearchContentStore searchContentStore;
     private final MemberPlatformService memberPlatformService;
     private final MainContentPlatformService mainContentPlatformService;
     private final RecommendService recommendService;
 
     public RecommendController(
             SearchContentPageCacheService searchContentPageCacheService,
+            SearchContentStore searchContentStore,
             MemberPlatformService memberPlatformService,
             MainContentPlatformService mainContentPlatformService,
             RecommendService recommendService) {
 
         this.searchContentPageCacheService = searchContentPageCacheService;
+        this.searchContentStore = searchContentStore;
         this.memberPlatformService = memberPlatformService;
         this.mainContentPlatformService = mainContentPlatformService;
         this.recommendService = recommendService;
@@ -112,6 +117,10 @@ public class RecommendController {
                 selectedPlatformNames
         );
 
+        attachAgeRatings(
+                highRatedContentList
+        );
+
         /*
          * 2. 지금 인기 있는 콘텐츠
          */
@@ -129,6 +138,10 @@ public class RecommendController {
         mainContentPlatformService.attachPlatformLogos(
                 popularContentList,
                 selectedPlatformNames
+        );
+
+        attachAgeRatings(
+                popularContentList
         );
 
         /*
@@ -150,6 +163,10 @@ public class RecommendController {
         mainContentPlatformService.attachPlatformLogos(
                 newContentList,
                 selectedPlatformNames
+        );
+
+        attachAgeRatings(
+                newContentList
         );
 
         /*
@@ -469,6 +486,10 @@ public class RecommendController {
                     onePlatformNameList
             );
 
+            attachAgeRatings(
+                    contentList
+            );
+
             if (contentList.isEmpty()) {
                 continue;
             }
@@ -496,6 +517,56 @@ public class RecommendController {
         }
 
         return sectionList;
+    }
+
+    /**
+     * 추천 화면에 전달할 콘텐츠의 연령등급을
+     * 서버 공용 검색 캐시 기준으로 다시 보장합니다.
+     *
+     * 7/31 소스의 SearchContentPageCacheService도 ageRating을 복사하지만,
+     * 추천 화면의 여러 정렬/플랫폼별 목록 처리 이후에도 값이 확실히 유지되도록
+     * TMDB ID + 콘텐츠 유형으로 원본 CachedContentVO를 다시 확인합니다.
+     *
+     * 캐시에 등급 값이 없을 때만 "등급 정보 없음"을 사용합니다.
+     */
+    private void attachAgeRatings(
+            List<SearchResultVO> contentList) {
+
+        if (contentList == null
+                || contentList.isEmpty()) {
+            return;
+        }
+
+        for (SearchResultVO content : contentList) {
+
+            if (content == null
+                    || content.getTmdbId() == null
+                    || content.getContentType() == null
+                    || content.getContentType().isBlank()) {
+                continue;
+            }
+
+            CachedContentVO cachedContent =
+                    searchContentStore.findByTmdbIdAndContentType(
+                            content.getTmdbId(),
+                            content.getContentType()
+                    );
+
+            if (cachedContent == null
+                    || cachedContent.getAgeRating() == null
+                    || cachedContent.getAgeRating().isBlank()) {
+
+                content.setAgeRating(
+                        "등급 정보 없음"
+                );
+
+                continue;
+            }
+
+            content.setAgeRating(
+                    cachedContent.getAgeRating()
+            );
+        }
     }
 
     private List<SearchResultVO> distinctContentList(

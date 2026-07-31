@@ -1,15 +1,21 @@
+<%@ page language="java"
+         contentType="text/html; charset=UTF-8"
+         pageEncoding="UTF-8" %>
+
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+
 <%--
     추천 콘텐츠 카드 공통 JSP
 
-    변경 사항:
-    - UTF-8 환경에 따라 깨질 수 있는 별 이모지(⭐)를
-      HTML 숫자 엔티티 &#11088;로 변경했습니다.
-    - 브라우저가 HTML 엔티티를 실제 별 문자로 변환하므로
-      JSP 파일 저장 인코딩과 무관하게 안정적으로 표시됩니다.
-    - 연령등급 배지를 포스터 오른쪽 위에 표시합니다.
+    중요:
+    - 이 파일은 recommendContent.jsp에서 정적 include로 포함됩니다.
+    - 연령등급 비교에 한글 문자열을 직접 사용하므로
+      이 JSP 조각 자체에도 UTF-8 pageEncoding을 명시합니다.
+    - content.ageRating 원본 값은 data-age-rating에 남겨
+      개발자 도구에서 실제 전달값을 확인할 수 있습니다.
 --%>
 
-<%-- 콘텐츠 연령등급 배지 표시용 값 설정 --%>
 <c:set var="ageBadgeLabel" value="?"/>
 <c:set var="ageBadgeClass" value="unknown"/>
 <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
@@ -20,21 +26,25 @@
         <c:set var="ageBadgeClass" value="all"/>
         <c:set var="ageBadgeTitle" value="전체 관람가"/>
     </c:when>
+
     <c:when test="${content.ageRating eq '7세 이상 관람가'}">
         <c:set var="ageBadgeLabel" value="7"/>
         <c:set var="ageBadgeClass" value="age7"/>
         <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
     </c:when>
+
     <c:when test="${content.ageRating eq '12세 이상 관람가'}">
         <c:set var="ageBadgeLabel" value="12"/>
         <c:set var="ageBadgeClass" value="age12"/>
         <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
     </c:when>
+
     <c:when test="${content.ageRating eq '15세 이상 관람가'}">
         <c:set var="ageBadgeLabel" value="15"/>
         <c:set var="ageBadgeClass" value="age15"/>
         <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
     </c:when>
+
     <c:when test="${content.ageRating eq '청소년 관람불가'}">
         <c:set var="ageBadgeLabel" value="19"/>
         <c:set var="ageBadgeClass" value="adult"/>
@@ -49,27 +59,20 @@
 
         <c:choose>
 
-            <%-- 포스터 이미지가 존재하는 콘텐츠 --%>
             <c:when test="${not empty content.posterPath}">
-
                 <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
                      alt="${content.title}"
                      loading="lazy">
-
             </c:when>
 
-            <%-- 포스터 이미지가 없는 콘텐츠 --%>
             <c:otherwise>
-
                 <div class="recommend-card-no-image">
                     NO IMAGE
                 </div>
-
             </c:otherwise>
 
         </c:choose>
 
-        <%-- 영화와 TV 콘텐츠 유형 표시 --%>
         <span class="recommend-card-type">
 
             <c:choose>
@@ -87,11 +90,14 @@
         </span>
 
         <span class="recommend-card-age-rating"
-              title="${ageBadgeTitle}">
+              title="${ageBadgeTitle}"
+              data-age-rating="${fn:escapeXml(content.ageRating)}">
+
             <span class="content-age-rating-badge is-${ageBadgeClass}"
                   aria-label="${ageBadgeTitle}">
                 ${ageBadgeLabel}
             </span>
+
         </span>
 
     </div>
@@ -104,12 +110,6 @@
 
         <div class="recommend-card-meta">
 
-            <%--
-                일반 영역은 기존 공개일을 표시합니다.
-                신작 영역에서 showRecentEpisodeDate=true이고 TV 콘텐츠이면
-                최근 회차 공개일을 표시합니다.
-                HTML 숫자 엔티티를 사용하여 문자 깨짐을 방지합니다.
-            --%>
             <span>
 
                 <c:choose>
@@ -133,12 +133,6 @@
 
             </span>
 
-            <%--
-                TMDB 평점 표시
-
-                별 이모지를 소스에 직접 넣지 않고
-                HTML 숫자 엔티티로 작성하여 문자 깨짐을 방지합니다.
-            --%>
             <c:if test="${not empty content.tmdbScore}">
 
                 <span class="recommend-card-score">
@@ -150,13 +144,11 @@
 
         </div>
 
-        <%-- 콘텐츠를 시청할 수 있는 OTT 플랫폼 표시 --%>
         <c:if test="${not empty content.platformList}">
 
             <div class="recommend-card-platforms"
                  aria-label="시청 가능한 OTT">
 
-                <%-- 카드에는 최대 3개의 OTT 로고만 표시 --%>
                 <c:forEach var="platform"
                            items="${content.platformList}"
                            begin="0"
@@ -169,13 +161,10 @@
 
                 </c:forEach>
 
-                <%-- OTT가 4개 이상이면 나머지 개수를 표시 --%>
                 <c:if test="${content.platformList.size() > 3}">
-
                     <span>
                         +${content.platformList.size() - 3}
                     </span>
-
                 </c:if>
 
             </div>

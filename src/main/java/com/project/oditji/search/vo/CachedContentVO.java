@@ -25,6 +25,22 @@ public class CachedContentVO {
 
     private String genreText;
     private String ageRating;
+
+    /**
+     * 최초 상세 보강 이후 "등급 정보 없음" 콘텐츠만 대상으로 수행한
+     * 추가 등급 재조회 횟수입니다.
+     *
+     * 기존 JSONL에는 이 값이 없으므로 null 또는 0은 아직 추가 재조회를
+     * 수행하지 않은 상태로 처리합니다.
+     */
+    private Integer ageRatingRetryCount;
+
+    /**
+     * TMDB 등급 정보를 마지막으로 확인한 시각입니다.
+     * ISO-8601 문자열로 저장하여 기존 JSONL과의 호환성을 유지합니다.
+     */
+    private String ageRatingLastCheckedAt;
+
     private Double tmdbScore;
     private Double popularity;
 
@@ -124,6 +140,22 @@ public class CachedContentVO {
 
     public void setAgeRating(String ageRating) {
         this.ageRating = ageRating;
+    }
+
+    public Integer getAgeRatingRetryCount() {
+        return ageRatingRetryCount;
+    }
+
+    public void setAgeRatingRetryCount(Integer ageRatingRetryCount) {
+        this.ageRatingRetryCount = ageRatingRetryCount;
+    }
+
+    public String getAgeRatingLastCheckedAt() {
+        return ageRatingLastCheckedAt;
+    }
+
+    public void setAgeRatingLastCheckedAt(String ageRatingLastCheckedAt) {
+        this.ageRatingLastCheckedAt = ageRatingLastCheckedAt;
     }
 
     public Double getTmdbScore() {

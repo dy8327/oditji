@@ -34,18 +34,24 @@ public class SearchContentCollectorService {
     private final SearchContentDiscoverService discoverService;
     private final SearchContentEnrichmentService enrichmentService;
     private final SearchContentManualOverrideService manualOverrideService;
+    private final SearchContentAgeRatingService ageRatingService;
     private final TmdbProviderService providerService;
+    private final SearchContentPolicyService contentPolicyService;
 
     public SearchContentCollectorService(
             SearchContentDiscoverService discoverService,
             SearchContentEnrichmentService enrichmentService,
             SearchContentManualOverrideService manualOverrideService,
-            TmdbProviderService providerService) {
+            SearchContentAgeRatingService ageRatingService,
+            TmdbProviderService providerService,
+            SearchContentPolicyService contentPolicyService) {
 
         this.discoverService = discoverService;
         this.enrichmentService = enrichmentService;
         this.manualOverrideService = manualOverrideService;
+        this.ageRatingService = ageRatingService;
         this.providerService = providerService;
+        this.contentPolicyService = contentPolicyService;
     }
 
     /**
@@ -83,10 +89,29 @@ public class SearchContentCollectorService {
         int tvTarget = normalizedMaxSize - movieTarget;
 
         manualOverrideService.reload();
+        ageRatingService.reload();
+
+        /*
+         * 기존 스냅샷에서도 현재 노출 정책에 맞지 않는 제목을 먼저 제외합니다.
+         * 이 단계에서 제거해야 외국어 제목 콘텐츠에 연령등급 재조회 API를
+         * 불필요하게 호출하지 않습니다.
+         */
+        List<CachedContentVO> filteredPreviousSnapshot =
+                filterByPolicy(previousSnapshot);
+
+        /*
+         * 기존 JSONL을 버리지 않고 그대로 사용한 상태에서
+         * 수동 등급값을 먼저 반영한 뒤 "등급 정보 없음"만 전용 API로 재조회합니다.
+         * 영화/TV 전체 상세 및 watch/providers를 다시 호출하지 않으므로
+         * 기존 전체 보강보다 API 요청량이 크게 줄어듭니다.
+         */
+        ageRatingService.applyManualOverrides(filteredPreviousSnapshot);
+        ageRatingService.recheckUnknownAgeRatings(filteredPreviousSnapshot);
+
         TmdbProviderRegistry providerRegistry = providerService.loadRegistry();
 
         Map<String, CachedContentVO> previousMap =
-                createContentMap(previousSnapshot);
+                createContentMap(filteredPreviousSnapshot);
 
         List<CachedContentVO> candidates = new ArrayList<CachedContentVO>();
         candidates.addAll(discoverService.collectMovieCandidates(
@@ -125,9 +150,23 @@ public class SearchContentCollectorService {
                     candidate.createContentKey()
             );
 
+            /*
+             * 등급 재조회 상태는 Discover 후보에 존재하지 않으므로
+             * 기존 JSONL의 상태를 새 후보에 먼저 이어받습니다.
+             */
+            if (previous != null) {
+                candidate.setAgeRatingRetryCount(
+                        previous.getAgeRatingRetryCount()
+                );
+                candidate.setAgeRatingLastCheckedAt(
+                        previous.getAgeRatingLastCheckedAt()
+                );
+            }
+
             if (enrichmentService.hasReusableDetail(previous)) {
                 enrichmentService.copyReusableDetail(previous, candidate);
                 manualOverrideService.apply(candidate);
+                ageRatingService.applyManualOverride(candidate);
                 candidate.setSearchText(
                         enrichmentService.createSearchText(candidate)
                 );
@@ -165,10 +204,18 @@ public class SearchContentCollectorService {
 
             for (CachedContentVO content : enrichedBatch) {
                 if (content == null
+                        || contentPolicyService.shouldExcludeContent(content)
                         || content.getPlatformKeys() == null
                         || content.getPlatformKeys().isEmpty()) {
                     continue;
                 }
+
+                /*
+                 * 신규 콘텐츠의 최초 등급 확인 시각을 남기고,
+                 * 수동 등급값이 있으면 TMDB 결과보다 우선 적용합니다.
+                 */
+                ageRatingService.markLookupCompleted(content);
+                ageRatingService.applyManualOverride(content);
 
                 String key = content.createContentKey();
                 checkpointMap.put(key, content);
@@ -182,10 +229,20 @@ public class SearchContentCollectorService {
             );
         }
 
-        return sortAndLimit(
-                new ArrayList<CachedContentVO>(finalMap.values()),
-                normalizedMaxSize
-        );
+        List<CachedContentVO> finalContents =
+                sortAndLimit(
+                        new ArrayList<CachedContentVO>(finalMap.values()),
+                        normalizedMaxSize
+                );
+
+        /*
+         * 추가 재조회까지 끝났지만 등급이 없는 콘텐츠만
+         * 수동 확인용 JSON으로 별도 출력합니다.
+         */
+        ageRatingService.applyManualOverrides(finalContents);
+        ageRatingService.writeMissingCandidates(finalContents);
+
+        return finalContents;
     }
 
     /**
@@ -220,6 +277,7 @@ public class SearchContentCollectorService {
             int limit) {
 
         source.removeIf(content -> content == null
+                || contentPolicyService.shouldExcludeContent(content)
                 || content.getTmdbId() == null
                 || content.getContentType() == null
                 || content.getPlatformKeys() == null
@@ -234,6 +292,30 @@ public class SearchContentCollectorService {
         return new ArrayList<CachedContentVO>(source.subList(0, limit));
     }
 
+    /**
+     * 기존 스냅샷에서 현재 공용 노출 정책을 통과한 콘텐츠만 복사합니다.
+     */
+    private List<CachedContentVO> filterByPolicy(
+            List<CachedContentVO> source) {
+
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
+
+        if (source == null) {
+            return result;
+        }
+
+        for (CachedContentVO content : source) {
+            if (content == null
+                    || contentPolicyService.shouldExcludeContent(content)) {
+                continue;
+            }
+            result.add(content);
+        }
+
+        return result;
+    }
+
     private Map<String, CachedContentVO> createContentMap(
             List<CachedContentVO> source) {
 
@@ -246,6 +328,7 @@ public class SearchContentCollectorService {
 
         for (CachedContentVO content : source) {
             if (content == null
+                    || contentPolicyService.shouldExcludeContent(content)
                     || content.getTmdbId() == null
                     || content.getContentType() == null) {
                 continue;
@@ -264,6 +347,7 @@ public class SearchContentCollectorService {
 
         for (CachedContentVO content : source) {
             if (content == null
+                    || contentPolicyService.shouldExcludeContent(content)
                     || content.getTmdbId() == null
                     || content.getContentType() == null) {
                 continue;
