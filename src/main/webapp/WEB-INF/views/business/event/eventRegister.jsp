@@ -121,7 +121,7 @@
                 <!-- 연결 상품 -->
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <label class="form-label" for="productName_0">
                         연결 상품
                     </label>
 
@@ -137,6 +137,7 @@
 
                                 <input class="form-input productName"
                                        type="text"
+                                       id="productName_0"
                                        name="productNameList"
                                        placeholder="연결할 상품을 선택하세요."
                                        readonly>
@@ -146,12 +147,13 @@
                                     상품 검색
                                 </button>
 
-                                <label class="form-label discount-label">
+                                <label class="form-label discount-label" for="productDiscountRate_0">
                                     할인율 (%)
                                 </label>
 
                                 <input class="form-input productDiscountRate"
                                        type="number"
+                                       id="productDiscountRate_0"
                                        name="discountRateList"
                                        min="0"
                                        max="100"
