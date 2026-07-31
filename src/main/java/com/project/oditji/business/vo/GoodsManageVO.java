@@ -1,6 +1,10 @@
 package com.project.oditji.business.vo;
 
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.project.oditji.goods.vo.ProductOptionVO;
 
 public class GoodsManageVO {
 
@@ -41,6 +45,9 @@ public class GoodsManageVO {
 
     // 인기 상품 조회용
     private int clickCount;
+
+    // [상품 옵션 기능 추가] 의상/신발의 색상-사이즈별 재고 목록
+    private List<ProductOptionVO> optionList = new ArrayList<ProductOptionVO>();
 
     public GoodsManageVO() {
     }
@@ -219,7 +226,15 @@ public class GoodsManageVO {
 
     public void setClickCount(int clickCount) {
         this.clickCount = clickCount;
-    }    
+    }
+
+    public List<ProductOptionVO> getOptionList() {
+        return optionList;
+    }
+
+    public void setOptionList(List<ProductOptionVO> optionList) {
+        this.optionList = optionList == null ? new ArrayList<ProductOptionVO>() : optionList;
+    }
 
     @Override
     public String toString() {
