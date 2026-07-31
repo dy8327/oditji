@@ -23,7 +23,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="order-complete-container">
+<main id="mainContent" class="order-complete-container">
 
     <section class="complete-box">
 

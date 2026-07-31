@@ -24,7 +24,7 @@
      기존 인증 정보와 JavaScript 로직은 그대로 유지하고,
      ODITJI 메인 페이지의 다크 테마에 맞게 화면 배치만 변경한다. --%>
 <div class="verify-page">
-    <main class="verify-container">
+    <main id="mainContent" class="verify-container">
         <header class="verify-header">
             <a href="<%= contextPath %>/" class="verify-brand" aria-label="ODITJI 메인으로 이동">
                 ODITJI

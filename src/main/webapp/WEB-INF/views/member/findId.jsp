@@ -23,7 +23,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<div class="auth-container">
+<div id="mainContent" class="auth-container">
 
     <div class="auth-box large">
 

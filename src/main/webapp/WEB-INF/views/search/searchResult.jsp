@@ -52,7 +52,7 @@
                 or discountOnly
                 or inStockOnly}"/>
 
-<main class="search-page-container">
+<main id="mainContent" class="search-page-container">
     <div class="search-layout">
 
         <aside class="search-left-sidebar"

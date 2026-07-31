@@ -17,7 +17,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<div class="container">
+<div id="mainContent" class="container">
 
     <div class="page-title">
         <div>

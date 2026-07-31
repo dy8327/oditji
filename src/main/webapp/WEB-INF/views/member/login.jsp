@@ -19,7 +19,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<div class="auth-container"
+<div id="mainContent" class="auth-container"
      data-message="<c:out value="${message}"/>"
      data-error-message="<c:out value="${errorMessage}"/>"
      data-restored-message="<c:out value="${restoredMessage}"/>"

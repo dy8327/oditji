@@ -41,7 +41,7 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
 
-<main class="mypage-container">
+<main id="mainContent" class="mypage-container">
 
 
 <!-- ================= Welcome ================= -->

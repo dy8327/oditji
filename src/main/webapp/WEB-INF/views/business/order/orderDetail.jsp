@@ -19,7 +19,7 @@
 <div class="business-wrap">
     <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
-    <main class="main-content">
+    <main id="mainContent" class="main-content">
         <div class="business-page-header">
             <a href="${pageContext.request.contextPath}/business/order/list" class="back-link">← 목록으로</a>
             <h1 class="business-page-title">주문 상세 정보</h1>

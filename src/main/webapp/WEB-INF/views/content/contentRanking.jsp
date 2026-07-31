@@ -27,7 +27,7 @@ String contextPath = request.getContextPath();
 
 <%@ include file="/WEB-INF/views/common/header.jsp" %>
 
-<main class="ranking-page">
+<main id="mainContent" class="ranking-page">
 
 <section class="ranking-header">
     <h1>한국 OTT 콘텐츠 인기 랭킹</h1>

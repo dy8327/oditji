@@ -31,7 +31,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<main class="cart-container">
+<main id="mainContent" class="cart-container">
 
     <section class="cart-header">
 

@@ -17,7 +17,7 @@
 
             <jsp:include page="/WEB-INF/views/common/businessSidebar.jsp"/>
 
-            <main class="business-main">
+            <main id="mainContent" class="business-main">
 
                 <!-- 사업자 Hero -->
                 <section class="business-hero">

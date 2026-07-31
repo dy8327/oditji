@@ -28,7 +28,7 @@
      data-admin="${isAdmin}">
 </div>
 
-<div class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
+<div id="mainContent" class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
 
     <div class="chat-header ${isNoticeRoom ? 'notice-header' : ''}">
 
