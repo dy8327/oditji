@@ -10,6 +10,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="_csrf" content="${_csrf.token}">
+<meta name="_csrf_header" content="${_csrf.headerName}">
+<meta name="_csrf_parameter" content="${_csrf.parameterName}">
 
 <title>ODITJI | 상품 등록 요청</title>
 
@@ -76,6 +79,7 @@ const savedTmdbActorId =
                   method="post"
                   enctype="multipart/form-data"
                   onsubmit="return validateProductForm(event);">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
                 <div class="form-group">
 
@@ -196,7 +200,7 @@ const savedTmdbActorId =
 
                 <%-- [상품 옵션 기능 추가] 의상/신발은 색상-사이즈 조합별 재고를 등록합니다. --%>
                 <div id="productOptionSection" class="form-group" hidden>
-                    <label class="form-label">색상 · 사이즈별 재고</label>
+                    <span class="form-label">색상 · 사이즈별 재고</span>
                     <div id="productOptionRows"></div>
                     <button type="button" id="addProductOptionBtn" class="search-btn">+ 옵션 조합 추가</button>
                     <p class="form-help">의상 예: 블랙 / M, 신발 예: 화이트 / 250. 같은 조합은 한 번만 등록하세요.</p>

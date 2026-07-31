@@ -115,15 +115,14 @@
             </header>
 
             <%-- 본문에만 탭을 두어 사이드바의 중복 탭을 제거합니다. --%>
-            <nav class="search-result-tabs"
+            <div class="search-result-tabs"
                  aria-label="검색 결과 유형"
-                 role="tablist">
+                 role="group">
 
                 <button type="button"
                         class="search-result-tab"
                         data-search-tab="ALL"
-                        role="tab"
-                        aria-selected="false">
+                        aria-pressed="false">
                     <span>전체</span>
                     <b><fmt:formatNumber value="${combinedTotalCount}"/></b>
                 </button>
@@ -131,8 +130,7 @@
                 <button type="button"
                         class="search-result-tab"
                         data-search-tab="CONTENT"
-                        role="tab"
-                        aria-selected="false">
+                        aria-pressed="false">
                     <span>콘텐츠</span>
                     <b><fmt:formatNumber value="${contentTotalCount}"/></b>
                 </button>
@@ -140,12 +138,11 @@
                 <button type="button"
                         class="search-result-tab"
                         data-search-tab="GOODS"
-                        role="tab"
-                        aria-selected="false">
+                        aria-pressed="false">
                     <span>상품</span>
                     <b><fmt:formatNumber value="${goodsTotalCount}"/></b>
                 </button>
-            </nav>
+            </div>
 
             <%-- 선택한 필터를 결과 상단에서 바로 확인하고 한 개씩 제거할 수 있습니다. --%>
             <c:if test="${hasActiveFilter}">

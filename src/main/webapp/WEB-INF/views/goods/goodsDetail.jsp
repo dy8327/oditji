@@ -140,8 +140,8 @@
 
             <div class="detail-side-card-body">
 
-                <div class="actor-card"
-                     onclick="location.href='${pageContext.request.contextPath}/content/person/${actor.tmdbActorId}'">
+                <a class="actor-card"
+                     href="${pageContext.request.contextPath}/content/person/${actor.tmdbActorId}">
 
                     <div class="actor-card__photo">
 
@@ -178,7 +178,7 @@
 
                     </div>
 
-                </div>
+                </a>
 
             </div>
 

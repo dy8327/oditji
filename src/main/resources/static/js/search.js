@@ -381,8 +381,7 @@ function activateSearchTab(searchRoot, targetTab, updateUrl) {
             === normalizedTarget;
 
         button.classList.toggle("is-active", active);
-        button.setAttribute("aria-selected", active ? "true" : "false");
-        button.tabIndex = active ? 0 : -1;
+        button.setAttribute("aria-pressed", active ? "true" : "false");
     });
 
     tabPanels.forEach(function (panel) {
