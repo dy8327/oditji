@@ -1593,7 +1593,7 @@ public class BusinessController {
          * =========================================================
          */
         private Long convertToLong(Object value) {
-
+                
                 if (value == null) {
                         return null;
                 }
