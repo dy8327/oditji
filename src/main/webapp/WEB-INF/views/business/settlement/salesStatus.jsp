@@ -210,16 +210,6 @@
 
                 </table>
 
-                <div class="submit-stack">
-
-                    <button class="btn btn-dark"
-                            type="button"
-                            onclick="history.back();">
-                        닫기
-                    </button>
-
-                </div>
-
             </section>
 
         </main>

@@ -250,24 +250,11 @@ public class BusinessServiceImpl
                 return itemList == null ? Collections.emptyList() : itemList;
         }
 
-        // 사업자 주문 상세 조회
-        @Override
-        public OrderVO getBusinessOrderDetail(long businessNo, long orderNo) {
-                if (businessNo <= 0 || orderNo <= 0) {
-                        throw new IllegalArgumentException("올바르지 않은 주문 정보입니다.");
-                }
-
-                OrderVO order = businessDAO.selectBusinessOrderDetail(businessNo, orderNo);
-
-                if (order == null) {
-                        return null;
-                }
-
-                List<OrderItemVO> itemList = businessDAO.selectBusinessOrderItemDetailList(businessNo, orderNo);
-                order.setItems(itemList == null ? Collections.emptyList() : itemList);
-
-                return order;
-        }
+        /*
+         * [리팩터링] 사업자 주문 상세 조회(getBusinessOrderDetail)는 제거했다.
+         * 주문 상세는 이제 orderList.jsp 모달에서 getBusinessOrderList가 이미
+         * 채워주는 데이터(주문별 배송지/상품 목록 포함)를 그대로 사용한다.
+         */
 
         /*
          * =========================================================
@@ -788,8 +775,27 @@ public class BusinessServiceImpl
                 }
         }
 
-        /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장 */
+        /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장(등록 시 사용) */
         private void saveProductOptions(GoodsManageVO goodsManageVO) {
+                validateAndInsertProductOptions(goodsManageVO);
+        }
+
+        /*
+         * [상품 옵션 기능 추가]
+         * 수정 요청 처리 시 사용. 기존 옵션 조합을 전부 지우고, 화면에서
+         * 넘어온 조합으로 다시 채워 넣는다(전체 교체 방식).
+         *
+         * 상품 종류가 의상/신발이 아닌 다른 종류로 바뀐 경우에는(원래
+         * 의상/신발이었다가 수정하면서 종류를 바꾼 경우 포함) 기존에
+         * 남아있는 옵션 조합이 없도록 항상 먼저 삭제한다.
+         */
+        private void replaceProductOptions(GoodsManageVO goodsManageVO) {
+                businessDAO.deleteProductOptionsByProductNo(goodsManageVO.getProductNo());
+                validateAndInsertProductOptions(goodsManageVO);
+        }
+
+        /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장 (등록/수정 공용) */
+        private void validateAndInsertProductOptions(GoodsManageVO goodsManageVO) {
                 String type = goodsManageVO.getProductType();
                 if (!PRODUCT_TYPE_CLOTHES.equals(type) && !PRODUCT_TYPE_SHOES.equals(type)) {
                         return;
@@ -1063,6 +1069,23 @@ public class BusinessServiceImpl
                         return Collections.emptyList();
                 }
 
+                /*
+                 * [상품 옵션 기능 추가] 의상/신발 상품은 기존 색상-사이즈
+                 * 옵션을 함께 내려보내, 상품 수정 요청 모달을 열었을 때
+                 * 화면(productList.jsp의 숨김 template)에서 다시 채워
+                 * 넣을 수 있게 한다.
+                 */
+                for (GoodsManageVO product : productList) {
+
+                        if (PRODUCT_TYPE_CLOTHES.equals(product.getProductType())
+                                        || PRODUCT_TYPE_SHOES.equals(product.getProductType())) {
+
+                                product.setOptionList(
+                                                businessDAO.selectProductOptionsByProductNo(
+                                                                product.getProductNo()));
+                        }
+                }
+
                 return productList;
         }
 
@@ -1150,6 +1173,23 @@ public class BusinessServiceImpl
                 validateProduct(
                                 goodsManageVO);
 
+                /*
+                 * [상품 옵션 기능 추가] 의상/신발은 조합별 재고의 합을
+                 * PRODUCT.STOCK에 저장한다. 등록 흐름과 동일한 규칙을 쓴다.
+                 */
+                if ((PRODUCT_TYPE_CLOTHES.equals(goodsManageVO.getProductType())
+                                || PRODUCT_TYPE_SHOES.equals(goodsManageVO.getProductType()))
+                                && goodsManageVO.getOptionList() != null) {
+
+                        int optionTotalStock = goodsManageVO.getOptionList().stream()
+                                        .filter(java.util.Objects::nonNull)
+                                        .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
+                                        .filter(java.util.Objects::nonNull)
+                                        .mapToInt(Integer::intValue).sum();
+
+                        goodsManageVO.setStock(optionTotalStock);
+                }
+
                 normalizeActorNo(
                                 goodsManageVO);
 
@@ -1175,6 +1215,13 @@ public class BusinessServiceImpl
                                 throw new IllegalStateException(
                                                 "상품 수정에 실패했습니다.");
                         }
+
+                        /*
+                         * [상품 옵션 기능 추가] 기존 색상-사이즈 옵션 조합을
+                         * 전부 지우고 화면에서 넘어온 조합으로 다시 저장한다.
+                         */
+                        replaceProductOptions(
+                                        goodsManageVO);
 
                         /*
                          * 새 이미지가 선택된 경우에만 이미지 정보를 변경한다.
