@@ -3,11 +3,11 @@ package com.project.oditji.common.service;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
@@ -67,7 +67,7 @@ public class MainContentPlatformService {
                 : selectedPlatformNames) {
 
             String key =
-                    normalizePlatformName(
+                    PlatformNameNormalizer.toKey(
                             platformName
                     );
 
@@ -112,7 +112,7 @@ public class MainContentPlatformService {
             }
 
             String key =
-                    normalizePlatformName(
+                    PlatformNameNormalizer.toKey(
                             platform.getPlatformName()
                     );
 
@@ -124,46 +124,5 @@ public class MainContentPlatformService {
         return resultList;
     }
 
-    private String normalizePlatformName(
-            String platformName) {
 
-        if (platformName == null) {
-            return "";
-        }
-
-        String normalized =
-                platformName
-                        .trim()
-                        .toLowerCase(Locale.ROOT)
-                        .replaceAll(
-                                "[^a-z0-9]",
-                                ""
-                        );
-
-        if (normalized.contains("netflix")) {
-            return "netflix";
-        }
-
-        if (normalized.contains("tving")) {
-            return "tving";
-        }
-
-        if (normalized.contains("wavve")) {
-            return "wavve";
-        }
-
-        if (normalized.contains("disney")) {
-            return "disney";
-        }
-
-        if (normalized.contains("watcha")) {
-            return "watcha";
-        }
-
-        if (normalized.contains("coupang")) {
-            return "coupang";
-        }
-
-        return normalized;
-    }
 }

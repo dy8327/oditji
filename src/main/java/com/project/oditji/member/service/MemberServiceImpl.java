@@ -489,7 +489,7 @@ public class MemberServiceImpl implements MemberService {
         * 8~20자의 비밀번호만 허용한다.
         * =========================================================
         */
-        if (!trimmedPassword.matches("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,20}$")) {
+        if (!trimmedPassword.matches("^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,20}$")) {
 
             throw new IllegalArgumentException("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.");
         }

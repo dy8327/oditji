@@ -1307,6 +1307,12 @@
   position: fixed;
   inset: 0;
 
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
+
   display: none;
   justify-content: center;
   align-items: center;
@@ -1718,6 +1724,12 @@
 
 .member-id-text {
   display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   max-width: none;
   overflow: visible;
   white-space: normal;

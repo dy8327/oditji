@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
@@ -530,7 +531,7 @@ public class SearchController {
             }
 
             String platformKey =
-                    normalizePlatformName(
+                    PlatformNameNormalizer.toKey(
                             platform.getPlatformName()
                     );
 
@@ -544,55 +545,6 @@ public class SearchController {
         }
 
         return logoMap;
-    }
-
-    /**
-     * DB와 JSONL에서 서로 다르게 표기될 수 있는 플랫폼명을
-     * 화면에서 사용하는 공통 키로 정규화합니다.
-     *
-     * 시스템 기본 언어에 영향을 받지 않도록 Locale.ROOT를 사용합니다.
-     */
-    private String normalizePlatformName(
-            String platformName) {
-
-        if (platformName == null) {
-            return "";
-        }
-
-        String normalized =
-                platformName
-                        .trim()
-                        .toLowerCase(Locale.ROOT)
-                        .replaceAll(
-                                "[^a-z0-9]",
-                                ""
-                        );
-
-        if (normalized.contains("netflix")) {
-            return "netflix";
-        }
-
-        if (normalized.contains("tving")) {
-            return "tving";
-        }
-
-        if (normalized.contains("wavve")) {
-            return "wavve";
-        }
-
-        if (normalized.contains("disney")) {
-            return "disney";
-        }
-
-        if (normalized.contains("watcha")) {
-            return "watcha";
-        }
-
-        if (normalized.contains("coupang")) {
-            return "coupang";
-        }
-
-        return normalized;
     }
 
     /**

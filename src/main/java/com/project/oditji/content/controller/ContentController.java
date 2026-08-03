@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
@@ -519,7 +520,7 @@ public class ContentController {
                                 continue;
                         }
 
-                        String platformKey = normalizePlatformName(
+                        String platformKey = PlatformNameNormalizer.toKey(
                                         platform.getPlatformName());
 
                         if (!platformKey.isEmpty()) {
@@ -531,51 +532,6 @@ public class ContentController {
                 }
 
                 return logoMap;
-        }
-
-        /**
-         * DB의 플랫폼 이름 표기가 조금 달라도
-         * JSP에서 사용하는 공통 키로 맞춥니다.
-         */
-        private String normalizePlatformName(
-                        String platformName) {
-
-                if (platformName == null) {
-                        return "";
-                }
-
-                String normalized = platformName
-                                .trim()
-                                .toLowerCase(Locale.ROOT)
-                                .replaceAll(
-                                                "[^a-z0-9]",
-                                                "");
-
-                if (normalized.contains(PLATFORM_NETFLIX)) {
-                        return PLATFORM_NETFLIX;
-                }
-
-                if (normalized.contains(PLATFORM_TVING)) {
-                        return PLATFORM_TVING;
-                }
-
-                if (normalized.contains(PLATFORM_WAVVE)) {
-                        return PLATFORM_WAVVE;
-                }
-
-                if (normalized.contains("disney")) {
-                        return "disney";
-                }
-
-                if (normalized.contains(PLATFORM_WATCHA)) {
-                        return PLATFORM_WATCHA;
-                }
-
-                if (normalized.contains(PLATFORM_COUPANG)) {
-                        return PLATFORM_COUPANG;
-                }
-
-                return normalized;
         }
 
         private String normalizeListType(

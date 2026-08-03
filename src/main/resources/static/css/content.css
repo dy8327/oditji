@@ -1492,6 +1492,11 @@ body.content-ott-modal-open .content-filter-form {
   inset: 0;
   display: flex;
   width: 100vw;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
   height: 100vh;
   align-items: center;
   justify-content: center;
@@ -1778,6 +1783,11 @@ body.spoiler-modal-open {
 .spoiler-confirm-modal {
   position: fixed;
   inset: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
   display: flex;
   align-items: center;
   justify-content: center;

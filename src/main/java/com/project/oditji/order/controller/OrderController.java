@@ -204,9 +204,9 @@ public class OrderController {
                         OrderPaymentPrepareVO prepareVO = orderService.preparePayment(
                                         loginMember.getMemberNo(),
                                         sheetItems,
-                                        requestVO.getReceiverName(),
-                                        requestVO.getReceiverPhone(),
-                                        requestVO.getAddress());
+                                        requestVO.receiverName(),
+                                        requestVO.receiverPhone(),
+                                        requestVO.address());
 
                         prepareVO.setStoreId(storeId);
                         prepareVO.setChannelKey(paymentChannelKey);

@@ -24,7 +24,7 @@ import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
 import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
-import com.project.oditji.member.vo.KakaoLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 import com.project.oditji.member.vo.KakaoTokenVO;
 import com.project.oditji.member.vo.KakaoUserInfoVO;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
@@ -70,7 +70,7 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
 
     @Override
     @Transactional
-    public KakaoLoginResultVO kakaoLogin(String code) {
+    public SocialLoginResultVO kakaoLogin(String code) {
         KakaoTokenVO token = requestToken(code);
         KakaoUserInfoVO kakaoUser = requestUserInfo(token.getAccessToken());
 
@@ -98,7 +98,7 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
                         existingMember.getWithdrawnAt());
             }
 
-            return new KakaoLoginResultVO(false, existingMember);
+            return new SocialLoginResultVO(false, existingMember);
         }
 
         // 신규 회원 가입
@@ -115,7 +115,7 @@ public class KakaoLoginServiceImpl implements KakaoLoginService {
         MemberSocialJoinVO joinedMember =
                 memberSocialDAO.selectMemberBySocial(PROVIDER_KAKAO, providerUserId);
 
-        return new KakaoLoginResultVO(true, joinedMember);
+        return new SocialLoginResultVO(true, joinedMember);
     }
 
     private KakaoTokenVO requestToken(String code) {

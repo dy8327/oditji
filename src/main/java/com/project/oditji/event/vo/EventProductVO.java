@@ -1,40 +1,14 @@
 package com.project.oditji.event.vo;
 
-public class EventProductVO {
+import com.project.oditji.common.vo.EventProductBaseVO;
 
-    private Long productNo;
-
-    private String productName;
-
-    private Long price;
+/**
+ * 사용자 이벤트 상세 화면에 표시할 연결 상품입니다.
+ */
+public class EventProductVO extends EventProductBaseVO {
 
     private Integer eventDiscountRate;
-
     private String imagePath;
-
-    public Long getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Long productNo) {
-        this.productNo = productNo;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public Long getPrice() {
-        return price;
-    }
-
-    public void setPrice(Long price) {
-        this.price = price;
-    }
 
     public Integer getEventDiscountRate() {
         return eventDiscountRate;
@@ -45,16 +19,13 @@ public class EventProductVO {
     }
 
     public Long getDiscountPrice() {
+        Long price = getPrice();
 
         if (price == null || eventDiscountRate == null) {
-
             return null;
-
         }
 
-        return Math.round(
-                price * (100 - eventDiscountRate) / 100.0);
-
+        return Math.round(price * (100 - eventDiscountRate) / 100.0);
     }
 
     public String getImagePath() {
@@ -64,5 +35,4 @@ public class EventProductVO {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
-
 }

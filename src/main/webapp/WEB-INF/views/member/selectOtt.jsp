@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="commonTag" tagdir="/WEB-INF/tags/common" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
@@ -96,38 +97,7 @@
                         <span class="sns-ott-mark"></span>
 
                         <span>
-                            <c:choose>
-                                <c:when test="${platform.platformName eq 'Netflix'}">
-                                    넷플릭스
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney Plus'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney+'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Tving'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'TVING'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Wavve'}">
-                                    웨이브
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Watcha'}">
-                                    왓챠
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupangplay'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupang Play'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:otherwise>
-                                    ${platform.platformName}
-                                </c:otherwise>
-                            </c:choose>
+                            <commonTag:platformDisplayName platformName="${platform.platformName}"/>
                         </span>
                     </label>
 

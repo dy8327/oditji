@@ -104,13 +104,12 @@
                                         너비(데스크톱)에서는 항상 전체 아이디가 잘리지 않고 그대로 보인다.
                                     --%>
                                     <td class="member-id-cell">
-                                        <span class="member-id-text"
-                                            title="${row.memberId}"
-                                            tabindex="0"
-                                            role="button"
-                                            aria-haspopup="dialog">
+                                        <button type="button"
+                                                class="member-id-text"
+                                                title="${row.memberId}"
+                                                aria-haspopup="dialog">
                                             ${row.memberId}
-                                        </span>
+                                        </button>
                                         <%-- 모바일에서만 아이디 아래 보조 텍스트로 노출(admin.css 참고).
                                              데스크톱에서는 바로 옆 닉네임 컬럼으로 대체된다. --%>
                                         <div class="monitoring-nickname">${row.nickname}</div>
@@ -152,8 +151,8 @@
     admin.js의 openMemberIdModal()이 값을 채워 넣는다. memberManage.jsp에도
     동일한 id로 하나씩 둔다(페이지당 하나만 렌더링되므로 id 충돌 없음).
 --%>
-<div class="modal-overlay" id="memberIdModal" role="dialog" aria-modal="true"
-     aria-labelledby="memberIdModalTitle">
+<dialog class="modal-overlay" id="memberIdModal" open aria-modal="true"
+        aria-labelledby="memberIdModalTitle">
 
     <div class="modal-box">
 
@@ -174,7 +173,7 @@
 
     </div>
 
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

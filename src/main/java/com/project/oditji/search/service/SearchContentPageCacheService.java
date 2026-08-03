@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.search.vo.SearchResultPageVO;
@@ -220,11 +221,13 @@ public class SearchContentPageCacheService {
             return;
         }
 
-        for (SearchResultVO content : sourceList) {
+        for (int index = 0;
+             index < sourceList.size()
+                     && selectedMap.size() < limit;
+             index++) {
 
-            if (selectedMap.size() >= limit) {
-                break;
-            }
+            SearchResultVO content =
+                    sourceList.get(index);
 
             LocalDate releaseDate =
                     parseReleaseDate(
@@ -233,17 +236,15 @@ public class SearchContentPageCacheService {
                                     : content.getReleaseDate()
                     );
 
-            if (releaseDate == null
-                    || releaseDate.isBefore(startDate)
-                    || releaseDate.isAfter(endDate)) {
+            if (releaseDate != null
+                    && !releaseDate.isBefore(startDate)
+                    && !releaseDate.isAfter(endDate)) {
 
-                continue;
+                putDistinctContent(
+                        selectedMap,
+                        content
+                );
             }
-
-            putDistinctContent(
-                    selectedMap,
-                    content
-            );
         }
     }
 
@@ -1564,60 +1565,23 @@ public class SearchContentPageCacheService {
         for (CachedContentVO content
                 : searchContentStore.getAll()) {
 
-            if (content == null
-                    || content.getTmdbId() == null
-                    || content.getContentType() == null) {
-
-                continue;
-            }
-
-            if (!matchesKeyword(
+            if (matchesSearchFilters(
                     content,
-                    normalizedKeyword
-            )) {
-
-                continue;
-            }
-
-            if (!matchesContentCategories(
-                    content,
-                    normalizedCategories
-            )) {
-
-                continue;
-            }
-
-            if (!matchesGenreCodes(
-                    content,
-                    normalizedGenres
-            )) {
-
-                continue;
-            }
-
-            if (!matchesAgeRatings(
-                    content,
-                    normalizedAgeRatings
-            )) {
-
-                continue;
-            }
-
-            if (!matchesProviders(
-                    content,
+                    normalizedKeyword,
+                    normalizedCategories,
+                    normalizedGenres,
+                    normalizedAgeRatings,
                     selectedPlatformKeys
             )) {
 
-                continue;
+                result.add(
+                        toSearchResultVO(
+                                content,
+                                platformMap,
+                                normalizedKeyword
+                        )
+                );
             }
-
-            result.add(
-                    toSearchResultVO(
-                            content,
-                            platformMap,
-                            normalizedKeyword
-                    )
-            );
         }
 
         result.sort(
@@ -1637,6 +1601,40 @@ public class SearchContentPageCacheService {
         );
 
         return result;
+    }
+
+
+    private boolean matchesSearchFilters(
+            CachedContentVO content,
+            String normalizedKeyword,
+            List<String> normalizedCategories,
+            List<String> normalizedGenres,
+            List<String> normalizedAgeRatings,
+            Set<String> selectedPlatformKeys) {
+
+        return content != null
+                && content.getTmdbId() != null
+                && content.getContentType() != null
+                && matchesKeyword(
+                        content,
+                        normalizedKeyword
+                )
+                && matchesContentCategories(
+                        content,
+                        normalizedCategories
+                )
+                && matchesGenreCodes(
+                        content,
+                        normalizedGenres
+                )
+                && matchesAgeRatings(
+                        content,
+                        normalizedAgeRatings
+                )
+                && matchesProviders(
+                        content,
+                        selectedPlatformKeys
+                );
     }
 
     private boolean matchesKeyword(
@@ -2139,7 +2137,7 @@ public class SearchContentPageCacheService {
             }
 
             String key =
-                    normalizePlatformName(
+                    PlatformNameNormalizer.toKey(
                             platform.getPlatformName()
                     );
 
@@ -2203,52 +2201,11 @@ public class SearchContentPageCacheService {
         }
 
         String platformKey =
-                normalizePlatformName(rawValue);
+                PlatformNameNormalizer.toKey(rawValue);
 
         return SUPPORTED_PLATFORM_KEYS.contains(platformKey)
                 ? platformKey
                 : "";
-    }
-
-    private String normalizePlatformName(
-            String name) {
-
-        if (name == null) {
-            return "";
-        }
-
-        String normalized =
-                name.toLowerCase(Locale.ROOT)
-                        .replaceAll(
-                                "[^a-z0-9]",
-                                ""
-                        );
-
-        if (normalized.contains(PLATFORM_NETFLIX)) {
-            return PLATFORM_NETFLIX;
-        }
-
-        if (normalized.contains(PLATFORM_TVING)) {
-            return PLATFORM_TVING;
-        }
-
-        if (normalized.contains(PLATFORM_WAVVE)) {
-            return PLATFORM_WAVVE;
-        }
-
-        if (normalized.contains(PLATFORM_DISNEY)) {
-            return PLATFORM_DISNEY;
-        }
-
-        if (normalized.contains(PLATFORM_WATCHA)) {
-            return PLATFORM_WATCHA;
-        }
-
-        if (normalized.contains(PLATFORM_COUPANG)) {
-            return PLATFORM_COUPANG;
-        }
-
-        return normalized;
     }
 
     private List<String> normalizeUpperCaseList(

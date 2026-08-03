@@ -90,8 +90,7 @@ public class ChatApiController {
             @PathVariable("roomId") String roomId,
             HttpSession session) {
 
-        ChatRoomVO room = getAccessibleRoom(roomId, session);
-        return room;
+        return getAccessibleRoom(roomId, session);
     }
 
     /**

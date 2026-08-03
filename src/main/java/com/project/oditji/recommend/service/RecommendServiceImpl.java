@@ -379,7 +379,7 @@ public class RecommendServiceImpl
                 continue;
             }
 
-            if (platformNameText.length() > 0) {
+            if (!platformNameText.isEmpty()) {
                 platformNameText.append("와 ");
             }
 
@@ -387,7 +387,7 @@ public class RecommendServiceImpl
                     platform.getPlatformName());
         }
 
-        if (platformNameText.length() == 0) {
+        if (platformNameText.isEmpty()) {
             return "추천 OTT";
         }
 

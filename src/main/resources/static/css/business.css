@@ -1576,6 +1576,11 @@
   display: none;
   position: fixed;
   inset: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
   z-index: 1000;
   align-items: center;
   justify-content: center;

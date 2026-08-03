@@ -1,6 +1,6 @@
 package com.project.oditji.member.service;
 
-import com.project.oditji.member.vo.NaverLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 
 /**
  * 네이버 OAuth 로그인 처리 서비스입니다.
@@ -32,5 +32,5 @@ public interface NaverLoginService {
      * @param state 로그인 요청 때 사용한 state 값
      * @return 신규 가입 여부와 연동 회원 정보
      */
-    NaverLoginResultVO naverLogin(String code, String state);
+    SocialLoginResultVO naverLogin(String code, String state);
 }

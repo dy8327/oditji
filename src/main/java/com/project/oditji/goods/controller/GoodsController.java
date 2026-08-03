@@ -179,15 +179,13 @@ public class GoodsController {
 
         for (GoodsVO recommend : recommendedGoodsCandidates) {
 
-            if (recommend.getProductNo() == productNo) {
-                continue;
-            }
+            if (recommend.getProductNo() != productNo) {
+                if (recommendedGoodsList.size() >= RECOMMEND_GOODS_SIZE) {
+                    break;
+                }
 
-            if (recommendedGoodsList.size() >= RECOMMEND_GOODS_SIZE) {
-                break;
+                recommendedGoodsList.add(recommend);
             }
-
-            recommendedGoodsList.add(recommend);
         }
 
         MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");

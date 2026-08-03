@@ -772,14 +772,14 @@
         넣는다.
         =========================================================
     --%>
-    <div id="deliveryDetailModal"
-         class="delivery-detail-modal"
-         aria-hidden="true">
+    <dialog id="deliveryDetailModal"
+            class="delivery-detail-modal"
+            open
+            aria-hidden="true"
+            aria-modal="true"
+            aria-labelledby="deliveryDetailModalTitle">
 
-        <div class="delivery-detail-modal-content"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="deliveryDetailModalTitle">
+        <div class="delivery-detail-modal-content">
 
             <div class="delivery-detail-modal-header">
 
@@ -936,7 +936,7 @@
 
         </div>
 
-    </div>
+    </dialog>
 
     <!-- 리뷰 작성 모달 -->
     <div id="reviewModal"
@@ -1033,14 +1033,14 @@
     </div>
 
     <!-- 취소/환불 요청 모달 -->
-    <div id="orderCancelModal"
-         class="payment-cancel-modal"
-         aria-hidden="true">
+    <dialog id="orderCancelModal"
+            class="payment-cancel-modal"
+            open
+            aria-hidden="true"
+            aria-modal="true"
+            aria-labelledby="orderCancelModalTitle">
 
-        <div class="payment-cancel-modal-content"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="orderCancelModalTitle">
+        <div class="payment-cancel-modal-content">
 
             <h2 id="orderCancelModalTitle"
                 class="payment-cancel-modal-title">
@@ -1084,7 +1084,7 @@
 
         </div>
 
-    </div>
+    </dialog>
 
 </main>
 

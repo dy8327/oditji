@@ -143,24 +143,6 @@ document.addEventListener('click', function (e) {
     toggleMemberIdText(target);
 });
 
-document.addEventListener('keydown', function (e) {
-
-    if (e.key !== 'Enter' && e.key !== ' ') {
-        return;
-    }
-
-    var target = e.target.closest('.member-id-text');
-
-    if (!target) {
-        return;
-    }
-
-    // 스페이스는 페이지 스크롤을 유발하므로 이 요소에서 처리할 때만 막는다
-    e.preventDefault();
-    toggleMemberIdText(target);
-});
-
-
 
 /* =========================================================
  * memberManage.jsp - 회원 관리 (필터/일괄처리/개별처리)

@@ -1,44 +1,32 @@
 package com.project.oditji.goods.vo;
 
-public class GoodsVO {
+import com.project.oditji.common.vo.ProductSaleInfoVO;
 
-    private int productNo;
-    private int businessNo;
-    private int contentNo;
+/**
+ * 상품 검색, 추천, 상세, 찜 목록에서 사용하는 상품 VO입니다.
+ */
+public class GoodsVO extends ProductSaleInfoVO {
+
+    private static final long serialVersionUID = 1L;
+
+    private Integer businessNo;
+    private Integer contentNo;
     private Integer actorNo;
-
-    private String productName;
-    private String productType;
-    private int price;
-    private int discountRate;
-    private int stock;
     private String description;
-    private String status;
 
-    private String businessName;
-    private String mainImage;
-
-    public int getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(int productNo) {
-        this.productNo = productNo;
-    }
-
-    public int getBusinessNo() {
+    public Integer getBusinessNo() {
         return businessNo;
     }
 
-    public void setBusinessNo(int businessNo) {
+    public void setBusinessNo(Integer businessNo) {
         this.businessNo = businessNo;
     }
 
-    public int getContentNo() {
+    public Integer getContentNo() {
         return contentNo;
     }
 
-    public void setContentNo(int contentNo) {
+    public void setContentNo(Integer contentNo) {
         this.contentNo = contentNo;
     }
 
@@ -50,80 +38,11 @@ public class GoodsVO {
         this.actorNo = actorNo;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductType() {
-        return productType;
-    }
-
-    public void setProductType(String productType) {
-        this.productType = productType;
-    }
-
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
-    }
-
-    public int getDiscountRate() {
-        return discountRate;
-    }
-
-    public void setDiscountRate(int discountRate) {
-        this.discountRate = discountRate;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getMainImage() {
-        return mainImage;
-    }
-
-    public void setMainImage(String mainImage) {
-        this.mainImage = mainImage;
-    }
-
-    public int getDiscountPrice() {
-        int normalizedRate = Math.clamp(discountRate, 0, 100);
-        return price * (100 - normalizedRate) / 100;
     }
 }

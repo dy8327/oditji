@@ -666,18 +666,17 @@
 
     </div>
 
-    <div id="contentOttPlatformModal"
-         class="content-ott-modal"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="contentOttModalTitle"
-         hidden>
+    <dialog id="contentOttPlatformModal"
+            class="content-ott-modal"
+            open
+            aria-modal="true"
+            aria-labelledby="contentOttModalTitle"
+            hidden>
 
         <div class="content-ott-modal-backdrop"
              data-content-ott-modal-close></div>
 
-        <div class="content-ott-modal-dialog"
-             role="document">
+        <div class="content-ott-modal-dialog">
 
             <header class="content-ott-modal-header">
                 <h2 id="contentOttModalTitle">OTT 플랫폼 선택</h2>
@@ -794,6 +793,6 @@
             </footer>
 
         </div>
-    </div>
+    </dialog>
 
 </form>

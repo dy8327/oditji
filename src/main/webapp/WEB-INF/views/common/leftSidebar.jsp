@@ -729,17 +729,17 @@
     </div>
 
     <%-- OTT 선택값을 저장하는 모달 --%>
-    <div id="ottPlatformModal"
-         class="ott-modal"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="ottModalTitle"
-         hidden>
+    <dialog id="ottPlatformModal"
+            class="ott-modal"
+            open
+            aria-modal="true"
+            aria-labelledby="ottModalTitle"
+            hidden>
 
         <div class="ott-modal-backdrop"
              data-ott-modal-close></div>
 
-        <div class="ott-modal-dialog" role="document">
+        <div class="ott-modal-dialog">
             <header class="ott-modal-header">
                 <div>
                     <span class="search-filter-eyebrow">PLATFORM</span>
@@ -889,5 +889,5 @@
                 </button>
             </footer>
         </div>
-    </div>
+    </dialog>
 </form>

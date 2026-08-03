@@ -161,12 +161,12 @@ public class PlatformSelectController {
             return null;
         }
 
-        if (value instanceof Long) {
-            return (Long) value;
+        if (value instanceof Long longValue) {
+            return longValue;
         }
 
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();
+        if (value instanceof Integer integerValue) {
+            return integerValue.longValue();
         }
 
         return Long.valueOf(String.valueOf(value));
