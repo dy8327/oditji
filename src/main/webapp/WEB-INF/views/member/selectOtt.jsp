@@ -12,11 +12,14 @@
     <title>ODITJI | OTT 선택</title>
     <link rel="stylesheet" href="${contextPath}/css/layout.css">
     <link rel="stylesheet" href="${contextPath}/css/member.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"
-        integrity="sha512-pnPZhx5S+z5FSVwy62gcyG2Mun8h6R+PG01MidzU+NGF06/ytcm2r6+AaWMBXAnDHsdHWtsxS0dH8FBKA84FlQ=="
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
     <script src="${pageContext.request.contextPath}/js/member.js"></script>
+
+    <%-- Spring Security CSRF 토큰: common.js가 form/fetch 요청에 자동 적용합니다. --%>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+    <meta name="_csrf_parameter" content="${_csrf.parameterName}">
 </head>
 <body data-context-path="${contextPath}">
 
