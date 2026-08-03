@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:set var="activeMenu" value="settlement"/>
 
@@ -184,11 +185,18 @@
 
                     <tr>
                         <th>사업자명</th>
-                        <th>정산 월</th>
-                        <th>신청일</th>
+                        <%--
+                            [모바일 리팩토링] 정산 월 / 신청일 / 입금 계좌는 모바일에서는 숨기고,
+                            "상세보기" 버튼을 누르면 열리는 settlementModal 안에서 확인하도록 한다.
+                        --%>
+                        <th class="col-mobile-hide">정산 월</th>
+                        <th class="col-mobile-hide">신청일</th>
                         <th>정산 예정금</th>
-                        <th>입금 계좌</th>
-                        <th>정산 상태</th>
+                        <th class="col-mobile-hide">입금 계좌</th>
+                        <%-- [수정] 모바일에서는 이 컬럼을 숨기고, 대신 사업자명 글자 색으로
+                             입금 대기/완료/반려 상태를 표현한다(.approval-name-*, 아래 사업자명 td 참고).
+                             businessManage.jsp와 동일한 방식. 데스크톱은 기존과 동일하게 상태 뱃지 컬럼이 그대로 보인다. --%>
+                        <th class="col-mobile-hide">정산 상태</th>
                         <th>관리</th>
                     </tr>
 
@@ -203,31 +211,72 @@
                             <c:forEach var="settlement"
                                        items="${settlementList}">
 
+                                <%--
+                                    상세보기 모달로 넘겨줄 값들을 미리 변수로 정리해 둔다.
+                                    (신청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqCreatedAtStr /
+                                    reqStatusLabel 등과 동일한 방식)
+                                --%>
+                                <fmt:formatDate var="settlementCreatedAtStr" value="${settlement.createdAt}" pattern="yyyy-MM-dd"/>
+
+                                <c:choose>
+                                    <c:when test="${settlement.status == 'DONE'}">
+                                        <c:set var="settlementStatusLabel" value="입금 완료"/>
+                                    </c:when>
+                                    <c:when test="${settlement.status == 'REJECTED'}">
+                                        <c:set var="settlementStatusLabel" value="반려"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="settlementStatusLabel" value="대기"/>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <%-- 모바일 상세보기 모달에 그대로 넘겨줄 정산 예정금 표시 문자열 --%>
+                                <fmt:formatNumber var="settlementAmountStr" value="${settlement.settledAmount}" pattern="#,##0"/>
+
+                                <%-- [수정] 모바일에서 정산 상태 컬럼을 숨기는 대신 사업자명 글자 색으로 상태를
+                                     표현하기 위한 클래스. businessManage.jsp의 approval-name-* 와 동일한 방식이며,
+                                     이 색은 768px 이하에서만 적용되므로 데스크톱에서는 기존 사업자명 색과 동일하게 보인다. --%>
+                                <c:choose>
+                                    <c:when test="${settlement.status == 'DONE'}">
+                                        <c:set var="settlementNameStatusClass" value="approval-name-approved"/>
+                                    </c:when>
+                                    <c:when test="${settlement.status == 'REJECTED'}">
+                                        <c:set var="settlementNameStatusClass" value="approval-name-rejected"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="settlementNameStatusClass" value="approval-name-waiting"/>
+                                    </c:otherwise>
+                                </c:choose>
+
                                 <tr>
 
-                                    <td>
-                                        ${settlement.businessName}
+                                    <td class="approval-name-cell">
+                                        <div class="approval-name-wrapper">
+                                            <div class="mobile-approval-name">
+                                                <span class="approval-name-text ${settlementNameStatusClass}">${settlement.businessName}</span>
+                                            </div>
+                                            <span class="pc-approval-name">${settlement.businessName}</span>
+                                        </div>
                                     </td>
 
-                                    <%-- [수정] 월별로 묶인 정산 기준 월 표시 --%>
-                                    <td>${settlement.settlementMonth}</td>
+                                    <%-- [수정] 월별로 묶인 정산 기준 월 표시. 모바일에서는 숨기고 모달에서 확인한다. --%>
+                                    <td class="col-mobile-hide">${settlement.settlementMonth}</td>
 
-                                    <td>
-                                        <fmt:formatDate value="${settlement.createdAt}"
-                                                        pattern="yyyy-MM-dd"/>
+                                    <td class="col-mobile-hide">
+                                        ${settlementCreatedAtStr}
                                     </td>
 
                                     <td>
                                         <fmt:formatNumber value="${settlement.settledAmount}" pattern="#,##0"/>원
                                     </td>
 
-                                    <td>
+                                    <td class="col-mobile-hide">
                                         ${settlement.bankName}
                                         ${settlement.accountNumber}
                                         (${settlement.accountHolder})
                                     </td>
 
-                                    <td>
+                                    <td class="col-mobile-hide">
 
                                         <c:choose>
 
@@ -263,6 +312,28 @@
 
                                         <div class="item-actions"
                                              style="justify-content:center;">
+
+                                            <%--
+                                                [모바일 리팩토링] 모바일 전용 상세보기 트리거. 768px 이하에서는
+                                                아래 입금확인/반려 버튼이 전부 숨겨지고 이 버튼만 남는다. 눌렀을 때
+                                                settlementModal에 이 행의 전체 정보(정산월/신청일/입금계좌 등 모바일에서
+                                                숨겨진 컬럼 포함)와 지금과 동일한 입금확인/반려 버튼을 모달 안에서 그대로
+                                                보여준다. memberManage.jsp의 row-detail-trigger와 동일한 방식이며,
+                                                데스크톱(768px 초과)에서는 이 버튼이 보이지 않고 기존 버튼이 그대로 노출된다.
+                                            --%>
+                                            <button type="button" class="btn btn-outline row-detail-trigger"
+                                                    aria-label="${fn:escapeXml(settlement.businessName)} 정산 상세보기"
+                                                    data-business-no="${settlement.businessNo}"
+                                                    data-business-name="${fn:escapeXml(settlement.businessName)}"
+                                                    data-settlement-month="${settlement.settlementMonth}"
+                                                    data-created-at="${settlementCreatedAtStr}"
+                                                    data-settled-amount="${settlementAmountStr}원"
+                                                    data-account="${fn:escapeXml(settlement.bankName)} ${fn:escapeXml(settlement.accountNumber)} (${fn:escapeXml(settlement.accountHolder)})"
+                                                    data-status="${settlement.status}"
+                                                    data-status-label="${settlementStatusLabel}"
+                                                    onclick="openRowDetailModal('settlementModal', this)">
+                                                상세
+                                            </button>
 
                                             <%-- [수정] 관리자 처리는 입금 확인 요청 상태에서만 가능 --%>
                                             <c:if test="${settlement.status == 'REQUESTED'}">
@@ -305,7 +376,16 @@
 
                                             </c:if>
 
-                                            <c:if test="${settlement.status != 'REQUESTED'}">-</c:if>
+                                            <%-- [수정] 데스크톱에서는 상세보기 버튼(.row-detail-trigger)이 숨겨져 있어
+                                                 입금확인/반려 버튼도 없는 행(REQUESTED가 아닌 상태)은 관리 컬럼이
+                                                 완전히 비어 보이므로 처리할 게 없다는 뜻으로 '-'를 보여준다.
+                                                 모바일에서는 상세보기 버튼만 남기고 이 span도 함께 숨겨야 하므로
+                                                 (텍스트 노드 그대로 두면 .item-actions > *:not(.row-detail-trigger)
+                                                 숨김 규칙이 적용되지 않아 버튼 옆에 '-'가 그대로 남아 있었다) 반드시
+                                                 span으로 감싸서 다른 관리 버튼들과 동일하게 처리한다. --%>
+                                            <c:if test="${settlement.status != 'REQUESTED'}">
+                                                <span>-</span>
+                                            </c:if>
 
                                         </div>
 
@@ -383,7 +463,104 @@
 
 </div>
 
+<%--
+    [모바일 리팩토링] 정산 상세보기 모달.
+    768px 이하에서 각 행의 "상세" 버튼을 누르면 열리며, 표에서 숨겨진 컬럼
+    (정산월/신청일/입금계좌)과 입금확인/반려 버튼을 desktop 행과 동일하게 보여준다.
+    값은 JS의 openRowDetailModal()이 row-detail-trigger 버튼의 data-* 값을 그대로
+    채워 넣으므로, 이 화면 전용 JS 함수를 따로 만들 필요가 없다(memberManage.jsp와 동일한 방식).
+--%>
+<div class="modal-overlay" id="settlementModal">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>정산 상세정보</h3>
+            <button type="button"
+                    class="modal-close"
+                    aria-label="정산 상세정보 팝업 닫기"
+                    onclick="closeModal('settlementModal')">
+                &times;
+            </button>
+        </div>
+
+        <div class="row-detail-list">
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">사업자명</span>
+                <span class="row-detail-value" data-detail-field="businessName"></span>
+            </div>
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">정산 월</span>
+                <span class="row-detail-value" data-detail-field="settlementMonth"></span>
+            </div>
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">신청일</span>
+                <span class="row-detail-value" data-detail-field="createdAt"></span>
+            </div>
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">정산 예정금</span>
+                <span class="row-detail-value" data-detail-field="settledAmount"></span>
+            </div>
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">입금 계좌</span>
+                <span class="row-detail-value" data-detail-field="account"></span>
+            </div>
+
+            <div class="row-detail-item">
+                <span class="row-detail-label">정산 상태</span>
+                <span class="row-detail-value" data-detail-field="statusLabel"></span>
+            </div>
+
+        </div>
+
+        <%-- 데스크톱 행의 입금확인/반려 폼과 완전히 동일한 값을 그대로 제출한다.
+             data-detail-toggle으로 현재 정산 상태(REQUESTED)에 맞을 때만 버튼을 보여준다. --%>
+        <form action="${pageContext.request.contextPath}/admin/settlement/confirm" method="post">
+
+            <input type="hidden" name="businessNo" data-detail-field="businessNo">
+            <input type="hidden" name="settlementMonth" data-detail-field="settlementMonth">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="status" value="${currentStatus}">
+            <input type="hidden" name="period" value="${currentPeriod}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
+
+            <div class="row-detail-actions">
+
+                <button type="submit" class="btn btn-success" data-detail-toggle="status:REQUESTED">
+                    입금 확인
+                </button>
+
+                <button type="submit" formaction="${pageContext.request.contextPath}/admin/settlement/reject"
+                        class="btn btn-danger" data-detail-toggle="status:REQUESTED">
+                    반려
+                </button>
+
+                <span class="status-waiting" data-detail-toggle="status:DONE,REJECTED">
+                    이미 처리된 정산 건입니다
+                </span>
+
+            </div>
+
+        </form>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('settlementModal')">닫기</button>
+        </div>
+
+    </div>
+
+</div>
+
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
+
+<script defer
+        src="${pageContext.request.contextPath}/js/admin.js">
+</script>
 
 </body>
 </html>

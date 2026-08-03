@@ -76,8 +76,62 @@ function openRowDetailModal(modalId, triggerButton) {
 }
 
 /* =========================================================
- * 모바일 회원 아이디 말줄임 / 클릭 확대
+ * 모바일 회원 아이디 말줄임 / 클릭 시 전체보기 모달
+ * memberManage.jsp(아이디) / monitoring.jsp(회원)가 공유하는 범용 컴포넌트.
+ * 768px 이하에서만 말줄임(...)이 걸리므로(admin.css .member-id-text),
+ * 데스크톱에서는 scrollWidth <= clientWidth라 클릭해도 아무 일도 없다.
+ *
+ * [리팩토링] 기존에는 클릭한 칩 위치를 기준으로 좌표를 계산해 붙이는
+ * 말풍선(popover)이었다. 위치 계산/스크롤·리사이즈 추적 로직이 복잡한
+ * 데다 화면 끝에서는 잘려 보이기도 해서, 다른 상세보기 팝업들과 동일한
+ * 모달(.modal-overlay/.modal-box, closeModal())로 통일한다. 각 JSP는
+ * 정적으로 #memberIdModal 하나를 두고, 여기서는 그 안의 값만 채워 넣는다.
  * ========================================================= */
+
+function openMemberIdModal(target) {
+
+    var modal = document.getElementById('memberIdModal');
+
+    if (!modal) {
+        return;
+    }
+
+    var fullId = target.getAttribute('title') || target.textContent.trim();
+
+    var valueEl = document.getElementById('memberIdModalValue');
+    if (valueEl) {
+        valueEl.textContent = fullId;
+    }
+
+    // monitoring.jsp는 아이디 아래에 닉네임(.monitoring-nickname)을 함께 보여준다.
+    // 닉네임이 없는 memberManage.jsp에서는 해당 줄을 그냥 숨긴다.
+    var cell = target.closest('.member-id-cell');
+    var nicknameSource = cell ? cell.querySelector('.monitoring-nickname') : null;
+    var nicknameEl = document.getElementById('memberIdModalNickname');
+
+    if (nicknameEl) {
+        if (nicknameSource && nicknameSource.textContent.trim() !== '') {
+            nicknameEl.textContent = nicknameSource.textContent.trim();
+            nicknameEl.style.display = '';
+        } else {
+            nicknameEl.textContent = '';
+            nicknameEl.style.display = 'none';
+        }
+    }
+
+    modal.classList.add('open');
+}
+
+function toggleMemberIdText(target) {
+
+    // 말줄임(...) 상태가 아니면(=데스크톱이거나 짧은 값이면) 모달을 띄울 필요가 없다
+    if (target.scrollWidth <= target.clientWidth) {
+        return;
+    }
+
+    openMemberIdModal(target);
+}
+
 document.addEventListener('click', function (e) {
 
     var target = e.target.closest('.member-id-text');
@@ -86,20 +140,26 @@ document.addEventListener('click', function (e) {
         return;
     }
 
-    // 이미 펼쳐진 상태면 닫기
-    if (target.classList.contains('expanded')) {
-        target.classList.remove('expanded');
-        return;
-    }
-
-    // 말줄임(...) 상태가 아니면 클릭 무시
-    if (target.scrollWidth <= target.clientWidth) {
-        return;
-    }
-
-    target.classList.add('expanded');
-
+    toggleMemberIdText(target);
 });
+
+document.addEventListener('keydown', function (e) {
+
+    if (e.key !== 'Enter' && e.key !== ' ') {
+        return;
+    }
+
+    var target = e.target.closest('.member-id-text');
+
+    if (!target) {
+        return;
+    }
+
+    // 스페이스는 페이지 스크롤을 유발하므로 이 요소에서 처리할 때만 막는다
+    e.preventDefault();
+    toggleMemberIdText(target);
+});
+
 
 
 /* =========================================================
@@ -518,7 +578,8 @@ function openEventDetailModal(button) {
     var period = button.dataset.period;
     var createdAt = button.dataset.createdAt;
     var status = button.dataset.status;
-    var statusLabel = button.dataset.statusLabel;
+    var approvalLabel = button.dataset.approvalLabel;
+    var progressLabel = button.dataset.progressLabel;
     var productDetail = button.dataset.productDetail;
     var bannerImage = button.dataset.bannerImage;
 
@@ -527,7 +588,8 @@ function openEventDetailModal(button) {
     document.getElementById('reqtitle').textContent = title;
     document.getElementById('reqEventPeriod').textContent = period;
     document.getElementById('reqCreatedAt').textContent = createdAt;
-    document.getElementById('reqStatus').textContent = statusLabel;
+    document.getElementById('reqApprovalStatus').textContent = approvalLabel;
+    document.getElementById('reqProgressStatus').textContent = progressLabel;
 
     // 사업자가 등록한 이벤트 배너 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
     var imageEl = document.getElementById('reqEventImage');
