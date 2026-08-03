@@ -255,7 +255,7 @@ installCsrfProtection();
 /**
  * SweetAlert2 공통 알림/확인 헬퍼
  * 프로젝트 전체에서 기본 브라우저 alert()/confirm() 대신 이 함수들을 사용한다.
- * (SweetAlert2 CDN은 header.jsp에 이미 포함되어 있음)
+ * (SweetAlert2 라이브러리는 header.jsp에서 먼저 불러옴)
  */
 function showAlert(message, icon) {
   return Swal.fire({
