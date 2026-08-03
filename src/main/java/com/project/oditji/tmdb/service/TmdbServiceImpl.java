@@ -1389,28 +1389,37 @@ public class TmdbServiceImpl implements TmdbService {
 
             String countryCode =
                     country.path("iso_3166_1").asString(null);
+            String converted = extractSupportedMovieCountryAgeRating(
+                    country,
+                    countryCode
+            );
 
-            if (isSupportedAgeRatingCountry(countryCode)) {
-                String converted = extractMovieCountryAgeRating(
-                        country,
-                        countryCode
-                );
+            if ("KR".equals(countryCode) && converted != null) {
+                return converted;
+            }
 
-                if (converted != null) {
-                    if ("KR".equals(countryCode)) {
-                        return converted;
-                    }
-
-                    if (usRating == null) {
-                        usRating = converted;
-                    }
-                }
+            if ("US".equals(countryCode) && usRating == null) {
+                usRating = converted;
             }
         }
 
         return usRating == null
                 ? AGE_RATING_UNKNOWN
                 : usRating;
+    }
+
+    private String extractSupportedMovieCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
+
+        if (!isSupportedAgeRatingCountry(countryCode)) {
+            return null;
+        }
+
+        return extractMovieCountryAgeRating(
+                country,
+                countryCode
+        );
     }
 
     private boolean isSupportedAgeRatingCountry(
@@ -1463,30 +1472,38 @@ public class TmdbServiceImpl implements TmdbService {
 
             String countryCode =
                     country.path("iso_3166_1").asString(null);
+            String converted = extractSupportedTvCountryAgeRating(
+                    country,
+                    countryCode
+            );
 
-            if ("KR".equals(countryCode)
-                    || "US".equals(countryCode)) {
+            if ("KR".equals(countryCode) && converted != null) {
+                return converted;
+            }
 
-                String converted = convertAgeRating(
-                        countryCode,
-                        country.path("rating").asString(null),
-                        true);
-
-                if (converted != null) {
-                    if ("KR".equals(countryCode)) {
-                        return converted;
-                    }
-
-                    if (usRating == null) {
-                        usRating = converted;
-                    }
-                }
+            if ("US".equals(countryCode) && usRating == null) {
+                usRating = converted;
             }
         }
 
         return usRating == null
                 ? AGE_RATING_UNKNOWN
                 : usRating;
+    }
+
+    private String extractSupportedTvCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
+
+        if (!isSupportedAgeRatingCountry(countryCode)) {
+            return null;
+        }
+
+        return convertAgeRating(
+                countryCode,
+                country.path("rating").asString(null),
+                true
+        );
     }
 
     private String convertAgeRating(
