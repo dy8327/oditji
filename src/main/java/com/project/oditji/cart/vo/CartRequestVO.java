@@ -2,13 +2,18 @@ package com.project.oditji.cart.vo;
 
 import java.util.List;
 
-public class CartRequestVO {
+import com.project.oditji.common.vo.ProductSelectionVO;
+
+/**
+ * 장바구니 추가, 수량 변경, 선택 삭제 요청에 사용하는 VO입니다.
+ *
+ * 상품 번호, 옵션 번호, 수량은 공통 부모 VO에서 상속받습니다.
+ */
+public class CartRequestVO extends ProductSelectionVO {
+
+    private static final long serialVersionUID = 1L;
 
     private Long cartItemNo;
-    private Integer productNo;
-    // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 번호
-    private Long optionNo;
-    private Integer quantity;
     private List<Long> cartItemNos;
 
     public Long getCartItemNo() {
@@ -17,30 +22,6 @@ public class CartRequestVO {
 
     public void setCartItemNo(Long cartItemNo) {
         this.cartItemNo = cartItemNo;
-    }
-
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
-
-    public Long getOptionNo() {
-        return optionNo;
-    }
-
-    public void setOptionNo(Long optionNo) {
-        this.optionNo = optionNo;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     public List<Long> getCartItemNos() {

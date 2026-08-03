@@ -1,6 +1,6 @@
 package com.project.oditji.order.vo;
 
-import java.io.Serializable;
+import com.project.oditji.common.vo.ProductOptionSelectionVO;
 
 /**
  * 주문서(order.jsp) 작성 단계에서 사용하는 임시 주문 품목 정보.
@@ -9,21 +9,16 @@ import java.io.Serializable;
  * 결제 전까지 세션(OrderSheetVO)에 보관하기 위한 용도이며,
  * ORDER_ITEM 테이블과 1:1로 대응되지 않는다 (주문 완료 전 단계).
  */
-public class OrderSheetItemVO implements Serializable {
+public class OrderSheetItemVO extends ProductOptionSelectionVO{
 
     private static final long serialVersionUID = 1L;
 
-    private Integer productNo;
-    // [상품 옵션 기능 추가] 선택한 색상-사이즈 옵션
-    private Long optionNo;
-    private String colorName;
-    private String sizeName;
     private Integer businessNo;
 
-    /*
-     * 장바구니에서 담겨온 경우에만 값이 존재한다.
-     * 주문 완료 시 이 번호에 해당하는 CART_ITEM을 삭제하는 데 사용한다.
-     * 바로 구매(직접 구매)로 담긴 경우 null이다.
+    /**
+     * 장바구니에서 담겨온 경우에만 값이 존재합니다.
+     * 주문 완료 시 해당 CART_ITEM 삭제에 사용하며,
+     * 바로 구매로 담긴 경우에는 null입니다.
      */
     private Long cartItemNo;
 
@@ -35,40 +30,6 @@ public class OrderSheetItemVO implements Serializable {
     private String status;
     private String businessName;
     private String mainImage;
-
-    private Integer quantity;
-
-    public Long getOptionNo() {
-        return optionNo;
-    }
-
-    public void setOptionNo(Long optionNo) {
-        this.optionNo = optionNo;
-    }
-
-    public String getColorName() {
-        return colorName;
-    }
-
-    public void setColorName(String colorName) {
-        this.colorName = colorName;
-    }
-
-    public String getSizeName() {
-        return sizeName;
-    }
-
-    public void setSizeName(String sizeName) {
-        this.sizeName = sizeName;
-    }
-
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
 
     public Integer getBusinessNo() {
         return businessNo;
@@ -150,18 +111,10 @@ public class OrderSheetItemVO implements Serializable {
         this.mainImage = mainImage;
     }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
     public int getDiscountPrice() {
 
-        int originalPrice = price == null ? 0 : price;
-        int rate = discountRate == null ? 0 : discountRate;
+        int originalPrice = getPrice() == null ? 0 : getPrice();
+        int rate = getDiscountRate() == null ? 0 : getDiscountRate();
 
         if (rate < 0) {
             rate = 0;
@@ -176,7 +129,7 @@ public class OrderSheetItemVO implements Serializable {
 
     public long getItemTotalPrice() {
 
-        int itemQuantity = quantity == null ? 0 : quantity;
+        int itemQuantity = getQuantity() == null ? 0 : getQuantity();
 
         return (long) getDiscountPrice() * itemQuantity;
     }
@@ -187,10 +140,10 @@ public class OrderSheetItemVO implements Serializable {
      */
     public boolean isAvailable() {
 
-        int currentStock = stock == null ? 0 : stock;
-        int currentQuantity = quantity == null ? 0 : quantity;
+        int currentStock = getStock() == null ? 0 : getStock();
+        int currentQuantity = getQuantity() == null ? 0 : getQuantity();
 
-        return "APPROVED".equals(status)
+        return "APPROVED".equals(getStatus())
                 && currentStock > 0
                 && currentQuantity >= 1
                 && currentQuantity <= currentStock;

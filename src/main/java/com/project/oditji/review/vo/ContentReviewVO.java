@@ -1,22 +1,13 @@
 package com.project.oditji.review.vo;
 
-import java.util.Date;
-
 /**
- * 콘텐츠 상세 페이지 리뷰 목록 표시용 VO (작성자 닉네임 포함)
+ * 콘텐츠 상세 페이지 리뷰 목록 표시용 VO입니다.
+ * 작성자 닉네임과 화면용 리뷰 번호를 추가로 보관합니다.
  */
-public class ContentReviewVO {
+public class ContentReviewVO extends ReviewBaseVO {
 
     private int reviewNo;
-    private Long memberNo;
     private String writer;
-    private double rating;
-    private String reviewText;
-
-    // [추가] 스포일러 포함 여부(Y/N)
-    private String spoilerYn;
-    private String status;
-    private Date createdAt;
 
     public int getReviewNo() {
         return reviewNo;
@@ -26,60 +17,11 @@ public class ContentReviewVO {
         this.reviewNo = reviewNo;
     }
 
-    public Long getMemberNo() {
-        return memberNo;
-    }
-
-    public void setMemberNo(Long memberNo) {
-        this.memberNo = memberNo;
-    }
-
     public String getWriter() {
         return writer;
     }
 
     public void setWriter(String writer) {
         this.writer = writer;
-    }
-
-    public double getRating() {
-        return rating;
-    }
-
-    public void setRating(double rating) {
-        this.rating = rating;
-    }
-
-    public String getReviewText() {
-        return reviewText;
-    }
-
-    public void setReviewText(String reviewText) {
-        this.reviewText = reviewText;
-    }
-
-    // [추가] 스포일러 포함 여부 getter/setter
-    public String getSpoilerYn() {
-        return spoilerYn;
-    }
-
-    public void setSpoilerYn(String spoilerYn) {
-        this.spoilerYn = spoilerYn;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
     }
 }
