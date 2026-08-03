@@ -9,6 +9,7 @@ import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.KakaoLoginService;
 import com.project.oditji.member.support.SocialLoginCallbackSupport;
+import com.project.oditji.member.support.SocialLoginCallbackSupport.LoginOptions;
 import com.project.oditji.member.support.SocialLoginSessionSupport;
 import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.SocialLoginResultVO;
@@ -16,10 +17,21 @@ import com.project.oditji.member.vo.SocialLoginResultVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * 카카오 로그인 시작 및 콜백 처리를 담당합니다.
+ */
 @Controller
 public class KakaoLoginController {
 
     private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final LoginOptions LOGIN_OPTIONS = new LoginOptions(
+            false,
+            "회원",
+            true,
+            null,
+            null,
+            null
+    );
 
     private final KakaoLoginService kakaoLoginService;
     private final SocialLoginCallbackSupport socialLoginCallbackSupport;
@@ -52,12 +64,7 @@ public class KakaoLoginController {
                     request,
                     session,
                     redirectAttributes,
-                    false,
-                    "회원",
-                    true,
-                    null,
-                    null,
-                    null
+                    LOGIN_OPTIONS
             );
 
         } catch (MemberBlockedException e) {

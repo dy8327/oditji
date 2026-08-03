@@ -10,14 +10,21 @@ import java.util.Set;
  */
 public final class PlatformNameNormalizer {
 
+    private static final String KEY_NETFLIX = "netflix";
+    private static final String KEY_TVING = "tving";
+    private static final String KEY_WAVVE = "wavve";
+    private static final String KEY_DISNEY = "disney";
+    private static final String KEY_WATCHA = "watcha";
+    private static final String KEY_COUPANG = "coupang";
+
     private static final Set<String> SUPPORTED_KEYS =
             Set.of(
-                    "netflix",
-                    "tving",
-                    "wavve",
-                    "disney",
-                    "watcha",
-                    "coupang"
+                    KEY_NETFLIX,
+                    KEY_TVING,
+                    KEY_WAVVE,
+                    KEY_DISNEY,
+                    KEY_WATCHA,
+                    KEY_COUPANG
             );
 
     private PlatformNameNormalizer() {
@@ -47,34 +54,34 @@ public final class PlatformNameNormalizer {
                                 ""
                         );
 
-        if (normalized.contains("netflix")
+        if (normalized.contains(KEY_NETFLIX)
                 || normalized.contains("넷플릭스")) {
-            return "netflix";
+            return KEY_NETFLIX;
         }
 
-        if (normalized.contains("tving")
+        if (normalized.contains(KEY_TVING)
                 || normalized.contains("티빙")) {
-            return "tving";
+            return KEY_TVING;
         }
 
-        if (normalized.contains("wavve")
+        if (normalized.contains(KEY_WAVVE)
                 || normalized.contains("웨이브")) {
-            return "wavve";
+            return KEY_WAVVE;
         }
 
-        if (normalized.contains("disney")
+        if (normalized.contains(KEY_DISNEY)
                 || normalized.contains("디즈니")) {
-            return "disney";
+            return KEY_DISNEY;
         }
 
-        if (normalized.contains("watcha")
+        if (normalized.contains(KEY_WATCHA)
                 || normalized.contains("왓챠")) {
-            return "watcha";
+            return KEY_WATCHA;
         }
 
-        if (normalized.contains("coupang")
+        if (normalized.contains(KEY_COUPANG)
                 || normalized.contains("쿠팡")) {
-            return "coupang";
+            return KEY_COUPANG;
         }
 
         return normalized;
@@ -100,12 +107,12 @@ public final class PlatformNameNormalizer {
             String platformName) {
 
         return switch (toSupportedKey(platformName)) {
-            case "netflix" -> "Netflix";
-            case "tving" -> "TVING";
-            case "wavve" -> "wavve";
-            case "disney" -> "Disney Plus";
-            case "watcha" -> "Watcha";
-            case "coupang" -> "Coupangplay";
+            case KEY_NETFLIX -> "Netflix";
+            case KEY_TVING -> "TVING";
+            case KEY_WAVVE -> "wavve";
+            case KEY_DISNEY -> "Disney Plus";
+            case KEY_WATCHA -> "Watcha";
+            case KEY_COUPANG -> "Coupangplay";
             default -> null;
         };
     }

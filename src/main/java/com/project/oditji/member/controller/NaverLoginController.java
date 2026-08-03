@@ -11,6 +11,7 @@ import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.NaverLoginService;
 import com.project.oditji.member.support.SocialLoginCallbackSupport;
+import com.project.oditji.member.support.SocialLoginCallbackSupport.LoginOptions;
 import com.project.oditji.member.support.SocialLoginSessionSupport;
 import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.SocialLoginResultVO;
@@ -28,6 +29,14 @@ public class NaverLoginController {
     private static final String PROVIDER_NAVER = "NAVER";
     private static final String ATTRIBUTE_ERROR_MESSAGE = "errorMessage";
     private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final LoginOptions LOGIN_OPTIONS = new LoginOptions(
+            false,
+            "회원",
+            true,
+            "네이버 로그인 회원 정보를 확인하지 못했습니다.",
+            "네이버 로그인 회원 번호를 확인하지 못했습니다.",
+            "네이버 로그인 회원 정보를 불러오지 못했습니다."
+    );
     private static final Logger log = LoggerFactory.getLogger(NaverLoginController.class);
 
     private final NaverLoginService naverLoginService;
@@ -82,12 +91,7 @@ public class NaverLoginController {
                     request,
                     session,
                     redirectAttributes,
-                    false,
-                    "회원",
-                    true,
-                    "네이버 로그인 회원 정보를 확인하지 못했습니다.",
-                    "네이버 로그인 회원 번호를 확인하지 못했습니다.",
-                    "네이버 로그인 회원 정보를 불러오지 못했습니다."
+                    LOGIN_OPTIONS
             );
 
         } catch (MemberBlockedException e) {

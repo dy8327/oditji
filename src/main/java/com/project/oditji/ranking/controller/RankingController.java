@@ -31,10 +31,12 @@ public class RankingController {
     private static final int DISPLAY_NAME_INDEX = 1;
     private static final int PLATFORM_KEY_INDEX = 2;
 
+    private static final String WAVVE = "wavve";
+
     private static final String[][] PLATFORM_DEFINITIONS = {
         {"netflix", "Netflix", "Netflix"},
         {"tving", "TVING", "TVING"},
-        {"wavve", "wavve", "wavve"},
+        {WAVVE, WAVVE, WAVVE},
         {"disney", "Disney+", "Disney Plus"},
         {"watcha", "Watcha", "Watcha"},
         {"coupang", "Coupang Play", "Coupangplay"}

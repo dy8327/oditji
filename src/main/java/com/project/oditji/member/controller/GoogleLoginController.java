@@ -13,6 +13,7 @@ import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.GoogleLoginService;
 import com.project.oditji.member.support.SocialLoginCallbackSupport;
+import com.project.oditji.member.support.SocialLoginCallbackSupport.LoginOptions;
 import com.project.oditji.member.support.SocialLoginSessionSupport;
 import com.project.oditji.member.support.WithdrawPolicy;
 import com.project.oditji.member.vo.SocialLoginResultVO;
@@ -29,6 +30,14 @@ public class GoogleLoginController {
     private static final String GOOGLE_OAUTH_STATE = "googleOAuthState";
     private static final String ATTRIBUTE_ERROR_MESSAGE = "errorMessage";
     private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final LoginOptions LOGIN_OPTIONS = new LoginOptions(
+            true,
+            "구글회원",
+            false,
+            "Google 회원정보를 확인할 수 없습니다.",
+            "Google 회원번호를 확인할 수 없습니다.",
+            "Google 로그인 회원정보를 불러오지 못했습니다."
+    );
     private static final Logger log = LoggerFactory.getLogger(GoogleLoginController.class);
 
     private final GoogleLoginService googleLoginService;
@@ -101,12 +110,7 @@ public class GoogleLoginController {
                     request,
                     session,
                     redirectAttributes,
-                    true,
-                    "구글회원",
-                    false,
-                    "Google 회원정보를 확인할 수 없습니다.",
-                    "Google 회원번호를 확인할 수 없습니다.",
-                    "Google 로그인 회원정보를 불러오지 못했습니다."
+                    LOGIN_OPTIONS
             );
 
         } catch (MemberBlockedException e) {

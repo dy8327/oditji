@@ -53,9 +53,15 @@ class MemberPlatformServiceImplTest {
     @Test
     void saveMemberPlatformsShouldRejectMissingSelection() {
 
+        List<Long> selectedPlatformNos = List.of();
+
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> memberPlatformService.saveMemberPlatforms(1L, List.of(), "N"));
+                () -> memberPlatformService.saveMemberPlatforms(
+                        1L,
+                        selectedPlatformNos,
+                        "N"
+                ));
 
         assertEquals(
                 "이용 중인 OTT를 선택하거나 'OTT 없음'을 선택해주세요.",
@@ -65,9 +71,15 @@ class MemberPlatformServiceImplTest {
     @Test
     void saveMemberPlatformsShouldRejectPlatformAndNoOttTogether() {
 
+        List<Long> selectedPlatformNos = List.of(1L);
+
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> memberPlatformService.saveMemberPlatforms(1L, List.of(1L), "Y"));
+                () -> memberPlatformService.saveMemberPlatforms(
+                        1L,
+                        selectedPlatformNos,
+                        "Y"
+                ));
 
         assertEquals(
                 "OTT 없음과 다른 OTT는 동시에 선택할 수 없습니다.",

@@ -36,26 +36,44 @@ public class SocialLoginCallbackSupport {
         this.memberService = memberService;
     }
 
-    public String completeLogin(
-            SocialLoginResultVO result,
-            HttpServletRequest request,
-            HttpSession session,
-            RedirectAttributes redirectAttributes,
+    /**
+     * 소셜 로그인 공급자별 표시명 정책과 오류 메시지를 한 객체로 전달합니다.
+     *
+     * 기존 completeLogin 메서드의 과도한 매개변수를 줄이기 위한 설정 객체입니다.
+     */
+    public record LoginOptions(
             boolean nicknameFirst,
             String fallbackName,
             boolean synchronizeMemberName,
             String missingMemberMessage,
             String invalidMemberNoMessage,
             String missingStoredMemberMessage) {
+    }
+
+    /**
+     * 소셜 로그인 완료 후 회원 검증, OTT 선택 분기와 세션 저장을 처리합니다.
+     */
+    public String completeLogin(
+            SocialLoginResultVO result,
+            HttpServletRequest request,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
+            LoginOptions options) {
 
         if (result == null || result.getMember() == null) {
-            addErrorMessage(redirectAttributes, missingMemberMessage);
+            addErrorMessage(
+                    redirectAttributes,
+                    options.missingMemberMessage()
+            );
             return REDIRECT_MEMBER_LOGIN;
         }
 
         MemberSocialJoinVO member = result.getMember();
         if (member.getMemberNo() <= 0) {
-            addErrorMessage(redirectAttributes, invalidMemberNoMessage);
+            addErrorMessage(
+                    redirectAttributes,
+                    options.invalidMemberNoMessage()
+            );
             return REDIRECT_MEMBER_LOGIN;
         }
 
@@ -63,11 +81,11 @@ public class SocialLoginCallbackSupport {
 
         String displayName = SocialLoginSessionSupport.resolveDisplayName(
                 member,
-                nicknameFirst,
-                fallbackName
+                options.nicknameFirst(),
+                options.fallbackName()
         );
 
-        if (synchronizeMemberName) {
+        if (options.synchronizeMemberName()) {
             member.setMemberName(displayName);
         }
 
@@ -79,11 +97,14 @@ public class SocialLoginCallbackSupport {
 
         MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
         if (loginMember == null) {
-            addErrorMessage(redirectAttributes, missingStoredMemberMessage);
+            addErrorMessage(
+                    redirectAttributes,
+                    options.missingStoredMemberMessage()
+            );
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        if (synchronizeMemberName
+        if (options.synchronizeMemberName()
                 && (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank())) {
             loginMember.setMemberName(displayName);
         }
