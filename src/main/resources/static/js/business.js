@@ -1,4 +1,41 @@
 document.addEventListener("DOMContentLoaded", function () {
+
+  /*
+   * [신규] 공용 모달 - openModal / closeModal
+   *
+   * 관리자 페이지(admin.js)의 .modal-overlay/.modal-box + openModal/closeModal
+   * 패턴을 "아이디어와 함수 네이밍 규칙"만 참고해서 business.js 안에
+   * 독립적으로 새로 작성했다. admin.js를 import하거나 참조하지 않는다.
+   *
+   * 지금까지 페이지 이동(JSP) 방식이던 상품 수정/삭제, 이벤트 수정/연장,
+   * 주문 상세 화면이 이 함수 위에서 모달로 열린다. onclick 속성에서 바로
+   * 호출할 수 있도록 window에 노출한다.
+   *
+   * 사용법: <button onclick="openModal('xxxModal')">
+   *        <button class="modal-close" onclick="closeModal('xxxModal')">
+   */
+  window.openModal = function (id) {
+
+    const modal = document.getElementById(id);
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.add("open");
+  };
+
+  window.closeModal = function (id) {
+
+    const modal = document.getElementById(id);
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.remove("open");
+  };
+
   const eventImageInput = document.getElementById("eventImage");
 
   const eventImageFileName = document.getElementById("eventImageFileName");
@@ -23,7 +60,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const endDateInput = document.getElementById("endDate");
 
-  const extendEndDateInput = document.getElementById("extendEndDate");
+  /*
+   * [상품 옵션 기능 추가] 의상/신발 색상-사이즈별 재고 입력 영역.
+   *
+   * 상품 등록 화면(productRegister.jsp)과 상품 수정 요청 모달
+   * (productList.jsp의 #productUpdateModal)이 동일한 id를 사용하므로,
+   * 아래 코드는 두 화면 모두에서 공통으로 동작한다.
+   */
+  const productTypeSelect = document.getElementById("productType");
+
+  const productOptionSection = document.getElementById("productOptionSection");
+
+  const productOptionRows = document.getElementById("productOptionRows");
+
+  const addProductOptionBtn = document.getElementById("addProductOptionBtn");
+
+  const stockInput = document.getElementById("stock");
+
+  /* 수정 모달에만 있는 안내 문구. 등록 화면에는 없으므로 null일 수 있다. */
+  const stockOptionHint = document.getElementById("stockOptionHint");
+
+  /*
+   * [리팩터링] eventList.jsp에 이벤트 연장 모달을 이벤트마다 여러 개
+   * 렌더링하면서 id="extendEndDate"가 페이지에 중복될 수 있어
+   * 클래스 선택자로 바꿨다.
+   */
+  const extendEndDateInputs = document.querySelectorAll(".extend-end-date-input");
 
   /*
    * 이벤트 등록/수정 화면에서 공통으로 사용하는 폼
@@ -113,12 +175,26 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+    linkProductSectionLabel();
+
     /*
-     * 연결 상품 제목 label은 첫 번째 상품명 input과 연결합니다.
-     *
-     * 수정된 JSP에서는 이미 연결되어 있지만, 기존 화면과의 호환성을
-     * 위해 JavaScript에서도 한 번 더 보완합니다.
+     * 기존 행에 규칙에 맞는 id가 없었던 경우에도,
+     * 다음 동적 행이 기존 행과 같은 id를 사용하지 않도록 보정합니다.
      */
+    productRowSequence = Math.max(productRowSequence, existingProductItems.length);
+  }
+
+  /*
+   * 연결 상품 제목 label을 현재 #productList의 첫 번째 상품명 input과
+   * 연결합니다. 최초 로드 시(initializeProductRowAccessibility)뿐 아니라,
+   * 이벤트 수정 모달이 열릴 때 상품 행이 통째로 새로 채워진 뒤에도
+   * 다시 호출해서 label-for 연결이 끊어지지 않게 합니다.
+   */
+  function linkProductSectionLabel() {
+    if (!productList) {
+      return;
+    }
+
     const firstProductNameInput = productList.querySelector(".productName");
 
     const productSectionLabel = productList.previousElementSibling;
@@ -126,12 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (firstProductNameInput && productSectionLabel && productSectionLabel.tagName === "LABEL") {
       productSectionLabel.htmlFor = firstProductNameInput.id;
     }
-
-    /*
-     * 기존 행에 규칙에 맞는 id가 없었던 경우에도,
-     * 다음 동적 행이 기존 행과 같은 id를 사용하지 않도록 보정합니다.
-     */
-    productRowSequence = Math.max(productRowSequence, existingProductItems.length);
   }
 
   /*
@@ -203,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * 현재 종료일은 input의 data-current-end-date 속성으로 전달받고,
    * 현재 종료일 다음 날부터 연장 종료일을 선택할 수 있게 합니다.
    */
-  if (extendEndDateInput) {
+  extendEndDateInputs.forEach(function (extendEndDateInput) {
     const currentEndDate = extendEndDateInput.dataset.currentEndDate;
 
     if (currentEndDate) {
@@ -219,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       extendEndDateInput.min = year + "-" + month + "-" + day;
     }
-  }
+  });
 
   /*
    * 상품 검색 버튼 클릭 시
@@ -252,26 +322,19 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   /*
-   * 상품 행 추가
+   * 연결 상품 행 하나를 생성합니다.
    *
-   * 동적으로 생성되는 각 입력 요소에 고유한 id를 부여합니다.
-   * 상품명 input은 aria-label로 접근 가능한 이름을 제공하고,
-   * 할인율 input은 label의 for 속성과 id를 연결합니다.
+   * addProductButton 클릭(빈 행 추가)과, 이벤트 수정 모달을 열 때
+   * 기존 연결 상품으로 행을 다시 채우는 두 경우 모두 이 함수를
+   * 공유합니다. 두 경우 모두 각 입력 요소에 고유한 id를 부여해야
+   * 하므로(상품명 input의 aria-label, 할인율 input과 label의 for/id
+   * 연결) 템플릿을 이 함수 하나로 통합했습니다.
+   *
+   * productName은 신뢰할 수 없는 값(상품명에 특수문자가 포함될 수 있음)
+   * 이므로 innerHTML 템플릿에 직접 넣지 않고, DOM 생성 후 .value로
+   * 대입합니다(id/순번처럼 안전한 값만 템플릿 문자열에 사용).
    */
-  document.addEventListener("click", function (event) {
-    const target = event.target;
-
-    if (!(target instanceof Element) || !target.classList.contains("addProductButton")) {
-      return;
-    }
-
-    /*
-     * 이벤트 등록·수정 화면이 아닌 페이지에서도
-     * business.js가 로드될 수 있으므로 대상 목록을 확인합니다.
-     */
-    if (!productList) {
-      return;
-    }
+  function createProductRow(productNo, productName, discountRate, price) {
 
     /*
      * 현재 순번을 이번 행에 사용한 다음,
@@ -289,6 +352,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const discountRateId = "productDiscountRate_" + currentRowSequence;
 
     const productRowNumber = currentRowSequence + 1;
+
+    const safeDiscountRate =
+      (discountRate === null || discountRate === undefined || discountRate === "")
+        ? 0
+        : discountRate;
 
     const productItem = document.createElement("div");
 
@@ -330,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
                            name="discountRateList"
                            min="0"
                            max="100"
-                           value="0">
+                           value="${safeDiscountRate}">
 
 
                     <button class="btn btn-dark removeProductButton"
@@ -348,8 +416,446 @@ document.addEventListener("DOMContentLoaded", function () {
 
             `;
 
-    productList.appendChild(productItem);
-  });
+    /*
+     * 상품 번호/상품명은 신뢰할 수 없는 텍스트이므로
+     * 프로퍼티 대입(.value)만으로 채워서 마크업으로 해석되지 않게 합니다.
+     */
+    const productNoInput = productItem.querySelector(".productNo");
+
+    if (productNoInput) {
+      productNoInput.value = productNo || "";
+    }
+
+    const productNameInput = productItem.querySelector(".productName");
+
+    if (productNameInput) {
+      productNameInput.value = productName || "";
+    }
+
+    if (price) {
+      productItem.dataset.price = price;
+    }
+
+    const discountInput = productItem.querySelector(".productDiscountRate");
+
+    const preview = productItem.querySelector(".productDiscountPreview");
+
+    updateDiscountPreview(Number(price), discountInput, preview);
+
+    return productItem;
+  }
+
+  // 연결 상품 버튼 상태 갱신
+  function refreshProductButtons() {
+
+      if (!productList) {
+          return;
+      }
+
+      const items = productList.querySelectorAll(".event-product-item");
+
+      items.forEach(function(item, index) {
+
+          const button = item.querySelector(".addProductButton, .removeProductButton");
+
+          if (!button) {
+              return;
+          }
+
+          // 첫 번째 상품은 항상 추가 버튼
+          if (index === 0) {
+
+              button.className = "btn btn-primary addProductButton";
+              button.textContent = "+";
+              button.setAttribute("aria-label", "연결 상품 추가");
+
+          } else {
+
+              button.className = "btn btn-dark removeProductButton";
+              button.textContent = "-";
+              button.setAttribute("aria-label", "연결 상품 삭제");
+
+          }
+
+      });
+
+  }
+
+
+  // 연결 상품 행 추가
+  function addProductRow() {
+
+      if (!productList) {
+          return;
+      }
+
+
+      const newItem = createProductRow(null, "", 0, null);
+
+
+      productList.appendChild(newItem);
+
+
+      refreshProductButtons();
+
+      linkProductSectionLabel();
+
+  }
+
+
+  // 연결 상품 행 삭제
+  function removeProductRow(button) {
+
+      const item = button.closest(".event-product-item");
+
+      if (!item) {
+          return;
+      }
+
+
+      item.remove();
+
+
+      refreshProductButtons();
+
+  }
+
+
+  // 상품 추가/삭제 이벤트
+  if (productList) {
+
+      productList.addEventListener("click", function(e) {
+
+
+          // + 버튼 클릭
+          if (e.target.classList.contains("addProductButton")) {
+
+              addProductRow();
+
+          }
+
+
+          // - 버튼 클릭
+          if (e.target.classList.contains("removeProductButton")) {
+
+              removeProductRow(e.target);
+
+          }
+
+      });
+
+  }
+
+  /*
+   * [상품 옵션 기능 추가]
+   *
+   * 의상/신발은 색상-사이즈 조합별로 재고를 등록/수정한다. 상품 등록
+   * 화면과 상품 수정 요청 모달이 동일한 id(#productOptionSection,
+   * #productOptionRows, #addProductOptionBtn, #productType, #stock)를
+   * 쓰므로 아래 로직 전체를 공유한다.
+   *
+   * 서버(BusinessServiceImpl)는 PRODUCT.STOCK에 옵션별 재고의 합을
+   * 저장하므로, 옵션 모드일 때는 #stock을 읽기 전용으로 바꾸고 옵션
+   * 입력값이 바뀔 때마다 합계를 다시 계산해 보여준다.
+   *
+   * 각 옵션 행의 input name은 optionList[N].colorName / .sizeName /
+   * .stock 형태로 맞춘다. GoodsManageVO.optionList가
+   * List<ProductOptionVO>이므로 Spring이 이 인덱스 표기를 그대로
+   * List<ProductOptionVO>로 바인딩한다. 행을 삭제했을 때 인덱스가
+   * 중간에 비면 바인딩이 꼬일 수 있으므로, 추가/삭제할 때마다
+   * reindexProductOptionRows()로 0부터 다시 매긴다.
+   */
+  function productTypeRequiresOption(productTypeValue) {
+    return productTypeValue === "CLOTHES" || productTypeValue === "SHOES";
+  }
+
+  function createProductOptionRow(colorName, sizeName, stock) {
+
+    const row = document.createElement("div");
+
+    /*
+     * business.css의 [상품 옵션 기능 추가] 블록이 .product-option-row를
+     * grid-template-columns: 1.2fr 1fr 0.8fr auto (색상/사이즈/재고/삭제
+     * 버튼 4열)로 이미 정의해두었으므로, 그 4개 요소를 이 div의 직계
+     * 자식으로 둔다(중첩 wrapper를 두지 않는다).
+     */
+    row.className = "product-option-row";
+
+    row.innerHTML = `
+
+                <input class="form-input optionColorName"
+                       type="text"
+                       placeholder="색상 (예: 블랙)"
+                       maxlength="50">
+
+                <input class="form-input optionSizeName"
+                       type="text"
+                       placeholder="사이즈 (예: M, 250)"
+                       maxlength="50">
+
+                <input class="form-input optionStock"
+                       type="number"
+                       min="0"
+                       placeholder="재고">
+
+                <button class="option-remove-btn"
+                        type="button">
+                    -
+                </button>
+
+            `;
+
+    /* 상품명과 마찬가지로 특수문자가 들어갈 수 있으므로 .value로 대입한다. */
+    const colorInput = row.querySelector(".optionColorName");
+    const sizeInput = row.querySelector(".optionSizeName");
+    const stockField = row.querySelector(".optionStock");
+
+    if (colorInput) {
+      colorInput.value = colorName || "";
+    }
+
+    if (sizeInput) {
+      sizeInput.value = sizeName || "";
+    }
+
+    if (stockField) {
+      stockField.value = (stock === null || stock === undefined || stock === "") ? "" : stock;
+    }
+
+    return row;
+  }
+
+  /* 옵션 행들의 input name(optionList[N].xxx)과 aria-label을 0부터 다시 매긴다. */
+  function reindexProductOptionRows() {
+
+    if (!productOptionRows) {
+      return;
+    }
+
+    const rows = productOptionRows.querySelectorAll(".product-option-row");
+
+    rows.forEach(function (row, index) {
+
+      const rowNumber = index + 1;
+
+      const colorInput = row.querySelector(".optionColorName");
+      const sizeInput = row.querySelector(".optionSizeName");
+      const stockField = row.querySelector(".optionStock");
+      const removeButton = row.querySelector(".option-remove-btn");
+
+      if (colorInput) {
+        colorInput.name = "optionList[" + index + "].colorName";
+        colorInput.setAttribute("aria-label", "옵션 " + rowNumber + " 색상");
+      }
+
+      if (sizeInput) {
+        sizeInput.name = "optionList[" + index + "].sizeName";
+        sizeInput.setAttribute("aria-label", "옵션 " + rowNumber + " 사이즈");
+      }
+
+      if (stockField) {
+        stockField.name = "optionList[" + index + "].stock";
+        stockField.setAttribute("aria-label", "옵션 " + rowNumber + " 재고");
+      }
+
+      if (removeButton) {
+        removeButton.setAttribute("aria-label", "옵션 " + rowNumber + " 삭제");
+      }
+    });
+  }
+
+  function refreshProductOptionRemoveButtons() {
+
+      if (!productOptionRows) {
+          return;
+      }
+
+      const rows = productOptionRows.querySelectorAll(".product-option-row");
+
+      rows.forEach(function (row, index) {
+
+          const removeButton = row.querySelector(".option-remove-btn");
+
+          if (!removeButton) {
+              return;
+          }
+
+          removeButton.style.display = index === 0 ? "none" : "inline-flex";
+
+      });
+  }
+
+  /* 옵션 모드일 때 #stock 표시값을 옵션별 재고의 합으로 다시 계산한다. */
+  function refreshProductOptionStockTotal() {
+
+    if (!stockInput || !productOptionRows || !productTypeSelect) {
+      return;
+    }
+
+    if (!productTypeRequiresOption(productTypeSelect.value)) {
+      return;
+    }
+
+    const stockFields = productOptionRows.querySelectorAll(".optionStock");
+
+    let total = 0;
+
+    stockFields.forEach(function (field) {
+
+      const value = Number(field.value);
+
+      if (Number.isFinite(value) && value > 0) {
+        total += value;
+      }
+    });
+
+    stockInput.value = total;
+  }
+
+  /*
+   * [상품 옵션 기능 추가]
+   * 상품 수정 요청 모달을 열 때, 이 상품의 기존 옵션 조합으로 옵션
+   * 행을 다시 채운다. productList.jsp의 숨김 template
+   * (#productOptionData_{productNo})에서 데이터를 읽어온다 - 이벤트
+   * 수정 모달이 연결 상품을 채우는 방식과 동일하다.
+   */
+  function fillProductOptionRows(productNo) {
+
+    if (!productOptionRows) {
+      return;
+    }
+
+    productOptionRows.innerHTML = "";
+
+    const optionTemplate = document.getElementById("productOptionData_" + productNo);
+
+    const existingOptionRows = optionTemplate
+      ? optionTemplate.content.querySelectorAll(".product-option-data")
+      : [];
+
+    if (existingOptionRows.length === 0) {
+
+      productOptionRows.appendChild(createProductOptionRow(null, "", null));
+
+    } else {
+
+      existingOptionRows.forEach(function (optionData) {
+
+        productOptionRows.appendChild(createProductOptionRow(
+          optionData.dataset.colorName,
+          optionData.dataset.sizeName,
+          optionData.dataset.stock));
+      });
+    }
+
+    reindexProductOptionRows();
+    refreshProductOptionRemoveButtons();
+  }
+
+  /*
+   * 상품 종류에 맞춰 옵션 영역을 보이거나 숨기고, #stock 읽기 전용
+   * 여부를 맞춘다. productNoForPrefill을 주면(수정 모달을 열 때) 빈
+   * 행 하나 대신 그 상품의 기존 옵션으로 채운다.
+   */
+  function updateProductOptionSectionVisibility(productNoForPrefill) {
+
+    if (!productOptionSection || !productTypeSelect || !productOptionRows) {
+      return;
+    }
+
+    const needsOption = productTypeRequiresOption(productTypeSelect.value);
+
+    productOptionSection.hidden = !needsOption;
+
+    if (stockOptionHint) {
+      stockOptionHint.hidden = !needsOption;
+    }
+
+    if (stockInput) {
+      stockInput.readOnly = needsOption;
+    }
+
+    if (needsOption) {
+
+      if (productNoForPrefill) {
+
+        fillProductOptionRows(productNoForPrefill);
+
+      } else if (!productOptionRows.querySelector(".product-option-row")) {
+
+        productOptionRows.appendChild(createProductOptionRow(null, "", null));
+        reindexProductOptionRows();
+      }
+
+      refreshProductOptionStockTotal();
+
+    } else {
+
+      productOptionRows.innerHTML = "";
+    }
+  }
+
+  if (productTypeSelect) {
+
+    productTypeSelect.addEventListener("change", updateProductOptionSectionVisibility);
+
+    /* 상품 수정 모달을 열 때 openProductUpdateModal이 값을 채운 뒤에도 호출하지만, 페이지 최초 진입 시 상태도 맞춰둔다. */
+    updateProductOptionSectionVisibility();
+  }
+
+  if (addProductOptionBtn) {
+
+    addProductOptionBtn.addEventListener("click", function () {
+
+      if (!productOptionRows) {
+        return;
+      }
+
+      productOptionRows.appendChild(createProductOptionRow(null, "", null));
+
+      reindexProductOptionRows();
+      refreshProductOptionRemoveButtons();
+      refreshProductOptionStockTotal();
+    });
+  }
+
+  if (productOptionRows) {
+
+    /* 옵션 행 삭제(이벤트 위임) */
+    productOptionRows.addEventListener("click", function (e) {
+
+      if (!e.target.classList.contains("option-remove-btn")) {
+        return;
+      }
+
+      const row = e.target.closest(".product-option-row");
+
+      if (!row) {
+        return;
+      }
+
+      /* 옵션은 의상/신발 상품에서 최소 1개 이상 필요하므로 마지막 한 행은 지우지 못하게 한다. */
+      if (productOptionRows.querySelectorAll(".product-option-row").length <= 1) {
+        return;
+      }
+
+      row.remove();
+
+      reindexProductOptionRows();
+      refreshProductOptionRemoveButtons();
+      refreshProductOptionStockTotal();
+    });
+
+    /* 옵션 재고 입력이 바뀔 때마다 #stock 합계를 다시 계산한다(이벤트 위임). */
+    productOptionRows.addEventListener("input", function (e) {
+
+      if (!e.target.classList.contains("optionStock")) {
+        return;
+      }
+
+      refreshProductOptionStockTotal();
+    });
+  }
 
   /*
    * 동적으로 추가한 상품 행을 삭제합니다.
@@ -645,5 +1151,420 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     window.close();
+  };
+
+  /*
+   * =========================================================
+   * [신규] 상품 수정 모달 (구 productUpdate.js를 이 파일로 흡수)
+   *
+   * productList.jsp의 상품마다 있는 "수정 요청" 버튼은 페이지 이동 대신
+   * 공용 모달(#productUpdateModal) 1개를 연다. 콘텐츠 검색 팝업 연동,
+   * 배우 목록 AJAX 조회, 이미지 파일명 표시, 폼 검증 로직은 상품마다
+   * 새로 만들지 않고 고정된 element id를 그대로 사용한다(구
+   * productUpdate.jsp가 페이지 하나당 상품 하나만 다루던 것과 동일한
+   * 전제). 아이디어와 함수 구성은 admin.js의 상세보기 팝업 population
+   * 방식(row 버튼의 data-* 값을 읽어 폼에 채우는 것)만 참고했다.
+   * =========================================================
+   */
+
+  /* 콘텐츠 검색 팝업 */
+  window.openContentSearch = function () {
+
+    window.open(
+      contextPath + "/business/content/search",
+      "contentSearchPopup",
+      "width=900,height=720,scrollbars=yes,resizable=yes"
+    );
+  };
+
+  /*
+   * 콘텐츠 검색 팝업에서 콘텐츠를 선택하면
+   * contentSearch.jsp -> business.js의 chooseContent()가
+   * window.opener.selectContent(contentNo, title)을 호출한다.
+   */
+  window.selectContent = function (contentNo, title) {
+
+    const convertedContentNo = Number(contentNo);
+
+    if (!Number.isFinite(convertedContentNo) || convertedContentNo <= 0) {
+      showAlert("올바른 콘텐츠 번호가 아닙니다.", "warning");
+      return;
+    }
+
+    document.getElementById("contentNo").value = convertedContentNo;
+    document.getElementById("contentTitle").value = title;
+
+    /* 콘텐츠가 바뀌었으므로 새 콘텐츠에 연결된 배우 목록을 다시 조회한다. */
+    loadActorsByContent(convertedContentNo, null);
+  };
+
+  /* 배우 선택 영역을 "콘텐츠를 먼저 선택하세요" 상태로 되돌린다. */
+  function resetActorSelect() {
+
+    const actorSelect = document.getElementById("actorNo");
+    const actorLoadMessage = document.getElementById("actorLoadMessage");
+
+    if (!actorSelect || !actorLoadMessage) {
+      return;
+    }
+
+    actorSelect.innerHTML = "<option value=\"\">콘텐츠를 먼저 선택해주세요.</option>";
+    actorSelect.disabled = true;
+    actorLoadMessage.textContent = "콘텐츠를 선택하면 해당 작품에 연결된 배우가 표시됩니다.";
+  }
+
+  /* 배우 목록을 select 옵션으로 렌더링하고, 필요하면 기존 선택값을 복원한다. */
+  function renderActorList(actorList, actorNoToRestore) {
+
+    const actorSelect = document.getElementById("actorNo");
+    const actorLoadMessage = document.getElementById("actorLoadMessage");
+
+    actorSelect.innerHTML = "";
+
+    /* PRODUCT.ACTOR_NO는 NULL 허용이므로 "선택 안 함" 옵션을 둔다. */
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = "관련 배우 선택 안 함";
+    actorSelect.appendChild(emptyOption);
+
+    if (!Array.isArray(actorList) || actorList.length === 0) {
+
+      const noActorOption = document.createElement("option");
+      noActorOption.value = "";
+      noActorOption.textContent = "해당 콘텐츠에 연결된 배우가 없습니다.";
+      actorSelect.appendChild(noActorOption);
+
+      actorSelect.disabled = false;
+      actorLoadMessage.textContent = "CONTENT_ACTOR에 연결된 배우 정보가 없습니다.";
+      return;
+    }
+
+    actorList.forEach(function (actor) {
+
+      const option = document.createElement("option");
+
+      /* 서버에 전송되는 값은 ACTOR_NO */
+      option.value = actor.actorNo;
+
+      let optionText = actor.actorName;
+
+      if (actor.characterName) {
+        optionText += " / 배역: " + actor.characterName;
+      }
+
+      option.textContent = optionText;
+
+      /* 기존 상품에 저장된 배우 또는 수정 실패 후 유지된 배우를 선택 상태로 복원한다. */
+      if (actorNoToRestore && String(actor.actorNo) === String(actorNoToRestore)) {
+        option.selected = true;
+      }
+
+      actorSelect.appendChild(option);
+    });
+
+    actorSelect.disabled = false;
+    actorLoadMessage.textContent = actorList.length + "명의 배우가 조회되었습니다.";
+  }
+
+  /* 선택한 콘텐츠(contentNo)에 연결된 배우를 조회한다. */
+  async function loadActorsByContent(contentNo, actorNoToRestore) {
+
+    const actorSelect = document.getElementById("actorNo");
+    const actorLoadMessage = document.getElementById("actorLoadMessage");
+
+    const convertedContentNo = Number(contentNo);
+
+    if (!Number.isFinite(convertedContentNo) || convertedContentNo <= 0) {
+      resetActorSelect();
+      return;
+    }
+
+    actorSelect.disabled = true;
+    actorSelect.innerHTML = "<option value=\"\">배우 목록을 불러오는 중입니다.</option>";
+    actorLoadMessage.textContent = "선택한 콘텐츠의 배우를 조회하고 있습니다.";
+
+    try {
+
+      const requestUrl =
+        contextPath
+        + "/business/api/actor/list"
+        + "?contentNo="
+        + encodeURIComponent(convertedContentNo);
+
+      const response = await fetch(requestUrl, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        throw new Error("배우 조회 실패: " + response.status);
+      }
+
+      const actorList = await response.json();
+
+      renderActorList(actorList, actorNoToRestore);
+
+    } catch (error) {
+
+      console.error("콘텐츠별 배우 조회 오류:", error);
+
+      actorSelect.innerHTML = "<option value=\"\">배우 목록 조회 실패</option>";
+      actorSelect.disabled = true;
+      actorLoadMessage.textContent = "배우 정보를 불러오지 못했습니다.";
+    }
+  }
+
+  /* 이미지 파일명 출력 */
+  window.updateFileName = function (input) {
+
+    const fileNameElement = document.getElementById("selectedFileName");
+
+    if (input.files && input.files.length > 0) {
+
+      fileNameElement.textContent = input.files[0].name;
+
+    } else {
+
+      const existingImagePath = document.getElementById("existingImagePath").value;
+
+      fileNameElement.textContent = existingImagePath ? existingImagePath : "선택된 파일 없음";
+    }
+  };
+
+  /* 상품 수정 폼 검증 */
+  window.validateProductForm = function (event) {
+
+    const productName = document.getElementById("productName").value.trim();
+    const productType = document.getElementById("productType").value;
+    const price = Number(document.getElementById("price").value);
+    const discountRate = Number(document.getElementById("discountRate").value);
+    const stock = Number(document.getElementById("stock").value);
+    const contentNo = document.getElementById("contentNo").value;
+
+    if (!productName) {
+      showAlert("상품명을 입력해주세요.", "warning");
+      return false;
+    }
+
+    if (!productType) {
+      showAlert("상품 종류를 선택해주세요.", "warning");
+      return false;
+    }
+
+    if (!Number.isFinite(price) || price <= 0) {
+      showAlert("가격은 1원 이상 입력해주세요.", "warning");
+      return false;
+    }
+
+    if (!Number.isFinite(discountRate) || discountRate < 0 || discountRate > 100) {
+      showAlert("할인율은 0부터 100 사이로 입력해주세요.", "warning");
+      return false;
+    }
+
+    if (!Number.isFinite(stock) || stock < 0) {
+      showAlert("재고는 0개 이상 입력해주세요.", "warning");
+      return false;
+    }
+
+    if (!contentNo) {
+      showAlert("관련 콘텐츠를 선택해주세요.", "warning");
+      return false;
+    }
+
+    /*
+     * [상품 옵션 기능 추가] 의상/신발은 색상-사이즈 옵션을 1개 이상,
+     * 중복 없이 올바르게 입력해야 한다. BusinessServiceImpl의 서버
+     * 검증과 동일한 규칙을 화면에서 먼저 확인해 왕복 없이 알려준다.
+     */
+    if (productTypeRequiresOption(productType)) {
+
+      const optionValidationMessage = validateProductOptionRows();
+
+      if (optionValidationMessage) {
+        showAlert(optionValidationMessage, "warning");
+        return false;
+      }
+
+      refreshProductOptionStockTotal();
+    }
+
+    return confirmAndSubmit(event, "상품 수정을 요청하시겠습니까?");
+  };
+
+  /*
+   * [상품 옵션 기능 추가]
+   * 옵션 행들을 검사해 문제가 있으면 사용자에게 보여줄 안내 문구를,
+   * 문제가 없으면 null을 반환한다.
+   */
+  function validateProductOptionRows() {
+
+    if (!productOptionRows) {
+      return null;
+    }
+
+    const rows = productOptionRows.querySelectorAll(".product-option-row");
+
+    if (rows.length === 0) {
+      return "의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.";
+    }
+
+    const duplicateCheck = new Set();
+
+    for (const row of rows) {
+
+      const colorName = (row.querySelector(".optionColorName") || {}).value || "";
+      const sizeName = (row.querySelector(".optionSizeName") || {}).value || "";
+      const stockValue = Number((row.querySelector(".optionStock") || {}).value);
+
+      if (!colorName.trim() || !sizeName.trim() || !Number.isFinite(stockValue) || stockValue < 0) {
+        return "모든 옵션의 색상, 사이즈, 재고를 올바르게 입력해주세요.";
+      }
+
+      const key = colorName.trim().toUpperCase() + "|" + sizeName.trim().toUpperCase();
+
+      if (duplicateCheck.has(key)) {
+        return "동일한 색상과 사이즈 조합은 중복 등록할 수 없습니다.";
+      }
+
+      duplicateCheck.add(key);
+    }
+
+    return null;
+  }
+
+  /*
+   * productList.jsp의 "수정 요청" 버튼(data-* 속성 보유)을 클릭했을 때
+   * 공용 수정 모달의 폼 필드를 채우고 모달을 연다.
+   */
+  window.openProductUpdateModal = function (button) {
+
+    document.getElementById("updateProductNo").value = button.dataset.productNo || "";
+    document.getElementById("productName").value = button.dataset.productName || "";
+    document.getElementById("productType").value = button.dataset.productType || "";
+    document.getElementById("price").value = button.dataset.price || "";
+    document.getElementById("discountRate").value = button.dataset.discountRate || 0;
+    document.getElementById("stock").value = button.dataset.stock || 0;
+    document.getElementById("contentNo").value = button.dataset.contentNo || "";
+    document.getElementById("contentTitle").value = button.dataset.contentTitle || "";
+    document.getElementById("description").value = button.dataset.description || "";
+    document.getElementById("existingImagePath").value = button.dataset.imagePath || "";
+
+    /*
+     * [상품 옵션 기능 추가] 등록 화면과 동일하게 상품 종류에 맞춰
+     * 옵션 영역을 열고, 이 상품의 기존 색상-사이즈 옵션으로 채운다.
+     */
+    updateProductOptionSectionVisibility(button.dataset.productNo);
+
+    /* 새 모달을 열 때마다 이전에 선택했던 이미지 파일 입력값은 비운다. */
+    const productImageInput = document.getElementById("productImage");
+    if (productImageInput) {
+      productImageInput.value = "";
+    }
+    updateFileName(productImageInput);
+
+    const contentNo = button.dataset.contentNo;
+
+    if (contentNo && Number(contentNo) > 0) {
+      loadActorsByContent(contentNo, button.dataset.actorNo);
+    } else {
+      resetActorSelect();
+    }
+
+    openModal("productUpdateModal");
+  };
+
+  /*
+   * =========================================================
+   * [신규] 이벤트 수정 모달 (구 eventUpdate.jsp를 공용 모달 1개로 통합)
+   *
+   * eventList.jsp의 이벤트마다 있는 "수정" 버튼은 페이지 이동 대신
+   * 공용 모달(#eventUpdateModal) 1개를 연다. 상품 수정 모달과 마찬가지로
+   * 상품 검색 팝업/날짜 최소값 제한/이미지 파일명 표시 로직(고정된
+   * element id 기준으로 동작)이 이벤트마다 모달을 복제하면 깨지기
+   * 때문에, 제목·기간처럼 값이 하나뿐인 필드는 버튼의 data-* 값으로
+   * 채우고, 개수가 정해지지 않은 연결 상품 목록만 이벤트별로 미리
+   * 렌더링해 둔 숨김 <template id="eventProductData_{eventNo}">에서
+   * 읽어와 createProductRow()로 다시 그린다.
+   * =========================================================
+   */
+  window.openEventUpdateModal = function (button) {
+
+    document.getElementById("updateEventNo").value = button.dataset.eventNo || "";
+    document.getElementById("eventTitle").value = button.dataset.title || "";
+    document.getElementById("description").value = button.dataset.description || "";
+
+    const startDateField = document.getElementById("startDate");
+    const endDateField = document.getElementById("endDate");
+
+    startDateField.value = button.dataset.startDate || "";
+    endDateField.value = button.dataset.endDate || "";
+
+    /* 시작일 변경 리스너와 동일한 규칙으로 종료일의 최소 선택 날짜를 맞춘다. */
+    endDateField.min = button.dataset.startDate || "";
+
+    /* 새 모달을 열 때마다 이전에 선택했던 이미지 파일 입력값은 비운다. */
+    const eventImageInputField = document.getElementById("eventImage");
+
+    if (eventImageInputField) {
+      eventImageInputField.value = "";
+    }
+
+    /*
+     * 새 이미지를 선택하지 않으면 서버가 기존 배너 이미지를 그대로
+     * 유지하므로(BusinessServiceImpl.updateApprovedEvent), 화면에는
+     * 기존 이미지 유지 여부만 안내한다.
+     */
+    const eventImageFileNameField = document.getElementById("eventImageFileName");
+
+    if (eventImageFileNameField) {
+      eventImageFileNameField.textContent = button.dataset.bannerImage
+        ? "기존 이미지 유지"
+        : "선택된 파일 없음";
+    }
+
+    /*
+     * 연결 상품 행을 이 이벤트의 기존 연결 상품으로 다시 채운다.
+     * 숨김 template에 상품이 하나도 없으면(이론상 발생하지 않지만
+     * 방어적으로) 등록 화면과 동일하게 빈 행 하나를 보여준다.
+     */
+    if (productList) {
+
+      productList.innerHTML = "";
+
+      const eventProductTemplate = document.getElementById(
+        "eventProductData_" + button.dataset.eventNo);
+
+      const connectedProductRows = eventProductTemplate
+        ? eventProductTemplate.content.querySelectorAll(".event-product-data")
+        : [];
+
+      if (connectedProductRows.length === 0) {
+
+        productList.appendChild(createProductRow(null, "", 0, null));
+
+      } else {
+
+        connectedProductRows.forEach(function (connectedProduct) {
+
+          productList.appendChild(createProductRow(
+            connectedProduct.dataset.productNo,
+            connectedProduct.dataset.productName,
+            connectedProduct.dataset.discountRate,
+            connectedProduct.dataset.price));
+        });
+      }
+
+      /*
+       * createProductRow()는 모든 행을 일단 "-"(removeProductButton,
+       * btn-dark)로 생성한다. 연결 상품 등록 화면(eventRegister.jsp)처럼
+       * 첫 번째 행은 "+"(addProductButton, btn-primary), 나머지 행은
+       * "-"가 되도록 버튼 상태를 다시 계산한다.
+       */
+      refreshProductButtons();
+
+      linkProductSectionLabel();
+    }
+
+    openModal("eventUpdateModal");
   };
 });

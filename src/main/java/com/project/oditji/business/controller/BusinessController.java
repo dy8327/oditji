@@ -350,82 +350,13 @@ public class BusinessController {
          * 상품 목록으로 이동.
          * =========================================================
          */
-        @GetMapping("/product/update")
-        public String productUpdate(@RequestParam(value = "productNo", required = false) Long productNo,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-                if (productNo == null || productNo <= 0) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "수정할 상품을 선택해주세요.");
-
-                        return REDIRECT_PRODUCT_LIST;
-                }
-
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
-
-                if (!STATUS_APPROVED.equals(
-                                business.getStatus())) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        ATTR_ERROR_MESSAGE,
-                                        "승인된 사업자만 상품을 수정할 수 있습니다.");
-
-                        return REDIRECT_BUSINESS_MAIN;
-                }
-
-                try {
-
-                        /*
-                         * 수정 처리 실패 후 다시 돌아온 경우에는
-                         * 사용자가 입력했던 productForm을 유지한다.
-                         */
-                        if (!model.containsAttribute(
-                                        MODEL_PRODUCT_FORM)) {
-
-                                GoodsManageVO product = businessService.getProductForUpdate(
-                                                productNo,
-                                                business.getBusinessNo());
-
-                                model.addAttribute(
-                                                MODEL_PRODUCT_FORM,
-                                                product);
-                        }
-
-                        model.addAttribute(
-                                        MODEL_BUSINESS,
-                                        business);
-
-                        /*
-                         * 상품 수정 메뉴 활성화
-                         */
-                        model.addAttribute(
-                                        MODEL_ACTIVE_MENU,
-                                        "productUpdate");
-
-                        return "business/goods/productUpdate";
-
-                } catch (IllegalArgumentException e) {
-
-                        redirectAttributes.addFlashAttribute(
-                                        ATTR_ERROR_MESSAGE,
-                                        e.getMessage());
-
-                        return REDIRECT_PRODUCT_LIST;
-                }
-        }
+        /*
+         * [리팩터링] 상품 수정 요청 페이지(GET /business/product/update)는 제거했다.
+         * 상품 수정은 이제 productList.jsp 안의 단일 공용 수정 모달로만 진입한다.
+         * 모달은 "수정 요청" 버튼의 data-* 속성(상품 목록 조회 시점에 이미 내려간
+         * GoodsManageVO 값)을 JS로 읽어 채우므로, 클릭 시점에 별도로 상품 단건을
+         * 다시 조회할 필요가 없다.
+         */
 
         /*
          * =========================================================
@@ -508,18 +439,23 @@ public class BusinessController {
                 } catch (IllegalArgumentException | IllegalStateException e) {
 
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-                        redirectAttributes.addFlashAttribute(MODEL_PRODUCT_FORM, goodsManageVO);
 
-                        return "redirect:/business/product/update" + "?productNo=" + goodsManageVO.getProductNo();
+                        /*
+                         * [리팩터링] 수정 폼이 productList.jsp 모달로 통합되면서
+                         * 별도 GET /product/update 재표시 페이지가 없어졌다.
+                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                         * (입력값 유지 대신 모달을 다시 열어 값을 채워야 하므로,
+                         *  입력값은 유지하지 않는다 - eventExtend와 동일한 처리 방식)
+                         */
+                        return REDIRECT_PRODUCT_LIST;
 
                 } catch (Exception e) {
                 if (log.isErrorEnabled()) {
                         log.error("상품 수정 처리 중 오류 - productNo: {}", goodsManageVO.getProductNo(), e);
                 }
                 redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "상품 수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-                redirectAttributes.addFlashAttribute(MODEL_PRODUCT_FORM, goodsManageVO);
 
-                return "redirect:/business/product/update?productNo=" + goodsManageVO.getProductNo();
+                return REDIRECT_PRODUCT_LIST;
                 }
         }
 
@@ -534,63 +470,18 @@ public class BusinessController {
          * /business/product/delete?productNo=1
          * =========================================================
          */
-        @GetMapping("/product/delete")
-        public String productDelete(@RequestParam(value = "productNo", required = false) Long productNo,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-                // 상품 번호 없이 삭제 페이지에 직접 접근한 경우
-                if (productNo == null || productNo <= 0) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "삭제 요청할 상품을 선택해주세요.");
-
-                        return REDIRECT_PRODUCT_LIST;
-                }
-
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
-
-                if (!STATUS_APPROVED.equals(business.getStatus())) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
-
-                        return REDIRECT_BUSINESS_MAIN;
-                }
-
-                try {
-
-                        /*
-                         * PRODUCT_NO와 BUSINESS_NO를 함께 조회하므로
-                         * 다른 사업자의 상품에는 접근할 수 없다.
-                         */
-                        GoodsManageVO product = businessService.getProductForUpdate(productNo, business.getBusinessNo());
-
-                        model.addAttribute("product", product);
-                        model.addAttribute(MODEL_BUSINESS, business);
-                        model.addAttribute(MODEL_ACTIVE_MENU, "productDelete");
-
-                        return "business/goods/productDelete";
-
-                } catch (IllegalArgumentException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        return REDIRECT_PRODUCT_LIST;
-                }
-        }
+        /*
+         * [리팩터링] 상품 삭제 요청 페이지(GET /business/product/delete)는 제거했다.
+         * 삭제 요청은 이제 productList.jsp 안에서 상품마다 미리 렌더링된
+         * 모달로만 진입한다. (아래 productList()에서 내려주는 productList
+         * 데이터에 삭제 모달 표시에 필요한 값이 이미 모두 포함되어 있다.)
+         */
 
         /*
          * =========================================================
          * 상품 삭제 요청 처리
          *
-         * productDelete.jsp에서 전송되는
+         * productList.jsp의 상품별 삭제 모달에서 전송되는
          * POST /business/product/delete 요청을 처리한다.
          *
          * 실제 상품 데이터를 바로 삭제하지 않고
@@ -631,7 +522,12 @@ public class BusinessController {
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
 
-                        return "redirect:/business/product/delete" + "?productNo=" + productNo;
+                        /*
+                         * [리팩터링] 삭제 폼이 productList.jsp 모달로 통합되면서
+                         * 별도 GET /product/delete 재표시 페이지가 없어졌다.
+                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                         */
+                        return REDIRECT_PRODUCT_LIST;
 
                 } catch (Exception e) {
                 if (log.isErrorEnabled()) {
@@ -641,7 +537,7 @@ public class BusinessController {
                         ATTR_ERROR_MESSAGE,
                         "상품 삭제 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                return "redirect:/business/product/delete?productNo=" + productNo;
+                return REDIRECT_PRODUCT_LIST;
                 }
         }
 
@@ -674,9 +570,40 @@ public class BusinessController {
 
                 List<EventManageVO> eventList = businessService.getEventListByBusinessNo(business.getBusinessNo(), keyword);
 
+                /*
+                 * [리팩터링 추가] 이벤트 수정 요청 모달(공용 1개, #eventUpdateModal)이
+                 * "수정" 버튼의 data-* 값으로 채워지는데, 목록 조회 쿼리(LISTAGG로
+                 * 상품명을 한 줄로만 합쳐서 보여주는 요약용)에는 DESCRIPTION과
+                 * 상품별 상세 연결 정보가 없다.
+                 *
+                 * 그래서 APPROVED 이벤트에 대해서만, 구 GET /business/event/update
+                 * 화면 진입 시 쓰던 것과 동일한 조회(getApprovedEventForBusiness)를
+                 * 재사용해서 description/connectedProducts만 보강해 넣는다.
+                 * (신규 매퍼 쿼리를 추가하지 않고 기존 서비스 메서드만 재사용)
+                 */
+                for (EventManageVO event : eventList) {
+
+                        if (STATUS_APPROVED.equals(event.getStatus())) {
+
+                                EventManageVO eventDetail = businessService.getApprovedEventForBusiness(
+                                                event.getEventNo(), business.getBusinessNo());
+
+                                event.setDescription(eventDetail.getDescription());
+                                event.setConnectedProducts(eventDetail.getConnectedProducts());
+                        }
+                }
+
+                /*
+                 * [리팩터링 추가] 수정 모달 안의 "이벤트 연결 상품 검색" 팝업에서 사용할
+                 * 상품 목록. eventUpdate.jsp/eventRegister.jsp에서 쓰던 것과 동일한
+                 * 서비스 메서드를 그대로 재사용한다.
+                 */
+                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
+
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(PARAM_KEYWORD, keyword);
                 model.addAttribute("eventList", eventList);
+                model.addAttribute(MODEL_PRODUCT_LIST, productList);
                 model.addAttribute(MODEL_ACTIVE_MENU, MODEL_EVENT);
 
                 return "business/event/eventList";
@@ -833,53 +760,12 @@ public class BusinessController {
 
         /*
          * =========================================================
-         * 이벤트 수정 화면
-         *
-         * 관리자 승인이 완료된 APPROVED 이벤트만 수정 요청할 수 있다.
-         * 현재 로그인한 사업자의 상품과 연결된 이벤트인지 함께 확인한다.
+         * [리팩터링] 이벤트 수정 화면(GET /business/event/update)은 제거했다.
+         * 이벤트 수정은 이제 eventList.jsp 안의 공용 모달(#eventUpdateModal)
+         * 하나로만 진입한다. "수정" 버튼의 data-* 값을 openEventUpdateModal(this)가
+         * 채워 넣으므로 별도 화면 이동이 필요 없다.
          * =========================================================
          */
-        @GetMapping("/event/update")
-        public String eventUpdate(@RequestParam(value = "eventNo", required = false) Long eventNo,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-                if (eventNo == null || eventNo <= 0) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "수정할 이벤트를 선택해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
-
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
-
-                try {
-                        EventManageVO event = businessService.getApprovedEventForBusiness(eventNo, business.getBusinessNo());
-                        List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
-
-                        model.addAttribute(MODEL_BUSINESS, business);
-                        model.addAttribute(MODEL_EVENT, event);
-                        model.addAttribute(MODEL_PRODUCT_LIST, productList);
-                        model.addAttribute(MODEL_ACTIVE_MENU, "eventUpdate");
-
-                        return "business/event/eventUpdate";
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        return REDIRECT_EVENT_LIST;
-                }
-        }
 
         /*
          * =========================================================
@@ -928,7 +814,7 @@ public class BusinessController {
                                 if (rate ==null || rate < 0 || rate > 100) {
                                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
-                                        return "redirect:/business/event/update?eventNo=" + eventNo;
+                                        return REDIRECT_EVENT_LIST;
                                 }
                         }
                 }
@@ -959,7 +845,12 @@ public class BusinessController {
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute( ATTR_ERROR_MESSAGE, e.getMessage());
 
-                        return "redirect:/business/event/update" + "?eventNo=" + eventNo;
+                        /*
+                         * [리팩터링] 수정 폼이 eventList.jsp 모달로 통합되면서
+                         * 별도 GET /event/update 재표시 페이지가 없어졌다.
+                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                         */
+                        return REDIRECT_EVENT_LIST;
 
                } catch (Exception e) {
                         if (log.isErrorEnabled()) {
@@ -969,7 +860,7 @@ public class BusinessController {
                                 ATTR_ERROR_MESSAGE,
                                 "이벤트 수정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "redirect:/business/event/update?eventNo=" + eventNo;
+                        return REDIRECT_EVENT_LIST;
                 }
         }
 
@@ -980,47 +871,11 @@ public class BusinessController {
          * 관리자 승인이 완료된 APPROVED 이벤트만 연장 요청할 수 있다.
          * =========================================================
          */
-        @GetMapping("/event/extend")
-        public String eventExtend(@RequestParam(value = "eventNo", required = false) Long eventNo,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-
-                if (eventNo == null || eventNo <= 0) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "연장할 이벤트를 선택해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
-
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
-
-                try {
-                        EventManageVO event = businessService.getApprovedEventForBusiness(eventNo, business.getBusinessNo());
-
-                        model.addAttribute(MODEL_BUSINESS, business);
-                        model.addAttribute(MODEL_EVENT, event);
-                        model.addAttribute(MODEL_ACTIVE_MENU, "eventExtend");
-
-                        return "business/event/eventExtend";
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        return REDIRECT_EVENT_LIST;
-                }
-        }
+        /*
+         * [리팩터링] 이벤트 연장 페이지(GET /business/event/extend)는 제거했다.
+         * 이벤트 연장은 이제 eventList.jsp 안에서 APPROVED 이벤트마다
+         * 미리 렌더링된 모달로만 진입한다.
+         */
 
         /*
          * =========================================================
@@ -1069,7 +924,12 @@ public class BusinessController {
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
 
-                        return "redirect:/business/event/extend" + "?eventNo=" + eventNo;
+                        /*
+                         * [리팩터링] 연장 폼이 eventList.jsp 모달로 통합되면서
+                         * 별도 GET /event/extend 재표시 페이지가 없어졌다.
+                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                         */
+                        return REDIRECT_EVENT_LIST;
 
                } catch (Exception e) {
                         if (log.isErrorEnabled()) {
@@ -1079,7 +939,7 @@ public class BusinessController {
                                 ATTR_ERROR_MESSAGE,
                                 "이벤트 연장 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "redirect:/business/event/extend?eventNo=" + eventNo;
+                        return REDIRECT_EVENT_LIST;
                 }
         }
 
@@ -1277,38 +1137,14 @@ public class BusinessController {
                 return "business/order/orderList";
         }
 
-        // 사업자 주문 상세
-        @GetMapping("/order/detail")
-        public String orderDetail(@RequestParam("orderNo") long orderNo, HttpSession session, Model model,
-                        RedirectAttributes redirectAttributes) {
-
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "로그인이 필요합니다.");
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "사업자 정보를 확인할 수 없습니다.");
-                        return REDIRECT_HOME;
-                }
-
-                OrderVO order = businessService.getBusinessOrderDetail(business.getBusinessNo(), orderNo);
-
-                if (order == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "해당 주문을 확인할 수 없습니다.");
-                        return "redirect:/business/order/list";
-                }
-
-                model.addAttribute(MODEL_BUSINESS, business);
-                model.addAttribute(MODEL_ORDER, order);
-                model.addAttribute(MODEL_ACTIVE_MENU, MODEL_ORDER);
-
-                return "business/order/orderDetail";
-        }
+        /*
+         * [리팩터링] 주문 상세 페이지(GET /business/order/detail)는 제거했다.
+         * 주문 상세는 이제 orderList.jsp 안에서 모달로만 보여준다.
+         * 알림에서 들어오는 딥링크는 NotificationServiceImpl(주문 알림 생성 쪽)에서
+         * "/business/order/list?openOrderNo=" + orderNo 로 직접 목록 페이지를
+         * 가리키도록 바꿨고, 목록 페이지가 로드된 뒤 business.js가 해당 주문의
+         * 상세 모달을 자동으로 연다.
+         */
 
         /*
          * =========================================================

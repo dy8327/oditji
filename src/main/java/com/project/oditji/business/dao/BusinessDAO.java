@@ -36,6 +36,20 @@ public interface BusinessDAO {
         // [상품 옵션 기능 추가] 색상-사이즈 조합별 재고 저장
         int insertProductOption(com.project.oditji.goods.vo.ProductOptionVO productOptionVO);
 
+        /*
+         * [상품 옵션 기능 추가]
+         * 상품 목록/수정 모달에서 기존 색상-사이즈 옵션을 다시 보여주기 위한 조회.
+         */
+        List<com.project.oditji.goods.vo.ProductOptionVO> selectProductOptionsByProductNo(
+                        @Param("productNo") long productNo);
+
+        /*
+         * [상품 옵션 기능 추가]
+         * 수정 요청 처리 시 기존 옵션 조합을 전부 지우고 화면에서 넘어온
+         * 조합으로 다시 채워 넣기 위한 전체 삭제(교체 방식).
+         */
+        int deleteProductOptionsByProductNo(@Param("productNo") long productNo);
+
         int insertProductImage(GoodsManageVO goodsManageVO);
 
         // 콘텐츠 검색 목록
@@ -194,12 +208,12 @@ public interface BusinessDAO {
         // 사업자 주문 현황 - 주문 상품 목록 조회
         List<OrderItemVO> selectBusinessOrderItemList(@Param("businessNo") long businessNo);
 
-        // 사업자 주문 상세 조회
-        OrderVO selectBusinessOrderDetail(@Param("businessNo") long businessNo, @Param("orderNo") long orderNo);
-
-        // 사업자 주문 상세 상품 목록 조회
-        List<OrderItemVO> selectBusinessOrderItemDetailList(@Param("businessNo") long businessNo,
-                        @Param("orderNo") long orderNo);
+        /*
+         * [리팩터링] 사업자 주문 상세 조회 매퍼(selectBusinessOrderDetail /
+         * selectBusinessOrderItemDetailList)는 제거했다. 주문 상세는 이제
+         * orderList.jsp 모달에서 selectBusinessOrderList / selectBusinessOrderItemList가
+         * 이미 채워주는 데이터를 그대로 사용한다.
+         */
 
         /*
          * =========================================================

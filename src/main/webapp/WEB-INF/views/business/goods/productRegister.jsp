@@ -202,7 +202,7 @@ const savedTmdbActorId =
                 <div id="productOptionSection" class="form-group" hidden>
                     <span class="form-label">색상 · 사이즈별 재고</span>
                     <div id="productOptionRows"></div>
-                    <button type="button" id="addProductOptionBtn" class="search-btn">+ 옵션 조합 추가</button>
+                    <button type="button" id="addProductOptionBtn" class="option-add-btn">+ 옵션 조합 추가</button>
                     <p class="form-help">의상 예: 블랙 / M, 신발 예: 화이트 / 250. 같은 조합은 한 번만 등록하세요.</p>
                 </div>
 

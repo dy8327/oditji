@@ -542,7 +542,13 @@ public class OrderServiceImpl implements OrderService {
                                 "NEW_ORDER",
                                 "새로운 주문 접수",
                                 "새로운 결제 완료 주문이 접수되었습니다.",
-                                "/business/order/detail?orderNo=" + orderNo,
+                                /*
+                                 * [리팩터링] 주문 상세가 별도 페이지에서 주문 현황 목록의 모달로
+                                 * 통합되면서, 알림 클릭 시 이동할 링크도 목록 페이지 +
+                                 * openOrderNo 파라미터로 바꿨다. 목록 페이지가 로드된 뒤
+                                 * business.js가 해당 주문의 상세 모달을 자동으로 연다.
+                                 */
+                                "/business/order/list?openOrderNo=" + orderNo,
                                 "ORDER",
                                 orderNo);
         }
