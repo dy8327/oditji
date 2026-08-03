@@ -1,5 +1,6 @@
 package com.project.oditji.admin.vo;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -186,6 +187,119 @@ public class EventManageVO {
 
         return Math.round(
                 price * (100 - eventDiscountRate) / 100.0);
+    }
+
+    /*
+     * =========================================================
+     * 승인상태 / 현재상태 (화면 표시용 계산 필드)
+     *
+     * 지금까지는 EVENT.STATUS 하나(WAITING/APPROVED/END/REJECTED)를
+     * 그대로 "상태" 뱃지 하나로 보여주고 있었는데, 이 값에는 서로 다른
+     * 두 가지 의미가 섞여 있다.
+     *
+     *  1) 승인상태 : 관리자가 이 이벤트 요청을 대기/승인/반려 중
+     *                어떻게 처리했는가 (대기, 승인, 반려)
+     *  2) 현재상태 : 승인된 이벤트가 START_DATE/END_DATE 기준으로
+     *                지금 시점에 진행중인지, 아직 시작 전(예정)인지,
+     *                끝났는지 (진행중, 예정, 종료)
+     *
+     * STATUS='END'는 "승인됐다가 종료된" 것이므로 승인상태 관점에서는
+     * 여전히 승인(APPROVED)이다. 반대로 현재상태는 STATUS 값을 그대로
+     * 믿지 않고 START_DATE/END_DATE를 오늘 날짜와 직접 비교해서 계산한다.
+     * EventStatusScheduler가 하루 한 번(00:05)만 STATUS를 END로 갱신하기
+     * 때문에, 배치가 돌기 전까지는 STATUS만으로는 종료일이 지난 이벤트를
+     * "진행중"으로 잘못 보여줄 수 있기 때문이다.
+     * =========================================================
+     */
+
+    /**
+     * 승인상태 코드: WAITING(대기) / APPROVED(승인) / REJECTED(반려)
+     */
+    public String getApprovalStatus() {
+
+        if ("REJECTED".equals(status)) {
+            return "REJECTED";
+        }
+
+        if ("APPROVED".equals(status) || "END".equals(status)) {
+            return "APPROVED";
+        }
+
+        return "WAITING";
+    }
+
+    /** 승인상태 한글 라벨 (대기 / 승인 / 반려) */
+    public String getApprovalStatusLabel() {
+
+        switch (getApprovalStatus()) {
+            case "APPROVED":
+                return "승인";
+            case "REJECTED":
+                return "반려";
+            default:
+                return "대기";
+        }
+    }
+
+    /**
+     * 현재상태 코드: ONGOING(진행중) / UPCOMING(예정) / ENDED(종료)
+     * 아직 승인되지 않은(대기/반려) 이벤트는 노출 대상이 아니므로 null.
+     */
+    public String getProgressStatus() {
+
+        if (!"APPROVED".equals(getApprovalStatus())) {
+            return null;
+        }
+
+        if (startDate == null || endDate == null) {
+            return null;
+        }
+
+        Date today = truncateToDate(new Date());
+        Date start = truncateToDate(startDate);
+        Date end = truncateToDate(endDate);
+
+        if (today.before(start)) {
+            return "UPCOMING";
+        }
+
+        if (today.after(end)) {
+            return "ENDED";
+        }
+
+        return "ONGOING";
+    }
+
+    /** 현재상태 한글 라벨 (진행중 / 예정 / 종료), 대상이 아니면 "-" */
+    public String getProgressStatusLabel() {
+
+        String progress = getProgressStatus();
+
+        if (progress == null) {
+            return "-";
+        }
+
+        switch (progress) {
+            case "ONGOING":
+                return "진행중";
+            case "UPCOMING":
+                return "예정";
+            default:
+                return "종료";
+        }
+    }
+
+    // 시/분/초를 0으로 잘라 날짜(일 단위)만 비교할 수 있게 한다. (Oracle TRUNC(SYSDATE)와 동일한 개념)
+    private Date truncateToDate(Date date) {
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        return cal.getTime();
     }
 
 }

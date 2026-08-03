@@ -75,7 +75,8 @@
 
                 <thead>
                     <tr>
-                        <th>회원</th>
+                        <th>아이디</th>
+                        <th class="col-mobile-hide">닉네임</th>
                         <th>최근 접속일</th>
                         <th>상품 클릭 수</th>
                         <th>접속 IP</th>
@@ -90,8 +91,38 @@
 
                             <c:forEach var="row" items="${monitoringList}">
                                 <tr>
-                                    <td>${row.nickname}</td>
-                                    <td><fmt:formatDate value="${row.lastAccessAt}" pattern="yyyy-MM-dd"/></td>
+                                    <%--
+                                        [수정] 기존에는 이 컬럼에 닉네임(row.nickname)만 보여주고 있었는데,
+                                        SNS 로그인 회원은 provider가 발급한 원본 아이디(row.memberId)가 길어서
+                                        회원관리(memberManage.jsp)에서 보던 것과 같은 값을 여기서는 확인할 수
+                                        없었다. memberManage.jsp와 동일하게 실제 로그인 아이디를 주 텍스트로
+                                        보여주고, 닉네임은 그 아래 보조 텍스트로 함께 보여준다.
+
+                                        .member-id-cell/.member-id-text는 memberManage.jsp와 공유하는 컴포넌트로,
+                                        768px 이하에서만 말줄임(...)이 걸리고 클릭(혹은 포커스 후 Enter/Space)하면
+                                        #memberIdModal 모달로 전체 값을 보여준다(닫기 버튼으로 닫음). 그 이상
+                                        너비(데스크톱)에서는 항상 전체 아이디가 잘리지 않고 그대로 보인다.
+                                    --%>
+                                    <td class="member-id-cell">
+                                        <span class="member-id-text"
+                                            title="${row.memberId}"
+                                            tabindex="0"
+                                            role="button"
+                                            aria-haspopup="dialog">
+                                            ${row.memberId}
+                                        </span>
+                                        <%-- 모바일에서만 아이디 아래 보조 텍스트로 노출(admin.css 참고).
+                                             데스크톱에서는 바로 옆 닉네임 컬럼으로 대체된다. --%>
+                                        <div class="monitoring-nickname">${row.nickname}</div>
+                                    </td>
+                                    <td class="col-mobile-hide">${row.nickname}</td>
+                                    <%-- [모바일 리팩토링] 데스크톱은 기존 yyyy-MM-dd 그대로, 768px 이하에서는
+                                         yyMMdd(예: 260730)로 짧게 표시한다. admin.css의 .pc-access-date/
+                                         .mobile-access-date가 화면 폭에 따라 둘 중 하나만 보여준다. --%>
+                                    <td>
+                                        <span class="pc-access-date"><fmt:formatDate value="${row.lastAccessAt}" pattern="yyyy-MM-dd"/></span>
+                                        <span class="mobile-access-date"><fmt:formatDate value="${row.lastAccessAt}" pattern="yyMMdd"/></span>
+                                    </td>
                                     <td>${row.productClickCount}</td>
                                     <td>${row.accessIp}</td>
                                 </tr>
@@ -100,7 +131,7 @@
                         </c:when>
 
                         <c:otherwise>
-                            <tr><td colspan="4">모니터링 데이터가 없습니다.</td></tr>
+                            <tr><td colspan="5">모니터링 데이터가 없습니다.</td></tr>
                         </c:otherwise>
 
                     </c:choose>
@@ -112,6 +143,36 @@
         </section>
 
     </main>
+
+</div>
+
+<%--
+    [신규] 아이디 전체보기 모달.
+    768px 이하에서 말줄임(...)된 아이디(.member-id-text)를 클릭하면 열리며,
+    admin.js의 openMemberIdModal()이 값을 채워 넣는다. memberManage.jsp에도
+    동일한 id로 하나씩 둔다(페이지당 하나만 렌더링되므로 id 충돌 없음).
+--%>
+<div class="modal-overlay" id="memberIdModal" role="dialog" aria-modal="true"
+     aria-labelledby="memberIdModalTitle">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3 id="memberIdModalTitle">아이디</h3>
+            <button type="button" class="modal-close" aria-label="아이디 팝업 닫기"
+                    onclick="closeModal('memberIdModal')">
+                &times;
+            </button>
+        </div>
+
+        <p class="member-id-modal-value" id="memberIdModalValue"></p>
+        <p class="member-id-modal-nickname" id="memberIdModalNickname" style="display:none"></p>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('memberIdModal')">닫기</button>
+        </div>
+
+    </div>
 
 </div>
 

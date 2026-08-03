@@ -189,7 +189,10 @@
                         <th class="col-mobile-hide">할인율</th>
                         <th class="col-mobile-hide">재고</th>
                         <th class="col-mobile-hide">요청일</th>
-                        <th>상태</th>
+                        <%-- [수정] 모바일에서는 이 컬럼을 숨기고, 대신 상품명 글자 색으로
+                             승인/대기/반려/삭제요청 상태를 표현한다(.approval-name-*, 아래 상품명 td 참고).
+                             데스크톱은 기존과 동일하게 상태 뱃지 컬럼이 그대로 보인다. --%>
+                        <th class="col-mobile-hide">상태</th>
                         <th>관리</th>
                     </tr>
 
@@ -243,13 +246,35 @@
                                     </c:otherwise>
                                 </c:choose>
 
+                                <%-- [수정] 모바일에서 상태 컬럼을 숨기는 대신 상품명 글자 색으로 상태를
+                                     표현하기 위한 클래스. businessManage.jsp의 approval-name-* 와 동일한 방식이며,
+                                     이 색은 768px 이하에서만 적용되므로 데스크톱에서는 기존 상품명 색과 동일하게 보인다. --%>
+                                <c:choose>
+                                    <c:when test="${req.status == 'APPROVED'}">
+                                        <c:set var="productNameStatusClass" value="approval-name-approved"/>
+                                    </c:when>
+                                    <c:when test="${req.status == 'REJECTED' or req.status == 'DELETE_REQUESTED'}">
+                                        <c:set var="productNameStatusClass" value="approval-name-rejected"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="productNameStatusClass" value="approval-name-waiting"/>
+                                    </c:otherwise>
+                                </c:choose>
+
                                 <tr>
 
                                     <td class="col-mobile-hide">${req.productNo}</td>
 
                                     <td>${req.businessName}</td>
 
-                                    <td>${req.productName}</td>
+                                    <td class="approval-name-cell">
+                                        <div class="approval-name-wrapper">
+                                            <div class="mobile-approval-name">
+                                                <span class="approval-name-text ${productNameStatusClass}">${req.productName}</span>
+                                            </div>
+                                            <span class="pc-approval-name">${req.productName}</span>
+                                        </div>
+                                    </td>
 
                                     <td class="col-mobile-hide">${req.contentTitle}</td>
 
@@ -268,7 +293,7 @@
 
                                     <td class="col-mobile-hide">${reqCreatedAtStr}</td>
 
-                                    <td>
+                                    <td class="col-mobile-hide">
 
                                         <c:choose>
 

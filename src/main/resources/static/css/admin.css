@@ -652,6 +652,33 @@
   background: var(--adm-border-soft);
 }
 
+/*
+ * [신규] eventManage.jsp의 "현재상태"(진행중/예정/종료) 뱃지.
+ * "승인상태"(대기/승인/반려) 뱃지와 나란히 쓰이므로 색이 겹치지 않게 한다.
+ * 진행중은 포인트색(파란색)으로 눈에 띄게, 예정은 기존 warning(노랑) 톤을
+ * 재사용하되 별도 컬럼이라 대기 뱃지와 혼동되지 않는다. 종료는 상태와
+ * 무관하게 항상 같은 중립색(status-end와 동일 톤)을 쓴다.
+ */
+.admin-wrap .status-progress-ongoing {
+  color: var(--adm-point);
+  background: var(--adm-point-bg);
+}
+
+.admin-wrap .status-progress-upcoming {
+  color: var(--adm-warning);
+  background: var(--adm-warning-bg);
+}
+
+.admin-wrap .status-progress-ended {
+  color: var(--adm-text-dim);
+  background: var(--adm-border-soft);
+}
+
+/* 승인되지 않아(대기/반려) 현재상태 자체가 없는 이벤트는 뱃지 없이 옅은 대시(-)만 보여준다 */
+.admin-wrap .progress-status-none {
+  color: var(--adm-text-dim);
+}
+
 .admin-wrap .badge {
   display: inline-flex;
   align-items: center;
@@ -1679,6 +1706,45 @@
   }
 }
 
+/*
+ * [신규] 회원 아이디(.member-id-text) 데스크톱 기본 노출 규칙.
+ * 말줄임(...)과 펼치기 동작은 아래 768px 이하 미디어쿼리에서만 정의되므로,
+ * 그 바깥(데스크톱)에서는 이 컴포넌트가 항상 잘리지 않고 전체 문자열이
+ * 그대로 보이도록 기본값을 명시적으로 고정해 둔다.
+ */
+.member-id-cell {
+  overflow: visible;
+}
+
+.member-id-text {
+  display: inline-block;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-all;
+}
+
+/*
+ * [신규] monitoring.jsp - 아이디(.member-id-text) 아래에 닉네임을 보조 정보로
+ * 함께 보여준다. 아이디가 SNS 원본 값이라 낯설 수 있어, 관리자가 누구인지
+ * 바로 알아볼 수 있도록 닉네임을 작고 옅은 글자로 그 밑에 덧붙인다.
+ */
+/*
+ * [수정] monitoring.jsp - 데스크톱에서는 닉네임이 별도 컬럼(td.col-mobile-hide)으로
+ * 분리되어 나오므로, 아이디 아래 보조 텍스트는 중복되지 않도록 데스크톱에서 숨긴다.
+ * 모바일에서는 그 닉네임 컬럼 자체가 숨겨지므로(.col-mobile-hide), 기존과 동일하게
+ * 이 보조 텍스트로만 닉네임을 보여준다(아래 768px 미디어쿼리에서 다시 노출).
+ */
+.monitoring-nickname {
+  display: none;
+
+  margin-top: 4px;
+
+  color: var(--adm-text-dim);
+  font-size: 12px;
+  word-break: break-all;
+}
+
 @media (max-width: 768px) {
   .admin-wrap {
     flex-direction: column;
@@ -1873,46 +1939,77 @@
     color: var(--adm-warning);
   }
 
-  /* 모바일 긴 아이디 말줄임 처리 */
+  /*
+   * [리팩토링] 배경/테두리가 있던 "칩(뱃지)" 형태를 걷어내고, 일반 텍스트에
+   * 말줄임(...)만 적용한다. 잘린 아이디는 더 이상 같은 자리에 펼쳐지는
+   * 말풍선(popover)이 아니라 모달 팝업(#memberIdModal, admin.js의
+   * openMemberIdModal 참고)으로 전체 값을 보여주고 닫기 버튼으로 닫는다.
+   */
   .member-id-cell {
-    position: relative;
     width: 100px;
     max-width: 100px;
-    overflow: visible;
+  }
+
+  /* [수정] monitoring.jsp 전용: 데스크톱에서 숨긴 닉네임 보조 텍스트를
+     모바일에서는 기존과 동일하게 아이디 아래에 다시 노출한다. */
+  .monitoring-nickname {
+    display: block;
   }
 
   .member-id-text {
     display: inline-block;
-    width: 80px;
-    max-width: 80px;
+    max-width: 100%;
 
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-
     vertical-align: middle;
+
+    font-size: 13px;
+
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--adm-border);
+
+    transition: color var(--adm-transition);
   }
 
-  /* 모바일 아이디 클릭 시 전체 표시 */
-  .data-table .member-id-text.expanded {
-    position: absolute;
-    left: -152px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    width: max-content;
-    max-width: calc(100vw - 32px);
-
-    overflow: visible;
-    text-overflow: clip;
-    white-space: nowrap;
-
-    z-index: 1000;
-
-    background: #181818;
-    padding: 6px 10px;
-    border-radius: 6px;
+  .member-id-text:hover,
+  .member-id-text:focus-visible {
+    color: var(--adm-point);
+    text-decoration-color: var(--adm-point);
   }
+
+  .member-id-text:focus-visible {
+    outline: 2px solid var(--adm-point);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * [신규] 아이디 전체보기 모달(#memberIdModal) 안 콘텐츠.
+ * memberManage.jsp / monitoring.jsp가 공유하는 작은 모달로, 기존
+ * .modal-overlay/.modal-box 컴포넌트를 그대로 재사용한다.
+ */
+.member-id-modal-value {
+  padding: 14px 16px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.member-id-modal-nickname {
+  margin-top: 10px;
+
+  color: var(--adm-text-dim);
+  font-size: 13px;
+  word-break: break-all;
 }
 
 @media (max-width: 600px) {
@@ -2060,7 +2157,14 @@
     font-weight: 600;
   }
 
-  /* 기존 상태 뱃지 색상 기준 적용 */
+  /*
+   * [리팩토링] 승인상태(대기/승인/반려) 뱃지 색상 기준으로만 칠한다.
+   * 예전에는 EVENT.STATUS 원본값(WAITING/APPROVED/REJECTED/END) 4가지를
+   * 그대로 나눠 END를 별도 회색으로 표시했는데, 승인상태 관점에서 END는
+   * 여전히 "승인"이라(EventManageVO.getApprovalStatus() 참고) 데스크톱
+   * 승인상태 뱃지(.status-ok/.status-reject/.status-waiting)와 색이
+   * 어긋났었다. req.approvalStatus 기준 3색으로 맞춘다.
+   */
 
   .event-title-approved {
     color: var(--adm-success);
@@ -2070,11 +2174,84 @@
     color: var(--adm-danger);
   }
 
-  .event-title-end {
-    color: var(--adm-text-dim);
-  }
-
   .event-title-waiting {
     color: var(--adm-warning);
+  }
+}
+/* =====================================================
+   [모바일 리팩토링] 승인 상태별 이름/상품명 색상 (범용)
+   businessManage.jsp(이름) / productManage.jsp(상품명)처럼 상태 뱃지 컬럼을
+   모바일에서 숨기는 화면들이 공통으로 쓰는 컴포넌트다. eventManage.jsp의
+   .pc-event-title / .mobile-event-title 과 동일한 구조로, 데스크톱에서는
+   상태 뱃지 컬럼이 그대로 보이고 768px 이하에서만 식별 컬럼(이름/상품명)
+   글자 색으로 승인 상태를 대신 표현한다.
+   ===================================================== */
+
+.mobile-approval-name {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pc-approval-name {
+    display: none;
+  }
+
+  .mobile-approval-name {
+    display: block;
+  }
+
+  .approval-name-cell {
+    max-width: 140px;
+  }
+
+  .approval-name-text {
+    display: inline-block;
+
+    max-width: 130px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-weight: 600;
+  }
+
+  /* 기존 상태 뱃지 색상 기준 적용 (status-ok / status-reject / status-waiting) */
+
+  .approval-name-approved {
+    color: var(--adm-success);
+  }
+
+  .approval-name-rejected {
+    color: var(--adm-danger);
+  }
+
+  .approval-name-waiting {
+    color: var(--adm-warning);
+  }
+
+  .approval-name-end {
+    color: var(--adm-text-dim);
+  }
+}
+
+/* =====================================================
+   [모바일 리팩토링] 모니터링 - 최근 접속일 모바일 축약 표시
+   monitoring.jsp의 "최근 접속일"이 데스크톱에서는 yyyy-MM-dd 그대로,
+   768px 이하에서는 yyMMdd(예: 260730)로 짧게 표시된다.
+   .pc-event-title / .mobile-event-title 과 동일한 구조.
+   ===================================================== */
+
+.mobile-access-date {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pc-access-date {
+    display: none;
+  }
+
+  .mobile-access-date {
+    display: inline;
   }
 }
