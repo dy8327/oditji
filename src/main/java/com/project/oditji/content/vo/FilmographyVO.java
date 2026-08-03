@@ -1,57 +1,17 @@
 package com.project.oditji.content.vo;
 
-public class FilmographyVO {
+import com.project.oditji.common.vo.ContentMetadataVO;
 
-    private Long tmdbId;
-    private String contentType;
-    private String title;
-    private String originalTitle;
-    private String posterPath;
+/**
+ * 배우·감독의 필모그래피 카드 정보입니다.
+ * 콘텐츠 공통 메타데이터는 ContentMetadataVO에서 상속합니다.
+ */
+public class FilmographyVO extends ContentMetadataVO {
+
     private String releaseDate;
     private String participationName;
     private String participationCategory;
-    private Double tmdbScore;
     private Double popularity;
-
-    public Long getTmdbId() {
-        return tmdbId;
-    }
-
-    public void setTmdbId(Long tmdbId) {
-        this.tmdbId = tmdbId;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getOriginalTitle() {
-        return originalTitle;
-    }
-
-    public void setOriginalTitle(String originalTitle) {
-        this.originalTitle = originalTitle;
-    }
-
-    public String getPosterPath() {
-        return posterPath;
-    }
-
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
-    }
 
     public String getReleaseDate() {
         return releaseDate;
@@ -75,14 +35,6 @@ public class FilmographyVO {
 
     public void setParticipationCategory(String participationCategory) {
         this.participationCategory = participationCategory;
-    }
-
-    public Double getTmdbScore() {
-        return tmdbScore;
-    }
-
-    public void setTmdbScore(Double tmdbScore) {
-        this.tmdbScore = tmdbScore;
     }
 
     public Double getPopularity() {

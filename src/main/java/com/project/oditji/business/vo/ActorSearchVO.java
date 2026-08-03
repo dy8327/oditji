@@ -1,77 +1,21 @@
 package com.project.oditji.business.vo;
 
-public class ActorSearchVO {
+import com.project.oditji.common.vo.ActorBaseVO;
 
-    private long actorNo;
-    private long tmdbActorId;
-    private String actorName;
-    private String profilePath;
-
-    private String characterName;
-    private Integer displayOrder;
-
-
-    public long getActorNo() {
-        return actorNo;
-    }
-
-    public void setActorNo(long actorNo) {
-        this.actorNo = actorNo;
-    }
-
-    public long getTmdbActorId() {
-        return tmdbActorId;
-    }
-
-    public void setTmdbActorId(long tmdbActorId) {
-        this.tmdbActorId = tmdbActorId;
-    }
-
-    public String getActorName() {
-        return actorName;
-    }
-
-    public void setActorName(String actorName) {
-        this.actorName = actorName;
-    }
-
-    public String getProfilePath() {
-        return profilePath;
-    }
-
-    public void setProfilePath(String profilePath) {
-        this.profilePath = profilePath;
-    }
-
-    public String getCharacterName() {
-        return characterName;
-    }
-
-    public void setCharacterName(
-            String characterName) {
-
-        this.characterName = characterName;
-    }
-
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(
-            Integer displayOrder) {
-
-        this.displayOrder = displayOrder;
-    }
+/**
+ * 사업자 상품 등록·수정 화면의 배우 검색 결과입니다.
+ */
+public class ActorSearchVO extends ActorBaseVO {
 
     @Override
     public String toString() {
         return "ActorSearchVO{" +
-                "actorNo=" + actorNo +
-                ", tmdbActorId=" + tmdbActorId +
-                ", actorName='" + actorName + '\'' +
-                ", profilePath='" + profilePath + '\'' +
-                ", characterName='" + characterName + '\'' +
-                ", displayOrder=" + displayOrder +
+                "actorNo=" + getActorNo() +
+                ", tmdbActorId=" + getTmdbActorId() +
+                ", actorName='" + getActorName() + '\'' +
+                ", profilePath='" + getProfilePath() + '\'' +
+                ", characterName='" + getCharacterName() + '\'' +
+                ", displayOrder=" + getDisplayOrder() +
                 '}';
     }
 }

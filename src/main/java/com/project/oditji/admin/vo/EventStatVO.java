@@ -16,39 +16,12 @@ package com.project.oditji.admin.vo;
  * SYSDATE와 직접 비교해서 계산한 값을 adminMapper.xml의 selectEventStats가
  * 내려준다.
  */
-public class EventStatVO {
+public class EventStatVO extends ApprovalStatVO {
 
-    private long totalCount;
-    private long waitingCount;
-    private long approvedCount;
     private long rejectedCount;
     private long ongoingCount;
     private long upcomingCount;
     private long endCount;
-
-    public long getTotalCount() {
-        return totalCount;
-    }
-
-    public void setTotalCount(long totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public long getWaitingCount() {
-        return waitingCount;
-    }
-
-    public void setWaitingCount(long waitingCount) {
-        this.waitingCount = waitingCount;
-    }
-
-    public long getApprovedCount() {
-        return approvedCount;
-    }
-
-    public void setApprovedCount(long approvedCount) {
-        this.approvedCount = approvedCount;
-    }
 
     public long getRejectedCount() {
         return rejectedCount;

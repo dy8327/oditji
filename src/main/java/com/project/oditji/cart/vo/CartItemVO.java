@@ -2,30 +2,18 @@ package com.project.oditji.cart.vo;
 
 import java.util.Date;
 
-public class CartItemVO {
+import com.project.oditji.common.vo.ProductSaleInfoVO;
+
+/**
+ * 장바구니 화면 출력 및 주문 가능 여부 검증에 사용하는 품목 VO입니다.
+ */
+public class CartItemVO extends ProductSaleInfoVO {
+
+    private static final long serialVersionUID = 1L;
 
     private Long cartItemNo;
     private Long cartNo;
-    private Integer productNo;
-    // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 번호
-    private Long optionNo;
-    private Integer quantity;
     private Date createdAt;
-
-    /*
-     * 장바구니 화면 출력 및 검증용 상품 정보
-     */
-    private String productName;
-    private String productType;
-    private Integer price;
-    private Integer discountRate;
-    private Integer stock;
-    private String status;
-    private String businessName;
-    private String mainImage;
-    // [상품 옵션 기능 추가] 장바구니 표시용 선택 옵션
-    private String colorName;
-    private String sizeName;
 
     public Long getCartItemNo() {
         return cartItemNo;
@@ -43,171 +31,11 @@ public class CartItemVO {
         this.cartNo = cartNo;
     }
 
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
-
-    public Long getOptionNo() {
-        return optionNo;
-    }
-
-    public void setOptionNo(Long optionNo) {
-        this.optionNo = optionNo;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
     public Date getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductType() {
-        return productType;
-    }
-
-    public void setProductType(String productType) {
-        this.productType = productType;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
-
-    public Integer getDiscountRate() {
-        return discountRate;
-    }
-
-    public void setDiscountRate(Integer discountRate) {
-        this.discountRate = discountRate;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getMainImage() {
-        return mainImage;
-    }
-
-    public void setMainImage(String mainImage) {
-        this.mainImage = mainImage;
-    }
-
-    public String getColorName() {
-        return colorName;
-    }
-
-    public void setColorName(String colorName) {
-        this.colorName = colorName;
-    }
-
-    public String getSizeName() {
-        return sizeName;
-    }
-
-    public void setSizeName(String sizeName) {
-        this.sizeName = sizeName;
-    }
-
-    public int getDiscountPrice() {
-
-        int originalPrice = price == null
-                ? 0
-                : price;
-
-        int rate = discountRate == null
-                ? 0
-                : discountRate;
-
-        if (rate < 0) {
-            rate = 0;
-        }
-
-        if (rate > 100) {
-            rate = 100;
-        }
-
-        return originalPrice * (100 - rate) / 100;
-    }
-
-    public long getItemTotalPrice() {
-
-        int itemQuantity = quantity == null
-                ? 0
-                : quantity;
-
-        return (long) getDiscountPrice()
-                * itemQuantity;
-    }
-
-    public boolean isAvailable() {
-
-        int currentStock = stock == null
-                ? 0
-                : stock;
-
-        int currentQuantity = quantity == null
-                ? 0
-                : quantity;
-
-        return "APPROVED".equals(status)
-                && currentStock > 0
-                && currentQuantity >= 1
-                && currentQuantity <= currentStock;
-    }
-
-    public boolean isSoldOut() {
-
-        int currentStock = stock == null
-                ? 0
-                : stock;
-
-        return currentStock <= 0;
     }
 }

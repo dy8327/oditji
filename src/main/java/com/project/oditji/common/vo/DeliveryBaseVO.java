@@ -5,25 +5,47 @@ import java.util.Date;
 /**
  * 사업자 배송 관리 화면과 구매자 배송 조회 화면이 공통으로 사용하는
  * 배송·주문상품 기본 정보를 보관합니다.
- *
- * 화면별 VO는 이 클래스를 상속하고 각 화면에만 필요한 필드만 추가합니다.
  */
-public abstract class DeliveryBaseVO {
+public abstract class DeliveryBaseVO extends OrderAddressBaseVO {
 
+    private static final long serialVersionUID = 1L;
+
+    private Integer productNo;
+    private Long optionNo;
+    private Integer quantity;
     private Long deliveryNo;
     private Long orderItemNo;
     private Long orderNo;
-    private Integer productNo;
     private String productName;
     private Integer productPrice;
-    private Integer quantity;
-    private String receiverName;
-    private String receiverPhone;
-    private String address;
     private String trackingNumber;
     private String courier;
     private String status;
     private Date orderCreatedAt;
+
+    public Integer getProductNo() {
+        return productNo;
+    }
+
+    public void setProductNo(Integer productNo) {
+        this.productNo = productNo;
+    }
+
+    public Long getOptionNo() {
+        return optionNo;
+    }
+
+    public void setOptionNo(Long optionNo) {
+        this.optionNo = optionNo;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 
     public Long getDeliveryNo() {
         return deliveryNo;
@@ -49,14 +71,6 @@ public abstract class DeliveryBaseVO {
         this.orderNo = orderNo;
     }
 
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
-
     public String getProductName() {
         return productName;
     }
@@ -71,38 +85,6 @@ public abstract class DeliveryBaseVO {
 
     public void setProductPrice(Integer productPrice) {
         this.productPrice = productPrice;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public String getReceiverName() {
-        return receiverName;
-    }
-
-    public void setReceiverName(String receiverName) {
-        this.receiverName = receiverName;
-    }
-
-    public String getReceiverPhone() {
-        return receiverPhone;
-    }
-
-    public void setReceiverPhone(String receiverPhone) {
-        this.receiverPhone = receiverPhone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getTrackingNumber() {
@@ -137,9 +119,6 @@ public abstract class DeliveryBaseVO {
         this.orderCreatedAt = orderCreatedAt;
     }
 
-    /**
-     * 배송 대상 주문상품의 상품가격과 수량을 곱한 금액을 반환합니다.
-     */
     public long getItemTotalPrice() {
         int unitPrice = productPrice == null ? 0 : productPrice;
         int itemQuantity = quantity == null ? 0 : quantity;

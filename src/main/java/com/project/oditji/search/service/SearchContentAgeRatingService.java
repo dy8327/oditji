@@ -48,9 +48,6 @@ public class SearchContentAgeRatingService {
     private static final String AGE_ADULT = "청소년 관람불가";
     private static final String AGE_UNKNOWN = "등급 정보 없음";
 
-    private static final String JSON_RESULTS = "results";
-    private static final String JSON_COUNTRY_CODE = "iso_3166_1";
-    private static final String JSON_RELEASE_DATES = "release_dates";
 
     @Value("${search.content-cache.age-rating-retry-enabled:true}")
     private boolean retryEnabled;
@@ -83,16 +80,19 @@ public class SearchContentAgeRatingService {
 
     private final TmdbApiClient apiClient;
     private final SearchContentPolicyService contentPolicyService;
+    private final SearchContentAgeRatingResolver ageRatingResolver;
 
     private final AtomicReference<Map<String, String>> manualOverrideMap =
             new AtomicReference<Map<String, String>>(Map.of());
 
     public SearchContentAgeRatingService(
             TmdbApiClient apiClient,
-            SearchContentPolicyService contentPolicyService) {
+            SearchContentPolicyService contentPolicyService,
+            SearchContentAgeRatingResolver ageRatingResolver) {
 
         this.apiClient = apiClient;
         this.contentPolicyService = contentPolicyService;
+        this.ageRatingResolver = ageRatingResolver;
     }
 
     /**
@@ -701,12 +701,12 @@ public class SearchContentAgeRatingService {
                     apiClient.get(apiUrl);
 
             restricted =
-                    hasRestrictedMovieRating(
+                    ageRatingResolver.hasRestrictedMovieRating(
                             response
                     );
 
             ageRating =
-                    parseMovieAgeRating(response);
+                    ageRatingResolver.parseMovieAgeRating(response);
 
         } else if (TV.equals(contentType)) {
 
@@ -720,12 +720,12 @@ public class SearchContentAgeRatingService {
                     apiClient.get(apiUrl);
 
             restricted =
-                    hasRestrictedUsTvRating(
+                    ageRatingResolver.hasRestrictedTvRating(
                             response
                     );
 
             ageRating =
-                    parseTvAgeRating(response);
+                    ageRatingResolver.parseTvAgeRating(response);
 
         } else {
             return null;
@@ -738,562 +738,6 @@ public class SearchContentAgeRatingService {
                 true,
                 restricted
         );
-    }
-
-    /**
-     * 영화 원본 등급 중 공용 저장소 제외 대상이 있는지 확인합니다.
-     *
-     * - JP R18+
-     * - US NC-17
-     */
-    private boolean hasRestrictedMovieRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return false;
-        }
-
-        JSONArray countries =
-                response.optJSONArray(
-                        JSON_RESULTS
-                );
-
-        return containsMovieCertification(
-                countries,
-                "JP",
-                "R18+"
-        )
-                || containsMovieCertification(
-                        countries,
-                        "US",
-                        "NC17"
-                );
-    }
-
-    /**
-     * 미국 TV 원본 등급 중 성적 상황(S) 설명자가 명시된
-     * TV-MA 조합만 제외합니다.
-     *
-     * 제외:
-     * TV-MA-S, TV-MA-LS, TV-MA-SV, TV-MA-LSV
-     *
-     * 유지:
-     * TV-MA, TV-MA-L, TV-MA-V
-     */
-    private boolean hasRestrictedUsTvRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return false;
-        }
-
-        JSONArray ratings =
-                response.optJSONArray(
-                        JSON_RESULTS
-                );
-
-        String usRating =
-                findTvRating(
-                        ratings,
-                        "US"
-                );
-
-        String normalized =
-                normalizeRatingCode(
-                        usRating
-                );
-
-        return "TVMAS".equals(normalized)
-                || "TVMALS".equals(normalized)
-                || "TVMASV".equals(normalized)
-                || "TVMALSV".equals(normalized);
-    }
-
-    private boolean containsMovieCertification(
-            JSONArray countries,
-            String countryCode,
-            String restrictedCode) {
-
-        if (countries == null
-                || !hasText(countryCode)
-                || !hasText(restrictedCode)) {
-            return false;
-        }
-
-        JSONArray releaseDates =
-                findMovieReleaseDates(
-                        countries,
-                        countryCode
-                );
-
-        return containsCertification(
-                releaseDates,
-                normalizeRatingCode(
-                        restrictedCode
-                )
-        );
-    }
-
-    private JSONArray findMovieReleaseDates(
-            JSONArray countries,
-            String countryCode) {
-
-        for (int index = 0;
-             index < countries.length();
-             index++) {
-
-            JSONObject country =
-                    countries.optJSONObject(index);
-
-            if (country != null
-                    && countryCode.equalsIgnoreCase(
-                            country.optString(
-                                    JSON_COUNTRY_CODE,
-                                    ""
-                            )
-                    )) {
-
-                return country.optJSONArray(
-                        JSON_RELEASE_DATES
-                );
-            }
-        }
-
-        return null;
-    }
-
-    private boolean containsCertification(
-            JSONArray releaseDates,
-            String normalizedRestrictedCode) {
-
-        if (releaseDates == null) {
-            return false;
-        }
-
-        for (int releaseIndex = 0;
-             releaseIndex < releaseDates.length();
-             releaseIndex++) {
-
-            JSONObject release =
-                    releaseDates.optJSONObject(
-                            releaseIndex
-                    );
-
-            if (release != null
-                    && normalizedRestrictedCode.equals(
-                            normalizeRatingCode(
-                                    release.optString(
-                                            "certification",
-                                            ""
-                                    )
-                            )
-                    )) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private String normalizeRatingCode(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return "";
-        }
-
-        return rawRating.trim()
-                .toUpperCase(Locale.ROOT)
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("_", "");
-    }
-
-    private String parseMovieAgeRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return AGE_UNKNOWN;
-        }
-
-        JSONArray countries =
-                response.optJSONArray(
-                        JSON_RESULTS
-                );
-
-        /*
-         * 1순위는 국내(KR) 등급입니다.
-         */
-        String koreaRating =
-                findMovieCertification(
-                        countries,
-                        "KR"
-                );
-
-        if (hasText(koreaRating)) {
-            return normalizeKoreanAgeRating(
-                    koreaRating
-            );
-        }
-
-        /*
-         * 국내 등급이 없을 때 일본(JP) 영화 등급을 보조 기준으로 사용합니다.
-         * 프로젝트 정책:
-         * - PG12  -> 15세 이상 관람가
-         * - R15+  -> 청소년 관람불가
-         */
-        String japanRating =
-                findMovieCertification(
-                        countries,
-                        "JP"
-                );
-
-        if (hasText(japanRating)) {
-            String convertedJapanRating =
-                    convertJapanMovieAgeRating(
-                            japanRating
-                    );
-
-            if (!AGE_UNKNOWN.equals(
-                    convertedJapanRating
-            )) {
-                return convertedJapanRating;
-            }
-        }
-
-        /*
-         * KR/JP에서 사용할 수 있는 등급이 없을 때 기존 US 변환을 사용합니다.
-         */
-        String usRating =
-                findMovieCertification(
-                        countries,
-                        "US"
-                );
-
-        return hasText(usRating)
-                ? convertUsMovieAgeRating(
-                        usRating
-                )
-                : AGE_UNKNOWN;
-    }
-
-    private String findMovieCertification(
-            JSONArray countries,
-            String countryCode) {
-
-        if (countries == null) {
-            return null;
-        }
-
-        for (int index = 0;
-             index < countries.length();
-             index++) {
-
-            String certification =
-                    findCountryMovieCertification(
-                            countries.optJSONObject(index),
-                            countryCode
-                    );
-
-            if (hasText(certification)) {
-                return certification;
-            }
-        }
-
-        return null;
-    }
-
-    private String findCountryMovieCertification(
-            JSONObject country,
-            String countryCode) {
-
-        if (country == null
-                || !countryCode.equalsIgnoreCase(
-                        country.optString(
-                                JSON_COUNTRY_CODE,
-                                ""
-                        )
-                )) {
-
-            return null;
-        }
-
-        JSONArray releaseDates =
-                country.optJSONArray(
-                        JSON_RELEASE_DATES
-                );
-
-        if (releaseDates == null) {
-            return null;
-        }
-
-        for (int releaseIndex = 0;
-             releaseIndex < releaseDates.length();
-             releaseIndex++) {
-
-            JSONObject release =
-                    releaseDates.optJSONObject(
-                            releaseIndex
-                    );
-
-            if (release != null) {
-                String certification =
-                        release.optString(
-                                "certification",
-                                ""
-                        ).trim();
-
-                if (!certification.isEmpty()) {
-                    return certification;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private String parseTvAgeRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return AGE_UNKNOWN;
-        }
-
-        JSONArray ratings =
-                response.optJSONArray(
-                        JSON_RESULTS
-                );
-
-        String koreaRating =
-                findTvRating(
-                        ratings,
-                        "KR"
-                );
-
-        if (hasText(koreaRating)) {
-            return normalizeKoreanAgeRating(
-                    koreaRating
-            );
-        }
-
-        String usRating =
-                findTvRating(
-                        ratings,
-                        "US"
-                );
-
-        return hasText(usRating)
-                ? convertUsTvAgeRating(
-                        usRating
-                )
-                : AGE_UNKNOWN;
-    }
-
-    private String findTvRating(
-            JSONArray ratings,
-            String countryCode) {
-
-        if (ratings == null) {
-            return null;
-        }
-
-        for (int index = 0;
-             index < ratings.length();
-             index++) {
-
-            JSONObject rating =
-                    ratings.optJSONObject(index);
-
-            if (rating == null
-                    || !countryCode.equalsIgnoreCase(
-                            rating.optString(
-                                    JSON_COUNTRY_CODE,
-                                    ""
-                            )
-                    )) {
-                continue;
-            }
-
-            String value =
-                    rating.optString(
-                            "rating",
-                            ""
-                    ).trim();
-
-            if (!value.isEmpty()) {
-                return value;
-            }
-        }
-
-        return null;
-    }
-
-    private String normalizeKoreanAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("-", "")
-                        .replace("_", "");
-
-        if ("ALL".equals(normalized)
-                || "전체".equals(normalized)
-                || "전체관람가".equals(normalized)
-                || "전체이용가".equals(normalized)
-                || "0".equals(normalized)
-                || "0+".equals(normalized)) {
-            return AGE_ALL;
-        }
-
-        if ("7".equals(normalized)
-                || "7+".equals(normalized)
-                || normalized.contains("7세")) {
-            return AGE_7;
-        }
-
-        if ("12".equals(normalized)
-                || "12+".equals(normalized)
-                || normalized.contains("12세")) {
-            return AGE_12;
-        }
-
-        if ("15".equals(normalized)
-                || "15+".equals(normalized)
-                || normalized.contains("15세")) {
-            return AGE_15;
-        }
-
-        if ("18".equals(normalized)
-                || "18+".equals(normalized)
-                || "19".equals(normalized)
-                || "19+".equals(normalized)
-                || normalized.contains("18세")
-                || normalized.contains("19세")
-                || normalized.contains("청소년관람불가")
-                || normalized.contains("청불")
-                || normalized.contains("제한상영가")) {
-            return AGE_ADULT;
-        }
-
-        return AGE_UNKNOWN;
-    }
-
-    /**
-     * 일본 영화 등급을 ODITJI 내부 연령등급으로 변환합니다.
-     *
-     * 현재 프로젝트에서 확정한 수동 변환 정책만 적용합니다.
-     * 알 수 없는 일본 등급은 임의로 추정하지 않고 기존 US 보조 조회로 넘깁니다.
-     */
-    private String convertJapanMovieAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-")
-                        .replace("-", "");
-
-        switch (normalized) {
-            case "PG12":
-                return AGE_15;
-
-            case "R15+":
-            case "R15":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
-    }
-
-    private String convertUsMovieAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-");
-
-        switch (normalized) {
-            case "G":
-                return AGE_ALL;
-
-            case "PG":
-            case "PG-13":
-            case "PG13":
-                return AGE_12;
-
-            case "R":
-                return AGE_15;
-
-            case "NC-17":
-            case "NC17":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
-    }
-
-    private String convertUsTvAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-");
-
-        switch (normalized) {
-            case "TV-Y":
-            case "TVY":
-            case "TV-G":
-            case "TVG":
-                return AGE_ALL;
-
-            case "TV-Y7":
-            case "TVY7":
-                return AGE_7;
-
-            case "TV-PG":
-            case "TVPG":
-                return AGE_12;
-
-            case "TV-14":
-            case "TV14":
-                return AGE_15;
-
-            case "TV-MA":
-            case "TVMA":
-            case "TV-MA-S":
-            case "TV-MA-LS":
-            case "TV-MA-SV":
-            case "TV-MA-LSV":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
     }
 
     private Map<String, String> loadManualOverrides() {
@@ -1548,7 +992,7 @@ public class SearchContentAgeRatingService {
         }
 
         String normalized =
-                normalizeKoreanAgeRating(
+                ageRatingResolver.normalizeKoreanAgeRating(
                         trimmed
                 );
 

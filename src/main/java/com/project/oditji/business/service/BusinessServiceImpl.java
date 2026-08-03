@@ -1397,7 +1397,8 @@ public class BusinessServiceImpl
                                                 "이벤트 등록에 실패했습니다.");
                         }
 
-                        if (eventManageVO.getEventNo() <= 0) {
+                        if (eventManageVO.getEventNo() == null
+                                        || eventManageVO.getEventNo() <= 0) {
 
                                 throw new IllegalStateException(
                                                 "등록된 이벤트 번호를 확인할 수 없습니다.");
@@ -2164,7 +2165,7 @@ public class BusinessServiceImpl
                 for (ActorSearchVO actor : actorList) {
 
                         if (actor != null
-                                        && actor.getTmdbActorId() == tmdbActorId.longValue()) {
+                                        && tmdbActorId.equals(actor.getTmdbActorId())) {
 
                                 goodsManageVO.setActorNo(
                                                 actor.getActorNo());

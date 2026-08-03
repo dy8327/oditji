@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="commonTag" tagdir="/WEB-INF/tags/common" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
@@ -9,16 +10,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <%--
-        이 화면은 공통 header.jsp를 포함하지 않으므로
-        Spring Security CSRF 정보를 직접 선언해야 합니다.
-        common.js는 아래 meta 정보를 읽어 form과 fetch 요청에 토큰을 추가합니다.
-    --%>
-    <meta name="_csrf" content="${_csrf.token}">
-    <meta name="_csrf_header" content="${_csrf.headerName}">
-    <meta name="_csrf_parameter" content="${_csrf.parameterName}">
-
     <title>ODITJI | OTT 선택</title>
     <link rel="stylesheet" href="${contextPath}/css/layout.css">
     <link rel="stylesheet" href="${contextPath}/css/member.css">
@@ -54,11 +45,6 @@
         <form id="snsOttForm"
               action="${contextPath}/member/platform/select"
               method="post">
-
-            <%-- JavaScript가 로드되지 않아도 POST 요청에 CSRF 토큰이 포함되도록 합니다. --%>
-            <input type="hidden"
-                   name="${_csrf.parameterName}"
-                   value="${_csrf.token}">
 
             <c:if test="${needEmailInput}">
                 <div class="sns-ott-email-group">
@@ -111,38 +97,7 @@
                         <span class="sns-ott-mark"></span>
 
                         <span>
-                            <c:choose>
-                                <c:when test="${platform.platformName eq 'Netflix'}">
-                                    넷플릭스
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney Plus'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney+'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Tving'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'TVING'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Wavve'}">
-                                    웨이브
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Watcha'}">
-                                    왓챠
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupangplay'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupang Play'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:otherwise>
-                                    ${platform.platformName}
-                                </c:otherwise>
-                            </c:choose>
+                            <commonTag:platformDisplayName platformName="${platform.platformName}"/>
                         </span>
                     </label>
 

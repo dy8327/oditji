@@ -33,7 +33,7 @@ import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
 import com.project.oditji.member.vo.MemberSocialVO;
 import com.project.oditji.member.vo.MemberVO;
-import com.project.oditji.member.vo.NaverLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 import com.project.oditji.member.vo.NaverTokenVO;
 import com.project.oditji.member.vo.NaverUserInfoVO;
 
@@ -120,7 +120,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
      */
     @Override
     @Transactional
-    public NaverLoginResultVO naverLogin(String code, String state) {
+    public SocialLoginResultVO naverLogin(String code, String state) {
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException("네이버 인증 코드가 없습니다.");
         }
@@ -137,7 +137,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
 
         if (existingMember != null) {
             validateMemberStatus(existingMember);
-            return new NaverLoginResultVO(false, existingMember);
+            return new SocialLoginResultVO(false, existingMember);
         }
 
         MemberVO newMember = createNaverMember(naverUser, providerUserId);
@@ -161,7 +161,7 @@ public class NaverLoginServiceImpl implements NaverLoginService {
             throw new IllegalStateException("네이버 회원 연동 정보 생성에 실패했습니다.");
         }
 
-        return new NaverLoginResultVO(true, joinedMember);
+        return new SocialLoginResultVO(true, joinedMember);
     }
 
     /**

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
-import com.project.oditji.member.vo.GoogleLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 import com.project.oditji.member.vo.GoogleTokenVO;
 import com.project.oditji.member.vo.GoogleUserInfoVO;
 import com.project.oditji.member.vo.MemberSocialJoinVO;
@@ -111,7 +111,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
      */
     @Override
     @Transactional
-    public GoogleLoginResultVO googleLogin(String code) {
+    public SocialLoginResultVO googleLogin(String code) {
 
         if (code == null || code.isBlank()) {
             throw new IllegalStateException("Google 인증 코드가 전달되지 않았습니다.");
@@ -137,7 +137,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
                                 existingMember.getWithdrawnAt());
                 }
 
-                return new GoogleLoginResultVO(false, existingMember);
+                return new SocialLoginResultVO(false, existingMember);
                 }
 
         MemberVO newMember = createGoogleMember(googleUser, providerUserId);
@@ -166,7 +166,7 @@ public class GoogleLoginServiceImpl implements GoogleLoginService {
             throw new IllegalStateException("Google 회원정보 저장 후 조회에 실패했습니다.");
         }
 
-        return new GoogleLoginResultVO(true, joinedMember);
+        return new SocialLoginResultVO(true, joinedMember);
     }
 
     /**

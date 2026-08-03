@@ -1,42 +1,14 @@
 package com.project.oditji.admin.vo;
 
 /**
- * 상품 관리 화면 상단 통계 카드용 VO
- * (전체 상품 요청 / 승인 대기 / 승인 완료 / 삭제 요청 수)
+ * 상품 관리 화면 상단 통계 카드용 VO입니다.
  *
- * eventManage.jsp의 EventStatVO와 동일한 구조로,
- * PRODUCT.STATUS 값을 기준으로 집계한다.
+ * 전체·승인 대기·승인 완료 건수는 ApprovalStatVO에서 공통으로 제공하고,
+ * 상품 관리에만 필요한 삭제 요청 건수만 추가로 보관합니다.
  */
-public class ProductStatVO {
+public class ProductStatVO extends ApprovalStatVO {
 
-    private long totalCount;
-    private long waitingCount;
-    private long approvedCount;
     private long deleteRequestedCount;
-
-    public long getTotalCount() {
-        return totalCount;
-    }
-
-    public void setTotalCount(long totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public long getWaitingCount() {
-        return waitingCount;
-    }
-
-    public void setWaitingCount(long waitingCount) {
-        this.waitingCount = waitingCount;
-    }
-
-    public long getApprovedCount() {
-        return approvedCount;
-    }
-
-    public void setApprovedCount(long approvedCount) {
-        this.approvedCount = approvedCount;
-    }
 
     public long getDeleteRequestedCount() {
         return deleteRequestedCount;
