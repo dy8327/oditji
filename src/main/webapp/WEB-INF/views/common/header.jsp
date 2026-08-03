@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=8">
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
+<script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 

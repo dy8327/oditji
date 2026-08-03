@@ -49,108 +49,103 @@ public class CartServiceImpl implements CartService {
                 validateProductNo(productNo);
                 validateQuantity(quantity);
 
-                /*
-                 * 실제 상품 조회
-                 */
                 CartItemVO product = cartDAO.selectProductForCart(productNo, optionNo);
-
-                validateProductForCart(
-                                product,
-                                quantity);
-                // [상품 옵션 기능 추가] 의상/신발은 반드시 실제 옵션 조합을 선택해야 합니다.
-                if (("CLOTHES".equals(product.getProductType()) || "SHOES".equals(product.getProductType()))
-                                && (optionNo == null || product.getOptionNo() == null)) {
-                        throw new IllegalArgumentException("색상과 사이즈 옵션을 선택해주세요.");
-                }
-
-                /*
-                 * 회원 장바구니 조회
-                 */
+                validateProductForCart(product, quantity);
+                validateRequiredProductOption(product, optionNo);
                 product.setOptionNo(optionNo);
 
-                CartVO cart = cartDAO.selectCartByMemberNo(memberNo);
-
-                /*
-                 * 장바구니가 없다면 최초 생성
-                 */
-                if (cart == null) {
-
-                        cart = new CartVO();
-                        cart.setMemberNo(memberNo);
-
-                        int insertResult = cartDAO.insertCart(cart);
-
-                        if (insertResult <= 0
-                                        || cart.getCartNo() == null) {
-
-                                throw new IllegalStateException(
-                                                "장바구니 생성에 실패했습니다.");
-                        }
-                }
-
-                /*
-                 * 동일 상품이 이미 담겨 있는지 조회
-                 */
+                CartVO cart = getOrCreateCart(memberNo);
                 CartItemVO existingItem = cartDAO.selectCartItemByProduct(
                                 cart.getCartNo(),
                                 productNo,
                                 optionNo);
 
                 if (existingItem == null) {
-
-                        CartItemVO newItem = new CartItemVO();
-
-                        newItem.setCartNo(
-                                        cart.getCartNo());
-
-                        newItem.setProductNo(
-                                        productNo);
-                        // [상품 옵션 기능 추가] 선택한 옵션 번호를 장바구니 항목에 저장합니다.
-                        newItem.setOptionNo(optionNo);
-
-                        newItem.setQuantity(
-                                        quantity);
-
-                        int insertResult = cartDAO.insertCartItem(newItem);
-
-                        if (insertResult <= 0) {
-                                throw new IllegalStateException(
-                                                "장바구니에 상품을 담지 못했습니다.");
-                        }
-
+                        insertCartItem(cart.getCartNo(), productNo, optionNo, quantity);
                 } else {
-
-                        int existingQuantity = existingItem.getQuantity() == null
-                                        ? 0
-                                        : existingItem.getQuantity();
-
-                        int changedQuantity = existingQuantity + quantity;
-
-                        int stock = product.getStock() == null
-                                        ? 0
-                                        : product.getStock();
-
-                        if (changedQuantity > stock) {
-
-                                throw new IllegalArgumentException(
-                                                "장바구니 수량이 재고를 초과합니다. "
-                                                                + "현재 재고는 "
-                                                                + stock
-                                                                + "개입니다.");
-                        }
-
-                        int updateResult = cartDAO.updateCartItemQuantity(
-                                        memberNo,
-                                        existingItem.getCartItemNo(),
-                                        changedQuantity);
-
-                        if (updateResult <= 0) {
-                                throw new IllegalStateException(
-                                                "장바구니 수량을 변경하지 못했습니다.");
-                        }
+                        updateExistingCartItem(memberNo, existingItem, product, quantity);
                 }
 
                 return cartDAO.countCartItems(memberNo);
+        }
+
+        private void validateRequiredProductOption(CartItemVO product, Long optionNo) {
+                boolean optionRequired = "CLOTHES".equals(product.getProductType())
+                                || "SHOES".equals(product.getProductType());
+
+                if (optionRequired && (optionNo == null || product.getOptionNo() == null)) {
+                        throw new IllegalArgumentException("색상과 사이즈 옵션을 선택해주세요.");
+                }
+        }
+
+        private CartVO getOrCreateCart(Long memberNo) {
+                CartVO cart = cartDAO.selectCartByMemberNo(memberNo);
+                if (cart != null) {
+                        return cart;
+                }
+
+                cart = new CartVO();
+                cart.setMemberNo(memberNo);
+                int insertResult = cartDAO.insertCart(cart);
+
+                if (insertResult <= 0 || cart.getCartNo() == null) {
+                        throw new IllegalStateException(
+                                        "장바구니 생성에 실패했습니다.");
+                }
+
+                return cart;
+        }
+
+        private void insertCartItem(
+                        Long cartNo,
+                        Integer productNo,
+                        Long optionNo,
+                        Integer quantity) {
+
+                CartItemVO newItem = new CartItemVO();
+                newItem.setCartNo(cartNo);
+                newItem.setProductNo(productNo);
+                newItem.setOptionNo(optionNo);
+                newItem.setQuantity(quantity);
+
+                int insertResult = cartDAO.insertCartItem(newItem);
+                if (insertResult <= 0) {
+                        throw new IllegalStateException(
+                                        "장바구니에 상품을 담지 못했습니다.");
+                }
+        }
+
+        private void updateExistingCartItem(
+                        Long memberNo,
+                        CartItemVO existingItem,
+                        CartItemVO product,
+                        Integer quantity) {
+
+                int existingQuantity = existingItem.getQuantity() == null
+                                ? 0
+                                : existingItem.getQuantity();
+                int changedQuantity = existingQuantity + quantity;
+                int stock = product.getStock() == null
+                                ? 0
+                                : product.getStock();
+
+                if (changedQuantity > stock) {
+                        throw new IllegalArgumentException(
+                                        "장바구니 수량이 재고를 초과합니다. "
+                                                        + "현재 재고는 "
+                                                        + stock
+                                                        + "개입니다.");
+                }
+
+                int updateResult = cartDAO.updateCartItemQuantity(
+                                memberNo,
+                                existingItem.getCartItemNo(),
+                                changedQuantity);
+
+                if (updateResult <= 0) {
+                        throw new IllegalStateException(
+                                        "장바구니 수량을 변경하지 못했습니다.");
+                }
         }
 
         @Override

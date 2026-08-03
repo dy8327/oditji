@@ -19,6 +19,10 @@ import com.project.oditji.event.vo.EventVO;
 @Controller
 public class EventController {
 
+    private static final String PERIOD_ENDED = "ended";
+    private static final String PERIOD_UPCOMING = "upcoming";
+    private static final String PERIOD_ONGOING = "ongoing";
+
     private final EventService eventService;
 
     public EventController(EventService eventService) {
@@ -32,7 +36,7 @@ public class EventController {
      */
     @GetMapping("/event/list")
     public String eventList(
-            @RequestParam(defaultValue = "ongoing") String period,
+            @RequestParam(defaultValue = PERIOD_ONGOING) String period,
             Model model) {
 
         String normalizedPeriod = normalizePeriod(period);
@@ -89,18 +93,18 @@ public class EventController {
         LocalDate endDate = toLocalDate(event.getEndDate());
 
         if ("END".equals(event.getStatus())) {
-            return "ended";
+            return PERIOD_ENDED;
         }
 
         if (endDate != null && endDate.isBefore(today)) {
-            return "ended";
+            return PERIOD_ENDED;
         }
 
         if (startDate != null && startDate.isAfter(today)) {
-            return "upcoming";
+            return PERIOD_UPCOMING;
         }
 
-        return "ongoing";
+        return PERIOD_ONGOING;
     }
 
     private LocalDate toLocalDate(Date date) {
@@ -110,37 +114,37 @@ public class EventController {
 
     private String normalizePeriod(String period) {
         String normalized = period == null
-                ? "ongoing"
+                ? PERIOD_ONGOING
                 : period.trim().toLowerCase(Locale.ROOT);
 
-        if ("upcoming".equals(normalized) || "ended".equals(normalized)) {
+        if (PERIOD_UPCOMING.equals(normalized) || PERIOD_ENDED.equals(normalized)) {
             return normalized;
         }
 
-        return "ongoing";
+        return PERIOD_ONGOING;
     }
 
     private String createPeriodTitle(String period) {
-        if ("upcoming".equals(period)) return "예정된 할인 이벤트";
-        if ("ended".equals(period)) return "종료된 할인 이벤트";
+        if (PERIOD_UPCOMING.equals(period)) return "예정된 할인 이벤트";
+        if (PERIOD_ENDED.equals(period)) return "종료된 할인 이벤트";
         return "진행 중인 할인 이벤트";
     }
 
     private String createPeriodDescription(String period) {
-        if ("upcoming".equals(period)) return "곧 시작될 상품 할인 이벤트입니다.";
-        if ("ended".equals(period)) return "판매 기간이 종료된 상품 할인 이벤트입니다.";
+        if (PERIOD_UPCOMING.equals(period)) return "곧 시작될 상품 할인 이벤트입니다.";
+        if (PERIOD_ENDED.equals(period)) return "판매 기간이 종료된 상품 할인 이벤트입니다.";
         return "현재 참여할 수 있는 상품 할인 이벤트입니다.";
     }
 
     private String createPeriodBadge(String period) {
-        if ("upcoming".equals(period)) return "예정";
-        if ("ended".equals(period)) return "종료";
+        if (PERIOD_UPCOMING.equals(period)) return "예정";
+        if (PERIOD_ENDED.equals(period)) return "종료";
         return "진행 중";
     }
 
     private String createEmptyMessage(String period) {
-        if ("upcoming".equals(period)) return "예정된 이벤트가 없습니다.";
-        if ("ended".equals(period)) return "종료된 이벤트가 없습니다.";
+        if (PERIOD_UPCOMING.equals(period)) return "예정된 이벤트가 없습니다.";
+        if (PERIOD_ENDED.equals(period)) return "종료된 이벤트가 없습니다.";
         return "진행 중인 이벤트가 없습니다.";
     }
 }

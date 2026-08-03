@@ -11,9 +11,6 @@ public class FavoriteVO {
     private String contentType;
     private Date createdAt;
 
-    public FavoriteVO() {
-    }
-
     public Long getFavoriteNo() {
         return favoriteNo;
     }

@@ -28,6 +28,8 @@ public class SearchController {
 
     private static final int ALL_CONTENT_PREVIEW_SIZE = 5;
     private static final int ALL_GOODS_PREVIEW_SIZE = 5;
+    private static final String SEARCH_TAB_CONTENT = "CONTENT";
+    private static final String SEARCH_TAB_GOODS = "GOODS";
 
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final GoodsService goodsService;
@@ -733,12 +735,12 @@ public class SearchController {
                         .trim()
                         .toUpperCase(Locale.ROOT);
 
-        if ("CONTENT".equals(normalized)) {
-            return "CONTENT";
+        if (SEARCH_TAB_CONTENT.equals(normalized)) {
+            return SEARCH_TAB_CONTENT;
         }
 
-        if ("GOODS".equals(normalized)) {
-            return "GOODS";
+        if (SEARCH_TAB_GOODS.equals(normalized)) {
+            return SEARCH_TAB_GOODS;
         }
 
         return "ALL";
@@ -783,11 +785,11 @@ public class SearchController {
                                 searchVO.getSearchTab()
                         );
 
-        if ("CONTENT".equals(searchTab)) {
+        if (SEARCH_TAB_CONTENT.equals(searchTab)) {
             return "지금 인기 있는 콘텐츠";
         }
 
-        if ("GOODS".equals(searchTab)) {
+        if (SEARCH_TAB_GOODS.equals(searchTab)) {
             return "현재 판매 중인 상품";
         }
 

@@ -33,6 +33,8 @@ import jakarta.servlet.http.HttpServletRequest;
 public class GoogleLoginController {
 
     private static final String GOOGLE_OAUTH_STATE = "googleOAuthState";
+    private static final String ATTRIBUTE_ERROR_MESSAGE = "errorMessage";
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
     private static final Logger log = LoggerFactory.getLogger(GoogleLoginController.class);
 
     private final GoogleLoginService googleLoginService;
@@ -67,8 +69,8 @@ public class GoogleLoginController {
                 if (log.isWarnEnabled()) {
                         log.warn("Google 로그인 준비 실패", e);
                 }
-                redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 준비 중 오류가 발생했습니다.");
-                return "redirect:/member/login";
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 로그인 준비 중 오류가 발생했습니다.");
+                return REDIRECT_MEMBER_LOGIN;
         }
     }
 
@@ -91,31 +93,31 @@ public class GoogleLoginController {
         String expectedState = (String) session.getAttribute(GOOGLE_OAUTH_STATE);
         session.removeAttribute(GOOGLE_OAUTH_STATE);
         if (error != null && !error.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인이 취소되었거나 승인되지 않았습니다.");
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 로그인이 취소되었거나 승인되지 않았습니다.");
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         if (expectedState == null || state == null || !expectedState.equals(state)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         try {
 
             GoogleLoginResultVO result = googleLoginService.googleLogin(code);
             if (result == null || result.getMember() == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Google 회원정보를 확인할 수 없습니다.");
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 회원정보를 확인할 수 없습니다.");
 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
 
             MemberSocialJoinVO member = result.getMember();
             if (member.getMemberNo() <= 0) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Google 회원번호를 확인할 수 없습니다.");
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 회원번호를 확인할 수 없습니다.");
 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
 
             request.changeSessionId();
@@ -139,9 +141,9 @@ public class GoogleLoginController {
 
             MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
             if (loginMember == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 회원정보를 불러오지 못했습니다.");
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 로그인 회원정보를 불러오지 못했습니다.");
 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
             saveLoginSession(session, loginMember, member.getProvider(), displayName);
 
@@ -150,7 +152,7 @@ public class GoogleLoginController {
         } catch (MemberBlockedException e) {
             redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
         } catch (MemberWithdrawnException e) {
 
@@ -163,14 +165,14 @@ public class GoogleLoginController {
             session.setAttribute("restoreProvider", "GOOGLE");
             redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage( e.getWithdrawnAt()));
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
         } catch (IllegalStateException e) {
                 if (log.isWarnEnabled()) {
                         log.warn("Google 로그인 처리 실패", e);
                 }
-                redirectAttributes.addFlashAttribute("errorMessage", "Google 로그인 처리 중 오류가 발생했습니다.");
-                return "redirect:/member/login";
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "Google 로그인 처리 중 오류가 발생했습니다.");
+                return REDIRECT_MEMBER_LOGIN;
         }
     }
 

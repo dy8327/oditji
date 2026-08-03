@@ -65,54 +65,23 @@ public class TmdbApiClient {
      * @return TMDB JSON 응답
      */
     public JSONObject get(String apiUrl) {
-        int retryCount = 0;
-
-        while (retryCount < 4) {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl))
-                    .timeout(Duration.ofSeconds(30))
-                    .header("Authorization", "Bearer " + token)
-                    .header("accept", "application/json")
-                    .GET()
-                    .build();
-
+        for (int retryCount = 1; retryCount <= 4; retryCount++) {
             try {
-                HttpResponse<String> response = httpClient.send(
-                        request,
-                        HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
+                JSONObject result = sendRequest(
+                        createRequest(apiUrl),
+                        retryCount
                 );
 
-                int statusCode = response.statusCode();
-
-                if (statusCode == 429) {
-                    retryCount++;
-                    sleepQuietly(1000L * retryCount);
-                    continue;
+                if (result != null) {
+                    return result;
                 }
-
-                if (statusCode < 200 || statusCode >= 300) {
-                    throw new IllegalStateException("TMDB HTTP 오류: " + statusCode);
-                }
-
-                String body = response.body();
-                if (body == null || body.isBlank()) {
-                    throw new IllegalStateException("TMDB 응답 본문이 비어 있습니다.");
-                }
-
-                JSONObject result = new JSONObject(body);
-                sleepQuietly(requestDelayMillis);
-                return result;
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException("TMDB API 호출이 중단되었습니다.", e);
 
             } catch (IOException e) {
-                retryCount++;
-                if (retryCount >= 4) {
-                    throw new IllegalStateException("TMDB API 통신에 실패했습니다.", e);
-                }
-                sleepQuietly(500L * retryCount);
+                handleIOException(e, retryCount);
 
             } catch (JSONException e) {
                 throw new IllegalStateException("TMDB JSON 응답을 해석하지 못했습니다.", e);
@@ -120,6 +89,57 @@ public class TmdbApiClient {
         }
 
         throw new IllegalStateException("TMDB API 재시도 횟수를 초과했습니다.");
+    }
+
+    private HttpRequest createRequest(String apiUrl) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .timeout(Duration.ofSeconds(30))
+                .header("Authorization", "Bearer " + token)
+                .header("accept", "application/json")
+                .GET()
+                .build();
+    }
+
+    private JSONObject sendRequest(
+            HttpRequest request,
+            int retryCount) throws IOException, InterruptedException {
+
+        HttpResponse<String> response = httpClient.send(
+                request,
+                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
+        );
+
+        int statusCode = response.statusCode();
+
+        if (statusCode == 429) {
+            sleepQuietly(1000L * retryCount);
+            return null;
+        }
+
+        if (statusCode < 200 || statusCode >= 300) {
+            throw new IllegalStateException("TMDB HTTP 오류: " + statusCode);
+        }
+
+        String body = response.body();
+        if (body == null || body.isBlank()) {
+            throw new IllegalStateException("TMDB 응답 본문이 비어 있습니다.");
+        }
+
+        JSONObject result = new JSONObject(body);
+        sleepQuietly(requestDelayMillis);
+        return result;
+    }
+
+    private void handleIOException(
+            IOException exception,
+            int retryCount) {
+
+        if (retryCount >= 4) {
+            throw new IllegalStateException("TMDB API 통신에 실패했습니다.", exception);
+        }
+
+        sleepQuietly(500L * retryCount);
     }
 
     public String encode(String value) {

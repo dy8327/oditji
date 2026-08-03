@@ -29,9 +29,6 @@ public class NaverTokenVO {
     @JsonProperty("error_description")
     private String errorDescription;
 
-    public NaverTokenVO() {
-    }
-
     public String getAccessToken() {
         return accessToken;
     }

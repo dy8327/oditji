@@ -56,9 +56,6 @@ public class SearchResultVO {
     private List<OttPlatformVO> platformList =
             new ArrayList<OttPlatformVO>();
 
-    public SearchResultVO() {
-    }
-
     public Long getContentNo() {
         return contentNo;
     }

@@ -22,9 +22,6 @@ public class ProductReviewVO {
     private String writer;
     private String profileImage;
 
-    public ProductReviewVO() {
-    }
-
     public int getReviewNo() {
         return reviewNo;
     }

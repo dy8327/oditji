@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/verify")
 public class VerifyController {
 
+    private static final String SESSION_MEMBER_NO = "memberNo";
+
     private final VerifyService verifyService;
     private static final Logger log = LoggerFactory.getLogger(VerifyController.class);
 
@@ -55,7 +57,7 @@ public class VerifyController {
     public String adultVerifyPage(
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
             HttpSession session, Model model) {
-        Long memberNo = (Long) session.getAttribute("memberNo");
+        Long memberNo = (Long) session.getAttribute(SESSION_MEMBER_NO);
 
         // 1) 로그인 검증 (아이디가 비어있다면 로그인 창으로 이동)
         if (memberNo == null || memberNo == 0) {
@@ -69,7 +71,7 @@ public class VerifyController {
         }
 
         // 2) 이미 성인인증을 완료한 유저인지 검증
-        if (memberNo != 0 && verifyService.isAdultVerified(memberNo)) {
+        if (verifyService.isAdultVerified(memberNo)) {
             session.setAttribute("ADULT_VERIFIED", "Y");
             return "redirect:" + sanitizeReturnUrl(returnUrl);
         }
@@ -87,7 +89,7 @@ public class VerifyController {
     @PostMapping("/adult/ready")
     @ResponseBody
     public AdultVerifyReadyVO prepareVerification(HttpSession session) {
-        Long memberNo = (Long) session.getAttribute("memberNo");
+        Long memberNo = (Long) session.getAttribute(SESSION_MEMBER_NO);
 
         if (memberNo == null) {
             throw new IllegalStateException("로그인이 필요합니다.");
@@ -104,7 +106,7 @@ public class VerifyController {
             @RequestParam(value = "returnUrl", required = false, defaultValue = "/") String returnUrl,
             HttpSession session) {
         try {
-            Long memberNo = (Long) session.getAttribute("memberNo");
+            Long memberNo = (Long) session.getAttribute(SESSION_MEMBER_NO);
             if (memberNo == null) {
                 return AdultVerifyCompleteVO.fail("로그인이 필요합니다.");
             }

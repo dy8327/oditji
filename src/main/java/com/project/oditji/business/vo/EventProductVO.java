@@ -21,8 +21,6 @@ public class EventProductVO {
     private long price;
     private int discountRate;
 
-    public EventProductVO() {
-    }
 
     public long getEventProdNo() {
         return eventProdNo;

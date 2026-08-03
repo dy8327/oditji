@@ -34,12 +34,45 @@ public class SearchContentPageCacheService {
     private static final String CATEGORY_VARIETY = "VARIETY";
     private static final String CATEGORY_DOCUMENTARY = "DOCUMENTARY";
 
+    private static final String GENRE_ANIMATION = "애니메이션";
+    private static final String GENRE_DOCUMENTARY = "다큐멘터리";
+
     private static final String AGE_ALL = "전체 관람가";
     private static final String AGE_7 = "7세 이상 관람가";
     private static final String AGE_12 = "12세 이상 관람가";
     private static final String AGE_15 = "15세 이상 관람가";
     private static final String AGE_ADULT = "청소년 관람불가";
     private static final String AGE_UNKNOWN = "등급 정보 없음";
+
+    private static final String SORT_RATING = "rating";
+    private static final String SORT_LATEST = "latest";
+    private static final String SORT_TITLE = "title";
+    private static final String SORT_POPULAR = "popular";
+
+    private static final String PLATFORM_NETFLIX = "netflix";
+    private static final String PLATFORM_TVING = "tving";
+    private static final String PLATFORM_WAVVE = "wavve";
+    private static final String PLATFORM_DISNEY = "disney";
+    private static final String PLATFORM_WATCHA = "watcha";
+    private static final String PLATFORM_COUPANG = "coupang";
+
+    private static final Map<String, String> LEGACY_PROVIDER_KEY_MAP = Map.of(
+            "8", PLATFORM_NETFLIX,
+            "1883", PLATFORM_TVING,
+            "356", PLATFORM_WAVVE,
+            "337", PLATFORM_DISNEY,
+            "97", PLATFORM_WATCHA,
+            "283", PLATFORM_COUPANG
+    );
+
+    private static final Set<String> SUPPORTED_PLATFORM_KEYS = Set.of(
+            PLATFORM_NETFLIX,
+            PLATFORM_TVING,
+            PLATFORM_WAVVE,
+            PLATFORM_DISNEY,
+            PLATFORM_WATCHA,
+            PLATFORM_COUPANG
+    );
 
     private final SearchContentStore searchContentStore;
     private final TmdbDAO tmdbDAO;
@@ -874,11 +907,11 @@ public class SearchContentPageCacheService {
                         genreText
                 );
 
-        if (genres.contains("애니메이션")) {
+        if (genres.contains(GENRE_ANIMATION)) {
             return CATEGORY_ANIMATION;
         }
 
-        if (genres.contains("다큐멘터리")) {
+        if (genres.contains(GENRE_DOCUMENTARY)) {
             return CATEGORY_DOCUMENTARY;
         }
 
@@ -912,8 +945,8 @@ public class SearchContentPageCacheService {
         Collections.addAll(
                 excludedGenres,
                 "드라마",
-                "애니메이션",
-                "다큐멘터리",
+                GENRE_ANIMATION,
+                GENRE_DOCUMENTARY,
                 "리얼리티",
                 "토크",
                 "연속극",
@@ -1180,82 +1213,90 @@ public class SearchContentPageCacheService {
                         type
                 );
 
-        Comparator<SearchResultVO> comparator;
+        contentList.sort(
+                createContentListComparator(
+                        normalizedSort
+                )
+        );
+    }
 
-        if ("rating".equals(normalizedSort)) {
+    private Comparator<SearchResultVO> createContentListComparator(
+            String normalizedSort) {
 
-            comparator =
-                    Comparator
-                            .comparing(
-                                    SearchResultVO::getTmdbScore,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            )
-                            .thenComparing(
-                                    SearchResultVO::getPopularity,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            );
+        return switch (normalizedSort) {
+            case SORT_RATING -> createRatingComparator();
+            case SORT_LATEST -> createLatestComparator();
+            case SORT_TITLE -> createTitleComparator();
+            default -> createPopularComparator();
+        };
+    }
 
-        } else if ("latest".equals(normalizedSort)) {
+    private Comparator<SearchResultVO> createRatingComparator() {
+        return Comparator
+                .comparing(
+                        SearchResultVO::getTmdbScore,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
+                .thenComparing(
+                        SearchResultVO::getPopularity,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                );
+    }
 
-            comparator =
-                    Comparator
-                            .comparing(
-                                    SearchResultVO::getReleaseDate,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            )
-                            .thenComparing(
-                                    SearchResultVO::getPopularity,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            )
-                            .thenComparing(
-                                    SearchResultVO::getTmdbScore,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            );
+    private Comparator<SearchResultVO> createLatestComparator() {
+        return Comparator
+                .comparing(
+                        SearchResultVO::getReleaseDate,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
+                .thenComparing(
+                        SearchResultVO::getPopularity,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
+                .thenComparing(
+                        SearchResultVO::getTmdbScore,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                );
+    }
 
-        } else if ("title".equals(normalizedSort)) {
+    private Comparator<SearchResultVO> createTitleComparator() {
+        return Comparator
+                .comparing(
+                        SearchResultVO::getTitle,
+                        String.CASE_INSENSITIVE_ORDER
+                )
+                .thenComparing(
+                        SearchResultVO::getPopularity,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                );
+    }
 
-            comparator =
-                    Comparator
-                            .comparing(
-                                    SearchResultVO::getTitle,
-                                    String.CASE_INSENSITIVE_ORDER
-                            )
-                            .thenComparing(
-                                    SearchResultVO::getPopularity,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            );
-
-        } else {
-
-            comparator =
-                    Comparator
-                            .comparing(
-                                    SearchResultVO::getPopularity,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            )
-                            .thenComparing(
-                                    SearchResultVO::getTmdbScore,
-                                    Comparator.nullsLast(
-                                            Comparator.reverseOrder()
-                                    )
-                            );
-        }
-
-        contentList.sort(comparator);
+    private Comparator<SearchResultVO> createPopularComparator() {
+        return Comparator
+                .comparing(
+                        SearchResultVO::getPopularity,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
+                .thenComparing(
+                        SearchResultVO::getTmdbScore,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                );
     }
 
     /**
@@ -1267,8 +1308,8 @@ public class SearchContentPageCacheService {
 
         String defaultSort =
                 "new".equals(type)
-                        ? "latest"
-                        : "popular";
+                        ? SORT_LATEST
+                        : SORT_POPULAR;
 
         if (sort == null
                 || sort.isBlank()) {
@@ -1280,10 +1321,10 @@ public class SearchContentPageCacheService {
                 sort.trim()
                         .toLowerCase(Locale.ROOT);
 
-        if ("popular".equals(normalized)
-                || "rating".equals(normalized)
-                || "latest".equals(normalized)
-                || "title".equals(normalized)) {
+        if (SORT_POPULAR.equals(normalized)
+                || SORT_RATING.equals(normalized)
+                || SORT_LATEST.equals(normalized)
+                || SORT_TITLE.equals(normalized)) {
 
             return normalized;
         }
@@ -1305,7 +1346,7 @@ public class SearchContentPageCacheService {
                                         Locale.ROOT
                                 );
 
-        if ("popular".equals(normalized)
+        if (SORT_POPULAR.equals(normalized)
                 || "new".equals(normalized)) {
 
             return normalized;
@@ -1349,12 +1390,10 @@ public class SearchContentPageCacheService {
                 Math.max(displayPage, 1);
 
         int normalizedPageSize =
-                Math.max(
+                Math.clamp(
+                        pageSize,
                         1,
-                        Math.min(
-                                pageSize,
-                                100
-                        )
+                        100
                 );
 
         List<SearchResultVO> filtered =
@@ -1677,10 +1716,10 @@ public class SearchContentPageCacheService {
                 );
 
         boolean animation =
-                genreText.contains("애니메이션");
+                genreText.contains(GENRE_ANIMATION);
 
         boolean documentary =
-                genreText.contains("다큐멘터리");
+                genreText.contains(GENRE_DOCUMENTARY);
 
         boolean variety =
                 genreText.contains("리얼리티")
@@ -2133,68 +2172,42 @@ public class SearchContentPageCacheService {
         }
 
         for (String providerId : providerIds) {
-
-            if (providerId == null
-                    || providerId.isBlank()) {
-
-                continue;
-            }
-
-            String rawValue =
-                    providerId.trim();
-
-            String normalizedValue =
-                    rawValue.toLowerCase(
-                            Locale.ROOT
-                    );
-
-            if ("8".equals(normalizedValue)) {
-                result.add("netflix");
-                continue;
-            }
-
-            if ("1883".equals(normalizedValue)) {
-                result.add("tving");
-                continue;
-            }
-
-            if ("356".equals(normalizedValue)) {
-                result.add("wavve");
-                continue;
-            }
-
-            if ("337".equals(normalizedValue)) {
-                result.add("disney");
-                continue;
-            }
-
-            if ("97".equals(normalizedValue)) {
-                result.add("watcha");
-                continue;
-            }
-
-            if ("283".equals(normalizedValue)) {
-                result.add("coupang");
-                continue;
-            }
-
             String platformKey =
-                    normalizePlatformName(
-                            rawValue
-                    );
+                    resolveProviderKey(providerId);
 
-            if ("netflix".equals(platformKey)
-                    || "tving".equals(platformKey)
-                    || "wavve".equals(platformKey)
-                    || "disney".equals(platformKey)
-                    || "watcha".equals(platformKey)
-                    || "coupang".equals(platformKey)) {
-
+            if (!platformKey.isEmpty()) {
                 result.add(platformKey);
             }
         }
 
         return result;
+    }
+
+    private String resolveProviderKey(
+            String providerId) {
+
+        if (providerId == null
+                || providerId.isBlank()) {
+
+            return "";
+        }
+
+        String rawValue =
+                providerId.trim();
+
+        String legacyPlatformKey =
+                LEGACY_PROVIDER_KEY_MAP.get(rawValue);
+
+        if (legacyPlatformKey != null) {
+            return legacyPlatformKey;
+        }
+
+        String platformKey =
+                normalizePlatformName(rawValue);
+
+        return SUPPORTED_PLATFORM_KEYS.contains(platformKey)
+                ? platformKey
+                : "";
     }
 
     private String normalizePlatformName(
@@ -2211,28 +2224,28 @@ public class SearchContentPageCacheService {
                                 ""
                         );
 
-        if (normalized.contains("netflix")) {
-            return "netflix";
+        if (normalized.contains(PLATFORM_NETFLIX)) {
+            return PLATFORM_NETFLIX;
         }
 
-        if (normalized.contains("tving")) {
-            return "tving";
+        if (normalized.contains(PLATFORM_TVING)) {
+            return PLATFORM_TVING;
         }
 
-        if (normalized.contains("wavve")) {
-            return "wavve";
+        if (normalized.contains(PLATFORM_WAVVE)) {
+            return PLATFORM_WAVVE;
         }
 
-        if (normalized.contains("disney")) {
-            return "disney";
+        if (normalized.contains(PLATFORM_DISNEY)) {
+            return PLATFORM_DISNEY;
         }
 
-        if (normalized.contains("watcha")) {
-            return "watcha";
+        if (normalized.contains(PLATFORM_WATCHA)) {
+            return PLATFORM_WATCHA;
         }
 
-        if (normalized.contains("coupang")) {
-            return "coupang";
+        if (normalized.contains(PLATFORM_COUPANG)) {
+            return PLATFORM_COUPANG;
         }
 
         return normalized;
@@ -2304,11 +2317,11 @@ public class SearchContentPageCacheService {
 
         names.put("ACTION", "액션");
         names.put("ADVENTURE", "모험");
-        names.put("ANIMATION", "애니메이션");
+        names.put(CATEGORY_ANIMATION, GENRE_ANIMATION);
         names.put("COMEDY", "코미디");
         names.put("CRIME", "범죄");
-        names.put("DOCUMENTARY", "다큐멘터리");
-        names.put("DRAMA", "드라마");
+        names.put(CATEGORY_DOCUMENTARY, GENRE_DOCUMENTARY);
+        names.put(CATEGORY_DRAMA, "드라마");
         names.put("FAMILY", "가족");
         names.put("FANTASY", "판타지");
         names.put("HISTORY", "역사");

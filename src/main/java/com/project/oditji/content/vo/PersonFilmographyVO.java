@@ -22,9 +22,6 @@ public class PersonFilmographyVO {
     private List<FilmographyVO> productionList =
             new ArrayList<FilmographyVO>();
 
-    public PersonFilmographyVO() {
-    }
-
     public Long getTmdbPersonId() {
         return tmdbPersonId;
     }

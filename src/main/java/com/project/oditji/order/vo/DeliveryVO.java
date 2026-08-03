@@ -32,9 +32,6 @@ public class DeliveryVO {
     private String status;
     private Date orderCreatedAt;
 
-    public DeliveryVO() {
-    }
-
     public Long getDeliveryNo() {
         return deliveryNo;
     }

@@ -13,9 +13,6 @@ public class FilmographyVO {
     private Double tmdbScore;
     private Double popularity;
 
-    public FilmographyVO() {
-    }
-
     public Long getTmdbId() {
         return tmdbId;
     }

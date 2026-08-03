@@ -8,6 +8,7 @@ import com.project.oditji.goods.vo.ProductOptionVO;
 
 public interface GoodsService {
 
+        @SuppressWarnings("java:S107")
         List<GoodsVO> searchGoods(
                         String keyword,
                         List<String> productTypes,
@@ -25,6 +26,7 @@ public interface GoodsService {
          * 기존 호출부 호환용 메서드입니다.
          * priceRanges, stockStatus를 전달하지 않으면 해당 조건 없이 조회합니다.
          */
+        @SuppressWarnings("java:S107")
         default List<GoodsVO> searchGoods(
                         String keyword,
                         List<String> productTypes,
@@ -54,6 +56,7 @@ public interface GoodsService {
          * 기존 호출부 호환용 메서드입니다.
          * 정렬 유형을 전달하지 않으면 전체 상품 최신순으로 조회합니다.
          */
+        @SuppressWarnings("java:S107")
         default List<GoodsVO> searchGoods(
                         String keyword,
                         List<String> productTypes,
@@ -78,6 +81,7 @@ public interface GoodsService {
                                 pageSize);
         }
 
+        @SuppressWarnings("java:S107")
         int countSearchGoods(
                         String keyword,
                         List<String> productTypes,

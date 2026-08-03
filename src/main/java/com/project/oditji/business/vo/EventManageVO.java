@@ -68,8 +68,6 @@ public class EventManageVO {
     private long businessNo;
 
 
-    public EventManageVO() {
-    }
 
 
     public long getEventNo() {

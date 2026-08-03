@@ -140,7 +140,9 @@ public class SearchContentPolicyService {
             return false;
         }
 
-        for (int index = 0; index < title.length();) {
+        int index = 0;
+
+        while (index < title.length()) {
 
             int codePoint = title.codePointAt(index);
             index += Character.charCount(codePoint);

@@ -10,9 +10,6 @@ public class ActorVO {
     private String characterName;
     private Integer displayOrder;
 
-    public ActorVO() {
-    }
-
     public Integer getActorNo() {
         return actorNo;
     }

@@ -1,5 +1,7 @@
 package com.project.oditji.content.scheduler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +18,8 @@ import com.project.oditji.content.service.ContentService;
  */
 @Component
 public class ContentViewHistoryCleanupScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(ContentViewHistoryCleanupScheduler.class);
 
     private final ContentService contentService;
 
@@ -69,22 +73,12 @@ public class ContentViewHistoryCleanupScheduler {
 
             if (deletedCount > 0) {
 
-                System.out.println(
-                        "[콘텐츠 조회 이력 정리] "
-                        + executionType
-                        + " / 삭제된 기록: "
-                        + deletedCount
-                );
+                log.info("[콘텐츠 조회 이력 정리] {} / 삭제된 기록: {}", executionType, deletedCount);
             }
 
         } catch (Exception e) {
 
-            System.err.println(
-                    "[콘텐츠 조회 이력 정리 실패] "
-                    + executionType
-                    + " / "
-                    + e.getMessage()
-            );
+            log.error("[콘텐츠 조회 이력 정리 실패] {}", executionType, e);
         }
     }
 }

@@ -18,6 +18,8 @@ import com.project.oditji.report.vo.ReportVO;
 @Service
 public class ReportServiceImpl implements ReportService {
 
+    private static final String CONTENT_REVIEW_TYPE = "CONTENT";
+
     private final ReportDAO reportDAO;
     private final NotificationService notificationService;
 
@@ -39,12 +41,12 @@ public class ReportServiceImpl implements ReportService {
 
         String normalizedType = reviewType == null ? "" : reviewType.trim().toUpperCase(Locale.ROOT);
 
-        if (!"CONTENT".equals(normalizedType) && !"PRODUCT".equals(normalizedType)) {
+        if (!CONTENT_REVIEW_TYPE.equals(normalizedType) && !"PRODUCT".equals(normalizedType)) {
 
             throw new IllegalArgumentException("잘못된 신고 대상입니다.");
         }
 
-        if ("CONTENT".equals(normalizedType) && (contentReviewNo == null || contentReviewNo <= 0)) {
+        if (CONTENT_REVIEW_TYPE.equals(normalizedType) && (contentReviewNo == null || contentReviewNo <= 0)) {
 
             throw new IllegalArgumentException("신고할 리뷰 정보가 없습니다.");
         }
@@ -100,7 +102,7 @@ public class ReportServiceImpl implements ReportService {
             Integer contentReviewNo,
             Integer productReviewNo) {
 
-        boolean contentReport = "CONTENT".equals(reviewType);
+        boolean contentReport = CONTENT_REVIEW_TYPE.equals(reviewType);
         Long reviewNo = contentReport
                 ? Long.valueOf(contentReviewNo)
                 : Long.valueOf(productReviewNo);

@@ -20,9 +20,6 @@ public class ReviewVO {
     private Date createdAt;
     private Date updatedAt;
 
-    public ReviewVO() {
-    }
-
     public Long getReviewNo() {
         return reviewNo;
     }

@@ -35,6 +35,35 @@ public class TmdbServiceImpl implements TmdbService {
     private static final int TV_LOAD_PAGE_COUNT = 15;
     private static final int CAST_SAVE_LIMIT = 5;
 
+    private static final String API_TYPE_MOVIE = "movie";
+    private static final String CONTENT_TYPE_MOVIE = "MOVIE";
+    private static final String QUERY_LANGUAGE = "?language=";
+    private static final String JSON_RESULTS = "results";
+    private static final String JSON_TITLE = "title";
+    private static final String JSON_ORIGINAL_TITLE = "original_title";
+    private static final String JSON_RELEASE_DATE = "release_date";
+    private static final String JSON_ORIGINAL_NAME = "original_name";
+    private static final String JSON_FIRST_AIR_DATE = "first_air_date";
+    private static final String JSON_OVERVIEW = "overview";
+    private static final String JSON_POSTER_PATH = "poster_path";
+    private static final String JSON_BACKDROP_PATH = "backdrop_path";
+    private static final String JSON_VOTE_AVERAGE = "vote_average";
+    private static final String JSON_GENRES = "genres";
+    private static final String JSON_CREDITS = "credits";
+    private static final String JSON_CREATED_BY = "created_by";
+    private static final String JSON_PROFILE_PATH = "profile_path";
+    private static final String JSON_CHARACTER = "character";
+    private static final String JSON_MEDIA_TYPE = "media_type";
+    private static final String JOB_DIRECTOR = "Director";
+    private static final String ROLE_DIRECTOR = "DIRECTOR";
+    private static final String AGE_RATING_UNKNOWN = "UNKNOWN";
+    private static final String PLATFORM_KEY_NETFLIX = "netflix";
+    private static final String PLATFORM_KEY_TVING = "tving";
+    private static final String PLATFORM_KEY_WAVVE = "wavve";
+    private static final String PLATFORM_KEY_DISNEY = "disney";
+    private static final String PLATFORM_KEY_WATCHA = "watcha";
+    private static final String PLATFORM_KEY_COUPANG = "coupang";
+
     private static final Map<Integer, String> MOVIE_GENRES =
             createMovieGenreMap();
 
@@ -68,8 +97,8 @@ public class TmdbServiceImpl implements TmdbService {
     @Override
     public int loadMovieData() {
         return loadBasicData(
-                "movie",
-                "MOVIE",
+                API_TYPE_MOVIE,
+                CONTENT_TYPE_MOVIE,
                 MOVIE_LOAD_PAGE_COUNT);
     }
 
@@ -97,17 +126,17 @@ public class TmdbServiceImpl implements TmdbService {
 
             String url = tmdbApiBaseUrl
                     + "/discover/" + apiType
-                    + "?language=" + tmdbApiLanguage
+                    + QUERY_LANGUAGE + tmdbApiLanguage
                     + "&region=" + tmdbApiRegion
                     + "&watch_region=" + tmdbApiRegion
                     + "&include_adult=false"
-                    + ("movie".equals(apiType) ? "&include_video=false" : "")
+                    + (API_TYPE_MOVIE.equals(apiType) ? "&include_video=false" : "")
                     + "&with_watch_monetization_types=flatrate"
                     + "&with_watch_providers=" + providerIds
                     + "&sort_by=popularity.desc"
                     + "&page=" + page;
 
-            JsonNode results = callTmdbApi(url).path("results");
+            JsonNode results = callTmdbApi(url).path(JSON_RESULTS);
 
             if (!results.isArray()) {
                 continue;
@@ -141,35 +170,35 @@ public class TmdbServiceImpl implements TmdbService {
         vo.setTmdbId(item.path("id").asLong());
         vo.setContentType(contentType);
 
-        if ("MOVIE".equals(contentType)) {
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
             vo.setTitle(firstNonBlank(
-                    item.path("title").asString(null),
-                    item.path("original_title").asString(null)));
-            vo.setOriginalTitle(item.path("original_title").asString(null));
+                    item.path(JSON_TITLE).asString(null),
+                    item.path(JSON_ORIGINAL_TITLE).asString(null)));
+            vo.setOriginalTitle(item.path(JSON_ORIGINAL_TITLE).asString(null));
             vo.setReleaseDate(parseDate(
-                    item.path("release_date").asString(null)));
+                    item.path(JSON_RELEASE_DATE).asString(null)));
         } else {
             vo.setTitle(firstNonBlank(
                     item.path("name").asString(null),
-                    item.path("original_name").asString(null)));
-            vo.setOriginalTitle(item.path("original_name").asString(null));
+                    item.path(JSON_ORIGINAL_NAME).asString(null)));
+            vo.setOriginalTitle(item.path(JSON_ORIGINAL_NAME).asString(null));
             vo.setReleaseDate(parseDate(
-                    item.path("first_air_date").asString(null)));
+                    item.path(JSON_FIRST_AIR_DATE).asString(null)));
         }
 
-        vo.setOverview(item.path("overview").asString(null));
-        vo.setPosterPath(item.path("poster_path").asString(null));
-        vo.setBackdropPath(item.path("backdrop_path").asString(null));
+        vo.setOverview(item.path(JSON_OVERVIEW).asString(null));
+        vo.setPosterPath(item.path(JSON_POSTER_PATH).asString(null));
+        vo.setBackdropPath(item.path(JSON_BACKDROP_PATH).asString(null));
         vo.setGenreText(convertGenreIdsToText(
                 item.path("genre_ids"), contentType));
-        vo.setTmdbScore(nullableDouble(item.path("vote_average")));
+        vo.setTmdbScore(nullableDouble(item.path(JSON_VOTE_AVERAGE)));
 
         return vo;
     }
 
     @Override
     public int updateMovieDetailData() {
-        return updateDetailData("MOVIE");
+        return updateDetailData(CONTENT_TYPE_MOVIE);
     }
 
     @Override
@@ -190,7 +219,7 @@ public class TmdbServiceImpl implements TmdbService {
             JsonNode root = getDetailRoot(
                     vo.getTmdbId(), contentType, true);
 
-            if ("MOVIE".equals(contentType)) {
+            if (CONTENT_TYPE_MOVIE.equals(contentType)) {
                 fillMovieDetail(vo, root);
             } else {
                 fillTvDetail(vo, root);
@@ -212,30 +241,30 @@ public class TmdbServiceImpl implements TmdbService {
     }
 
     private void fillMovieDetail(TmdbVO vo, JsonNode root) {
-        vo.setGenreText(parseGenreText(root.path("genres")));
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
         vo.setRuntime(nullableInt(root.path("runtime")));
         vo.setEpisodeCount(null);
         vo.setDirector(limitLength(
-                parseDirector(root.path("credits").path("crew")), 100));
+                parseDirector(root.path(JSON_CREDITS).path("crew")), 100));
         vo.setCastNames(limitLength(
-                parseCastNames(root.path("credits").path("cast")), 500));
+                parseCastNames(root.path(JSON_CREDITS).path("cast")), 500));
         vo.setAgeRating(extractMovieAgeRating(root));
     }
 
     private void fillTvDetail(TmdbVO vo, JsonNode root) {
-        vo.setGenreText(parseGenreText(root.path("genres")));
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
         vo.setRuntime(parseTvRuntime(root.path("episode_run_time")));
         vo.setEpisodeCount(nullableInt(root.path("number_of_episodes")));
         vo.setDirector(limitLength(
-                parseTvCreator(root.path("created_by")), 100));
+                parseTvCreator(root.path(JSON_CREATED_BY)), 100));
         vo.setCastNames(limitLength(
-                parseCastNames(root.path("credits").path("cast")), 500));
+                parseCastNames(root.path(JSON_CREDITS).path("cast")), 500));
         vo.setAgeRating(extractTvAgeRating(root));
     }
 
     @Override
     public int loadMoviePlatformData() {
-        return loadPlatformData("MOVIE");
+        return loadPlatformData(CONTENT_TYPE_MOVIE);
     }
 
     @Override
@@ -302,7 +331,7 @@ public class TmdbServiceImpl implements TmdbService {
                 ? ""
                 : contentType.trim().toUpperCase(Locale.ROOT);
 
-        if ("MOVIE".equals(normalizedType)) {
+        if (CONTENT_TYPE_MOVIE.equals(normalizedType)) {
             return createMovieContentVO(tmdbId);
         }
 
@@ -458,28 +487,28 @@ public class TmdbServiceImpl implements TmdbService {
                         .toLowerCase(Locale.ROOT)
                         .replaceAll("[^a-z0-9]", "");
 
-        if (normalized.contains("netflix")) {
-            return "netflix";
+        if (normalized.contains(PLATFORM_KEY_NETFLIX)) {
+            return PLATFORM_KEY_NETFLIX;
         }
 
-        if (normalized.contains("tving")) {
-            return "tving";
+        if (normalized.contains(PLATFORM_KEY_TVING)) {
+            return PLATFORM_KEY_TVING;
         }
 
-        if (normalized.contains("wavve")) {
-            return "wavve";
+        if (normalized.contains(PLATFORM_KEY_WAVVE)) {
+            return PLATFORM_KEY_WAVVE;
         }
 
-        if (normalized.contains("disney")) {
-            return "disney";
+        if (normalized.contains(PLATFORM_KEY_DISNEY)) {
+            return PLATFORM_KEY_DISNEY;
         }
 
-        if (normalized.contains("watcha")) {
-            return "watcha";
+        if (normalized.contains(PLATFORM_KEY_WATCHA)) {
+            return PLATFORM_KEY_WATCHA;
         }
 
-        if (normalized.contains("coupang")) {
-            return "coupang";
+        if (normalized.contains(PLATFORM_KEY_COUPANG)) {
+            return PLATFORM_KEY_COUPANG;
         }
 
         return "";
@@ -492,27 +521,27 @@ public class TmdbServiceImpl implements TmdbService {
     private String convertPlatformKeyToDbName(
             String platformKey) {
 
-        if ("netflix".equals(platformKey)) {
+        if (PLATFORM_KEY_NETFLIX.equals(platformKey)) {
             return "Netflix";
         }
 
-        if ("tving".equals(platformKey)) {
+        if (PLATFORM_KEY_TVING.equals(platformKey)) {
             return "TVING";
         }
 
-        if ("wavve".equals(platformKey)) {
-            return "wavve";
+        if (PLATFORM_KEY_WAVVE.equals(platformKey)) {
+            return PLATFORM_KEY_WAVVE;
         }
 
-        if ("disney".equals(platformKey)) {
+        if (PLATFORM_KEY_DISNEY.equals(platformKey)) {
             return "Disney Plus";
         }
 
-        if ("watcha".equals(platformKey)) {
+        if (PLATFORM_KEY_WATCHA.equals(platformKey)) {
             return "Watcha";
         }
 
-        if ("coupang".equals(platformKey)) {
+        if (PLATFORM_KEY_COUPANG.equals(platformKey)) {
             return "Coupangplay";
         }
 
@@ -525,14 +554,14 @@ public class TmdbServiceImpl implements TmdbService {
             String contentType) {
 
         String apiType =
-                "MOVIE".equals(contentType) ? "movie" : "tv";
+                CONTENT_TYPE_MOVIE.equals(contentType) ? API_TYPE_MOVIE : "tv";
 
         JsonNode flatrate = callTmdbApi(
                 tmdbApiBaseUrl
                 + "/" + apiType
                 + "/" + tmdbId
                 + "/watch/providers")
-                .path("results")
+                .path(JSON_RESULTS)
                 .path(tmdbApiRegion)
                 .path("flatrate");
 
@@ -591,7 +620,7 @@ public class TmdbServiceImpl implements TmdbService {
                 contentType.trim()
                         .toUpperCase(Locale.ROOT);
 
-        if (!"MOVIE".equals(normalizedType)
+        if (!CONTENT_TYPE_MOVIE.equals(normalizedType)
                 && !"TV".equals(normalizedType)) {
 
             throw new IllegalArgumentException(
@@ -604,7 +633,7 @@ public class TmdbServiceImpl implements TmdbService {
                         tmdbId,
                         normalizedType,
                         true
-                ).path("credits").path("cast");
+                ).path(JSON_CREDITS).path("cast");
 
         if (!castNode.isArray()) {
             return Collections.emptyList();
@@ -634,11 +663,11 @@ public class TmdbServiceImpl implements TmdbService {
             actor.setTmdbActorId(tmdbActorId);
             actor.setActorName(limitLength(actorName, 100));
             actor.setProfilePath(
-                    cast.path("profile_path").asString(null)
+                    cast.path(JSON_PROFILE_PATH).asString(null)
             );
             actor.setCharacterName(
                     limitLength(
-                            cast.path("character").asString(null),
+                            cast.path(JSON_CHARACTER).asString(null),
                             100
                     )
             );
@@ -684,53 +713,53 @@ public class TmdbServiceImpl implements TmdbService {
 
         saveActorData(
                 contentNo,
-                root.path("credits").path("cast"));
+                root.path(JSON_CREDITS).path("cast"));
 
-        if ("MOVIE".equals(contentType)) {
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
             saveMovieDirectorData(
                     contentNo,
-                    root.path("credits").path("crew"));
+                    root.path(JSON_CREDITS).path("crew"));
         } else {
             saveTvCreatorData(
                     contentNo,
-                    root.path("created_by"));
+                    root.path(JSON_CREATED_BY));
 
             saveMovieDirectorData(
                     contentNo,
-                    root.path("credits").path("crew"));
+                    root.path(JSON_CREDITS).path("crew"));
         }
     }
 
     private ContentVO createMovieContentVO(Long tmdbId) {
 
         JsonNode root =
-                getDetailRoot(tmdbId, "MOVIE", true);
+                getDetailRoot(tmdbId, CONTENT_TYPE_MOVIE, true);
 
         ContentVO vo = new ContentVO();
         vo.setTmdbId(root.path("id").asLong());
-        vo.setContentType("MOVIE");
+        vo.setContentType(CONTENT_TYPE_MOVIE);
         vo.setTitle(firstNonBlank(
-                root.path("title").asString(null),
-                root.path("original_title").asString(null)));
+                root.path(JSON_TITLE).asString(null),
+                root.path(JSON_ORIGINAL_TITLE).asString(null)));
         vo.setOriginalTitle(
-                root.path("original_title").asString(null));
-        vo.setOverview(root.path("overview").asString(null));
-        vo.setPosterPath(root.path("poster_path").asString(null));
-        vo.setBackdropPath(root.path("backdrop_path").asString(null));
+                root.path(JSON_ORIGINAL_TITLE).asString(null));
+        vo.setOverview(root.path(JSON_OVERVIEW).asString(null));
+        vo.setPosterPath(root.path(JSON_POSTER_PATH).asString(null));
+        vo.setBackdropPath(root.path(JSON_BACKDROP_PATH).asString(null));
         vo.setReleaseDate(parseDate(
-                root.path("release_date").asString(null)));
-        vo.setGenreText(parseGenreText(root.path("genres")));
+                root.path(JSON_RELEASE_DATE).asString(null)));
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
         vo.setRuntime(nullableInt(root.path("runtime")));
         vo.setEpisodeCount(null);
         vo.setDirector(limitLength(
-                parseDirector(root.path("credits").path("crew")),
+                parseDirector(root.path(JSON_CREDITS).path("crew")),
                 100));
         vo.setCastNames(limitLength(
-                parseCastNames(root.path("credits").path("cast")),
+                parseCastNames(root.path(JSON_CREDITS).path("cast")),
                 500));
         vo.setAgeRating(extractMovieAgeRating(root));
         vo.setTmdbScore(nullableDouble(
-                root.path("vote_average")));
+                root.path(JSON_VOTE_AVERAGE)));
 
         return vo;
     }
@@ -745,28 +774,28 @@ public class TmdbServiceImpl implements TmdbService {
         vo.setContentType("TV");
         vo.setTitle(firstNonBlank(
                 root.path("name").asString(null),
-                root.path("original_name").asString(null)));
+                root.path(JSON_ORIGINAL_NAME).asString(null)));
         vo.setOriginalTitle(
-                root.path("original_name").asString(null));
-        vo.setOverview(root.path("overview").asString(null));
-        vo.setPosterPath(root.path("poster_path").asString(null));
-        vo.setBackdropPath(root.path("backdrop_path").asString(null));
+                root.path(JSON_ORIGINAL_NAME).asString(null));
+        vo.setOverview(root.path(JSON_OVERVIEW).asString(null));
+        vo.setPosterPath(root.path(JSON_POSTER_PATH).asString(null));
+        vo.setBackdropPath(root.path(JSON_BACKDROP_PATH).asString(null));
         vo.setReleaseDate(parseDate(
-                root.path("first_air_date").asString(null)));
-        vo.setGenreText(parseGenreText(root.path("genres")));
+                root.path(JSON_FIRST_AIR_DATE).asString(null)));
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
         vo.setRuntime(parseTvRuntime(
                 root.path("episode_run_time")));
         vo.setEpisodeCount(nullableInt(
                 root.path("number_of_episodes")));
         vo.setDirector(limitLength(
-                parseTvCreator(root.path("created_by")),
+                parseTvCreator(root.path(JSON_CREATED_BY)),
                 100));
         vo.setCastNames(limitLength(
-                parseCastNames(root.path("credits").path("cast")),
+                parseCastNames(root.path(JSON_CREDITS).path("cast")),
                 500));
         vo.setAgeRating(extractTvAgeRating(root));
         vo.setTmdbScore(nullableDouble(
-                root.path("vote_average")));
+                root.path(JSON_VOTE_AVERAGE)));
 
         return vo;
     }
@@ -776,11 +805,11 @@ public class TmdbServiceImpl implements TmdbService {
             String contentType,
             boolean includeCredits) {
 
-        if ("MOVIE".equals(contentType)) {
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
             return callTmdbApi(
                     tmdbApiBaseUrl
                     + "/movie/" + tmdbId
-                    + "?language=" + tmdbApiLanguage
+                    + QUERY_LANGUAGE + tmdbApiLanguage
                     + (includeCredits
                             ? "&append_to_response=credits,release_dates"
                             : ""));
@@ -789,7 +818,7 @@ public class TmdbServiceImpl implements TmdbService {
         return callTmdbApi(
                 tmdbApiBaseUrl
                 + "/tv/" + tmdbId
-                + "?language=" + tmdbApiLanguage
+                + QUERY_LANGUAGE + tmdbApiLanguage
                 + (includeCredits
                         ? "&append_to_response=credits,content_ratings"
                         : ""));
@@ -829,7 +858,7 @@ public class TmdbServiceImpl implements TmdbService {
                 actor.setActorName(
                         limitLength(actorName, 100));
                 actor.setProfilePath(
-                        cast.path("profile_path").asString(null));
+                        cast.path(JSON_PROFILE_PATH).asString(null));
                 tmdbDAO.insertActor(actor);
                 actorNo =
                         tmdbDAO.findActorNoByTmdbId(tmdbActorId);
@@ -842,7 +871,7 @@ public class TmdbServiceImpl implements TmdbService {
                         contentNo,
                         actorNo,
                         limitLength(
-                                cast.path("character").asString(null),
+                                cast.path(JSON_CHARACTER).asString(null),
                                 100),
                         displayOrder);
             }
@@ -863,7 +892,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode crew : crewNode) {
 
-            if (!"Director".equals(
+            if (!JOB_DIRECTOR.equals(
                     crew.path("job").asString(null))) {
                 continue;
             }
@@ -871,7 +900,7 @@ public class TmdbServiceImpl implements TmdbService {
             saveDirectorRelation(
                     contentNo,
                     crew,
-                    "DIRECTOR",
+                    ROLE_DIRECTOR,
                     displayOrder++);
         }
     }
@@ -924,7 +953,7 @@ public class TmdbServiceImpl implements TmdbService {
             director.setDirectorName(
                     limitLength(directorName, 100));
             director.setProfilePath(
-                    personNode.path("profile_path")
+                    personNode.path(JSON_PROFILE_PATH)
                             .asString(null));
             tmdbDAO.insertDirector(director);
 
@@ -953,9 +982,9 @@ public class TmdbServiceImpl implements TmdbService {
         JsonNode results = callTmdbApi(
                 tmdbApiBaseUrl
                 + "/watch/providers/" + apiType
-                + "?language=" + tmdbApiLanguage
+                + QUERY_LANGUAGE + tmdbApiLanguage
                 + "&watch_region=" + tmdbApiRegion)
-                .path("results");
+                .path(JSON_RESULTS);
 
         if (!results.isArray()) {
             return "";
@@ -1001,27 +1030,27 @@ public class TmdbServiceImpl implements TmdbService {
                 .replace("-", "")
                 .replace("+", "");
 
-        if (normalized.contains("netflix")) {
+        if (normalized.contains(PLATFORM_KEY_NETFLIX)) {
             return "Netflix";
         }
 
-        if (normalized.contains("tving")) {
+        if (normalized.contains(PLATFORM_KEY_TVING)) {
             return "TVING";
         }
 
-        if (normalized.contains("wavve")) {
+        if (normalized.contains(PLATFORM_KEY_WAVVE)) {
             return "Wavve";
         }
 
-        if (normalized.contains("disney")) {
+        if (normalized.contains(PLATFORM_KEY_DISNEY)) {
             return "Disney Plus";
         }
 
-        if (normalized.contains("watcha")) {
+        if (normalized.contains(PLATFORM_KEY_WATCHA)) {
             return "Watcha";
         }
 
-        if (normalized.contains("coupang")) {
+        if (normalized.contains(PLATFORM_KEY_COUPANG)) {
             return "Coupangplay";
         }
 
@@ -1039,14 +1068,14 @@ public class TmdbServiceImpl implements TmdbService {
         }
 
         String title = firstNonBlank(
-                item.path("title").asString(null),
+                item.path(JSON_TITLE).asString(null),
                 item.path("name").asString(null));
 
         String originalTitle = firstNonBlank(
-                item.path("original_title").asString(null),
-                item.path("original_name").asString(null));
+                item.path(JSON_ORIGINAL_TITLE).asString(null),
+                item.path(JSON_ORIGINAL_NAME).asString(null));
 
-        String overview = item.path("overview").asString("");
+        String overview = item.path(JSON_OVERVIEW).asString("");
 
         String checkText = normalizeBlockedText(
                 (title == null ? "" : title)
@@ -1118,7 +1147,7 @@ public class TmdbServiceImpl implements TmdbService {
             int genreId,
             String contentType) {
 
-        return "MOVIE".equals(contentType)
+        return CONTENT_TYPE_MOVIE.equals(contentType)
                 ? MOVIE_GENRES.get(genreId)
                 : TV_GENRES.get(genreId);
     }
@@ -1245,7 +1274,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode crew : crewNode) {
 
-            if (!"Director".equals(
+            if (!JOB_DIRECTOR.equals(
                     crew.path("job").asString(null))) {
                 continue;
             }
@@ -1331,10 +1360,10 @@ public class TmdbServiceImpl implements TmdbService {
     private String extractMovieAgeRating(JsonNode root) {
 
         JsonNode results =
-                root.path("release_dates").path("results");
+                root.path("release_dates").path(JSON_RESULTS);
 
         if (!results.isArray()) {
-            return "UNKNOWN";
+            return AGE_RATING_UNKNOWN;
         }
 
         String usRating = null;
@@ -1344,52 +1373,75 @@ public class TmdbServiceImpl implements TmdbService {
             String countryCode =
                     country.path("iso_3166_1").asString(null);
 
-            if (!"KR".equals(countryCode)
-                    && !"US".equals(countryCode)) {
+            if (!isSupportedAgeRatingCountry(countryCode)) {
                 continue;
             }
 
-            JsonNode dates =
-                    country.path("release_dates");
+            String converted = extractMovieCountryAgeRating(
+                    country,
+                    countryCode
+            );
 
-            if (!dates.isArray()) {
+            if (converted == null) {
                 continue;
             }
 
-            for (JsonNode item : dates) {
+            if ("KR".equals(countryCode)) {
+                return converted;
+            }
 
-                String converted = convertAgeRating(
-                        countryCode,
-                        item.path("certification")
-                                .asString(null),
-                        false);
-
-                if (converted == null) {
-                    continue;
-                }
-
-                if ("KR".equals(countryCode)) {
-                    return converted;
-                }
-
-                if (usRating == null) {
-                    usRating = converted;
-                }
+            if (usRating == null) {
+                usRating = converted;
             }
         }
 
         return usRating == null
-                ? "UNKNOWN"
+                ? AGE_RATING_UNKNOWN
                 : usRating;
+    }
+
+    private boolean isSupportedAgeRatingCountry(
+            String countryCode) {
+
+        return "KR".equals(countryCode)
+                || "US".equals(countryCode);
+    }
+
+    private String extractMovieCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
+
+        JsonNode dates =
+                country.path("release_dates");
+
+        if (!dates.isArray()) {
+            return null;
+        }
+
+        for (JsonNode item : dates) {
+
+            String converted = convertAgeRating(
+                    countryCode,
+                    item.path("certification")
+                            .asString(null),
+                    false
+            );
+
+            if (converted != null) {
+                return converted;
+            }
+        }
+
+        return null;
     }
 
     private String extractTvAgeRating(JsonNode root) {
 
         JsonNode results =
-                root.path("content_ratings").path("results");
+                root.path("content_ratings").path(JSON_RESULTS);
 
         if (!results.isArray()) {
-            return "UNKNOWN";
+            return AGE_RATING_UNKNOWN;
         }
 
         String usRating = null;
@@ -1423,7 +1475,7 @@ public class TmdbServiceImpl implements TmdbService {
         }
 
         return usRating == null
-                ? "UNKNOWN"
+                ? AGE_RATING_UNKNOWN
                 : usRating;
     }
 
@@ -1444,62 +1496,90 @@ public class TmdbServiceImpl implements TmdbService {
                 .replace("_", "");
 
         if ("KR".equals(countryCode)) {
-            if (value.contains("ALL")
-                    || value.contains("전체")
-                    || "7".equals(value)
-                    || value.contains("7세")) {
-                return "ALL";
-            }
-            if (value.contains("12")) {
-                return "12";
-            }
-            if (value.contains("15")) {
-                return "15";
-            }
-            if (value.contains("18")
-                    || value.contains("19")
-                    || value.contains("청소년")) {
-                return "18";
-            }
-            return "UNKNOWN";
+            return convertKoreanAgeRating(value);
         }
 
         if (!"US".equals(countryCode)) {
             return null;
         }
 
-        if (tv) {
-            if ("TVY".equals(value)
-                    || "TVY7".equals(value)
-                    || "TVG".equals(value)) {
-                return "ALL";
-            }
-            if ("TVPG".equals(value)) {
-                return "12";
-            }
-            if ("TV14".equals(value)) {
-                return "15";
-            }
-            if ("TVMA".equals(value)) {
-                return "18";
-            }
-        } else {
-            if ("G".equals(value)) {
-                return "ALL";
-            }
-            if ("PG".equals(value)) {
-                return "12";
-            }
-            if ("PG13".equals(value)) {
-                return "15";
-            }
-            if ("R".equals(value)
-                    || "NC17".equals(value)) {
-                return "18";
-            }
+        return tv
+                ? convertUsTvAgeRating(value)
+                : convertUsMovieAgeRating(value);
+    }
+
+    private String convertKoreanAgeRating(
+            String value) {
+
+        if (value.contains("ALL")
+                || value.contains("전체")
+                || "7".equals(value)
+                || value.contains("7세")) {
+            return "ALL";
         }
 
-        return "UNKNOWN";
+        if (value.contains("12")) {
+            return "12";
+        }
+
+        if (value.contains("15")) {
+            return "15";
+        }
+
+        if (value.contains("18")
+                || value.contains("19")
+                || value.contains("청소년")) {
+            return "18";
+        }
+
+        return AGE_RATING_UNKNOWN;
+    }
+
+    private String convertUsTvAgeRating(
+            String value) {
+
+        if ("TVY".equals(value)
+                || "TVY7".equals(value)
+                || "TVG".equals(value)) {
+            return "ALL";
+        }
+
+        if ("TVPG".equals(value)) {
+            return "12";
+        }
+
+        if ("TV14".equals(value)) {
+            return "15";
+        }
+
+        if ("TVMA".equals(value)) {
+            return "18";
+        }
+
+        return AGE_RATING_UNKNOWN;
+    }
+
+    private String convertUsMovieAgeRating(
+            String value) {
+
+        if ("G".equals(value)) {
+            return "ALL";
+        }
+
+        if ("PG".equals(value)) {
+            return "12";
+        }
+
+        if ("PG13".equals(value)) {
+            return "15";
+        }
+
+        if ("R".equals(value)
+                || "NC17".equals(value)) {
+            return "18";
+        }
+
+        return AGE_RATING_UNKNOWN;
     }
 
     private String firstNonBlank(
@@ -1565,7 +1645,7 @@ public class TmdbServiceImpl implements TmdbService {
                 : role.trim().toUpperCase(Locale.ROOT);
 
         if (!"ACTOR".equals(normalizedRole)
-                && !"DIRECTOR".equals(normalizedRole)
+                && !ROLE_DIRECTOR.equals(normalizedRole)
                 && !"CREATOR".equals(normalizedRole)) {
             throw new IllegalArgumentException(
                     "지원하지 않는 인물 역할입니다: " + role);
@@ -1573,7 +1653,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         String url = tmdbApiBaseUrl
                 + "/person/" + tmdbPersonId
-                + "?language=" + tmdbApiLanguage
+                + QUERY_LANGUAGE + tmdbApiLanguage
                 + "&append_to_response=combined_credits";
 
         JsonNode root = callTmdbApi(url);
@@ -1581,7 +1661,7 @@ public class TmdbServiceImpl implements TmdbService {
         PersonFilmographyVO person = new PersonFilmographyVO();
         person.setTmdbPersonId(tmdbPersonId);
         person.setPersonName(root.path("name").asString(null));
-        person.setProfilePath(root.path("profile_path").asString(null));
+        person.setProfilePath(root.path(JSON_PROFILE_PATH).asString(null));
         person.setBiography(root.path("biography").asString(null));
         person.setBirthday(root.path("birthday").asString(null));
         person.setPlaceOfBirth(root.path("place_of_birth").asString(null));
@@ -1594,7 +1674,7 @@ public class TmdbServiceImpl implements TmdbService {
 
         person.setDirectorList(createCrewFilmographyList(
                 credits.path("crew"),
-                "DIRECTOR"));
+                ROLE_DIRECTOR));
 
         person.setProductionList(createCrewFilmographyList(
                 credits.path("crew"),
@@ -1624,11 +1704,11 @@ public class TmdbServiceImpl implements TmdbService {
 
             filmography.setParticipationCategory("CAST");
             filmography.setParticipationName(
-                    item.path("character").asString(null));
+                    item.path(JSON_CHARACTER).asString(null));
 
             putFilmographyWithPriority(
                     uniqueMap,
-                    item.path("media_type").asString(),
+                    item.path(JSON_MEDIA_TYPE).asString(),
                     filmography);
         }
 
@@ -1654,8 +1734,8 @@ public class TmdbServiceImpl implements TmdbService {
 
             boolean matches;
 
-            if ("DIRECTOR".equals(category)) {
-                matches = "Director".equalsIgnoreCase(job);
+            if (ROLE_DIRECTOR.equals(category)) {
+                matches = JOB_DIRECTOR.equalsIgnoreCase(job);
             } else {
                 matches = isProductionParticipation(
                         job, department);
@@ -1678,7 +1758,7 @@ public class TmdbServiceImpl implements TmdbService {
 
             putFilmographyWithPriority(
                     uniqueMap,
-                    item.path("media_type").asString(),
+                    item.path(JSON_MEDIA_TYPE).asString(),
                     filmography);
         }
 
@@ -1694,9 +1774,9 @@ public class TmdbServiceImpl implements TmdbService {
         }
 
         String mediaType =
-                item.path("media_type").asString(null);
+                item.path(JSON_MEDIA_TYPE).asString(null);
 
-        if (!"movie".equals(mediaType)
+        if (!API_TYPE_MOVIE.equals(mediaType)
                 && !"tv".equals(mediaType)) {
             return null;
         }
@@ -1712,27 +1792,27 @@ public class TmdbServiceImpl implements TmdbService {
 
         filmography.setTmdbId(tmdbId);
         filmography.setContentType(
-                "movie".equals(mediaType)
-                        ? "MOVIE"
+                API_TYPE_MOVIE.equals(mediaType)
+                        ? CONTENT_TYPE_MOVIE
                         : "TV");
 
         filmography.setTitle(firstNonBlank(
-                item.path("title").asString(null),
+                item.path(JSON_TITLE).asString(null),
                 item.path("name").asString(null)));
 
         filmography.setOriginalTitle(firstNonBlank(
-                item.path("original_title").asString(null),
-                item.path("original_name").asString(null)));
+                item.path(JSON_ORIGINAL_TITLE).asString(null),
+                item.path(JSON_ORIGINAL_NAME).asString(null)));
 
         filmography.setPosterPath(
-                item.path("poster_path").asString(null));
+                item.path(JSON_POSTER_PATH).asString(null));
 
         filmography.setReleaseDate(firstNonBlank(
-                item.path("release_date").asString(null),
-                item.path("first_air_date").asString(null)));
+                item.path(JSON_RELEASE_DATE).asString(null),
+                item.path(JSON_FIRST_AIR_DATE).asString(null)));
 
         filmography.setTmdbScore(
-                nullableDouble(item.path("vote_average")));
+                nullableDouble(item.path(JSON_VOTE_AVERAGE)));
 
         filmography.setPopularity(
                 nullableDouble(item.path("popularity")));
@@ -1826,7 +1906,7 @@ public class TmdbServiceImpl implements TmdbService {
             String job,
             String department) {
 
-        if ("Director".equalsIgnoreCase(job)) {
+        if (JOB_DIRECTOR.equalsIgnoreCase(job)) {
             return false;
         }
 
@@ -1853,7 +1933,7 @@ public class TmdbServiceImpl implements TmdbService {
             return department;
         }
 
-        if ("Director".equalsIgnoreCase(job)) {
+        if (JOB_DIRECTOR.equalsIgnoreCase(job)) {
             return "감독";
         }
         if ("Creator".equalsIgnoreCase(job)) {
@@ -1916,9 +1996,9 @@ public class TmdbServiceImpl implements TmdbService {
 
         String[] tokens = text.split(",");
 
-        for (String token : tokens) {
+        for (String participationToken : tokens) {
 
-            String value = token.trim();
+            String value = participationToken.trim();
 
             if (!value.isEmpty()) {
                 values.add(value);

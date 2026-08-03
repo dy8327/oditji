@@ -17,9 +17,6 @@ public class ChatNotificationRoomVO {
     private String lastReadMessageId;
     private Long lastReadEpochMs;
 
-    public ChatNotificationRoomVO() {
-    }
-
     public String getRoomId() {
         return roomId;
     }

@@ -31,6 +31,17 @@ public class SearchContentEnrichmentService {
 
     private static final String MOVIE = "MOVIE";
     private static final String TV = "TV";
+
+    private static final String JSON_RESULTS = "results";
+    private static final String JSON_COUNTRY_CODE = "iso_3166_1";
+    private static final String JSON_RELEASE_DATES = "release_dates";
+
+    private static final String AGE_ALL = "전체 관람가";
+    private static final String AGE_7 = "7세 이상 관람가";
+    private static final String AGE_12 = "12세 이상 관람가";
+    private static final String AGE_15 = "15세 이상 관람가";
+    private static final String AGE_ADULT = "청소년 관람불가";
+    private static final String AGE_UNKNOWN = "등급 정보 없음";
     private static final int CAST_LIMIT = 5;
 
     @Value("${search.content-cache.worker-count:5}")
@@ -116,12 +127,10 @@ public class SearchContentEnrichmentService {
             TmdbProviderRegistry providerRegistry) {
 
         int normalizedWorkers =
-                Math.max(
+                Math.clamp(
+                        workerCount,
                         1,
-                        Math.min(
-                                workerCount,
-                                12
-                        )
+                        12
                 );
 
         List<CachedContentVO> result =
@@ -296,7 +305,7 @@ public class SearchContentEnrichmentService {
 
             candidate.setAgeRating(
                     parseMovieAgeRating(
-                            detail.optJSONObject("release_dates")
+                            detail.optJSONObject(JSON_RELEASE_DATES)
                     )
             );
 
@@ -387,85 +396,112 @@ public class SearchContentEnrichmentService {
         }
 
         if (MOVIE.equals(candidate.getContentType())) {
-
-            if (!hasText(candidate.getTitle())) {
-                candidate.setTitle(
-                        firstNonBlank(
-                                nullableString(detail, "title"),
-                                nullableString(detail, "original_title")
-                        )
-                );
-            }
-
-            if (!hasText(candidate.getOriginalTitle())) {
-                candidate.setOriginalTitle(
-                        nullableString(detail, "original_title")
-                );
-            }
-
-            if (!hasText(candidate.getReleaseDate())) {
-                candidate.setReleaseDate(
-                        nullableString(detail, "release_date")
-                );
-            }
-
-            /*
-             * 영화 상세 API의 runtime 값은 분 단위 러닝타임입니다.
-             */
-            if (candidate.getRuntime() == null) {
-                candidate.setRuntime(
-                        nullablePositiveInteger(
-                                detail,
-                                "runtime"
-                        )
-                );
-            }
-
-        } else {
-
-            if (!hasText(candidate.getTitle())) {
-                candidate.setTitle(
-                        firstNonBlank(
-                                nullableString(detail, "name"),
-                                nullableString(detail, "original_name")
-                        )
-                );
-            }
-
-            if (!hasText(candidate.getOriginalTitle())) {
-                candidate.setOriginalTitle(
-                        nullableString(detail, "original_name")
-                );
-            }
-
-            if (!hasText(candidate.getReleaseDate())) {
-                candidate.setReleaseDate(
-                        nullableString(detail, "first_air_date")
-                );
-            }
-
-            /*
-             * TV 상세 응답의 last_episode_to_air.air_date를 가장 우선 사용합니다.
-             * 최근 회차 객체가 없거나 날짜가 비어 있으면 last_air_date로 대체합니다.
-             */
-            candidate.setLastAirDate(
-                    resolveTvLastAirDate(detail)
+            fillMovieBasicDetail(
+                    candidate,
+                    detail
             );
-
-            /*
-             * TV 상세 API는 대표 회차 러닝타임을 배열로 반환하므로
-             * 첫 번째 유효한 양수 값을 사용합니다.
-             */
-            if (candidate.getRuntime() == null) {
-                candidate.setRuntime(
-                        parseFirstPositiveInteger(
-                                detail.optJSONArray(
-                                        "episode_run_time"
-                                )
-                        )
-                );
-            }
+        } else {
+            fillTvBasicDetail(
+                    candidate,
+                    detail
+            );
         }
+
+        fillCommonBasicDetail(
+                candidate,
+                detail
+        );
+    }
+
+    private void fillMovieBasicDetail(
+            CachedContentVO candidate,
+            JSONObject detail) {
+
+        if (!hasText(candidate.getTitle())) {
+            candidate.setTitle(
+                    firstNonBlank(
+                            nullableString(detail, "title"),
+                            nullableString(detail, "original_title")
+                    )
+            );
+        }
+
+        if (!hasText(candidate.getOriginalTitle())) {
+            candidate.setOriginalTitle(
+                    nullableString(detail, "original_title")
+            );
+        }
+
+        if (!hasText(candidate.getReleaseDate())) {
+            candidate.setReleaseDate(
+                    nullableString(detail, "release_date")
+            );
+        }
+
+        /*
+         * 영화 상세 API의 runtime 값은 분 단위 러닝타임입니다.
+         */
+        if (candidate.getRuntime() == null) {
+            candidate.setRuntime(
+                    nullablePositiveInteger(
+                            detail,
+                            "runtime"
+                    )
+            );
+        }
+    }
+
+    private void fillTvBasicDetail(
+            CachedContentVO candidate,
+            JSONObject detail) {
+
+        if (!hasText(candidate.getTitle())) {
+            candidate.setTitle(
+                    firstNonBlank(
+                            nullableString(detail, "name"),
+                            nullableString(detail, "original_name")
+                    )
+            );
+        }
+
+        if (!hasText(candidate.getOriginalTitle())) {
+            candidate.setOriginalTitle(
+                    nullableString(detail, "original_name")
+            );
+        }
+
+        if (!hasText(candidate.getReleaseDate())) {
+            candidate.setReleaseDate(
+                    nullableString(detail, "first_air_date")
+            );
+        }
+
+        /*
+         * TV 상세 응답의 last_episode_to_air.air_date를 가장 우선 사용합니다.
+         * 최근 회차 객체가 없거나 날짜가 비어 있으면 last_air_date로 대체합니다.
+         */
+        candidate.setLastAirDate(
+                resolveTvLastAirDate(detail)
+        );
+
+        /*
+         * TV 상세 API는 대표 회차 러닝타임을 배열로 반환하므로
+         * 첫 번째 유효한 양수 값을 사용합니다.
+         */
+        if (candidate.getRuntime() == null) {
+            candidate.setRuntime(
+                    parseFirstPositiveInteger(
+                            detail.optJSONArray(
+                                    "episode_run_time"
+                            )
+                    )
+            );
+        }
+    }
+
+    private void fillCommonBasicDetail(
+            CachedContentVO candidate,
+            JSONObject detail) {
 
         if (!hasText(candidate.getPosterPath())) {
             candidate.setPosterPath(
@@ -498,7 +534,7 @@ public class SearchContentEnrichmentService {
 
         JSONObject results =
                 root.optJSONObject(
-                        "results"
+                        JSON_RESULTS
                 );
 
         if (results == null) {
@@ -631,14 +667,14 @@ public class SearchContentEnrichmentService {
 
             JSONObject releaseDatesRoot =
                     detail.optJSONObject(
-                            "release_dates"
+                            JSON_RELEASE_DATES
                     );
 
             JSONArray countries =
                     releaseDatesRoot == null
                             ? null
                             : releaseDatesRoot.optJSONArray(
-                                    "results"
+                                    JSON_RESULTS
                             );
 
             return containsMovieCertification(
@@ -664,7 +700,7 @@ public class SearchContentEnrichmentService {
                     contentRatingsRoot == null
                             ? null
                             : contentRatingsRoot.optJSONArray(
-                                    "results"
+                                    JSON_RESULTS
                             );
 
             String usRating =
@@ -695,10 +731,23 @@ public class SearchContentEnrichmentService {
             return false;
         }
 
-        String normalizedRestrictedCode =
+        JSONArray releaseDates =
+                findMovieReleaseDates(
+                        countries,
+                        countryCode
+                );
+
+        return containsCertification(
+                releaseDates,
                 normalizeRatingCode(
                         restrictedCode
-                );
+                )
+        );
+    }
+
+    private JSONArray findMovieReleaseDates(
+            JSONArray countries,
+            String countryCode) {
 
         for (int index = 0;
              index < countries.length();
@@ -707,51 +756,50 @@ public class SearchContentEnrichmentService {
             JSONObject country =
                     countries.optJSONObject(index);
 
-            if (country == null
-                    || !countryCode.equalsIgnoreCase(
+            if (country != null
+                    && countryCode.equalsIgnoreCase(
                             country.optString(
-                                    "iso_3166_1",
+                                    JSON_COUNTRY_CODE,
                                     ""
                             )
                     )) {
-                continue;
-            }
 
-            JSONArray releaseDates =
-                    country.optJSONArray(
-                            "release_dates"
+                return country.optJSONArray(
+                        JSON_RELEASE_DATES
+                );
+            }
+        }
+
+        return null;
+    }
+
+    private boolean containsCertification(
+            JSONArray releaseDates,
+            String normalizedRestrictedCode) {
+
+        if (releaseDates == null) {
+            return false;
+        }
+
+        for (int releaseIndex = 0;
+             releaseIndex < releaseDates.length();
+             releaseIndex++) {
+
+            JSONObject release =
+                    releaseDates.optJSONObject(
+                            releaseIndex
                     );
 
-            if (releaseDates == null) {
-                continue;
-            }
-
-            for (int releaseIndex = 0;
-                 releaseIndex < releaseDates.length();
-                 releaseIndex++) {
-
-                JSONObject release =
-                        releaseDates.optJSONObject(
-                                releaseIndex
-                        );
-
-                if (release == null) {
-                    continue;
-                }
-
-                String certification =
-                        release.optString(
-                                "certification",
-                                ""
-                        );
-
-                if (normalizedRestrictedCode.equals(
-                        normalizeRatingCode(
-                                certification
-                        )
-                )) {
-                    return true;
-                }
+            if (release != null
+                    && normalizedRestrictedCode.equals(
+                            normalizeRatingCode(
+                                    release.optString(
+                                            "certification",
+                                            ""
+                                    )
+                            )
+                    )) {
+                return true;
             }
         }
 
@@ -803,12 +851,12 @@ public class SearchContentEnrichmentService {
             JSONObject releaseDatesRoot) {
 
         if (releaseDatesRoot == null) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         JSONArray countries =
                 releaseDatesRoot.optJSONArray(
-                        "results"
+                        JSON_RESULTS
                 );
 
         /*
@@ -845,7 +893,7 @@ public class SearchContentEnrichmentService {
                             japanRating
                     );
 
-            if (!"등급 정보 없음".equals(
+            if (!AGE_UNKNOWN.equals(
                     convertedJapanRating
             )) {
                 return convertedJapanRating;
@@ -865,7 +913,7 @@ public class SearchContentEnrichmentService {
                 ? convertUsMovieAgeRating(
                         usRating
                 )
-                : "등급 정보 없음";
+                : AGE_UNKNOWN;
     }
 
     private String findMovieCertification(
@@ -886,7 +934,7 @@ public class SearchContentEnrichmentService {
             if (country == null
                     || !countryCode.equalsIgnoreCase(
                             country.optString(
-                                    "iso_3166_1",
+                                    JSON_COUNTRY_CODE,
                                     ""
                             )
                     )) {
@@ -896,7 +944,7 @@ public class SearchContentEnrichmentService {
 
             JSONArray releaseDates =
                     country.optJSONArray(
-                            "release_dates"
+                            JSON_RELEASE_DATES
                     );
 
             if (releaseDates == null) {
@@ -935,12 +983,12 @@ public class SearchContentEnrichmentService {
             JSONObject contentRatingsRoot) {
 
         if (contentRatingsRoot == null) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         JSONArray ratings =
                 contentRatingsRoot.optJSONArray(
-                        "results"
+                        JSON_RESULTS
                 );
 
         String koreaRating =
@@ -966,7 +1014,7 @@ public class SearchContentEnrichmentService {
                 ? convertUsTvAgeRating(
                         usRating
                 )
-                : "등급 정보 없음";
+                : AGE_UNKNOWN;
     }
 
     private String findTvRating(
@@ -987,7 +1035,7 @@ public class SearchContentEnrichmentService {
             if (rating == null
                     || !countryCode.equalsIgnoreCase(
                             rating.optString(
-                                    "iso_3166_1",
+                                    JSON_COUNTRY_CODE,
                                     ""
                             )
                     )) {
@@ -1013,7 +1061,7 @@ public class SearchContentEnrichmentService {
             String rawRating) {
 
         if (!hasText(rawRating)) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         String normalized =
@@ -1030,28 +1078,28 @@ public class SearchContentEnrichmentService {
                 || "0".equals(normalized)
                 || "0+".equals(normalized)) {
 
-            return "전체 관람가";
+            return AGE_ALL;
         }
 
         if ("7".equals(normalized)
                 || "7+".equals(normalized)
                 || normalized.contains("7세")) {
 
-            return "7세 이상 관람가";
+            return AGE_7;
         }
 
         if ("12".equals(normalized)
                 || "12+".equals(normalized)
                 || normalized.contains("12세")) {
 
-            return "12세 이상 관람가";
+            return AGE_12;
         }
 
         if ("15".equals(normalized)
                 || "15+".equals(normalized)
                 || normalized.contains("15세")) {
 
-            return "15세 이상 관람가";
+            return AGE_15;
         }
 
         if ("18".equals(normalized)
@@ -1064,13 +1112,13 @@ public class SearchContentEnrichmentService {
                 || normalized.contains("청불")
                 || normalized.contains("제한상영가")) {
 
-            return "청소년 관람불가";
+            return AGE_ADULT;
         }
 
         /*
          * 알 수 없는 한국 등급 원문은 그대로 노출하지 않습니다.
          */
-        return "등급 정보 없음";
+        return AGE_UNKNOWN;
     }
 
     /**
@@ -1083,7 +1131,7 @@ public class SearchContentEnrichmentService {
             String rawRating) {
 
         if (!hasText(rawRating)) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         String normalized =
@@ -1095,14 +1143,14 @@ public class SearchContentEnrichmentService {
 
         switch (normalized) {
             case "PG12":
-                return "15세 이상 관람가";
+                return AGE_15;
 
             case "R15+":
             case "R15":
-                return "청소년 관람불가";
+                return AGE_ADULT;
 
             default:
-                return "등급 정보 없음";
+                return AGE_UNKNOWN;
         }
     }
 
@@ -1110,7 +1158,7 @@ public class SearchContentEnrichmentService {
             String rawRating) {
 
         if (!hasText(rawRating)) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         String normalized =
@@ -1121,27 +1169,27 @@ public class SearchContentEnrichmentService {
 
         switch (normalized) {
             case "G":
-                return "전체 관람가";
+                return AGE_ALL;
 
             case "PG":
             case "PG-13":
             case "PG13":
-                return "12세 이상 관람가";
+                return AGE_12;
 
             case "R":
-                return "15세 이상 관람가";
+                return AGE_15;
 
             case "NC-17":
             case "NC17":
-                return "청소년 관람불가";
+                return AGE_ADULT;
 
             case "NR":
             case "NOTRATED":
             case "UNRATED":
-                return "등급 정보 없음";
+                return AGE_UNKNOWN;
 
             default:
-                return "등급 정보 없음";
+                return AGE_UNKNOWN;
         }
     }
 
@@ -1149,7 +1197,7 @@ public class SearchContentEnrichmentService {
             String rawRating) {
 
         if (!hasText(rawRating)) {
-            return "등급 정보 없음";
+            return AGE_UNKNOWN;
         }
 
         String normalized =
@@ -1163,19 +1211,19 @@ public class SearchContentEnrichmentService {
             case "TVY":
             case "TV-G":
             case "TVG":
-                return "전체 관람가";
+                return AGE_ALL;
 
             case "TV-Y7":
             case "TVY7":
-                return "7세 이상 관람가";
+                return AGE_7;
 
             case "TV-PG":
             case "TVPG":
-                return "12세 이상 관람가";
+                return AGE_12;
 
             case "TV-14":
             case "TV14":
-                return "15세 이상 관람가";
+                return AGE_15;
 
             case "TV-MA":
             case "TVMA":
@@ -1183,15 +1231,15 @@ public class SearchContentEnrichmentService {
             case "TV-MA-LS":
             case "TV-MA-SV":
             case "TV-MA-LSV":
-                return "청소년 관람불가";
+                return AGE_ADULT;
 
             case "NR":
             case "NOTRATED":
             case "UNRATED":
-                return "등급 정보 없음";
+                return AGE_UNKNOWN;
 
             default:
-                return "등급 정보 없음";
+                return AGE_UNKNOWN;
         }
     }
 
@@ -1202,12 +1250,12 @@ public class SearchContentEnrichmentService {
             return false;
         }
 
-        return "전체 관람가".equals(ageRating)
-                || "7세 이상 관람가".equals(ageRating)
-                || "12세 이상 관람가".equals(ageRating)
-                || "15세 이상 관람가".equals(ageRating)
-                || "청소년 관람불가".equals(ageRating)
-                || "등급 정보 없음".equals(ageRating);
+        return AGE_ALL.equals(ageRating)
+                || AGE_7.equals(ageRating)
+                || AGE_12.equals(ageRating)
+                || AGE_15.equals(ageRating)
+                || AGE_ADULT.equals(ageRating)
+                || AGE_UNKNOWN.equals(ageRating);
     }
 
     private boolean hasText(

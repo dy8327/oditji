@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.project.oditji.search.vo.CachedContentVO;
@@ -22,6 +24,8 @@ import com.project.oditji.search.vo.CachedContentVO;
  */
 @Service
 public class SearchContentStore {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchContentStore.class);
 
     private final AtomicReference<List<CachedContentVO>> contentReference =
             new AtomicReference<List<CachedContentVO>>(List.of());
@@ -92,11 +96,7 @@ public class SearchContentStore {
         int excludedCount = originalSize - mutableList.size();
 
         if (excludedCount > 0) {
-            System.out.println(
-                    "검색 콘텐츠 노출 정책 적용: "
-                            + excludedCount
-                            + "건 제외"
-            );
+            log.info("검색 콘텐츠 노출 정책 적용: {}건 제외", excludedCount);
         }
 
         List<CachedContentVO> safeList =

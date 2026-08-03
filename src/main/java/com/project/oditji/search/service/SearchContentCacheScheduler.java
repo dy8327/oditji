@@ -5,6 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -17,6 +19,8 @@ import jakarta.annotation.PreDestroy;
 
 @Service
 public class SearchContentCacheScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchContentCacheScheduler.class);
 
     private final SearchContentStore searchContentStore;
     private final SearchContentSnapshotService snapshotService;
@@ -69,11 +73,7 @@ public class SearchContentCacheScheduler {
 
             searchContentStore.replaceAll(snapshot);
 
-            System.out.println(
-                    "검색 콘텐츠 스냅샷 복원 완료: "
-                            + snapshot.size()
-                            + "건"
-            );
+            log.info("검색 콘텐츠 스냅샷 복원 완료: {}건", snapshot.size());
         }
 
         if (initializeOnStartup) {
@@ -118,10 +118,7 @@ public class SearchContentCacheScheduler {
                         if (refreshed == null
                                 || refreshed.isEmpty()) {
 
-                            System.err.println(
-                                    "검색 콘텐츠 갱신 결과가 비어 있어 "
-                                            + "기존 데이터를 유지합니다."
-                            );
+                            log.warn("검색 콘텐츠 갱신 결과가 비어 있어 기존 데이터를 유지합니다.");
 
                             return;
                         }
@@ -134,18 +131,11 @@ public class SearchContentCacheScheduler {
                                 refreshed
                         );
 
-                        System.out.println(
-                                "검색 콘텐츠 공용 저장소 갱신 완료: "
-                                        + refreshed.size()
-                                        + "건"
-                        );
+                        log.info("검색 콘텐츠 공용 저장소 갱신 완료: {}건", refreshed.size());
 
                     } catch (Exception e) {
 
-                        System.err.println(
-                                "검색 콘텐츠 공용 저장소 갱신 실패: "
-                                        + e.getMessage()
-                        );
+                        log.error("검색 콘텐츠 공용 저장소 갱신 실패", e);
 
                     } finally {
 

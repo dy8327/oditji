@@ -31,6 +31,7 @@ public class RankingServiceImpl implements RankingService {
 
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 100;
+    private static final String PLATFORM_WAVVE = "wavve";
 
     /**
      * 현재 JSONL 최대 적재량보다 넉넉하게 조회합니다.
@@ -67,7 +68,7 @@ public class RankingServiceImpl implements RankingService {
             List.of(
                     "Netflix",
                     "TVING",
-                    "wavve",
+                    PLATFORM_WAVVE,
                     "Disney Plus",
                     "Watcha",
                     "Coupangplay"
@@ -318,14 +319,12 @@ public class RankingServiceImpl implements RankingService {
          * 비정상적인 값이 들어와도 0~10으로 제한합니다.
          */
         double tmdbScore =
-                Math.max(
+                Math.clamp(
+                        safeDouble(
+                                content.getTmdbScore()
+                        ),
                         0.0,
-                        Math.min(
-                                safeDouble(
-                                        content.getTmdbScore()
-                                ),
-                                10.0
-                        )
+                        10.0
                 );
 
         double popularityScore = 0.0;
@@ -407,10 +406,10 @@ public class RankingServiceImpl implements RankingService {
             return "TVING";
         }
 
-        if (normalized.contains("wavve")
+        if (normalized.contains(PLATFORM_WAVVE)
                 || normalized.contains("웨이브")) {
 
-            return "wavve";
+            return PLATFORM_WAVVE;
         }
 
         if (normalized.contains("disney")

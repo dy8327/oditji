@@ -10,9 +10,6 @@ public class OrderCheckoutRequestVO {
 
     private List<Long> cartItemNos;
 
-    public OrderCheckoutRequestVO() {
-    }
-
     public List<Long> getCartItemNos() {
         return cartItemNos;
     }

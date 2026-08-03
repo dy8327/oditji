@@ -20,9 +20,6 @@ public class PaymentVO {
     private String cancelReason;
     private Date createdAt;
 
-    public PaymentVO() {
-    }
-
     public Long getPaymentNo() {
         return paymentNo;
     }

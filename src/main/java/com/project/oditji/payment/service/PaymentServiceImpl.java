@@ -24,6 +24,11 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String PAID_STATUS = "PAID";
     private static final String CANCELLED_STATUS = "CANCELLED";
     private static final String CANCELED_STATUS = "CANCELED";
+    private static final String PARTIAL_CANCELED_STATUS = "PARTIAL_CANCELED";
+    private static final String PORTONE_STATUS_KEY = "status";
+    private static final String PORTONE_AMOUNT_KEY = "amount";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String PORTONE_AUTHORIZATION_PREFIX = "PortOne ";
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     private final RestClient restClient;
@@ -69,7 +74,7 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new IllegalArgumentException("포트원 결제 ID가 일치하지 않습니다.");
             }
 
-            String paymentStatus = readString(payment, "status");
+            String paymentStatus = readString(payment, PORTONE_STATUS_KEY);
             if (!PAID_STATUS.equals(paymentStatus)) {
                 throw new IllegalArgumentException("결제가 완료되지 않았습니다. 현재 상태: " + paymentStatus);
             }
@@ -121,18 +126,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentVO cancelPaidPayment(PaymentVO paymentVO, String reason) {
         // 1. 요청 파라미터 및 결제 상태 검증
-        if (paymentVO == null) {
-            throw new IllegalArgumentException("결제내역을 찾을 수 없습니다.");
-        }
-
-        validatePaymentId(paymentVO.getPaymentId());
-        if (!PAID_STATUS.equals(paymentVO.getPaymentStatus())
-                && !"PARTIAL_CANCELED".equals(paymentVO.getPaymentStatus())) {
-            if (CANCELED_STATUS.equals(paymentVO.getPaymentStatus())) {
-                throw new IllegalArgumentException("이미 취소된 결제입니다.");
-            }
-            throw new IllegalArgumentException("결제 완료 또는 부분 취소 상태의 결제만 취소할 수 있습니다.");
-        }
+        validateCancelablePayment(paymentVO);
 
         // 2. 취소 사유 정형화 (공백 처리 및 기본값 세팅)
         String normalizedReason = normalizeCancelReason(reason);
@@ -167,7 +161,7 @@ public class PaymentServiceImpl implements PaymentService {
             // 4. 포트원 결제 취소 API 호출 (POST /payments/{paymentId}/cancel)
             restClient.post()
                     .uri("/payments/{paymentId}/cancel", paymentVO.getPaymentId())
-                    .header("Authorization", "PortOne " + apiSecret)
+                    .header(AUTHORIZATION_HEADER, PORTONE_AUTHORIZATION_PREFIX + apiSecret)
                     .body(cancelRequestBody)
                     .retrieve()
                     .body(new ParameterizedTypeReference<Map<String, Object>>() {
@@ -217,7 +211,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (!isFullyCanceledPayment(canceledPayment, paymentVO.getPaymentAmount())) {
             throw new IllegalStateException(
                     "포트원 결제에서 전액 취소를 확인하지 못했습니다. 현재 상태: "
-                            + readString(canceledPayment, "status"));
+                            + readString(canceledPayment, PORTONE_STATUS_KEY));
         }
 
         // 7. DB 업데이트를 위한 취소 정보 VO 객체 구성 및 반환
@@ -249,7 +243,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("남은 결제 금액보다 큰 금액은 환불할 수 없습니다.");
         }
         if (!PAID_STATUS.equals(paymentVO.getPaymentStatus())
-                && !"PARTIAL_CANCELED".equals(paymentVO.getPaymentStatus())) {
+                && !PARTIAL_CANCELED_STATUS.equals(paymentVO.getPaymentStatus())) {
             throw new IllegalArgumentException("결제 완료 또는 부분 취소 상태의 결제만 환불할 수 있습니다.");
         }
 
@@ -257,13 +251,13 @@ public class PaymentServiceImpl implements PaymentService {
 
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("reason", normalizedReason);
-        body.put("amount", cancelAmount);
+        body.put(PORTONE_AMOUNT_KEY, cancelAmount);
         body.put("currentCancellableAmount", remainingAmount);
 
         try {
             restClient.post()
                     .uri("/payments/{paymentId}/cancel", paymentVO.getPaymentId())
-                    .header("Authorization", "PortOne " + apiSecret)
+                    .header(AUTHORIZATION_HEADER, PORTONE_AUTHORIZATION_PREFIX + apiSecret)
                     .body(body)
                     .retrieve()
                     .body(new ParameterizedTypeReference<Map<String, Object>>() {
@@ -279,7 +273,7 @@ public class PaymentServiceImpl implements PaymentService {
              * =========================================================
              */
             String responseBody = e.getResponseBodyAsString();
-            if (responseBody != null && responseBody.contains("\"pgCode\":\"500503\"")) {
+            if (responseBody.contains("\"pgCode\":\"500503\"")) {
 
                 throw new IllegalStateException(
                         "해당 간편결제는 부분 환불을 지원하지 않습니다. " + "전체 주문 취소를 이용해주세요.", e);
@@ -296,7 +290,7 @@ public class PaymentServiceImpl implements PaymentService {
         result.setPaymentId(paymentVO.getPaymentId());
         result.setPaymentAmount(paymentVO.getPaymentAmount());
         result.setCanceledAmount(canceledTotal);
-        result.setPaymentStatus(canceledTotal >= paymentVO.getPaymentAmount() ? CANCELED_STATUS : "PARTIAL_CANCELED");
+        result.setPaymentStatus(canceledTotal >= paymentVO.getPaymentAmount() ? CANCELED_STATUS : PARTIAL_CANCELED_STATUS);
         result.setCanceledAt(OffsetDateTime.now().toString());
         result.setCancelReason(normalizedReason);
 
@@ -327,7 +321,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         return restClient.get()
                 .uri("/payments/{paymentId}", paymentId)
-                .header("Authorization", "PortOne " + apiSecret)
+                .header(AUTHORIZATION_HEADER, PORTONE_AUTHORIZATION_PREFIX + apiSecret)
                 .retrieve()
                 .body(new ParameterizedTypeReference<Map<String, Object>>() {
                 });
@@ -335,7 +329,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private long extractPaidAmount(Map<String, Object> payment) {
 
-        Object amountObject = payment.get("amount");
+        Object amountObject = payment.get(PORTONE_AMOUNT_KEY);
         if (amountObject instanceof Map<?, ?> amountMap) {
 
             Object totalObject = amountMap.get("total");
@@ -459,7 +453,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         String responseBody = e.getResponseBodyAsString();
-        if (responseBody == null || responseBody.isBlank()) {
+        if (responseBody.isBlank()) {
             return false;
         }
 
@@ -486,7 +480,7 @@ public class PaymentServiceImpl implements PaymentService {
             return false;
         }
 
-        String status = readString(payment, "status");
+        String status = readString(payment, PORTONE_STATUS_KEY);
         if (CANCELLED_STATUS.equals(status) || CANCELED_STATUS.equals(status)) {
             return true;
         }
@@ -520,7 +514,7 @@ public class PaymentServiceImpl implements PaymentService {
             Long amount = parseLong(cancellationMap.get("totalAmount"));
 
             if (amount == null) {
-                Object amountObject = cancellationMap.get("amount");
+                Object amountObject = cancellationMap.get(PORTONE_AMOUNT_KEY);
                 if (amountObject instanceof Map<?, ?> amountMap) {
                     amount = parseLong(amountMap.get("total"));
                 } else {
@@ -558,6 +552,24 @@ public class PaymentServiceImpl implements PaymentService {
         result.setCancelReason(normalizedReason);
 
         return result;
+    }
+
+    private void validateCancelablePayment(PaymentVO paymentVO) {
+        if (paymentVO == null) {
+            throw new IllegalArgumentException("결제내역을 찾을 수 없습니다.");
+        }
+
+        validatePaymentId(paymentVO.getPaymentId());
+        if (PAID_STATUS.equals(paymentVO.getPaymentStatus())
+                || PARTIAL_CANCELED_STATUS.equals(paymentVO.getPaymentStatus())) {
+            return;
+        }
+
+        if (CANCELED_STATUS.equals(paymentVO.getPaymentStatus())) {
+            throw new IllegalArgumentException("이미 취소된 결제입니다.");
+        }
+
+        throw new IllegalArgumentException("결제 완료 또는 부분 취소 상태의 결제만 취소할 수 있습니다.");
     }
 
     /**

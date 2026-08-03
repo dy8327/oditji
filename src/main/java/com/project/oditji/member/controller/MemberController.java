@@ -1,6 +1,7 @@
 package com.project.oditji.member.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +53,20 @@ public class MemberController {
         private static final String PW_RESET_ATTEMPTS = "pwResetAttempts";
         private static final int PW_RESET_MAX_ATTEMPTS = 5;
         private static final long PW_RESET_VALID_TIME = 5 * 60 * 1000L;
+        private static final String ATTRIBUTE_PLATFORM_LIST = "platformList";
+        private static final String ATTRIBUTE_MESSAGE = "message";
+        private static final String ATTRIBUTE_ERROR_MESSAGE = "errorMessage";
+        private static final String SESSION_LOGIN_MEMBER = "loginMember";
+        private static final String SESSION_RESTORE_MEMBER_NO = "restoreMemberNo";
+        private static final String SESSION_RESTORE_PROVIDER = "restoreProvider";
+        private static final String VIEW_MEMBER_JOIN = "member/join";
+        private static final String VIEW_MEMBER_FIND_PW = "member/findPw";
+        private static final String VIEW_MEMBER_CHANGE_PW = "member/changePw";
+        private static final String REDIRECT_PREFIX = "redirect:";
+        private static final String REDIRECT_HOME = "redirect:/";
+        private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+        private static final String REDIRECT_MEMBER_MYPAGE = "redirect:/member/mypage";
+        private static final String REDIRECT_MEMBER_FIND_PW = "redirect:/member/findPw";
 
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
@@ -77,9 +92,9 @@ public class MemberController {
         public String joinForm(Model model) {
 
                 // OTT 선택 영역에 로고/목록을 표시하기 위한 플랫폼 목록 
-                model.addAttribute("platformList", memberPlatformService.findPlatformList());
+                model.addAttribute(ATTRIBUTE_PLATFORM_LIST, memberPlatformService.findPlatformList());
 
-                return "member/join";
+                return VIEW_MEMBER_JOIN;
         }
 
         /*
@@ -116,122 +131,117 @@ public class MemberController {
                         @RequestParam(value = "noOtt", defaultValue = "N") String noOtt,
                         @RequestParam(value = "profileImageFile", required = false) MultipartFile profileImageFile,
                         @RequestParam(value = "licenseFile", required = false) MultipartFile licenseFile,
-
                         Model model,
                         RedirectAttributes redirectAttributes) {
 
-                /*
-                 * 가입 실패로 join.jsp가 다시 렌더링되는 경우에도
-                 * OTT 선택 영역(로고/목록)이 그대로 보이도록 미리 담아둔다.
-                 */
-                model.addAttribute("platformList", memberPlatformService.findPlatformList());
+                model.addAttribute(ATTRIBUTE_PLATFORM_LIST, memberPlatformService.findPlatformList());
+
                 try {
-                        if (profileImageFile != null && !profileImageFile.isEmpty()) {
-                                memberVO.setProfileImage(saveProfileImage(profileImageFile));
-                        }
+                        processJoin(memberVO, businessVO, joinType, ottList, noOtt, profileImageFile, licenseFile,
+                                        redirectAttributes);
 
-                        // 회원 유형별 가입 처리
-                        if ("BUSINESS".equalsIgnoreCase(joinType)) {
-
-                                /*
-                                 * 1. 국세청 사업자 정보 서버 재검증
-                                 * 브라우저의 businessVerified 값은 조작 가능하므로
-                                 * 실제 가입 시 서버에서 다시 검증한다.
-                                 */
-                                NtsBusinessVerifyVO verifyResult = ntsBusinessService.verifyBusiness(
-                                                businessVO.getBusinessNumber(), businessVO.getRepresentativeName(),
-                                                businessVO.getOpenDate());
-
-                                if (verifyResult == null || !verifyResult.isValid()) {
-                                        String message = verifyResult != null && verifyResult.getMessage() != null
-                                                        ? verifyResult.getMessage()
-                                                        : "사업자 정보를 확인할 수 없습니다.";
-                                        throw new IllegalArgumentException(message);
-                                }
-
-                                // 2. 계속사업자인지 최종 확인 
-                                if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
-                                        throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
-                                }
-
-                                /*
-                                 * 국세청에서 실제 확인한 상태값을 저장한다.
-                                 * 클라이언트에서 전달된 값은 사용하지 않는다.
-                                 */
-                                businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
-
-                                // 3. 사업자등록증 필수 확인
-                                if (licenseFile == null || licenseFile.isEmpty()) {
-                                        throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
-                                }
-
-                                // 4. 사업자등록증 확장자 확인
-                                String originalLicenseName = licenseFile.getOriginalFilename();
-
-                                if (originalLicenseName == null || !originalLicenseName.contains(".")) {
-                                        throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
-                                }
-
-                               String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
-                                                        .toLowerCase(Locale.ROOT);
-
-                                if (!".pdf".equals(licenseExt)
-                                                        && !".jpg".equals(licenseExt)
-                                                        && !".jpeg".equals(licenseExt)
-                                                        && !".png".equals(licenseExt)) {
-                                        throw new IllegalArgumentException(
-                                                        "사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
-                                }
-
-                                // 5. 사업자등록증 저장
-                                String licenseUploadDir = "C:/oditji/uploads/business-license/";
-                                File licenseDir = new File(licenseUploadDir);
-
-                                if (!licenseDir.exists()) {
-                                        boolean created = licenseDir.mkdirs();
-
-                                        if (!created && !licenseDir.exists()) {
-                                                throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
-                                        }
-                                }
-
-                                String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
-                                File savedLicenseFile = new File(licenseUploadDir + savedLicenseName);
-                                licenseFile.transferTo(savedLicenseFile);
-
-                                // DB에는 UUID로 저장한 파일명만 저장
-                                businessVO.setLicenseFilePath(savedLicenseName);
-
-                                // 6. MEMBER + BUSINESS 저장
-                                memberService.joinBusinessMember(memberVO, businessVO);
-
-                                redirectAttributes.addFlashAttribute("message",
-                                                "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
-
-                        } else {
-                                // 일반회원은 기존 가입 로직 그대로 사용
-                                memberService.joinMember(memberVO, ottList, noOtt);
-                                redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다.");
-                        }
-
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
 
                 } catch (IllegalArgumentException e) {
                         if (log.isWarnEnabled()) {
-                        log.warn("회원가입 입력값 검증 실패: {}", e.getMessage());
+                                log.warn("회원가입 입력값 검증 실패: {}", e.getMessage());
                         }
-                        model.addAttribute("errorMessage", e.getMessage());
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, e.getMessage());
 
-                        return "member/join";
+                        return VIEW_MEMBER_JOIN;
 
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
-                        log.error("회원가입 처리 중 오류 발생", e);
+                                log.error("회원가입 처리 중 오류 발생", e);
                         }
-                        model.addAttribute("errorMessage", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE,
+                                        "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "member/join";
+                        return VIEW_MEMBER_JOIN;
                 }
+        }
+
+        @SuppressWarnings("java:S107")
+        private void processJoin(MemberVO memberVO, BusinessVO businessVO, String joinType, List<String> ottList,
+                        String noOtt, MultipartFile profileImageFile, MultipartFile licenseFile,
+                        RedirectAttributes redirectAttributes) throws IOException {
+
+                if (profileImageFile != null && !profileImageFile.isEmpty()) {
+                        memberVO.setProfileImage(saveProfileImage(profileImageFile));
+                }
+
+                if ("BUSINESS".equalsIgnoreCase(joinType)) {
+                        processBusinessJoin(memberVO, businessVO, licenseFile);
+                        redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE,
+                                        "사업자 회원가입 신청이 완료되었습니다. 관리자 승인 후 이용할 수 있습니다.");
+                        return;
+                }
+
+                memberService.joinMember(memberVO, ottList, noOtt);
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, "회원가입이 완료되었습니다.");
+        }
+
+        private void processBusinessJoin(MemberVO memberVO, BusinessVO businessVO, MultipartFile licenseFile)
+                        throws IOException {
+
+                NtsBusinessVerifyVO verifyResult = verifyBusinessForJoin(businessVO);
+                businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
+                businessVO.setLicenseFilePath(saveBusinessLicense(licenseFile));
+                memberService.joinBusinessMember(memberVO, businessVO);
+        }
+
+        private NtsBusinessVerifyVO verifyBusinessForJoin(BusinessVO businessVO) {
+                NtsBusinessVerifyVO verifyResult = ntsBusinessService.verifyBusiness(
+                                businessVO.getBusinessNumber(), businessVO.getRepresentativeName(),
+                                businessVO.getOpenDate());
+
+                if (verifyResult == null || !verifyResult.isValid()) {
+                        String message = verifyResult != null && verifyResult.getMessage() != null
+                                        ? verifyResult.getMessage()
+                                        : "사업자 정보를 확인할 수 없습니다.";
+                        throw new IllegalArgumentException(message);
+                }
+
+                if (!"계속사업자".equals(verifyResult.getBusinessStatus())) {
+                        throw new IllegalArgumentException("계속사업자만 사업자 회원가입이 가능합니다.");
+                }
+
+                return verifyResult;
+        }
+
+        private String saveBusinessLicense(MultipartFile licenseFile) throws IOException {
+                if (licenseFile == null || licenseFile.isEmpty()) {
+                        throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
+                }
+
+                String originalLicenseName = licenseFile.getOriginalFilename();
+                if (originalLicenseName == null || !originalLicenseName.contains(".")) {
+                        throw new IllegalArgumentException("사업자등록증 파일 형식이 올바르지 않습니다.");
+                }
+
+                String licenseExt = originalLicenseName.substring(originalLicenseName.lastIndexOf("."))
+                                .toLowerCase(Locale.ROOT);
+                if (!isAllowedBusinessLicenseExtension(licenseExt)) {
+                        throw new IllegalArgumentException("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
+                }
+
+                String licenseUploadDir = "C:/oditji/uploads/business-license/";
+                File licenseDir = new File(licenseUploadDir);
+                if (!licenseDir.exists() && !licenseDir.mkdirs() && !licenseDir.exists()) {
+                        throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
+                }
+
+                String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
+                licenseFile.transferTo(new File(licenseUploadDir + savedLicenseName));
+
+                return savedLicenseName;
+        }
+
+        private boolean isAllowedBusinessLicenseExtension(String licenseExt) {
+                return ".pdf".equals(licenseExt)
+                                || ".jpg".equals(licenseExt)
+                                || ".jpeg".equals(licenseExt)
+                                || ".png".equals(licenseExt);
         }
 
         /**
@@ -278,124 +288,109 @@ public class MemberController {
          * 세션에 복구 대상 회원번호를 저장해두고 로그인 화면에서 복구 모달을 띄운다.
          */
         @PostMapping("/login")
-        public String login(MemberVO memberVO, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
+        public String login(MemberVO memberVO, HttpServletRequest request, HttpSession session,
+                        RedirectAttributes redirectAttributes) {
 
                 try {
                         MemberVO loginMember = memberService.loginMember(memberVO);
                         if (loginMember == null) {
-
-                                redirectAttributes.addFlashAttribute("message", "아이디 또는 비밀번호가 틀렸습니다.");
-
-                                /*
-                                 * 로그인에 실패해도 사용자가 입력한 아이디는 유지한다.
-                                 * 비밀번호는 보안상 다시 전달하지 않는다.
-                                 */
+                                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, "아이디 또는 비밀번호가 틀렸습니다.");
                                 redirectAttributes.addFlashAttribute("loginMemberId", memberVO.getMemberId());
 
-                                return "redirect:/member/login";
+                                return REDIRECT_MEMBER_LOGIN;
                         }
 
-                        /*
-                         * =========================================================
-                         * 사업자 회원 승인 상태 확인
-                         *
-                         * BUSINESS 행이 존재하면 사업자 회원으로 판단한다.
-                         * 관리자 승인(APPROVED) 전에는 로그인시키지 않는다.
-                         * =========================================================
-                         */
                         BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
+                        String businessLoginMessage = getBusinessLoginMessage(business);
+                        if (businessLoginMessage != null) {
+                                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, businessLoginMessage);
 
-                        if (business != null) {
-                                String businessStatus = business.getStatus();
-
-                                // 승인 대기 
-                                if ("WAITING".equals(businessStatus)) {
-                                        redirectAttributes.addFlashAttribute("message", "관리자 승인 대기 중인 사업자 계정입니다.");
-
-                                        return "redirect:/member/login";
-                                }
-
-                                // 승인 거절 
-                                if ("REJECTED".equals(businessStatus)) {
-                                        String message = "사업자 승인이 거절되었습니다.";
-
-                                        if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
-                                                message += "\n사유: " + business.getRejectReason();
-                                        }
-                                        redirectAttributes.addFlashAttribute("message", message);
-
-                                        return "redirect:/member/login";
-                                }
-
-                                // 승인된 사업자만 로그인 허용
-                                if (!"APPROVED".equals(businessStatus)) {
-                                        redirectAttributes.addFlashAttribute("message", "현재 사업자 계정 상태로는 로그인할 수 없습니다.");
-
-                                        return "redirect:/member/login";
-                                }
+                                return REDIRECT_MEMBER_LOGIN;
                         }
 
                         request.changeSessionId();
+                        saveLoginSession(session, loginMember, business);
 
-                        session.setAttribute("loginMember", loginMember);
-                        session.setAttribute("memberNo", loginMember.getMemberNo());
-                        session.setAttribute("memberId", loginMember.getMemberId());
-                        session.setAttribute("memberName", loginMember.getMemberName());
-                        session.setAttribute("nickname", loginMember.getNickname());
-                        session.setAttribute("role", loginMember.getRole());
-
-                        if (business != null) {
-                                session.setAttribute("businessNo", business.getBusinessNo());
-                                session.setAttribute("businessName", business.getBusinessName());
-                                session.setAttribute("businessStatus", business.getStatus());
-                        }
-                        String displayName = loginMember.getMemberName();
-                        if (business != null) {
-                                displayName = business.getBusinessName();
-                        } else {
-                                if (displayName == null || displayName.isBlank()) {
-                                        displayName = loginMember.getNickname();
-                                }
-                        }
-                        if (displayName == null || displayName.isBlank()) {
-                                displayName = "회원";
-                        }
-
-                        session.setAttribute("loginDisplayName", displayName);
-                        String redirectUrl = (String) session.getAttribute(LOGIN_REDIRECT_SESSION_KEY);
-                        session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
-
-                        if (redirectUrl == null || redirectUrl.isBlank()) {
-                                return "redirect:/";
-                        }
-
-                        return "redirect:" + redirectUrl;
+                        return getLoginSuccessRedirect(session);
 
                 } catch (MemberBlockedException e) {
                         redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
 
                 } catch (MemberWithdrawnException e) {
+                        session.setAttribute(SESSION_RESTORE_MEMBER_NO, e.getMemberNo());
+                        session.setAttribute(SESSION_RESTORE_PROVIDER, "LOCAL");
+                        redirectAttributes.addFlashAttribute("withdrawnMessage",
+                                        WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
-                        /*
-                         * DAO의 loginMember 조회는 MEMBER_ID + MEMBER_PW가 일치해야만
-                         * row를 반환하므로, 이 예외가 발생한 시점에는 이미 비밀번호 인증이
-                         * 끝난 상태다. 따라서 복구 시 비밀번호를 다시 묻지 않고
-                         * 세션에 회원번호만 저장해 /member/restore에서 신뢰한다.
-                         */
-                        session.setAttribute("restoreMemberNo", e.getMemberNo());
-                        session.setAttribute("restoreProvider", "LOCAL");
-                        redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
-
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
 
                 } catch (IllegalStateException e) {
                         log.error("로그인 처리 중 오류 발생", e);
-                        redirectAttributes.addFlashAttribute("errorMessage", "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE,
+                                        "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
+        }
+
+        private String getBusinessLoginMessage(BusinessVO business) {
+                if (business == null || "APPROVED".equals(business.getStatus())) {
+                        return null;
+                }
+
+                if ("WAITING".equals(business.getStatus())) {
+                        return "관리자 승인 대기 중인 사업자 계정입니다.";
+                }
+
+                if ("REJECTED".equals(business.getStatus())) {
+                        String message = "사업자 승인이 거절되었습니다.";
+                        if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
+                                message += "\n사유: " + business.getRejectReason();
+                        }
+                        return message;
+                }
+
+                return "현재 사업자 계정 상태로는 로그인할 수 없습니다.";
+        }
+
+        private void saveLoginSession(HttpSession session, MemberVO loginMember, BusinessVO business) {
+                session.setAttribute(SESSION_LOGIN_MEMBER, loginMember);
+                session.setAttribute("memberNo", loginMember.getMemberNo());
+                session.setAttribute("memberId", loginMember.getMemberId());
+                session.setAttribute("memberName", loginMember.getMemberName());
+                session.setAttribute("nickname", loginMember.getNickname());
+                session.setAttribute("role", loginMember.getRole());
+
+                if (business != null) {
+                        session.setAttribute("businessNo", business.getBusinessNo());
+                        session.setAttribute("businessName", business.getBusinessName());
+                        session.setAttribute("businessStatus", business.getStatus());
+                }
+
+                session.setAttribute("loginDisplayName", getLoginDisplayName(loginMember, business));
+        }
+
+        private String getLoginDisplayName(MemberVO loginMember, BusinessVO business) {
+                String displayName = business == null ? loginMember.getMemberName() : business.getBusinessName();
+
+                if ((displayName == null || displayName.isBlank()) && business == null) {
+                        displayName = loginMember.getNickname();
+                }
+
+                return displayName == null || displayName.isBlank() ? "회원" : displayName;
+        }
+
+        private String getLoginSuccessRedirect(HttpSession session) {
+                String redirectUrl = (String) session.getAttribute(LOGIN_REDIRECT_SESSION_KEY);
+                session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
+
+                if (redirectUrl == null || redirectUrl.isBlank()) {
+                        return REDIRECT_HOME;
+                }
+
+                return REDIRECT_PREFIX + redirectUrl;
         }
 
         /**
@@ -407,13 +402,14 @@ public class MemberController {
          * 세션을 탈취하지 않는 한 다른 사람의 계정을 복구할 수 없다.
          */
         @PostMapping("/restore")
+        @SuppressWarnings("java:S3516")
         public String restoreMember(HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Object restoreNoObj = session.getAttribute("restoreMemberNo");
+                Object restoreNoObj = session.getAttribute(SESSION_RESTORE_MEMBER_NO);
                 if (restoreNoObj == null) {
-                        redirectAttributes.addFlashAttribute("errorMessage", "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
+                        redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "복구 요청 정보가 없습니다. 다시 로그인해주세요.");
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
 
                 Long memberNo = ((Number) restoreNoObj).longValue();
@@ -421,20 +417,20 @@ public class MemberController {
                 try {
 
                         memberService.restoreMember(memberNo);
-                        session.removeAttribute("restoreMemberNo");
-                        session.removeAttribute("restoreProvider");
+                        session.removeAttribute(SESSION_RESTORE_MEMBER_NO);
+                        session.removeAttribute(SESSION_RESTORE_PROVIDER);
 
                         redirectAttributes.addFlashAttribute("restoredMessage", "계정이 복구되었습니다. 다시 로그인해주세요.");
 
                 } catch (IllegalStateException | IllegalArgumentException e) {
 
-                        session.removeAttribute("restoreMemberNo");
-                        session.removeAttribute("restoreProvider");
+                        session.removeAttribute(SESSION_RESTORE_MEMBER_NO);
+                        session.removeAttribute(SESSION_RESTORE_PROVIDER);
 
-                        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                        redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, e.getMessage());
                 }
 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
         }
 
         /**
@@ -452,10 +448,10 @@ public class MemberController {
 
                 if (!isUsableRedirectUrl(redirectUrl)) {
 
-                        return "redirect:/";
+                        return REDIRECT_HOME;
                 }
 
-                return "redirect:" + redirectUrl;
+                return REDIRECT_PREFIX + redirectUrl;
         }
 
         @GetMapping("/checkId")
@@ -510,7 +506,7 @@ public class MemberController {
         public String mypage(HttpSession session, Model model) {
 
                 // 로그인 회원 조회 
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
                 /*
                  * 로그인하지 않은 사용자가 마이페이지에 접근하면
@@ -518,7 +514,7 @@ public class MemberController {
                  */
                 if (loginMember == null || loginMember.getMemberNo() == null) {
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
 
                 // 관리자는 관리자 페이지로 이동
@@ -546,7 +542,7 @@ public class MemberController {
                 model.addAttribute("ottList", ottList);
 
                 // OTT 정보 수정 모달에서 선택 가능한 전체 플랫폼 목록(로고 포함)
-                model.addAttribute("platformList", memberPlatformService.findPlatformList());
+                model.addAttribute(ATTRIBUTE_PLATFORM_LIST, memberPlatformService.findPlatformList());
 
                 return "member/mypage";
         }
@@ -561,88 +557,78 @@ public class MemberController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-
-                // 로그인하지 않은 상태에서 수정 요청이 들어오는 것을 방지 
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
                 if (loginMember == null || loginMember.getMemberNo() == null) {
-
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
 
-                /*
-                 * 클라이언트가 전달한 memberNo를 신뢰하지 않고
-                 * 로그인 세션의 회원번호를 사용한다.
-                 */
                 memberVO.setMemberNo(loginMember.getMemberNo());
 
-                // 비밀번호 변경
-                if (newPw != null && !newPw.isBlank()) {
-                        if (currentPw == null || currentPw.isBlank()) {
-
-                                return redirectWithError(redirectAttributes, "현재 비밀번호를 입력해주세요.");
-                        }
-
-                        if (!newPw.equals(newPwCheck)) {
-
-                                return redirectWithError(redirectAttributes, "새 비밀번호가 일치하지 않습니다.");
-                        }
-
-                        if (!memberService.checkPassword(loginMember.getMemberNo(),currentPw)) {
-
-                                return redirectWithError(redirectAttributes, "현재 비밀번호가 일치하지 않습니다.");
-                        }
-
-                        memberVO.setMemberPw(newPw);
-                }
-
-                // 프로필 이미지
-                if (profileImageFile != null && !profileImageFile.isEmpty()) {
-                        try {
-                                memberVO.setProfileImage(saveProfileImage(profileImageFile));
-                        } catch (IllegalArgumentException e) {
-                                return redirectWithError(redirectAttributes, e.getMessage());
-                        } catch (Exception e) {
-                                return redirectWithError(redirectAttributes, "이미지 업로드에 실패했습니다.");
-                        }
-                }
-
-                /*
-                 * 회원정보 수정
-                 *
-                 * 중복확인 버튼의 결과는 브라우저에서 조작할 수 있으므로
-                 * Service에서 현재 회원을 제외한 닉네임/이메일 중복을 다시 검사한다.
-                 */
                 try {
+                        applyPasswordChange(memberVO, loginMember.getMemberNo(), currentPw, newPw, newPwCheck);
+                        applyProfileImage(memberVO, profileImageFile);
                         memberService.updateMember(memberVO);
 
                 } catch (IllegalArgumentException | IllegalStateException e) {
-
                         return redirectWithError(redirectAttributes, e.getMessage());
                 }
 
                 MemberVO updated = memberService.getMemberByNo(memberVO.getMemberNo());
-                session.setAttribute("loginMember", updated);
+                updateMemberSession(session, updated);
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, "회원정보가 수정되었습니다.");
 
-                /*
-                 * 헤더 등에서 개별 세션값을 사용하고 있으므로
-                 * 수정된 닉네임도 함께 갱신한다.
-                 */
+                return REDIRECT_MEMBER_MYPAGE;
+        }
+
+        private void applyPasswordChange(MemberVO memberVO, Long memberNo, String currentPw, String newPw,
+                        String newPwCheck) {
+
+                if (newPw == null || newPw.isBlank()) {
+                        return;
+                }
+
+                if (currentPw == null || currentPw.isBlank()) {
+                        throw new IllegalArgumentException("현재 비밀번호를 입력해주세요.");
+                }
+
+                if (!newPw.equals(newPwCheck)) {
+                        throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
+                }
+
+                if (!memberService.checkPassword(memberNo, currentPw)) {
+                        throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+                }
+
+                memberVO.setMemberPw(newPw);
+        }
+
+        private void applyProfileImage(MemberVO memberVO, MultipartFile profileImageFile) {
+                if (profileImageFile == null || profileImageFile.isEmpty()) {
+                        return;
+                }
+
+                try {
+                        memberVO.setProfileImage(saveProfileImage(profileImageFile));
+                } catch (IllegalArgumentException e) {
+                        throw e;
+                } catch (Exception e) {
+                        throw new IllegalStateException("이미지 업로드에 실패했습니다.", e);
+                }
+        }
+
+        private void updateMemberSession(HttpSession session, MemberVO updated) {
+                session.setAttribute(SESSION_LOGIN_MEMBER, updated);
                 session.setAttribute("nickname", updated.getNickname());
 
                 String displayName = updated.getMemberName();
-
                 if (displayName == null || displayName.isBlank()) {
                         displayName = updated.getNickname();
                 }
-
                 if (displayName == null || displayName.isBlank()) {
                         displayName = "회원";
                 }
 
                 session.setAttribute("loginDisplayName", displayName);
-                redirectAttributes.addFlashAttribute("message", "회원정보가 수정되었습니다.");
-
-                return "redirect:/member/mypage";
         }
 
         /**
@@ -659,7 +645,7 @@ public class MemberController {
         public String checkUpdateNickname(@RequestParam("nickname") String nickname, HttpSession session) {
 
                 // 현재 로그인한 회원 정보를 세션에서 조회한다.
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
                 /*
                  * 로그인 세션이 없거나 회원번호가 없다면
@@ -696,7 +682,7 @@ public class MemberController {
         @GetMapping("/checkUpdateEmail")
         @ResponseBody
         public String checkUpdateEmail(@RequestParam("email") String email, HttpSession session) {
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
                 if (loginMember == null|| loginMember.getMemberNo() == null) {
 
                         return "N";
@@ -718,39 +704,39 @@ public class MemberController {
                         @RequestParam(value = "ottList", required = false) List<String> ottList,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
                 if (loginMember == null || loginMember.getMemberNo() == null) {
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
 
                 memberService.updateMemberOtt(loginMember.getMemberNo(), ottList);
-                redirectAttributes.addFlashAttribute("message", "OTT 정보가 수정되었습니다.");
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, "OTT 정보가 수정되었습니다.");
 
-                return "redirect:/member/mypage";
+                return REDIRECT_MEMBER_MYPAGE;
         }
 
         @PostMapping("/withdraw")
         public String withdrawMember(HttpSession session) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
                 if (loginMember == null || loginMember.getMemberNo() == null) {
 
-                        return "redirect:/member/login";
+                        return REDIRECT_MEMBER_LOGIN;
                 }
 
                 memberService.withdrawMember(loginMember.getMemberNo());
                 session.invalidate();
 
-                return "redirect:/";
+                return REDIRECT_HOME;
         }
 
         private String redirectWithError(RedirectAttributes redirectAttributes, String message) {
 
-                redirectAttributes.addFlashAttribute("errorMessage", message);
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, message);
                 redirectAttributes.addFlashAttribute("openMemberModal", true);
 
-                return "redirect:/member/mypage";
+                return REDIRECT_MEMBER_MYPAGE;
         }
 
         @GetMapping("/findId")
@@ -773,7 +759,7 @@ public class MemberController {
                         model.addAttribute("findIdResult", result.getMemberId());
 
                 } else {
-                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "일치하는 회원 정보가 없습니다.");
                 }
 
                 return "member/findId";
@@ -782,11 +768,12 @@ public class MemberController {
         @GetMapping("/findPw")
         public String findPw(HttpSession session) {
                 clearPwResetSession(session);
-                return "member/findPw";
+                return VIEW_MEMBER_FIND_PW;
                 }
 
         // 회원정보 확인 후 인증번호 발송
         @PostMapping("/findPw")
+        @SuppressWarnings("java:S3516")
         public String findPwPost(
                 @RequestParam("memberId") String memberId,
                 @RequestParam("memberName") String memberName,
@@ -803,9 +790,9 @@ public class MemberController {
 
                 if (result == null) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", "일치하는 회원 정보가 없습니다.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "일치하는 회원 정보가 없습니다.");
                         
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 String authCode = String.format("%06d", SECURE_RANDOM.nextInt(1000000));
@@ -823,16 +810,16 @@ public class MemberController {
                         mailService.sendPasswordResetCode(result.getEmail(), authCode);
                 } catch (IllegalStateException e) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", e.getMessage());
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, e.getMessage());
                         
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 model.addAttribute("verificationStep", true);
                 model.addAttribute("maskedEmail", maskEmail(result.getEmail()));
-                model.addAttribute("message", "이메일로 인증번호를 발송했습니다.");
+                model.addAttribute(ATTRIBUTE_MESSAGE, "이메일로 인증번호를 발송했습니다.");
 
-                return "member/findPw";
+                return VIEW_MEMBER_FIND_PW;
                 }
 
         // 인증번호 확인
@@ -847,25 +834,25 @@ public class MemberController {
 
                 if (memberNo == null || savedCode == null || expiresAt == null) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", "인증 요청 정보가 없습니다. 다시 진행해 주세요.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "인증 요청 정보가 없습니다. 다시 진행해 주세요.");
                        
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 if (System.currentTimeMillis() > expiresAt) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", "인증번호가 만료되었습니다. 다시 요청해 주세요.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "인증번호가 만료되었습니다. 다시 요청해 주세요.");
                         
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 int currentAttempts = attempts == null ? 0 : attempts;
 
                 if (currentAttempts >= PW_RESET_MAX_ATTEMPTS) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
                         
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 if (authCode == null || !savedCode.equals(authCode.trim())) {
@@ -874,17 +861,17 @@ public class MemberController {
 
                         if (currentAttempts >= PW_RESET_MAX_ATTEMPTS) {
                         clearPwResetSession(session);
-                        model.addAttribute("errorMessage", "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "인증번호 입력 횟수를 초과했습니다. 다시 진행해 주세요.");
                         
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                         }
 
                         model.addAttribute("verificationStep", true);
                         model.addAttribute("maskedEmail", maskEmail(email));
-                        model.addAttribute("errorMessage", "인증번호가 일치하지 않습니다. 남은 횟수: "
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "인증번호가 일치하지 않습니다. 남은 횟수: "
                                         + (PW_RESET_MAX_ATTEMPTS - currentAttempts) + "회");
 
-                        return "member/findPw";
+                        return VIEW_MEMBER_FIND_PW;
                 }
 
                 session.setAttribute(PW_RESET_VERIFIED, true);
@@ -901,10 +888,10 @@ public class MemberController {
                 if (!isPwResetAvailable(session)) {
                         clearPwResetSession(session);
 
-                        return "redirect:/member/findPw";
+                        return REDIRECT_MEMBER_FIND_PW;
                 }
 
-                return "member/changePw";
+                return VIEW_MEMBER_CHANGE_PW;
         }
 
         @PostMapping("/changePw")
@@ -918,7 +905,7 @@ public class MemberController {
                 if (!isPwResetAvailable(session)) {
                         clearPwResetSession(session);
 
-                        return "redirect:/member/findPw";
+                        return REDIRECT_MEMBER_FIND_PW;
                 }
 
                 Long memberNo = ((Number) session.getAttribute(PW_RESET_MEMBER_NO)).longValue();
@@ -927,27 +914,27 @@ public class MemberController {
                 if (memberNo == null || !verified) {
                         clearPwResetSession(session);
                         
-                        return "redirect:/member/findPw";
+                        return REDIRECT_MEMBER_FIND_PW;
                 }
 
                 if (!newPassword.equals(confirmPassword)) {
-                        model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, "비밀번호가 일치하지 않습니다.");
                         
-                        return "member/changePw";
+                        return VIEW_MEMBER_CHANGE_PW;
                 }
 
                 try {
                         memberService.updatePassword(memberNo, newPassword);
                 } catch (IllegalArgumentException | IllegalStateException e) {
-                        model.addAttribute("errorMessage", e.getMessage());
+                        model.addAttribute(ATTRIBUTE_ERROR_MESSAGE, e.getMessage());
                         
-                        return "member/changePw";
+                        return VIEW_MEMBER_CHANGE_PW;
                 }
 
                 clearPwResetSession(session);
-                redirectAttributes.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
+                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, "비밀번호가 변경되었습니다.");
 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
         }
 
         // 비밀번호 재설정 인증 상태 확인
@@ -1128,7 +1115,7 @@ public class MemberController {
         }
 
         // 프로필 이미지 검증 및 저장
-        private String saveProfileImage(MultipartFile profileImageFile) throws Exception {
+        private String saveProfileImage(MultipartFile profileImageFile) throws IOException {
                 if (profileImageFile.getSize() > 5 * 1024 * 1024) {
                         throw new IllegalArgumentException("프로필 이미지는 5MB 이하만 등록할 수 있습니다.");
                 }

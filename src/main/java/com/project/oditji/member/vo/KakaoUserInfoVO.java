@@ -17,16 +17,10 @@ public class KakaoUserInfoVO {
     @JsonProperty("kakao_account")
     private KakaoAccount kakaoAccount;
 
-    public KakaoUserInfoVO() {
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class KakaoAccount {
 
         private Profile profile;
-
-        public KakaoAccount() {
-        }
 
         public Profile getProfile() {
             return profile;
@@ -58,9 +52,6 @@ public class KakaoUserInfoVO {
          */
         @JsonProperty("is_default_image")
         private Boolean defaultImage;
-
-        public Profile() {
-        }
 
         public String getNickname() {
             return nickname;

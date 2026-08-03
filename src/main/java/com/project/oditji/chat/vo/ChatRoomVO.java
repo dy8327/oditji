@@ -37,34 +37,6 @@ public class ChatRoomVO {
 
     private String isDefault;
     
-    public ChatRoomVO() {
-
-    }
-
-    public ChatRoomVO(String roomId,
-                      String roomName,
-                      String roomDescription,
-                      String roomType,
-                      int createdBy,
-                      Date createdAt,
-                      String status,
-                      String creatorName,
-                      int memberCount,
-                      String lastMessage,
-                      Date lastMessageTime) {
-
-        this.roomId = roomId;
-        this.roomName = roomName;
-        this.roomDescription = roomDescription;
-        this.roomType = roomType;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.status = status;
-        this.creatorName = creatorName;
-        this.memberCount = memberCount;
-        this.lastMessage = lastMessage;
-        this.lastMessageTime = lastMessageTime;
-    }
 
     public String getRoomId() {
         return roomId;

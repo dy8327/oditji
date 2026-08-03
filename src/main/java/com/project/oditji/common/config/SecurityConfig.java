@@ -37,6 +37,7 @@ public class SecurityConfig {
      * AdminCheckInterceptor, BusinessCheckInterceptor 구조를 유지한다.
      */
     @Bean
+    @SuppressWarnings("java:S112")
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(Customizer.withDefaults())

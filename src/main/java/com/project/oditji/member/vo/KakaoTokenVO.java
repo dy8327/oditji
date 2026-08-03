@@ -29,9 +29,6 @@ public class KakaoTokenVO {
 
     private String scope;
 
-    public KakaoTokenVO() {
-    }
-
     public String getTokenType() {
         return tokenType;
     }
