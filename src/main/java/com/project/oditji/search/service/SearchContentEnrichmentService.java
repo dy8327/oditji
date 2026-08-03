@@ -928,42 +928,54 @@ public class SearchContentEnrichmentService {
              index < countries.length();
              index++) {
 
-            JSONObject country =
-                    countries.optJSONObject(index);
-
-            if (country == null
-                    || !countryCode.equalsIgnoreCase(
-                            country.optString(
-                                    JSON_COUNTRY_CODE,
-                                    ""
-                            )
-                    )) {
-
-                continue;
-            }
-
-            JSONArray releaseDates =
-                    country.optJSONArray(
-                            JSON_RELEASE_DATES
+            String certification =
+                    findCountryMovieCertification(
+                            countries.optJSONObject(index),
+                            countryCode
                     );
 
-            if (releaseDates == null) {
-                continue;
+            if (hasText(certification)) {
+                return certification;
             }
+        }
 
-            for (int releaseIndex = 0;
-                 releaseIndex < releaseDates.length();
-                 releaseIndex++) {
+        return null;
+    }
 
-                JSONObject release =
-                        releaseDates.optJSONObject(
-                                releaseIndex
-                        );
+    private String findCountryMovieCertification(
+            JSONObject country,
+            String countryCode) {
 
-                if (release == null) {
-                    continue;
-                }
+        if (country == null
+                || !countryCode.equalsIgnoreCase(
+                        country.optString(
+                                JSON_COUNTRY_CODE,
+                                ""
+                        )
+                )) {
 
+            return null;
+        }
+
+        JSONArray releaseDates =
+                country.optJSONArray(
+                        JSON_RELEASE_DATES
+                );
+
+        if (releaseDates == null) {
+            return null;
+        }
+
+        for (int releaseIndex = 0;
+             releaseIndex < releaseDates.length();
+             releaseIndex++) {
+
+            JSONObject release =
+                    releaseDates.optJSONObject(
+                            releaseIndex
+                    );
+
+            if (release != null) {
                 String certification =
                         release.optString(
                                 "certification",

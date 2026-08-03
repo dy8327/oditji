@@ -40,7 +40,7 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String main(
+    public String home(
             Model model,
             HttpSession session) {
 

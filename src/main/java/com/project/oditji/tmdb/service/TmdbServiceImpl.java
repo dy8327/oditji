@@ -138,26 +138,27 @@ public class TmdbServiceImpl implements TmdbService {
 
             JsonNode results = callTmdbApi(url).path(JSON_RESULTS);
 
-            if (!results.isArray()) {
-                continue;
-            }
+            if (results.isArray()) {
+                for (JsonNode item : results) {
 
-            for (JsonNode item : results) {
+                    long tmdbId = item.path("id").asLong();
 
-                if (shouldExcludeContent(item)) {
-                    continue;
+                    if (!shouldExcludeContent(item)
+                            && tmdbId > 0
+                            && tmdbDAO.existsContent(
+                                    tmdbId,
+                                    contentType
+                            ) == 0) {
+
+                        TmdbVO vo =
+                                createBasicTmdbVO(
+                                        item,
+                                        contentType
+                                );
+                        tmdbDAO.insertContent(vo);
+                        saveCount++;
+                    }
                 }
-
-                long tmdbId = item.path("id").asLong();
-
-                if (tmdbId <= 0
-                        || tmdbDAO.existsContent(tmdbId, contentType) > 0) {
-                    continue;
-                }
-
-                TmdbVO vo = createBasicTmdbVO(item, contentType);
-                tmdbDAO.insertContent(vo);
-                saveCount++;
             }
         }
 
@@ -278,21 +279,17 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (TmdbVO vo : tmdbDAO.selectContentList()) {
 
-            if (!contentType.equals(vo.getContentType())) {
-                continue;
+            if (contentType.equals(vo.getContentType())) {
+                Integer contentNo = tmdbDAO.findContentNo(
+                        vo.getTmdbId(), contentType);
+
+                if (contentNo != null) {
+                    saveCount += savePlatformRelations(
+                            contentNo,
+                            vo.getTmdbId(),
+                            contentType);
+                }
             }
-
-            Integer contentNo = tmdbDAO.findContentNo(
-                    vo.getTmdbId(), contentType);
-
-            if (contentNo == null) {
-                continue;
-            }
-
-            saveCount += savePlatformRelations(
-                    contentNo,
-                    vo.getTmdbId(),
-                    contentType);
         }
 
         return saveCount;
@@ -437,39 +434,49 @@ public class TmdbServiceImpl implements TmdbService {
         int saveCount = 0;
 
         for (String normalizedKey : normalizedKeys) {
-
-            String platformName =
-                    convertPlatformKeyToDbName(
-                            normalizedKey
-                    );
-
-            if (platformName == null) {
-                continue;
-            }
-
-            Integer platformNo =
-                    tmdbDAO.findPlatformNo(
-                            platformName
-                    );
-
-            if (platformNo == null
-                    || tmdbDAO.existsContentPlatform(
-                            contentNo,
-                            platformNo
-                    ) > 0) {
-
-                continue;
-            }
-
-            tmdbDAO.insertContentPlatform(
+            saveCount += savePlatformRelationFromKey(
                     contentNo,
-                    platformNo
+                    normalizedKey
             );
-
-            saveCount++;
         }
 
         return saveCount;
+    }
+
+
+    private int savePlatformRelationFromKey(
+            Integer contentNo,
+            String normalizedKey) {
+
+        String platformName =
+                convertPlatformKeyToDbName(
+                        normalizedKey
+                );
+
+        if (platformName == null) {
+            return 0;
+        }
+
+        Integer platformNo =
+                tmdbDAO.findPlatformNo(
+                        platformName
+                );
+
+        if (platformNo == null
+                || tmdbDAO.existsContentPlatform(
+                        contentNo,
+                        platformNo
+                ) > 0) {
+
+            return 0;
+        }
+
+        tmdbDAO.insertContentPlatform(
+                contentNo,
+                platformNo
+        );
+
+        return 1;
     }
 
     /**
@@ -572,29 +579,50 @@ public class TmdbServiceImpl implements TmdbService {
         int saveCount = 0;
 
         for (JsonNode provider : flatrate) {
-
-            String platformName = convertTmdbProviderName(
-                    provider.path("provider_name").asString(null));
-
-            if (platformName == null) {
-                continue;
-            }
-
-            Integer platformNo =
-                    tmdbDAO.findPlatformNo(platformName);
-
-            if (platformNo == null
-                    || tmdbDAO.existsContentPlatform(
-                            contentNo, platformNo) > 0) {
-                continue;
-            }
-
-            tmdbDAO.insertContentPlatform(
-                    contentNo, platformNo);
-            saveCount++;
+            saveCount += saveProviderRelation(
+                    contentNo,
+                    provider
+            );
         }
 
         return saveCount;
+    }
+
+
+    private int saveProviderRelation(
+            Integer contentNo,
+            JsonNode provider) {
+
+        String platformName =
+                convertTmdbProviderName(
+                        provider.path("provider_name")
+                                .asString(null)
+                );
+
+        if (platformName == null) {
+            return 0;
+        }
+
+        Integer platformNo =
+                tmdbDAO.findPlatformNo(
+                        platformName
+                );
+
+        if (platformNo == null
+                || tmdbDAO.existsContentPlatform(
+                        contentNo,
+                        platformNo
+                ) > 0) {
+
+            return 0;
+        }
+
+        tmdbDAO.insertContentPlatform(
+                contentNo,
+                platformNo
+        );
+
+        return 1;
     }
 
     /**
@@ -646,35 +674,31 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode cast : castNode) {
 
-            if (displayOrder > CAST_SAVE_LIMIT) {
-                break;
-            }
-
             long tmdbActorId = cast.path("id").asLong();
             String actorName = cast.path("name").asString(null);
 
-            if (tmdbActorId <= 0
-                    || actorName == null
-                    || actorName.isBlank()) {
-                continue;
+            if (displayOrder <= CAST_SAVE_LIMIT
+                    && tmdbActorId > 0
+                    && actorName != null
+                    && !actorName.isBlank()) {
+
+                ActorVO actor = new ActorVO();
+                actor.setTmdbActorId(tmdbActorId);
+                actor.setActorName(limitLength(actorName, 100));
+                actor.setProfilePath(
+                        cast.path(JSON_PROFILE_PATH).asString(null)
+                );
+                actor.setCharacterName(
+                        limitLength(
+                                cast.path(JSON_CHARACTER).asString(null),
+                                100
+                        )
+                );
+                actor.setDisplayOrder(displayOrder);
+
+                actorList.add(actor);
+                displayOrder++;
             }
-
-            ActorVO actor = new ActorVO();
-            actor.setTmdbActorId(tmdbActorId);
-            actor.setActorName(limitLength(actorName, 100));
-            actor.setProfilePath(
-                    cast.path(JSON_PROFILE_PATH).asString(null)
-            );
-            actor.setCharacterName(
-                    limitLength(
-                            cast.path(JSON_CHARACTER).asString(null),
-                            100
-                    )
-            );
-            actor.setDisplayOrder(displayOrder);
-
-            actorList.add(actor);
-            displayOrder++;
         }
 
         return actorList;
@@ -836,47 +860,43 @@ public class TmdbServiceImpl implements TmdbService {
 
         for (JsonNode cast : castNode) {
 
-            if (displayOrder > CAST_SAVE_LIMIT) {
-                break;
-            }
-
             long tmdbActorId = cast.path("id").asLong();
             String actorName = cast.path("name").asString(null);
 
-            if (tmdbActorId <= 0
-                    || actorName == null
-                    || actorName.isBlank()) {
-                continue;
-            }
+            if (displayOrder <= CAST_SAVE_LIMIT
+                    && tmdbActorId > 0
+                    && actorName != null
+                    && !actorName.isBlank()) {
 
-            Integer actorNo =
-                    tmdbDAO.findActorNoByTmdbId(tmdbActorId);
-
-            if (actorNo == null) {
-                ActorVO actor = new ActorVO();
-                actor.setTmdbActorId(tmdbActorId);
-                actor.setActorName(
-                        limitLength(actorName, 100));
-                actor.setProfilePath(
-                        cast.path(JSON_PROFILE_PATH).asString(null));
-                tmdbDAO.insertActor(actor);
-                actorNo =
+                Integer actorNo =
                         tmdbDAO.findActorNoByTmdbId(tmdbActorId);
-            }
 
-            if (actorNo != null
-                    && tmdbDAO.existsContentActor(
-                            contentNo, actorNo) == 0) {
-                tmdbDAO.insertContentActor(
-                        contentNo,
-                        actorNo,
-                        limitLength(
-                                cast.path(JSON_CHARACTER).asString(null),
-                                100),
-                        displayOrder);
-            }
+                if (actorNo == null) {
+                    ActorVO actor = new ActorVO();
+                    actor.setTmdbActorId(tmdbActorId);
+                    actor.setActorName(
+                            limitLength(actorName, 100));
+                    actor.setProfilePath(
+                            cast.path(JSON_PROFILE_PATH).asString(null));
+                    tmdbDAO.insertActor(actor);
+                    actorNo =
+                            tmdbDAO.findActorNoByTmdbId(tmdbActorId);
+                }
 
-            displayOrder++;
+                if (actorNo != null
+                        && tmdbDAO.existsContentActor(
+                                contentNo, actorNo) == 0) {
+                    tmdbDAO.insertContentActor(
+                            contentNo,
+                            actorNo,
+                            limitLength(
+                                    cast.path(JSON_CHARACTER).asString(null),
+                                    100),
+                            displayOrder);
+                }
+
+                displayOrder++;
+            }
         }
     }
 
@@ -1000,18 +1020,15 @@ public class TmdbServiceImpl implements TmdbService {
             int providerId =
                     provider.path("provider_id").asInt();
 
-            if (platformName == null || providerId <= 0) {
-                continue;
-            }
+            if (platformName != null
+                    && providerId > 0
+                    && (selectedPlatforms == null
+                            || selectedPlatforms.isEmpty()
+                            || selectedPlatforms.contains(
+                                    platformName))) {
 
-            if (selectedPlatforms != null
-                    && !selectedPlatforms.isEmpty()
-                    && !selectedPlatforms.contains(
-                            platformName)) {
-                continue;
+                ids.add(String.valueOf(providerId));
             }
-
-            ids.add(String.valueOf(providerId));
         }
 
         return String.join("|", ids);
@@ -1373,25 +1390,21 @@ public class TmdbServiceImpl implements TmdbService {
             String countryCode =
                     country.path("iso_3166_1").asString(null);
 
-            if (!isSupportedAgeRatingCountry(countryCode)) {
-                continue;
-            }
+            if (isSupportedAgeRatingCountry(countryCode)) {
+                String converted = extractMovieCountryAgeRating(
+                        country,
+                        countryCode
+                );
 
-            String converted = extractMovieCountryAgeRating(
-                    country,
-                    countryCode
-            );
+                if (converted != null) {
+                    if ("KR".equals(countryCode)) {
+                        return converted;
+                    }
 
-            if (converted == null) {
-                continue;
-            }
-
-            if ("KR".equals(countryCode)) {
-                return converted;
-            }
-
-            if (usRating == null) {
-                usRating = converted;
+                    if (usRating == null) {
+                        usRating = converted;
+                    }
+                }
             }
         }
 
@@ -1451,26 +1464,23 @@ public class TmdbServiceImpl implements TmdbService {
             String countryCode =
                     country.path("iso_3166_1").asString(null);
 
-            if (!"KR".equals(countryCode)
-                    && !"US".equals(countryCode)) {
-                continue;
-            }
+            if ("KR".equals(countryCode)
+                    || "US".equals(countryCode)) {
 
-            String converted = convertAgeRating(
-                    countryCode,
-                    country.path("rating").asString(null),
-                    true);
+                String converted = convertAgeRating(
+                        countryCode,
+                        country.path("rating").asString(null),
+                        true);
 
-            if (converted == null) {
-                continue;
-            }
+                if (converted != null) {
+                    if ("KR".equals(countryCode)) {
+                        return converted;
+                    }
 
-            if ("KR".equals(countryCode)) {
-                return converted;
-            }
-
-            if (usRating == null) {
-                usRating = converted;
+                    if (usRating == null) {
+                        usRating = converted;
+                    }
+                }
             }
         }
 
@@ -1741,25 +1751,21 @@ public class TmdbServiceImpl implements TmdbService {
                         job, department);
             }
 
-            if (!matches) {
-                continue;
+            if (matches) {
+                FilmographyVO filmography =
+                        createFilmographyVO(item);
+
+                if (filmography != null) {
+                    filmography.setParticipationCategory(category);
+                    filmography.setParticipationName(
+                            convertParticipationName(job, department));
+
+                    putFilmographyWithPriority(
+                            uniqueMap,
+                            item.path(JSON_MEDIA_TYPE).asString(),
+                            filmography);
+                }
             }
-
-            FilmographyVO filmography =
-                    createFilmographyVO(item);
-
-            if (filmography == null) {
-                continue;
-            }
-
-            filmography.setParticipationCategory(category);
-            filmography.setParticipationName(
-                    convertParticipationName(job, department));
-
-            putFilmographyWithPriority(
-                    uniqueMap,
-                    item.path(JSON_MEDIA_TYPE).asString(),
-                    filmography);
         }
 
         return sortFilmographyList(uniqueMap);

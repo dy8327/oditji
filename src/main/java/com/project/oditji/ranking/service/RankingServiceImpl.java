@@ -203,20 +203,13 @@ public class RankingServiceImpl implements RankingService {
          */
         for (SearchResultVO content : sourceList) {
 
-            if (content == null) {
-                continue;
-            }
-
-            double tmdbScore =
-                    safeDouble(
+            if (content != null
+                    && safeDouble(
                             content.getTmdbScore()
-                    );
+                    ) >= MINIMUM_TMDB_SCORE) {
 
-            if (tmdbScore < MINIMUM_TMDB_SCORE) {
-                continue;
+                filteredList.add(content);
             }
-
-            filteredList.add(content);
         }
 
         if (filteredList.isEmpty()) {

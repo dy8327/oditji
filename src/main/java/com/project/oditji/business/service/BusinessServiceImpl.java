@@ -875,24 +875,21 @@ public class BusinessServiceImpl
 
                 for (CachedContentVO cachedContent : searchContentStore.getAll()) {
 
-                        if (cachedContent == null
-                                        || cachedContent.getTmdbId() == null
-                                        || cachedContent.getContentType() == null) {
-                                continue;
-                        }
+                        boolean validContent = cachedContent != null
+                                        && cachedContent.getTmdbId() != null
+                                        && cachedContent.getContentType() != null;
 
-                        if (!matchesCachedContent(
-                                        cachedContent,
-                                        normalizedKeyword)) {
-                                continue;
-                        }
+                        if (validContent
+                                        && matchesCachedContent(
+                                                        cachedContent,
+                                                        normalizedKeyword)) {
+                                resultList.add(
+                                                convertToContentSearchVO(
+                                                                cachedContent));
 
-                        resultList.add(
-                                        convertToContentSearchVO(
-                                                        cachedContent));
-
-                        if (resultList.size() >= CONTENT_SEARCH_LIMIT) {
-                                break;
+                                if (resultList.size() >= CONTENT_SEARCH_LIMIT) {
+                                        break;
+                                }
                         }
                 }
 

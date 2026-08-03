@@ -67,6 +67,7 @@ public class MemberController {
         private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
         private static final String REDIRECT_MEMBER_MYPAGE = "redirect:/member/mypage";
         private static final String REDIRECT_MEMBER_FIND_PW = "redirect:/member/findPw";
+        private static final char URL_PATH_SEPARATOR = '/';
 
         private final MemberService memberService;
         private final MemberPlatformService memberPlatformService;
@@ -1036,8 +1037,8 @@ public class MemberController {
                                 path = "/";
                         }
 
-                        if (!path.startsWith("/")) {
-                                path = "/" + path;
+                        if (path.charAt(0) != URL_PATH_SEPARATOR) {
+                                path = URL_PATH_SEPARATOR + path;
                         }
 
                         String query = uri.getRawQuery();

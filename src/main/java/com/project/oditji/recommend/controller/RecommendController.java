@@ -459,64 +459,72 @@ public class RecommendController {
 
         for (PlatformVO platform : selectedPlatformList) {
 
-            if (platform == null
-                    || platform.getPlatformName() == null
-                    || platform.getPlatformName().isBlank()) {
-                continue;
-            }
-
-            List<String> onePlatformNameList =
-                    Collections.singletonList(
-                            platform.getPlatformName()
-                    );
-
-            List<SearchResultVO> contentList =
-                    getCachedPopularContent(
-                            onePlatformNameList
-                    );
-
-            contentList =
-                    sortAndLimitByPopularity(
-                            contentList,
-                            SECTION_CONTENT_LIMIT
-                    );
-
-            mainContentPlatformService.attachPlatformLogos(
-                    contentList,
-                    onePlatformNameList
-            );
-
-            attachAgeRatings(
-                    contentList
-            );
-
-            if (contentList.isEmpty()) {
-                continue;
-            }
-
             RecommendPlatformSectionVO section =
-                    new RecommendPlatformSectionVO();
+                    createPlatformSection(
+                            platform
+                    );
 
-            section.setPlatformNo(
-                    platform.getPlatformNo()
-            );
-
-            section.setPlatformName(
-                    platform.getPlatformName()
-            );
-
-            section.setLogoImage(
-                    platform.getLogoImage()
-            );
-
-            section.setContentList(
-                    contentList
-            );
-
-            sectionList.add(section);
+            if (section != null) {
+                sectionList.add(section);
+            }
         }
 
         return sectionList;
+    }
+
+    private RecommendPlatformSectionVO createPlatformSection(
+            PlatformVO platform) {
+
+        if (platform == null
+                || platform.getPlatformName() == null
+                || platform.getPlatformName().isBlank()) {
+
+            return null;
+        }
+
+        List<String> onePlatformNameList =
+                Collections.singletonList(
+                        platform.getPlatformName()
+                );
+
+        List<SearchResultVO> contentList =
+                sortAndLimitByPopularity(
+                        getCachedPopularContent(
+                                onePlatformNameList
+                        ),
+                        SECTION_CONTENT_LIMIT
+                );
+
+        mainContentPlatformService.attachPlatformLogos(
+                contentList,
+                onePlatformNameList
+        );
+
+        attachAgeRatings(
+                contentList
+        );
+
+        if (contentList.isEmpty()) {
+            return null;
+        }
+
+        RecommendPlatformSectionVO section =
+                new RecommendPlatformSectionVO();
+
+        section.setPlatformNo(
+                platform.getPlatformNo()
+        );
+        section.setPlatformName(
+                platform.getPlatformName()
+        );
+        section.setLogoImage(
+                platform.getLogoImage()
+        );
+        section.setContentList(
+                contentList
+        );
+
+        return section;
     }
 
     /**
@@ -539,33 +547,25 @@ public class RecommendController {
 
         for (SearchResultVO content : contentList) {
 
-            if (content == null
-                    || content.getTmdbId() == null
-                    || content.getContentType() == null
-                    || content.getContentType().isBlank()) {
-                continue;
-            }
+            if (content != null
+                    && content.getTmdbId() != null
+                    && content.getContentType() != null
+                    && !content.getContentType().isBlank()) {
 
-            CachedContentVO cachedContent =
-                    searchContentStore.findByTmdbIdAndContentType(
-                            content.getTmdbId(),
-                            content.getContentType()
-                    );
-
-            if (cachedContent == null
-                    || cachedContent.getAgeRating() == null
-                    || cachedContent.getAgeRating().isBlank()) {
+                CachedContentVO cachedContent =
+                        searchContentStore.findByTmdbIdAndContentType(
+                                content.getTmdbId(),
+                                content.getContentType()
+                        );
 
                 content.setAgeRating(
-                        "등급 정보 없음"
+                        cachedContent == null
+                                || cachedContent.getAgeRating() == null
+                                || cachedContent.getAgeRating().isBlank()
+                                        ? "등급 정보 없음"
+                                        : cachedContent.getAgeRating()
                 );
-
-                continue;
             }
-
-            content.setAgeRating(
-                    cachedContent.getAgeRating()
-            );
         }
     }
 

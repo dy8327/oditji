@@ -72,7 +72,7 @@ public class BusinessController {
 
         /* 사업자 메인 */
         @GetMapping("/main")
-        public String main(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        public String businessMain(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
@@ -1593,7 +1593,7 @@ public class BusinessController {
          * =========================================================
          */
         private Long convertToLong(Object value) {
-                
+
                 if (value == null) {
                         return null;
                 }

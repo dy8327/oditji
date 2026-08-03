@@ -989,41 +989,54 @@ public class SearchContentAgeRatingService {
              index < countries.length();
              index++) {
 
-            JSONObject country =
-                    countries.optJSONObject(index);
-
-            if (country == null
-                    || !countryCode.equalsIgnoreCase(
-                            country.optString(
-                                    JSON_COUNTRY_CODE,
-                                    ""
-                            )
-                    )) {
-                continue;
-            }
-
-            JSONArray releaseDates =
-                    country.optJSONArray(
-                            JSON_RELEASE_DATES
+            String certification =
+                    findCountryMovieCertification(
+                            countries.optJSONObject(index),
+                            countryCode
                     );
 
-            if (releaseDates == null) {
-                continue;
+            if (hasText(certification)) {
+                return certification;
             }
+        }
 
-            for (int releaseIndex = 0;
-                 releaseIndex < releaseDates.length();
-                 releaseIndex++) {
+        return null;
+    }
 
-                JSONObject release =
-                        releaseDates.optJSONObject(
-                                releaseIndex
-                        );
+    private String findCountryMovieCertification(
+            JSONObject country,
+            String countryCode) {
 
-                if (release == null) {
-                    continue;
-                }
+        if (country == null
+                || !countryCode.equalsIgnoreCase(
+                        country.optString(
+                                JSON_COUNTRY_CODE,
+                                ""
+                        )
+                )) {
 
+            return null;
+        }
+
+        JSONArray releaseDates =
+                country.optJSONArray(
+                        JSON_RELEASE_DATES
+                );
+
+        if (releaseDates == null) {
+            return null;
+        }
+
+        for (int releaseIndex = 0;
+             releaseIndex < releaseDates.length();
+             releaseIndex++) {
+
+            JSONObject release =
+                    releaseDates.optJSONObject(
+                            releaseIndex
+                    );
+
+            if (release != null) {
                 String certification =
                         release.optString(
                                 "certification",
@@ -1469,29 +1482,38 @@ public class SearchContentAgeRatingService {
         }
 
         for (String rawTmdbId : section.keySet()) {
+            addManualAgeRating(
+                    section,
+                    rawTmdbId,
+                    contentType,
+                    target
+            );
+        }
+    }
 
-            try {
 
-                long tmdbId =
-                        Long.parseLong(
-                                rawTmdbId.trim()
-                        );
+    private void addManualAgeRating(
+            JSONObject section,
+            String rawTmdbId,
+            String contentType,
+            Map<String, String> target) {
 
-                if (tmdbId <= 0) {
-                    continue;
-                }
+        try {
+            long tmdbId =
+                    Long.parseLong(
+                            rawTmdbId.trim()
+                    );
 
-                String ageRating =
-                        normalizeManualAgeRating(
-                                section.optString(
-                                        rawTmdbId,
-                                        ""
-                                )
-                        );
+            String ageRating =
+                    normalizeManualAgeRating(
+                            section.optString(
+                                    rawTmdbId,
+                                    ""
+                            )
+                    );
 
-                if (ageRating == null) {
-                    continue;
-                }
+            if (tmdbId > 0
+                    && ageRating != null) {
 
                 target.put(
                         createKey(
@@ -1500,10 +1522,10 @@ public class SearchContentAgeRatingService {
                         ),
                         ageRating
                 );
-
-            } catch (NumberFormatException ignored) {
-                /* 잘못된 TMDB ID 항목만 제외합니다. */
             }
+
+        } catch (NumberFormatException ignored) {
+            /* 잘못된 TMDB ID 항목만 제외합니다. */
         }
     }
 

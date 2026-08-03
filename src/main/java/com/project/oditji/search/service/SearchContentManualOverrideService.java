@@ -188,22 +188,42 @@ public class SearchContentManualOverrideService {
         }
 
         for (String rawPlatformKey : section.keySet()) {
-            String platformKey = providerService.normalizePlatformName(rawPlatformKey);
-            if (!SUPPORTED_PLATFORM_KEYS.contains(platformKey)) {
-                continue;
-            }
+            addManualPlatformOverrides(
+                    section,
+                    rawPlatformKey,
+                    contentType,
+                    target
+            );
+        }
+    }
 
-            JSONArray tmdbIds = section.optJSONArray(rawPlatformKey);
-            if (tmdbIds == null) {
-                continue;
-            }
 
-            for (int index = 0; index < tmdbIds.length(); index++) {
-                long tmdbId = tmdbIds.optLong(index, 0L);
-                if (tmdbId <= 0) {
-                    continue;
-                }
+    private void addManualPlatformOverrides(
+            JSONObject section,
+            String rawPlatformKey,
+            String contentType,
+            Map<String, Set<String>> target) {
 
+        String platformKey =
+                providerService.normalizePlatformName(
+                        rawPlatformKey
+                );
+
+        JSONArray tmdbIds =
+                section.optJSONArray(
+                        rawPlatformKey
+                );
+
+        if (!SUPPORTED_PLATFORM_KEYS.contains(platformKey)
+                || tmdbIds == null) {
+
+            return;
+        }
+
+        for (int index = 0; index < tmdbIds.length(); index++) {
+            long tmdbId = tmdbIds.optLong(index, 0L);
+
+            if (tmdbId > 0) {
                 target.computeIfAbsent(
                         createKey(contentType, tmdbId),
                         ignored -> new LinkedHashSet<String>()
