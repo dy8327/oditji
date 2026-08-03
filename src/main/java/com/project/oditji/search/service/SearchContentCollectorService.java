@@ -77,14 +77,12 @@ public class SearchContentCollectorService {
             Consumer<List<CachedContentVO>> checkpointConsumer) {
 
         int normalizedMaxSize = Math.max(100, maxSize);
-        int normalizedBatchSize = Math.max(50, Math.min(batchSize, 2000));
+        int normalizedBatchSize = Math.clamp(batchSize, 50, 2000);
 
-        int movieTarget = Math.max(
+        int movieTarget = Math.clamp(
+                (int) Math.round(normalizedMaxSize * movieRatio),
                 0,
-                Math.min(
-                        normalizedMaxSize,
-                        (int) Math.round(normalizedMaxSize * movieRatio)
-                )
+                normalizedMaxSize
         );
         int tvTarget = normalizedMaxSize - movieTarget;
 

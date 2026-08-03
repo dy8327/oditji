@@ -15,6 +15,8 @@ import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,8 @@ import com.project.oditji.tmdb.vo.ActorVO;
 @Service
 public class BusinessServiceImpl
                 implements BusinessService {
+
+        private static final Logger log = LoggerFactory.getLogger(BusinessServiceImpl.class);
 
         private static final long MAX_IMAGE_SIZE = 10L * 1024L * 1024L;
 
@@ -1305,24 +1309,11 @@ public class BusinessServiceImpl
                  * PRODUCT 테이블에 삭제 사유를 저장할 컬럼이 없으므로
                  * 현재 단계에서는 서버 로그로 확인한다.
                  */
-                System.out.println(
-                                "===== 상품 삭제 요청 =====");
-
-                System.out.println(
-                                "상품 번호: "
-                                                + productNo);
-
-                System.out.println(
-                                "사업자 번호: "
-                                                + businessNo);
-
-                System.out.println(
-                                "상품명: "
-                                                + existingProduct.getProductName());
-
-                System.out.println(
-                                "삭제 사유: "
-                                                + normalizedReason);
+                log.info("===== 상품 삭제 요청 =====");
+                log.info("상품 번호: {}", productNo);
+                log.info("사업자 번호: {}", businessNo);
+                log.info("상품명: {}", existingProduct.getProductName());
+                log.info("삭제 사유: {}", normalizedReason);
 
                 int updateResult = businessDAO.updateProductDeleteRequest(
                                 productNo,
@@ -1728,28 +1719,12 @@ public class BusinessServiceImpl
                                         "이벤트 연장 사유는 1000자 이하로 입력해주세요.");
                 }
 
-                System.out.println(
-                                "===== 이벤트 연장 요청 =====");
-
-                System.out.println(
-                                "이벤트 번호: "
-                                                + eventNo);
-
-                System.out.println(
-                                "사업자 번호: "
-                                                + businessNo);
-
-                System.out.println(
-                                "기존 종료일: "
-                                                + existingEvent.getEndDate());
-
-                System.out.println(
-                                "연장 종료일: "
-                                                + extendEndDate);
-
-                System.out.println(
-                                "연장 사유: "
-                                                + normalizedReason);
+                log.info("===== 이벤트 연장 요청 =====");
+                log.info("이벤트 번호: {}", eventNo);
+                log.info("사업자 번호: {}", businessNo);
+                log.info("기존 종료일: {}", existingEvent.getEndDate());
+                log.info("연장 종료일: {}", extendEndDate);
+                log.info("연장 사유: {}", normalizedReason);
 
                 int updateResult = businessDAO.extendApprovedEvent(
                                 eventNo,
@@ -1889,7 +1864,7 @@ public class BusinessServiceImpl
                                 productNo,
                                 businessNo,
                                 excludeEventNo);
-                System.out.println("productCount = " + productCount);
+                log.debug("productCount = {}", productCount);
 
                 if (productCount == 0) {
                         throw new IllegalArgumentException(
@@ -2492,9 +2467,7 @@ public class BusinessServiceImpl
 
                 } catch (IOException e) {
 
-                        System.err.println(
-                                        "상품 이미지 파일 삭제 실패: "
-                                                        + savedPhysicalPath);
+                        log.warn("상품 이미지 파일 삭제 실패: {}", savedPhysicalPath, e);
                 }
         }
 

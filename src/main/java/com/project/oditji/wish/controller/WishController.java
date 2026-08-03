@@ -5,11 +5,10 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,7 @@ import com.project.oditji.wish.vo.WishVO;
 
 import jakarta.servlet.http.HttpSession;
 
-@Controller
+@RestController
 @RequestMapping("/wish")
 public class WishController {
 
@@ -39,7 +38,6 @@ public class WishController {
      * 이 엔드포인트로 { productNo } 를 전송한다.
      */
     @PostMapping("/toggle")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> toggleWish(@RequestBody WishVO wishVO, HttpSession session) {
         MemberVO loginMember = getLoginMember(session);
 

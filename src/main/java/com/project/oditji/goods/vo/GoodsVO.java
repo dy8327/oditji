@@ -123,7 +123,7 @@ public class GoodsVO {
     }
 
     public int getDiscountPrice() {
-        int normalizedRate = Math.max(0, Math.min(discountRate, 100));
+        int normalizedRate = Math.clamp(discountRate, 0, 100);
         return price * (100 - normalizedRate) / 100;
     }
 }

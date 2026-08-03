@@ -2,6 +2,8 @@ package com.project.oditji.member.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +18,8 @@ import com.project.oditji.notification.service.NotificationService;
 
 @Service
 public class MemberServiceImpl implements MemberService {
+
+    private static final Logger log = LoggerFactory.getLogger(MemberServiceImpl.class);
 
     private final MemberDAO memberDAO;
     private final PasswordEncoder passwordEncoder;
@@ -63,7 +67,7 @@ public class MemberServiceImpl implements MemberService {
 
         Long memberNo = memberVO.getMemberNo();
 
-        System.out.println("생성된 MEMBER_NO = " + memberNo);
+        log.debug("생성된 MEMBER_NO = {}", memberNo);
 
         if (memberNo == null) {
             throw new IllegalStateException("회원 번호 생성에 실패했습니다.");
@@ -82,11 +86,11 @@ public class MemberServiceImpl implements MemberService {
         }
 
         for (String platformCode : ottList) {
-            System.out.println("선택된 OTT 코드 = [" + platformCode + "]");
+            log.debug("선택된 OTT 코드 = [{}]", platformCode);
 
             Long platformNo = memberDAO.selectPlatformNoByCode(platformCode);
 
-            System.out.println("조회된 PLATFORM_NO = " + platformNo);
+            log.debug("조회된 PLATFORM_NO = {}", platformNo);
 
             if (platformNo == null) {
                 throw new IllegalArgumentException("존재하지 않는 OTT 플랫폼입니다: " + platformCode);

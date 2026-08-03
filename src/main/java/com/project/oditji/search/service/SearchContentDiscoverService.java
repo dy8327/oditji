@@ -80,11 +80,12 @@ public class SearchContentDiscoverService {
             return new ArrayList<CachedContentVO>();
         }
 
-        int normalizedYears = Math.max(1, Math.min(supplementYears, 10));
-        int normalizedPages = Math.max(1, Math.min(supplementPagesPerYear, 30));
-        int normalizedMax = Math.max(
+        int normalizedYears = Math.clamp(supplementYears, 1, 10);
+        int normalizedPages = Math.clamp(supplementPagesPerYear, 1, 30);
+        int normalizedMax = Math.clamp(
+                supplementMaxCandidatesPerType,
                 0,
-                Math.min(supplementMaxCandidatesPerType, 5000)
+                5000
         );
 
         if (normalizedMax == 0) {

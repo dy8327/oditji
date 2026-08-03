@@ -2,6 +2,9 @@ package com.project.oditji.chat.common;
 
 public class ChatResult {
 
+    private ChatResult() {
+    }
+
     /**
      * 성공
      */

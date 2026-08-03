@@ -319,14 +319,12 @@ public class RankingServiceImpl implements RankingService {
          * 비정상적인 값이 들어와도 0~10으로 제한합니다.
          */
         double tmdbScore =
-                Math.max(
+                Math.clamp(
+                        safeDouble(
+                                content.getTmdbScore()
+                        ),
                         0.0,
-                        Math.min(
-                                safeDouble(
-                                        content.getTmdbScore()
-                                ),
-                                10.0
-                        )
+                        10.0
                 );
 
         double popularityScore = 0.0;

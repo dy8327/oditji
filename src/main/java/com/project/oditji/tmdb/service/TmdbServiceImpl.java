@@ -1996,9 +1996,9 @@ public class TmdbServiceImpl implements TmdbService {
 
         String[] tokens = text.split(",");
 
-        for (String token : tokens) {
+        for (String participationToken : tokens) {
 
-            String value = token.trim();
+            String value = participationToken.trim();
 
             if (!value.isEmpty()) {
                 values.add(value);

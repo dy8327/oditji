@@ -486,7 +486,7 @@ public class OrderController {
 
                 int totalCount = orderService.getOrderCount(loginMember.getMemberNo());
                 int totalPage = Math.max(1, (int) Math.ceil((double) totalCount / pageSize));
-                int currentPage = Math.max(1, Math.min(page, totalPage));
+                int currentPage = Math.clamp(page, 1, totalPage);
                 int startRow = (currentPage - 1) * pageSize + 1;
                 int endRow = currentPage * pageSize;
 

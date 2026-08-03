@@ -90,26 +90,10 @@ public class SearchContentSnapshotService {
                     continue;
                 }
 
-                try {
-
-                    CachedContentVO content =
-                            fromJson(
-                                    new JSONObject(line)
-                            );
-
-                    if (contentPolicyService.shouldExcludeContent(content)) {
-                        continue;
-                    }
-
-                    result.add(content);
-
-                } catch (RuntimeException e) {
-
-                    /*
-                     * 특정 JSONL 한 줄이 손상되어도
-                     * 전체 스냅샷 복원을 중단하지 않습니다.
-                     */
-                }
+                addSnapshotLine(
+                        result,
+                        line
+                );
             }
 
         } catch (IOException e) {
@@ -121,6 +105,32 @@ public class SearchContentSnapshotService {
         }
 
         return result;
+    }
+
+    private void addSnapshotLine(
+            List<CachedContentVO> result,
+            String line) {
+
+        try {
+
+            CachedContentVO content =
+                    fromJson(
+                            new JSONObject(line)
+                    );
+
+            if (contentPolicyService.shouldExcludeContent(content)) {
+                return;
+            }
+
+            result.add(content);
+
+        } catch (RuntimeException e) {
+
+            /*
+             * 특정 JSONL 한 줄이 손상되어도
+             * 전체 스냅샷 복원을 중단하지 않습니다.
+             */
+        }
     }
 
     /**

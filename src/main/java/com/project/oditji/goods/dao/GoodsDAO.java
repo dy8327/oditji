@@ -10,6 +10,7 @@ import com.project.oditji.goods.vo.ProductOptionVO;
 
 public interface GoodsDAO {
 
+        @SuppressWarnings("java:S107")
         List<GoodsVO> selectSearchGoods(
                         @Param("keyword") String keyword,
                         @Param("productTypes") List<String> productTypes,
@@ -23,6 +24,7 @@ public interface GoodsDAO {
                         @Param("startRow") int startRow,
                         @Param("endRow") int endRow);
 
+        @SuppressWarnings("java:S107")
         int countSearchGoods(
                         @Param("keyword") String keyword,
                         @Param("productTypes") List<String> productTypes,

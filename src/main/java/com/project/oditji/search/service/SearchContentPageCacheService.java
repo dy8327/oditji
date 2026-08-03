@@ -1390,12 +1390,10 @@ public class SearchContentPageCacheService {
                 Math.max(displayPage, 1);
 
         int normalizedPageSize =
-                Math.max(
+                Math.clamp(
+                        pageSize,
                         1,
-                        Math.min(
-                                pageSize,
-                                100
-                        )
+                        100
                 );
 
         List<SearchResultVO> filtered =

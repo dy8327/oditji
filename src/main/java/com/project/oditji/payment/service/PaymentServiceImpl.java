@@ -273,7 +273,7 @@ public class PaymentServiceImpl implements PaymentService {
              * =========================================================
              */
             String responseBody = e.getResponseBodyAsString();
-            if (responseBody != null && responseBody.contains("\"pgCode\":\"500503\"")) {
+            if (responseBody.contains("\"pgCode\":\"500503\"")) {
 
                 throw new IllegalStateException(
                         "해당 간편결제는 부분 환불을 지원하지 않습니다. " + "전체 주문 취소를 이용해주세요.", e);
@@ -453,7 +453,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         String responseBody = e.getResponseBodyAsString();
-        if (responseBody == null || responseBody.isBlank()) {
+        if (responseBody.isBlank()) {
             return false;
         }
 

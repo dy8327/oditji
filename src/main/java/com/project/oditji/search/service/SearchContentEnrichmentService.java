@@ -127,12 +127,10 @@ public class SearchContentEnrichmentService {
             TmdbProviderRegistry providerRegistry) {
 
         int normalizedWorkers =
-                Math.max(
+                Math.clamp(
+                        workerCount,
                         1,
-                        Math.min(
-                                workerCount,
-                                12
-                        )
+                        12
                 );
 
         List<CachedContentVO> result =

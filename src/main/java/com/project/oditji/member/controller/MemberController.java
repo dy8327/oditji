@@ -1,6 +1,7 @@
 package com.project.oditji.member.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -160,9 +161,10 @@ public class MemberController {
                 }
         }
 
+        @SuppressWarnings("java:S107")
         private void processJoin(MemberVO memberVO, BusinessVO businessVO, String joinType, List<String> ottList,
                         String noOtt, MultipartFile profileImageFile, MultipartFile licenseFile,
-                        RedirectAttributes redirectAttributes) throws Exception {
+                        RedirectAttributes redirectAttributes) throws IOException {
 
                 if (profileImageFile != null && !profileImageFile.isEmpty()) {
                         memberVO.setProfileImage(saveProfileImage(profileImageFile));
@@ -180,7 +182,7 @@ public class MemberController {
         }
 
         private void processBusinessJoin(MemberVO memberVO, BusinessVO businessVO, MultipartFile licenseFile)
-                        throws Exception {
+                        throws IOException {
 
                 NtsBusinessVerifyVO verifyResult = verifyBusinessForJoin(businessVO);
                 businessVO.setNtsBusinessStatus(verifyResult.getBusinessStatus());
@@ -207,7 +209,7 @@ public class MemberController {
                 return verifyResult;
         }
 
-        private String saveBusinessLicense(MultipartFile licenseFile) throws Exception {
+        private String saveBusinessLicense(MultipartFile licenseFile) throws IOException {
                 if (licenseFile == null || licenseFile.isEmpty()) {
                         throw new IllegalArgumentException("사업자등록증을 첨부해주세요.");
                 }
@@ -1113,7 +1115,7 @@ public class MemberController {
         }
 
         // 프로필 이미지 검증 및 저장
-        private String saveProfileImage(MultipartFile profileImageFile) throws Exception {
+        private String saveProfileImage(MultipartFile profileImageFile) throws IOException {
                 if (profileImageFile.getSize() > 5 * 1024 * 1024) {
                         throw new IllegalArgumentException("프로필 이미지는 5MB 이하만 등록할 수 있습니다.");
                 }

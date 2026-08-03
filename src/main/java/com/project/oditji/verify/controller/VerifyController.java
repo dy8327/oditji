@@ -71,7 +71,7 @@ public class VerifyController {
         }
 
         // 2) 이미 성인인증을 완료한 유저인지 검증
-        if (memberNo != 0 && verifyService.isAdultVerified(memberNo)) {
+        if (verifyService.isAdultVerified(memberNo)) {
             session.setAttribute("ADULT_VERIFIED", "Y");
             return "redirect:" + sanitizeReturnUrl(returnUrl);
         }

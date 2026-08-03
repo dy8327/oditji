@@ -378,12 +378,10 @@ public class SearchContentAgeRatingService {
     }
 
     private int normalizeWorkerCount() {
-        return Math.max(
+        return Math.clamp(
+                workerCount,
                 1,
-                Math.min(
-                        workerCount,
-                        12
-                )
+                12
         );
     }
 

@@ -47,17 +47,8 @@ public class NtsBusinessServiceImpl
         String normalizedBusinessNumber = businessNumber.replaceAll("\\D", "");
 
         /*
-         * 요청 JSON
-         *
-         * {
-         *   "businesses": [
-         *     {
-         *       "b_no": "1234567890",
-         *       "start_dt": "20200101",
-         *       "p_nm": "홍길동"
-         *     }
-         *   ]
-         * }
+         * 요청 본문에는 businesses 배열 안에
+         * 사업자등록번호, 개업일, 대표자명을 담는다.
          */
         Map<String, Object> business = new HashMap<>();
 
@@ -130,10 +121,7 @@ public class NtsBusinessServiceImpl
 
         Map<String, Object> requestBody = new HashMap<>();
 
-        // 상태조회 API 요청 형식
-        // {
-        //   "b_no": ["1234567890"]
-        // }
+        // 상태조회 요청 본문에는 b_no 배열로 사업자등록번호를 전달한다.
         requestBody.put("b_no", List.of(businessNumber));
 
         try {

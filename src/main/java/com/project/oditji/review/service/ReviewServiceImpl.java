@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ import com.project.oditji.review.vo.ReviewVO;
 @Service
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final Logger log = LoggerFactory.getLogger(ReviewServiceImpl.class);
     private static final String MEMBER_NO_KEY = "memberNo";
 
     private final ReviewDAO reviewDAO;
@@ -163,12 +166,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public void writeProductReview(Long memberNo, int productNo, int orderItemNo, double rating, String content) {
 
-        System.out.println("===== 상품 리뷰 작성 =====");
-        System.out.println("memberNo = " + memberNo);
-        System.out.println("productNo = " + productNo);
-        System.out.println("orderItemNo = " + orderItemNo);
-        System.out.println("rating = " + rating);
-        System.out.println("content = " + content);
+        log.debug(
+                "상품 리뷰 작성 요청 - memberNo: {}, productNo: {}, orderItemNo: {}, rating: {}",
+                memberNo,
+                productNo,
+                orderItemNo,
+                rating
+        );
 
         if (memberNo == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
@@ -188,7 +192,7 @@ public class ReviewServiceImpl implements ReviewService {
         param.put("orderItemNo", orderItemNo);
 
         int count = reviewDAO.countMyOrderItem(param);
-        System.out.println("countMyOrderItem = " + count);
+        log.debug("상품 리뷰 구매내역 확인 결과: {}", count);
 
         if (count == 0) {
             throw new IllegalStateException("구매한 상품만 리뷰를 작성할 수 있습니다.");
@@ -196,7 +200,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         ProductReviewVO existingReview = reviewDAO.selectProductReviewByOrderItem(orderItemNo);
 
-        System.out.println("existingReview = " + existingReview);
+        log.debug("기존 상품 리뷰 조회 결과: {}", existingReview);
 
         if (existingReview != null) {
             // [수정] 주문내역 화면에 표시할 중복 상품 리뷰 안내 문구를 요구사항에 맞게 변경한다.
@@ -210,9 +214,9 @@ public class ReviewServiceImpl implements ReviewService {
         productReview.setRating(rating);
         productReview.setContent(content);
 
-        System.out.println("insert 시작");
+        log.debug("상품 리뷰 저장 시작");
         reviewDAO.insertProductReview(productReview);
-        System.out.println("insert 완료");
+        log.debug("상품 리뷰 저장 완료");
     }
 
     @Override
