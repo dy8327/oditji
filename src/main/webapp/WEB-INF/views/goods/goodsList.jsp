@@ -52,7 +52,7 @@
     <!-- =================================================
          LEFT FILTER SIDEBAR
     ================================================== -->
-    <aside class="goods-left-sidebar" id="goods-category-filter">
+    <aside class="goods-left-sidebar" id="goods-category-filter" aria-label="상품 카테고리 필터">
 
         <!-- 모바일 전용 필터 펼치기 버튼 (데스크톱에서는 숨김) -->
         <button type="button"
@@ -503,7 +503,7 @@
     <!-- =================================================
          RIGHT RECOMMEND SIDEBAR
     ================================================== -->
-    <aside class="goods-right-sidebar">
+    <aside class="goods-right-sidebar" aria-label="추천 상품">
 
         <jsp:include
             page="/WEB-INF/views/common/goodsRightSidebar.jsp"/>

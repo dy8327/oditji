@@ -408,17 +408,13 @@
 <!-- =========================================================
      이벤트 연결 상품 검색 모달
 ========================================================= -->
-<div class="product-search-modal"
-     id="productSearchModal">
+<dialog class="product-search-modal"
+        id="productSearchModal"
+        open
+        aria-modal="true"
+        aria-labelledby="productSearchModalTitle">
 
-    <%--
-        모달 영역에 dialog 역할과 제목 연결을 추가하여
-        화면 낭독기가 현재 영역을 대화상자로 인식하도록 합니다.
-    --%>
-    <div class="product-search-modal-panel"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="productSearchModalTitle">
+    <div class="product-search-modal-panel">
 
         <div class="product-search-modal-header">
 
@@ -545,7 +541,7 @@
 
     </div>
 
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

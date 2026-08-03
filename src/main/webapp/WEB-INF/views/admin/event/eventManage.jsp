@@ -591,8 +591,8 @@
     aria-labelledby:
     팝업 제목 요소와 모달을 연결합니다.
 --%>
-<div class="modal-overlay" id="eventRequestModal" role="dialog" aria-modal="true"
-     aria-labelledby="eventRequestModalTitle">
+<dialog class="modal-overlay" id="eventRequestModal" open aria-modal="true"
+        aria-labelledby="eventRequestModalTitle">
 
     <div class="modal-box modal-box-lg">
 
@@ -720,7 +720,7 @@
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

@@ -425,11 +425,11 @@
     상품 요청 상세 / 승인·반려 팝업입니다. eventManage.jsp의 상세 팝업과 동일한 구조(role="dialog",
     aria-modal, target-info-box)를 사용한다.
 --%>
-<div class="modal-overlay"
-     id="productRequestModal"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="productRequestModalTitle">
+<dialog class="modal-overlay"
+        id="productRequestModal"
+        open
+        aria-modal="true"
+        aria-labelledby="productRequestModalTitle">
 
     <div class="modal-box">
 
@@ -516,7 +516,7 @@
 
     </div>
 
-</div>
+</dialog>
 
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>

@@ -14,6 +14,9 @@ import java.util.Date;
  */
 public class EventManageVO {
 
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
+
     private Long eventNo; // = EVENT.EVENT_NO (이벤트 번호)
 
     private String businessName; // = BUSINESS.BUSINESS_NAME (사업자명)
@@ -217,12 +220,12 @@ public class EventManageVO {
      */
     public String getApprovalStatus() {
 
-        if ("REJECTED".equals(status)) {
-            return "REJECTED";
+        if (STATUS_REJECTED.equals(status)) {
+            return STATUS_REJECTED;
         }
 
-        if ("APPROVED".equals(status) || "END".equals(status)) {
-            return "APPROVED";
+        if (STATUS_APPROVED.equals(status) || "END".equals(status)) {
+            return STATUS_APPROVED;
         }
 
         return "WAITING";
@@ -232,9 +235,9 @@ public class EventManageVO {
     public String getApprovalStatusLabel() {
 
         switch (getApprovalStatus()) {
-            case "APPROVED":
+            case STATUS_APPROVED:
                 return "승인";
-            case "REJECTED":
+            case STATUS_REJECTED:
                 return "반려";
             default:
                 return "대기";
@@ -247,7 +250,7 @@ public class EventManageVO {
      */
     public String getProgressStatus() {
 
-        if (!"APPROVED".equals(getApprovalStatus())) {
+        if (!STATUS_APPROVED.equals(getApprovalStatus())) {
             return null;
         }
 

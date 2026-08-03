@@ -284,13 +284,12 @@
                                         --%>
                                         <td class="member-id-cell">
 
-                                            <span class="member-id-text ${memberIdStatusClass}"
-                                                title="${member.memberId}"
-                                                tabindex="0"
-                                                role="button"
-                                                aria-haspopup="dialog">
+                                            <button type="button"
+                                                    class="member-id-text ${memberIdStatusClass}"
+                                                    title="${member.memberId}"
+                                                    aria-haspopup="dialog">
                                                 ${member.memberId}
-                                            </span>
+                                            </button>
 
                                             <c:if test="${member.snsYn == 'Y'}">
                                                 <span class="badge badge-gray">SNS</span>
@@ -583,8 +582,8 @@
     동일한 id로 하나씩 둔다(페이지당 하나만 렌더링되므로 id 충돌 없음).
     이 화면은 닉네임을 별도로 보여주지 않으므로 닉네임 줄은 항상 숨겨진다.
 --%>
-<div class="modal-overlay" id="memberIdModal" role="dialog" aria-modal="true"
-     aria-labelledby="memberIdModalTitle">
+<dialog class="modal-overlay" id="memberIdModal" open aria-modal="true"
+        aria-labelledby="memberIdModalTitle">
 
     <div class="modal-box">
 
@@ -605,7 +604,7 @@
 
     </div>
 
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

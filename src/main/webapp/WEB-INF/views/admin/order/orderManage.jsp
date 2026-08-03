@@ -76,7 +76,7 @@
 
         <section class="admin-content-box">
 
-            <nav class="tab-menu">
+            <nav class="tab-menu" aria-label="주문 및 환불 조회 구분">
                 <a href="?tab=order&keyword=${param.keyword}" class="${currentTab == 'order' ? 'active' : ''}">주문 조회</a>
                 <a href="?tab=refund&keyword=${param.keyword}" class="${currentTab == 'refund' ? 'active' : ''}">환불 조회</a>
             </nav>
@@ -128,7 +128,7 @@
 
             <%-- 환불 조회 탭 전용 상태 필터. 실제 처리 결과(대기/승인/반려)만 확인하는 용도이다. --%>
             <c:if test="${currentTab == 'refund'}">
-                <nav class="tab-menu" style="margin-top: 12px;">
+                <nav class="tab-menu" style="margin-top: 12px;" aria-label="환불 처리 상태">
                     <a href="?tab=refund&status=ALL&keyword=${param.keyword}"
                        class="${currentStatus == 'ALL' ? 'active' : ''}">전체</a>
                     <a href="?tab=refund&status=WAITING&keyword=${param.keyword}"
