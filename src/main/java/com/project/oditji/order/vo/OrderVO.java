@@ -46,9 +46,6 @@ public class OrderVO {
      */
     private List<OrderItemVO> items = new ArrayList<OrderItemVO>();
 
-    public OrderVO() {
-    }
-
     public Long getOrderNo() {
         return orderNo;
     }

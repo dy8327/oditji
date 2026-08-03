@@ -4,9 +4,6 @@ public class OrderPaymentCompleteRequestVO {
 
     private String paymentId;
 
-    public OrderPaymentCompleteRequestVO() {
-    }
-
     public String getPaymentId() {
         return paymentId;
     }

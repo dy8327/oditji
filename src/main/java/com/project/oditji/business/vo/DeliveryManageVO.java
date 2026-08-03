@@ -30,8 +30,6 @@ public class DeliveryManageVO {
     private Date orderCreatedAt;
     private Date updatedAt;
 
-    public DeliveryManageVO() {
-    }
 
     public Long getDeliveryNo() {
         return deliveryNo;

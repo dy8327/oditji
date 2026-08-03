@@ -10,9 +10,6 @@ public class DirectorVO {
     private String directorType;
     private Integer displayOrder;
 
-    public DirectorVO() {
-    }
-
     public Integer getDirectorNo() {
         return directorNo;
     }

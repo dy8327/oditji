@@ -20,9 +20,6 @@ public class MemberSocialJoinVO {
     private String providerUserId;
     private Date createdAt;
 
-    public MemberSocialJoinVO() {
-    }
-
     public long getMemberNo() {
         return memberNo;
     }

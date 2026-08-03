@@ -14,8 +14,6 @@ public class ContentSearchVO {
     private String genreText;
     private String ageRating;
 
-    public ContentSearchVO() {
-    }
 
     public long getContentNo() {
         return contentNo;

@@ -292,10 +292,25 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public void updateMember(MemberVO memberVO) {
 
+        validateUpdateTarget(memberVO);
+        validateAndSetNickname(memberVO);
+        validateAndSetEmail(memberVO);
+        encodeNewPassword(memberVO);
+
+        int updated = memberDAO.updateMember(memberVO);
+
+        if (updated != 1) {
+            throw new IllegalStateException("회원정보 수정에 실패했습니다.");
+        }
+    }
+
+    private void validateUpdateTarget(MemberVO memberVO) {
         if (memberVO == null || memberVO.getMemberNo() == null) {
             throw new IllegalArgumentException("회원 정보가 올바르지 않습니다.");
         }
+    }
 
+    private void validateAndSetNickname(MemberVO memberVO) {
         String nickname = memberVO.getNickname();
 
         if (nickname == null || nickname.isBlank()) {
@@ -303,51 +318,48 @@ public class MemberServiceImpl implements MemberService {
         }
 
         nickname = nickname.trim();
-
         if (!nickname.matches("^[a-zA-Z0-9가-힣]{2,10}$")) {
             throw new IllegalArgumentException("닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.");
         }
-
-        memberVO.setNickname(nickname);
 
         if (memberDAO.countByNicknameExceptMe(nickname, memberVO.getMemberNo()) > 0) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
 
+        memberVO.setNickname(nickname);
+    }
+
+    private void validateAndSetEmail(MemberVO memberVO) {
         String email = memberVO.getEmail();
-
-        if (email != null) {
-            email = email.trim();
-
-            if (email.isBlank()) {
-                throw new IllegalArgumentException("이메일을 입력해주세요.");
-            }
-
-            if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                throw new IllegalArgumentException("올바른 이메일 형식으로 입력해주세요.");
-            }
-
-            memberVO.setEmail(email);
-
-            if (memberDAO.countByEmailExceptMe(email, memberVO.getMemberNo()) > 0) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-            }
+        if (email == null) {
+            return;
         }
 
+        email = email.trim();
+        if (email.isBlank()) {
+            throw new IllegalArgumentException("이메일을 입력해주세요.");
+        }
+
+        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new IllegalArgumentException("올바른 이메일 형식으로 입력해주세요.");
+        }
+
+        if (memberDAO.countByEmailExceptMe(email, memberVO.getMemberNo()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        memberVO.setEmail(email);
+    }
+
+    private void encodeNewPassword(MemberVO memberVO) {
         String newPassword = memberVO.getMemberPw();
 
         if (newPassword != null && !newPassword.isBlank()) {
             memberVO.setMemberPw(passwordEncoder.encode(newPassword));
-        } else {
-            memberVO.setMemberPw(null);
+            return;
         }
 
-        int updated = memberDAO.updateMember(memberVO);
-
-
-        if (updated != 1) {
-            throw new IllegalStateException("회원정보 수정에 실패했습니다.");
-        }
+        memberVO.setMemberPw(null);
     }
 
     @Override

@@ -27,9 +27,6 @@ public class CartItemVO {
     private String colorName;
     private String sizeName;
 
-    public CartItemVO() {
-    }
-
     public Long getCartItemNo() {
         return cartItemNo;
     }

@@ -38,9 +38,6 @@ public class OrderSheetItemVO implements Serializable {
 
     private Integer quantity;
 
-    public OrderSheetItemVO() {
-    }
-
     public Long getOptionNo() {
         return optionNo;
     }

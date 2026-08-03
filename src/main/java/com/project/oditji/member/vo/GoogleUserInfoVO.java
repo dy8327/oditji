@@ -19,9 +19,6 @@ public class GoogleUserInfoVO {
     private String name;
     private String picture;
 
-    public GoogleUserInfoVO() {
-    }
-
     public String getSub() {
         return sub;
     }

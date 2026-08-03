@@ -16,9 +16,6 @@ public class NaverUserInfoVO {
     private String message;
     private Response response;
 
-    public NaverUserInfoVO() {
-    }
-
     /**
      * 네이버 프로필 응답의 실제 회원 정보입니다.
      *
@@ -36,9 +33,6 @@ public class NaverUserInfoVO {
 
         @JsonProperty("profile_image")
         private String profileImage;
-
-        public Response() {
-        }
 
         public String getId() {
             return id;

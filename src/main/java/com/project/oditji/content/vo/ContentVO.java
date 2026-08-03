@@ -25,9 +25,6 @@ public class ContentVO {
     private Date createdAt;
     private Date updatedAt;
 
-    public ContentVO() {
-    }
-
     public int getContentNo() {
         return contentNo;
     }

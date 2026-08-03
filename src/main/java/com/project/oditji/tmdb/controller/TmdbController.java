@@ -9,6 +9,8 @@ import com.project.oditji.tmdb.service.TmdbService;
 @Controller
 public class TmdbController {
 
+    private static final String REDIRECT_ADMIN_TMDB = "redirect:/admin/tmdb";
+
     private final TmdbService tmdbService;
 
     TmdbController(TmdbService tmdbService) {
@@ -26,7 +28,7 @@ public class TmdbController {
 
         tmdbService.loadMovieData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/movie/update")
@@ -34,7 +36,7 @@ public class TmdbController {
 
         tmdbService.updateMovieDetailData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/movie/platform")
@@ -42,7 +44,7 @@ public class TmdbController {
 
         tmdbService.loadMoviePlatformData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/movie/full")
@@ -50,7 +52,7 @@ public class TmdbController {
 
         tmdbService.loadMovieFullData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/tv")
@@ -58,7 +60,7 @@ public class TmdbController {
 
         tmdbService.loadTvData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/tv/update")
@@ -66,7 +68,7 @@ public class TmdbController {
 
         tmdbService.updateTvDetailData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/tv/platform")
@@ -74,7 +76,7 @@ public class TmdbController {
 
         tmdbService.loadTvPlatformData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/tv/full")
@@ -82,7 +84,7 @@ public class TmdbController {
 
         tmdbService.loadTvFullData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 
     @PostMapping("/admin/tmdb/all")
@@ -90,6 +92,6 @@ public class TmdbController {
 
         tmdbService.loadAllData();
 
-        return "redirect:/admin/tmdb";
+        return REDIRECT_ADMIN_TMDB;
     }
 }

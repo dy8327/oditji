@@ -11,9 +11,6 @@ public class OrderSubmitRequestVO {
     private String receiverPhone;
     private String address;
 
-    public OrderSubmitRequestVO() {
-    }
-
     public String getReceiverName() {
         return receiverName;
     }

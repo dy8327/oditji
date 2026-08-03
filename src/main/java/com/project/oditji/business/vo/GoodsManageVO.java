@@ -49,8 +49,6 @@ public class GoodsManageVO {
     // [상품 옵션 기능 추가] 의상/신발의 색상-사이즈별 재고 목록
     private List<ProductOptionVO> optionList = new ArrayList<ProductOptionVO>();
 
-    public GoodsManageVO() {
-    }
 
     public long getProductNo() {
         return productNo;

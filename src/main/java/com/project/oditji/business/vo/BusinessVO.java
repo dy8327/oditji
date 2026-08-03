@@ -35,8 +35,6 @@ public class BusinessVO {
 
     private Date createdAt;
 
-    public BusinessVO() {
-    }
 
     public long getBusinessNo() {
         return businessNo;

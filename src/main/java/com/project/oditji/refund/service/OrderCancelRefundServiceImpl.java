@@ -25,6 +25,9 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     private static final String WAITING = "WAITING";
     private static final String FULL = "FULL";
     private static final String PARTIAL = "PARTIAL";
+    private static final String CANCEL = "CANCEL";
+    private static final String ORDER_NUMBER_PREFIX = "주문번호 ";
+    private static final String ORDER_LIST_URL = "/order/list";
 
     private final OrderCancelRefundDAO orderCancelRefundDAO;
     private final BusinessDAO businessDAO;
@@ -91,8 +94,8 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         String normalized = value.trim().toUpperCase(Locale.ROOT);
         boolean valid = type == SetType.HISTORY_TYPE
-                ? ("CANCEL".equals(normalized) || "REFUND".equals(normalized))
-                : ("WAITING".equals(normalized) || "APPROVED".equals(normalized) || "REJECTED".equals(normalized));
+                ? (CANCEL.equals(normalized) || "REFUND".equals(normalized))
+                : (WAITING.equals(normalized) || "APPROVED".equals(normalized) || "REJECTED".equals(normalized));
 
         if (!valid) {
             throw new IllegalArgumentException("올바르지 않은 취소/환불 조회 조건입니다.");
@@ -162,9 +165,9 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 cancelGroupNo,
                 "REFUND_REQUESTED",
                 "전체 취소/환불 요청",
-                "주문번호 " + orderNo + "의 전체 취소/환불 요청이 접수되었습니다.",
+                ORDER_NUMBER_PREFIX + orderNo + "의 전체 취소/환불 요청이 접수되었습니다.",
                 "/business/cancel/list",
-                "CANCEL",
+                CANCEL,
                 cancelGroupNo);
     }
 
@@ -193,7 +196,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         }
 
         for (Long orderItemNo : distinctItemNos) {
-            requestOrderItemCancel(memberNo, orderItemNo, reason);
+            requestOrderItemCancelInternal(memberNo, orderItemNo, reason);
         }
     }
 
@@ -210,6 +213,10 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     public void requestOrderItemCancel(Long memberNo, Long orderItemNo, String reason) {
 
         validateMemberNo(memberNo);
+        requestOrderItemCancelInternal(memberNo, orderItemNo, reason);
+    }
+
+    private void requestOrderItemCancelInternal(Long memberNo, Long orderItemNo, String reason) {
 
         if (orderItemNo == null || orderItemNo <= 0) {
             throw new IllegalArgumentException("주문상품 번호가 올바르지 않습니다.");
@@ -268,10 +275,10 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 cancelGroupNo,
                 "REFUND_REQUESTED",
                 "상품 취소/환불 요청",
-                "주문번호 " + item.getOrderNo()
+                ORDER_NUMBER_PREFIX + item.getOrderNo()
                         + "의 상품 취소/환불 요청이 접수되었습니다.",
                 "/business/cancel/list",
-                "CANCEL",
+                CANCEL,
                 cancelGroupNo);
     }
 
@@ -379,10 +386,10 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 request.getMemberNo(),
                 "REFUND_COMPLETED",
                 "환불이 완료되었습니다.",
-                "주문번호 " + request.getOrderNo()
+                ORDER_NUMBER_PREFIX + request.getOrderNo()
                         + "의 전체 취소 및 결제 환불이 완료되었습니다.",
-                "/order/list",
-                "CANCEL",
+                ORDER_LIST_URL,
+                CANCEL,
                 request.getCancelGroupNo());
     }
 
@@ -439,8 +446,8 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 buildProductMessage(
                         request,
                         "의 취소 및 결제 환불이 완료되었습니다."),
-                "/order/list",
-                "CANCEL",
+                ORDER_LIST_URL,
+                CANCEL,
                 request.getCancelNo());
     }
 
@@ -488,8 +495,8 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 "REFUND_REJECTED",
                 "환불 요청이 반려되었습니다.",
                 buildRefundRejectedMessage(request, normalizedReason),
-                "/order/list",
-                "CANCEL",
+                ORDER_LIST_URL,
+                CANCEL,
                 FULL.equals(request.getCancelType())
                         ? request.getCancelGroupNo()
                         : request.getCancelNo());
@@ -508,7 +515,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
             return "‘" + request.getProductName().trim() + "’" + suffix;
         }
 
-        return "주문번호 " + request.getOrderNo() + suffix;
+        return ORDER_NUMBER_PREFIX + request.getOrderNo() + suffix;
     }
 
     /**
@@ -521,7 +528,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         String targetMessage;
 
         if (FULL.equals(request.getCancelType())) {
-            targetMessage = "주문번호 " + request.getOrderNo()
+            targetMessage = ORDER_NUMBER_PREFIX + request.getOrderNo()
                     + "의 전체 취소/환불 요청이 반려되었습니다.";
         } else {
             targetMessage = buildProductMessage(

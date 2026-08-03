@@ -21,6 +21,8 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class KakaoLoginController {
 
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+
     private final KakaoLoginService kakaoLoginService;
     private final MemberPlatformService memberPlatformService;
     private final MemberService memberService;
@@ -50,13 +52,13 @@ public class KakaoLoginController {
             KakaoLoginResultVO result = kakaoLoginService.kakaoLogin(code);
             if (result == null || result.getMember() == null) {
                 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
 
             MemberSocialJoinVO member = result.getMember();
             if (member.getMemberNo() <= 0) {
                 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
 
             request.changeSessionId();
@@ -82,7 +84,7 @@ public class KakaoLoginController {
             MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
             if (loginMember == null) {
                 
-                return "redirect:/member/login";
+                return REDIRECT_MEMBER_LOGIN;
             }
 
             if (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank()) {
@@ -99,7 +101,7 @@ public class KakaoLoginController {
              * 정지 회원: 복구 절차 없이 단순 안내만 노출한다.
              */
             redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
         } catch (MemberWithdrawnException e) {
 
@@ -115,12 +117,12 @@ public class KakaoLoginController {
 
             redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "카카오 로그인 처리 중 오류가 발생했습니다.");
             
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
     }
 

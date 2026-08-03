@@ -8,9 +8,6 @@ public class ContentSpoilerSourceVO {
     private int contentNo;
     private String overview;
 
-    public ContentSpoilerSourceVO() {
-    }
-
     public int getContentNo() {
         return contentNo;
     }

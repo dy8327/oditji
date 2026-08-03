@@ -20,6 +20,11 @@ import com.project.oditji.review.vo.MyReviewVO;
 @RequestMapping("/review")
 public class ReviewController {
 
+    private static final String SESSION_LOGIN_MEMBER = "loginMember";
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final String REDIRECT_CONTENT_DETAIL = "redirect:/content/contentDetail/";
+    private static final String REVIEW_SECTION_ANCHOR = "#reviewSection";
+
     private final ReviewService reviewService;
 
     public ReviewController(ReviewService reviewService) {
@@ -32,10 +37,10 @@ public class ReviewController {
     @GetMapping("/myReviewList")
     public String myReviewList(HttpSession session, Model model) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         List<MyReviewVO> reviewList = reviewService.getMyReviewList(loginMember.getMemberNo());
@@ -59,10 +64,10 @@ public class ReviewController {
             // [수정] 동일 콘텐츠 중복 작성 안내 메시지를 상세 페이지로 전달한다.
             RedirectAttributes redirectAttributes) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         try {
@@ -80,7 +85,7 @@ public class ReviewController {
                     "계정 하나당 리뷰 1개만 작성이 가능합니다");
         }
 
-        return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
+        return REDIRECT_CONTENT_DETAIL + contentNo + REVIEW_SECTION_ANCHOR;
     }
 
     /**
@@ -96,10 +101,10 @@ public class ReviewController {
             // [추가] 체크하지 않은 경우 N으로 처리한다.
             @RequestParam(defaultValue = "N") String spoilerYn) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         reviewService.updateContentReview(
@@ -112,7 +117,7 @@ public class ReviewController {
                 // [추가] 사용자가 선택한 스포일러 포함 여부
                 spoilerYn);
 
-        return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
+        return REDIRECT_CONTENT_DETAIL + contentNo + REVIEW_SECTION_ANCHOR;
     }
 
     /**
@@ -130,10 +135,10 @@ public class ReviewController {
             // [추가] 새 요청으로 리다이렉트한 뒤에도 안내 메시지를 한 번만 전달한다.
             RedirectAttributes redirectAttributes) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         try {
@@ -167,10 +172,10 @@ public class ReviewController {
             // [수정] 콘텐츠 상세 페이지에서 삭제한 경우 동일 페이지로 돌아가기 위해 사용한다.
             @RequestParam(required = false) Integer contentNo) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         reviewService.deleteContentReview(
@@ -179,7 +184,7 @@ public class ReviewController {
 
         // [수정] 콘텐츠 상세 페이지에서 삭제한 경우 리뷰 영역으로 즉시 돌아간다.
         if (contentNo != null) {
-            return "redirect:/content/contentDetail/" + contentNo + "#reviewSection";
+            return REDIRECT_CONTENT_DETAIL + contentNo + REVIEW_SECTION_ANCHOR;
         }
 
         return "redirect:/review/myReviewList";
@@ -195,10 +200,10 @@ public class ReviewController {
             // [수정] 상품 상세 페이지에서 삭제한 경우 동일 상품의 리뷰 영역으로 돌아가기 위해 사용한다.
             @RequestParam(required = false) Integer productNo) {
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
         if (loginMember == null) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         reviewService.deleteProductReview(
@@ -207,7 +212,7 @@ public class ReviewController {
 
         // [수정] 상품 상세 페이지에서 삭제한 경우 현재 상품 리뷰 영역으로 즉시 돌아간다.
         if (productNo != null) {
-            return "redirect:/goods/goodsDetail/" + productNo + "#reviewSection";
+            return "redirect:/goods/goodsDetail/" + productNo + REVIEW_SECTION_ANCHOR;
         }
 
         return "redirect:/review/myReviewList";

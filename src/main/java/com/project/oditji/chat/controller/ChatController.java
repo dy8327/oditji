@@ -26,6 +26,8 @@ public class ChatController {
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROOM_TYPE_NOTICE = "NOTICE";
     private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final String REDIRECT_CHAT_LIST = "redirect:/chat/list";
 
     private final ChatService chatService;
 
@@ -43,7 +45,7 @@ public class ChatController {
     public String roomList(HttpSession session, Model model) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         boolean admin = isAdmin(session);
@@ -68,11 +70,11 @@ public class ChatController {
     public String myRoomList(HttpSession session, Model model) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         if (isAdmin(session)) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         Integer businessNo = getSessionBusinessNo(session);
@@ -99,13 +101,13 @@ public class ChatController {
             Model model) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         boolean admin = isAdmin(session);
@@ -113,7 +115,7 @@ public class ChatController {
 
         /* 관리자는 직접 URL로 접근해도 자유방에 들어갈 수 없습니다. */
         if (admin && !noticeRoom) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         boolean joined = false;
@@ -123,7 +125,7 @@ public class ChatController {
             joined = chatService.isChatRoomMember(roomId, businessNo);
 
             if (!joined) {
-                return "redirect:/chat/list";
+                return REDIRECT_CHAT_LIST;
             }
         }
 
@@ -145,7 +147,7 @@ public class ChatController {
     public String createForm(HttpSession session, Model model) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         addLoginChatAttributes(session, model);
@@ -165,7 +167,7 @@ public class ChatController {
             HttpSession session) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         boolean admin = isAdmin(session);
@@ -189,7 +191,7 @@ public class ChatController {
         String roomId = chatService.createChatRoom(chatRoom);
 
         if (roomId == null) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         return "redirect:/chat/room/" + roomId;
@@ -207,13 +209,13 @@ public class ChatController {
             HttpSession session) {
 
         if (!hasChatAccess(session)) {
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         boolean admin = isAdmin(session);
@@ -227,7 +229,7 @@ public class ChatController {
                         && room.getCreatedBy() == businessNo;
 
         if (!canDelete) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
         boolean result = chatService.deleteChatRoom(roomId);
@@ -236,7 +238,7 @@ public class ChatController {
             return "redirect:/chat/room/" + roomId;
         }
 
-        return "redirect:/chat/list";
+        return REDIRECT_CHAT_LIST;
     }
 
     @GetMapping("/test")

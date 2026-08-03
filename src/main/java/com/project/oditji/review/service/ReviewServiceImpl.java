@@ -22,6 +22,8 @@ import com.project.oditji.review.vo.ReviewVO;
 @Service
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final String MEMBER_NO_KEY = "memberNo";
+
     private final ReviewDAO reviewDAO;
 
     public ReviewServiceImpl(ReviewDAO reviewDAO) {
@@ -81,7 +83,7 @@ public class ReviewServiceImpl implements ReviewService {
         // [추가] 사용자 체크, 결말 표현, OVERVIEW 주요 단어 기준으로 판별한다.
         String finalSpoilerYn = determineSpoilerYn(spoilerYn, reviewText, contentNo);
         Map<String, Object> checkParam = new HashMap<>();
-        checkParam.put("memberNo", memberNo);
+        checkParam.put(MEMBER_NO_KEY, memberNo);
         checkParam.put("contentNo", contentNo);
 
         // 상태(ACTIVE/DELETED) 무관하고 조회 - 삭제했던 리뷰도 잡아냄
@@ -181,7 +183,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Map<String, Object> param = new HashMap<>();
-        param.put("memberNo", memberNo);
+        param.put(MEMBER_NO_KEY, memberNo);
         param.put("productNo", productNo);
         param.put("orderItemNo", orderItemNo);
 
@@ -241,7 +243,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Map<String, Object> param = new HashMap<>();
-        param.put("memberNo", memberNo);
+        param.put(MEMBER_NO_KEY, memberNo);
         param.put("contentNo", contentNo);
 
         return reviewDAO.selectContentReviewByMemberAndContent(param);

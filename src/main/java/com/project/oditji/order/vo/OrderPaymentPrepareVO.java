@@ -25,9 +25,6 @@ public class OrderPaymentPrepareVO implements Serializable {
      */
     private List<OrderSheetItemVO> items = new ArrayList<OrderSheetItemVO>();
 
-    public OrderPaymentPrepareVO() {
-    }
-
     public String getPaymentId() {
         return paymentId;
     }

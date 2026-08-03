@@ -10,8 +10,6 @@ public class ActorSearchVO {
     private String characterName;
     private Integer displayOrder;
 
-    public ActorSearchVO() {
-    }
 
     public long getActorNo() {
         return actorNo;

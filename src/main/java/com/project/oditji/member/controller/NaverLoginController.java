@@ -32,6 +32,8 @@ public class NaverLoginController {
 
     private static final String NAVER_OAUTH_STATE = "naverOAuthState";
     private static final String PROVIDER_NAVER = "NAVER";
+    private static final String ATTRIBUTE_ERROR_MESSAGE = "errorMessage";
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
 
     private final NaverLoginService naverLoginService;
     private final MemberPlatformService memberPlatformService;
@@ -73,97 +75,99 @@ public class NaverLoginController {
             HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
 
         String savedState = (String) session.getAttribute(NAVER_OAUTH_STATE);
-
-        /*
-         * state는 한 번만 사용할 수 있도록 콜백 진입 즉시 세션에서 제거합니다.
-         */
         session.removeAttribute(NAVER_OAUTH_STATE);
-        if (savedState == null || state == null || !savedState.equals(state)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.");
 
-            return "redirect:/member/login";
-        }
+        String validationMessage = validateCallback(savedState, state, error, errorDescription, code);
+        if (validationMessage != null) {
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, validationMessage);
 
-        if (error != null && !error.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", buildCallbackErrorMessage(errorDescription));
-
-            return "redirect:/member/login";
-        }
-
-        if (code == null || code.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "네이버 인증 코드를 받지 못했습니다. 다시 시도해주세요.");
-
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
         }
 
         try {
-            NaverLoginResultVO result = naverLoginService.naverLogin(code, state);
-
-            if (result == null || result.getMember() == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 정보를 확인하지 못했습니다.");
-
-                return "redirect:/member/login";
-            }
-
-            MemberSocialJoinVO member = result.getMember();
-            if (member.getMemberNo() <= 0) {
-                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 번호를 확인하지 못했습니다.");
-
-                return "redirect:/member/login";
-            }
-
-            request.changeSessionId();
-            String displayName = getDisplayName(member);
-            member.setMemberName(displayName);
-
-            int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
-            if (result.isNewMember() || platformCount == 0) {
-                savePendingMemberSession(session, member, displayName);
-
-                return "redirect:/member/platform/select";
-            }
-
-            MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
-            if (loginMember == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 회원 정보를 불러오지 못했습니다.");
-
-                return "redirect:/member/login";
-            }
-
-            if (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank()) {
-                loginMember.setMemberName(displayName);
-            }
-
-            saveLoginSession(session, loginMember, member.getProvider(), displayName);
-
-            return "redirect:/";
+            return completeNaverLogin(code, state, request, session, redirectAttributes);
 
         } catch (MemberBlockedException e) {
             redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
         } catch (MemberWithdrawnException e) {
-            /*
-             * 네이버 OAuth 인증이 완료된 상태이므로 본인 확인이 끝난 것으로 보고
-             * 기존 카카오 로그인과 동일한 계정 복구 절차를 사용합니다.
-             */
-
             request.changeSessionId();
             session.setAttribute("restoreMemberNo", e.getMemberNo());
             session.setAttribute("restoreProvider", PROVIDER_NAVER);
-
             redirectAttributes.addFlashAttribute("withdrawnMessage", WithdrawPolicy.buildWithdrawnMessage(e.getWithdrawnAt()));
 
-            return "redirect:/member/login";
+            return REDIRECT_MEMBER_LOGIN;
 
-       } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             if (log.isWarnEnabled()) {
                 log.warn("네이버 로그인 처리 실패", e);
             }
-            redirectAttributes.addFlashAttribute("errorMessage", "네이버 로그인 처리 중 오류가 발생했습니다.");
-            return "redirect:/member/login";
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "네이버 로그인 처리 중 오류가 발생했습니다.");
+
+            return REDIRECT_MEMBER_LOGIN;
         }
+    }
+
+    private String validateCallback(String savedState, String state, String error, String errorDescription, String code) {
+        if (savedState == null || state == null || !savedState.equals(state)) {
+            return "네이버 로그인 요청 검증에 실패했습니다. 다시 시도해주세요.";
+        }
+
+        if (error != null && !error.isBlank()) {
+            return buildCallbackErrorMessage(errorDescription);
+        }
+
+        if (code == null || code.isBlank()) {
+            return "네이버 인증 코드를 받지 못했습니다. 다시 시도해주세요.";
+        }
+
+        return null;
+    }
+
+    private String completeNaverLogin(String code, String state, HttpServletRequest request, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        NaverLoginResultVO result = naverLoginService.naverLogin(code, state);
+        if (result == null || result.getMember() == null) {
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "네이버 로그인 회원 정보를 확인하지 못했습니다.");
+
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        MemberSocialJoinVO member = result.getMember();
+        if (member.getMemberNo() <= 0) {
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "네이버 로그인 회원 번호를 확인하지 못했습니다.");
+
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        request.changeSessionId();
+        String displayName = getDisplayName(member);
+        member.setMemberName(displayName);
+
+        int platformCount = memberPlatformService.countMemberPlatform(member.getMemberNo());
+        if (result.isNewMember() || platformCount == 0) {
+            savePendingMemberSession(session, member, displayName);
+
+            return "redirect:/member/platform/select";
+        }
+
+        MemberVO loginMember = memberService.getMemberByNo(member.getMemberNo());
+        if (loginMember == null) {
+            redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, "네이버 로그인 회원 정보를 불러오지 못했습니다.");
+
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        if (loginMember.getMemberName() == null || loginMember.getMemberName().isBlank()) {
+            loginMember.setMemberName(displayName);
+        }
+
+        saveLoginSession(session, loginMember, member.getProvider(), displayName);
+
+        return "redirect:/";
     }
 
     /**

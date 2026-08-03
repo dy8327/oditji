@@ -30,9 +30,6 @@ public class MyReviewVO {
 
     private Date createdAt;
 
-    public MyReviewVO() {
-    }
-
     public int getReviewNo() {
         return reviewNo;
     }

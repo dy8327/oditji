@@ -55,6 +55,12 @@ public class ContentController {
         private final GoodsService goodsService;
 
         private static final int RELATED_GOODS_SIZE = 8;
+        private static final String PLATFORM_NETFLIX = "netflix";
+        private static final String PLATFORM_TVING = "tving";
+        private static final String PLATFORM_WAVVE = "wavve";
+        private static final String PLATFORM_WATCHA = "watcha";
+        private static final String PLATFORM_COUPANG = "coupang";
+        private static final String VALUE_POPULAR = "popular";
 
         public ContentController(
                         ContentService contentService,
@@ -391,28 +397,28 @@ public class ContentController {
 
                 switch (normalizedPlatformName) {
 
-                        case "netflix":
+                        case PLATFORM_NETFLIX:
 
                                 redirectUrl = "https://www.netflix.com/search?q="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "tving":
+                        case PLATFORM_TVING:
 
                                 redirectUrl = "https://www.tving.com/search?keyword="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "wavve":
+                        case PLATFORM_WAVVE:
 
                                 redirectUrl = "https://www.wavve.com/search?searchWord="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "watcha":
+                        case PLATFORM_WATCHA:
 
                                 redirectUrl = "https://watcha.com/search?query="
                                                 + encodedTitle;
@@ -420,7 +426,7 @@ public class ContentController {
                                 break;
 
                         case "coupangplay":
-                        case "coupang":
+                        case PLATFORM_COUPANG:
 
                                 redirectUrl = "https://www.coupangplay.com/query"
                                                 + "?src=page_search&keyword="
@@ -545,28 +551,28 @@ public class ContentController {
                                                 "[^a-z0-9]",
                                                 "");
 
-                if (normalized.contains("netflix")) {
-                        return "netflix";
+                if (normalized.contains(PLATFORM_NETFLIX)) {
+                        return PLATFORM_NETFLIX;
                 }
 
-                if (normalized.contains("tving")) {
-                        return "tving";
+                if (normalized.contains(PLATFORM_TVING)) {
+                        return PLATFORM_TVING;
                 }
 
-                if (normalized.contains("wavve")) {
-                        return "wavve";
+                if (normalized.contains(PLATFORM_WAVVE)) {
+                        return PLATFORM_WAVVE;
                 }
 
                 if (normalized.contains("disney")) {
                         return "disney";
                 }
 
-                if (normalized.contains("watcha")) {
-                        return "watcha";
+                if (normalized.contains(PLATFORM_WATCHA)) {
+                        return PLATFORM_WATCHA;
                 }
 
-                if (normalized.contains("coupang")) {
-                        return "coupang";
+                if (normalized.contains(PLATFORM_COUPANG)) {
+                        return PLATFORM_COUPANG;
                 }
 
                 return normalized;
@@ -581,7 +587,7 @@ public class ContentController {
                                                 .toLowerCase(
                                                                 Locale.ROOT);
 
-                if ("popular".equals(value)
+                if (VALUE_POPULAR.equals(value)
                                 || "new".equals(value)) {
 
                         return value;
@@ -601,7 +607,7 @@ public class ContentController {
 
                 String defaultSort = "new".equals(type)
                                 ? "latest"
-                                : "popular";
+                                : VALUE_POPULAR;
 
                 if (sort == null
                                 || sort.isBlank()) {
@@ -612,7 +618,7 @@ public class ContentController {
                 String normalized = sort.trim()
                                 .toLowerCase(Locale.ROOT);
 
-                if ("popular".equals(normalized)
+                if (VALUE_POPULAR.equals(normalized)
                                 || "rating".equals(normalized)
                                 || "latest".equals(normalized)
                                 || "title".equals(normalized)) {
@@ -634,7 +640,7 @@ public class ContentController {
         private String makePageTitle(
                         String type) {
 
-                if ("popular".equals(type)) {
+                if (VALUE_POPULAR.equals(type)) {
                         return "인기 콘텐츠";
                 }
 

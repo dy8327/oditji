@@ -18,9 +18,6 @@ public class ContentReviewVO {
     private String status;
     private Date createdAt;
 
-    public ContentReviewVO() {
-    }
-
     public int getReviewNo() {
         return reviewNo;
     }

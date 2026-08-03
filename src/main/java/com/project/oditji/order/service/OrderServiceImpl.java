@@ -295,9 +295,52 @@ public class OrderServiceImpl implements OrderService {
                         OrderPaymentPrepareVO paymentPrepareVO,
                         String paymentId) {
 
-                /*
-                 * 사전 결제 정보 및 결제 ID 검증
-                 */
+                validatePaymentCompletionRequest(
+                                memberNo,
+                                paymentPrepareVO,
+                                paymentId);
+
+                List<OrderSheetItemVO> preparedItems = paymentPrepareVO.getItems();
+
+                validatePaymentNotProcessed(paymentId);
+                validatePreparedItemsAvailable(preparedItems);
+
+                PaymentVO verifiedPayment = paymentService.verifyPaidPayment(
+                                paymentId,
+                                paymentPrepareVO.getTotalAmount(),
+                                paymentPrepareVO.getOrderName());
+
+                OrderVO order = createPaidOrder(
+                                memberNo,
+                                paymentPrepareVO);
+
+                List<Long> usedCartItemNos = new ArrayList<Long>();
+                List<Long> createdOrderItemNos = new ArrayList<Long>();
+
+                saveOrderItems(
+                                order.getOrderNo(),
+                                preparedItems,
+                                usedCartItemNos,
+                                createdOrderItemNos);
+
+                savePayment(
+                                order.getOrderNo(),
+                                paymentPrepareVO,
+                                verifiedPayment);
+
+                adminService.updateBusinessGradesBySales();
+                createWaitingSettlements(createdOrderItemNos);
+                deleteUsedCartItems(memberNo, usedCartItemNos);
+                notifyOrderBusinesses(order.getOrderNo());
+
+                return order.getOrderNo();
+        }
+
+        private void validatePaymentCompletionRequest(
+                        Long memberNo,
+                        OrderPaymentPrepareVO paymentPrepareVO,
+                        String paymentId) {
+
                 validateMemberNo(memberNo);
 
                 if (paymentPrepareVO == null) {
@@ -306,32 +349,26 @@ public class OrderServiceImpl implements OrderService {
                                                         + "주문서를 다시 작성해주세요.");
                 }
 
-                if (paymentId == null
-                                || paymentId.isBlank()) {
-
+                if (paymentId == null || paymentId.isBlank()) {
                         throw new IllegalArgumentException(
                                         "결제 ID가 없습니다.");
                 }
 
-                if (!paymentId.equals(
-                                paymentPrepareVO.getPaymentId())) {
-
+                if (!paymentId.equals(paymentPrepareVO.getPaymentId())) {
                         throw new IllegalArgumentException(
                                         "결제 준비 정보와 결제 ID가 일치하지 않습니다.");
                 }
 
                 List<OrderSheetItemVO> preparedItems = paymentPrepareVO.getItems();
 
-                if (preparedItems == null
-                                || preparedItems.isEmpty()) {
-
+                if (preparedItems == null || preparedItems.isEmpty()) {
                         throw new IllegalArgumentException(
                                         "결제 상품 정보가 만료되었습니다.");
                 }
+        }
 
-                /*
-                 * 결제 중복 처리 방지를 위한 기존 결제내역 존재 여부 확인
-                 */
+        private void validatePaymentNotProcessed(String paymentId) {
+
                 PaymentVO existingPayment = paymentDAO.selectPaymentByPaymentId(
                                 paymentId);
 
@@ -339,10 +376,11 @@ public class OrderServiceImpl implements OrderService {
                         throw new IllegalArgumentException(
                                         "이미 처리된 결제입니다.");
                 }
+        }
 
-                /*
-                 * 결제 완료 직전 상품 상태 및 재고 최종 점검
-                 */
+        private void validatePreparedItemsAvailable(
+                        List<OrderSheetItemVO> preparedItems) {
+
                 for (OrderSheetItemVO preparedItem : preparedItems) {
 
                         OrderSheetItemVO currentItem = orderDAO.selectProductForOrder(
@@ -360,79 +398,47 @@ public class OrderServiceImpl implements OrderService {
 
                         validateAvailable(currentItem);
                 }
+        }
 
-                /*
-                 * 포트원 결제 결과 최종 사후 검증 (실제 결제 금액 및 상태 일치 여부 확인)
-                 */
-                PaymentVO verifiedPayment = paymentService.verifyPaidPayment(
-                                paymentId,
-                                paymentPrepareVO.getTotalAmount(),
-                                paymentPrepareVO.getOrderName());
+        private OrderVO createPaidOrder(
+                        Long memberNo,
+                        OrderPaymentPrepareVO paymentPrepareVO) {
 
-                /*
-                 * 주문(Orders) 테이블 저장
-                 */
                 OrderVO order = new OrderVO();
 
                 order.setMemberNo(memberNo);
-
-                order.setTotalAmount(
-                                paymentPrepareVO.getTotalAmount());
-
+                order.setTotalAmount(paymentPrepareVO.getTotalAmount());
                 order.setOrderStatus("PAID");
-
-                order.setReceiverName(
-                                paymentPrepareVO.getReceiverName());
-
-                order.setReceiverPhone(
-                                paymentPrepareVO.getReceiverPhone());
-
-                order.setAddress(
-                                paymentPrepareVO.getAddress());
+                order.setReceiverName(paymentPrepareVO.getReceiverName());
+                order.setReceiverPhone(paymentPrepareVO.getReceiverPhone());
+                order.setAddress(paymentPrepareVO.getAddress());
 
                 int orderInsertResult = orderDAO.insertOrder(order);
 
-                if (orderInsertResult <= 0
-                                || order.getOrderNo() == null) {
-
+                if (orderInsertResult <= 0 || order.getOrderNo() == null) {
                         throw new IllegalStateException(
                                         "주문 생성에 실패했습니다.");
                 }
 
-                List<Long> usedCartItemNos = new ArrayList<Long>();
+                return order;
+        }
 
-                /*
-                 * =========================================================
-                 * [정산 예정 데이터 생성을 위한 주문상품 번호 보관]
-                 * 결제내역 저장이 완료된 뒤 각 주문상품별 정산 데이터를 생성한다.
-                 * =========================================================
-                 */
-                List<Long> createdOrderItemNos = new ArrayList<Long>();
+        private void saveOrderItems(
+                        Long orderNo,
+                        List<OrderSheetItemVO> preparedItems,
+                        List<Long> usedCartItemNos,
+                        List<Long> createdOrderItemNos) {
 
-                /*
-                 * 주문 상세(Order_Items) 저장 및 상품 재고 차감 처리
-                 */
                 for (OrderSheetItemVO item : preparedItems) {
 
                         OrderItemVO orderItem = new OrderItemVO();
 
-                        orderItem.setOrderNo(
-                                        order.getOrderNo());
-
-                        orderItem.setProductNo(
-                                        item.getProductNo());
-
+                        orderItem.setOrderNo(orderNo);
+                        orderItem.setProductNo(item.getProductNo());
                         orderItem.setOptionNo(item.getOptionNo());
-
-                        orderItem.setBusinessNo(
-                                        item.getBusinessNo());
-
-                        orderItem.setProductPrice(
-                                        item.getDiscountPrice());
-
-                        orderItem.setQuantity(
-                                        item.getQuantity());
-
+                        orderItem.setBusinessNo(item.getBusinessNo());
+                        orderItem.setProductPrice(item.getDiscountPrice());
+                        orderItem.setQuantity(item.getQuantity());
                         orderItem.setStatus("PAID");
 
                         int orderItemInsertResult = orderDAO.insertOrderItem(
@@ -443,72 +449,69 @@ public class OrderServiceImpl implements OrderService {
                                                 "주문 상세 생성에 실패했습니다.");
                         }
 
-                        /* [정산 예정 데이터 생성을 위해 생성된 주문상품 번호 저장] */
                         createdOrderItemNos.add(orderItem.getOrderItemNo());
+                        decreaseProductStock(item);
+                        addUsedCartItemNo(item, usedCartItemNos);
+                }
+        }
 
-                        /*
-                         * DB 상품 재고 감소 (동시성 방지를 위한 조건부 차감)
-                         */
-                        int stockUpdateResult;
-                        if (item.getOptionNo() != null) {
-                                // [상품 옵션 기능 추가] 선택한 색상-사이즈 조합 재고를 우선 차감합니다.
-                                stockUpdateResult = orderDAO.decreaseProductOptionStock(item.getOptionNo(),
+        private void decreaseProductStock(OrderSheetItemVO item) {
+
+                int stockUpdateResult;
+
+                if (item.getOptionNo() != null) {
+                        stockUpdateResult = orderDAO.decreaseProductOptionStock(
+                                        item.getOptionNo(),
+                                        item.getQuantity());
+
+                        if (stockUpdateResult > 0) {
+                                orderDAO.decreaseProductStock(
+                                                item.getProductNo(),
                                                 item.getQuantity());
-                                if (stockUpdateResult > 0) {
-                                        orderDAO.decreaseProductStock(item.getProductNo(), item.getQuantity());
-                                }
-                        } else {
-                                stockUpdateResult = orderDAO.decreaseProductStock(item.getProductNo(),
-                                                item.getQuantity());
                         }
-
-                        if (stockUpdateResult <= 0) {
-                                throw new IllegalArgumentException(
-                                                "'"
-                                                                + item.getProductName()
-                                                                + "' 상품의 재고가 부족합니다.");
-                        }
-
-                        if (item.getCartItemNo() != null) {
-                                usedCartItemNos.add(
-                                                item.getCartItemNo());
-                        }
+                } else {
+                        stockUpdateResult = orderDAO.decreaseProductStock(
+                                        item.getProductNo(),
+                                        item.getQuantity());
                 }
 
-                /*
-                 * 결제(Payments) 테이블 정보 연결 및 DB 저장
-                 */
-                verifiedPayment.setOrderNo(
-                                order.getOrderNo());
+                if (stockUpdateResult <= 0) {
+                        throw new IllegalArgumentException(
+                                        "'"
+                                                        + item.getProductName()
+                                                        + "' 상품의 재고가 부족합니다.");
+                }
+        }
 
-                verifiedPayment.setOrderName(
-                                paymentPrepareVO.getOrderName());
+        private void addUsedCartItemNo(
+                        OrderSheetItemVO item,
+                        List<Long> usedCartItemNos) {
+
+                if (item.getCartItemNo() != null) {
+                        usedCartItemNos.add(item.getCartItemNo());
+                }
+        }
+
+        private void savePayment(
+                        Long orderNo,
+                        OrderPaymentPrepareVO paymentPrepareVO,
+                        PaymentVO verifiedPayment) {
+
+                verifiedPayment.setOrderNo(orderNo);
+                verifiedPayment.setOrderName(paymentPrepareVO.getOrderName());
 
                 int paymentInsertResult = paymentDAO.insertPayment(
                                 verifiedPayment);
 
-                if (paymentInsertResult <= 0
-                                || verifiedPayment.getPaymentNo() == null) {
-
+                if (paymentInsertResult <= 0 || verifiedPayment.getPaymentNo() == null) {
                         throw new IllegalStateException(
                                         "결제내역 저장에 실패했습니다.");
                 }
+        }
 
-                /*
-                 * [사업자 자동 등급 관리 추가]
-                 * 결제와 주문상품 저장이 모두 완료된 뒤 누적 실매출을 기준으로
-                 * 사업자 등급을 자동 승급한다. 등급을 먼저 갱신해야 아래에서 생성되는
-                 * 이번 주문의 정산 예정 데이터에도 변경된 등급과 수수료율이 적용된다.
-                 */
-                adminService.updateBusinessGradesBySales();
+        private void createWaitingSettlements(
+                        List<Long> createdOrderItemNos) {
 
-                /*
-                 * =========================================================
-                 * [결제 완료 주문상품 정산 예정 데이터 생성 추가]
-                 * 결제내역 저장까지 성공한 뒤 주문상품별 정산 데이터를 생성한다.
-                 * 메서드 전체가 @Transactional이므로 실패 시 주문/결제도 함께 롤백된다.
-                 * =========================================================
-                 */
                 for (Long orderItemNo : createdOrderItemNos) {
 
                         int settlementInsertResult = orderDAO.insertWaitingSettlement(
@@ -519,29 +522,29 @@ public class OrderServiceImpl implements OrderService {
                                                 "정산 예정 데이터 생성에 실패했습니다.");
                         }
                 }
+        }
 
-                /*
-                 * 장바구니에서 구매한 상품들 제거
-                 */
+        private void deleteUsedCartItems(
+                        Long memberNo,
+                        List<Long> usedCartItemNos) {
+
                 if (!usedCartItemNos.isEmpty()) {
-
                         cartDAO.deleteSelectedCartItems(
                                         memberNo,
                                         usedCartItemNos);
                 }
+        }
 
-                /* 같은 주문에 여러 상품이 있어도 사업자별 알림은 한 건만 생성합니다. */
+        private void notifyOrderBusinesses(Long orderNo) {
+
                 notificationService.createForOrderBusinesses(
-                                order.getOrderNo(),
+                                orderNo,
                                 "NEW_ORDER",
                                 "새로운 주문 접수",
                                 "새로운 결제 완료 주문이 접수되었습니다.",
-                                "/business/order/detail?orderNo="
-                                                + order.getOrderNo(),
+                                "/business/order/detail?orderNo=" + orderNo,
                                 "ORDER",
-                                order.getOrderNo());
-
-                return order.getOrderNo();
+                                orderNo);
         }
 
         /**

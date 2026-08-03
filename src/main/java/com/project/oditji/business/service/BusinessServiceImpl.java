@@ -51,10 +51,21 @@ public class BusinessServiceImpl
         /* JSONL 콘텐츠 검색 팝업에 한 번에 표시할 최대 건수 */
         private static final int CONTENT_SEARCH_LIMIT = 100;
 
+        private static final String PRODUCT_TYPE_CLOTHES = "CLOTHES";
+        private static final String PRODUCT_TYPE_SHOES = "SHOES";
+        private static final String DELIVERY_STATUS_PREPARING = "PREPARING";
+        private static final String DELIVERY_STATUS_SHIPPING = "SHIPPING";
+        private static final String DELIVERY_STATUS_DELIVERED = "DELIVERED";
+        private static final String STATUS_WAITING = "WAITING";
+        private static final String REFERENCE_TYPE_PRODUCT = "PRODUCT";
+        private static final String NOTIFICATION_TYPE_EVENT_REQUEST = "EVENT_REQUEST";
+        private static final String ADMIN_EVENT_WAITING_URL = "/admin/event/list?tab=waiting";
+        private static final String REFERENCE_TYPE_EVENT = "EVENT";
+
         private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
-        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of("CLOTHES", "PROP", "GOODS", "OST", "BOOK",
-                        "FIGURE", "SHOES", "POSTER", "ETC");
+        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of(PRODUCT_TYPE_CLOTHES, "PROP", "GOODS", "OST", "BOOK",
+                        "FIGURE", PRODUCT_TYPE_SHOES, "POSTER", "ETC");
 
         private final BusinessDAO businessDAO;
         private final ContentService contentService;
@@ -457,10 +468,43 @@ public class BusinessServiceImpl
                         String trackingNumber,
                         String status) {
 
+                validateDeliveryRequestNumbers(businessNo, orderItemNo);
+
+                DeliveryManageVO currentItem = getBusinessDeliveryItem(businessNo, orderItemNo);
+                String currentStatus = currentItem.getStatus();
+                validateDeliveryChangeAllowed(currentStatus);
+
+                String normalizedStatus = normalizeDeliveryUpdateStatus(status);
+                validateDeliveryStatusTransition(currentStatus, normalizedStatus);
+                String normalizedCourier = courier == null ? null : courier.trim();
+                String normalizedTrackingNumber = trackingNumber == null ? null : trackingNumber.trim();
+                validateDeliveryDetails(normalizedStatus, normalizedCourier, normalizedTrackingNumber);
+
+                DeliveryManageVO delivery = createDelivery(
+                                businessNo,
+                                orderItemNo,
+                                currentItem.getOrderNo(),
+                                normalizedCourier,
+                                normalizedTrackingNumber,
+                                normalizedStatus);
+
+                saveDelivery(delivery, businessNo, orderItemNo, normalizedStatus);
+                businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
+
+                if (!normalizedStatus.equals(currentStatus)) {
+                        createDeliveryStatusNotification(
+                                        currentItem,
+                                        normalizedStatus);
+                }
+        }
+
+        private void validateDeliveryRequestNumbers(long businessNo, long orderItemNo) {
                 if (businessNo <= 0 || orderItemNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 배송 정보입니다.");
                 }
+        }
 
+        private DeliveryManageVO getBusinessDeliveryItem(long businessNo, long orderItemNo) {
                 DeliveryManageVO currentItem = businessDAO.selectBusinessDeliveryItem(
                                 businessNo, orderItemNo);
 
@@ -468,43 +512,66 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("해당 주문상품을 확인할 수 없습니다.");
                 }
 
-                String currentStatus = currentItem.getStatus();
+                return currentItem;
+        }
+
+        private void validateDeliveryChangeAllowed(String currentStatus) {
                 if ("CANCEL_REQUEST".equals(currentStatus)
                                 || "CANCELED".equals(currentStatus)
                                 || "REFUNDED".equals(currentStatus)) {
                         throw new IllegalStateException("취소 또는 환불 처리 중인 상품은 배송 상태를 변경할 수 없습니다.");
                 }
+        }
 
-                String normalizedStatus = normalizeDeliveryUpdateStatus(status);
-                validateDeliveryStatusTransition(currentStatus, normalizedStatus);
-                String normalizedCourier = courier == null ? null : courier.trim();
-                String normalizedTrackingNumber = trackingNumber == null ? null : trackingNumber.trim();
+        private void validateDeliveryDetails(
+                        String status,
+                        String courier,
+                        String trackingNumber) {
 
-                if (("SHIPPING".equals(normalizedStatus) || "DELIVERED".equals(normalizedStatus))
-                                && (normalizedCourier == null || normalizedCourier.isEmpty())) {
+                boolean trackingRequired = DELIVERY_STATUS_SHIPPING.equals(status)
+                                || DELIVERY_STATUS_DELIVERED.equals(status);
+
+                if (trackingRequired && (courier == null || courier.isEmpty())) {
                         throw new IllegalArgumentException("배송 중 또는 배송 완료 처리 시 택배사를 선택해주세요.");
                 }
 
-                if (("SHIPPING".equals(normalizedStatus) || "DELIVERED".equals(normalizedStatus))
-                                && (normalizedTrackingNumber == null || normalizedTrackingNumber.isEmpty())) {
+                if (trackingRequired && (trackingNumber == null || trackingNumber.isEmpty())) {
                         throw new IllegalArgumentException("배송 중 또는 배송 완료 처리 시 운송장 번호를 입력해주세요.");
                 }
 
-                if (normalizedTrackingNumber != null && normalizedTrackingNumber.length() > 100) {
+                if (trackingNumber != null && trackingNumber.length() > 100) {
                         throw new IllegalArgumentException("운송장 번호는 100자 이하로 입력해주세요.");
                 }
 
-                if (normalizedCourier != null && normalizedCourier.length() > 50) {
+                if (courier != null && courier.length() > 50) {
                         throw new IllegalArgumentException("택배사명은 50자 이하로 입력해주세요.");
                 }
+        }
+
+        private DeliveryManageVO createDelivery(
+                        long businessNo,
+                        long orderItemNo,
+                        Long orderNo,
+                        String courier,
+                        String trackingNumber,
+                        String status) {
 
                 DeliveryManageVO delivery = new DeliveryManageVO();
                 delivery.setBusinessNo(businessNo);
                 delivery.setOrderItemNo(orderItemNo);
-                delivery.setOrderNo(currentItem.getOrderNo());
-                delivery.setCourier(normalizedCourier);
-                delivery.setTrackingNumber(normalizedTrackingNumber);
-                delivery.setStatus(normalizedStatus);
+                delivery.setOrderNo(orderNo);
+                delivery.setCourier(courier);
+                delivery.setTrackingNumber(trackingNumber);
+                delivery.setStatus(status);
+
+                return delivery;
+        }
+
+        private void saveDelivery(
+                        DeliveryManageVO delivery,
+                        long businessNo,
+                        long orderItemNo,
+                        String status) {
 
                 int deliveryResult = businessDAO.mergeDelivery(delivery);
                 if (deliveryResult != 1) {
@@ -512,17 +579,9 @@ public class BusinessServiceImpl
                 }
 
                 int itemResult = businessDAO.updateOrderItemDeliveryStatus(
-                                businessNo, orderItemNo, normalizedStatus);
+                                businessNo, orderItemNo, status);
                 if (itemResult != 1) {
                         throw new IllegalStateException("주문상품 배송 상태 변경에 실패했습니다.");
-                }
-
-                businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
-
-                if (!normalizedStatus.equals(currentStatus)) {
-                        createDeliveryStatusNotification(
-                                        currentItem,
-                                        normalizedStatus);
                 }
         }
 
@@ -549,19 +608,19 @@ public class BusinessServiceImpl
                 String message;
 
                 switch (deliveryStatus) {
-                        case "PREPARING" -> {
+                        case DELIVERY_STATUS_PREPARING -> {
                                 notificationType = "DELIVERY_PREPARING";
                                 title = "배송 준비 시작";
                                 message = "주문하신 상품의 배송 준비가 시작되었습니다."
                                                 + productMessage;
                         }
-                        case "SHIPPING" -> {
+                        case DELIVERY_STATUS_SHIPPING -> {
                                 notificationType = "DELIVERY_SHIPPED";
                                 title = "상품 발송";
                                 message = "주문하신 상품이 발송되었습니다."
                                                 + productMessage;
                         }
-                        case "DELIVERED" -> {
+                        case DELIVERY_STATUS_DELIVERED -> {
                                 notificationType = "DELIVERY_DELIVERED";
                                 title = "배송 완료";
                                 message = "주문하신 상품의 배송이 완료되었습니다."
@@ -589,7 +648,7 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
-                if (!Set.of("CONFIRMED", "PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
+                if (!Set.of("CONFIRMED", DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED).contains(normalizedStatus)) {
                         throw new IllegalArgumentException("올바르지 않은 배송 상태 검색 조건입니다.");
                 }
 
@@ -603,7 +662,7 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
-                if (!Set.of("PREPARING", "SHIPPING", "DELIVERED").contains(normalizedStatus)) {
+                if (!Set.of(DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED).contains(normalizedStatus)) {
                         throw new IllegalArgumentException("변경할 수 없는 배송 상태입니다.");
                 }
 
@@ -615,9 +674,9 @@ public class BusinessServiceImpl
                 Map<String, Integer> statusOrder = Map.of(
                                 "PAID", 0,
                                 "CONFIRMED", 0,
-                                "PREPARING", 1,
-                                "SHIPPING", 2,
-                                "DELIVERED", 3);
+                                DELIVERY_STATUS_PREPARING, 1,
+                                DELIVERY_STATUS_SHIPPING, 2,
+                                DELIVERY_STATUS_DELIVERED, 3);
 
                 Integer currentStep = statusOrder.get(currentStatus);
                 Integer nextStep = statusOrder.get(nextStatus);
@@ -661,7 +720,7 @@ public class BusinessServiceImpl
 
                 validateProduct(goodsManageVO);
                 // [상품 옵션 기능 추가] PRODUCT.STOCK에는 옵션 재고 합계를 저장합니다.
-                if (("CLOTHES".equals(goodsManageVO.getProductType()) || "SHOES".equals(goodsManageVO.getProductType()))
+                if ((PRODUCT_TYPE_CLOTHES.equals(goodsManageVO.getProductType()) || PRODUCT_TYPE_SHOES.equals(goodsManageVO.getProductType()))
                                 && goodsManageVO.getOptionList() != null) {
                         int optionTotalStock = goodsManageVO.getOptionList().stream()
                                         .filter(java.util.Objects::nonNull)
@@ -688,7 +747,7 @@ public class BusinessServiceImpl
                         savedPhysicalPath = savedFileInfo.physicalPath();
                         goodsManageVO.setImagePath(savedFileInfo.webPath());
                         goodsManageVO.setIsMain("Y");
-                        goodsManageVO.setStatus("WAITING");
+                        goodsManageVO.setStatus(STATUS_WAITING);
 
                         int productResult = businessDAO.insertProduct(goodsManageVO);
                         if (productResult != 1) {
@@ -713,7 +772,7 @@ public class BusinessServiceImpl
                                         goodsManageVO.getProductName()
                                                         + " 상품의 등록 승인 요청이 접수되었습니다.",
                                         "/admin/product/list?tab=waiting",
-                                        "PRODUCT",
+                                        REFERENCE_TYPE_PRODUCT,
                                         goodsManageVO.getProductNo());
 
                         return goodsManageVO.getProductNo();
@@ -728,7 +787,7 @@ public class BusinessServiceImpl
         /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장 */
         private void saveProductOptions(GoodsManageVO goodsManageVO) {
                 String type = goodsManageVO.getProductType();
-                if (!"CLOTHES".equals(type) && !"SHOES".equals(type)) {
+                if (!PRODUCT_TYPE_CLOTHES.equals(type) && !PRODUCT_TYPE_SHOES.equals(type)) {
                         return;
                 }
                 if (goodsManageVO.getOptionList() == null || goodsManageVO.getOptionList().isEmpty()) {
@@ -1098,7 +1157,7 @@ public class BusinessServiceImpl
                  * 승인 상태를 WAITING으로 변경한다.
                  */
                 goodsManageVO.setStatus(
-                                "WAITING");
+                                STATUS_WAITING);
 
                 Path savedPhysicalPath = null;
 
@@ -1171,7 +1230,7 @@ public class BusinessServiceImpl
                                 goodsManageVO.getProductName()
                                                 + " 상품의 수정 승인 요청이 접수되었습니다.",
                                 "/admin/product/list?tab=waiting",
-                                "PRODUCT",
+                                REFERENCE_TYPE_PRODUCT,
                                 goodsManageVO.getProductNo());
         }
 
@@ -1281,7 +1340,7 @@ public class BusinessServiceImpl
                                 existingProduct.getProductName()
                                                 + " 상품의 삭제 요청이 접수되었습니다.",
                                 "/admin/product/list?tab=delete",
-                                "PRODUCT",
+                                REFERENCE_TYPE_PRODUCT,
                                 productNo);
         }
 
@@ -1312,7 +1371,7 @@ public class BusinessServiceImpl
                  * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
                  */
                 eventManageVO.setStatus(
-                                "WAITING");
+                                STATUS_WAITING);
 
                 validateEvent(
                                 eventManageVO,
@@ -1379,12 +1438,12 @@ public class BusinessServiceImpl
                         }
 
                         notificationService.createForAdmins(
-                                        "EVENT_REQUEST",
+                                        NOTIFICATION_TYPE_EVENT_REQUEST,
                                         "이벤트 승인 요청",
                                         eventManageVO.getTitle()
                                                         + " 이벤트의 등록 승인 요청이 접수되었습니다.",
-                                        "/admin/event/list?tab=waiting",
-                                        "EVENT",
+                                        ADMIN_EVENT_WAITING_URL,
+                                        REFERENCE_TYPE_EVENT,
                                         eventManageVO.getEventNo());
 
                         return eventManageVO.getEventNo();
@@ -1529,7 +1588,7 @@ public class BusinessServiceImpl
                  * 승인 대기 상태로 변경한다.
                  */
                 eventManageVO.setStatus(
-                                "WAITING");
+                                STATUS_WAITING);
 
                 /*
                  * 새 이미지를 선택하지 않은 경우 기존 이미지를 유지한다.
@@ -1608,12 +1667,12 @@ public class BusinessServiceImpl
                 }
 
                 notificationService.createForAdmins(
-                                "EVENT_REQUEST",
+                                NOTIFICATION_TYPE_EVENT_REQUEST,
                                 "이벤트 재승인 요청",
                                 eventManageVO.getTitle()
                                                 + " 이벤트의 수정 승인 요청이 접수되었습니다.",
-                                "/admin/event/list?tab=waiting",
-                                "EVENT",
+                                ADMIN_EVENT_WAITING_URL,
+                                REFERENCE_TYPE_EVENT,
                                 eventManageVO.getEventNo());
         }
 
@@ -1704,12 +1763,12 @@ public class BusinessServiceImpl
                 }
 
                 notificationService.createForAdmins(
-                                "EVENT_REQUEST",
+                                NOTIFICATION_TYPE_EVENT_REQUEST,
                                 "이벤트 연장 승인 요청",
                                 existingEvent.getTitle()
                                                 + " 이벤트의 연장 승인 요청이 접수되었습니다.",
-                                "/admin/event/list?tab=waiting",
-                                "EVENT",
+                                ADMIN_EVENT_WAITING_URL,
+                                REFERENCE_TYPE_EVENT,
                                 eventNo);
         }
 
@@ -1722,140 +1781,129 @@ public class BusinessServiceImpl
                         EventManageVO eventManageVO,
                         Long excludeEventNo) {
 
-                if (eventManageVO.getBusinessNo() <= 0) {
+                validateEventBusinessNo(eventManageVO.getBusinessNo());
+                validateAndNormalizeEventTitle(eventManageVO);
+                validateEventDates(eventManageVO);
+                normalizeEventStatus(eventManageVO);
+                validateEventProducts(eventManageVO, excludeEventNo);
+        }
 
+        private void validateEventBusinessNo(long businessNo) {
+                if (businessNo <= 0) {
                         throw new IllegalArgumentException(
                                         "사업자 정보가 올바르지 않습니다.");
                 }
+        }
 
+        private void validateAndNormalizeEventTitle(EventManageVO eventManageVO) {
                 String title = eventManageVO.getTitle();
 
-                if (title == null
-                                || title.isBlank()) {
-
+                if (title == null || title.isBlank()) {
                         throw new IllegalArgumentException(
                                         "이벤트명을 입력해주세요.");
                 }
 
                 title = title.trim();
-
                 if (title.length() > 200) {
-
                         throw new IllegalArgumentException(
                                         "이벤트명은 200자 이하로 입력해주세요.");
                 }
 
-                eventManageVO.setTitle(
-                                title);
+                eventManageVO.setTitle(title);
+        }
 
+        private void validateEventDates(EventManageVO eventManageVO) {
                 if (eventManageVO.getStartDate() == null) {
-
                         throw new IllegalArgumentException(
                                         "이벤트 시작일을 선택해주세요.");
                 }
 
                 if (eventManageVO.getEndDate() == null) {
-
                         throw new IllegalArgumentException(
                                         "이벤트 종료일을 선택해주세요.");
                 }
 
-                if (eventManageVO.getEndDate().isBefore(
-                                eventManageVO.getStartDate())) {
-
+                if (eventManageVO.getEndDate().isBefore(eventManageVO.getStartDate())) {
                         throw new IllegalArgumentException(
                                         "이벤트 종료일은 시작일보다 빠를 수 없습니다.");
                 }
+        }
 
-                /*
-                 * 이벤트 등록/수정은 항상 관리자 승인 대기 상태로 저장되어야 한다.
-                 * registerEvent/updateApprovedEvent에서 이미 "WAITING"으로
-                 * 강제 설정하지만, 화면이나 다른 호출 경로에서 잘못된 값이
-                 * 넘어오는 경우를 대비해 여기서도 한 번 더 방어한다.
-                 *
-                 * EVENT.STATUS는 CK_EVENT_STATUS 제약조건에 의해
-                 * WAITING / APPROVED / END / REJECTED / DELETED 값만 허용되며,
-                 * 사업자가 직접 지정할 수 있는 값은 WAITING뿐이다.
-                 */
-                if (!"WAITING".equals(
-                                eventManageVO.getStatus())) {
-
-                        eventManageVO.setStatus(
-                                        "WAITING");
+        private void normalizeEventStatus(EventManageVO eventManageVO) {
+                if (!STATUS_WAITING.equals(eventManageVO.getStatus())) {
+                        eventManageVO.setStatus(STATUS_WAITING);
                 }
+        }
 
-                /*
-                 * EVENT 테이블에는 BUSINESS_NO가 없으므로
-                 * 사업자별 이벤트 소유권 확인을 위해 연결 상품은 최소 1개 필수이다.
-                 *
-                 * 화면(business.js)에서 addProductButton으로 여러 개의
-                 * 상품 행을 추가하므로 productNoList / discountRateList가
-                 * 여러 건 전달될 수 있다.
-                 */
+        private void validateEventProducts(
+                        EventManageVO eventManageVO,
+                        Long excludeEventNo) {
+
                 List<Long> productNoList = eventManageVO.getProductNoList();
                 List<Integer> discountRateList = eventManageVO.getDiscountRateList();
+                validateEventProductLists(productNoList, discountRateList);
 
-                if (productNoList == null
-                                || productNoList.isEmpty()) {
+                for (int i = 0; i < productNoList.size(); i++) {
+                        validateEventProduct(
+                                        productNoList.get(i),
+                                        discountRateList.get(i),
+                                        eventManageVO.getBusinessNo(),
+                                        excludeEventNo);
+                }
 
+                validateDistinctEventProducts(productNoList);
+        }
+
+        private void validateEventProductLists(
+                        List<Long> productNoList,
+                        List<Integer> discountRateList) {
+
+                if (productNoList == null || productNoList.isEmpty()) {
                         throw new IllegalArgumentException(
                                         "이벤트에 연결할 상품을 선택해주세요.");
                 }
 
-                if (discountRateList == null
-                                || discountRateList.size() != productNoList.size()) {
-
+                if (discountRateList == null || discountRateList.size() != productNoList.size()) {
                         throw new IllegalArgumentException(
                                         "상품별 할인율 입력값이 올바르지 않습니다.");
                 }
+        }
 
-                for (int i = 0; i < productNoList.size(); i++) {
+        private void validateEventProduct(
+                        Long productNo,
+                        Integer discountRate,
+                        long businessNo,
+                        Long excludeEventNo) {
 
-                        Long productNo = productNoList.get(i);
-                        Integer discountRate = discountRateList.get(i);
-
-                        if (productNo == null
-                                        || productNo <= 0) {
-
-                                throw new IllegalArgumentException(
-                                                "이벤트에 연결할 상품을 선택해주세요.");
-                        }
-
-                        if (discountRate == null
-                                        || discountRate < 0
-                                        || discountRate > 100) {
-
-                                throw new IllegalArgumentException(
-                                                "이벤트 할인율은 0부터 100 사이여야 합니다.");
-                        }
-
-                        /*
-                         * 화면에서 전달된 PRODUCT_NO를 그대로 신뢰하지 않고
-                         * 로그인한 사업자가 등록한 상품인지 서버에서 다시 확인한다.
-                         */
-                        int productCount = businessDAO.countProductByBusinessNo(
-                                        productNo,
-                                        eventManageVO.getBusinessNo(),
-                                        excludeEventNo);
-                        System.out.println("productCount = " + productCount);
-
-                        if (productCount == 0) {
-
-                                throw new IllegalArgumentException(
-                                                "선택한 상품이 존재하지 않거나 "
-                                                                + "이벤트에 연결할 권한이 없습니다.");
-                        }
+                if (productNo == null || productNo <= 0) {
+                        throw new IllegalArgumentException(
+                                        "이벤트에 연결할 상품을 선택해주세요.");
                 }
 
-                /*
-                 * 같은 상품을 중복 선택한 경우도 방지한다.
-                 */
+                if (discountRate == null || discountRate < 0 || discountRate > 100) {
+                        throw new IllegalArgumentException(
+                                        "이벤트 할인율은 0부터 100 사이여야 합니다.");
+                }
+
+                int productCount = businessDAO.countProductByBusinessNo(
+                                productNo,
+                                businessNo,
+                                excludeEventNo);
+                System.out.println("productCount = " + productCount);
+
+                if (productCount == 0) {
+                        throw new IllegalArgumentException(
+                                        "선택한 상품이 존재하지 않거나 "
+                                                        + "이벤트에 연결할 권한이 없습니다.");
+                }
+        }
+
+        private void validateDistinctEventProducts(List<Long> productNoList) {
                 long distinctProductCount = productNoList.stream()
                                 .distinct()
                                 .count();
 
                 if (distinctProductCount != productNoList.size()) {
-
                         throw new IllegalArgumentException(
                                         "같은 상품을 중복해서 연결할 수 없습니다.");
                 }

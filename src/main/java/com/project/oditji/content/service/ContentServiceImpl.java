@@ -69,7 +69,7 @@ public class ContentServiceImpl implements ContentService {
             Long tmdbId,
             String contentType) {
 
-        int contentNo = ensureContentStored(
+        int contentNo = ensureContentStoredInternal(
                 tmdbId,
                 contentType
         );
@@ -97,6 +97,15 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @Transactional
     public int ensureContentStored(
+            Long tmdbId,
+            String contentType) {
+        return ensureContentStoredInternal(
+                tmdbId,
+                contentType
+        );
+    }
+
+    private int ensureContentStoredInternal(
             Long tmdbId,
             String contentType) {
 

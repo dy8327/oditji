@@ -29,6 +29,11 @@ public class SearchContentDiscoverService {
     private static final String TV = "TV";
     private static final int TMDB_MAX_PAGE = 500;
 
+    private static final String API_TYPE_MOVIE = "movie";
+    private static final String JSON_RESULTS = "results";
+    private static final String JSON_ORIGINAL_TITLE = "original_title";
+    private static final String JSON_ORIGINAL_NAME = "original_name";
+
     private static final Map<Integer, String> MOVIE_GENRES = createMovieGenreMap();
     private static final Map<Integer, String> TV_GENRES = createTvGenreMap();
 
@@ -61,7 +66,7 @@ public class SearchContentDiscoverService {
     public List<CachedContentVO> collectMovieCandidates(
             int targetCount,
             Set<Integer> providerIds) {
-        return collectDiscoverCandidates("movie", MOVIE, targetCount, providerIds);
+        return collectDiscoverCandidates(API_TYPE_MOVIE, MOVIE, targetCount, providerIds);
     }
 
     public List<CachedContentVO> collectTvCandidates(
@@ -88,7 +93,7 @@ public class SearchContentDiscoverService {
 
         List<CachedContentVO> result = new ArrayList<CachedContentVO>();
         result.addAll(collectSupplementByType(
-                "movie",
+                API_TYPE_MOVIE,
                 MOVIE,
                 normalizedYears,
                 normalizedPages,
@@ -111,60 +116,79 @@ public class SearchContentDiscoverService {
             int targetCount,
             Set<Integer> providerIds) {
 
-        List<CachedContentVO> result = new ArrayList<CachedContentVO>();
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
 
-        if (targetCount <= 0 || providerIds == null || providerIds.isEmpty()) {
+        if (targetCount <= 0
+                || providerIds == null
+                || providerIds.isEmpty()) {
             return result;
         }
 
-        String providerFilter = joinProviderIds(providerIds);
-        int currentYear = Year.now().getValue() + 1;
+        String providerFilter =
+                joinProviderIds(providerIds);
+
+        int currentYear =
+                Year.now().getValue() + 1;
 
         for (int year = currentYear;
              year >= startYear && result.size() < targetCount;
              year--) {
 
-            int page = 1;
-            int totalPages = 1;
-
-            while (page <= totalPages
-                    && page <= TMDB_MAX_PAGE
-                    && result.size() < targetCount) {
-
-                JSONObject root = apiClient.get(
-                        buildDiscoverUrl(apiType, year, page, providerFilter)
-                );
-
-                totalPages = Math.min(
-                        root.optInt("total_pages", 0),
-                        TMDB_MAX_PAGE
-                );
-
-                JSONArray items = root.optJSONArray("results");
-                if (items == null || items.isEmpty()) {
-                    break;
-                }
-
-                for (int index = 0;
-                     index < items.length() && result.size() < targetCount;
-                     index++) {
-
-                    JSONObject item = items.optJSONObject(index);
-                    if (item == null || shouldExcludeContent(item)) {
-                        continue;
-                    }
-
-                    CachedContentVO content = convertDiscoverItem(item, contentType);
-                    if (content.getTmdbId() != null) {
-                        result.add(content);
-                    }
-                }
-
-                page++;
-            }
+            collectDiscoverYear(
+                    result,
+                    apiType,
+                    contentType,
+                    targetCount,
+                    providerFilter,
+                    year
+            );
         }
 
         return result;
+    }
+
+    private void collectDiscoverYear(
+            List<CachedContentVO> result,
+            String apiType,
+            String contentType,
+            int targetCount,
+            String providerFilter,
+            int year) {
+
+        int page = 1;
+        int totalPages = 1;
+
+        while (page <= totalPages
+                && page <= TMDB_MAX_PAGE
+                && result.size() < targetCount) {
+
+            JSONObject root =
+                    apiClient.get(
+                            buildDiscoverUrl(
+                                    apiType,
+                                    year,
+                                    page,
+                                    providerFilter
+                            )
+                    );
+
+            totalPages = Math.min(
+                    root.optInt("total_pages", 0),
+                    TMDB_MAX_PAGE
+            );
+
+            if (!appendDiscoverItems(
+                    result,
+                    root.optJSONArray(JSON_RESULTS),
+                    contentType,
+                    targetCount
+            )) {
+                break;
+            }
+
+            page++;
+        }
     }
 
     private List<CachedContentVO> collectSupplementByType(
@@ -174,54 +198,119 @@ public class SearchContentDiscoverService {
             int pagesPerYear,
             int maxCandidates) {
 
-        List<CachedContentVO> result = new ArrayList<CachedContentVO>();
-        int currentYear = Year.now().getValue() + 1;
-        int lastYear = Math.max(startYear, currentYear - yearCount + 1);
+        List<CachedContentVO> result =
+                new ArrayList<CachedContentVO>();
+
+        int currentYear =
+                Year.now().getValue() + 1;
+
+        int lastYear =
+                Math.max(
+                        startYear,
+                        currentYear - yearCount + 1
+                );
 
         for (int year = currentYear;
              year >= lastYear && result.size() < maxCandidates;
              year--) {
 
-            for (int page = 1;
-                 page <= pagesPerYear && result.size() < maxCandidates;
-                 page++) {
-
-                JSONObject root = apiClient.get(
-                        buildSupplementDiscoverUrl(apiType, year, page)
-                );
-
-                int totalPages = Math.min(
-                        root.optInt("total_pages", 0),
-                        pagesPerYear
-                );
-
-                if (totalPages <= 0 || page > totalPages) {
-                    break;
-                }
-
-                JSONArray items = root.optJSONArray("results");
-                if (items == null || items.isEmpty()) {
-                    break;
-                }
-
-                for (int index = 0;
-                     index < items.length() && result.size() < maxCandidates;
-                     index++) {
-
-                    JSONObject item = items.optJSONObject(index);
-                    if (item == null || shouldExcludeContent(item)) {
-                        continue;
-                    }
-
-                    CachedContentVO content = convertDiscoverItem(item, contentType);
-                    if (content.getTmdbId() != null) {
-                        result.add(content);
-                    }
-                }
-            }
+            collectSupplementYear(
+                    result,
+                    apiType,
+                    contentType,
+                    pagesPerYear,
+                    maxCandidates,
+                    year
+            );
         }
 
         return removeDuplicate(result);
+    }
+
+    private void collectSupplementYear(
+            List<CachedContentVO> result,
+            String apiType,
+            String contentType,
+            int pagesPerYear,
+            int maxCandidates,
+            int year) {
+
+        for (int page = 1;
+             page <= pagesPerYear && result.size() < maxCandidates;
+             page++) {
+
+            JSONObject root =
+                    apiClient.get(
+                            buildSupplementDiscoverUrl(
+                                    apiType,
+                                    year,
+                                    page
+                            )
+                    );
+
+            int totalPages =
+                    Math.min(
+                            root.optInt("total_pages", 0),
+                            pagesPerYear
+                    );
+
+            if (totalPages <= 0
+                    || page > totalPages
+                    || !appendDiscoverItems(
+                            result,
+                            root.optJSONArray(JSON_RESULTS),
+                            contentType,
+                            maxCandidates
+                    )) {
+                break;
+            }
+        }
+    }
+
+    private boolean appendDiscoverItems(
+            List<CachedContentVO> result,
+            JSONArray items,
+            String contentType,
+            int maxCandidates) {
+
+        if (items == null
+                || items.isEmpty()) {
+            return false;
+        }
+
+        for (int index = 0;
+             index < items.length() && result.size() < maxCandidates;
+             index++) {
+
+            appendDiscoverItem(
+                    result,
+                    items.optJSONObject(index),
+                    contentType
+            );
+        }
+
+        return true;
+    }
+
+    private void appendDiscoverItem(
+            List<CachedContentVO> result,
+            JSONObject item,
+            String contentType) {
+
+        if (item == null
+                || shouldExcludeContent(item)) {
+            return;
+        }
+
+        CachedContentVO content =
+                convertDiscoverItem(
+                        item,
+                        contentType
+                );
+
+        if (content.getTmdbId() != null) {
+            result.add(content);
+        }
     }
 
     private String buildDiscoverUrl(
@@ -273,7 +362,7 @@ public class SearchContentDiscoverService {
             String apiType,
             int year) {
 
-        if ("movie".equals(apiType)) {
+        if (API_TYPE_MOVIE.equals(apiType)) {
             url.append("&region=")
                     .append(apiClient.encode(apiClient.getRegion()))
                     .append("&primary_release_year=")
@@ -305,16 +394,16 @@ public class SearchContentDiscoverService {
         if (MOVIE.equals(contentType)) {
             content.setTitle(firstNonBlank(
                     nullableString(item, "title"),
-                    nullableString(item, "original_title")
+                    nullableString(item, JSON_ORIGINAL_TITLE)
             ));
-            content.setOriginalTitle(nullableString(item, "original_title"));
+            content.setOriginalTitle(nullableString(item, JSON_ORIGINAL_TITLE));
             content.setReleaseDate(nullableString(item, "release_date"));
         } else {
             content.setTitle(firstNonBlank(
                     nullableString(item, "name"),
-                    nullableString(item, "original_name")
+                    nullableString(item, JSON_ORIGINAL_NAME)
             ));
-            content.setOriginalTitle(nullableString(item, "original_name"));
+            content.setOriginalTitle(nullableString(item, JSON_ORIGINAL_NAME));
             content.setReleaseDate(nullableString(item, "first_air_date"));
         }
 
@@ -367,8 +456,8 @@ public class SearchContentDiscoverService {
                 item.optString("name", null)
         );
         String originalTitle = firstNonBlank(
-                item.optString("original_title", null),
-                item.optString("original_name", null)
+                item.optString(JSON_ORIGINAL_TITLE, null),
+                item.optString(JSON_ORIGINAL_NAME, null)
         );
 
         return contentPolicyService.shouldExcludeContent(

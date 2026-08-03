@@ -911,8 +911,7 @@
                                         <button type="button"
                                                 class="report-btn"
                                                 data-review-type="CONTENT"
-                                                data-review-no="${r.reviewNo}"
-                                                aria-label="${r.writer}님의 리뷰 신고">
+                                                data-review-no="${r.reviewNo}">
                                             🚨 신고
                                         </button>
 

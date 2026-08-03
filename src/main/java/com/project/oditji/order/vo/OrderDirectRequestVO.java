@@ -14,9 +14,6 @@ public class OrderDirectRequestVO {
     private String sizeName;
     private Integer quantity;
 
-    public OrderDirectRequestVO() {
-    }
-
     public Long getOptionNo() {
         return optionNo;
     }

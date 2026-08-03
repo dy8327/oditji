@@ -14,9 +14,6 @@ public class ChatParticipantReadVO {
     private String lastReadMessageId;
     private Long lastReadEpochMs;
 
-    public ChatParticipantReadVO() {
-    }
-
     public Long getMemberNo() {
         return memberNo;
     }

@@ -8,9 +8,6 @@ public class OttPlatformVO {
     private String siteUrl;
     private String isActive;
 
-    public OttPlatformVO() {
-    }
-
     public Integer getPlatformNo() {
         return platformNo;
     }

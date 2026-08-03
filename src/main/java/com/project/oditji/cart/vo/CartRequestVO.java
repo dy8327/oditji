@@ -11,9 +11,6 @@ public class CartRequestVO {
     private Integer quantity;
     private List<Long> cartItemNos;
 
-    public CartRequestVO() {
-    }
-
     public Long getCartItemNo() {
         return cartItemNo;
     }

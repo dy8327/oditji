@@ -46,9 +46,6 @@ public class OrderItemVO {
     private String cancelType;
     private String cancelRejectReason;
 
-    public OrderItemVO() {
-    }
-
     public Long getOrderItemNo() {
         return orderItemNo;
     }
