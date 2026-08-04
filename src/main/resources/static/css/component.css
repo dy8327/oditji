@@ -198,8 +198,17 @@
 
 @media (max-width:768px) {
   .card-list {
-    grid-template-columns:repeat(2, 1fr);
-    gap:12px;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+
+  .card-info {
+    padding:8px 9px;
+  }
+
+  .card-sub {
+    margin-top:4px;
+    font-size:11px;
   }
 
   .list-header {
@@ -227,7 +236,11 @@
 
 @media (max-width:400px) {
   .card-list {
-    grid-template-columns:repeat(2, 1fr);
-    gap:8px;
+    grid-template-columns:repeat(3, 1fr);
+    gap:7px;
+  }
+
+  .card-info {
+    padding:7px 8px;
   }
 }

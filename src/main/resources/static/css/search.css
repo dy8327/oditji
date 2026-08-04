@@ -1533,8 +1533,30 @@ body.search-modal-open {
     .search-discovery-content-grid,
     .search-all-goods-grid,
     .search-goods-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .search-discovery-info {
+        padding: 8px 1px 0;
+    }
+
+    .search-discovery-info h3 {
+        font-size: 12px;
+    }
+
+    .search-discovery-info p {
+        display: none;
+    }
+
+    .search-goods-info {
+        min-height: 0;
+        padding: 8px;
+    }
+
+    .search-goods-info h3 {
+        min-height: 0;
+        font-size: 12px;
     }
 
     .search-content-link {
@@ -1579,7 +1601,8 @@ body.search-modal-open {
     .search-discovery-content-grid,
     .search-all-goods-grid,
     .search-goods-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .search-content-score {

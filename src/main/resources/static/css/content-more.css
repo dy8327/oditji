@@ -608,13 +608,17 @@ a {
 @media (max-width: 520px) {
 
     .content-more-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px 8px;
     }
 
     .content-more-info {
-        min-height: 96px;
-        padding: 10px;
+        min-height: 0;
+        padding: 8px;
+    }
+
+    .content-more-info h2 {
+        font-size: 12px;
     }
 
     .recommend-slider {

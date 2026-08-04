@@ -1087,7 +1087,8 @@
 
     .content-list-card-grid,
     .content-recommend-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px 10px;
     }
 
     .content-filter-form {
@@ -1114,13 +1115,30 @@
 
     .content-list-card-grid,
     .content-recommend-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px 10px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px 8px;
     }
 
     .content-list-card-poster,
     .content-recommend-poster {
         aspect-ratio: 2 / 2.9;
+    }
+
+    .content-list-card-info {
+        min-height: 0;
+        padding: 9px 9px 8px;
+    }
+
+    .content-list-card-info h2 {
+        font-size: 12px;
+    }
+
+    .content-list-card-genre {
+        display: none;
+    }
+
+    .content-list-card-bottom {
+        padding: 0 9px 9px;
     }
 }
 

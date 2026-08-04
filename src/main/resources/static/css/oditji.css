@@ -1102,8 +1102,8 @@ ul {
     }
 
     .ranking-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 24px 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px 10px;
     }
 
     .ranking-panel-title {
@@ -1111,6 +1111,21 @@ ul {
     }
 
     .ranking-number {
-        font-size: 38px;
+        font-size: 30px;
+        left: 7px;
+        bottom: 6px;
+    }
+
+    .ranking-content-title {
+        font-size: 13px;
+        margin: 0 0 5px;
+    }
+
+    .ranking-meta {
+        font-size: 11px;
+    }
+
+    .ranking-info {
+        padding: 10px 3px 0;
     }
 }

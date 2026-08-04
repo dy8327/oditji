@@ -642,6 +642,29 @@
     gap: 12px;
   }
 
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .product-info {
+    padding: 8px 9px 10px;
+  }
+
+  .product-info h3 {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .product-info p,
+  .price-discounted {
+    font-size: 12px !important;
+  }
+
+  .price-original {
+    font-size: 10px !important;
+  }
+
   .event-info {
     padding: 12px 12px 14px;
   }

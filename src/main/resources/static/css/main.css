@@ -145,11 +145,33 @@ a {
 }
 
 .box-rank {
-    width: 20px;
+    display: flex;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
+}
+
+/* [수정] 1~3위 순위 배지를 금/은/동 색으로 강조 (데스크톱 포함 전 구간 공통) */
+.box-item:nth-child(1) .box-rank {
+    background: #f4cf58;
+    color: #1c1c1c;
+}
+
+.box-item:nth-child(2) .box-rank {
+    background: #cfd4da;
+    color: #1c1c1c;
+}
+
+.box-item:nth-child(3) .box-rank {
+    background: #d29a63;
+    color: #1c1c1c;
 }
 
 .box-name {
@@ -512,6 +534,53 @@ a {
     .hero-title {
         font-size: 36px;
     }
+
+    /* [수정] 모바일: 인기 콘텐츠 박스를 세로 리스트 대신
+       가로 스크롤 칩 형태로 압축해 텍스트 아래에 가볍게 배치 */
+    .hero-right {
+        margin-top: 18px;
+    }
+
+    .hero-box {
+        min-height: 0;
+        padding: 12px 14px 14px;
+    }
+
+    .box-title {
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .box-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .box-item {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        gap: 6px;
+        padding: 6px 10px;
+    }
+
+    .box-item:hover {
+        transform: none;
+    }
+
+    .box-rank {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
+    .box-name {
+        font-size: 11px;
+    }
+
+    .box-score {
+        font-size: 10px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -521,8 +590,8 @@ a {
     }
 
     .card {
-        width: 155px;
-        min-width: 155px;
+        width: 138px;
+        min-width: 138px;
     }
 
 }
@@ -534,12 +603,87 @@ a {
         padding-top: 24px;
     }
 
+    /* [수정] 모바일: hero-left/hero-right를 세로 스택이 아닌
+       좌우 배치로 전환하고, 텍스트 크기를 줄여 랭킹 박스가
+       바로 옆에 나란히 보이도록 조정 */
+    /* [수정] 텍스트 아래 여백이 허전해 보여 랭킹박스 세로 중앙에
+       맞춰 내려오도록 align-items를 center로 변경 */
     .hero {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
         margin-bottom: 42px;
     }
 
+    .hero-left {
+        width: 56%;
+        padding-top: 0;
+    }
+
+    .hero-right {
+        width: 44%;
+        margin-top: 0;
+    }
+
+    .hero-sub {
+        font-size: 11px;
+    }
+
     .hero-title {
-        font-size: 30px;
+        margin: 8px 0 8px;
+        font-size: 20px;
+        line-height: 1.3;
+    }
+
+    .hero-desc {
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .hero-box {
+        min-height: 0;
+        padding: 12px 11px 13px;
+    }
+
+    .box-title {
+        margin-bottom: 10px;
+        font-size: 11px;
+        letter-spacing: 0.2px;
+    }
+
+    /* 좁은 폭에서는 2열 칩 대신 세로 리스트로 복귀,
+       항목 사이 간격을 넉넉히 줘서 답답해 보이지 않도록 조정 */
+    .box-list {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 7px;
+    }
+
+    .box-item {
+        flex: none;
+        gap: 7px;
+        padding: 6px 8px;
+        border-radius: 8px;
+    }
+
+    /* 순위 배지 크기만 모바일에 맞게 축소 (색상은 공통 기본 스타일 사용) */
+    .box-rank {
+        width: 17px;
+        height: 17px;
+        font-size: 9px;
+    }
+
+    .box-name {
+        margin-right: 2px;
+        font-size: 10.5px;
+    }
+
+    /* 평점 자리를 고정 폭으로 맞춰 세로 정렬이 들쭉날쭉해 보이지 않도록 */
+    .box-score {
+        min-width: 30px;
+        font-size: 9.5px;
+        text-align: right;
+        letter-spacing: -0.2px;
     }
 
     .section-header {
@@ -551,8 +695,8 @@ a {
     }
 
     .card {
-        width: 145px;
-        min-width: 145px;
+        width: 118px;
+        min-width: 118px;
     }
 
     .slider {
@@ -562,6 +706,26 @@ a {
     .slider-btn,
     .btn {
         width: 32px;
+    }
+
+    .card-info {
+        min-height: 0;
+        padding: 8px 9px 10px;
+    }
+
+    .card-title {
+        font-size: 12px;
+    }
+
+    .card-meta {
+        min-height: 0;
+        margin-top: 5px;
+        font-size: 10px;
+    }
+
+    .card-platform-list {
+        min-height: 0;
+        margin-top: 6px;
     }
 
     .card-platform-logo {
@@ -580,5 +744,17 @@ a {
     .card-platform-more {
         height: 17px;
         font-size: 8px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .card {
+        width: 104px;
+        min-width: 104px;
+    }
+
+    .card-title {
+        font-size: 11px;
     }
 }
