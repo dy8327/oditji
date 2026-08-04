@@ -40,7 +40,7 @@
 .card-poster {
   position: relative;
   width: 100%;
-  height: 240px;
+  aspect-ratio: 2 / 3;
   background: #111;
 
   overflow: hidden;
@@ -1183,16 +1183,12 @@
 
 @media (max-width: 480px) {
   .card-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .goods-list-container,
   .goods-detail-container {
     padding: 20px 16px;
-  }
-
-  .card-poster {
-    height: 200px;
   }
 
   .detail-info .action-box {

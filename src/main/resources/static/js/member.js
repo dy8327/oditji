@@ -1224,26 +1224,22 @@ function initSnsOttSelect() {
     countEl.textContent = checked + "개 선택";
   }
 
-  /* "이용 중인 OTT 없음" 선택 시 나머지 OTT 선택 해제/비활성화 */
-  function setSnsPlatformsDisabled(disabled) {
-    platformCheckboxes.forEach((checkbox) => {
-      if (disabled) {
-        checkbox.checked = false;
-      }
-
-      checkbox.disabled = disabled;
-
-      const option = checkbox.closest(".sns-ott-option");
-
-      if (option) {
-        option.classList.toggle("is-disabled", disabled);
-      }
-    });
-  }
-
+  /*
+   * [수정] 예전에는 "OTT 없음"을 체크하면 플랫폼 체크박스들을
+   * disabled 처리했는데, 그 상태 전환 타이밍 때문에 "OTT 없음"을
+   * 클릭해도 바로 체크 표시가 되지 않고 한 번 더 눌러야 선택되는
+   * 것처럼 보이는 문제가 있었다(마이페이지에서 먼저 발견/수정됨).
+   * 회원가입(join.jsp)·마이페이지와 동일하게 "체크 시 반대편
+   * 선택만 해제"하는 단순한 방식으로 통일한다.
+   */
   if (noOttCheckbox) {
     noOttCheckbox.addEventListener("change", () => {
-      setSnsPlatformsDisabled(noOttCheckbox.checked);
+      if (noOttCheckbox.checked) {
+        platformCheckboxes.forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+      }
+
       updateSnsOttCount();
     });
   }

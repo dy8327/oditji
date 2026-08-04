@@ -761,9 +761,16 @@
     position: relative;
   }
 
+  /* [수정] 모바일에서 삼선 버튼 → 로고 → 나머지(검색/알림/장바구니/프로필) 순서로 배치 */
   .header-nav-toggle {
     display: flex;
-    margin-left: 18px;
+    order: -2;
+    margin-left: 0;
+    margin-right: 12px;
+  }
+
+  .header-left {
+    order: -1;
   }
 
   .header-nav {

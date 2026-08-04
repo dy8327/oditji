@@ -65,7 +65,7 @@
 
 </div>
 
-<section class="detail-header">
+<section class="detail-header content-detail-card">
 
     <div class="detail-poster">
 
@@ -94,21 +94,69 @@
 
         <div class="info-box">
 
-            <h1 class="title">
-                ${content.title}
-            </h1>
+            <%--
+                연령등급 뱃지 (콘텐츠 목록 카드의 .content-age-rating-badge와
+                동일한 컴포넌트/클래스를 재사용해 등급 표기를 통일한다.
+                recommendCard.jsp의 뱃지 분기 로직과 동일)
+            --%>
+            <c:set var="ageBadgeLabel" value="?"/>
+            <c:set var="ageBadgeClass" value="unknown"/>
+            <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+
+            <c:choose>
+                <c:when test="${content.ageRating eq '전체 관람가'}">
+                    <c:set var="ageBadgeLabel" value="ALL"/>
+                    <c:set var="ageBadgeClass" value="all"/>
+                    <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                </c:when>
+
+                <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                    <c:set var="ageBadgeLabel" value="7"/>
+                    <c:set var="ageBadgeClass" value="age7"/>
+                    <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                </c:when>
+
+                <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                    <c:set var="ageBadgeLabel" value="12"/>
+                    <c:set var="ageBadgeClass" value="age12"/>
+                    <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                </c:when>
+
+                <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                    <c:set var="ageBadgeLabel" value="15"/>
+                    <c:set var="ageBadgeClass" value="age15"/>
+                    <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                </c:when>
+
+                <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                    <c:set var="ageBadgeLabel" value="19"/>
+                    <c:set var="ageBadgeClass" value="adult"/>
+                    <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                </c:when>
+            </c:choose>
+
+            <div class="title-row">
+
+                <h1 class="title">
+                    ${content.title}
+                </h1>
+
+                <span class="content-age-rating-badge is-${ageBadgeClass}"
+                      title="${ageBadgeTitle}"
+                      aria-label="${ageBadgeTitle}">
+                    ${ageBadgeLabel}
+                </span>
+
+            </div>
 
             <p class="meta">
                 ${content.contentType}
-                |
-                ${content.releaseDate}
-                |
-                ${content.ageRating}
 
-                <%-- 
-                    콘텐츠 유형별 상세 길이 정보를 연령등급 옆에 표시합니다.
+                <%--
+                    콘텐츠 유형별 상세 길이 정보를 표시합니다.
                     TV는 전체 에피소드 수, MOVIE는 총 러닝타임을 보여주며
                     값이 없는 경우에는 불필요한 구분자를 출력하지 않습니다.
+                    연령등급은 제목 옆 뱃지로 이동해 여기서는 표시하지 않습니다.
                 --%>
                 <c:choose>
 
@@ -125,6 +173,9 @@
                     </c:when>
 
                 </c:choose>
+
+                |
+                ${content.releaseDate}
             </p>
 
             <p class="genre">

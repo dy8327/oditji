@@ -585,8 +585,28 @@
     padding: 30px 22px;
   }
 
+  /* [수정] 모바일에서도 2열이 아닌 3열 유지, 카드 크기만 축소 */
   .sns-ott-option-list {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .sns-ott-option {
+    gap: 4px;
+    min-height: 58px;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .sns-ott-logo-img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sns-ott-mark {
+    width: 16px;
+    height: 16px;
   }
 }
 

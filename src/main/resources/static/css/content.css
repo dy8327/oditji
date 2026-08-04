@@ -108,29 +108,118 @@
 }
 
 /* =========================================================
-   DETAIL LAYOUT (WIRE FRAME 기반 핵심 구조)
+   DETAIL HEADER CARD (포스터 + 정보)
+
+   [리팩토링] 예전에는 이 영역이 배경/테두리 없이 텍스트만
+   나열돼 있어서 아래 섹션들(줄거리/출연진/관련 콘텐츠 등)과
+   붕 떠 보였다. 상품 상세(goods-detail-card)와 동일한 카드
+   언어(테두리 · 라운드 20px · 그라디언트 배경 · 그림자)를
+   적용해 첫인상부터 통일감을 준다.
 ========================================================= */
 
-/* poster */
+.content-detail-card {
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), #181818;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
 
-/* info */
+.content-detail-card .detail-poster {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+}
 
-/* meta */
-.detail-meta,
-.detail-submeta {
-  margin-top: 10px;
-  color: #b0b0b0;
-  font-size: 14px;
+.content-detail-card .detail-poster img {
+  display: block;
 }
 
 /* title */
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.info-box .title {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  word-break: keep-all;
+}
+
+/* 연령등급 뱃지 (콘텐츠 카드와 동일한 컴포넌트 - main.css/content-more.css와 동일 스타일) */
+.content-age-rating-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+}
+
+.content-age-rating-badge.is-all {
+  width: 32px;
+  border-radius: 999px;
+  background: #2f855a;
+  font-size: 8.5px;
+}
+
+.content-age-rating-badge.is-age7 {
+  background: #3478b9;
+}
+
+.content-age-rating-badge.is-age12 {
+  background: #b88416;
+}
+
+.content-age-rating-badge.is-age15 {
+  background: #ce6428;
+}
+
+.content-age-rating-badge.is-adult {
+  background: #c53f45;
+}
+
+.content-age-rating-badge.is-unknown {
+  background: #555c66;
+}
+
+/* meta */
+.info-box .meta {
+  margin: 0;
+  color: #b0b0b0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.info-box .genre {
+  margin: 10px 0 0;
+  color: #8f8f8f;
+  font-size: 13px;
+}
 
 /* overview */
 .detail-desc,
 .overview {
-  margin-top: 20px;
+  margin: 0;
   color: #dadada;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.8;
 }
 
 /* =========================================================
@@ -138,57 +227,72 @@
 ========================================================= */
 
 .action-box {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
 .btn {
   padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: #2a2a2a;
   color: #fff;
 
   font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 
-  transition: 0.2s;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .btn:hover {
   background: #3a3a3a;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* 헤더 카드 안의 찜/리뷰 버튼은 살짝 더 크고 굵게 */
+.action-box .btn {
+  min-height: 44px;
+  padding: 11px 18px;
+  font-weight: 700;
+}
+
+.action-box .btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-box .detail-favorite-btn.is-active {
+  border-color: rgba(255, 92, 110, 0.6);
+  background: rgba(82, 20, 29, 0.9);
+  color: #ff5c6e;
 }
 
 /* =========================================================
-   CAST BOX (와이어프레임 핵심)
+   PAGE SECTIONS (공통)
+
+   [리팩토링] 줄거리 / 감독·출연 / 관련 콘텐츠 / 관련 상품 / 리뷰가
+   전부 <section class="detail-section">를 쓰는데도 정작 이 클래스
+   자체엔 스타일이 하나도 없어서, 섹션마다 여백과 제목 크기가
+   제각각(혹은 아예 브라우저 기본값)이었다. 여기서 한 번에
+   통일한다. (개별 섹션의 내부 카드/그리드 스타일은 그대로 유지)
 ========================================================= */
 
-.cast-box {
-  margin-top: 25px;
-  display: flex;
-  gap: 50px;
+.detail-section {
+  margin-top: 48px;
 }
 
-.cast-box strong {
-  display: block;
-  margin-bottom: 6px;
-  color: #bdbdbd;
-}
-
-/* =========================================================
-   OTT BOX
-========================================================= */
-
-.ott-box {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.ott-box img {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  object-fit: cover;
+.detail-section h2 {
+  margin: 0 0 18px;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
 
 /* =========================================================
@@ -216,7 +320,7 @@
 
 .goods-card img {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
 }
 
@@ -262,7 +366,8 @@
 @media (max-width: 768px) {
   .card-list,
   .goods-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
 
   .content-container,
@@ -271,12 +376,26 @@
   .filmography-container {
     padding: 28px 24px;
   }
+
+  .content-detail-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
 }
 
 @media (max-width: 480px) {
   .card-list,
   .goods-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .goods-info {
+    padding: 7px 8px;
+  }
+
+  .goods-info .name {
+    font-size: 12px;
   }
 
   .content-container,
@@ -291,14 +410,8 @@
    REVIEW SECTION WRAPPER
 ========================= */
 
-#reviewSection {
-  margin-top: 32px;
-}
-
-#reviewSection > h2 {
-  margin: 0 0 18px;
-  color: #ffffff;
-}
+/* 여백/제목 크기는 .detail-section, .detail-section h2 공통 규칙을
+   그대로 사용 (다른 섹션들과 동일한 리듬 유지) */
 
 /* .review-item / .review-meta / .review-content 스타일은
    component.css 로 이동 (goodsDetail.jsp 와 통일) */
@@ -351,9 +464,7 @@
    PEOPLE / FILMOGRAPHY
 ========================================================= */
 
-.people-section {
-  margin-top: 40px;
-}
+/* 섹션 자체의 여백은 .detail-section 공통 규칙(48px)을 그대로 사용 */
 
 .people-group + .people-group {
   margin-top: 32px;
@@ -889,8 +1000,16 @@
 /* 모바일 */
 @media (max-width: 520px) {
   .filmography-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .filmography-info {
+    padding: 8px 9px 9px;
+  }
+
+  .filmography-info h3 {
+    font-size: 12px;
   }
 }
 
@@ -1170,9 +1289,7 @@
    CONTENT DETAIL RELATED CONTENT RECOMMENDATION
 ========================================================= */
 
-.related-content-section {
-  margin-top: 48px;
-}
+/* 섹션 자체의 여백은 .detail-section 공통 규칙(48px)과 동일해 별도 선언 없음 */
 
 .related-content-header {
   display: flex;
@@ -1182,10 +1299,10 @@
   margin-bottom: 20px;
 }
 
+/* font-size/color/weight는 .detail-section h2 공통 규칙을 그대로 사용,
+   여기서는 header flex 안에서의 margin만 초기화 */
 .related-content-header h2 {
   margin: 0;
-  color: #ffffff;
-  font-size: 22px;
 }
 
 .related-content-header p {
