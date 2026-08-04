@@ -12,7 +12,7 @@ public class AdminVO {
     private long businessRequestCount;    // 사업자 입점 승인 대기 수 (BUSINESS, STATUS='WAITING')
     private long productRequestCount;     // 상품 등록 요청 대기 수 (PRODUCT, STATUS='WAITING')
     private long eventRequestCount;       // 이벤트 요청 대기 수 (EVENT, STATUS='WAITING')
-    private long settlementWaitingCount;  // 입금 확인 대기 수 (SETTLEMENT, STATUS='WAITING')
+    private long settlementWaitingCount;  // 정산 요청 대기 수 (SETTLEMENT, STATUS='WAITING')
     private long visitorCount;            // 방문자 수 (ACCESS_LOG 기준 금일 접속 회원 수)
 
     public long getMemberCount() {

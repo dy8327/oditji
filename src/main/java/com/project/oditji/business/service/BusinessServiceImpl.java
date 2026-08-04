@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import com.project.oditji.search.service.SearchContentStore;
 import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.tmdb.service.TmdbService;
 import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 
 @Service
 public class BusinessServiceImpl
@@ -127,7 +129,7 @@ public class BusinessServiceImpl
          * =========================================================
          * 마이페이지 대시보드 통계 조회
          *
-         * 오늘 매출/판매량/구매 고객 수/클릭 수/입금 대기 정산액/
+         * 오늘 매출/판매량/구매 고객 수/클릭 수/지급 대기 정산액/
          * 승인 대기 상품 수와 인기 상품 TOP N을 한 번에 모아서 내려준다.
          *
          * [구매전환율 계산 기준 수정]
@@ -225,7 +227,7 @@ public class BusinessServiceImpl
                 Map<Long, List<OrderItemVO>> itemMap = new HashMap<>();
                 for (OrderItemVO item : itemList) {
 
-                        itemMap.computeIfAbsent(item.getOrderNo(), key -> new java.util.ArrayList<>())
+                        itemMap.computeIfAbsent(item.getOrderNo(), key -> new ArrayList<>())
                                         .add(item);
                 }
 
@@ -336,18 +338,18 @@ public class BusinessServiceImpl
                 return summary == null ? new SettlementManageVO() : summary;
         }
 
-        /* [수정] 사업자의 월별 수수료 납부 내역 조회 */
+        /* 사업자의 정산 요청 내역 조회 */
         @Override
-        public List<SettlementManageVO> getSettlementPaymentHistory(long businessNo) {
+        public List<SettlementRequestVO> getSettlementPaymentHistory(long businessNo) {
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                List<SettlementManageVO> history = businessDAO.selectSettlementPaymentHistory(businessNo);
+                List<SettlementRequestVO> history = businessDAO.selectSettlementPaymentHistory(businessNo);
                 return history == null ? Collections.emptyList() : history;
         }
 
-        /* [수정] 이번 달 수수료 입금 확인 요청 */
+       /* 사업자 정산 요청 */
         @Override
         @Transactional
         public void requestSettlementConfirmation(long businessNo) {
@@ -355,20 +357,45 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                int updatedCount = businessDAO.updateSettlementRequestStatus(businessNo);
-                if (updatedCount <= 0) {
-                        throw new IllegalStateException("입금 확인을 요청할 수 있는 이번 달 수수료 내역이 없습니다.");
+                SettlementRequestVO settlementRequest = businessDAO.selectSettlementRequestTarget(businessNo);
+
+                if (settlementRequest == null
+                                || settlementRequest.getOrderCount() == null
+                                || settlementRequest.getOrderCount() <= 0
+                                || settlementRequest.getSettledAmount() == null
+                                || settlementRequest.getSettledAmount() <= 0) {
+                        throw new IllegalStateException("정산을 요청할 수 있는 배송 완료 내역이 없습니다.");
+                }
+
+                if (settlementRequest.getBankName() == null
+                                || settlementRequest.getBankName().isBlank()
+                                || settlementRequest.getAccountNumber() == null
+                                || settlementRequest.getAccountNumber().isBlank()
+                                || settlementRequest.getAccountHolder() == null
+                                || settlementRequest.getAccountHolder().isBlank()) {
+                        throw new IllegalStateException("정산 요청 전에 정산 계좌 정보를 등록해주세요.");
+                }
+
+                int insertedCount = businessDAO.insertSettlementRequest(settlementRequest);
+                if (insertedCount != 1) {
+                        throw new IllegalStateException("정산 요청 정보를 생성하지 못했습니다.");
+                }
+
+                int linkedCount = businessDAO.updateSettlementRequestNo(
+                                businessNo, settlementRequest.getRequestNo());
+
+                if (linkedCount <= 0) {
+                        throw new IllegalStateException("정산 요청에 포함할 판매 내역이 없습니다.");
                 }
 
                 notificationService.createForAdmins(
                                 "SETTLEMENT_REQUEST",
-                                "정산 확인 요청",
-                                "사업자가 이번 달 수수료 입금 확인을 요청했습니다.",
+                                "사업자 정산 요청",
+                                "사업자가 정산금 지급을 요청했습니다.",
                                 "/admin/settlement/main",
-                                "BUSINESS",
-                                businessNo);
+                                "SETTLEMENT_REQUEST",
+                                settlementRequest.getRequestNo());
         }
-
         /* [수정] 사업자 정산 계좌 조회 */
         @Override
         public SettlementManageVO getSettlementAccount(long businessNo) {
@@ -834,7 +861,7 @@ public class BusinessServiceImpl
                 if (goodsManageVO.getOptionList() == null || goodsManageVO.getOptionList().isEmpty()) {
                         throw new IllegalArgumentException("의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.");
                 }
-                java.util.Set<String> duplicateCheck = new java.util.HashSet<String>();
+                Set<String> duplicateCheck = new HashSet<String>();
                 int totalStock = 0;
                 for (com.project.oditji.goods.vo.ProductOptionVO option : goodsManageVO.getOptionList()) {
                         if (option == null || option.getColorName() == null || option.getColorName().isBlank()
@@ -1374,12 +1401,13 @@ public class BusinessServiceImpl
                  * PRODUCT 테이블에 삭제 사유를 저장할 컬럼이 없으므로
                  * 현재 단계에서는 서버 로그로 확인한다.
                  */
+                if (log.isInfoEnabled()) {
                 log.info("===== 상품 삭제 요청 =====");
                 log.info("상품 번호: {}", productNo);
                 log.info("사업자 번호: {}", businessNo);
                 log.info("상품명: {}", existingProduct.getProductName());
                 log.info("삭제 사유: {}", normalizedReason);
-
+                }
                 int updateResult = businessDAO.updateProductDeleteRequest(
                                 productNo,
                                 businessNo);
@@ -1750,7 +1778,7 @@ public class BusinessServiceImpl
         public void extendApprovedEvent(
                         long eventNo,
                         long businessNo,
-                        java.time.LocalDate extendEndDate,
+                        LocalDate extendEndDate,
                         String extendReason) {
 
                 EventManageVO existingEvent = getApprovedEventForBusiness(
@@ -1784,14 +1812,14 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException(
                                         "이벤트 연장 사유는 1000자 이하로 입력해주세요.");
                 }
-
+                 if (log.isInfoEnabled()) {
                 log.info("===== 이벤트 연장 요청 =====");
                 log.info("이벤트 번호: {}", eventNo);
                 log.info("사업자 번호: {}", businessNo);
                 log.info("기존 종료일: {}", existingEvent.getEndDate());
                 log.info("연장 종료일: {}", extendEndDate);
                 log.info("연장 사유: {}", normalizedReason);
-
+                 }
                 int updateResult = businessDAO.extendApprovedEvent(
                                 eventNo,
                                 businessNo,

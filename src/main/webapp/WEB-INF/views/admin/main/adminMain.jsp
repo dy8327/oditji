@@ -75,12 +75,12 @@
                 </a>
 
                 <%--
-                    [수정] 관리자 대시보드의 입금 확인 대기 카드를 누르면
-                    정산 관리 화면의 REQUESTED, 즉 입금 대기 상태만 조회한다.
+                    [수정] 관리자 대시보드의 정산 요청 대기 카드를 누르면
+                    정산 관리 화면의 REQUESTED, 즉 지급 대기 상태만 조회한다.
                 --%>
                 <a href="${pageContext.request.contextPath}/admin/settlement/main?status=REQUESTED"
                 class="stat-card">
-                    <span>입금 확인 대기</span>
+                    <span>정산 요청 대기</span>
                     <strong>${adminMain.settlementWaitingCount}건</strong>
                 </a>
 

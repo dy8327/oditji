@@ -24,9 +24,9 @@ import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
-import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 
 @Repository
 public class AdminDAO {
@@ -488,25 +488,42 @@ public class AdminDAO {
 
     // ===================== 정산 관리 (SETTLEMENT) =====================
 
-    public List<SettlementManageVO> selectSettlementList(Map<String, Object> param) {
-        return sqlSession.selectList("selectSettlementList", param);
-    }
-
-    public int selectSettlementListCount(Map<String, Object> param) {
-        return sqlSession.selectOne("selectSettlementListCount", param);
-    }
-
     public SettlementStatVO selectSettlementStats() {
         return sqlSession.selectOne("selectSettlementStats");
     }
 
-    /* [수정] 월별로 묶인 수수료 요청을 사업자/정산월 기준으로 일괄 처리한다. */
-    public int updateSettlementStatus(Long businessNo, String settlementMonth, String status) {
+    /* 정산 요청 목록 조회 */
+    public List<SettlementRequestVO> selectSettlementRequestList(Map<String, Object> param) {
+        return sqlSession.selectList("selectSettlementRequestList", param);
+    }
+
+    /* 정산 요청 목록 수 조회 */
+    public int selectSettlementRequestListCount(Map<String, Object> param) {
+        return sqlSession.selectOne("selectSettlementRequestListCount", param);
+    }
+
+    /* 정산 요청 단건 조회 */
+    public SettlementRequestVO selectSettlementRequest(Long requestNo) {
+        return sqlSession.selectOne("selectSettlementRequest", requestNo);
+    }
+
+    /* 정산 요청 승인·반려 처리 */
+    public int updateSettlementRequestStatus(Long requestNo, String status, String rejectReason) {
         Map<String, Object> param = new HashMap<>();
-        param.put(PARAM_BUSINESS_NO, businessNo);
-        param.put("settlementMonth", settlementMonth);
+        param.put("requestNo", requestNo);
         param.put(PARAM_STATUS, status);
-        return sqlSession.update("updateSettlementStatus", param);
+        param.put("rejectReason", rejectReason);
+        return sqlSession.update("updateSettlementRequestStatus", param);
+    }
+
+    /* 지급 완료된 요청의 정산 원장 완료 처리 */
+    public int completeSettlementItems(Long requestNo) {
+        return sqlSession.update("completeSettlementItems", requestNo);
+    }
+
+    /* 반려된 요청의 정산 원장 연결 해제 */
+    public int releaseRejectedSettlementItems(Long requestNo) {
+        return sqlSession.update("releaseRejectedSettlementItems", requestNo);
     }
 
     // ===================== 시스템 관리 (모니터링) =====================
