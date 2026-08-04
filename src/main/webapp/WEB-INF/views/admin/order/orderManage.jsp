@@ -211,25 +211,30 @@
                                                     숨겨버려서, 조회 전용인 이 화면은 모바일에서 상세보기 버튼 자체가
                                                     사라지는 문제가 있었다. eventManage/productManage처럼 래퍼 없이
                                                     버튼만 두면 데스크톱/모바일 모두에서 정상적으로 보인다.
+
+                                                    [수정] 값을 onclick(...) 안에 '${...}'로 직접 나열하던 방식은
+                                                    상품명/수령인/주소 등에 작은따옴표(')가 하나라도 들어있으면
+                                                    onclick의 JS 문법이 깨져 그 버튼만 조용히 아무 반응이 없었다
+                                                    (모달이 안 열리는 원인). eventManage/refund 상세보기와 동일하게
+                                                    data-* 속성 + openOrderDetailModal(this)로 바꿔 이 문제를 없앤다.
                                                 --%>
+                                                <fmt:formatDate var="orderCreatedAtStr" value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>
                                                 <button type="button" class="btn btn-dark"
-                                                        onclick="openOrderDetailModal(
-                                                                '${order.orderNo}',
-                                                                '${order.orderItemNo}',
-                                                                '${order.productName}',
-                                                                '${order.contentTitle}',
-                                                                '${order.quantity}',
-                                                                '${order.productPrice}',
-                                                                '${order.totalAmount}',
-                                                                '${order.orderStatus}',
-                                                                '${order.status}',
-                                                                '${order.receiverName}',
-                                                                '${order.receiverPhone}',
-                                                                '${order.address}',
-                                                                '${order.trackingNumber}',
-                                                                '${order.courier}',
-                                                                '<fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>'
-                                                            )">
+                                                        data-order-no="${order.orderNo}"
+                                                        data-product-name="${fn:escapeXml(order.productName)}"
+                                                        data-content-title="${fn:escapeXml(order.contentTitle)}"
+                                                        data-quantity="${order.quantity}"
+                                                        data-product-price="${order.productPrice}"
+                                                        data-total-amount="${order.totalAmount}"
+                                                        data-order-status="${order.orderStatus}"
+                                                        data-delivery-status="${order.status}"
+                                                        data-receiver-name="${fn:escapeXml(order.receiverName)}"
+                                                        data-receiver-phone="${fn:escapeXml(order.receiverPhone)}"
+                                                        data-address="${fn:escapeXml(order.address)}"
+                                                        data-tracking-number="${fn:escapeXml(order.trackingNumber)}"
+                                                        data-courier="${fn:escapeXml(order.courier)}"
+                                                        data-created-at="${orderCreatedAtStr}"
+                                                        onclick="openOrderDetailModal(this)">
                                                     상세보기
                                                 </button>
                                             </td>
@@ -299,23 +304,33 @@
                                             </td>
 
                                             <td>
-                                                <%-- [수정] 주문 조회 표와 동일한 이유로 .item-actions 래퍼를 제거한다. --%>
+                                                <%--
+                                                    [수정] 주문 조회 표와 동일한 이유로 .item-actions 래퍼를 제거한다.
+
+                                                    [수정] admin.js의 openRefundDetailModal(button)은 클릭된 버튼
+                                                    엘리먼트를 받아 button.dataset.*를 읽도록 만들어져 있는데,
+                                                    이 버튼은 값을 문자열로 하나씩 나열해서 넘기고 있었다. 그러면
+                                                    함수 안 button 매개변수가 문자열이 되어 button.dataset이
+                                                    존재하지 않아 TypeError가 발생하고, 모달을 여는
+                                                    classList.add('open') 코드까지 도달하지 못해 항상 모달이
+                                                    열리지 않았다. data-* 속성 + openRefundDetailModal(this)로
+                                                    바꿔 JS 쪽 기대와 맞춘다.
+                                                --%>
+                                                <fmt:formatDate var="refundCreatedAtStr" value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>
+                                                <fmt:formatDate var="refundProcessedAtStr" value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>
                                                 <button type="button" class="btn btn-dark"
-                                                        onclick="openRefundDetailModal(
-                                                                '${refund.cancelNo}',
-                                                                '${refund.orderNo}',
-                                                                '${refund.orderItemNo}',
-                                                                '${refund.productName}',
-                                                                '${refund.memberId}',
-                                                                '${refund.cancelType}',
-                                                                '${refund.quantity}',
-                                                                '${refund.refundAmount}',
-                                                                '${refund.reason}',
-                                                                '${refund.cancelStatus}',
-                                                                '${refund.rejectReason}',
-                                                                '<fmt:formatDate value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>',
-                                                                '<fmt:formatDate value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>'
-                                                            )">
+                                                        data-order-no="${refund.orderNo}"
+                                                        data-product-name="${fn:escapeXml(refund.productName)}"
+                                                        data-member-id="${fn:escapeXml(refund.memberId)}"
+                                                        data-cancel-type="${refund.cancelType}"
+                                                        data-quantity="${refund.quantity}"
+                                                        data-refund-amount="${refund.refundAmount}"
+                                                        data-reason="${fn:escapeXml(refund.reason)}"
+                                                        data-cancel-status="${refund.cancelStatus}"
+                                                        data-reject-reason="${fn:escapeXml(refund.rejectReason)}"
+                                                        data-created-at="${refundCreatedAtStr}"
+                                                        data-processed-at="${refundProcessedAtStr}"
+                                                        onclick="openRefundDetailModal(this)">
                                                     상세보기
                                                 </button>
                                             </td>

@@ -690,11 +690,32 @@ function orderStatusLabel(status) {
     return ORDER_STATUS_LABELS[status] || status.replace(/_/g, ' ');
 }
 
-function openOrderDetailModal(
-    orderNo, orderItemNo, productName, contentTitle, quantity,
-    productPrice, totalAmount, orderStatus, deliveryStatus,
-    receiverName, receiverPhone, address, trackingNumber, courier, createdAt
-) {
+/*
+ * [수정] 예전에는 orderManage.jsp가 값을 15개의 문자열 인자로 하나씩 나열해서
+ * 호출했다(openOrderDetailModal('${order.orderNo}', ...)). 상품명/수령인/주소처럼
+ * 사람이 입력한 텍스트에 작은따옴표(')가 하나라도 섞이면 onclick의 JS 문자열이
+ * 그 자리에서 끊어져 문법 오류가 나고, 그 버튼은 클릭해도 아무 반응이 없었다
+ * (모달이 열리지 않는 원인). 클릭된 button 엘리먼트를 받아 button.dataset.*를
+ * 읽는 방식으로 바꿔 openEventDetailModal/openRefundDetailModal과 동일한
+ * 패턴으로 통일한다.
+ */
+function openOrderDetailModal(button) {
+
+    var orderNo = button.dataset.orderNo;
+    var productName = button.dataset.productName;
+    var contentTitle = button.dataset.contentTitle;
+    var quantity = button.dataset.quantity;
+    var productPrice = button.dataset.productPrice;
+    var totalAmount = button.dataset.totalAmount;
+    var orderStatus = button.dataset.orderStatus;
+    var deliveryStatus = button.dataset.deliveryStatus;
+    var receiverName = button.dataset.receiverName;
+    var receiverPhone = button.dataset.receiverPhone;
+    var address = button.dataset.address;
+    var trackingNumber = button.dataset.trackingNumber;
+    var courier = button.dataset.courier;
+    var createdAt = button.dataset.createdAt;
+
     document.getElementById('detailOrderNo').textContent = displayOrDash(orderNo);
     document.getElementById('detailProductName').textContent = displayOrDash(productName);
     document.getElementById('detailContentTitle').textContent = displayOrDash(contentTitle);
