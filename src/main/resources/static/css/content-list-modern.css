@@ -738,12 +738,43 @@
     font-size: 6.5px;
 }
 
+/* [수정] width/padding/border/color 등이 빠져 있어 브라우저 기본
+   버튼 크기로 쪼그라들어 보였다. content-filter-reset-btn과 동일한
+   보조 버튼 언어(전체 폭, 테두리, 중앙 정렬)로 통일한다. */
 .content-filter-secondary-btn,
 .content-provider-select-btn {
+    display: flex;
+    width: 100%;
     min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     background: #222429;
+    color: #b8bdc6;
     font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.content-filter-secondary-btn:hover,
+.content-provider-select-btn:hover {
+    border-color: rgba(255, 255, 255, 0.32);
+    background: #292c31;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.content-filter-secondary-btn:focus-visible,
+.content-provider-select-btn:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
 }
 
 .content-provider-summary {
