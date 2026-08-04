@@ -307,7 +307,7 @@
             </div>
 
             <div class="mypage-activity-title">
-                찜한 콘텐츠
+                찜 목록
             </div>
 
         </a>
