@@ -569,6 +569,26 @@ document.addEventListener("DOMContentLoaded", function () {
     return productTypeValue === "CLOTHES" || productTypeValue === "SHOES";
   }
 
+  /*
+   * [수정] 상품 등록 화면(productRegister.js)은 사이즈를 자유 입력이 아니라
+   * 신발/의상 종류별 고정 목록에서 고르는 드롭다운으로 제공하는데, 이
+   * 수정 모달(business.js)만 자유 텍스트 입력이라 두 화면이 서로 달라
+   * 보였다. 동일한 목록으로 통일한다.
+   */
+  function productOptionSizeChoices(productTypeValue) {
+    return productTypeValue === "SHOES"
+      ? ["220", "225", "230", "235", "240", "245", "250", "255", "260", "265", "270", "275", "280", "285", "290"]
+      : ["XS", "S", "M", "L", "XL", "2XL", "3XL", "FREE"];
+  }
+
+  function buildProductOptionSizeChoicesHtml(productTypeValue) {
+    return productOptionSizeChoices(productTypeValue)
+      .map(function (value) {
+        return "<option value=\"" + value + "\">" + value + "</option>";
+      })
+      .join("");
+  }
+
   function createProductOptionRow(colorName, sizeName, stock) {
 
     const row = document.createElement("div");
@@ -581,6 +601,8 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     row.className = "product-option-row";
 
+    const sizeChoicesHtml = buildProductOptionSizeChoicesHtml(productTypeSelect ? productTypeSelect.value : "");
+
     row.innerHTML = `
 
                 <input class="form-input optionColorName"
@@ -588,10 +610,10 @@ document.addEventListener("DOMContentLoaded", function () {
                        placeholder="색상 (예: 블랙)"
                        maxlength="50">
 
-                <input class="form-input optionSizeName"
-                       type="text"
-                       placeholder="사이즈 (예: M, 250)"
-                       maxlength="50">
+                <select class="form-input optionSizeName">
+                    <option value="">사이즈 선택</option>
+                    ${sizeChoicesHtml}
+                </select>
 
                 <input class="form-input optionStock"
                        type="number"
@@ -600,7 +622,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 <button class="option-remove-btn"
                         type="button">
-                    -
+                    삭제
                 </button>
 
             `;
@@ -615,7 +637,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (sizeInput) {
+
       sizeInput.value = sizeName || "";
+
+      /*
+       * 기존에 저장된 사이즈 값이 현재 상품 종류의 드롭다운 목록에
+       * 없는 경우(예: 예전 자유 입력 데이터, 상품 종류가 바뀐 경우)
+       * .value 대입이 조용히 실패해 값이 사라지므로, 목록에 없는
+       * 값이면 옵션을 하나 추가해 데이터가 유실되지 않게 한다.
+       */
+      if (sizeName && sizeInput.value !== sizeName) {
+
+        const extraOption = document.createElement("option");
+
+        extraOption.value = sizeName;
+        extraOption.textContent = sizeName;
+        extraOption.selected = true;
+
+        sizeInput.appendChild(extraOption);
+      }
     }
 
     if (stockField) {
@@ -683,6 +723,40 @@ document.addEventListener("DOMContentLoaded", function () {
           removeButton.style.display = index === 0 ? "none" : "inline-flex";
 
       });
+  }
+
+  /*
+   * [상품 옵션 기능 추가] 상품 종류(의상/신발)가 바뀌면 이미 그려진
+   * 옵션 행들의 사이즈 드롭다운 목록도 그 종류에 맞게 다시 그린다.
+   * 기존에 골라둔 값이 새 목록에도 있으면 그대로 유지한다.
+   */
+  function refreshProductOptionSizeChoices() {
+
+    if (!productOptionRows || !productTypeSelect) {
+      return;
+    }
+
+    const sizeChoicesHtml = buildProductOptionSizeChoicesHtml(productTypeSelect.value);
+
+    productOptionRows.querySelectorAll(".optionSizeName").forEach(function (select) {
+
+      const oldValue = select.value;
+
+      select.innerHTML = "<option value=\"\">사이즈 선택</option>" + sizeChoicesHtml;
+
+      select.value = oldValue;
+
+      if (oldValue && select.value !== oldValue) {
+
+        const extraOption = document.createElement("option");
+
+        extraOption.value = oldValue;
+        extraOption.textContent = oldValue;
+        extraOption.selected = true;
+
+        select.appendChild(extraOption);
+      }
+    });
   }
 
   /* 옵션 모드일 때 #stock 표시값을 옵션별 재고의 합으로 다시 계산한다. */
@@ -785,6 +859,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         productOptionRows.appendChild(createProductOptionRow(null, "", null));
         reindexProductOptionRows();
+
+      } else {
+
+        /*
+         * 이미 옵션 행이 있는 상태에서 상품 종류(의상<->신발)만 바뀐
+         * 경우 - 새 행을 만들지 않고 기존 행들의 사이즈 드롭다운
+         * 목록만 새 종류에 맞게 다시 그린다.
+         */
+        refreshProductOptionSizeChoices();
       }
 
       refreshProductOptionStockTotal();

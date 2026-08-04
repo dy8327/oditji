@@ -808,9 +808,62 @@
   }
 
   .business-wrap .page-search,
-  .business-wrap .product-search-form input,
   .business-wrap .filter-select {
     width: 100%;
+  }
+
+  /*
+   * [수정] 상품 목록 검색폼(product-search-form)이 모바일에서 input만
+   * width:100%로 강제되고 폼 자체는 여전히 button과 한 줄(flex row)에
+   * 나란히 있어서 폭 계산이 꼬여 검색창/버튼이 과도하게 커지던 문제.
+   * product-control-row(빈 div + 검색폼 + 등록 버튼)를 세로로 쌓고,
+   * 검색폼 내부는 input(가변폭)+button(고정폭) 구조로 정리한다.
+   */
+  .business-wrap .product-control-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .business-wrap .product-control-row > div:empty {
+    display: none;
+  }
+
+  .business-wrap .product-search-form {
+    width: 100%;
+  }
+
+  .business-wrap .product-search-form input {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .business-wrap .product-search-form button {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .business-wrap .product-register-btn {
+    width: 100%;
+  }
+
+  /*
+   * [수정] 정산관리(settlementMain.jsp)의 상태 탭(.tab-menu)에 모바일
+   * 전용 크기 조정이 전혀 없어 데스크톱 크기 그대로 노출되던 문제.
+   * 좁은 화면에서 줄바꿈을 허용하고 탭 자체 크기를 한 단계 줄인다.
+   */
+  .business-wrap .tab-menu {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+  }
+
+  .business-wrap .tab-menu a {
+    padding: 7px 10px;
+    font-size: 12.5px;
   }
 }
 
@@ -1007,6 +1060,32 @@
 .search-form span {
   color: #9ca3af;
   font-size: 15px;
+}
+
+/*
+ * [수정] 판매 현황 등 날짜 범위 조회 폼이 좁은 화면(480px 이하)에서는
+ * 날짜 입력 2개 + "~" + 조회 버튼이 한 줄에 억지로 들어가면서 입력창
+ * 폭이 들쭉날쭉하게 눌리던 문제. 세로로 나란히 쌓아 각 입력을 전체
+ * 너비로 넓히고, 조회 버튼도 전체 너비로 통일해 정돈된 느낌을 준다.
+ */
+@media (max-width: 480px) {
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-form input[type="date"] {
+    width: 100%;
+  }
+
+  .search-form span {
+    text-align: center;
+  }
+
+  .search-form .btn {
+    width: 100%;
+  }
 }
 
 .detail-grid {
@@ -2899,8 +2978,65 @@
     grid-template-columns: 1fr;
   }
 
+  /*
+   * [재수정] 삭제 버튼이 모바일에서 width:100%로 넓어지면서 "삭제" 글자가
+   * 왼쪽으로 쏠려 보이던 문제. text-align:center만으로는 첫 번째 옵션
+   * 행에 적용된 display:inline-flex !important 규칙과 겹쳐 실제 정렬
+   * 기준이 justify-content로 바뀌는 경우가 있어 완전히 가운데로 오지
+   * 않았다. flex 정렬(align-items/justify-content: center)을 함께 줘서
+   * 확실하게 가운데 정렬되도록 한다.
+   */
   .business-wrap .option-remove-btn {
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /*
+   * [수정] 삭제 버튼이 색상/사이즈 입력창(input, select)과 배경색이
+   * 거의 동일(둘 다 --biz-surface-2)해서 모바일 1열 스택 구조에서는
+   * 어디부터가 버튼인지 구분이 안 되던 문제. 모바일에서만 danger 톤
+   * (테두리/글자색)을 기본 상태에 적용해 입력창과 구분되게 한다.
+   * 데스크톱은 hover 시에만 danger 톤이 적용되는 기존 동작 그대로 유지.
+   */
+  .business-wrap .option-remove-btn {
+    border-color: var(--biz-danger);
+    color: var(--biz-danger);
+    font-weight: 600;
+  }
+
+  /*
+   * [수정] 첫 번째 옵션 행의 삭제 버튼은 데스크톱 grid 정렬을 맞추려고
+   * visibility:hidden으로만 숨겨져 있어 레이아웃 공간을 계속 차지한다.
+   * 데스크톱(4열 grid)에서는 이게 한 칸일 뿐이라 문제가 없지만, 모바일
+   * (1열로 쌓이는 구조)에서는 숨겨진 버튼이 빈 줄 하나를 통째로 차지해
+   * 첫 옵션 행과 "+ 옵션 조합 추가" 버튼 사이에 이상한 간격이 생긴다.
+   * 모바일에서는 아예 display:none으로 공간 자체를 없앤다.
+   */
+  .business-wrap .product-option-row:first-child .option-remove-btn {
+    display: none !important;
+  }
+
+  /*
+   * [수정] 옵션이 1개씩 추가될 때마다 색상/사이즈/재고/삭제가 전부
+   * 동일한 10px gap으로 붙어 있어서, 모바일 1열 스택에서는 어디까지가
+   * "옵션 1개" 묶음인지 시각적으로 구분이 안 되고 다닥다닥 붙어 보이던
+   * 문제. 각 옵션 행 사이 간격을 늘리고, 옵션 행 하단에 구분선을 넣어
+   * 묶음 단위로 끊어 보이게 한다.
+   *
+   * [재수정] 처음엔 마지막 행에서만 이 구분선/여백을 뺐었는데, 그러면
+   * "옵션 조합 추가"를 한 번도 안 눌러 행이 1개뿐인 초기 상태(그 1개가
+   * 곧 마지막 행)는 구분선이 없어 밋밋하게 보이고, 추가 버튼을 눌러
+   * 행이 2개 이상이 되는 순간부터는 앞선 행들에 구분선이 생기면서
+   * "안 눌렀을 땐 꺼져 있다가 누르면 켜지는" 것처럼 보였다. 행 개수와
+   * 무관하게 항상 동일하게 보이도록 모든 행에 예외 없이 적용한다.
+   */
+  .business-wrap .product-option-row {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--biz-border);
   }
 }
 
@@ -2925,7 +3061,24 @@
   transition: var(--biz-transition);
 }
 
-.business-wrap .option-add-btn:hover {
+/*
+ * [수정] 모바일(터치 기기)에는 마우스 hover-out 이벤트가 없어서, 버튼을
+ * 한 번 탭하면 :hover 스타일(배경색)이 다음 탭 전까지 계속 남아있는
+ * "sticky hover" 현상이 생긴다. 이 때문에 "처음엔 배경색 없는 버튼 ->
+ * 한 번 누르고 나면 계속 배경색 있는 버튼"처럼 보였다. hover는 실제
+ * 마우스가 있는 기기(hover: hover)에서만 적용하고, 터치 기기에서는
+ * 탭하는 순간에만 :active로 짧게 피드백을 주고 손을 떼면 원래 상태로
+ * 돌아오게 해서 항상 동일한(기본은 배경 없는) 모양을 유지한다.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap .option-add-btn:hover {
+    background: var(--biz-point-strong);
+    border-color: var(--biz-point-strong);
+    color: #fff;
+  }
+}
+
+.business-wrap .option-add-btn:active {
   background: var(--biz-point-strong);
   border-color: var(--biz-point-strong);
   color: #fff;
@@ -2934,4 +3087,295 @@
 .product-option-row:first-child .option-remove-btn {
     display: inline-flex !important;
     visibility: hidden;
+}
+
+/* =====================================================
+   [2단계] 모바일 반응형 - 사업자 목록 화면 공용 유틸리티
+
+   대상: eventList.jsp / orderList.jsp / settlementComplete.jsp
+   (납부 내역 탭)
+
+   방침:
+   - 데스크톱 마크업/동작은 그대로 둔다. 여기서 추가하는 클래스는
+     "훅(hook)"으로만 마크업에 붙이고, 실제 화면 변화는 전부
+     max-width 미디어쿼리 안에서만 일어난다.
+   - .col-hide-mobile : 목록 표의 th/td 중 모바일에서 숨길 컬럼에 붙인다.
+   - .desktop-only-el / .mobile-only-el : 관리 컬럼처럼 데스크톱과
+     모바일에서 노출 내용이 달라지는 영역을 감싼다.
+   - .mobile-status-text : 뱃지 컬럼이 모바일에서 숨겨지는 대신, 목록의
+     이름(이벤트명/상품명) 텍스트에 상태 색상을 입혀 상태를 계속
+     알아볼 수 있게 한다. 데스크톱에서는 색이 적용되지 않는다.
+   ===================================================== */
+
+.mobile-only-el {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  .business-wrap .col-hide-mobile {
+    display: none !important;
+  }
+
+  .desktop-only-el {
+    display: none !important;
+  }
+
+  .mobile-only-el {
+    display: inline-flex;
+  }
+
+  .mobile-status-text.st-ok {
+    color: var(--biz-success);
+    font-weight: 600;
+  }
+
+  .mobile-status-text.st-waiting {
+    color: var(--biz-warning);
+    font-weight: 600;
+  }
+
+  .mobile-status-text.st-reject {
+    color: var(--biz-danger);
+    font-weight: 600;
+  }
+}
+
+/* 이벤트/주문 상세보기 모달(모바일 전용 진입점)의 읽기 전용 필드 라벨 */
+.detail-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--biz-text-dim);
+  font-size: 13px;
+}
+
+.detail-grid p {
+  margin: 0;
+  color: var(--biz-text);
+  font-size: 15px;
+}
+
+
+/* =====================================================
+   [2단계 보완] 모바일 버튼/글자 크기 축소 + 상세 모달 가로 스크롤 제거
+
+   관리자 페이지(admin.css)의 아래 두 패턴을 "아이디어만" 참고해서
+   business.css 안에 독립적으로 다시 작성했다(admin.css를 import하거나
+   참조하지 않음):
+   - .data-table td .btn 모바일 축소 + 줄바꿈 허용 (표 버튼이 표를
+     옆으로 밀어내던 문제)
+   - 표(컬럼이 많은) 대신 "필수 컬럼만 남기고 상세보기로" 접근
+
+   여기서는 그 아이디어를 두 갈래로 적용한다.
+   1) 사업자 페이지 전반의 버튼/입력 요소 크기를 모바일에서 한 단계
+      줄인다(화면 전체에 영향 - 아직 리팩토링 전인 상품/취소/배송/정산
+      메인 화면 등에도 자연스럽게 적용됨. 컬럼을 숨기거나 마크업을
+      바꾸는 작업이 아니라 크기만 줄이는 것이라 다른 화면에 부작용이
+      없다).
+   2) 주문 상세보기 모달의 상품 목록 표(컬럼 6개)는 모바일에서 표
+      형태를 유지하면 아무리 줄여도 가로 스크롤을 피할 수 없어서,
+      .order-item-table 클래스를 붙여 표 대신 "항목별 카드" 형태로
+      세로 나열되도록 별도 처리한다(orderList.jsp의 data-label 속성
+      참고). 이 클래스가 없는 다른 표(이미 리팩토링된 목록 표 포함)는
+      영향받지 않는다.
+   ===================================================== */
+
+@media (max-width: 768px) {
+
+  /* 1) 버튼/입력 요소 전반 축소 */
+  .business-wrap .btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  .business-wrap .form-input,
+  .business-wrap .form-textarea,
+  .business-wrap .search-form input,
+  .business-wrap .search-form select,
+  .business-wrap .product-search-form input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .business-wrap .modal-header h3 {
+    font-size: 18px;
+  }
+
+  .business-wrap .data-table th,
+  .business-wrap .data-table td {
+    font-size: 13px;
+  }
+
+  /*
+   * "관리" 컬럼 버튼(수정/연장/상세보기 등)이 데스크톱 크기 그대로
+   * 남아 있으면 좁은 화면에서 표를 옆으로 밀어낸다. 한 단계 더 작게
+   * 만들고 줄바꿈을 허용해 표 폭이 화면을 넘지 않게 한다.
+   */
+  .business-wrap .data-table td .btn {
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.3;
+  }
+
+  /*
+   * 이번에 컬럼 숨김(col-hide-mobile) 처리를 마친 표(이벤트/주문 목록,
+   * 정산 납부 내역)는 남은 컬럼만으로 폭이 충분히 좁아지므로, 더 이상
+   * 가로 스크롤이 필요 없다. 아직 컬럼 정리가 안 된 다른 표(상품/취소/
+   * 배송/정산현황 등)는 기존 가로 스크롤 fallback을 그대로 유지해야
+   * 하므로, 이 표들에만 붙는 .mobile-fit-table 클래스로 범위를 한정해
+   * 덮어쓴다.
+   */
+  .business-wrap .data-table.mobile-fit-table {
+    display: table;
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  .business-wrap .data-table.mobile-fit-table th,
+  .business-wrap .data-table.mobile-fit-table td {
+    padding: 10px 8px;
+  }
+
+  /*
+   * 주문 상세보기 모달의 상품 목록 표(상품명/상품번호/수량/판매단가/
+   * 판매금액/상태 6컬럼)는 컬럼을 더 줄이면 정보가 부족해지므로, 표
+   * 대신 항목별 카드로 세로 나열한다. thead는 숨기고, 각 td 앞에
+   * data-label 속성 값을 라벨로 붙인다(orderList.jsp 참고).
+   */
+  .business-wrap .order-item-table thead {
+    display: none;
+  }
+
+  .business-wrap .order-item-table,
+  .business-wrap .order-item-table tbody,
+  .business-wrap .order-item-table tr,
+  .business-wrap .order-item-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .business-wrap .order-item-table {
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  .business-wrap .order-item-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--biz-border);
+  }
+
+  .business-wrap .order-item-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .business-wrap .order-item-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+    text-align: right;
+  }
+
+  .business-wrap .order-item-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--biz-text-dim);
+    font-size: 12px;
+    text-align: left;
+  }
+}
+
+/*
+ * [수정] "상품 판매 내역"처럼 컬럼이 3~4개뿐인 짧은 표도 모바일 좁은
+ * 화면에서는 헤더와 데이터의 컬럼 폭이 서로 다르게 잡혀 위아래로 잘
+ * 안 맞아 보인다(가로 스크롤을 쓸 만큼 컬럼이 많지는 않음). 위
+ * .order-item-table과 동일한 "라벨 : 값" 카드 형태로 바꿔 어떤 표에서든
+ * 재사용할 수 있도록 범용 클래스로 분리한다. 사용법은 동일하게 <table>에
+ * class="mobile-card-table"를 추가하고, 각 td에 data-label 속성을 준다.
+ */
+@media (max-width: 600px) {
+  .business-wrap .mobile-card-table thead {
+    display: none;
+  }
+
+  .business-wrap .mobile-card-table,
+  .business-wrap .mobile-card-table tbody,
+  .business-wrap .mobile-card-table tr,
+  .business-wrap .mobile-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .business-wrap .mobile-card-table {
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  .business-wrap .mobile-card-table tr {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: var(--biz-surface-2);
+    border: 1px solid var(--biz-border);
+    border-radius: var(--biz-radius-sm);
+  }
+
+  .business-wrap .mobile-card-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .business-wrap .mobile-card-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+    border-bottom: none;
+    text-align: right;
+  }
+
+  .business-wrap .mobile-card-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--biz-text-dim);
+    font-size: 12px;
+    text-align: left;
+  }
+
+  /* colspan으로 렌더링되는 "내역이 없습니다" 같은 안내 행은 카드 모양을 적용하지 않는다. */
+  .business-wrap .mobile-card-table td[colspan] {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .business-wrap .mobile-card-table td[colspan]::before {
+    content: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .business-wrap .main-content,
+  .business-wrap .business-main {
+    padding: 16px 14px 40px;
+  }
+
+  .business-wrap .business-hero {
+    padding: 18px;
+  }
+
+  .business-wrap .hero-left h1 {
+    font-size: 19px;
+  }
+
+  .business-wrap .business-panel,
+  .business-wrap .content-panel,
+  .business-wrap .form-panel {
+    padding: 14px;
+  }
+
+  .business-wrap .modal-box {
+    padding: 16px;
+  }
 }

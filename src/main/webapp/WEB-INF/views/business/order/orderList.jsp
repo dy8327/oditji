@@ -26,15 +26,15 @@
         <h1 class="page-title">주문 현황</h1>
 
         <section class="content-panel">
-            <table class="data-table">
+            <table class="data-table mobile-fit-table">
                 <thead>
                     <tr>
-                        <th>주문번호</th>
-                        <th>주문일</th>
+                        <th class="col-hide-mobile">주문번호</th>
+                        <th class="col-hide-mobile">주문일</th>
                         <th>상품</th>
                         <th>수량</th>
                         <th>판매금액</th>
-                        <th>주문상태</th>
+                        <th class="col-hide-mobile">주문상태</th>
                         <th>관리</th>
                     </tr>
                 </thead>
@@ -48,23 +48,39 @@
                                     <c:set var="totalQuantity" value="${totalQuantity + item.quantity}"/>
                                 </c:forEach>
 
+                                <%--
+                                    [2단계] 모바일에서는 주문상태 뱃지 컬럼을 숨기는 대신
+                                    상품명 텍스트 색상으로 상태를 표시한다(mobile-status-text는
+                                    max-width:768px 미디어쿼리 안에서만 색을 입히므로 데스크톱
+                                    표시는 그대로 유지된다).
+                                --%>
+                                <c:set var="orderStatusClass">
+                                    <c:choose>
+                                        <c:when test="${order.orderStatus eq 'PAID' or order.orderStatus eq 'DELIVERED'}">st-ok</c:when>
+                                        <c:when test="${order.orderStatus eq 'CANCELED'}">st-reject</c:when>
+                                        <c:otherwise>st-waiting</c:otherwise>
+                                    </c:choose>
+                                </c:set>
+
                                 <tr>
-                                    <td><c:out value="${order.orderNo}"/></td>
-                                    <td><fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></td>
+                                    <td class="col-hide-mobile"><c:out value="${order.orderNo}"/></td>
+                                    <td class="col-hide-mobile"><fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></td>
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${not empty order.items}">
-                                                <c:out value="${order.items[0].productName}"/>
-                                                <c:if test="${fn:length(order.items) > 1}">
-                                                    외 ${fn:length(order.items) - 1}건
-                                                </c:if>
-                                            </c:when>
-                                            <c:otherwise>-</c:otherwise>
-                                        </c:choose>
+                                        <span class="mobile-status-text ${fn:trim(orderStatusClass)}">
+                                            <c:choose>
+                                                <c:when test="${not empty order.items}">
+                                                    <c:out value="${order.items[0].productName}"/>
+                                                    <c:if test="${fn:length(order.items) > 1}">
+                                                        외 ${fn:length(order.items) - 1}건
+                                                    </c:if>
+                                                </c:when>
+                                                <c:otherwise>-</c:otherwise>
+                                            </c:choose>
+                                        </span>
                                     </td>
                                     <td><c:out value="${totalQuantity}"/>개</td>
                                     <td><fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>원</td>
-                                    <td>
+                                    <td class="col-hide-mobile">
                                         <c:choose>
                                             <c:when test="${order.orderStatus eq 'ORDERED'}">
                                                 <span class="status waiting">주문 완료</span>
@@ -146,7 +162,12 @@
                         </div>
                     </article>
 
-                    <table class="data-table">
+                    <%--
+                        [2단계 보완] 모바일에서는 표 대신 항목별 카드로 세로 나열한다
+                        (business.css의 .order-item-table 참고, thead 숨김 + 각 td
+                        앞에 data-label 라벨을 붙여 표시). 데스크톱은 기존 표 그대로.
+                    --%>
+                    <table class="data-table order-item-table">
                         <thead>
                             <tr>
                                 <th>상품명</th>
@@ -160,12 +181,12 @@
                         <tbody>
                             <c:forEach var="item" items="${order.items}">
                                 <tr>
-                                    <td><c:out value="${item.productName}"/></td>
-                                    <td>${item.productNo}</td>
-                                    <td>${item.quantity}개</td>
-                                    <td><fmt:formatNumber value="${item.productPrice}" pattern="#,###"/>원</td>
-                                    <td><fmt:formatNumber value="${item.productPrice * item.quantity}" pattern="#,###"/>원</td>
-                                    <td>
+                                    <td data-label="상품명"><c:out value="${item.productName}"/></td>
+                                    <td data-label="상품번호">${item.productNo}</td>
+                                    <td data-label="수량">${item.quantity}개</td>
+                                    <td data-label="판매단가"><fmt:formatNumber value="${item.productPrice}" pattern="#,###"/>원</td>
+                                    <td data-label="판매금액"><fmt:formatNumber value="${item.productPrice * item.quantity}" pattern="#,###"/>원</td>
+                                    <td data-label="상태">
                                         <c:choose>
                                             <c:when test="${item.status eq 'PAID'}">
                                                 <span class="status waiting">결제 완료</span>
