@@ -234,10 +234,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =========================================================
        OTT 정보 수정 (마이페이지)
 
-       selectOtt.jsp의 initSnsOttSelect()와 동일한 패턴:
-       "이용 중인 OTT 없음"을 선택하면 실제 OTT 선택은
-       모두 해제/비활성화되고, OTT를 1개 이상 선택하거나
-       "없음"을 선택해야 제출할 수 있다.
+       [수정] 예전에는 "OTT 없음"을 체크하면 플랫폼 체크박스들을
+       disabled 처리했는데, 그 상태 전환 타이밍 때문에 "OTT 없음"을
+       클릭해도 바로 체크 표시가 되지 않고 한 번 더 눌러야 선택되는
+       것처럼 보이는 문제가 있었다. 회원가입(join.jsp)의 OTT 선택은
+       이 disabled 처리 없이 "체크 시 반대편 선택만 해제"하는 단순한
+       방식이라 이런 문제가 없다. 마이페이지도 동일한 단순 방식으로
+       맞춘다: "OTT 없음"을 선택하면 플랫폼 체크만 전부 해제하고,
+       플랫폼을 하나라도 선택하면 "OTT 없음" 체크만 해제한다.
     ========================================================= */
 
   initMypageOttSelect();
@@ -265,31 +269,16 @@ document.addEventListener("DOMContentLoaded", () => {
       countEl.textContent = checked + "개 선택";
     }
 
-    function setMypagePlatformsDisabled(disabled) {
-      platformCheckboxes.forEach((checkbox) => {
-        if (disabled) {
-          checkbox.checked = false;
-        }
-
-        checkbox.disabled = disabled;
-
-        const option = checkbox.closest(".sns-ott-option");
-
-        if (option) {
-          option.classList.toggle("is-disabled", disabled);
-        }
-      });
-    }
-
     if (noOttCheckbox) {
       noOttCheckbox.addEventListener("change", () => {
-        setMypagePlatformsDisabled(noOttCheckbox.checked);
+        if (noOttCheckbox.checked) {
+          platformCheckboxes.forEach((checkbox) => {
+            checkbox.checked = false;
+          });
+        }
+
         updateMypageOttCount();
       });
-
-      if (noOttCheckbox.checked) {
-        setMypagePlatformsDisabled(true);
-      }
     }
 
     platformCheckboxes.forEach((checkbox) => {
