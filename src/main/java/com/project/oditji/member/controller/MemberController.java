@@ -83,6 +83,7 @@ public class MemberController {
         private final OrderService orderService;
         private final ReviewService reviewService;
 
+        @SuppressWarnings("java:S107")
         public MemberController(
                         MemberService memberService,
                         MemberPlatformService memberPlatformService,
