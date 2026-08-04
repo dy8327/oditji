@@ -12,8 +12,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.cart.dao.CartDAO;
@@ -472,20 +471,13 @@ class OrderServiceImplTest {
             Class<?>[] parameterTypes,
             Object... arguments) {
 
-        try {
-            Method method = OrderServiceImpl.class.getDeclaredMethod(
-                    methodName,
-                    parameterTypes);
-            method.setAccessible(true);
-            return (T) method.invoke(orderService, arguments);
-        } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException runtimeException) {
-                throw runtimeException;
-            }
-            throw new IllegalStateException(cause);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(e);
+        if (parameterTypes.length != arguments.length) {
+            throw new IllegalArgumentException("테스트 메서드 인자 수가 다릅니다.");
         }
+
+        return (T) ReflectionTestUtils.invokeMethod(
+                orderService,
+                methodName,
+                arguments);
     }
 }
