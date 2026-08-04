@@ -30,6 +30,14 @@ import com.project.oditji.search.vo.CachedContentVO;
 @Service
 public class SearchContentSnapshotService {
 
+    private static final String JSON_TMDB_ID = "tmdbId";
+    private static final String JSON_AGE_RATING_RETRY_COUNT = "ageRatingRetryCount";
+    private static final String JSON_AGE_RATING_RESTRICTION_CHECKED = "ageRatingRestrictionChecked";
+    private static final String JSON_RUNTIME = "runtime";
+    private static final String JSON_EPISODE_COUNT = "episodeCount";
+    private static final String JSON_TMDB_SCORE = "tmdbScore";
+    private static final String JSON_POPULARITY = "popularity";
+
     @Value("${search.content-cache.snapshot-enabled:true}")
     private boolean snapshotEnabled;
 
@@ -82,26 +90,10 @@ public class SearchContentSnapshotService {
                     continue;
                 }
 
-                try {
-
-                    CachedContentVO content =
-                            fromJson(
-                                    new JSONObject(line)
-                            );
-
-                    if (contentPolicyService.shouldExcludeContent(content)) {
-                        continue;
-                    }
-
-                    result.add(content);
-
-                } catch (RuntimeException e) {
-
-                    /*
-                     * 특정 JSONL 한 줄이 손상되어도
-                     * 전체 스냅샷 복원을 중단하지 않습니다.
-                     */
-                }
+                addSnapshotLine(
+                        result,
+                        line
+                );
             }
 
         } catch (IOException e) {
@@ -113,6 +105,32 @@ public class SearchContentSnapshotService {
         }
 
         return result;
+    }
+
+    private void addSnapshotLine(
+            List<CachedContentVO> result,
+            String line) {
+
+        try {
+
+            CachedContentVO content =
+                    fromJson(
+                            new JSONObject(line)
+                    );
+
+            if (contentPolicyService.shouldExcludeContent(content)) {
+                return;
+            }
+
+            result.add(content);
+
+        } catch (RuntimeException e) {
+
+            /*
+             * 특정 JSONL 한 줄이 손상되어도
+             * 전체 스냅샷 복원을 중단하지 않습니다.
+             */
+        }
     }
 
     /**
@@ -232,7 +250,7 @@ public class SearchContentSnapshotService {
 
         putNullable(
                 json,
-                "tmdbId",
+                JSON_TMDB_ID,
                 content.getTmdbId()
         );
 
@@ -294,7 +312,7 @@ public class SearchContentSnapshotService {
          */
         putNullable(
                 json,
-                "ageRatingRetryCount",
+                JSON_AGE_RATING_RETRY_COUNT,
                 content.getAgeRatingRetryCount()
         );
 
@@ -306,7 +324,7 @@ public class SearchContentSnapshotService {
 
         putNullable(
                 json,
-                "ageRatingRestrictionChecked",
+                JSON_AGE_RATING_RESTRICTION_CHECKED,
                 content.getAgeRatingRestrictionChecked()
         );
 
@@ -316,13 +334,13 @@ public class SearchContentSnapshotService {
          */
         putNullable(
                 json,
-                "runtime",
+                JSON_RUNTIME,
                 content.getRuntime()
         );
 
         putNullable(
                 json,
-                "episodeCount",
+                JSON_EPISODE_COUNT,
                 content.getEpisodeCount()
         );
 
@@ -340,13 +358,13 @@ public class SearchContentSnapshotService {
 
         putNullable(
                 json,
-                "tmdbScore",
+                JSON_TMDB_SCORE,
                 content.getTmdbScore()
         );
 
         putNullable(
                 json,
-                "popularity",
+                JSON_POPULARITY,
                 content.getPopularity()
         );
 
@@ -391,15 +409,7 @@ public class SearchContentSnapshotService {
         CachedContentVO content =
                 new CachedContentVO();
 
-        if (json.has("tmdbId")
-                && !json.isNull("tmdbId")) {
-
-            content.setTmdbId(
-                    json.getLong(
-                            "tmdbId"
-                    )
-            );
-        }
+        restoreTmdbId(json, content);
 
         content.setContentType(
                 nullableString(
@@ -465,56 +475,13 @@ public class SearchContentSnapshotService {
          * 기존 JSONL에는 등급 재조회 상태 키가 없으므로
          * 존재하는 경우에만 복원합니다.
          */
-        if (json.has("ageRatingRetryCount")
-                && !json.isNull("ageRatingRetryCount")) {
-
-            content.setAgeRatingRetryCount(
-                    json.getInt(
-                            "ageRatingRetryCount"
-                    )
-            );
-        }
-
-        content.setAgeRatingLastCheckedAt(
-                nullableString(
-                        json,
-                        "ageRatingLastCheckedAt"
-                )
-        );
-
-        if (json.has("ageRatingRestrictionChecked")
-                && !json.isNull("ageRatingRestrictionChecked")) {
-
-            content.setAgeRatingRestrictionChecked(
-                    json.getBoolean(
-                            "ageRatingRestrictionChecked"
-                    )
-            );
-        }
+        restoreAgeRatingRetryState(json, content);
 
         /*
          * 기존 스냅샷에는 runtime 키가 없을 수 있으므로
          * 값이 존재할 때만 복원합니다.
          */
-        if (json.has("runtime")
-                && !json.isNull("runtime")) {
-
-            content.setRuntime(
-                    json.getInt(
-                            "runtime"
-                    )
-            );
-        }
-
-        if (json.has("episodeCount")
-                && !json.isNull("episodeCount")) {
-
-            content.setEpisodeCount(
-                    json.getInt(
-                            "episodeCount"
-                    )
-            );
-        }
+        restoreRuntimeData(json, content);
 
         content.setDirector(
                 nullableString(
@@ -530,25 +497,7 @@ public class SearchContentSnapshotService {
                 )
         );
 
-        if (json.has("tmdbScore")
-                && !json.isNull("tmdbScore")) {
-
-            content.setTmdbScore(
-                    json.getDouble(
-                            "tmdbScore"
-                    )
-            );
-        }
-
-        if (json.has("popularity")
-                && !json.isNull("popularity")) {
-
-            content.setPopularity(
-                    json.getDouble(
-                            "popularity"
-                    )
-            );
-        }
+        restoreScoreData(json, content);
 
         content.setSearchText(
                 nullableString(
@@ -556,6 +505,113 @@ public class SearchContentSnapshotService {
                         "searchText"
                 )
         );
+
+        content.setPlatformKeys(
+                readPlatformKeys(json)
+        );
+
+        return content;
+    }
+
+    private void restoreTmdbId(
+            JSONObject json,
+            CachedContentVO content) {
+
+        if (json.has(JSON_TMDB_ID)
+                && !json.isNull(JSON_TMDB_ID)) {
+
+            content.setTmdbId(
+                    json.getLong(
+                            JSON_TMDB_ID
+                    )
+            );
+        }
+    }
+
+    private void restoreAgeRatingRetryState(
+            JSONObject json,
+            CachedContentVO content) {
+
+        if (json.has(JSON_AGE_RATING_RETRY_COUNT)
+                && !json.isNull(JSON_AGE_RATING_RETRY_COUNT)) {
+
+            content.setAgeRatingRetryCount(
+                    json.getInt(
+                            JSON_AGE_RATING_RETRY_COUNT
+                    )
+            );
+        }
+
+        content.setAgeRatingLastCheckedAt(
+                nullableString(
+                        json,
+                        "ageRatingLastCheckedAt"
+                )
+        );
+
+        if (json.has(JSON_AGE_RATING_RESTRICTION_CHECKED)
+                && !json.isNull(JSON_AGE_RATING_RESTRICTION_CHECKED)) {
+
+            content.setAgeRatingRestrictionChecked(
+                    json.getBoolean(
+                            JSON_AGE_RATING_RESTRICTION_CHECKED
+                    )
+            );
+        }
+    }
+
+    private void restoreRuntimeData(
+            JSONObject json,
+            CachedContentVO content) {
+
+        if (json.has(JSON_RUNTIME)
+                && !json.isNull(JSON_RUNTIME)) {
+
+            content.setRuntime(
+                    json.getInt(
+                            JSON_RUNTIME
+                    )
+            );
+        }
+
+        if (json.has(JSON_EPISODE_COUNT)
+                && !json.isNull(JSON_EPISODE_COUNT)) {
+
+            content.setEpisodeCount(
+                    json.getInt(
+                            JSON_EPISODE_COUNT
+                    )
+            );
+        }
+    }
+
+    private void restoreScoreData(
+            JSONObject json,
+            CachedContentVO content) {
+
+        if (json.has(JSON_TMDB_SCORE)
+                && !json.isNull(JSON_TMDB_SCORE)) {
+
+            content.setTmdbScore(
+                    json.getDouble(
+                            JSON_TMDB_SCORE
+                    )
+            );
+        }
+
+        if (json.has(JSON_POPULARITY)
+                && !json.isNull(JSON_POPULARITY)) {
+
+            content.setPopularity(
+                    json.getDouble(
+                            JSON_POPULARITY
+                    )
+            );
+        }
+    }
+
+    private List<String> readPlatformKeys(
+            JSONObject json) {
 
         JSONArray platformKeys =
                 json.optJSONArray(
@@ -565,33 +621,30 @@ public class SearchContentSnapshotService {
         List<String> platforms =
                 new ArrayList<String>();
 
-        if (platformKeys != null) {
+        if (platformKeys == null) {
+            return platforms;
+        }
 
-            for (int index = 0;
-                 index < platformKeys.length();
-                 index++) {
+        for (int index = 0;
+             index < platformKeys.length();
+             index++) {
 
-                String platformKey =
-                        platformKeys.optString(
-                                index,
-                                null
-                        );
-
-                if (platformKey != null
-                        && !platformKey.isBlank()) {
-
-                    platforms.add(
-                            platformKey
+            String platformKey =
+                    platformKeys.optString(
+                            index,
+                            null
                     );
-                }
+
+            if (platformKey != null
+                    && !platformKey.isBlank()) {
+
+                platforms.add(
+                        platformKey
+                );
             }
         }
 
-        content.setPlatformKeys(
-                platforms
-        );
-
-        return content;
+        return platforms;
     }
 
     /**

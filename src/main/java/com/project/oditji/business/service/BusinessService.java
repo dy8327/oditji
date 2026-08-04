@@ -131,8 +131,11 @@ public interface BusinessService {
         // 사업자 주문 현황 - 주문 상품 목록 조회
         List<OrderItemVO> getBusinessOrderItemList(long businessNo);
 
-        // 사업자 주문 상세 조회
-        OrderVO getBusinessOrderDetail(long businessNo, long orderNo);
+        /*
+         * [리팩터링] 사업자 주문 상세 조회(getBusinessOrderDetail)는 제거했다.
+         * 주문 상세는 이제 orderList.jsp 모달에서 getBusinessOrderList가 이미
+         * 채워주는 데이터(주문별 배송지/상품 목록 포함)를 그대로 사용한다.
+         */
 
         /*
          * =========================================================

@@ -40,6 +40,7 @@ public class FavoriteController {
     private final VerifyService verifyService;
     private static final Logger log = LoggerFactory.getLogger(FavoriteController.class);
 
+    private static final String RESPONSE_ACTIVE = "active";
     private static final String ADULT_FAVORITE_RESTRICTION_MESSAGE =
             "성인인증이 필요한 콘텐츠입니다. 성인인증 후 찜해 주세요.";
 
@@ -93,7 +94,7 @@ public class FavoriteController {
             boolean active = favoriteService.toggleFavorite(favoriteVO);
             Map<String, Object> result = new HashMap<String, Object>();
 
-            result.put("active", active);
+            result.put(RESPONSE_ACTIVE, active);
             result.put("contentNo", favoriteVO.getContentNo());
 
             return ResponseEntity.ok(result);
@@ -153,7 +154,7 @@ public class FavoriteController {
             boolean active = favoriteService.toggleFavorite(favoriteVO);
             Map<String, Object> result = new HashMap<String, Object>();
 
-            result.put("active", active);
+            result.put(RESPONSE_ACTIVE, active);
             result.put("contentNo", contentNo);
             result.put("tmdbId", tmdbId);
             result.put("contentType", contentType);
@@ -202,7 +203,7 @@ public class FavoriteController {
 
         if (loginMember == null) {
             result.put("login", false);
-            result.put("active", false);
+            result.put(RESPONSE_ACTIVE, false);
 
             return ResponseEntity.ok(result);
         }
@@ -217,7 +218,7 @@ public class FavoriteController {
             boolean active = favoriteService.isFavoriteByTmdb(favoriteVO);
 
             result.put("login", true);
-            result.put("active", active);
+            result.put(RESPONSE_ACTIVE, active);
 
             return ResponseEntity.ok(result);
 

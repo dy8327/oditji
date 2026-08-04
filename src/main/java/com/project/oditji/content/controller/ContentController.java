@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
@@ -55,6 +56,12 @@ public class ContentController {
         private final GoodsService goodsService;
 
         private static final int RELATED_GOODS_SIZE = 8;
+        private static final String PLATFORM_NETFLIX = "netflix";
+        private static final String PLATFORM_TVING = "tving";
+        private static final String PLATFORM_WAVVE = "wavve";
+        private static final String PLATFORM_WATCHA = "watcha";
+        private static final String PLATFORM_COUPANG = "coupang";
+        private static final String VALUE_POPULAR = "popular";
 
         public ContentController(
                         ContentService contentService,
@@ -391,28 +398,28 @@ public class ContentController {
 
                 switch (normalizedPlatformName) {
 
-                        case "netflix":
+                        case PLATFORM_NETFLIX:
 
                                 redirectUrl = "https://www.netflix.com/search?q="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "tving":
+                        case PLATFORM_TVING:
 
                                 redirectUrl = "https://www.tving.com/search?keyword="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "wavve":
+                        case PLATFORM_WAVVE:
 
                                 redirectUrl = "https://www.wavve.com/search?searchWord="
                                                 + encodedTitle;
 
                                 break;
 
-                        case "watcha":
+                        case PLATFORM_WATCHA:
 
                                 redirectUrl = "https://watcha.com/search?query="
                                                 + encodedTitle;
@@ -420,7 +427,7 @@ public class ContentController {
                                 break;
 
                         case "coupangplay":
-                        case "coupang":
+                        case PLATFORM_COUPANG:
 
                                 redirectUrl = "https://www.coupangplay.com/query"
                                                 + "?src=page_search&keyword="
@@ -513,7 +520,7 @@ public class ContentController {
                                 continue;
                         }
 
-                        String platformKey = normalizePlatformName(
+                        String platformKey = PlatformNameNormalizer.toKey(
                                         platform.getPlatformName());
 
                         if (!platformKey.isEmpty()) {
@@ -527,51 +534,6 @@ public class ContentController {
                 return logoMap;
         }
 
-        /**
-         * DB의 플랫폼 이름 표기가 조금 달라도
-         * JSP에서 사용하는 공통 키로 맞춥니다.
-         */
-        private String normalizePlatformName(
-                        String platformName) {
-
-                if (platformName == null) {
-                        return "";
-                }
-
-                String normalized = platformName
-                                .trim()
-                                .toLowerCase(Locale.ROOT)
-                                .replaceAll(
-                                                "[^a-z0-9]",
-                                                "");
-
-                if (normalized.contains("netflix")) {
-                        return "netflix";
-                }
-
-                if (normalized.contains("tving")) {
-                        return "tving";
-                }
-
-                if (normalized.contains("wavve")) {
-                        return "wavve";
-                }
-
-                if (normalized.contains("disney")) {
-                        return "disney";
-                }
-
-                if (normalized.contains("watcha")) {
-                        return "watcha";
-                }
-
-                if (normalized.contains("coupang")) {
-                        return "coupang";
-                }
-
-                return normalized;
-        }
-
         private String normalizeListType(
                         String type) {
 
@@ -581,7 +543,7 @@ public class ContentController {
                                                 .toLowerCase(
                                                                 Locale.ROOT);
 
-                if ("popular".equals(value)
+                if (VALUE_POPULAR.equals(value)
                                 || "new".equals(value)) {
 
                         return value;
@@ -601,7 +563,7 @@ public class ContentController {
 
                 String defaultSort = "new".equals(type)
                                 ? "latest"
-                                : "popular";
+                                : VALUE_POPULAR;
 
                 if (sort == null
                                 || sort.isBlank()) {
@@ -612,7 +574,7 @@ public class ContentController {
                 String normalized = sort.trim()
                                 .toLowerCase(Locale.ROOT);
 
-                if ("popular".equals(normalized)
+                if (VALUE_POPULAR.equals(normalized)
                                 || "rating".equals(normalized)
                                 || "latest".equals(normalized)
                                 || "title".equals(normalized)) {
@@ -634,7 +596,7 @@ public class ContentController {
         private String makePageTitle(
                         String type) {
 
-                if ("popular".equals(type)) {
+                if (VALUE_POPULAR.equals(type)) {
                         return "인기 콘텐츠";
                 }
 

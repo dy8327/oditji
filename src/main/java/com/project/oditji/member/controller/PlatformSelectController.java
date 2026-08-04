@@ -24,6 +24,9 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/member/platform")
 public class PlatformSelectController {
 
+    private static final String SESSION_PENDING_MEMBER_NO = "pendingMemberNo";
+    private static final String SESSION_LOGIN_MEMBER_NO = "loginMemberNo";
+
     private final MemberPlatformService memberPlatformService;
     private final MemberService memberService;
     private static final Logger log = LoggerFactory.getLogger(PlatformSelectController.class);
@@ -37,8 +40,8 @@ public class PlatformSelectController {
     @GetMapping("/select")
     public String selectPlatformForm(HttpSession session, Model model) {
 
-        Long pendingMemberNo = getLongSessionValue(session, "pendingMemberNo");
-        Long loginMemberNo = getLongSessionValue(session, "loginMemberNo");
+        Long pendingMemberNo = getLongSessionValue(session, SESSION_PENDING_MEMBER_NO);
+        Long loginMemberNo = getLongSessionValue(session, SESSION_LOGIN_MEMBER_NO);
 
         if (pendingMemberNo == null && loginMemberNo == null) {
             return "redirect:/member/login";
@@ -72,8 +75,8 @@ public class PlatformSelectController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
-        Long pendingMemberNo = getLongSessionValue(session, "pendingMemberNo");
-        Long loginMemberNo = getLongSessionValue(session, "loginMemberNo");
+        Long pendingMemberNo = getLongSessionValue(session, SESSION_PENDING_MEMBER_NO);
+        Long loginMemberNo = getLongSessionValue(session, SESSION_LOGIN_MEMBER_NO);
 
         Long memberNo = pendingMemberNo != null ? pendingMemberNo : loginMemberNo;
 
@@ -107,7 +110,7 @@ public class PlatformSelectController {
                 }
 
                 session.setAttribute("loginMember", loginMember);
-                session.setAttribute("loginMemberNo", loginMember.getMemberNo());
+                session.setAttribute(SESSION_LOGIN_MEMBER_NO, loginMember.getMemberNo());
 
                 // 성인인증 등 공통 기능에서 사용할 회원 번호
                 session.setAttribute("memberNo", loginMember.getMemberNo());
@@ -119,7 +122,7 @@ public class PlatformSelectController {
                 session.setAttribute("loginProvider", session.getAttribute("pendingProvider"));
                 session.setAttribute("loginDisplayName", displayName);
 
-                session.removeAttribute("pendingMemberNo");
+                session.removeAttribute(SESSION_PENDING_MEMBER_NO);
                 session.removeAttribute("pendingMemberId");
                 session.removeAttribute("pendingMemberName");
                 session.removeAttribute("pendingNickname");
@@ -158,12 +161,12 @@ public class PlatformSelectController {
             return null;
         }
 
-        if (value instanceof Long) {
-            return (Long) value;
+        if (value instanceof Long longValue) {
+            return longValue;
         }
 
-        if (value instanceof Integer) {
-            return ((Integer) value).longValue();
+        if (value instanceof Integer integerValue) {
+            return integerValue.longValue();
         }
 
         return Long.valueOf(String.valueOf(value));

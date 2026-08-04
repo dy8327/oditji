@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +48,7 @@ public class SearchContentAgeRatingService {
     private static final String AGE_ADULT = "청소년 관람불가";
     private static final String AGE_UNKNOWN = "등급 정보 없음";
 
+
     @Value("${search.content-cache.age-rating-retry-enabled:true}")
     private boolean retryEnabled;
 
@@ -80,16 +80,19 @@ public class SearchContentAgeRatingService {
 
     private final TmdbApiClient apiClient;
     private final SearchContentPolicyService contentPolicyService;
+    private final SearchContentAgeRatingResolver ageRatingResolver;
 
     private final AtomicReference<Map<String, String>> manualOverrideMap =
             new AtomicReference<Map<String, String>>(Map.of());
 
     public SearchContentAgeRatingService(
             TmdbApiClient apiClient,
-            SearchContentPolicyService contentPolicyService) {
+            SearchContentPolicyService contentPolicyService,
+            SearchContentAgeRatingResolver ageRatingResolver) {
 
         this.apiClient = apiClient;
         this.contentPolicyService = contentPolicyService;
+        this.ageRatingResolver = ageRatingResolver;
     }
 
     /**
@@ -155,157 +158,103 @@ public class SearchContentAgeRatingService {
             return;
         }
 
-        int normalizedMaxAttempts =
-                Math.max(1, retryMaxAttempts);
-
-        int normalizedMaxPerRefresh =
-                Math.max(1, retryMaxPerRefresh);
-
         List<CachedContentVO> targets =
-                new ArrayList<CachedContentVO>();
+                collectRetryTargets(
+                        contents,
+                        Math.max(1, retryMaxAttempts)
+                );
 
-        for (CachedContentVO content : contents) {
+        sortAgeRatingTargets(targets);
 
-            if (!isRetryTarget(
-                    content,
-                    normalizedMaxAttempts
-            )) {
-                continue;
-            }
-
-            targets.add(content);
-        }
-
-        targets.sort(
-                Comparator
-                        .comparing(
-                                CachedContentVO::getPopularity,
-                                Comparator.nullsLast(
-                                        Comparator.reverseOrder()
-                                )
-                        )
-                        .thenComparing(
-                                CachedContentVO::getContentType,
-                                Comparator.nullsLast(
-                                        Comparator.naturalOrder()
-                                )
-                        )
-                        .thenComparing(
-                                CachedContentVO::getTmdbId,
-                                Comparator.nullsLast(
-                                        Comparator.naturalOrder()
-                                )
-                        )
+        targets = limitAgeRatingTargets(
+                targets,
+                Math.max(1, retryMaxPerRefresh)
         );
-
-        if (targets.size() > normalizedMaxPerRefresh) {
-            targets = new ArrayList<CachedContentVO>(
-                    targets.subList(
-                            0,
-                            normalizedMaxPerRefresh
-                    )
-            );
-        }
 
         if (targets.isEmpty()) {
             return;
         }
 
-        int normalizedWorkers =
-                Math.max(
-                        1,
-                        Math.min(
-                                workerCount,
-                                12
-                        )
-                );
-
         try (ExecutorService executorService =
                      Executors.newFixedThreadPool(
-                             normalizedWorkers
+                             normalizeWorkerCount()
                      )) {
 
             List<Future<AgeRatingResult>> futures =
-                    new ArrayList<Future<AgeRatingResult>>();
-
-            for (CachedContentVO content : targets) {
-
-                Callable<AgeRatingResult> task =
-                        () -> loadAgeRating(content);
-
-                futures.add(
-                        executorService.submit(task)
-                );
-            }
+                    submitAgeRatingTasks(
+                            executorService,
+                            targets
+                    );
 
             List<CachedContentVO> blockedContents =
                     new ArrayList<CachedContentVO>();
 
             for (Future<AgeRatingResult> future : futures) {
-
-                try {
-
-                    AgeRatingResult result =
-                            future.get();
-
-                    if (result == null
-                            || !result.success()) {
-                        continue;
-                    }
-
-                    CachedContentVO content =
-                            result.content();
-
-                    content.setAgeRatingLastCheckedAt(
-                            result.checkedAt()
-                    );
-
-                    content.setAgeRatingRestrictionChecked(
-                            Boolean.TRUE
-                    );
-
-                    if (result.restricted()) {
-                        blockedContents.add(content);
-                        continue;
-                    }
-
-                    content.setAgeRating(
-                            result.ageRating()
-                    );
-
-                    content.setAgeRatingRetryCount(
-                            getRetryCount(content) + 1
-                    );
-
-                    /*
-                     * 실행 중 수동 파일이 바뀌지는 않지만,
-                     * 수동값 우선 원칙을 명확하게 유지합니다.
-                     */
-                    applyManualOverride(content);
-
-                } catch (InterruptedException e) {
-
-                    Thread.currentThread()
-                            .interrupt();
-
-                    throw new IllegalStateException(
-                            "연령등급 재보강 작업이 중단되었습니다.",
-                            e
-                    );
-
-                } catch (ExecutionException e) {
-
-                    /*
-                     * 특정 콘텐츠의 통신 실패는 재조회 횟수로 계산하지 않습니다.
-                     * 다음 캐시 갱신에서 다시 시도합니다.
-                     */
-                }
+                applyUnknownAgeRatingResult(
+                        getAgeRatingResult(
+                                future,
+                                "연령등급 재보강 작업이 중단되었습니다."
+                        ),
+                        blockedContents
+                );
             }
 
-            if (!blockedContents.isEmpty()) {
-                contents.removeAll(blockedContents);
+            removeBlockedContents(
+                    contents,
+                    blockedContents
+            );
+        }
+    }
+
+    private List<CachedContentVO> collectRetryTargets(
+            List<CachedContentVO> contents,
+            int normalizedMaxAttempts) {
+
+        List<CachedContentVO> targets =
+                new ArrayList<CachedContentVO>();
+
+        for (CachedContentVO content : contents) {
+            if (isRetryTarget(
+                    content,
+                    normalizedMaxAttempts
+            )) {
+                targets.add(content);
             }
         }
+
+        return targets;
+    }
+
+    private void applyUnknownAgeRatingResult(
+            AgeRatingResult result,
+            List<CachedContentVO> blockedContents) {
+
+        if (result == null
+                || !result.success()) {
+            return;
+        }
+
+        CachedContentVO content = result.content();
+        applyAgeRatingCheckMetadata(content, result);
+
+        if (result.restricted()) {
+            blockedContents.add(content);
+            return;
+        }
+
+        content.setAgeRating(
+                result.ageRating()
+        );
+
+        content.setAgeRatingRetryCount(
+                getRetryCount(content) + 1
+        );
+
+        /*
+         * 실행 중 수동 파일이 바뀌지는 않지만,
+         * 수동값 우선 원칙을 명확하게 유지합니다.
+         */
+        applyManualOverride(content);
     }
 
     /**
@@ -327,20 +276,67 @@ public class SearchContentAgeRatingService {
         }
 
         List<CachedContentVO> targets =
-                new ArrayList<CachedContentVO>();
+                collectRestrictionRecheckTargets(contents);
 
-        for (CachedContentVO content : contents) {
+        sortAgeRatingTargets(targets);
 
-            if (!isRestrictionRecheckTarget(content)) {
-                continue;
-            }
-
-            targets.add(content);
-        }
+        targets = limitAgeRatingTargets(
+                targets,
+                Math.max(1, retryMaxPerRefresh)
+        );
 
         if (targets.isEmpty()) {
             return;
         }
+
+        try (ExecutorService executorService =
+                     Executors.newFixedThreadPool(
+                             normalizeWorkerCount()
+                     )) {
+
+            List<Future<AgeRatingResult>> futures =
+                    submitAgeRatingTasks(
+                            executorService,
+                            targets
+                    );
+
+            List<CachedContentVO> blockedContents =
+                    new ArrayList<CachedContentVO>();
+
+            for (Future<AgeRatingResult> future : futures) {
+                applyRestrictedAgeRatingResult(
+                        getAgeRatingResult(
+                                future,
+                                "연령등급 제외 정책 재검사가 중단되었습니다."
+                        ),
+                        blockedContents
+                );
+            }
+
+            removeBlockedContents(
+                    contents,
+                    blockedContents
+            );
+        }
+    }
+
+    private List<CachedContentVO> collectRestrictionRecheckTargets(
+            List<CachedContentVO> contents) {
+
+        List<CachedContentVO> targets =
+                new ArrayList<CachedContentVO>();
+
+        for (CachedContentVO content : contents) {
+            if (isRestrictionRecheckTarget(content)) {
+                targets.add(content);
+            }
+        }
+
+        return targets;
+    }
+
+    private void sortAgeRatingTargets(
+            List<CachedContentVO> targets) {
 
         targets.sort(
                 Comparator
@@ -363,119 +359,131 @@ public class SearchContentAgeRatingService {
                                 )
                         )
         );
+    }
 
-        int normalizedMaxPerRefresh =
-                Math.max(
-                        1,
-                        retryMaxPerRefresh
-                );
+    private List<CachedContentVO> limitAgeRatingTargets(
+            List<CachedContentVO> targets,
+            int normalizedMaxPerRefresh) {
 
-        if (targets.size() > normalizedMaxPerRefresh) {
-            targets = new ArrayList<CachedContentVO>(
-                    targets.subList(
-                            0,
-                            normalizedMaxPerRefresh
+        if (targets.size() <= normalizedMaxPerRefresh) {
+            return targets;
+        }
+
+        return new ArrayList<CachedContentVO>(
+                targets.subList(
+                        0,
+                        normalizedMaxPerRefresh
+                )
+        );
+    }
+
+    private int normalizeWorkerCount() {
+        return Math.clamp(
+                workerCount,
+                1,
+                12
+        );
+    }
+
+    private List<Future<AgeRatingResult>> submitAgeRatingTasks(
+            ExecutorService executorService,
+            List<CachedContentVO> targets) {
+
+        List<Future<AgeRatingResult>> futures =
+                new ArrayList<Future<AgeRatingResult>>();
+
+        for (CachedContentVO content : targets) {
+            futures.add(
+                    executorService.submit(
+                            () -> loadAgeRating(content)
                     )
             );
         }
 
-        int normalizedWorkers =
-                Math.max(
-                        1,
-                        Math.min(
-                                workerCount,
-                                12
-                        )
-                );
+        return futures;
+    }
 
-        try (ExecutorService executorService =
-                     Executors.newFixedThreadPool(
-                             normalizedWorkers
-                     )) {
+    private AgeRatingResult getAgeRatingResult(
+            Future<AgeRatingResult> future,
+            String interruptedMessage) {
 
-            List<Future<AgeRatingResult>> futures =
-                    new ArrayList<Future<AgeRatingResult>>();
+        try {
+            return future.get();
 
-            for (CachedContentVO content : targets) {
+        } catch (InterruptedException e) {
 
-                futures.add(
-                        executorService.submit(
-                                () -> loadAgeRating(content)
-                        )
-                );
-            }
+            Thread.currentThread()
+                    .interrupt();
 
-            List<CachedContentVO> blockedContents =
-                    new ArrayList<CachedContentVO>();
+            throw new IllegalStateException(
+                    interruptedMessage,
+                    e
+            );
 
-            for (Future<AgeRatingResult> future : futures) {
+        } catch (ExecutionException e) {
 
-                try {
+            /*
+             * 통신 실패 콘텐츠는 다음 갱신 때 다시 확인합니다.
+             */
+            return null;
+        }
+    }
 
-                    AgeRatingResult result =
-                            future.get();
+    private void applyRestrictedAgeRatingResult(
+            AgeRatingResult result,
+            List<CachedContentVO> blockedContents) {
 
-                    if (result == null
-                            || !result.success()) {
-                        continue;
-                    }
+        if (result == null
+                || !result.success()) {
+            return;
+        }
 
-                    CachedContentVO content =
-                            result.content();
+        CachedContentVO content = result.content();
+        applyAgeRatingCheckMetadata(content, result);
 
-                    content.setAgeRatingLastCheckedAt(
-                            result.checkedAt()
-                    );
+        if (result.restricted()) {
+            blockedContents.add(content);
+            return;
+        }
 
-                    content.setAgeRatingRestrictionChecked(
-                            Boolean.TRUE
-                    );
+        /*
+         * 기존 값이 "등급 정보 없음"이었는데 이번 원본 등급 재검사에서
+         * 정상 등급을 찾은 경우에는 그 결과도 함께 반영합니다.
+         */
+        if (AGE_UNKNOWN.equals(
+                content.getAgeRating()
+        )
+                && !AGE_UNKNOWN.equals(
+                        result.ageRating()
+                )) {
 
-                    if (result.restricted()) {
-                        blockedContents.add(content);
-                        continue;
-                    }
+            content.setAgeRating(
+                    result.ageRating()
+            );
+        }
 
-                    /*
-                     * 기존 값이 "등급 정보 없음"이었는데 이번 원본 등급 재검사에서
-                     * 정상 등급을 찾은 경우에는 그 결과도 함께 반영합니다.
-                     */
-                    if (AGE_UNKNOWN.equals(
-                            content.getAgeRating()
-                    )
-                            && !AGE_UNKNOWN.equals(
-                                    result.ageRating()
-                            )) {
+        applyManualOverride(content);
+    }
 
-                        content.setAgeRating(
-                                result.ageRating()
-                        );
-                    }
+    private void applyAgeRatingCheckMetadata(
+            CachedContentVO content,
+            AgeRatingResult result) {
 
-                    applyManualOverride(content);
+        content.setAgeRatingLastCheckedAt(
+                result.checkedAt()
+        );
 
-                } catch (InterruptedException e) {
+        content.setAgeRatingRestrictionChecked(
+                Boolean.TRUE
+        );
+    }
 
-                    Thread.currentThread()
-                            .interrupt();
+    private void removeBlockedContents(
+            List<CachedContentVO> contents,
+            List<CachedContentVO> blockedContents) {
 
-                    throw new IllegalStateException(
-                            "연령등급 제외 정책 재검사가 중단되었습니다.",
-                            e
-                    );
-
-                } catch (ExecutionException e) {
-
-                    /*
-                     * 통신 실패 콘텐츠는 확인 완료로 표시하지 않습니다.
-                     * 다음 갱신 때 다시 확인합니다.
-                     */
-                }
-            }
-
-            if (!blockedContents.isEmpty()) {
-                contents.removeAll(blockedContents);
-            }
+        if (!blockedContents.isEmpty()) {
+            contents.removeAll(blockedContents);
         }
     }
 
@@ -693,12 +701,12 @@ public class SearchContentAgeRatingService {
                     apiClient.get(apiUrl);
 
             restricted =
-                    hasRestrictedMovieRating(
+                    ageRatingResolver.hasRestrictedMovieRating(
                             response
                     );
 
             ageRating =
-                    parseMovieAgeRating(response);
+                    ageRatingResolver.parseMovieAgeRating(response);
 
         } else if (TV.equals(contentType)) {
 
@@ -712,12 +720,12 @@ public class SearchContentAgeRatingService {
                     apiClient.get(apiUrl);
 
             restricted =
-                    hasRestrictedUsTvRating(
+                    ageRatingResolver.hasRestrictedTvRating(
                             response
                     );
 
             ageRating =
-                    parseTvAgeRating(response);
+                    ageRatingResolver.parseTvAgeRating(response);
 
         } else {
             return null;
@@ -730,537 +738,6 @@ public class SearchContentAgeRatingService {
                 true,
                 restricted
         );
-    }
-
-    /**
-     * 영화 원본 등급 중 공용 저장소 제외 대상이 있는지 확인합니다.
-     *
-     * - JP R18+
-     * - US NC-17
-     */
-    private boolean hasRestrictedMovieRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return false;
-        }
-
-        JSONArray countries =
-                response.optJSONArray(
-                        "results"
-                );
-
-        return containsMovieCertification(
-                countries,
-                "JP",
-                "R18+"
-        )
-                || containsMovieCertification(
-                        countries,
-                        "US",
-                        "NC17"
-                );
-    }
-
-    /**
-     * 미국 TV 원본 등급 중 성적 상황(S) 설명자가 명시된
-     * TV-MA 조합만 제외합니다.
-     *
-     * 제외:
-     * TV-MA-S, TV-MA-LS, TV-MA-SV, TV-MA-LSV
-     *
-     * 유지:
-     * TV-MA, TV-MA-L, TV-MA-V
-     */
-    private boolean hasRestrictedUsTvRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return false;
-        }
-
-        JSONArray ratings =
-                response.optJSONArray(
-                        "results"
-                );
-
-        String usRating =
-                findTvRating(
-                        ratings,
-                        "US"
-                );
-
-        String normalized =
-                normalizeRatingCode(
-                        usRating
-                );
-
-        return "TVMAS".equals(normalized)
-                || "TVMALS".equals(normalized)
-                || "TVMASV".equals(normalized)
-                || "TVMALSV".equals(normalized);
-    }
-
-    private boolean containsMovieCertification(
-            JSONArray countries,
-            String countryCode,
-            String restrictedCode) {
-
-        if (countries == null
-                || !hasText(countryCode)
-                || !hasText(restrictedCode)) {
-            return false;
-        }
-
-        String normalizedRestrictedCode =
-                normalizeRatingCode(
-                        restrictedCode
-                );
-
-        for (int index = 0;
-             index < countries.length();
-             index++) {
-
-            JSONObject country =
-                    countries.optJSONObject(index);
-
-            if (country == null
-                    || !countryCode.equalsIgnoreCase(
-                            country.optString(
-                                    "iso_3166_1",
-                                    ""
-                            )
-                    )) {
-                continue;
-            }
-
-            JSONArray releaseDates =
-                    country.optJSONArray(
-                            "release_dates"
-                    );
-
-            if (releaseDates == null) {
-                continue;
-            }
-
-            for (int releaseIndex = 0;
-                 releaseIndex < releaseDates.length();
-                 releaseIndex++) {
-
-                JSONObject release =
-                        releaseDates.optJSONObject(
-                                releaseIndex
-                        );
-
-                if (release == null) {
-                    continue;
-                }
-
-                String certification =
-                        release.optString(
-                                "certification",
-                                ""
-                        );
-
-                if (normalizedRestrictedCode.equals(
-                        normalizeRatingCode(
-                                certification
-                        )
-                )) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private String normalizeRatingCode(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return "";
-        }
-
-        return rawRating.trim()
-                .toUpperCase(Locale.ROOT)
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("_", "");
-    }
-
-    private String parseMovieAgeRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return AGE_UNKNOWN;
-        }
-
-        JSONArray countries =
-                response.optJSONArray(
-                        "results"
-                );
-
-        /*
-         * 1순위는 국내(KR) 등급입니다.
-         */
-        String koreaRating =
-                findMovieCertification(
-                        countries,
-                        "KR"
-                );
-
-        if (hasText(koreaRating)) {
-            return normalizeKoreanAgeRating(
-                    koreaRating
-            );
-        }
-
-        /*
-         * 국내 등급이 없을 때 일본(JP) 영화 등급을 보조 기준으로 사용합니다.
-         * 프로젝트 정책:
-         * - PG12  -> 15세 이상 관람가
-         * - R15+  -> 청소년 관람불가
-         */
-        String japanRating =
-                findMovieCertification(
-                        countries,
-                        "JP"
-                );
-
-        if (hasText(japanRating)) {
-            String convertedJapanRating =
-                    convertJapanMovieAgeRating(
-                            japanRating
-                    );
-
-            if (!AGE_UNKNOWN.equals(
-                    convertedJapanRating
-            )) {
-                return convertedJapanRating;
-            }
-        }
-
-        /*
-         * KR/JP에서 사용할 수 있는 등급이 없을 때 기존 US 변환을 사용합니다.
-         */
-        String usRating =
-                findMovieCertification(
-                        countries,
-                        "US"
-                );
-
-        return hasText(usRating)
-                ? convertUsMovieAgeRating(
-                        usRating
-                )
-                : AGE_UNKNOWN;
-    }
-
-    private String findMovieCertification(
-            JSONArray countries,
-            String countryCode) {
-
-        if (countries == null) {
-            return null;
-        }
-
-        for (int index = 0;
-             index < countries.length();
-             index++) {
-
-            JSONObject country =
-                    countries.optJSONObject(index);
-
-            if (country == null
-                    || !countryCode.equalsIgnoreCase(
-                            country.optString(
-                                    "iso_3166_1",
-                                    ""
-                            )
-                    )) {
-                continue;
-            }
-
-            JSONArray releaseDates =
-                    country.optJSONArray(
-                            "release_dates"
-                    );
-
-            if (releaseDates == null) {
-                continue;
-            }
-
-            for (int releaseIndex = 0;
-                 releaseIndex < releaseDates.length();
-                 releaseIndex++) {
-
-                JSONObject release =
-                        releaseDates.optJSONObject(
-                                releaseIndex
-                        );
-
-                if (release == null) {
-                    continue;
-                }
-
-                String certification =
-                        release.optString(
-                                "certification",
-                                ""
-                        ).trim();
-
-                if (!certification.isEmpty()) {
-                    return certification;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private String parseTvAgeRating(
-            JSONObject response) {
-
-        if (response == null) {
-            return AGE_UNKNOWN;
-        }
-
-        JSONArray ratings =
-                response.optJSONArray(
-                        "results"
-                );
-
-        String koreaRating =
-                findTvRating(
-                        ratings,
-                        "KR"
-                );
-
-        if (hasText(koreaRating)) {
-            return normalizeKoreanAgeRating(
-                    koreaRating
-            );
-        }
-
-        String usRating =
-                findTvRating(
-                        ratings,
-                        "US"
-                );
-
-        return hasText(usRating)
-                ? convertUsTvAgeRating(
-                        usRating
-                )
-                : AGE_UNKNOWN;
-    }
-
-    private String findTvRating(
-            JSONArray ratings,
-            String countryCode) {
-
-        if (ratings == null) {
-            return null;
-        }
-
-        for (int index = 0;
-             index < ratings.length();
-             index++) {
-
-            JSONObject rating =
-                    ratings.optJSONObject(index);
-
-            if (rating == null
-                    || !countryCode.equalsIgnoreCase(
-                            rating.optString(
-                                    "iso_3166_1",
-                                    ""
-                            )
-                    )) {
-                continue;
-            }
-
-            String value =
-                    rating.optString(
-                            "rating",
-                            ""
-                    ).trim();
-
-            if (!value.isEmpty()) {
-                return value;
-            }
-        }
-
-        return null;
-    }
-
-    private String normalizeKoreanAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("-", "")
-                        .replace("_", "");
-
-        if ("ALL".equals(normalized)
-                || "전체".equals(normalized)
-                || "전체관람가".equals(normalized)
-                || "전체이용가".equals(normalized)
-                || "0".equals(normalized)
-                || "0+".equals(normalized)) {
-            return AGE_ALL;
-        }
-
-        if ("7".equals(normalized)
-                || "7+".equals(normalized)
-                || normalized.contains("7세")) {
-            return AGE_7;
-        }
-
-        if ("12".equals(normalized)
-                || "12+".equals(normalized)
-                || normalized.contains("12세")) {
-            return AGE_12;
-        }
-
-        if ("15".equals(normalized)
-                || "15+".equals(normalized)
-                || normalized.contains("15세")) {
-            return AGE_15;
-        }
-
-        if ("18".equals(normalized)
-                || "18+".equals(normalized)
-                || "19".equals(normalized)
-                || "19+".equals(normalized)
-                || normalized.contains("18세")
-                || normalized.contains("19세")
-                || normalized.contains("청소년관람불가")
-                || normalized.contains("청불")
-                || normalized.contains("제한상영가")) {
-            return AGE_ADULT;
-        }
-
-        return AGE_UNKNOWN;
-    }
-
-    /**
-     * 일본 영화 등급을 ODITJI 내부 연령등급으로 변환합니다.
-     *
-     * 현재 프로젝트에서 확정한 수동 변환 정책만 적용합니다.
-     * 알 수 없는 일본 등급은 임의로 추정하지 않고 기존 US 보조 조회로 넘깁니다.
-     */
-    private String convertJapanMovieAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-")
-                        .replace("-", "");
-
-        switch (normalized) {
-            case "PG12":
-                return AGE_15;
-
-            case "R15+":
-            case "R15":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
-    }
-
-    private String convertUsMovieAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-");
-
-        switch (normalized) {
-            case "G":
-                return AGE_ALL;
-
-            case "PG":
-            case "PG-13":
-            case "PG13":
-                return AGE_12;
-
-            case "R":
-                return AGE_15;
-
-            case "NC-17":
-            case "NC17":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
-    }
-
-    private String convertUsTvAgeRating(
-            String rawRating) {
-
-        if (!hasText(rawRating)) {
-            return AGE_UNKNOWN;
-        }
-
-        String normalized =
-                rawRating.trim()
-                        .toUpperCase(Locale.ROOT)
-                        .replace(" ", "")
-                        .replace("_", "-");
-
-        switch (normalized) {
-            case "TV-Y":
-            case "TVY":
-            case "TV-G":
-            case "TVG":
-                return AGE_ALL;
-
-            case "TV-Y7":
-            case "TVY7":
-                return AGE_7;
-
-            case "TV-PG":
-            case "TVPG":
-                return AGE_12;
-
-            case "TV-14":
-            case "TV14":
-                return AGE_15;
-
-            case "TV-MA":
-            case "TVMA":
-            case "TV-MA-S":
-            case "TV-MA-LS":
-            case "TV-MA-SV":
-            case "TV-MA-LSV":
-                return AGE_ADULT;
-
-            default:
-                return AGE_UNKNOWN;
-        }
     }
 
     private Map<String, String> loadManualOverrides() {
@@ -1288,91 +765,7 @@ public class SearchContentAgeRatingService {
                             )
                     );
 
-            Map<String, String> result =
-                    new LinkedHashMap<String, String>();
-
-            readManualSection(
-                    root,
-                    MOVIE,
-                    result
-            );
-
-            readManualSection(
-                    root,
-                    TV,
-                    result
-            );
-
-            /*
-             * 이전 안내에서 사용한 "MOVIE-12345": "15세 이상 관람가"
-             * 형태도 함께 지원합니다.
-             */
-            for (String key : root.keySet()) {
-
-                if (MOVIE.equals(key)
-                        || TV.equals(key)) {
-                    continue;
-                }
-
-                String normalizedKey =
-                        key.trim()
-                                .toUpperCase(Locale.ROOT);
-
-                if (!normalizedKey.startsWith("MOVIE-")
-                        && !normalizedKey.startsWith("TV-")) {
-                    continue;
-                }
-
-                int separatorIndex =
-                        normalizedKey.indexOf('-');
-
-                if (separatorIndex <= 0
-                        || separatorIndex
-                                >= normalizedKey.length() - 1) {
-                    continue;
-                }
-
-                String contentType =
-                        normalizedKey.substring(
-                                0,
-                                separatorIndex
-                        );
-
-                String rawId =
-                        normalizedKey.substring(
-                                separatorIndex + 1
-                        );
-
-                try {
-
-                    long tmdbId =
-                            Long.parseLong(rawId);
-
-                    String ageRating =
-                            normalizeManualAgeRating(
-                                    root.optString(
-                                            key,
-                                            ""
-                                    )
-                            );
-
-                    if (tmdbId > 0
-                            && ageRating != null) {
-                        result.put(
-                                createKey(
-                                        contentType,
-                                        tmdbId
-                                ),
-                                ageRating
-                        );
-                    }
-
-                } catch (NumberFormatException ignored) {
-                    /* 잘못된 수동 ID 항목만 제외합니다. */
-                }
-            }
-
-            return Map.copyOf(result);
+            return parseManualOverrides(root);
 
         } catch (IOException e) {
 
@@ -1392,6 +785,134 @@ public class SearchContentAgeRatingService {
         }
     }
 
+    private Map<String, String> parseManualOverrides(
+            JSONObject root) {
+
+        Map<String, String> result =
+                new LinkedHashMap<String, String>();
+
+        readManualSection(
+                root,
+                MOVIE,
+                result
+        );
+
+        readManualSection(
+                root,
+                TV,
+                result
+        );
+
+        readFlatManualOverrides(
+                root,
+                result
+        );
+
+        return Map.copyOf(result);
+    }
+
+    private void readFlatManualOverrides(
+            JSONObject root,
+            Map<String, String> result) {
+
+        /*
+         * 이전 안내에서 사용한 "MOVIE-12345": "15세 이상 관람가"
+         * 형태도 함께 지원합니다.
+         */
+        for (String key : root.keySet()) {
+            if (!isManualSectionKey(key)) {
+                readFlatManualOverride(
+                        root,
+                        key,
+                        result
+                );
+            }
+        }
+    }
+
+    private boolean isManualSectionKey(
+            String key) {
+
+        return MOVIE.equals(key)
+                || TV.equals(key);
+    }
+
+    private void readFlatManualOverride(
+            JSONObject root,
+            String key,
+            Map<String, String> result) {
+
+        String normalizedKey =
+                key.trim()
+                        .toUpperCase(Locale.ROOT);
+
+        if (!normalizedKey.startsWith("MOVIE-")
+                && !normalizedKey.startsWith("TV-")) {
+            return;
+        }
+
+        int separatorIndex =
+                normalizedKey.indexOf('-');
+
+        if (separatorIndex <= 0
+                || separatorIndex
+                        >= normalizedKey.length() - 1) {
+            return;
+        }
+
+        putFlatManualOverride(
+                root,
+                key,
+                normalizedKey,
+                separatorIndex,
+                result
+        );
+    }
+
+    private void putFlatManualOverride(
+            JSONObject root,
+            String key,
+            String normalizedKey,
+            int separatorIndex,
+            Map<String, String> result) {
+
+        try {
+
+            long tmdbId =
+                    Long.parseLong(
+                            normalizedKey.substring(
+                                    separatorIndex + 1
+                            )
+                    );
+
+            String ageRating =
+                    normalizeManualAgeRating(
+                            root.optString(
+                                    key,
+                                    ""
+                            )
+                    );
+
+            if (tmdbId > 0
+                    && ageRating != null) {
+
+                result.put(
+                        createKey(
+                                normalizedKey.substring(
+                                        0,
+                                        separatorIndex
+                                ),
+                                tmdbId
+                        ),
+                        ageRating
+                );
+            }
+
+        } catch (NumberFormatException ignored) {
+            /* 잘못된 수동 ID 항목만 제외합니다. */
+        }
+    }
+
     private void readManualSection(
             JSONObject root,
             String contentType,
@@ -1405,29 +926,38 @@ public class SearchContentAgeRatingService {
         }
 
         for (String rawTmdbId : section.keySet()) {
+            addManualAgeRating(
+                    section,
+                    rawTmdbId,
+                    contentType,
+                    target
+            );
+        }
+    }
 
-            try {
 
-                long tmdbId =
-                        Long.parseLong(
-                                rawTmdbId.trim()
-                        );
+    private void addManualAgeRating(
+            JSONObject section,
+            String rawTmdbId,
+            String contentType,
+            Map<String, String> target) {
 
-                if (tmdbId <= 0) {
-                    continue;
-                }
+        try {
+            long tmdbId =
+                    Long.parseLong(
+                            rawTmdbId.trim()
+                    );
 
-                String ageRating =
-                        normalizeManualAgeRating(
-                                section.optString(
-                                        rawTmdbId,
-                                        ""
-                                )
-                        );
+            String ageRating =
+                    normalizeManualAgeRating(
+                            section.optString(
+                                    rawTmdbId,
+                                    ""
+                            )
+                    );
 
-                if (ageRating == null) {
-                    continue;
-                }
+            if (tmdbId > 0
+                    && ageRating != null) {
 
                 target.put(
                         createKey(
@@ -1436,10 +966,10 @@ public class SearchContentAgeRatingService {
                         ),
                         ageRating
                 );
-
-            } catch (NumberFormatException ignored) {
-                /* 잘못된 TMDB ID 항목만 제외합니다. */
             }
+
+        } catch (NumberFormatException ignored) {
+            /* 잘못된 TMDB ID 항목만 제외합니다. */
         }
     }
 
@@ -1462,7 +992,7 @@ public class SearchContentAgeRatingService {
         }
 
         String normalized =
-                normalizeKoreanAgeRating(
+                ageRatingResolver.normalizeKoreanAgeRating(
                         trimmed
                 );
 

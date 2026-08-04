@@ -24,6 +24,9 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/report")
 public class ReportController {
 
+    private static final String RESPONSE_SUCCESS = "success";
+    private static final String RESPONSE_MESSAGE = "message";
+
     private final ReportService reportService;
 
     public ReportController(ReportService reportService) {
@@ -42,9 +45,9 @@ public class ReportController {
 
         if (loginMember == null) {
 
-            result.put("success", false);
+            result.put(RESPONSE_SUCCESS, false);
             result.put("loginRequired", true);
-            result.put("message", "로그인이 필요합니다.");
+            result.put(RESPONSE_MESSAGE, "로그인이 필요합니다.");
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -64,15 +67,15 @@ public class ReportController {
                     request.getReason(),
                     request.getDetail());
 
-            result.put("success", true);
+            result.put(RESPONSE_SUCCESS, true);
 
             return ResponseEntity.ok(result);
 
         } catch (IllegalStateException e) {
 
             // 이미 신고한 리뷰
-            result.put("success", false);
-            result.put("message", e.getMessage());
+            result.put(RESPONSE_SUCCESS, false);
+            result.put(RESPONSE_MESSAGE, e.getMessage());
 
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
@@ -80,8 +83,8 @@ public class ReportController {
 
         } catch (IllegalArgumentException e) {
 
-            result.put("success", false);
-            result.put("message", e.getMessage());
+            result.put(RESPONSE_SUCCESS, false);
+            result.put(RESPONSE_MESSAGE, e.getMessage());
 
             return ResponseEntity
                     .badRequest()

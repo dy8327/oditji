@@ -31,6 +31,11 @@ public class ChatApiController {
     private static final int ADMIN_BUSINESS_NO = 1;
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROOM_TYPE_NOTICE = "NOTICE";
+    private static final String MESSAGE_LOGIN_INFO_NOT_FOUND = "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.";
+    private static final String MESSAGE_ROOM_NOT_FOUND = "존재하지 않는 채팅방입니다.";
+    private static final String RESPONSE_SUCCESS = "success";
+    private static final String RESPONSE_MESSAGE = "message";
+    private static final String RESPONSE_WILL_DELETE_ROOM = "willDeleteRoom";
 
     private final ChatService chatService;
 
@@ -85,8 +90,7 @@ public class ChatApiController {
             @PathVariable("roomId") String roomId,
             HttpSession session) {
 
-        ChatRoomVO room = getAccessibleRoom(roomId, session);
-        return room;
+        return getAccessibleRoom(roomId, session);
     }
 
     /**
@@ -167,7 +171,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
-                    "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.");
+                    MESSAGE_LOGIN_INFO_NOT_FOUND);
         }
 
         if (getAccessibleRoom(roomId, session) == null) {
@@ -222,7 +226,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
-                    "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.");
+                    MESSAGE_LOGIN_INFO_NOT_FOUND);
         }
 
         ChatRoomVO room = chatService.getChatRoom(roomId);
@@ -231,7 +235,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.ROOM_NOT_FOUND,
-                    "존재하지 않는 채팅방입니다.");
+                    MESSAGE_ROOM_NOT_FOUND);
         }
 
         if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
@@ -262,7 +266,7 @@ public class ChatApiController {
                 new ChatResponseVO(false, result, "채팅방 정원이 가득 찼습니다.");
 
             case ChatResult.ROOM_NOT_FOUND ->
-                new ChatResponseVO(false, result, "존재하지 않는 채팅방입니다.");
+                new ChatResponseVO(false, result, MESSAGE_ROOM_NOT_FOUND);
 
             default ->
                 new ChatResponseVO(false, result, "채팅방 참가에 실패했습니다.");
@@ -280,16 +284,16 @@ public class ChatApiController {
         Map<String, Object> response = new HashMap<>();
 
         if (!hasChatAccess(session)) {
-            response.put("success", false);
-            response.put("message", "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.");
-            response.put("willDeleteRoom", false);
+            response.put(RESPONSE_SUCCESS, false);
+            response.put(RESPONSE_MESSAGE, MESSAGE_LOGIN_INFO_NOT_FOUND);
+            response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
         if (isAdmin(session)) {
-            response.put("success", false);
-            response.put("message", "관리자는 자유방 나가기 기능을 사용할 수 없습니다.");
-            response.put("willDeleteRoom", false);
+            response.put(RESPONSE_SUCCESS, false);
+            response.put(RESPONSE_MESSAGE, "관리자는 자유방 나가기 기능을 사용할 수 없습니다.");
+            response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
@@ -297,33 +301,33 @@ public class ChatApiController {
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
-            response.put("success", false);
-            response.put("message", "존재하지 않는 채팅방입니다.");
-            response.put("willDeleteRoom", false);
+            response.put(RESPONSE_SUCCESS, false);
+            response.put(RESPONSE_MESSAGE, MESSAGE_ROOM_NOT_FOUND);
+            response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
         if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
-            response.put("success", false);
-            response.put("message", "공지방에서는 나가기 기능을 사용할 수 없습니다.");
-            response.put("willDeleteRoom", false);
+            response.put(RESPONSE_SUCCESS, false);
+            response.put(RESPONSE_MESSAGE, "공지방에서는 나가기 기능을 사용할 수 없습니다.");
+            response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
         if (!chatService.isChatRoomMember(roomId, businessNo)) {
-            response.put("success", false);
-            response.put("message", "채팅방 참여 정보를 찾을 수 없습니다.");
-            response.put("willDeleteRoom", false);
+            response.put(RESPONSE_SUCCESS, false);
+            response.put(RESPONSE_MESSAGE, "채팅방 참여 정보를 찾을 수 없습니다.");
+            response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
         boolean willDeleteRoom =
                 chatService.willRoomBeEmptyAfterLeave(roomId, businessNo);
 
-        response.put("success", true);
-        response.put("willDeleteRoom", willDeleteRoom);
+        response.put(RESPONSE_SUCCESS, true);
+        response.put(RESPONSE_WILL_DELETE_ROOM, willDeleteRoom);
         response.put(
-                "message",
+                RESPONSE_MESSAGE,
                 willDeleteRoom
                         ? "나가면 참여자가 없어 채팅방이 삭제됩니다."
                         : "채팅방에서 나갈 수 있습니다.");
@@ -344,7 +348,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
-                    "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.");
+                    MESSAGE_LOGIN_INFO_NOT_FOUND);
         }
 
         if (isAdmin(session)) {
@@ -361,7 +365,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.ROOM_NOT_FOUND,
-                    "존재하지 않는 채팅방입니다.");
+                    MESSAGE_ROOM_NOT_FOUND);
         }
 
         if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {

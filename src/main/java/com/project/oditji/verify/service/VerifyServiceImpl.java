@@ -231,15 +231,15 @@ public class VerifyServiceImpl implements VerifyService {
      * 기본 인증 로그 객체 생성
      */
     private IdentityVerifyLogVO createBaseLog(long memberNo, String verifyId, String rawStatus) {
-        IdentityVerifyLogVO log = new IdentityVerifyLogVO();
+        IdentityVerifyLogVO verifyLog = new IdentityVerifyLogVO();
 
-        log.setMemberNo(memberNo);
-        log.setVerifyId(verifyId);
-        log.setRawStatus(rawStatus);
-        log.setVerifyStatus(FAILED_STATUS);
-        log.setAdultYn(ADULT_N);
+        verifyLog.setMemberNo(memberNo);
+        verifyLog.setVerifyId(verifyId);
+        verifyLog.setRawStatus(rawStatus);
+        verifyLog.setVerifyStatus(FAILED_STATUS);
+        verifyLog.setAdultYn(ADULT_N);
 
-        return log;
+        return verifyLog;
     }
 
     /**

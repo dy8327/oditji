@@ -284,10 +284,12 @@
                                         --%>
                                         <td class="member-id-cell">
 
-                                            <span class="member-id-text ${memberIdStatusClass}"
-                                                title="${member.memberId}">
+                                            <button type="button"
+                                                    class="member-id-text ${memberIdStatusClass}"
+                                                    title="${member.memberId}"
+                                                    aria-haspopup="dialog">
                                                 ${member.memberId}
-                                            </span>
+                                            </button>
 
                                             <c:if test="${member.snsYn == 'Y'}">
                                                 <span class="badge badge-gray">SNS</span>
@@ -572,6 +574,37 @@
     </div>
 
 </div>
+
+<%--
+    [신규] 아이디 전체보기 모달.
+    768px 이하에서 말줄임(...)된 아이디(.member-id-text)를 클릭하면 열리며,
+    admin.js의 openMemberIdModal()이 값을 채워 넣는다. monitoring.jsp에도
+    동일한 id로 하나씩 둔다(페이지당 하나만 렌더링되므로 id 충돌 없음).
+    이 화면은 닉네임을 별도로 보여주지 않으므로 닉네임 줄은 항상 숨겨진다.
+--%>
+<dialog class="modal-overlay" id="memberIdModal" open aria-modal="true"
+        aria-labelledby="memberIdModalTitle">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3 id="memberIdModalTitle">아이디</h3>
+            <button type="button" class="modal-close" aria-label="아이디 팝업 닫기"
+                    onclick="closeModal('memberIdModal')">
+                &times;
+            </button>
+        </div>
+
+        <p class="member-id-modal-value" id="memberIdModalValue"></p>
+        <p class="member-id-modal-nickname" id="memberIdModalNickname" style="display:none"></p>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('memberIdModal')">닫기</button>
+        </div>
+
+    </div>
+
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

@@ -76,20 +76,14 @@ public class NotificationServiceImpl implements NotificationService {
             String referenceType,
             Long referenceNo) {
 
-        if (memberNo == null || memberNo <= 0L) {
-            return;
-        }
-
-        NotificationVO notification = createNotification(
+        createForMemberInternal(
+                memberNo,
                 notificationType,
                 title,
                 message,
                 linkUrl,
                 referenceType,
                 referenceNo);
-
-        notification.setReceiverMemberNo(memberNo);
-        notificationDAO.insertMemberNotification(notification);
     }
 
     @Override
@@ -155,7 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Long memberNo = notificationDAO.selectProductOwnerMemberNo(productNo);
 
-        createForMember(
+        createForMemberInternal(
                 memberNo,
                 notificationType,
                 title,
@@ -182,7 +176,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Long memberNo = notificationDAO.selectEventOwnerMemberNo(eventNo);
 
-        createForMember(
+        createForMemberInternal(
                 memberNo,
                 notificationType,
                 title,
@@ -242,6 +236,31 @@ public class NotificationServiceImpl implements NotificationService {
                         linkUrl,
                         referenceType,
                         referenceNo));
+    }
+
+    private void createForMemberInternal(
+            Long memberNo,
+            String notificationType,
+            String title,
+            String message,
+            String linkUrl,
+            String referenceType,
+            Long referenceNo) {
+
+        if (memberNo == null || memberNo <= 0L) {
+            return;
+        }
+
+        NotificationVO notification = createNotification(
+                notificationType,
+                title,
+                message,
+                linkUrl,
+                referenceType,
+                referenceNo);
+
+        notification.setReceiverMemberNo(memberNo);
+        notificationDAO.insertMemberNotification(notification);
     }
 
     private NotificationVO createNotification(

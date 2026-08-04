@@ -1,8 +1,6 @@
 package com.project.oditji.search.service;
 
-import java.text.Normalizer;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -14,6 +12,7 @@ import org.springframework.stereotype.Service;
  *
  * 터미널 출력은 하지 않으며, 누락된 제공처는 수동 OTT 보완 서비스가 처리합니다.
  */
+import com.project.oditji.common.util.PlatformNameNormalizer;
 @Service
 public class TmdbProviderService {
 
@@ -78,37 +77,7 @@ public class TmdbProviderService {
     }
 
     public String normalizePlatformName(String name) {
-        if (name == null) {
-            return "";
-        }
-
-        String normalized = normalizeSearchText(name);
-
-        if (normalized.contains("netflix") || normalized.contains("넷플릭스")) {
-            return "netflix";
-        }
-        if (normalized.contains("tving") || normalized.contains("티빙")) {
-            return "tving";
-        }
-        if (normalized.contains("wavve") || normalized.contains("웨이브")) {
-            return "wavve";
-        }
-        if (normalized.contains("disney") || normalized.contains("디즈니")) {
-            return "disney";
-        }
-        if (normalized.contains("watcha") || normalized.contains("왓챠")) {
-            return "watcha";
-        }
-        if (normalized.contains("coupang") || normalized.contains("쿠팡")) {
-            return "coupang";
-        }
-
-        return "";
+        return PlatformNameNormalizer.toSupportedKey(name);
     }
 
-    private String normalizeSearchText(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFKC)
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^\\p{L}\\p{N}]", "");
-    }
 }

@@ -2,13 +2,14 @@ package com.project.oditji.member.vo;
 
 import java.util.Date;
 
-public class PlatformVO {
+import com.project.oditji.common.vo.PlatformBaseVO;
+
+/**
+ * 회원의 OTT 선택 화면에서 사용하는 플랫폼 정보입니다.
+ */
+public class PlatformVO extends PlatformBaseVO {
 
     private Long platformNo;
-    private String platformName;
-    private String logoImage;
-    private String siteUrl;
-    private String isActive;
     private Date createdAt;
     private Date updatedAt;
 
@@ -18,38 +19,6 @@ public class PlatformVO {
 
     public void setPlatformNo(Long platformNo) {
         this.platformNo = platformNo;
-    }
-
-    public String getPlatformName() {
-        return platformName;
-    }
-
-    public void setPlatformName(String platformName) {
-        this.platformName = platformName;
-    }
-
-    public String getLogoImage() {
-        return logoImage;
-    }
-
-    public void setLogoImage(String logoImage) {
-        this.logoImage = logoImage;
-    }
-
-    public String getSiteUrl() {
-        return siteUrl;
-    }
-
-    public void setSiteUrl(String siteUrl) {
-        this.siteUrl = siteUrl;
-    }
-
-    public String getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(String isActive) {
-        this.isActive = isActive;
     }
 
     public Date getCreatedAt() {

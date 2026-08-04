@@ -21,9 +21,6 @@ public class OrderPaymentCancelRequestVO {
 
     private String reason;
 
-    public OrderPaymentCancelRequestVO() {
-    }
-
     public Long getOrderNo() {
         return orderNo;
     }

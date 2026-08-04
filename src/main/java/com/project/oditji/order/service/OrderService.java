@@ -45,21 +45,6 @@ public interface OrderService {
                         String paymentId);
 
         /**
-         * 주문서 항목을 최종 확정하여 주문을 생성한다.
-         * 재고 차감, (장바구니 유입분) 장바구니 항목 삭제까지 하나의 트랜잭션으로 처리한다.
-         *
-         * // * @return 생성된 주문 번호
-         * //
-         */
-        // Long submitOrder(
-        // Long memberNo,
-        // List<OrderSheetItemVO> sheetItems,
-        // String receiverName,
-        // String receiverPhone,
-        // String address
-        // );
-
-        /**
          * 로그인 회원이 결제한 주문을 포트원에서 전액 취소한다.
          *
          * 포트원 취소가 확인되면 주문·주문상품·결제 상태를

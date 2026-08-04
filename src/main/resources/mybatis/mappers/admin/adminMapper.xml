@@ -66,9 +66,11 @@
                 ) REQUESTED_SETTLEMENT_GROUP
             ) AS SETTLEMENT_WAITING_COUNT,
 
-            (SELECT COUNT(DISTINCT MEMBER_NO)
-            FROM ACCESS_LOG
-            WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)) AS VISITOR_COUNT
+            (SELECT COUNT(DISTINCT A.MEMBER_NO)
+            FROM ACCESS_LOG A
+            JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+            WHERE TRUNC(A.CREATED_AT) = TRUNC(SYSDATE)
+            AND M.ROLE = 'USER') AS VISITOR_COUNT
 
         FROM DUAL
     </select>
@@ -826,11 +828,30 @@
                 </when>
 
                 <when test="tab == 'approved'">
-                    AND E.STATUS = 'APPROVED'
+                    AND E.STATUS IN ('APPROVED', 'END')
                 </when>
 
                 <when test="tab == 'end'">
-                    AND E.STATUS = 'END'
+                    AND E.STATUS IN ('APPROVED', 'END')
+                    AND TRUNC(SYSDATE) &gt; TRUNC(E.END_DATE)
+                </when>
+
+                <!-- [추가] 상단 통계 카드(반려/진행중/예정)에서 넘어오는 필터.
+                     진행중/예정은 EVENT.STATUS만으로 구분할 수 없어(스케줄러가
+                     하루 한 번만 END로 갱신) START_DATE/END_DATE를 SYSDATE와
+                     직접 비교한다. EventManageVO.getProgressStatus()와 동일한 기준. -->
+                <when test="tab == 'rejected'">
+                    AND E.STATUS = 'REJECTED'
+                </when>
+
+                <when test="tab == 'ongoing'">
+                    AND E.STATUS IN ('APPROVED', 'END')
+                    AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+                </when>
+
+                <when test="tab == 'upcoming'">
+                    AND E.STATUS IN ('APPROVED', 'END')
+                    AND TRUNC(SYSDATE) &lt; TRUNC(E.START_DATE)
                 </when>
 
             </choose>
@@ -914,10 +935,22 @@
                         AND E.STATUS = 'WAITING'
                     </when>
                     <when test="tab == 'approved'">
-                        AND E.STATUS = 'APPROVED'
+                        AND E.STATUS IN ('APPROVED', 'END')
                     </when>
                     <when test="tab == 'end'">
-                        AND E.STATUS = 'END'
+                        AND E.STATUS IN ('APPROVED', 'END')
+                        AND TRUNC(SYSDATE) &gt; TRUNC(E.END_DATE)
+                    </when>
+                    <when test="tab == 'rejected'">
+                        AND E.STATUS = 'REJECTED'
+                    </when>
+                    <when test="tab == 'ongoing'">
+                        AND E.STATUS IN ('APPROVED', 'END')
+                        AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+                    </when>
+                    <when test="tab == 'upcoming'">
+                        AND E.STATUS IN ('APPROVED', 'END')
+                        AND TRUNC(SYSDATE) &lt; TRUNC(E.START_DATE)
                     </when>
                 </choose>
             </if>
@@ -950,17 +983,39 @@
     </select>
 
 
-    <!-- 이벤트 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 종료).
+    <!-- 이벤트 관리 상단 통계 카드 (전체 / 승인 대기 / 승인 완료 / 반려 / 진행중 / 예정 / 종료).
          EVENT_PRODUCT/PRODUCT/BUSINESS와 조인하면 상품 수만큼 행이 늘어나
-         카운트가 부풀려지므로, 통계는 EVENT 테이블만 기준으로 별도 집계한다. -->
+         카운트가 부풀려지므로, 통계는 EVENT 테이블만 기준으로 별도 집계한다.
+
+         [추가] ONGOING_COUNT/UPCOMING_COUNT는 STATUS 원본값만으로 구분할 수 없어
+         (EventStatusScheduler가 하루 한 번(00:05)만 STATUS를 END로 갱신하므로
+         배치 전에는 승인된 이벤트가 시작 전/진행중/종료일이 지났음에도 전부
+         STATUS='APPROVED'일 수 있다) START_DATE/END_DATE를 SYSDATE와 직접
+         비교해서 계산한다. EventManageVO.getProgressStatus()와 동일한 기준이며,
+         selectAdminEventList(Count)의 tab='ongoing'/'upcoming' 필터와도 맞춘다. -->
     <select id="selectEventStats"
             resultType="com.project.oditji.admin.vo.EventStatVO">
 
         SELECT
             COUNT(*) AS TOTAL_COUNT,
             SUM(CASE WHEN STATUS = 'WAITING' THEN 1 ELSE 0 END) AS WAITING_COUNT,
-            SUM(CASE WHEN STATUS = 'APPROVED' THEN 1 ELSE 0 END) AS APPROVED_COUNT,
-            SUM(CASE WHEN STATUS = 'END' THEN 1 ELSE 0 END) AS END_COUNT
+            SUM(CASE WHEN STATUS IN ('APPROVED', 'END') THEN 1 ELSE 0 END) AS APPROVED_COUNT,
+            SUM(CASE WHEN STATUS = 'REJECTED' THEN 1 ELSE 0 END) AS REJECTED_COUNT,
+            SUM(CASE
+                    WHEN STATUS IN ('APPROVED', 'END')
+                         AND TRUNC(SYSDATE) BETWEEN TRUNC(START_DATE) AND TRUNC(END_DATE)
+                    THEN 1 ELSE 0
+                END) AS ONGOING_COUNT,
+            SUM(CASE
+                    WHEN STATUS IN ('APPROVED', 'END')
+                         AND TRUNC(SYSDATE) &lt; TRUNC(START_DATE)
+                    THEN 1 ELSE 0
+                END) AS UPCOMING_COUNT,
+            SUM(CASE
+                    WHEN STATUS IN ('APPROVED', 'END')
+                         AND TRUNC(SYSDATE) &gt; TRUNC(END_DATE)
+                    THEN 1 ELSE 0
+                END) AS END_COUNT
         FROM EVENT
 
     </select>
@@ -1803,6 +1858,7 @@
     <select id="selectMonitoringList" resultType="com.project.oditji.admin.vo.MonitoringVO">
         SELECT
             M.MEMBER_NO                        AS MEMBER_NO,
+            M.MEMBER_ID                        AS MEMBER_ID,
             M.NICKNAME                         AS NICKNAME,
             LOG.LAST_ACCESS_AT                 AS LAST_ACCESS_AT,
             LOG.ACCESS_IP                      AS ACCESS_IP,

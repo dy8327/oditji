@@ -60,6 +60,12 @@
             각 카드는 해당 상태로 바로 필터링된 목록으로 이동하는 링크이며,
             현재 선택된 상태(tab)와 일치하는 카드에는 active 클래스를 준다.
             memberManage.jsp와 동일하게 admin-content-box 바깥(페이지 상단)에 별도로 배치한다.
+
+            [추가] "승인상태"(대기/승인/반려)와 "현재상태"(진행중/예정/종료)를
+            컬럼으로 분리한 뒤에도 카드는 예전 그대로(전체/대기/승인/종료)라
+            반려·진행중·예정 이벤트는 카드로 바로 필터링해 볼 수 없었다.
+            세 카드를 추가한다(tab=rejected/ongoing/upcoming, adminMapper.xml의
+            selectEventStats/selectAdminEventList(Count) 참고).
         --%>
         <div class="member-stat-grid">
 
@@ -79,6 +85,24 @@
                href="?tab=approved">
                 <span>승인 완료</span>
                 <strong>${eventStats.approvedCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'rejected' ? 'active' : ''}"
+               href="?tab=rejected">
+                <span>반려</span>
+                <strong>${eventStats.rejectedCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'ongoing' ? 'active' : ''}"
+               href="?tab=ongoing">
+                <span>진행중인 이벤트</span>
+                <strong>${eventStats.ongoingCount}건</strong>
+            </a>
+
+            <a class="stat-card ${currentTab == 'upcoming' ? 'active' : ''}"
+               href="?tab=upcoming">
+                <span>예정 이벤트</span>
+                <strong>${eventStats.upcomingCount}건</strong>
             </a>
 
             <a class="stat-card ${currentTab == 'end' ? 'active' : ''}"
@@ -113,6 +137,21 @@
                     승인 완료
                 </a>
 
+                <a class="${currentTab == 'rejected' ? 'active' : ''}"
+                   href="?tab=rejected&period=${currentPeriod}&keyword=${param.keyword}">
+                    반려
+                </a>
+
+                <a class="${currentTab == 'ongoing' ? 'active' : ''}"
+                   href="?tab=ongoing&period=${currentPeriod}&keyword=${param.keyword}">
+                    진행중
+                </a>
+
+                <a class="${currentTab == 'upcoming' ? 'active' : ''}"
+                   href="?tab=upcoming&period=${currentPeriod}&keyword=${param.keyword}">
+                    예정
+                </a>
+
                 <a class="${currentTab == 'end' ? 'active' : ''}"
                    href="?tab=end&period=${currentPeriod}&keyword=${param.keyword}">
                     종료
@@ -138,6 +177,9 @@
                         <option value=""         ${empty currentTab ? 'selected' : ''}>상태 전체</option>
                         <option value="waiting"  ${currentTab == 'waiting' ? 'selected' : ''}>승인 대기</option>
                         <option value="approved" ${currentTab == 'approved' ? 'selected' : ''}>승인 완료</option>
+                        <option value="rejected" ${currentTab == 'rejected' ? 'selected' : ''}>반려</option>
+                        <option value="ongoing"  ${currentTab == 'ongoing' ? 'selected' : ''}>진행중</option>
+                        <option value="upcoming" ${currentTab == 'upcoming' ? 'selected' : ''}>예정</option>
                         <option value="end"      ${currentTab == 'end' ? 'selected' : ''}>종료</option>
                     </select>
 
@@ -189,7 +231,14 @@
                         <th class="col-mobile-hide">적용 상품</th>
                         <th class="col-mobile-hide">이벤트 기간</th>
                         <th class="col-mobile-hide">요청일</th>
-                        <th class="col-mobile-hide">상태</th>
+                        <%--
+                            [수정] 하나의 "상태" 컬럼에 승인 여부(대기/승인/반려)와
+                            진행 상태(진행중/예정/종료)가 섞여 있어 뱃지 하나만 보고는
+                            승인은 됐는데 아직 시작 전인지, 이미 끝난 이벤트인지 구분이
+                            안 됐다. 두 컬럼으로 나눠서 보여준다.
+                        --%>
+                        <th class="col-mobile-hide">승인상태</th>
+                        <th class="col-mobile-hide">현재상태</th>
                         <th>관리</th>
 
                     </tr>
@@ -229,20 +278,13 @@
                                     </c:otherwise>
                                 </c:choose>
 
-                                <c:choose>
-                                    <c:when test="${req.status == 'APPROVED'}">
-                                        <c:set var="reqStatusLabel" value="승인"/>
-                                    </c:when>
-                                    <c:when test="${req.status == 'REJECTED'}">
-                                        <c:set var="reqStatusLabel" value="반려"/>
-                                    </c:when>
-                                    <c:when test="${req.status == 'END'}">
-                                        <c:set var="reqStatusLabel" value="종료"/>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <c:set var="reqStatusLabel" value="대기"/>
-                                    </c:otherwise>
-                                </c:choose>
+                                <%--
+                                    승인상태(대기/승인/반려)·현재상태(진행중/예정/종료) 한글 라벨은
+                                    더 이상 여기서 계산하지 않는다. EventManageVO의
+                                    getApprovalStatusLabel()/getProgressStatusLabel()이 STATUS와
+                                    START_DATE/END_DATE를 기준으로 직접 계산해 주므로
+                                    ${req.approvalStatusLabel} / ${req.progressStatusLabel}로 바로 쓴다.
+                                --%>
 
                                 <tr>
 
@@ -260,25 +302,26 @@
 
                                         <div class="event-title-wrapper">
 
+                                            <%--
+                                                [리팩토링] 색을 원본 EVENT.STATUS(WAITING/APPROVED/REJECTED/END)
+                                                4가지 대신, 데스크톱 "승인상태" 컬럼과 동일한 req.approvalStatus
+                                                (WAITING/APPROVED/REJECTED) 3가지 기준으로 맞춘다. END는 승인상태
+                                                관점에서 여전히 승인(APPROVED)이므로(EventManageVO.getApprovalStatus()
+                                                참고) 별도 회색이 아니라 승인과 같은 초록으로 보여준다.
+                                            --%>
                                             <!-- 모바일용 -->
                                             <div class="mobile-event-title">
 
                                                 <c:choose>
 
-                                                    <c:when test="${req.status == 'APPROVED'}">
+                                                    <c:when test="${req.approvalStatus == 'APPROVED'}">
                                                         <span class="event-title-text event-title-approved">
                                                             ${req.title}
                                                         </span>
                                                     </c:when>
 
-                                                    <c:when test="${req.status == 'REJECTED'}">
+                                                    <c:when test="${req.approvalStatus == 'REJECTED'}">
                                                         <span class="event-title-text event-title-rejected">
-                                                            ${req.title}
-                                                        </span>
-                                                    </c:when>
-
-                                                    <c:when test="${req.status == 'END'}">
-                                                        <span class="event-title-text event-title-end">
                                                             ${req.title}
                                                         </span>
                                                     </c:when>
@@ -288,7 +331,6 @@
                                                             ${req.title}
                                                         </span>
                                                     </c:otherwise>
-
 
                                                 </c:choose>
 
@@ -343,26 +385,20 @@
                                     </td>
 
 
-                                    <!-- 상태 : 모바일 숨김 -->
+                                    <!-- 승인상태(대기/승인/반려) : 모바일 숨김 -->
                                     <td class="col-mobile-hide">
 
                                         <c:choose>
 
-                                            <c:when test="${req.status == 'APPROVED'}">
+                                            <c:when test="${req.approvalStatus == 'APPROVED'}">
                                                 <span class="status-ok">
                                                     승인
                                                 </span>
                                             </c:when>
 
-                                            <c:when test="${req.status == 'REJECTED'}">
+                                            <c:when test="${req.approvalStatus == 'REJECTED'}">
                                                 <span class="status-reject">
                                                     반려
-                                                </span>
-                                            </c:when>
-
-                                            <c:when test="${req.status == 'END'}">
-                                                <span class="status-end">
-                                                    종료
                                                 </span>
                                             </c:when>
 
@@ -376,26 +412,66 @@
 
                                     </td>
 
+                                    <%--
+                                        현재상태(진행중/예정/종료) : 모바일 숨김.
+                                        대기·반려 이벤트는 아직 노출되는 이벤트가 아니므로 진행 상태 자체가
+                                        없다는 의미로 "-"만 보여준다(progressStatus가 null인 경우).
+                                    --%>
+                                    <td class="col-mobile-hide">
+
+                                        <c:choose>
+
+                                            <c:when test="${req.progressStatus == 'ONGOING'}">
+                                                <span class="status-progress-ongoing">
+                                                    진행중
+                                                </span>
+                                            </c:when>
+
+                                            <c:when test="${req.progressStatus == 'UPCOMING'}">
+                                                <span class="status-progress-upcoming">
+                                                    예정
+                                                </span>
+                                            </c:when>
+
+                                            <c:when test="${req.progressStatus == 'ENDED'}">
+                                                <span class="status-progress-ended">
+                                                    종료
+                                                </span>
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                <span class="progress-status-none">-</span>
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                    </td>
+
                                     <td>
 
                                         <%--
-                                            businessName/title/productDetail 등에 따옴표나 줄바꿈이
-                                            섞여도 onclick 인라인 문자열이 깨지지 않도록
-                                            data-* 속성으로 값을 전달한다.
+                                            [버그 수정] businessName/title/productDetail 등에 따옴표나
+                                            줄바꿈이 섞여도 onclick 인라인 문자열이 깨지지 않도록 data-* 속성으로
+                                            값을 전달할 의도였으나, 실제로는 openEventDetailModal(button)이
+                                            button.dataset.eventNo 처럼 버튼 요소의 data-*를 읽도록 되어있는데
+                                            여기서는 문자열 9개를 그냥 함수 인자로 넘기고 있었다. 그 결과 button
+                                            자리에 eventNo 문자열이 들어가 button.dataset이 undefined가 되어
+                                            모달이 열리지 않았다(데스크톱/모바일 공용 버튼이라 양쪽 다 발생).
+                                            data-* 속성 + openEventDetailModal(this)로 수정한다.
                                         --%>
                                         <button type="button"
                                                 class="btn btn-dark"
-                                                onclick="openEventDetailModal(
-                                                    '${req.eventNo}',
-                                                    '${fn:escapeXml(req.businessName)}',
-                                                    '${fn:escapeXml(req.title)}',
-                                                    '${reqStartDateStr} ~ ${reqEndDateStr}',
-                                                    '${reqCreatedAtStr}',
-                                                    '${req.status}',
-                                                    '${reqStatusLabel}',
-                                                    '${fn:escapeXml(req.productDetail)}',
-                                                    '${fn:escapeXml(reqBannerImageUrl)}'
-                                                )">
+                                                data-event-no="${req.eventNo}"
+                                                data-business-name="${fn:escapeXml(req.businessName)}"
+                                                data-title="${fn:escapeXml(req.title)}"
+                                                data-period="${reqStartDateStr} ~ ${reqEndDateStr}"
+                                                data-created-at="${reqCreatedAtStr}"
+                                                data-status="${req.status}"
+                                                data-approval-label="${req.approvalStatusLabel}"
+                                                data-progress-label="${req.progressStatusLabel}"
+                                                data-product-detail="${fn:escapeXml(req.productDetail)}"
+                                                data-banner-image="${fn:escapeXml(reqBannerImageUrl)}"
+                                                onclick="openEventDetailModal(this)">
 
                                             상세보기
 
@@ -415,12 +491,24 @@
 
                             <tr>
 
-                                <td colspan="8">
+                                <td colspan="9">
 
                                     <c:choose>
 
                                         <c:when test="${currentTab == 'approved'}">
                                             승인 완료된 이벤트가 없습니다.
+                                        </c:when>
+
+                                        <c:when test="${currentTab == 'rejected'}">
+                                            반려된 이벤트가 없습니다.
+                                        </c:when>
+
+                                        <c:when test="${currentTab == 'ongoing'}">
+                                            진행중인 이벤트가 없습니다.
+                                        </c:when>
+
+                                        <c:when test="${currentTab == 'upcoming'}">
+                                            예정된 이벤트가 없습니다.
                                         </c:when>
 
                                         <c:when test="${currentTab == 'end'}">
@@ -503,8 +591,8 @@
     aria-labelledby:
     팝업 제목 요소와 모달을 연결합니다.
 --%>
-<div class="modal-overlay" id="eventRequestModal" role="dialog" aria-modal="true"
-     aria-labelledby="eventRequestModalTitle">
+<dialog class="modal-overlay" id="eventRequestModal" open aria-modal="true"
+        aria-labelledby="eventRequestModalTitle">
 
     <div class="modal-box modal-box-lg">
 
@@ -563,8 +651,13 @@
             </p>
 
             <p>
-                <span>상태</span>
-                <strong id="reqStatus"></strong>
+                <span>승인상태</span>
+                <strong id="reqApprovalStatus"></strong>
+            </p>
+
+            <p>
+                <span>현재상태</span>
+                <strong id="reqProgressStatus"></strong>
             </p>
 
         </div>
@@ -627,7 +720,7 @@
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

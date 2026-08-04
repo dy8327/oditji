@@ -235,13 +235,13 @@
      신규 JSP를 만들지 않고 현재 이벤트 등록 화면 내부에서
      로그인 사업자가 등록한 상품을 검색하고 선택한다.
 ========================================================= -->
-<div class="product-search-modal"
-     id="productSearchModal">
+<dialog class="product-search-modal"
+        id="productSearchModal"
+        open
+        aria-modal="true"
+        aria-labelledby="productSearchModalTitle">
 
-    <div class="product-search-modal-panel"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="productSearchModalTitle">
+    <div class="product-search-modal-panel">
 
         <div class="product-search-modal-header">
 
@@ -469,7 +469,7 @@
 
     </div>
 
-</div>
+</dialog>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 

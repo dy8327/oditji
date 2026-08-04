@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="contentTag" tagdir="/WEB-INF/tags/content" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -153,277 +154,29 @@
 
         <div class="filmography-tab-panels">
 
-            <section class="filmography-tab-panel is-active"
-                     id="filmography-panel-cast"
-                     role="tabpanel"
-                     aria-labelledby="filmography-tab-cast"
-                     data-tab-panel="cast">
+            <contentTag:filmographyWorkPanel
+                    panelKey="cast"
+                    workList="${person.castList}"
+                    active="${true}"
+                    roleLabel="배역"
+                    defaultRole="배역 정보 없음"
+                    emptyMessage="표시할 출연작이 없습니다." />
 
-                <c:choose>
-                    <c:when test="${not empty person.castList}">
-                        <div class="filmography-grid">
-                            <c:forEach var="work"
-                                       items="${person.castList}">
+            <contentTag:filmographyWorkPanel
+                    panelKey="director"
+                    workList="${person.directorList}"
+                    active="${false}"
+                    roleLabel="역할"
+                    defaultRole="감독"
+                    emptyMessage="표시할 감독 작품이 없습니다." />
 
-                                <c:url var="contentPrepareUrl"
-                                       value="/content/prepare">
-                                    <c:param name="tmdbId"
-                                             value="${work.tmdbId}"/>
-                                    <c:param name="contentType"
-                                             value="${work.contentType}"/>
-                                </c:url>
-
-                                <a href="${contentPrepareUrl}"
-                                   class="filmography-card">
-
-                                    <div class="filmography-poster">
-                                        <c:choose>
-                                            <c:when test="${not empty work.posterPath}">
-                                                <img src="https://image.tmdb.org/t/p/w342${work.posterPath}"
-                                                     alt="${work.title}">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div class="filmography-no-image">
-                                                    NO IMAGE
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-
-                                        <span class="filmography-type">
-                                            ${work.contentType}
-                                        </span>
-                                    </div>
-
-                                    <div class="filmography-info">
-                                        <h3>${work.title}</h3>
-
-                                        <div class="filmography-meta">
-                                            <span>
-                                                <c:choose>
-                                                    <c:when test="${not empty work.releaseDate}">
-                                                        ${work.releaseDate}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        공개일 미정
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-
-                                            <c:if test="${not empty work.tmdbScore}">
-                                                <span>⭐ ${work.tmdbScore}</span>
-                                            </c:if>
-                                        </div>
-
-                                        <div class="filmography-role">
-                                            <span class="filmography-role-label">
-                                                배역
-                                            </span>
-                                            <span class="filmography-role-value">
-                                                <c:choose>
-                                                    <c:when test="${not empty work.participationName}">
-                                                        ${work.participationName}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        배역 정보 없음
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </c:forEach>
-                        </div>
-                    </c:when>
-
-                    <c:otherwise>
-                        <div class="empty-state">
-                            표시할 출연작이 없습니다.
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-            </section>
-
-            <section class="filmography-tab-panel"
-                     id="filmography-panel-director"
-                     role="tabpanel"
-                     aria-labelledby="filmography-tab-director"
-                     data-tab-panel="director"
-                     hidden>
-
-                <c:choose>
-                    <c:when test="${not empty person.directorList}">
-                        <div class="filmography-grid">
-                            <c:forEach var="work"
-                                       items="${person.directorList}">
-
-                                <c:url var="contentPrepareUrl"
-                                       value="/content/prepare">
-                                    <c:param name="tmdbId"
-                                             value="${work.tmdbId}"/>
-                                    <c:param name="contentType"
-                                             value="${work.contentType}"/>
-                                </c:url>
-
-                                <a href="${contentPrepareUrl}"
-                                   class="filmography-card">
-
-                                    <div class="filmography-poster">
-                                        <c:choose>
-                                            <c:when test="${not empty work.posterPath}">
-                                                <img src="https://image.tmdb.org/t/p/w342${work.posterPath}"
-                                                     alt="${work.title}">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div class="filmography-no-image">
-                                                    NO IMAGE
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-
-                                        <span class="filmography-type">
-                                            ${work.contentType}
-                                        </span>
-                                    </div>
-
-                                    <div class="filmography-info">
-                                        <h3>${work.title}</h3>
-
-                                        <div class="filmography-meta">
-                                            <span>
-                                                <c:choose>
-                                                    <c:when test="${not empty work.releaseDate}">
-                                                        ${work.releaseDate}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        공개일 미정
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-
-                                            <c:if test="${not empty work.tmdbScore}">
-                                                <span>⭐ ${work.tmdbScore}</span>
-                                            </c:if>
-                                        </div>
-
-                                        <div class="filmography-role">
-                                            <span class="filmography-role-label">
-                                                역할
-                                            </span>
-                                            <span class="filmography-role-value">
-                                                <c:choose>
-                                                    <c:when test="${not empty work.participationName}">
-                                                        ${work.participationName}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        감독
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </c:forEach>
-                        </div>
-                    </c:when>
-
-                    <c:otherwise>
-                        <div class="empty-state">
-                            표시할 감독 작품이 없습니다.
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-            </section>
-
-            <section class="filmography-tab-panel"
-                     id="filmography-panel-production"
-                     role="tabpanel"
-                     aria-labelledby="filmography-tab-production"
-                     data-tab-panel="production"
-                     hidden>
-
-                <c:choose>
-                    <c:when test="${not empty person.productionList}">
-                        <div class="filmography-grid">
-                            <c:forEach var="work"
-                                       items="${person.productionList}">
-
-                                <c:url var="contentPrepareUrl"
-                                       value="/content/prepare">
-                                    <c:param name="tmdbId"
-                                             value="${work.tmdbId}"/>
-                                    <c:param name="contentType"
-                                             value="${work.contentType}"/>
-                                </c:url>
-
-                                <a href="${contentPrepareUrl}"
-                                   class="filmography-card">
-
-                                    <div class="filmography-poster">
-                                        <c:choose>
-                                            <c:when test="${not empty work.posterPath}">
-                                                <img src="https://image.tmdb.org/t/p/w342${work.posterPath}"
-                                                     alt="${work.title}">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div class="filmography-no-image">
-                                                    NO IMAGE
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-
-                                        <span class="filmography-type">
-                                            ${work.contentType}
-                                        </span>
-                                    </div>
-
-                                    <div class="filmography-info">
-                                        <h3>${work.title}</h3>
-
-                                        <div class="filmography-meta">
-                                            <span>
-                                                <c:choose>
-                                                    <c:when test="${not empty work.releaseDate}">
-                                                        ${work.releaseDate}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        공개일 미정
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-
-                                            <c:if test="${not empty work.tmdbScore}">
-                                                <span>⭐ ${work.tmdbScore}</span>
-                                            </c:if>
-                                        </div>
-
-                                        <div class="filmography-role">
-                                            <span class="filmography-role-label">
-                                                역할
-                                            </span>
-                                            <span class="filmography-role-value">
-                                                <c:choose>
-                                                    <c:when test="${not empty work.participationName}">
-                                                        ${work.participationName}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        제작 참여
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </c:forEach>
-                        </div>
-                    </c:when>
-
-                    <c:otherwise>
-                        <div class="empty-state">
-                            표시할 제작 참여 작품이 없습니다.
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-            </section>
+            <contentTag:filmographyWorkPanel
+                    panelKey="production"
+                    workList="${person.productionList}"
+                    active="${false}"
+                    roleLabel="역할"
+                    defaultRole="제작 참여"
+                    emptyMessage="표시할 제작 참여 작품이 없습니다." />
 
             <%--
                 관련 상품 패널도 탭 버튼과 동일하게

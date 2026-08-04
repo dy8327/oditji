@@ -9,9 +9,6 @@ public class WishVO {
     private Integer productNo;
     private Date createdAt;
 
-    public WishVO() {
-    }
-
     public Long getWishNo() {
         return wishNo;
     }

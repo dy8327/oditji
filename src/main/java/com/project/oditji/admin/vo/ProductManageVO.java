@@ -2,6 +2,8 @@ package com.project.oditji.admin.vo;
 
 import java.util.Date;
 
+import com.project.oditji.common.vo.LongProductSummaryVO;
+
 /**
  * 상품 관리 VO (테이블: PRODUCT, BUSINESS/CONTENT/PRODUCT_IMAGE 조인)
  *
@@ -9,30 +11,19 @@ import java.util.Date;
  * PRODUCT 테이블에는 등록/수정/삭제 요청을 구분하는 별도 컬럼이 없어
  * tab(register/update/delete) 구분 없이 STATUS 기준으로 동일하게 조회한다.
  */
-public class ProductManageVO {
+public class ProductManageVO extends LongProductSummaryVO {
 
-    private Long productNo;
     private Long businessNo;
     private String businessName;  // BUSINESS 조인
     private Long contentNo;
     private String contentTitle;  // CONTENT 조인
-    private String productName;
     private String productType;
-    private Long price;
     private Integer discountRate;
     private Integer stock;
     private String description;
     private String status;        // WAITING, APPROVED, REJECTED
     private String mainImage;     // PRODUCT_IMAGE 중 IS_MAIN='Y' 조인
     private Date createdAt;
-
-    public Long getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Long productNo) {
-        this.productNo = productNo;
-    }
 
     public Long getBusinessNo() {
         return businessNo;
@@ -66,28 +57,12 @@ public class ProductManageVO {
         this.contentTitle = contentTitle;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
     public String getProductType() {
         return productType;
     }
 
     public void setProductType(String productType) {
         this.productType = productType;
-    }
-
-    public Long getPrice() {
-        return price;
-    }
-
-    public void setPrice(Long price) {
-        this.price = price;
     }
 
     public Integer getDiscountRate() {

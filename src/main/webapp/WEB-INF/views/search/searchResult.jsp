@@ -115,9 +115,8 @@
             </header>
 
             <%-- 본문에만 탭을 두어 사이드바의 중복 탭을 제거합니다. --%>
-            <div class="search-result-tabs"
-                 aria-label="검색 결과 유형"
-                 role="group">
+            <fieldset class="search-result-tabs">
+                <legend class="search-sr-only">검색 결과 유형</legend>
 
                 <button type="button"
                         class="search-result-tab"
@@ -142,7 +141,7 @@
                     <span>상품</span>
                     <b><fmt:formatNumber value="${goodsTotalCount}"/></b>
                 </button>
-            </div>
+            </fieldset>
 
             <%-- 선택한 필터를 결과 상단에서 바로 확인하고 한 개씩 제거할 수 있습니다. --%>
             <c:if test="${hasActiveFilter}">

@@ -202,20 +202,28 @@ public class GoodsServiceImpl implements GoodsService {
     public Map<String, Object> getGoodsContent(int productNo) {
 
         if (productNo <= 0) {
-            return null;
+            return Collections.emptyMap();
         }
 
-        return goodsDAO.selectGoodsContent(productNo);
+        Map<String, Object> content = goodsDAO.selectGoodsContent(productNo);
+
+        return content == null
+                ? Collections.emptyMap()
+                : content;
     }
 
     @Override
     public Map<String, Object> getGoodsActor(int productNo) {
 
         if (productNo <= 0) {
-            return null;
+            return Collections.emptyMap();
         }
 
-        return goodsDAO.selectGoodsActor(productNo);
+        Map<String, Object> actor = goodsDAO.selectGoodsActor(productNo);
+
+        return actor == null
+                ? Collections.emptyMap()
+                : actor;
     }
 
     /* 상품 상세 클릭 로그 저장 */

@@ -48,6 +48,8 @@ public class OrderController {
 
         private static final String ORDER_SHEET_SESSION_KEY = "orderSheet";
         private static final String PAYMENT_PREPARE_SESSION_KEY = "orderPaymentPrepare";
+        private static final String RESPONSE_REDIRECT_URL = "redirectUrl";
+        private static final String ORDER_LIST_URL = "/order/list";
         private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
         private final OrderService orderService;
@@ -91,7 +93,7 @@ public class OrderController {
                         session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
 
                         Map<String, Object> response = successResponse("주문서를 작성해주세요.");
-                        response.put("redirectUrl", "/order");
+                        response.put(RESPONSE_REDIRECT_URL, "/order");
 
                         return response;
 
@@ -128,7 +130,7 @@ public class OrderController {
                         session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
 
                         Map<String, Object> response = successResponse("주문서를 작성해주세요.");
-                        response.put("redirectUrl", "/order");
+                        response.put(RESPONSE_REDIRECT_URL, "/order");
 
                         return response;
 
@@ -202,9 +204,9 @@ public class OrderController {
                         OrderPaymentPrepareVO prepareVO = orderService.preparePayment(
                                         loginMember.getMemberNo(),
                                         sheetItems,
-                                        requestVO.getReceiverName(),
-                                        requestVO.getReceiverPhone(),
-                                        requestVO.getAddress());
+                                        requestVO.receiverName(),
+                                        requestVO.receiverPhone(),
+                                        requestVO.address());
 
                         prepareVO.setStoreId(storeId);
                         prepareVO.setChannelKey(paymentChannelKey);
@@ -269,7 +271,7 @@ public class OrderController {
                         Map<String, Object> response = successResponse("결제와 주문이 완료되었습니다.");
 
                         response.put("orderNo", orderNo);
-                        response.put("redirectUrl", "/order/complete/" + orderNo);
+                        response.put(RESPONSE_REDIRECT_URL, "/order/complete/" + orderNo);
 
                         return response;
 
@@ -317,7 +319,7 @@ public class OrderController {
                                         requestVO.getReason());
 
                         Map<String, Object> response = successResponse("주문 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put("redirectUrl", "/order/list");
+                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
 
                         return response;
 
@@ -363,7 +365,7 @@ public class OrderController {
                                         requestVO.getReason());
 
                         Map<String, Object> response = successResponse("상품 부분 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put("redirectUrl", "/order/list");
+                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
                         return response;
 
                 } catch (IllegalArgumentException e) {
@@ -407,7 +409,7 @@ public class OrderController {
 
                         Map<String, Object> response = successResponse(
                                         "선택한 상품의 취소/환불 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put("redirectUrl", "/order/list");
+                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
                         return response;
 
                 } catch (IllegalArgumentException e) {
@@ -484,7 +486,7 @@ public class OrderController {
 
                 int totalCount = orderService.getOrderCount(loginMember.getMemberNo());
                 int totalPage = Math.max(1, (int) Math.ceil((double) totalCount / pageSize));
-                int currentPage = Math.max(1, Math.min(page, totalPage));
+                int currentPage = Math.clamp(page, 1, totalPage);
                 int startRow = (currentPage - 1) * pageSize + 1;
                 int endRow = currentPage * pageSize;
 

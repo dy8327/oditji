@@ -4,9 +4,6 @@ public class AdultVerifyRequestVO {
 
     private String verifyId;
 
-    public AdultVerifyRequestVO() {
-    }
-
     public String getVerifyId() {
         return verifyId;
     }

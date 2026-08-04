@@ -5,11 +5,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultVO;
 
@@ -31,6 +31,7 @@ public class RankingServiceImpl implements RankingService {
 
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 100;
+    private static final String PLATFORM_WAVVE = "wavve";
 
     /**
      * 현재 JSONL 최대 적재량보다 넉넉하게 조회합니다.
@@ -67,7 +68,7 @@ public class RankingServiceImpl implements RankingService {
             List.of(
                     "Netflix",
                     "TVING",
-                    "wavve",
+                    PLATFORM_WAVVE,
                     "Disney Plus",
                     "Watcha",
                     "Coupangplay"
@@ -121,7 +122,7 @@ public class RankingServiceImpl implements RankingService {
                 normalizeLimit(limit);
 
         String normalizedPlatformName =
-                normalizePlatformName(
+                PlatformNameNormalizer.toDisplayName(
                         platformName
                 );
 
@@ -202,20 +203,13 @@ public class RankingServiceImpl implements RankingService {
          */
         for (SearchResultVO content : sourceList) {
 
-            if (content == null) {
-                continue;
-            }
-
-            double tmdbScore =
-                    safeDouble(
+            if (content != null
+                    && safeDouble(
                             content.getTmdbScore()
-                    );
+                    ) >= MINIMUM_TMDB_SCORE) {
 
-            if (tmdbScore < MINIMUM_TMDB_SCORE) {
-                continue;
+                filteredList.add(content);
             }
-
-            filteredList.add(content);
         }
 
         if (filteredList.isEmpty()) {
@@ -318,14 +312,12 @@ public class RankingServiceImpl implements RankingService {
          * 비정상적인 값이 들어와도 0~10으로 제한합니다.
          */
         double tmdbScore =
-                Math.max(
+                Math.clamp(
+                        safeDouble(
+                                content.getTmdbScore()
+                        ),
                         0.0,
-                        Math.min(
-                                safeDouble(
-                                        content.getTmdbScore()
-                                ),
-                                10.0
-                        )
+                        10.0
                 );
 
         double popularityScore = 0.0;
@@ -373,65 +365,6 @@ public class RankingServiceImpl implements RankingService {
         return value == null
                 ? 0.0
                 : value;
-    }
-
-    /**
-     * 다양한 OTT 표기를 프로젝트 내부 표기로 통일합니다.
-     */
-    private String normalizePlatformName(
-            String platformName) {
-
-        if (platformName == null
-                || platformName.isBlank()) {
-
-            return null;
-        }
-
-        String normalized =
-                platformName.trim()
-                        .toLowerCase(Locale.ROOT)
-                        .replaceAll(
-                                "[^a-z0-9가-힣]",
-                                ""
-                        );
-
-        if (normalized.contains("netflix")
-                || normalized.contains("넷플릭스")) {
-
-            return "Netflix";
-        }
-
-        if (normalized.contains("tving")
-                || normalized.contains("티빙")) {
-
-            return "TVING";
-        }
-
-        if (normalized.contains("wavve")
-                || normalized.contains("웨이브")) {
-
-            return "wavve";
-        }
-
-        if (normalized.contains("disney")
-                || normalized.contains("디즈니")) {
-
-            return "Disney Plus";
-        }
-
-        if (normalized.contains("watcha")
-                || normalized.contains("왓챠")) {
-
-            return "Watcha";
-        }
-
-        if (normalized.contains("coupang")
-                || normalized.contains("쿠팡")) {
-
-            return "Coupangplay";
-        }
-
-        return null;
     }
 
     /**

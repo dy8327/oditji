@@ -140,27 +140,32 @@ public class SearchContentPolicyService {
             return false;
         }
 
-        for (int index = 0; index < title.length();) {
+        int index = 0;
+
+        while (index < title.length()) {
 
             int codePoint = title.codePointAt(index);
             index += Character.charCount(codePoint);
 
-            if (!Character.isLetter(codePoint)) {
-                continue;
+            if (Character.isLetter(codePoint)
+                    && !isSupportedTitleScript(codePoint)) {
+
+                return true;
             }
-
-            Character.UnicodeScript script =
-                    Character.UnicodeScript.of(codePoint);
-
-            if (script == Character.UnicodeScript.HANGUL
-                    || script == Character.UnicodeScript.LATIN) {
-                continue;
-            }
-
-            return true;
         }
 
         return false;
+    }
+
+
+    private boolean isSupportedTitleScript(
+            int codePoint) {
+
+        Character.UnicodeScript script =
+                Character.UnicodeScript.of(codePoint);
+
+        return script == Character.UnicodeScript.HANGUL
+                || script == Character.UnicodeScript.LATIN;
     }
 
     /**

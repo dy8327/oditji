@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="commonTag" tagdir="/WEB-INF/tags/common" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 
@@ -12,7 +13,7 @@
     <title>ODITJI | OTT 선택</title>
     <link rel="stylesheet" href="${contextPath}/css/layout.css">
     <link rel="stylesheet" href="${contextPath}/css/member.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
     <script src="${pageContext.request.contextPath}/js/member.js"></script>
 
@@ -101,38 +102,7 @@
                         <span class="sns-ott-mark"></span>
 
                         <span>
-                            <c:choose>
-                                <c:when test="${platform.platformName eq 'Netflix'}">
-                                    넷플릭스
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney Plus'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Disney+'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Tving'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'TVING'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Wavve'}">
-                                    웨이브
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Watcha'}">
-                                    왓챠
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupangplay'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:when test="${platform.platformName eq 'Coupang Play'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:otherwise>
-                                    ${platform.platformName}
-                                </c:otherwise>
-                            </c:choose>
+                            <commonTag:platformDisplayName platformName="${platform.platformName}"/>
                         </span>
                     </label>
 

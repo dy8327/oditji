@@ -1,77 +1,16 @@
 package com.project.oditji.order.vo;
 
-import java.io.Serializable;
+import com.project.oditji.common.vo.ProductSaleInfoVO;
 
 /**
- * 주문서(order.jsp) 작성 단계에서 사용하는 임시 주문 품목 정보.
- *
- * 장바구니에서 선택한 상품 또는 상품 상세의 "바로 구매"로 담긴 상품을
- * 결제 전까지 세션(OrderSheetVO)에 보관하기 위한 용도이며,
- * ORDER_ITEM 테이블과 1:1로 대응되지 않는다 (주문 완료 전 단계).
+ * 주문서 작성 단계에서 세션에 보관하는 임시 주문 품목 정보입니다.
  */
-public class OrderSheetItemVO implements Serializable {
+public class OrderSheetItemVO extends ProductSaleInfoVO {
 
     private static final long serialVersionUID = 1L;
 
-    private Integer productNo;
-    // [상품 옵션 기능 추가] 선택한 색상-사이즈 옵션
-    private Long optionNo;
-    private String colorName;
-    private String sizeName;
     private Integer businessNo;
-
-    /*
-     * 장바구니에서 담겨온 경우에만 값이 존재한다.
-     * 주문 완료 시 이 번호에 해당하는 CART_ITEM을 삭제하는 데 사용한다.
-     * 바로 구매(직접 구매)로 담긴 경우 null이다.
-     */
     private Long cartItemNo;
-
-    private String productName;
-    private String productType;
-    private Integer price;
-    private Integer discountRate;
-    private Integer stock;
-    private String status;
-    private String businessName;
-    private String mainImage;
-
-    private Integer quantity;
-
-    public OrderSheetItemVO() {
-    }
-
-    public Long getOptionNo() {
-        return optionNo;
-    }
-
-    public void setOptionNo(Long optionNo) {
-        this.optionNo = optionNo;
-    }
-
-    public String getColorName() {
-        return colorName;
-    }
-
-    public void setColorName(String colorName) {
-        this.colorName = colorName;
-    }
-
-    public String getSizeName() {
-        return sizeName;
-    }
-
-    public void setSizeName(String sizeName) {
-        this.sizeName = sizeName;
-    }
-
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
 
     public Integer getBusinessNo() {
         return businessNo;
@@ -87,115 +26,5 @@ public class OrderSheetItemVO implements Serializable {
 
     public void setCartItemNo(Long cartItemNo) {
         this.cartItemNo = cartItemNo;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductType() {
-        return productType;
-    }
-
-    public void setProductType(String productType) {
-        this.productType = productType;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
-
-    public Integer getDiscountRate() {
-        return discountRate;
-    }
-
-    public void setDiscountRate(Integer discountRate) {
-        this.discountRate = discountRate;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getBusinessName() {
-        return businessName;
-    }
-
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
-
-    public String getMainImage() {
-        return mainImage;
-    }
-
-    public void setMainImage(String mainImage) {
-        this.mainImage = mainImage;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public int getDiscountPrice() {
-
-        int originalPrice = price == null ? 0 : price;
-        int rate = discountRate == null ? 0 : discountRate;
-
-        if (rate < 0) {
-            rate = 0;
-        }
-
-        if (rate > 100) {
-            rate = 100;
-        }
-
-        return originalPrice * (100 - rate) / 100;
-    }
-
-    public long getItemTotalPrice() {
-
-        int itemQuantity = quantity == null ? 0 : quantity;
-
-        return (long) getDiscountPrice() * itemQuantity;
-    }
-
-    /**
-     * 주문 시점 기준 정상 주문 가능 여부.
-     * 상품 승인 상태(APPROVED)와 재고 수량을 함께 확인한다.
-     */
-    public boolean isAvailable() {
-
-        int currentStock = stock == null ? 0 : stock;
-        int currentQuantity = quantity == null ? 0 : quantity;
-
-        return "APPROVED".equals(status)
-                && currentStock > 0
-                && currentQuantity >= 1
-                && currentQuantity <= currentStock;
     }
 }

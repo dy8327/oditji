@@ -1,6 +1,6 @@
 package com.project.oditji.member.service;
 
-import com.project.oditji.member.vo.GoogleLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 
 /**
  * Google OAuth 로그인 서비스 인터페이스입니다.
@@ -25,5 +25,5 @@ public interface GoogleLoginService {
      * @param code Google OAuth 인증 코드
      * @return 신규 회원 여부와 ODITJI 회원정보
      */
-    GoogleLoginResultVO googleLogin(String code);
+    SocialLoginResultVO googleLogin(String code);
 }

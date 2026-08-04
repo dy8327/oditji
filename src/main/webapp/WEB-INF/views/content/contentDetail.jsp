@@ -911,8 +911,7 @@
                                         <button type="button"
                                                 class="report-btn"
                                                 data-review-type="CONTENT"
-                                                data-review-no="${r.reviewNo}"
-                                                aria-label="${r.writer}님의 리뷰 신고">
+                                                data-review-no="${r.reviewNo}">
                                             🚨 신고
                                         </button>
 
@@ -1011,8 +1010,9 @@
 </section>
 
 <%-- [추가] 예/아니오 버튼을 표시하는 스포일러 확인 모달 --%>
-<div id="spoilerConfirmModal" class="spoiler-confirm-modal" hidden>
-    <div class="spoiler-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="spoilerConfirmTitle">
+<dialog id="spoilerConfirmModal" class="spoiler-confirm-modal" open hidden
+        aria-modal="true" aria-labelledby="spoilerConfirmTitle">
+    <div class="spoiler-confirm-dialog">
         <h3 id="spoilerConfirmTitle">스포일러 안내</h3>
         <p>스포일러가 포함되어있습니다.<br>계속 보시겠습니까?</p>
         <div class="spoiler-confirm-actions">
@@ -1020,7 +1020,7 @@
             <button type="button" id="spoilerConfirmYes" class="btn">예</button>
         </div>
     </div>
-</div>
+</dialog>
 
 <div id="reportModal"
      class="modal-overlay"

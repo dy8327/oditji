@@ -2,67 +2,22 @@ package com.project.oditji.business.vo;
 
 import java.util.Date;
 
-public class ContentSearchVO {
+import com.project.oditji.common.vo.ContentMetadataVO;
 
-    private long contentNo;
-    private long tmdbId;
-    private String contentType;
-    private String title;
-    private String originalTitle;
-    private String posterPath;
+/**
+ * 사업자 상품 등록 화면의 콘텐츠 검색 결과입니다.
+ */
+public class ContentSearchVO extends ContentMetadataVO {
+
+    private Long contentNo;
     private Date releaseDate;
-    private String genreText;
-    private String ageRating;
 
-    public ContentSearchVO() {
-    }
-
-    public long getContentNo() {
+    public Long getContentNo() {
         return contentNo;
     }
 
-    public void setContentNo(long contentNo) {
+    public void setContentNo(Long contentNo) {
         this.contentNo = contentNo;
-    }
-
-    public long getTmdbId() {
-        return tmdbId;
-    }
-
-    public void setTmdbId(long tmdbId) {
-        this.tmdbId = tmdbId;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getOriginalTitle() {
-        return originalTitle;
-    }
-
-    public void setOriginalTitle(String originalTitle) {
-        this.originalTitle = originalTitle;
-    }
-
-    public String getPosterPath() {
-        return posterPath;
-    }
-
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
     }
 
     public Date getReleaseDate() {
@@ -73,34 +28,18 @@ public class ContentSearchVO {
         this.releaseDate = releaseDate;
     }
 
-    public String getGenreText() {
-        return genreText;
-    }
-
-    public void setGenreText(String genreText) {
-        this.genreText = genreText;
-    }
-
-    public String getAgeRating() {
-        return ageRating;
-    }
-
-    public void setAgeRating(String ageRating) {
-        this.ageRating = ageRating;
-    }
-
     @Override
     public String toString() {
         return "ContentSearchVO{" +
                 "contentNo=" + contentNo +
-                ", tmdbId=" + tmdbId +
-                ", contentType='" + contentType + '\'' +
-                ", title='" + title + '\'' +
-                ", originalTitle='" + originalTitle + '\'' +
-                ", posterPath='" + posterPath + '\'' +
+                ", tmdbId=" + getTmdbId() +
+                ", contentType='" + getContentType() + '\'' +
+                ", title='" + getTitle() + '\'' +
+                ", originalTitle='" + getOriginalTitle() + '\'' +
+                ", posterPath='" + getPosterPath() + '\'' +
                 ", releaseDate=" + releaseDate +
-                ", genreText='" + genreText + '\'' +
-                ", ageRating='" + ageRating + '\'' +
+                ", genreText='" + getGenreText() + '\'' +
+                ", ageRating='" + getAgeRating() + '\'' +
                 '}';
     }
 }

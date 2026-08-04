@@ -10,9 +10,6 @@ public class MemberSocialVO {
     private String providerUserId;
     private Date createdAt;
 
-    public MemberSocialVO() {
-    }
-
     public int getSocialNo() {
         return socialNo;
     }

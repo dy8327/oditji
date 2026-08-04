@@ -1,32 +1,23 @@
 package com.project.oditji.order.vo;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrderPaymentPrepareVO implements Serializable {
+import com.project.oditji.common.vo.OrderAddressBaseVO;
+
+/**
+ * 결제창 호출 전에 서버가 확정한 주문명·금액·상품 목록을 전달합니다.
+ */
+public class OrderPaymentPrepareVO extends OrderAddressBaseVO {
 
     private static final long serialVersionUID = 1L;
 
     private String paymentId;
     private String orderName;
     private Long totalAmount;
-
-    private String receiverName;
-    private String receiverPhone;
-    private String address;
-
     private String storeId;
     private String channelKey;
-
-    /*
-     * 결제 준비 시점에 서버가 DB에서 다시 조회한 상품 정보.
-     * 브라우저가 보내는 가격이 아니라 이 목록의 가격을 사용한다.
-     */
     private List<OrderSheetItemVO> items = new ArrayList<OrderSheetItemVO>();
-
-    public OrderPaymentPrepareVO() {
-    }
 
     public String getPaymentId() {
         return paymentId;
@@ -52,30 +43,6 @@ public class OrderPaymentPrepareVO implements Serializable {
         this.totalAmount = totalAmount;
     }
 
-    public String getReceiverName() {
-        return receiverName;
-    }
-
-    public void setReceiverName(String receiverName) {
-        this.receiverName = receiverName;
-    }
-
-    public String getReceiverPhone() {
-        return receiverPhone;
-    }
-
-    public void setReceiverPhone(String receiverPhone) {
-        this.receiverPhone = receiverPhone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
     public String getStoreId() {
         return storeId;
     }
@@ -97,7 +64,6 @@ public class OrderPaymentPrepareVO implements Serializable {
     }
 
     public void setItems(List<OrderSheetItemVO> items) {
-
         this.items = items == null
                 ? new ArrayList<OrderSheetItemVO>()
                 : items;

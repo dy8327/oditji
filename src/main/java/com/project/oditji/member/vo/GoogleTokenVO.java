@@ -27,9 +27,6 @@ public class GoogleTokenVO {
     @JsonProperty("id_token")
     private String idToken;
 
-    public GoogleTokenVO() {
-    }
-
     public String getAccessToken() {
         return accessToken;
     }

@@ -8,9 +8,6 @@ public class CartVO {
     private Long memberNo;
     private Date createdAt;
 
-    public CartVO() {
-    }
-
     public Long getCartNo() {
         return cartNo;
     }

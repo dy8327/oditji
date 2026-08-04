@@ -12,6 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | 주문 현황</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
+<script defer src="${pageContext.request.contextPath}/js/business.js"></script>
 </head>
 <body>
 
@@ -89,10 +90,15 @@
                                         </c:choose>
                                     </td>
                                     <td>
-                                        <a class="btn btn-dark"
-                                           href="${pageContext.request.contextPath}/business/order/detail?orderNo=${order.orderNo}">
+                                        <%-- [리팩터링] 페이지 이동 대신 모달을 연다. 목록 조회 시점에 이미
+                                             주문 상세와 동일한 데이터(배송지/상품 목록 포함)를 들고 있으므로
+                                             별도 서버 호출 없이 아래에서 order 단위로 미리 렌더링해 둔
+                                             #orderDetailModal_해당주문번호 를 그대로 연다. --%>
+                                        <button type="button"
+                                                class="btn btn-dark"
+                                                onclick="openModal('orderDetailModal_${order.orderNo}')">
                                             상세보기
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -106,6 +112,133 @@
                 </tbody>
             </table>
         </section>
+
+        <%--
+            [리팩터링 추가] 주문 상세보기 모달
+            orderDetail.jsp(페이지 이동 방식)에서 쓰던 마크업을 그대로 옮겨,
+            주문마다 별도 모달로 미리 렌더링해 둔다. orderList 조회 시점에
+            order.items / receiverName / receiverPhone / address / totalAmount가
+            이미 채워져 있으므로(getBusinessOrderList == getBusinessOrderDetail과
+            동일한 데이터 구성) 추가 컨트롤러 호출 없이 그대로 사용한다.
+        --%>
+        <c:forEach var="order" items="${orderList}">
+
+            <div class="modal-overlay" id="orderDetailModal_${order.orderNo}">
+
+                <div class="modal-box modal-box-lg">
+
+                    <div class="modal-header">
+                        <h3>주문 상세 정보</h3>
+                        <button type="button"
+                                class="modal-close"
+                                onclick="closeModal('orderDetailModal_${order.orderNo}')"
+                                aria-label="닫기">
+                            &times;
+                        </button>
+                    </div>
+
+                    <article class="item-card">
+                        <div class="item-info">
+                            <h3>주문번호 : ${order.orderNo}</h3>
+                            <div class="meta">
+                                <span>주문일 : <fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>상품명</th>
+                                <th>상품번호</th>
+                                <th>수량</th>
+                                <th>판매단가</th>
+                                <th>판매금액</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="item" items="${order.items}">
+                                <tr>
+                                    <td><c:out value="${item.productName}"/></td>
+                                    <td>${item.productNo}</td>
+                                    <td>${item.quantity}개</td>
+                                    <td><fmt:formatNumber value="${item.productPrice}" pattern="#,###"/>원</td>
+                                    <td><fmt:formatNumber value="${item.productPrice * item.quantity}" pattern="#,###"/>원</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${item.status eq 'PAID'}">
+                                                <span class="status waiting">결제 완료</span>
+                                            </c:when>
+                                            <c:when test="${item.status eq 'PREPARING'}">
+                                                <span class="status waiting">상품 준비 중</span>
+                                            </c:when>
+                                            <c:when test="${item.status eq 'SHIPPING'}">
+                                                <span class="status waiting">배송 중</span>
+                                            </c:when>
+                                            <c:when test="${item.status eq 'DELIVERED'}">
+                                                <span class="status ok">배송 완료</span>
+                                            </c:when>
+                                            <c:when test="${item.status eq 'CANCELED'}">
+                                                <span class="status reject">취소</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="status">${item.status}</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+
+                    <article class="item-card">
+                        <div class="item-info">
+                            <h3>배송지 정보</h3>
+                            <div class="meta">
+                                <span>수령인 : <c:out value="${order.receiverName}"/></span>
+                                <span>연락처 : <c:out value="${order.receiverPhone}"/></span>
+                                <span>주소 : <c:out value="${order.address}"/></span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <div class="summary-box">
+                        <p>
+                            <span>내 상품 판매금액</span>
+                            <strong><fmt:formatNumber value="${order.totalAmount}" pattern="#,###"/>원</strong>
+                        </p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-outline"
+                                onclick="closeModal('orderDetailModal_${order.orderNo}')">
+                            닫기
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </c:forEach>
+
+        <%--
+            [리팩터링 추가] 알림 딥링크로 들어온 경우(openOrderNo 파라미터) 목록이
+            로드된 뒤 해당 주문의 상세 모달을 자동으로 연다.
+            (구 orderDetail.jsp 진입 링크를 대체 - BusinessController 참고)
+        --%>
+        <c:if test="${not empty param.openOrderNo}">
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.openModal === "function") {
+                        window.openModal("orderDetailModal_<c:out value='${param.openOrderNo}'/>");
+                    }
+                });
+            </script>
+        </c:if>
+
     </main>
 </div>
 

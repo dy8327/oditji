@@ -26,6 +26,9 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/cart")
 public class CartController {
 
+    private static final String RESPONSE_CART_COUNT = "cartCount";
+    private static final String RESPONSE_SUCCESS = "success";
+
     private final CartService cartService;
     private static final Logger log = LoggerFactory.getLogger(CartController.class);
 
@@ -80,7 +83,7 @@ public class CartController {
                     requestVO.getQuantity());
 
             Map<String, Object> response = successResponse("장바구니에 상품을 담았습니다.");
-            response.put("cartCount", cartCount);
+            response.put(RESPONSE_CART_COUNT, cartCount);
 
             return response;
 
@@ -142,7 +145,7 @@ public class CartController {
             cartService.deleteCartItem(loginMember.getMemberNo(), requestVO.getCartItemNo());
 
             Map<String, Object> response = successResponse("장바구니에서 상품을 삭제했습니다.");
-            response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
+            response.put(RESPONSE_CART_COUNT, cartService.countCartItems(loginMember.getMemberNo()));
 
             return response;
 
@@ -172,7 +175,7 @@ public class CartController {
             cartService.deleteSelectedCartItems(loginMember.getMemberNo(), requestVO.getCartItemNos());
 
             Map<String, Object> response = successResponse("선택한 상품을 삭제했습니다.");
-            response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
+            response.put(RESPONSE_CART_COUNT, cartService.countCartItems(loginMember.getMemberNo()));
 
             return response;
 
@@ -196,14 +199,14 @@ public class CartController {
         Map<String, Object> response = new LinkedHashMap<String, Object>();
 
         if (loginMember == null) {
-            response.put("success", true);
-            response.put("cartCount", 0);
+            response.put(RESPONSE_SUCCESS, true);
+            response.put(RESPONSE_CART_COUNT, 0);
 
             return response;
         }
 
-        response.put("success", true);
-        response.put("cartCount", cartService.countCartItems(loginMember.getMemberNo()));
+        response.put(RESPONSE_SUCCESS, true);
+        response.put(RESPONSE_CART_COUNT, cartService.countCartItems(loginMember.getMemberNo()));
 
         return response;
     }
@@ -226,7 +229,7 @@ public class CartController {
     private Map<String, Object> successResponse(String message) {
         Map<String, Object> response = new LinkedHashMap<String, Object>();
 
-        response.put("success", true);
+        response.put(RESPONSE_SUCCESS, true);
         response.put("message", message);
 
         return response;
@@ -235,7 +238,7 @@ public class CartController {
     private Map<String, Object> failResponse(String message) {
         Map<String, Object> response = new LinkedHashMap<String, Object>();
 
-        response.put("success", false);
+        response.put(RESPONSE_SUCCESS, false);
         response.put("message", message);
 
         return response;

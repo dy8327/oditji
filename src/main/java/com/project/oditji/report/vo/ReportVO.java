@@ -24,9 +24,6 @@ public class ReportVO {
     private Date processedAt;
     private Date updatedAt;
 
-    public ReportVO() {
-    }
-
     public int getReportNo() {
         return reportNo;
     }

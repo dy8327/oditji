@@ -13,9 +13,6 @@ public class IdentityVerifyLogVO {
     private String adultYn;
     private String rawStatus;
 
-    public IdentityVerifyLogVO() {
-    }
-
     public long getVerifyNo() {
         return verifyNo;
     }

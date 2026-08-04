@@ -1,17 +1,15 @@
 package com.project.oditji.order.vo;
 
-public class OrderItemVO {
+import com.project.oditji.common.vo.ProductSelectionVO;
+
+public class OrderItemVO extends ProductSelectionVO {
 
     private Long orderItemNo;
     private Long orderNo;
-    private Integer productNo;
-    // [상품 옵션 기능 추가] 선택한 색상-사이즈 옵션
-    private Long optionNo;
     private String colorName;
     private String sizeName;
     private Integer businessNo;
     private Integer productPrice;
-    private Integer quantity;
     private String status;
 
     /*
@@ -46,9 +44,6 @@ public class OrderItemVO {
     private String cancelType;
     private String cancelRejectReason;
 
-    public OrderItemVO() {
-    }
-
     public Long getOrderItemNo() {
         return orderItemNo;
     }
@@ -63,14 +58,6 @@ public class OrderItemVO {
 
     public void setOrderNo(Long orderNo) {
         this.orderNo = orderNo;
-    }
-
-    public Long getOptionNo() {
-        return optionNo;
-    }
-
-    public void setOptionNo(Long optionNo) {
-        this.optionNo = optionNo;
     }
 
     public String getColorName() {
@@ -89,14 +76,6 @@ public class OrderItemVO {
         this.sizeName = sizeName;
     }
 
-    public Integer getProductNo() {
-        return productNo;
-    }
-
-    public void setProductNo(Integer productNo) {
-        this.productNo = productNo;
-    }
-
     public Integer getBusinessNo() {
         return businessNo;
     }
@@ -111,14 +90,6 @@ public class OrderItemVO {
 
     public void setProductPrice(Integer productPrice) {
         this.productPrice = productPrice;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     public String getStatus() {
@@ -206,6 +177,7 @@ public class OrderItemVO {
     public long getItemTotalPrice() {
 
         int unitPrice = productPrice == null ? 0 : productPrice;
+        Integer quantity = getQuantity();
         int itemQuantity = quantity == null ? 0 : quantity;
 
         return (long) unitPrice * itemQuantity;

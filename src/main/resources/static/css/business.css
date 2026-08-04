@@ -1425,6 +1425,148 @@
 }
 
 /* =====================================================
+   [신규] 공용 모달 컴포넌트 (사업자 페이지 화면이동 → 모달 리팩토링 선행 작업)
+
+   관리자 페이지(admin.css)의 .modal-overlay/.modal-box, openModal/closeModal
+   패턴을 "아이디어와 클래스 네이밍 규칙"만 참고해서 business.css/business.js
+   안에 독립적으로 새로 작성했다. admin.css를 import하거나 참조하지 않는다.
+
+   패널/헤더/닫기 버튼의 톤은 기존 .product-search-modal(바로 아래 섹션)의
+   스타일을 그대로 참고해서 맞췄다(어두운 패널 배경 #25272b, 테두리 #3b3e46 등).
+
+   상품 수정/삭제, 이벤트 수정/연장, 주문 상세 등 지금까지 별도 JSP로
+   화면이 이동하던 5개 화면이 전부 이 공용 컴포넌트 위에서 모달로 열린다.
+   화면마다 모달 스타일을 새로 만들지 않고 이 클래스들을 그대로 재사용한다.
+   ===================================================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  padding: 28px;
+  border: 1px solid #3b3e46;
+  border-radius: var(--biz-radius-md);
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: #25272b;
+
+  /* Firefox: 스크롤바를 팝업 톤에 맞춰 얇고 어둡게 */
+  scrollbar-width: thin;
+  scrollbar-color: #3b3e46 transparent;
+}
+
+/* Chrome / Edge / Safari 스크롤바 커스텀 */
+.modal-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-box::-webkit-scrollbar-thumb {
+  background-color: #3b3e46;
+  border-radius: 8px;
+  border: 2px solid #25272b;
+}
+
+.modal-box::-webkit-scrollbar-thumb:hover {
+  background-color: var(--biz-point);
+}
+
+/*
+ * 주문 상세보기처럼 담을 내용이 많은 모달에서 기본 폭(560px)이 좁게
+ * 느껴질 때 이 클래스를 추가해서 폭을 넓힌다.
+ * (.product-search-modal-panel과 동일하게 1000px까지 허용)
+ */
+.modal-box.modal-box-lg {
+  max-width: 1000px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--biz-text);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  border-radius: 50%;
+  color: var(--biz-text-sub);
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: var(--biz-transition);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--biz-text);
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--biz-point);
+  outline-offset: 2px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-footer .btn {
+  flex: 1;
+}
+
+@media (max-width: 760px) {
+  .modal-overlay {
+    padding: 15px;
+  }
+
+  .modal-box {
+    padding: 20px;
+  }
+}
+
+/* =====================================================
    [리팩터링 추가] 이벤트 등록/수정 - 연결 상품 검색 모달
    eventRegister.jsp / eventUpdate.jsp에 각각 인라인으로 있던
    <style> 블록을 이 파일로 옮긴 것이다. 두 화면이 쓰던 내용이
@@ -1434,6 +1576,11 @@
   display: none;
   position: fixed;
   inset: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
   z-index: 1000;
   align-items: center;
   justify-content: center;
@@ -2755,4 +2902,36 @@
   .business-wrap .option-remove-btn {
     width: 100%;
   }
+}
+
+.business-wrap .option-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 16px;
+  margin-bottom: 5px;
+
+  border: 1px solid var(--biz-point);
+  border-radius: var(--biz-radius-sm);
+
+  background: var(--biz-surface-2);
+  color: var(--biz-point);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: var(--biz-transition);
+}
+
+.business-wrap .option-add-btn:hover {
+  background: var(--biz-point-strong);
+  border-color: var(--biz-point-strong);
+  color: #fff;
+}
+
+.product-option-row:first-child .option-remove-btn {
+    display: inline-flex !important;
+    visibility: hidden;
 }
