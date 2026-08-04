@@ -629,15 +629,23 @@ function initActiveMenu() {
   });
 }
 
-/** 검색창 Enter 및 포커스 처리 */
+/** 헤더 검색창 입력 검증 및 포커스 처리 */
 function initHeaderSearch() {
-  const searchInput = document.querySelector(".header-search input");
-  if (!searchInput) return;
+  const searchForm = document.getElementById("headerSearchForm");
+  const searchInput = document.getElementById("headerSearchKeyword");
+  if (!searchForm || !searchInput) return;
 
-  searchInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.target.closest("form")?.submit();
+  searchForm.addEventListener("submit", async (event) => {
+    const keyword = searchInput.value.trim();
+
+    if (!keyword) {
+      event.preventDefault();
+      await showAlert("검색어를 입력하세요.", "warning");
+      searchInput.focus();
+      return;
     }
+
+    searchInput.value = keyword;
   });
 
   searchInput.addEventListener("focus", () => {

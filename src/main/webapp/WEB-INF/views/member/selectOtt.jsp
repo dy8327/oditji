@@ -16,6 +16,11 @@
     <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
     <script src="${pageContext.request.contextPath}/js/member.js"></script>
+
+    <%-- Spring Security CSRF 토큰: common.js가 form/fetch 요청에 자동 적용합니다. --%>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
+    <meta name="_csrf_parameter" content="${_csrf.parameterName}">
 </head>
 <body data-context-path="${contextPath}">
 
