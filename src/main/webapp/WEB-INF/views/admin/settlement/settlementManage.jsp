@@ -216,7 +216,7 @@
                                     (신청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqCreatedAtStr /
                                     reqStatusLabel 등과 동일한 방식)
                                 --%>
-                                <fmt:formatDate var="settlementCreatedAtStr" value="${settlement.requestedAt}" pattern="yyyy-MM-dd"/>
+                                <fmt:formatDate var="settlementRequestedAtStr" value="${settlement.requestedAt}" pattern="yyyy-MM-dd"/>
 
                                 <c:choose>
                                     <c:when test="${settlement.status == 'DONE'}">
