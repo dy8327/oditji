@@ -38,6 +38,7 @@ import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 import com.project.oditji.notification.service.NotificationService;
 
 /**
@@ -542,43 +543,177 @@ class AdminServiceImplTest {
     }
 
     @Test
-    void settlementProcessingShouldValidateUpdateAndNotify() {
+    void settlementProcessingShouldValidateArgumentsAndRequestState() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.confirmSettlement(0L, "2026-08"));
+                () -> adminService.confirmSettlement(0L));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> adminService.rejectSettlement(0L, "반려 사유"));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> adminService.rejectSettlement(1L, " "));
 
-        when(adminDAO.updateSettlementStatus(1L, "2026-08", "DONE"))
-                .thenReturn(0);
+        when(adminDAO.selectSettlementRequest(1L)).thenReturn(null);
         assertThrows(
                 IllegalStateException.class,
-                () -> adminService.confirmSettlement(1L, "2026-08"));
+                () -> adminService.confirmSettlement(1L));
 
-        when(adminDAO.updateSettlementStatus(2L, "2026-08", "DONE"))
-                .thenReturn(2);
-        adminService.confirmSettlement(2L, "2026-08");
-        verify(notificationService).createForBusiness(
+        SettlementRequestVO completedRequest = settlementRequest(
                 2L,
-                "SETTLEMENT_APPROVED",
-                "정산 확인 완료",
-                "2026-08 정산 입금 확인이 완료되었습니다.",
-                "/business/settlement/complete",
-                "BUSINESS",
-                2L);
+                20L,
+                "2026-08",
+                "DONE");
+        when(adminDAO.selectSettlementRequest(2L)).thenReturn(completedRequest);
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.confirmSettlement(2L));
 
-        when(adminDAO.updateSettlementStatus(3L, "2026-08", "REJECTED"))
+        when(adminDAO.selectSettlementRequest(3L)).thenReturn(null);
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.rejectSettlement(3L, "계좌 확인 필요"));
+
+        SettlementRequestVO rejectedRequest = settlementRequest(
+                4L,
+                40L,
+                "2026-08",
+                "REJECTED");
+        when(adminDAO.selectSettlementRequest(4L)).thenReturn(rejectedRequest);
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.rejectSettlement(4L, "계좌 확인 필요"));
+    }
+
+    @Test
+    void confirmSettlementShouldValidateUpdatesAndNotifyBusiness() {
+        SettlementRequestVO updateFailureRequest = settlementRequest(
+                10L,
+                100L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(10L)).thenReturn(updateFailureRequest);
+        when(adminDAO.updateSettlementRequestStatus(10L, "DONE", null))
+                .thenReturn(0);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.confirmSettlement(10L));
+
+        SettlementRequestVO itemFailureRequest = settlementRequest(
+                11L,
+                110L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(11L)).thenReturn(itemFailureRequest);
+        when(adminDAO.updateSettlementRequestStatus(11L, "DONE", null))
                 .thenReturn(1);
-        adminService.rejectSettlement(3L, "2026-08");
+        when(adminDAO.completeSettlementItems(11L)).thenReturn(0);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.confirmSettlement(11L));
+
+        SettlementRequestVO successRequest = settlementRequest(
+                12L,
+                120L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(12L)).thenReturn(successRequest);
+        when(adminDAO.updateSettlementRequestStatus(12L, "DONE", null))
+                .thenReturn(1);
+        when(adminDAO.completeSettlementItems(12L)).thenReturn(2);
+
+        adminService.confirmSettlement(12L);
+
         verify(notificationService).createForBusiness(
-                3L,
+                120L,
+                "SETTLEMENT_APPROVED",
+                "정산 지급 완료",
+                "2026-08 정산금 지급이 완료되었습니다.",
+                "/business/settlement/complete",
+                "SETTLEMENT_REQUEST",
+                12L);
+    }
+
+    @Test
+    void rejectSettlementShouldValidateUpdatesAndNotifyBusiness() {
+        SettlementRequestVO updateFailureRequest = settlementRequest(
+                20L,
+                200L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(20L)).thenReturn(updateFailureRequest);
+        when(adminDAO.updateSettlementRequestStatus(
+                20L,
+                "REJECTED",
+                "계좌 확인 필요"))
+                .thenReturn(0);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.rejectSettlement(
+                        20L,
+                        "계좌 확인 필요"));
+
+        SettlementRequestVO releaseFailureRequest = settlementRequest(
+                21L,
+                210L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(21L)).thenReturn(releaseFailureRequest);
+        when(adminDAO.updateSettlementRequestStatus(
+                21L,
+                "REJECTED",
+                "계좌 확인 필요"))
+                .thenReturn(1);
+        when(adminDAO.releaseRejectedSettlementItems(21L)).thenReturn(0);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.rejectSettlement(
+                        21L,
+                        "계좌 확인 필요"));
+
+        SettlementRequestVO successRequest = settlementRequest(
+                22L,
+                220L,
+                "2026-08",
+                "REQUESTED");
+        when(adminDAO.selectSettlementRequest(22L)).thenReturn(successRequest);
+        when(adminDAO.updateSettlementRequestStatus(
+                22L,
+                "REJECTED",
+                "계좌 확인 필요"))
+                .thenReturn(1);
+        when(adminDAO.releaseRejectedSettlementItems(22L)).thenReturn(3);
+
+        adminService.rejectSettlement(
+                22L,
+                "  계좌 확인 필요  ");
+
+        verify(notificationService).createForBusiness(
+                220L,
                 "SETTLEMENT_REJECTED",
-                "정산 확인 반려",
-                "2026-08 정산 입금 확인 요청이 반려되었습니다.",
-                "/business/settlement/main",
-                "BUSINESS",
-                3L);
+                "정산 요청 반려",
+                "2026-08 정산 요청이 반려되었습니다. 사유: 계좌 확인 필요",
+                "/business/settlement/complete",
+                "SETTLEMENT_REQUEST",
+                22L);
+    }
+
+    private SettlementRequestVO settlementRequest(
+            Long requestNo,
+            Long businessNo,
+            String settlementMonth,
+            String status) {
+
+        SettlementRequestVO request = new SettlementRequestVO();
+        request.setRequestNo(requestNo);
+        request.setBusinessNo(businessNo);
+        request.setSettlementMonth(settlementMonth);
+        request.setStatus(status);
+        return request;
     }
 
     @Test
