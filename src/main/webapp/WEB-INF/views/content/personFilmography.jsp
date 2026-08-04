@@ -29,59 +29,79 @@
                 onclick="history.back()">← 뒤로가기</button>
     </div>
 
-    <section class="person-hero">
+    <%--
+        [강화] 콘텐츠 상세페이지(contentDetail.jsp)에서 만든 히어로
+        백드롭 + 글래스 카드 언어를 인물 상세페이지에도 동일하게
+        적용해 사이트 전체의 시각적 일관성을 맞춘다.
+        별도 백드롭 이미지 컬럼이 없으므로 프로필 이미지를 재사용하며,
+        순수 장식용 레이어라 스크린리더에는 노출하지 않는다.
+        아래 person-hero의 마크업·EL 로직은 전혀 건드리지 않았다.
+    --%>
+    <section class="content-hero">
 
-        <div class="person-hero-profile">
-            <c:choose>
-                <c:when test="${not empty person.profilePath}">
-                    <img src="https://image.tmdb.org/t/p/h632${person.profilePath}"
-                         alt="${person.personName}">
-                </c:when>
-                <c:otherwise>
-                    <div class="person-hero-no-image">NO IMAGE</div>
-                </c:otherwise>
-            </c:choose>
-        </div>
+        <c:if test="${not empty person.profilePath}">
+            <div class="content-hero-backdrop"
+                 style="background-image:url('https://image.tmdb.org/t/p/w1280${person.profilePath}');"
+                 aria-hidden="true">
+            </div>
+        </c:if>
 
-        <div class="person-hero-info">
-            <span class="person-role-badge">
+        <div class="content-hero-scrim" aria-hidden="true"></div>
+
+        <section class="person-hero">
+
+            <div class="person-hero-profile">
                 <c:choose>
-                    <c:when test="${person.role eq 'ACTOR'}">배우</c:when>
-                    <c:when test="${person.role eq 'CREATOR'}">크리에이터</c:when>
-                    <c:otherwise>감독</c:otherwise>
+                    <c:when test="${not empty person.profilePath}">
+                        <img src="https://image.tmdb.org/t/p/h632${person.profilePath}"
+                             alt="${person.personName}">
+                    </c:when>
+                    <c:otherwise>
+                        <div class="person-hero-no-image">NO IMAGE</div>
+                    </c:otherwise>
                 </c:choose>
-            </span>
-
-            <h1>${person.personName}</h1>
-
-            <div class="person-basic-info">
-                <c:if test="${not empty person.birthday}">
-                    <span>생년월일 ${person.birthday}</span>
-                </c:if>
-
-                <c:if test="${not empty person.placeOfBirth}">
-                    <span>출생지 ${person.placeOfBirth}</span>
-                </c:if>
             </div>
 
-            <c:choose>
-                <c:when test="${not empty person.biography}">
-                    <p class="person-biography">${person.biography}</p>
-                </c:when>
-                <c:otherwise>
-                    <p class="person-biography person-biography-empty">
-                        등록된 인물 소개가 없습니다.
-                    </p>
-                </c:otherwise>
-            </c:choose>
-        </div>
+            <div class="person-hero-info">
+                <span class="person-role-badge">
+                    <c:choose>
+                        <c:when test="${person.role eq 'ACTOR'}">배우</c:when>
+                        <c:when test="${person.role eq 'CREATOR'}">크리에이터</c:when>
+                        <c:otherwise>감독</c:otherwise>
+                    </c:choose>
+                </span>
+
+                <h1>${person.personName}</h1>
+
+                <div class="person-basic-info">
+                    <c:if test="${not empty person.birthday}">
+                        <span class="meta-chip">생년월일 ${person.birthday}</span>
+                    </c:if>
+
+                    <c:if test="${not empty person.placeOfBirth}">
+                        <span class="meta-chip">출생지 ${person.placeOfBirth}</span>
+                    </c:if>
+                </div>
+
+                <c:choose>
+                    <c:when test="${not empty person.biography}">
+                        <p class="person-biography">${person.biography}</p>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="person-biography person-biography-empty">
+                            등록된 인물 소개가 없습니다.
+                        </p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </section>
     </section>
 
     <section class="filmography-section"
              data-filmography-tabs>
 
         <div class="filmography-header">
-            <div>
+            <div class="filmography-header-title">
                 <h2>필모그래피</h2>
                 <p class="filmography-summary">
                     출연, 감독 및 제작 참여 작품을 확인할 수 있습니다.
