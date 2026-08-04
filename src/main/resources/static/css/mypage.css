@@ -673,6 +673,17 @@
     width: 100%;
   }
 
+  .mypage-ott-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .mypage-ott-chip {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .mypage-business-banner {
     flex-direction: column;
 

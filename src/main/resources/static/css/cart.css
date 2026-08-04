@@ -439,19 +439,20 @@
 .checkout-btn {
   width: 100%;
   min-height: 46px;
-  border: 0;
+  border: 1px solid #2f6fe4;
   border-radius: 8px;
-  background: #ffffff;
-  color: #111111;
+  background: #2f6fe4;
+  color: #ffffff;
   font-family: inherit;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .checkout-btn:hover {
-  background: #e5e5e5;
+  border-color: #2559c4;
+  background: #2559c4;
 }
 
 .checkout-btn:disabled {
@@ -527,16 +528,17 @@
 
   width: fit-content;
 
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.06);
 
-  color: #666;
+  color: #c9c9c9;
   font-size: 12px;
   line-height: 1.4;
 }
 
 .cart-item-option .option-label {
-  color: #333;
+  color: #ffffff;
   font-weight: 600;
 }
 

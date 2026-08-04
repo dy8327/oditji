@@ -465,7 +465,10 @@
    클릭 시 .header-search가 헤더 아래로 펼쳐진다)
 ========================================================= */
 
-.header-search-toggle {
+/* [수정] .icon-btn(display:flex)과 클래스 우선순위가 같아서 소스 순서상
+   .icon-btn에 덮어써지던 문제 → 클래스 두 개를 함께 지정해 우선순위를
+   .icon-btn보다 높여서 확실히 숨긴다. */
+.icon-btn.header-search-toggle {
   display: none;
 }
 
@@ -884,98 +887,25 @@
   .header {
     height: 70px;
   }
-}
-@media (max-width:768px){
 
-    .header{
+  .header-container {
+    gap: 15px;
+  }
 
-        height:70px;
-
-    }
-
-    .header-container{
-
-        gap:15px;
-
-    }
-
-    .header-search-toggle{
-
-        display:flex;
-
-    }
-
-    .header-search{
-
-        position:absolute;
-
-        top:calc(100% + 1px);
-
-        left:2%;
-
-        right:2%;
-
-        margin:0;
-
-        padding:12px;
-
-        background:#23262B;
-
-        border:1px solid var(--color-border);
-
-        border-radius:0 0 16px 16px;
-
-        box-shadow:0 18px 35px rgba(0,0,0,.36);
-
-        opacity:0;
-
-        visibility:hidden;
-
-        transform:translateY(-8px);
-
-        pointer-events:none;
-
-        transition:var(--transition);
-
-    }
-
-    .header-search.open{
-
-        opacity:1;
-
-        visibility:visible;
-
-        transform:translateY(0);
-
-        pointer-events:auto;
-
-    }
-
-    .header-search form{
-
-        width:100%;
-
-        max-width:none;
-
-    }
-
-    .profile-btn span{
-
-        display:none;
-
-  /* [수정] 팀원 코드의 모바일 기본 레이아웃과 모바일 검색 토글 기능을 함께 사용합니다. */
-  .header-search-toggle {
+  /* 모바일 검색 토글 버튼: 768px 이하에서만 노출 */
+  .icon-btn.header-search-toggle {
     display: flex;
   }
 
-  /* [수정] display:none 대신 접힌 검색 영역으로 유지해야 .open 클래스가 동작합니다. */
+  /* 헤더 아래로 펼쳐지는 모바일 검색창.
+     display:none 대신 opacity/visibility로 숨겨야
+     .open 클래스가 붙었을 때 JS 토글이 정상 동작한다. */
   .header-search {
     position: absolute;
     top: calc(100% + 1px);
     left: 2%;
     right: 2%;
     z-index: 10040;
-    display: flex;
     margin: 0;
     padding: 12px;
     background: #23262b;
@@ -989,10 +919,16 @@
     transition: var(--transition);
   }
 
-        display:none;
-    }
-  .header-search {
-    display: none;
+  .header-search.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .header-search form {
+    width: 100%;
+    max-width: none;
   }
 
   .profile-btn span {

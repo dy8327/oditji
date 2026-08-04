@@ -876,6 +876,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 12px;
 
   padding: 8px 0;
 
@@ -889,11 +890,21 @@
   border-bottom: none;
 }
 
+.complete-info div > span {
+  flex: none;
+}
+
 .complete-info strong {
+  min-width: 0;
+
   color: var(--oditji-text);
   font-family: var(--font-mono);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .complete-items {
@@ -1079,6 +1090,16 @@
 
   .complete-actions a {
     text-align: center;
+  }
+
+  .complete-info div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .complete-info strong {
+    text-align: left;
   }
 
   .address-search-row {
@@ -2080,11 +2101,16 @@
 }
 
 @media (max-width: 560px) {
-  .order-tabs {
+  .order-tabs,
+  .order-list-container .order-tabs {
     width: 100%;
   }
 
-  .order-tab-btn {
+  /* [수정] .order-list-container .order-tab-btn(min-width:132px)이
+     클래스 2개짜리라 우선순위가 더 높아서, 아래 min-width:0이
+     실제로는 적용되지 않던 문제를 같은 우선순위로 맞춰서 고친다. */
+  .order-tab-btn,
+  .order-list-container .order-tab-btn {
     flex: 1;
     min-width: 0;
   }
@@ -2982,6 +3008,11 @@
     padding: 18px;
   }
 
+  .order-list-container .order-card .ticket-divider {
+    margin-right: -18px;
+    margin-left: -18px;
+  }
+
   .order-list-container .order-card-header {
     align-items: flex-start;
     flex-direction: column;
@@ -3021,5 +3052,64 @@
   .order-list-container .refund-search-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* [수정] .order-list-container .refund-table 의 table-layout:fixed 와
+     열별 고정폭(nth-child) 규칙이 일반 모바일 카드형 규칙보다 상세도가 높아
+     좁은 고정폭 안에서 라벨/값이 줄바꿈되어 겹쳐 보이던 문제를 해결한다. */
+  .order-list-container .refund-table {
+    table-layout: auto;
+  }
+
+  .order-list-container .refund-table th:nth-child(1),
+  .order-list-container .refund-table td:nth-child(1),
+  .order-list-container .refund-table th:nth-child(2),
+  .order-list-container .refund-table td:nth-child(2),
+  .order-list-container .refund-table th:nth-child(4),
+  .order-list-container .refund-table td:nth-child(4),
+  .order-list-container .refund-table th:nth-child(5),
+  .order-list-container .refund-table td:nth-child(5),
+  .order-list-container .refund-table th:nth-child(6),
+  .order-list-container .refund-table td:nth-child(6),
+  .order-list-container .refund-table th:nth-child(7),
+  .order-list-container .refund-table td:nth-child(7) {
+    width: 100%;
+  }
+
+  .order-list-container .refund-table thead {
+    display: none;
+  }
+
+  .order-list-container .refund-table,
+  .order-list-container .refund-table tbody,
+  .order-list-container .refund-table tbody tr,
+  .order-list-container .refund-table tbody td {
+    display: block;
+    width: 100%;
+  }
+
+  .order-list-container .refund-table tbody tr {
+    padding: 14px 16px;
+  }
+
+  .order-list-container .refund-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: none;
+  }
+
+  .order-list-container .refund-table tbody td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--oditji-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .order-list-container .refund-table tbody tr + tr {
+    border-top: 1px solid #303036;
   }
 }
