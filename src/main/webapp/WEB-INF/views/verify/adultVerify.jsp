@@ -128,7 +128,9 @@
 <script>
     window.verifyConfig = {
         contextPath: "<%= contextPath %>",
-        returnUrl: "<%= returnUrl %>"
+        returnUrl: "<%= returnUrl %>",
+        csrfToken: "${_csrf.token}",
+        csrfHeader: "${_csrf.headerName}"
     };
 </script>
 
