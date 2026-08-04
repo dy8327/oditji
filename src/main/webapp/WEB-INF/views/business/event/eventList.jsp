@@ -94,18 +94,18 @@
 
             </div>
 
-            <table class="data-table">
+            <table class="data-table mobile-fit-table">
 
                 <thead>
 
                     <tr>
-                        <th>번호</th>
+                        <th class="col-hide-mobile">번호</th>
                         <th>이벤트명</th>
                         <th>연결 상품</th>
-                        <th>할인 적용가</th>
-                        <th>이벤트 기간</th>
-                        <th>상태</th>
-                        <th>등록일</th>
+                        <th class="col-hide-mobile">할인 적용가</th>
+                        <th class="col-hide-mobile">이벤트 기간</th>
+                        <th class="col-hide-mobile">상태</th>
+                        <th class="col-hide-mobile">등록일</th>
                         <th>관리</th>
                     </tr>
 
@@ -122,19 +122,35 @@
 
                                 <tr>
 
-                                    <td>
+                                    <td class="col-hide-mobile">
                                         <c:out value="${event.eventNo}"/>
                                     </td>
 
+                                    <%--
+                                        [2단계] 모바일에서는 상태 뱃지 컬럼을 숨기는 대신,
+                                        이벤트명 텍스트 색상으로 상태를 표시한다(mobile-status-text
+                                        는 max-width:768px 미디어쿼리 안에서만 색을 입히므로
+                                        데스크톱 표시는 그대로 유지된다).
+                                    --%>
+                                    <c:set var="eventStatusClass">
+                                        <c:choose>
+                                            <c:when test="${event.status eq 'APPROVED'}">st-ok</c:when>
+                                            <c:when test="${event.status eq 'WAITING'}">st-waiting</c:when>
+                                            <c:otherwise>st-reject</c:otherwise>
+                                        </c:choose>
+                                    </c:set>
+
                                     <td>
-                                        <c:out value="${event.title}"/>
+                                        <span class="mobile-status-text ${fn:trim(eventStatusClass)}">
+                                            <c:out value="${event.title}"/>
+                                        </span>
                                     </td>
 
                                     <td>
                                         <c:out value="${event.productName}"/>
                                     </td>
 
-                                    <td>
+                                    <td class="col-hide-mobile">
 
                                         <c:choose>
 
@@ -168,13 +184,13 @@
 
                                     </td>
 
-                                    <td>
+                                    <td class="col-hide-mobile">
                                         <c:out value="${event.startDate}"/>
                                         ~
                                         <c:out value="${event.endDate}"/>
                                     </td>
 
-                                    <td>
+                                    <td class="col-hide-mobile">
 
                                         <c:choose>
 
@@ -222,66 +238,86 @@
 
                                     </td>
 
-                                    <td>
+                                    <td class="col-hide-mobile">
                                         <fmt:formatDate value="${event.createdAt}"
                                                         pattern="yyyy-MM-dd"/>
                                     </td>
 
                                     <td>
 
-                                        <!--
-                                            관리자 승인이 완료된 APPROVED 이벤트만
-                                            즉시 수정 또는 연장할 수 있다.
-                                        -->
-                                        <c:choose>
+                                        <%--
+                                            [2단계] 데스크톱 마크업/동작은 그대로 유지하고,
+                                            desktop-only-el로 감싼다.
+                                        --%>
+                                        <div class="desktop-only-el">
 
-                                            <c:when test="${event.status eq 'APPROVED'}">
+                                            <!--
+                                                관리자 승인이 완료된 APPROVED 이벤트만
+                                                즉시 수정 또는 연장할 수 있다.
+                                            -->
+                                            <c:choose>
 
-                                                <%--
-                                                    [리팩터링] 페이지 이동 대신 공용 수정 모달(#eventUpdateModal)을
-                                                    연다. 이벤트마다 모달을 복제하지 않는 이유는 상품 수정 모달과
-                                                    동일하다 - 상품 검색 팝업/날짜 최소값 제한/이미지 파일명 표시
-                                                    로직(business.js)이 고정된 element id를 기준으로 동작하기
-                                                    때문이다. 제목/설명/기간처럼 값이 하나뿐인 필드는 이 버튼의
-                                                    data-* 값으로 싣고, openEventUpdateModal(this)이 그 값을
-                                                    폼에 채운 뒤 모달을 연다. 연결 상품처럼 개수가 정해지지 않은
-                                                    값은 아래 숨김 template(#eventProductData_${event.eventNo})에서
-                                                    읽어온다.
-                                                --%>
-                                                <button type="button"
-                                                        class="btn btn-dark"
-                                                        data-event-no="${event.eventNo}"
-                                                        data-title="${fn:escapeXml(event.title)}"
-                                                        data-description="${fn:escapeXml(event.description)}"
-                                                        data-start-date="${event.startDate}"
-                                                        data-end-date="${event.endDate}"
-                                                        data-banner-image="${fn:escapeXml(event.bannerImage)}"
-                                                        onclick="openEventUpdateModal(this)">
-                                                    수정
-                                                </button>
+                                                <c:when test="${event.status eq 'APPROVED'}">
 
-                                                <%-- [리팩터링] 페이지 이동 대신 모달을 연다. --%>
-                                                <button type="button"
-                                                        class="btn btn-dark"
-                                                        onclick="openModal('eventExtendModal_${event.eventNo}')">
-                                                    연장
-                                                </button>
+                                                    <%--
+                                                        [리팩터링] 페이지 이동 대신 공용 수정 모달(#eventUpdateModal)을
+                                                        연다. 이벤트마다 모달을 복제하지 않는 이유는 상품 수정 모달과
+                                                        동일하다 - 상품 검색 팝업/날짜 최소값 제한/이미지 파일명 표시
+                                                        로직(business.js)이 고정된 element id를 기준으로 동작하기
+                                                        때문이다. 제목/설명/기간처럼 값이 하나뿐인 필드는 이 버튼의
+                                                        data-* 값으로 싣고, openEventUpdateModal(this)이 그 값을
+                                                        폼에 채운 뒤 모달을 연다. 연결 상품처럼 개수가 정해지지 않은
+                                                        값은 아래 숨김 template(#eventProductData_${event.eventNo})에서
+                                                        읽어온다.
+                                                    --%>
+                                                    <button type="button"
+                                                            class="btn btn-dark"
+                                                            data-event-no="${event.eventNo}"
+                                                            data-title="${fn:escapeXml(event.title)}"
+                                                            data-description="${fn:escapeXml(event.description)}"
+                                                            data-start-date="${event.startDate}"
+                                                            data-end-date="${event.endDate}"
+                                                            data-banner-image="${fn:escapeXml(event.bannerImage)}"
+                                                            onclick="openEventUpdateModal(this)">
+                                                        수정
+                                                    </button>
 
-                                            </c:when>
+                                                    <%-- [리팩터링] 페이지 이동 대신 모달을 연다. --%>
+                                                    <button type="button"
+                                                            class="btn btn-dark"
+                                                            onclick="openModal('eventExtendModal_${event.eventNo}')">
+                                                        연장
+                                                    </button>
 
-                                            <c:when test="${event.status eq 'WAITING'}">
-                                                승인 대기 중
-                                            </c:when>
+                                                </c:when>
 
-                                            <c:when test="${event.status eq 'REJECTED'}">
-                                                승인 반려
-                                            </c:when>
+                                                <c:when test="${event.status eq 'WAITING'}">
+                                                    승인 대기 중
+                                                </c:when>
 
-                                            <c:otherwise>
-                                                처리 불가
-                                            </c:otherwise>
+                                                <c:when test="${event.status eq 'REJECTED'}">
+                                                    승인 반려
+                                                </c:when>
 
-                                        </c:choose>
+                                                <c:otherwise>
+                                                    처리 불가
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </div>
+
+                                        <%--
+                                            [2단계] 모바일에서는 상태별 여러 버튼/문구 대신
+                                            "상세보기" 버튼 하나로 통합한다. 숨겨진 컬럼(번호/할인
+                                            적용가/이벤트 기간/상태/등록일)과 상태별 조치는
+                                            #eventDetailModal_${event.eventNo}에서 확인/수행한다.
+                                        --%>
+                                        <button type="button"
+                                                class="btn btn-dark mobile-only-el"
+                                                onclick="openModal('eventDetailModal_${event.eventNo}')">
+                                            상세보기
+                                        </button>
 
                                     </td>
 
@@ -471,6 +507,161 @@
                 </div>
 
             </c:if>
+
+        </c:forEach>
+
+        <%--
+            [2단계 모바일 반응형 추가] 이벤트 상세보기 모달 (모바일 전용 진입점)
+
+            모바일 화면에서는 관리 컬럼의 여러 버튼/문구 대신 "상세보기"
+            버튼 하나만 노출한다(business.css의 .mobile-only-el 참고).
+            이 모달은 모바일에서 숨겨진 컬럼(번호/할인 적용가/이벤트
+            기간/상태/등록일) 정보를 읽기 전용으로 보여주고, APPROVED
+            이벤트라면 기존 수정/연장 모달을 그대로 여는 버튼을 제공한다.
+            새로운 서버 호출이나 데이터는 필요 없다 - eventList에 이미
+            들어있는 값만 사용한다. 데스크톱 마크업/동작은 건드리지 않고,
+            이 모달 자체가 .mobile-only-el 트리거로만 열린다.
+        --%>
+        <c:forEach var="event" items="${eventList}">
+
+            <div class="modal-overlay" id="eventDetailModal_${event.eventNo}">
+
+                <div class="modal-box">
+
+                    <div class="modal-header">
+                        <h3>이벤트 상세 정보</h3>
+                        <button type="button"
+                                class="modal-close"
+                                onclick="closeModal('eventDetailModal_${event.eventNo}')"
+                                aria-label="닫기">
+                            &times;
+                        </button>
+                    </div>
+
+                    <div class="detail-grid">
+
+                        <div>
+                            <span class="detail-label">번호</span>
+                            <p><c:out value="${event.eventNo}"/></p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">상태</span>
+                            <p>
+                                <c:choose>
+                                    <c:when test="${event.status eq 'APPROVED'}">
+                                        <span class="status ok">승인 완료</span>
+                                    </c:when>
+                                    <c:when test="${event.status eq 'WAITING'}">
+                                        <span class="status waiting">승인 대기</span>
+                                    </c:when>
+                                    <c:when test="${event.status eq 'REJECTED'}">
+                                        <span class="status">승인 반려</span>
+                                    </c:when>
+                                    <c:when test="${event.status eq 'END'}">
+                                        <span class="status">종료</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="status"><c:out value="${event.status}"/></span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">이벤트명</span>
+                            <p><c:out value="${event.title}"/></p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">연결 상품</span>
+                            <p><c:out value="${event.productName}"/></p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">할인 적용가</span>
+                            <p>
+                                <c:choose>
+                                    <c:when test="${event.eventDiscountRate > 0 and not empty event.price}">
+                                        <span class="discount-rate"><c:out value="${event.eventDiscountRate}"/>%</span>
+                                        <s><fmt:formatNumber value="${event.price}" pattern="#,###"/>원</s>
+                                        →
+                                        <strong><fmt:formatNumber value="${event.discountedPrice}" pattern="#,###"/>원</strong>
+                                    </c:when>
+                                    <c:otherwise>할인 없음</c:otherwise>
+                                </c:choose>
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">이벤트 기간</span>
+                            <p><c:out value="${event.startDate}"/> ~ <c:out value="${event.endDate}"/></p>
+                        </div>
+
+                        <div>
+                            <span class="detail-label">등록일</span>
+                            <p><fmt:formatDate value="${event.createdAt}" pattern="yyyy-MM-dd"/></p>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <c:choose>
+
+                            <c:when test="${event.status eq 'APPROVED'}">
+
+                                <%--
+                                    데스크톱 "수정" 버튼과 동일한 data-* 값을 실어 두고,
+                                    상세 모달을 닫은 뒤 그대로 openEventUpdateModal(this)를
+                                    호출한다(같은 함수가 openModal('eventUpdateModal')까지
+                                    처리하므로 별도 호출이 필요 없다).
+                                --%>
+                                <button type="button"
+                                        class="btn btn-dark"
+                                        data-event-no="${event.eventNo}"
+                                        data-title="${fn:escapeXml(event.title)}"
+                                        data-description="${fn:escapeXml(event.description)}"
+                                        data-start-date="${event.startDate}"
+                                        data-end-date="${event.endDate}"
+                                        data-banner-image="${fn:escapeXml(event.bannerImage)}"
+                                        onclick="closeModal('eventDetailModal_${event.eventNo}'); openEventUpdateModal(this)">
+                                    수정
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-dark"
+                                        onclick="closeModal('eventDetailModal_${event.eventNo}'); openModal('eventExtendModal_${event.eventNo}')">
+                                    연장
+                                </button>
+
+                            </c:when>
+
+                            <c:when test="${event.status eq 'WAITING'}">
+                                <span class="form-help">승인 대기 중인 이벤트입니다.</span>
+                            </c:when>
+
+                            <c:when test="${event.status eq 'REJECTED'}">
+                                <span class="form-help">승인 반려된 이벤트입니다.</span>
+                            </c:when>
+
+                            <c:otherwise>
+                                <span class="form-help">처리할 수 없는 이벤트입니다.</span>
+                            </c:otherwise>
+
+                        </c:choose>
+
+                        <button type="button"
+                                class="btn btn-outline"
+                                onclick="closeModal('eventDetailModal_${event.eventNo}')">
+                            닫기
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </c:forEach>
 

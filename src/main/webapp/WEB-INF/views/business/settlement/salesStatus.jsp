@@ -53,39 +53,52 @@
                     </p>
                 </c:if>
 
-                <%-- 선택한 조회 기간의 판매 요약 정보를 표시한다. --%>
-                <div class="info-list">
+                <%--
+                    선택한 조회 기간의 판매 요약 정보를 표시한다.
 
-                    <div class="info-row">
-                        <strong>
-                            조회 기간 매출 :
-                        </strong>
+                    [리팩터링] 기존 .info-list/.info-row는 별도 스타일이 없어
+                    모바일에서 텍스트가 줄줄이 나열되는 것처럼 보였다. 정산
+                    현황(.settlement-summary-grid) 등 다른 화면에서 이미 쓰고
+                    있는 카드형 요약(.summary-grid/.summary-card) 스타일을
+                    그대로 재사용해 모바일에서도 항목별로 구분되는 카드로
+                    보이게 한다(1100px 이하 2열, 600px 이하 2열+여백 축소는
+                    기존 CSS에 이미 정의되어 있어 추가 스타일 없이 적용됨).
+                --%>
+                <div class="summary-grid">
+
+                    <div class="summary-card">
 
                         <span>
+                            조회 기간 매출
+                        </span>
+
+                        <strong>
                             <fmt:formatNumber
                                     value="${salesStatus.dailySales}"
                                     pattern="#,##0"/>원
-                        </span>
+                        </strong>
                     </div>
 
-                    <div class="info-row">
-                        <strong>
-                            최다 판매 상품 :
-                        </strong>
+                    <div class="summary-card">
 
                         <span>
+                            최다 판매 상품
+                        </span>
+
+                        <strong>
                             ${salesStatus.productName}
-                        </span>
+                        </strong>
                     </div>
 
-                    <div class="info-row">
-                        <strong>
-                            주문 건수 :
-                        </strong>
+                    <div class="summary-card">
 
                         <span>
-                            ${salesStatus.orderCount}건
+                            주문 건수
                         </span>
+
+                        <strong>
+                            ${salesStatus.orderCount}건
+                        </strong>
                     </div>
 
                 </div>
@@ -155,7 +168,7 @@
                 </h2>
 
                 <%-- 조회 기간을 날짜별로 집계한 판매 내역을 표시한다. --%>
-                <table class="data-table">
+                <table class="data-table mobile-card-table">
 
                     <thead>
                         <tr>
@@ -176,15 +189,15 @@
                                            items="${salesHistory}">
 
                                     <tr>
-                                        <td>
+                                        <td data-label="날짜">
                                             ${row.saleDate}
                                         </td>
 
-                                        <td>
+                                        <td data-label="판매 수량">
                                             ${row.quantity}
                                         </td>
 
-                                        <td>
+                                        <td data-label="매출액">
                                             <fmt:formatNumber
                                                     value="${row.amount}"
                                                     pattern="#,##0"/>원

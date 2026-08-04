@@ -747,13 +747,23 @@
   font-size: 11px;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1700px) {
   .goods-detail-layout {
     grid-template-columns: 200px minmax(0, 1fr) 260px;
   }
 }
 
-@media (max-width: 1100px) {
+/*
+ * [수정] 기존에는 이 기준이 1100px이었는데, 그 사이(1100~1500px)에서는
+ * 사이드바(240px+280px 고정)는 그대로 붙어있으면서 가운데 본문 카드만
+ * 좁아져 상품 이미지(280px 고정) + 3열 뱃지 정보 + 구매 버튼이 서로
+ * 밀리며 "S..." 같은 텍스트 잘림, 버튼 찌그러짐이 발생했다(윈도우
+ * 화면 분할처럼 브라우저 창을 절반으로 줄였을 때 흔히 걸리는 폭).
+ * 본문 카드가 실제로 필요로 하는 최소 폭을 고려해 1열로 전환되는
+ * 기준을 1500px로 올려서, 애매하게 좁은 구간 없이 바로 1열 스택으로
+ * 넘어가게 한다.
+ */
+@media (max-width: 1500px) {
   .goods-detail-layout {
     grid-template-columns: 1fr;
   }
