@@ -2000,6 +2000,114 @@
 }
 
 /*
+ * [모바일 리팩토링] 이벤트 상세 팝업의 "적용 상품" 표(.product-detail-table).
+ *
+ * 기존에는 다른 관리자 목록 표처럼 컬럼을 숨기는 방식을 쓰지 않아, 좁은 화면에서
+ * 상품명/판매자/기존가격/할인율/적용가격 5개 컬럼이 그대로 눌린 채 표시되면서
+ * 글자가 칸 폭에 맞춰 제멋대로 줄바꿈됐다. 이 표는 항상 좁은 모달(.modal-box-lg)
+ * 안에서만 쓰이는 전용 표라 다른 화면과 공유하지 않으므로, 가로 표 대신 상품 1개당
+ * 카드 1장으로 세로로 쌓는 레이아웃으로 바꾼다. 헤더(thead)는 숨기고, 각 셀은
+ * 라벨(nth-of-type 기준 고정 순서: 상품명·판매자·기존가격·할인율·적용가격) +
+ * 값을 한 줄에 나란히 보여준다.
+ *
+ * [수정] 위쪽의 공통 @media (max-width: 768px) 블록이 .data-table에
+ * display:table / padding 등을 지정하는데, 이 블록을 그보다 앞에 두면 소스
+ * 순서상 나중에 나오는 공통 규칙이 동일 우선순위에서 덮어써 버려 세로 카드
+ * 레이아웃이 다시 가로 표로 돌아가 버린다. 그래서 이 블록을 공통 768px
+ * 블록보다 뒤에 둔다.
+ */
+@media (max-width: 640px) {
+
+  .product-detail-table thead {
+    display: none;
+  }
+
+  .product-detail-table,
+  .product-detail-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .product-detail-table tr {
+    display: block;
+
+    margin-top: 0;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+
+    background: var(--adm-surface-2);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius-sm);
+  }
+
+  .product-detail-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .product-detail-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 7px 0;
+
+    text-align: right;
+    white-space: normal;
+    word-break: break-word;
+
+    border-bottom: none;
+  }
+
+  /* 라벨(셀이 무엇을 뜻하는지)은 컬럼 순서가 항상 고정이므로 nth-of-type로 붙인다 */
+  .product-detail-table td::before {
+    content: "";
+
+    flex-shrink: 0;
+
+    color: var(--adm-text-dim);
+    font-size: 12px;
+    font-weight: 600;
+
+    text-align: left;
+  }
+
+  .product-detail-table td:nth-of-type(1)::before { content: "상품명"; }
+  .product-detail-table td:nth-of-type(2)::before { content: "판매자"; }
+  .product-detail-table td:nth-of-type(3)::before { content: "기존가격"; }
+  .product-detail-table td:nth-of-type(4)::before { content: "할인율"; }
+  .product-detail-table td:nth-of-type(5)::before { content: "적용가격"; }
+
+  /* 상품명은 카드 제목처럼 라벨 없이 굵게, 아래쪽에 구분선을 두어 나머지 정보와 분리한다 */
+  .product-detail-table td.ep-name {
+    padding-top: 0;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+
+    font-size: 15px;
+
+    text-align: left;
+    justify-content: flex-start;
+
+    border-bottom: 1px solid var(--adm-border);
+  }
+
+  .product-detail-table td.ep-name::before {
+    content: none;
+  }
+
+  /* "연결된 상품이 없습니다" 빈 상태(colspan=5, td 1개뿐)는 라벨 없이 가운데 정렬로 보여준다 */
+  .product-detail-table td.ep-empty {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .product-detail-table td.ep-empty::before {
+    content: none;
+  }
+}
+
+/*
  * [신규] 아이디 전체보기 모달(#memberIdModal) 안 콘텐츠.
  * memberManage.jsp / monitoring.jsp가 공유하는 작은 모달로, 기존
  * .modal-overlay/.modal-box 컴포넌트를 그대로 재사용한다.

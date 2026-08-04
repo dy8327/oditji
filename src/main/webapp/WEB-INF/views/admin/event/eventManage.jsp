@@ -666,7 +666,14 @@
             적용 상품
         </div>
 
-        <table class="data-table">
+        <%--
+            [수정] 이 표는 항상 좁은 모달(.modal-box-lg) 안에서만 쓰이는데, 다른 관리자
+            화면의 .data-table 모바일 규칙(컬럼 숨김 + 상세보기 모달)은 이 표에는
+            적용되지 않아 768px 이하에서 5개 컬럼이 그대로 좁아진 폭에 눌려 글자가
+            제멋대로 줄바꿈됐다. product-detail-table 클래스로 이 표만 따로 지정해
+            모바일에서 행 단위 세로 카드로 바뀌도록 한다(admin.css 참고).
+        --%>
+        <table class="data-table product-detail-table">
 
             <thead>
                 <tr>

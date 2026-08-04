@@ -293,15 +293,32 @@
 
                 <div class="form-group">
 
-                    <div class="ott-box">
+                    <%--
+                        =========================================================
+                        [수정] 예전 .ott-box 대신 마이페이지 "OTT 정보 수정" 모달과
+                        동일한 .sns-ott-* 컴포넌트(member.css)를 그대로 재사용한다.
+
+                        - 카드가 3열(모바일 2열) 그리드 + 고정 min-height로 정렬되어
+                          플랫폼 이름 글자 수가 달라도(디즈니+, 쿠팡플레이 등) 체크박스
+                          배열이 흐트러지지 않는다.
+                        - "OTT 없음"에는 .sns-ott-option--none을 붙여
+                          grid-column: 1 / -1로 맨 아래 한 줄을 전부 차지하게 한다.
+
+                        name="ottList" / id="noOtt"는 그대로 유지해 기존 member.js의
+                        상호 배타 처리 로직을 그대로 재사용한다.
+                        =========================================================
+                    --%>
+                    <div class="sns-ott-option-list">
 
                         <c:forEach var="platform" items="${platformList}">
-                            <label>
+                            <label class="sns-ott-option">
                                 <input type="checkbox" name="ottList" value="${platform.platformName}">
 
-                                <img class="ott-box-logo"
+                                <img class="sns-ott-logo-img"
                                      src="${platform.logoImage}"
                                      alt="${platform.platformName}">
+
+                                <span class="sns-ott-mark"></span>
 
                                 <span>
                                     <commonTag:platformDisplayName platformName="${platform.platformName}"/>
@@ -317,12 +334,15 @@
                             별도 데이터를 저장하지 않는다.
                             =========================================================
                         --%>
-                        <label>
+                        <label class="sns-ott-option sns-ott-option--none">
                             <input type="checkbox"
                                    name="noOtt"
                                    id="noOtt"
                                    value="Y">
-                            OTT 없음
+
+                            <span class="sns-ott-mark"></span>
+
+                            <span>OTT 없음</span>
                         </label>
 
                     </div>

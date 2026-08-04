@@ -1365,9 +1365,9 @@
   align-items: flex-start;
   padding: 20px;
   margin-bottom: 24px;
-  background-color: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  background-color: var(--biz-surface-2);
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-md);
 }
 
 .delete-summary-thumb {
@@ -1378,10 +1378,9 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #e9ecef;
-  border-radius: 8px;
-  /* [수정] #9ca3af on #e9ecef는 대비 약 2.1:1로 부족해 더 어두운 톤으로 교체 */
-  color: #626a79;
+  background-color: var(--biz-surface-3);
+  border-radius: var(--biz-radius-sm);
+  color: var(--biz-text-dim);
   font-size: 14px;
 }
 
@@ -1403,15 +1402,15 @@
   width: fit-content;
   padding: 2px 10px;
   font-size: 12px;
-  color: #4b5563;
-  background-color: #eef0f2;
-  border-radius: 20px;
+  color: var(--biz-text-sub);
+  background-color: var(--biz-surface-1);
+  border-radius: var(--biz-radius-pill);
 }
 
 .delete-summary-name {
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--biz-text);
 }
 
 .delete-summary-meta {
@@ -1419,28 +1418,28 @@
   flex-wrap: wrap;
   gap: 14px;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--biz-text-dim);
 }
 
 .delete-summary-status {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--biz-text-dim);
 }
 
 /* ---------- 삭제 유의사항 박스 ---------- */
 .delete-warning-box {
   padding: 16px 20px;
   margin-bottom: 28px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
+  background-color: var(--biz-danger-bg);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  border-radius: var(--biz-radius-md);
 }
 
 .delete-warning-title {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #b91c1c;
+  color: var(--biz-danger);
 }
 
 .delete-warning-list {
@@ -1450,7 +1449,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: 13px;
-  color: #7f1d1d;
+  color: var(--biz-text-sub);
   line-height: 1.5;
 }
 

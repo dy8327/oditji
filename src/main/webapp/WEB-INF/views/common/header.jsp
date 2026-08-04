@@ -9,10 +9,10 @@
        value="${headerRole eq 'ADMIN' or (headerRole eq 'BUSINESS' and not empty sessionScope.businessNo)}" />
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=8">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=9">
 
 <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
-<script defer src="${pageContext.request.contextPath}/js/common.js?v=8"></script>
+<script defer src="${pageContext.request.contextPath}/js/common.js?v=9"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <%--
