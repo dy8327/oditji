@@ -1,35 +1,32 @@
-package com.project.oditji.admin.vo;
+package com.project.oditji.common.vo;
 
 import java.util.Date;
 
-/**
- * 정산 관리 VO (SETTLEMENT 월별 집계 + BUSINESS 조인)
- */
-public class SettlementManageVO {
+/* 사업자 정산 요청 묶음 정보 */
+public class SettlementRequestVO {
 
-    private Long settlementNo;
+    private Long requestNo;
     private Long businessNo;
     private String businessName;
-    private String settlementMonth; // [수정] 관리자 월별 일괄 처리 기준
-    private Long orderItemNo;
+    private String settlementMonth;
     private Long totalAmount;
-    private String appliedGrade;
-    private Double appliedRate;
     private Long feeAmount;
     private Long settledAmount;
-    private String status; // WAITING, DONE, REJECTED
-    private String bankName; // BUSINESS 조인
-    private String accountNumber; // BUSINESS 조인
-    private String accountHolder; // BUSINESS 조인
-    private Date settledAt;
-    private Date createdAt;
+    private Integer orderCount;
+    private String bankName;
+    private String accountNumber;
+    private String accountHolder;
+    private String status;
+    private Date requestedAt;
+    private Date processedAt;
+    private String rejectReason;
 
-    public Long getSettlementNo() {
-        return settlementNo;
+    public Long getRequestNo() {
+        return requestNo;
     }
 
-    public void setSettlementNo(Long settlementNo) {
-        this.settlementNo = settlementNo;
+    public void setRequestNo(Long requestNo) {
+        this.requestNo = requestNo;
     }
 
     public Long getBusinessNo() {
@@ -56,36 +53,12 @@ public class SettlementManageVO {
         this.settlementMonth = settlementMonth;
     }
 
-    public Long getOrderItemNo() {
-        return orderItemNo;
-    }
-
-    public void setOrderItemNo(Long orderItemNo) {
-        this.orderItemNo = orderItemNo;
-    }
-
     public Long getTotalAmount() {
         return totalAmount;
     }
 
     public void setTotalAmount(Long totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public String getAppliedGrade() {
-        return appliedGrade;
-    }
-
-    public void setAppliedGrade(String appliedGrade) {
-        this.appliedGrade = appliedGrade;
-    }
-
-    public Double getAppliedRate() {
-        return appliedRate;
-    }
-
-    public void setAppliedRate(Double appliedRate) {
-        this.appliedRate = appliedRate;
     }
 
     public Long getFeeAmount() {
@@ -104,12 +77,12 @@ public class SettlementManageVO {
         this.settledAmount = settledAmount;
     }
 
-    public String getStatus() {
-        return status;
+    public Integer getOrderCount() {
+        return orderCount;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setOrderCount(Integer orderCount) {
+        this.orderCount = orderCount;
     }
 
     public String getBankName() {
@@ -136,19 +109,35 @@ public class SettlementManageVO {
         this.accountHolder = accountHolder;
     }
 
-    public Date getSettledAt() {
-        return settledAt;
+    public String getStatus() {
+        return status;
     }
 
-    public void setSettledAt(Date settledAt) {
-        this.settledAt = settledAt;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Date getRequestedAt() {
+        return requestedAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setRequestedAt(Date requestedAt) {
+        this.requestedAt = requestedAt;
+    }
+
+    public Date getProcessedAt() {
+        return processedAt;
+    }
+
+    public void setProcessedAt(Date processedAt) {
+        this.processedAt = processedAt;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 }

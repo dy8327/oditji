@@ -951,7 +951,7 @@ public class BusinessController {
         @GetMapping("/settlement/main")
         public String settlement(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                /* [수정] 로그인 사업자의 이번 달 수수료 정보를 실제 DB에서 조회한다. */
+                // 로그인 사업자의 정산 예정 정보를 조회한다.
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
                 if (business == null) {
                         return REDIRECT_MEMBER_LOGIN;
@@ -959,12 +959,13 @@ public class BusinessController {
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute("settlementSummary", businessService.getMonthlySettlementSummary(business.getBusinessNo()));
+                model.addAttribute("settlementAccount", businessService.getSettlementAccount(business.getBusinessNo()));
                 model.addAttribute(MODEL_ACTIVE_MENU, ACTIVE_MENU_SETTLEMENT);
 
                 return "business/settlement/settlementMain";
         }
 
-        /* [수정] 사업자 수수료 입금 확인 요청 처리 */
+        // 사업자 정산 요청 처리
         @PostMapping("/settlement/request")
         public String requestSettlement(HttpSession session, RedirectAttributes redirectAttributes) {
 
@@ -975,7 +976,7 @@ public class BusinessController {
 
                 try {
                         businessService.requestSettlementConfirmation(business.getBusinessNo());
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "입금 확인 요청이 완료되었습니다.");
+                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "정산 요청이 완료되었습니다.");
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
                 }
@@ -983,7 +984,7 @@ public class BusinessController {
                 return "redirect:/business/settlement/main";
         }
 
-        /* [수정] 월별 수수료 납부 내역 화면 */
+        /* [수정] 월별 플랫폼 수수료 내역 화면 */
         @GetMapping("/settlement/complete")
         public String settlementComplete(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 

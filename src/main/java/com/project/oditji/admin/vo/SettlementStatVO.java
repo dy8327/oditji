@@ -1,10 +1,8 @@
 package com.project.oditji.admin.vo;
 
 /**
- * 정산 관리 화면 상단 통계 카드용 VO
- * (전체 정산 건 / 입금 대기 / 입금 완료 / 반려 건수)
- *
- * selectSettlementList와 동일하게 사업자/정산월 단위로 묶은 건 수를 기준으로 한다.
+ * 정산 요청 관리 화면 상단 통계 카드용 VO
+ * 전체 요청, 지급 대기, 지급 완료, 반려 건수를 저장한다.
  */
 public class SettlementStatVO {
 

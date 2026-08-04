@@ -48,7 +48,7 @@
             </h1>
 
             <p class="admin-page-desc">
-                사업자가 입금 확인을 요청한 정산 건을 확인하고 확인 처리 또는 반려할 수 있습니다.
+                사업자가 요청한 정산 내역을 확인하고 지급 완료 또는 반려 처리할 수 있습니다.
             </p>
 
         </div>
@@ -68,13 +68,13 @@
 
             <a class="stat-card ${currentStatus == 'REQUESTED' ? 'active' : ''}"
                href="?status=REQUESTED">
-                <span>입금 대기</span>
+                <span>지급 대기</span>
                 <strong>${settlementStats.requestedCount}건</strong>
             </a>
 
             <a class="stat-card ${currentStatus == 'DONE' ? 'active' : ''}"
                href="?status=DONE">
-                <span>입금 완료</span>
+                <span>지급 완료</span>
                 <strong>${settlementStats.doneCount}건</strong>
             </a>
 
@@ -102,12 +102,12 @@
 
                 <a class="${currentStatus == 'REQUESTED' ? 'active' : ''}"
                    href="?status=REQUESTED&period=${currentPeriod}&keyword=${param.keyword}">
-                    입금 대기
+                    지급 대기
                 </a>
 
                 <a class="${currentStatus == 'DONE' ? 'active' : ''}"
                    href="?status=DONE&period=${currentPeriod}&keyword=${param.keyword}">
-                    입금 완료
+                    지급 완료
                 </a>
 
                 <a class="${currentStatus == 'REJECTED' ? 'active' : ''}"
@@ -130,8 +130,8 @@
 
                     <select id="settlementStatusFilter" name="status" class="filter-select">
                         <option value=""          ${empty currentStatus ? 'selected' : ''}>상태 전체</option>
-                        <option value="REQUESTED" ${currentStatus == 'REQUESTED' ? 'selected' : ''}>입금 대기</option>
-                        <option value="DONE"      ${currentStatus == 'DONE' ? 'selected' : ''}>입금 완료</option>
+                        <option value="REQUESTED" ${currentStatus == 'REQUESTED' ? 'selected' : ''}>지급 대기</option>
+                        <option value="DONE"      ${currentStatus == 'DONE' ? 'selected' : ''}>지급 완료</option>
                         <option value="REJECTED"  ${currentStatus == 'REJECTED' ? 'selected' : ''}>반려</option>
                     </select>
 
@@ -186,15 +186,15 @@
                     <tr>
                         <th>사업자명</th>
                         <%--
-                            [모바일 리팩토링] 정산 월 / 신청일 / 입금 계좌는 모바일에서는 숨기고,
+                            [모바일 리팩토링] 정산 월 / 신청일 / 지급 계좌는 모바일에서는 숨기고,
                             "상세보기" 버튼을 누르면 열리는 settlementModal 안에서 확인하도록 한다.
                         --%>
                         <th class="col-mobile-hide">정산 월</th>
                         <th class="col-mobile-hide">신청일</th>
                         <th>정산 예정금</th>
-                        <th class="col-mobile-hide">입금 계좌</th>
+                        <th class="col-mobile-hide">지급 계좌</th>
                         <%-- [수정] 모바일에서는 이 컬럼을 숨기고, 대신 사업자명 글자 색으로
-                             입금 대기/완료/반려 상태를 표현한다(.approval-name-*, 아래 사업자명 td 참고).
+                             지급 대기/완료/반려 상태를 표현한다(.approval-name-*, 아래 사업자명 td 참고).
                              businessManage.jsp와 동일한 방식. 데스크톱은 기존과 동일하게 상태 뱃지 컬럼이 그대로 보인다. --%>
                         <th class="col-mobile-hide">정산 상태</th>
                         <th>관리</th>
@@ -216,11 +216,11 @@
                                     (신청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqCreatedAtStr /
                                     reqStatusLabel 등과 동일한 방식)
                                 --%>
-                                <fmt:formatDate var="settlementCreatedAtStr" value="${settlement.createdAt}" pattern="yyyy-MM-dd"/>
+                                <fmt:formatDate var="settlementCreatedAtStr" value="${settlement.requestedAt}" pattern="yyyy-MM-dd"/>
 
                                 <c:choose>
                                     <c:when test="${settlement.status == 'DONE'}">
-                                        <c:set var="settlementStatusLabel" value="입금 완료"/>
+                                        <c:set var="settlementStatusLabel" value="지급 완료"/>
                                     </c:when>
                                     <c:when test="${settlement.status == 'REJECTED'}">
                                         <c:set var="settlementStatusLabel" value="반려"/>
@@ -263,7 +263,7 @@
                                     <td class="col-mobile-hide">${settlement.settlementMonth}</td>
 
                                     <td class="col-mobile-hide">
-                                        ${settlementCreatedAtStr}
+                                        ${settlementRequestedAtStr}
                                     </td>
 
                                     <td>
@@ -283,7 +283,7 @@
                                             <c:when test="${settlement.status == 'DONE'}">
 
                                                 <span class="status-ok">
-                                                    입금 완료
+                                                    지급 완료
                                                 </span>
 
                                             </c:when>
@@ -323,10 +323,10 @@
                                             --%>
                                             <button type="button" class="btn btn-outline row-detail-trigger"
                                                     aria-label="${fn:escapeXml(settlement.businessName)} 정산 상세보기"
-                                                    data-business-no="${settlement.businessNo}"
+                                                    data-request-no="${settlement.requestNo}"
                                                     data-business-name="${fn:escapeXml(settlement.businessName)}"
                                                     data-settlement-month="${settlement.settlementMonth}"
-                                                    data-created-at="${settlementCreatedAtStr}"
+                                                    data-requested-at="${settlementRequestedAtStr}"
                                                     data-settled-amount="${settlementAmountStr}원"
                                                     data-account="${fn:escapeXml(settlement.bankName)} ${fn:escapeXml(settlement.accountNumber)} (${fn:escapeXml(settlement.accountHolder)})"
                                                     data-status="${settlement.status}"
@@ -335,23 +335,21 @@
                                                 상세
                                             </button>
 
-                                            <%-- [수정] 관리자 처리는 입금 확인 요청 상태에서만 가능 --%>
+                                            <%-- [수정] 관리자 처리는 지급 완료 요청 상태에서만 가능 --%>
                                             <c:if test="${settlement.status == 'REQUESTED'}">
 
                                             <form action="${pageContext.request.contextPath}/admin/settlement/confirm"
                                                   method="post">
 
                                                 <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
-                                                <input type="hidden" name="businessNo" value="${settlement.businessNo}">
-                                                <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
+                                                <input type="hidden" name="requestNo" value="${settlement.requestNo}">
                                                 <input type="hidden" name="keyword" value="${param.keyword}">
                                                 <input type="hidden" name="status" value="${currentStatus}">
                                                 <input type="hidden" name="period" value="${currentPeriod}">
                                                 <input type="hidden" name="page" value="${pagination.currentPage}">
 
-                                                <button type="submit"
-                                                        class="btn btn-success">
-                                                    입금 확인
+                                                <button type="submit" class="btn btn-success">
+                                                    지급 완료
                                                 </button>
 
                                             </form>
@@ -360,8 +358,9 @@
                                                   method="post">
 
                                                 <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
-                                                <input type="hidden" name="businessNo" value="${settlement.businessNo}">
-                                                <input type="hidden" name="settlementMonth" value="${settlement.settlementMonth}">
+                                                <input type="hidden" name="requestNo" value="${settlement.requestNo}">
+                                                <input type="text" name="rejectReason" class="page-search" placeholder="반려 사유"
+                                                    maxlength="500" required>
                                                 <input type="hidden" name="keyword" value="${param.keyword}">
                                                 <input type="hidden" name="status" value="${currentStatus}">
                                                 <input type="hidden" name="period" value="${currentPeriod}">
@@ -401,7 +400,7 @@
 
                             <tr>
                                 <td colspan="7">
-                                    입금 확인 요청 내역이 없습니다.
+                                    정산 요청 내역이 없습니다.
                                 </td>
                             </tr>
 
@@ -498,7 +497,7 @@
 
             <div class="row-detail-item">
                 <span class="row-detail-label">신청일</span>
-                <span class="row-detail-value" data-detail-field="createdAt"></span>
+                <span class="row-detail-value" data-detail-field="requestedAt"></span>
             </div>
 
             <div class="row-detail-item">
@@ -507,7 +506,7 @@
             </div>
 
             <div class="row-detail-item">
-                <span class="row-detail-label">입금 계좌</span>
+                <span class="row-detail-label">지급 계좌</span>
                 <span class="row-detail-value" data-detail-field="account"></span>
             </div>
 
@@ -520,34 +519,42 @@
 
         <%-- 데스크톱 행의 입금확인/반려 폼과 완전히 동일한 값을 그대로 제출한다.
              data-detail-toggle으로 현재 정산 상태(REQUESTED)에 맞을 때만 버튼을 보여준다. --%>
-        <form action="${pageContext.request.contextPath}/admin/settlement/confirm" method="post">
+        <form action="${pageContext.request.contextPath}/admin/settlement/confirm" method="post"
+                        data-detail-toggle="status:REQUESTED">
 
-            <input type="hidden" name="businessNo" data-detail-field="businessNo">
-            <input type="hidden" name="settlementMonth" data-detail-field="settlementMonth">
+            <input type="hidden" name="requestNo" data-detail-field="requestNo">
             <input type="hidden" name="keyword" value="${param.keyword}">
             <input type="hidden" name="status" value="${currentStatus}">
             <input type="hidden" name="period" value="${currentPeriod}">
             <input type="hidden" name="page" value="${pagination.currentPage}">
 
             <div class="row-detail-actions">
-
-                <button type="submit" class="btn btn-success" data-detail-toggle="status:REQUESTED">
-                    입금 확인
-                </button>
-
-                <button type="submit" formaction="${pageContext.request.contextPath}/admin/settlement/reject"
-                        class="btn btn-danger" data-detail-toggle="status:REQUESTED">
-                    반려
-                </button>
-
-                <span class="status-waiting" data-detail-toggle="status:DONE,REJECTED">
-                    이미 처리된 정산 건입니다
-                </span>
-
+                <button type="submit" class="btn btn-success">지급 완료</button>
             </div>
-
         </form>
 
+        <form action="${pageContext.request.contextPath}/admin/settlement/reject" method="post"
+                        data-detail-toggle="status:REQUESTED">
+
+            <input type="hidden" name="requestNo" data-detail-field="requestNo">
+            <input type="hidden" name="keyword" value="${param.keyword}">
+            <input type="hidden" name="status" value="${currentStatus}">
+            <input type="hidden" name="period" value="${currentPeriod}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
+
+            <div class="row-detail-actions">
+                <input type="text" name="rejectReason" class="page-search" placeholder="반려 사유를 입력하세요"
+                    maxlength="500" required>
+
+                <button type="submit" class="btn btn-danger">반려</button>
+            </div>
+        </form>
+
+        <div class="row-detail-actions">
+            <span class="status-waiting" data-detail-toggle="status:DONE,REJECTED">
+                이미 처리된 정산 요청입니다.
+            </span>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-outline" onclick="closeModal('settlementModal')">닫기</button>
         </div>

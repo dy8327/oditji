@@ -15,6 +15,7 @@ import com.project.oditji.business.vo.DeliveryManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 
 public interface BusinessService {
 
@@ -148,14 +149,14 @@ public interface BusinessService {
         List<SettlementManageVO> getBusinessSalesHistory(long businessNo, LocalDate startDate, LocalDate endDate);
 
         /*
-         * =========================================================
-         * [수정] 사업자 수수료 관리
-         * 이번 달 요약, 납부 요청/내역, 정산 계좌 조회·수정을 처리한다.
-         * =========================================================
-         */
+        * =========================================================
+        * 사업자 정산 관리
+        * 정산 가능 금액, 정산 요청 내역, 정산 계좌를 관리한다.
+        * =========================================================
+        */
         SettlementManageVO getMonthlySettlementSummary(long businessNo);
 
-        List<SettlementManageVO> getSettlementPaymentHistory(long businessNo);
+        List<SettlementRequestVO> getSettlementPaymentHistory(long businessNo);
 
         void requestSettlementConfirmation(long businessNo);
 

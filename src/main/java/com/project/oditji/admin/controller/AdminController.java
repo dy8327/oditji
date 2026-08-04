@@ -755,7 +755,7 @@ public class AdminController {
         return builder.build().toUriString();
     }
 
-    // ===================== 7. 정산 관리 (사업자 입금 확인) =====================
+    // ===================== 7. 정산 요청 관리 =====================
 
     @GetMapping("/settlement/main")
     public String settlementMain(Model model,
@@ -775,29 +775,44 @@ public class AdminController {
         return "admin/settlement/settlementManage";
     }
 
-    /* [수정] 화면에서 전달한 사업자 번호와 정산 월을 기준으로 일괄 확인한다. */
+    /* 정산 요청 지급 완료 처리 */
     @PostMapping("/settlement/confirm")
     public String settlementConfirm(
-            @RequestParam Long businessNo,
-            @RequestParam String settlementMonth,
+            @RequestParam Long requestNo,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String period,
-            @RequestParam(required = false, defaultValue = "1") int page) {
-        adminService.confirmSettlement(businessNo, settlementMonth);
+            @RequestParam(required = false, defaultValue = "1") int page,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.confirmSettlement(requestNo);
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "정산금 지급 완료 처리했습니다.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
+        }
+
         return REDIRECT_PREFIX + settlementListRedirectUrl(keyword, status, period, page);
     }
 
-    /* [수정] 화면에서 전달한 사업자 번호와 정산 월을 기준으로 일괄 반려한다. */
+    /* 정산 요청 반려 처리 */
     @PostMapping("/settlement/reject")
     public String settlementReject(
-            @RequestParam Long businessNo,
-            @RequestParam String settlementMonth,
+            @RequestParam Long requestNo,
+            @RequestParam(required = false) String rejectReason,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String period,
-            @RequestParam(required = false, defaultValue = "1") int page) {
-        adminService.rejectSettlement(businessNo, settlementMonth);
+            @RequestParam(required = false, defaultValue = "1") int page,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            adminService.rejectSettlement(requestNo, rejectReason);
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "정산 요청을 반려했습니다.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute(FLASH_MESSAGE, e.getMessage());
+        }
+
         return REDIRECT_PREFIX + settlementListRedirectUrl(keyword, status, period, page);
     }
 

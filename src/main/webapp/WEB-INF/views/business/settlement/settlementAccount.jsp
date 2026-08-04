@@ -41,7 +41,7 @@
                             <p class="settlement-section-kicker">SETTLEMENT ACCOUNT</p>
                             <h3>판매 대금 정산 계좌</h3>
                             <p class="settlement-section-description">
-                                관리자가 입금 확인 요청을 검토할 때 표시되는 사업자 계좌 정보입니다.
+                                관리자가 정산 요청을 검토할 때 표시되는 사업자 계좌 정보입니다.
                             </p>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                         </div>
 
                         <div class="settlement-account-actions">
-                            <p>저장한 계좌 정보는 다음 입금 확인 요청부터 관리자 화면에 표시됩니다.</p>
+                            <p>저장한 계좌 정보는 다음 정산 요청부터 관리자 화면에 표시됩니다.</p>
                             <button type="submit" class="btn btn-primary settlement-save-button">계좌 정보 저장</button>
                         </div>
                     </form>

@@ -16,6 +16,7 @@ import com.project.oditji.business.vo.DeliveryManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 
 @Mapper
 public interface BusinessDAO {
@@ -192,7 +193,7 @@ public interface BusinessDAO {
         // 마이페이지 대시보드 - 오늘 상품 클릭 수
         int selectTodayClickCountByBusinessNo(@Param("businessNo") long businessNo);
 
-        // 마이페이지 대시보드 - 입금 대기 정산 금액 합계
+        // 마이페이지 대시보드 - 지급 대기 정산 금액 합계
         long selectWaitingSettlementAmountByBusinessNo(@Param("businessNo") long businessNo);
 
         // 마이페이지 대시보드 - 승인 대기 상품 수
@@ -231,12 +232,21 @@ public interface BusinessDAO {
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
-        /* [수정] 사업자 수수료 관리 조회/변경 */
+        /* 사업자 정산 관리 조회/변경 */
         SettlementManageVO selectMonthlySettlementSummary(@Param("businessNo") long businessNo);
 
-        List<SettlementManageVO> selectSettlementPaymentHistory(@Param("businessNo") long businessNo);
+        List<SettlementRequestVO> selectSettlementPaymentHistory(@Param("businessNo") long businessNo);
 
-        int updateSettlementRequestStatus(@Param("businessNo") long businessNo);
+        /* 정산 요청 대상 금액 및 계좌 조회 */
+        SettlementRequestVO selectSettlementRequestTarget(@Param("businessNo") long businessNo);
+
+        /* 정산 요청 묶음 생성 */
+        int insertSettlementRequest(SettlementRequestVO settlementRequestVO);
+
+        /* 요청 대상 정산 원장에 요청 번호 연결 */
+        int updateSettlementRequestNo(
+                @Param("businessNo") long businessNo,
+                @Param("requestNo") long requestNo);
 
         SettlementManageVO selectSettlementAccount(@Param("businessNo") long businessNo);
 

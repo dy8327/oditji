@@ -1158,7 +1158,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /*
-   * 관리자 계좌번호 복사 기능
+   * 정산 지급계좌번호 복사 기능
    */
   window.copyAccountNumber = function () {
     const accountNumberElement = document.querySelector(".account-number");

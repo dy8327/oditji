@@ -141,14 +141,14 @@
 
         </div>
 
-        <!-- 정산 관리 (사업자 입금 확인 요청 처리) -->
+        <!-- 정산 관리 (사업자 정산 요청 처리) -->
         <div class="menu-group">
 
             <h3>정산 관리</h3>
 
             <a href="${pageContext.request.contextPath}/admin/settlement/main"
                class="${activeMenu == 'settlement' ? 'active' : ''}">
-                사업자 입금 확인
+                사업자 정산 요청
             </a>
 
         </div>

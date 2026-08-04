@@ -22,6 +22,7 @@ public class SettlementManageVO {
     /* [수정] 이번 달 수수료 요약 조회용 필드 */
     private long monthSales;
     private long feeAmount;
+    private long settledAmount;
     private double feeRate;
     private String expectedDate;
     private String status;
@@ -101,6 +102,14 @@ public class SettlementManageVO {
 
     public void setFeeAmount(long feeAmount) {
         this.feeAmount = feeAmount;
+    }
+
+    public long getSettledAmount() {
+        return settledAmount;
+    }
+
+    public void setSettledAmount(long settledAmount) {
+        this.settledAmount = settledAmount;
     }
 
     public double getFeeRate() {

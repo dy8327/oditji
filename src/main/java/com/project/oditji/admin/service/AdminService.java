@@ -19,9 +19,9 @@ import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
-import com.project.oditji.admin.vo.SettlementManageVO;
 import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.common.vo.SettlementRequestVO;
 
 public interface AdminService {
 
@@ -164,21 +164,20 @@ public interface AdminService {
 
         void rejectBusiness(Long businessNo);
 
-        // 정산 관리 (status: null/""/"ALL"이면 전체, 그 외에는 REQUESTED/DONE/REJECTED로 필터)
-        // period: null/빈값(전체) / today(오늘) / week(최근 7일) / month(최근 30일) - 정산
-        // 요청일(CREATED_AT) 기준
-        List<SettlementManageVO> getSettlementList(String keyword, String status, String period, int page,
+        // 정산 요청 관리
+        List<SettlementRequestVO> getSettlementList(String keyword, String status, String period, int page,
                         int pageSize);
 
         int getSettlementListCount(String keyword, String status, String period);
 
-        // 정산 관리 화면 상단 통계 카드 (전체 / 입금 대기 / 입금 완료 / 반려)
+        // 정산 관리 화면 상단 통계 카드
         SettlementStatVO getSettlementStats();
 
-        /* [수정] 사업자와 정산 월을 기준으로 해당 월 요청 건 전체를 처리한다. */
-        void confirmSettlement(Long businessNo, String settlementMonth);
+        /* 정산 요청 지급 완료 처리 */
+        void confirmSettlement(Long requestNo);
 
-        void rejectSettlement(Long businessNo, String settlementMonth);
+        /* 정산 요청 반려 처리 */
+        void rejectSettlement(Long requestNo, String rejectReason);
 
         // 모니터링
         List<MonitoringVO> getMonitoringList();
