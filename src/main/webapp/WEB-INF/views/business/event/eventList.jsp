@@ -814,22 +814,20 @@
                     </div>
 
                     <!-- 연결 상품: 여러 개 연결 가능 -->
-                    <div class="form-group">
+                    <%--
+                        연결 상품은 여러 입력 행을 포함하는 하나의 입력 그룹입니다.
+                        ARIA 그룹 역할 대신 네이티브 fieldset/legend를 사용하여
+                        브라우저와 보조기기에서 동일한 의미로 해석되도록 합니다.
+                    --%>
+                    <fieldset class="form-group event-product-fieldset">
 
-                        <%--
-                            연결 상품 영역의 대표 label. 모달을 열 때마다
-                            openEventUpdateModal -> linkProductSectionLabel()이
-                            첫 번째 상품명 input의 실제 id로 for를 다시 맞춘다
-                            (id가 이벤트마다 매번 새로 부여되므로 고정 id를 쓸 수 없다).
-                        --%>
-                        <label class="form-label"
-                               id="connectedProductsLabel">
+                        <legend class="form-label">
                             연결 상품
-                        </label>
+                        </legend>
 
                         <div id="productList"></div>
 
-                    </div>
+                    </fieldset>
 
                     <!-- 요청 상태 -->
                     <div class="form-group">
@@ -908,17 +906,17 @@
             고정된 id(productSearchModal 등)를 기준으로 동작하므로 페이지당
             1개만 존재한다.
         --%>
-        <div class="product-search-modal"
-             id="productSearchModal">
+        <dialog class="product-search-modal"
+                id="productSearchModal"
+                open
+                aria-modal="true"
+                aria-labelledby="productSearchModalTitle">
 
             <%--
-                모달 영역에 dialog 역할과 제목 연결을 추가하여
-                화면 낭독기가 현재 영역을 대화상자로 인식하도록 합니다.
+                네이티브 dialog 요소를 사용해 보조 기술과 브라우저가
+                상품 검색 모달을 일관되게 인식하도록 합니다.
             --%>
-            <div class="product-search-modal-panel"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="productSearchModalTitle">
+            <div class="product-search-modal-panel">
 
                 <div class="product-search-modal-header">
 
@@ -1045,7 +1043,7 @@
 
             </div>
 
-        </div>
+        </dialog>
 
     </main>
 
