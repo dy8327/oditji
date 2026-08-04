@@ -6,6 +6,9 @@
 <%@ taglib prefix="fmt"
            uri="jakarta.tags.fmt" %>
 
+<%@ taglib prefix="fn"
+           uri="jakarta.tags.functions" %>
+
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -15,7 +18,7 @@
 <title>ODITJI | 콘텐츠 상세</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/content.css?v=20260723-2">
+      href="${pageContext.request.contextPath}/css/content.css?v=20260804-1">
 
   <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/component.css">
@@ -64,6 +67,24 @@
     </button>
 
 </div>
+
+<section class="content-hero">
+
+    <%--
+        실제 OTT(넷플릭스/웨이브/티빙 등) 상세페이지처럼 상단에
+        콘텐츠 포스터를 흐리게 확대한 배경(백드롭)을 깔아 입체감을 준다.
+        별도의 백드롭 이미지 컬럼이 없으므로 이미 갖고 있는 포스터
+        이미지를 재사용하며, 실제 카드 내용에는 영향을 주지 않는
+        순수 장식용 레이어라 스크린리더에는 노출하지 않는다.
+    --%>
+    <c:if test="${not empty content.posterPath}">
+        <div class="content-hero-backdrop"
+             style="background-image:url('https://image.tmdb.org/t/p/w1280${content.posterPath}');"
+             aria-hidden="true">
+        </div>
+    </c:if>
+
+    <div class="content-hero-scrim" aria-hidden="true"></div>
 
 <section class="detail-header content-detail-card">
 
@@ -147,75 +168,97 @@
                     ${ageBadgeLabel}
                 </span>
 
+                <%--
+                    [수정] 조회수 뱃지를 평점 영역(score-box)에서
+                    타이틀 줄의 연령등급 뱃지 옆으로 이동. 표시하는
+                    값(content.viewCount)은 완전히 동일하게 유지.
+                --%>
+                <span class="content-view-count"
+                      aria-label="조회수 ${content.viewCount}회">
+                    <span aria-hidden="true">👁</span>
+                    ${content.viewCount}
+                </span>
+
             </div>
 
-            <p class="meta">
-                ${content.contentType}
+            <%--
+                [수정] 넷플릭스/웨이브 등 실제 OTT 상세페이지처럼
+                콘텐츠 유형·길이·공개일 정보를 하나의 줄글 대신
+                구분되는 칩(pill) 형태로 보여준다.
+                정보 자체와 표시 조건은 기존과 완전히 동일하게 유지한다.
+            --%>
+            <div class="meta-chip-list">
 
-                <%--
-                    콘텐츠 유형별 상세 길이 정보를 표시합니다.
-                    TV는 전체 에피소드 수, MOVIE는 총 러닝타임을 보여주며
-                    값이 없는 경우에는 불필요한 구분자를 출력하지 않습니다.
-                    연령등급은 제목 옆 뱃지로 이동해 여기서는 표시하지 않습니다.
-                --%>
+                <span class="meta-chip">
+                    ${content.contentType}
+                </span>
+
                 <c:choose>
 
                     <c:when test="${content.contentType eq 'TV'
                                   and not empty content.episodeCount}">
-                        |
-                        총 ${content.episodeCount}화
+                        <span class="meta-chip">
+                            총 ${content.episodeCount}화
+                        </span>
                     </c:when>
 
                     <c:when test="${content.contentType eq 'MOVIE'
                                   and not empty content.runtime}">
-                        |
-                        총 ${content.runtime}분
+                        <span class="meta-chip">
+                            총 ${content.runtime}분
+                        </span>
                     </c:when>
 
                 </c:choose>
 
-                |
-                ${content.releaseDate}
-            </p>
+                <span class="meta-chip meta-chip--date">
+                    ${content.releaseDate}
+                </span>
+
+            </div>
 
             <p class="genre">
-                장르 : ${content.genreText}
+                <span class="genre-label">장르</span>
+                ${content.genreText}
             </p>
 
         </div>
 
         <div class="score-box">
 
-            <span class="score-tmdb">
-                글로벌 평점 ⭐ ${content.tmdbScore}
+            <span class="score-badge score-badge--tmdb">
+                <span class="score-badge-icon" aria-hidden="true">⭐</span>
+                <span class="score-badge-text">
+                    <em>글로벌 평점</em>
+                    <strong>${content.tmdbScore}</strong>
+                </span>
             </span>
 
-            <span class="score-divider">
-                |
-            </span>
+            <span class="score-badge score-badge--user">
+                <span class="score-badge-icon" aria-hidden="true">⭐</span>
+                <span class="score-badge-text">
+                    <em>오딧지 평점</em>
 
-            <span class="score-user">
+                    <c:choose>
 
-                <c:choose>
+                        <c:when test="${not empty avgRating}">
+                            <span class="score-badge-value">
+                                <strong>
+                                    <fmt:formatNumber
+                                        value="${avgRating}"
+                                        pattern="0.0"/>
+                                </strong>
+                                <small>(${reviewCount}건)</small>
+                            </span>
+                        </c:when>
 
-                    <c:when test="${not empty avgRating}">
-                        오딧지 평점 ⭐
-                        <fmt:formatNumber
-                            value="${avgRating}"
-                            pattern="0.0"/>
-                        (${reviewCount}건)
-                    </c:when>
+                        <c:otherwise>
+                            <strong>-</strong>
+                        </c:otherwise>
 
-                    <c:otherwise>
-                        오딧지 평점 ⭐ 평점 없음
-                    </c:otherwise>
+                    </c:choose>
 
-                </c:choose>
-
-            </span>
-
-            <span>
-                👁 ${content.viewCount}
+                </span>
             </span>
 
         </div>
@@ -341,6 +384,8 @@
         </section>
 
     </div>
+
+</section>
 
 </section>
 
@@ -618,6 +663,20 @@
 
                             </span>
 
+                            <%--
+                                [강화] 실제 OTT 서비스처럼 포스터 위에도
+                                평점을 오버레이 뱃지로 얹는다. 아래
+                                related-content-meta의 평점 텍스트는
+                                그대로 유지해 정보 중복 표시로 안전하게
+                                처리한다(평점 없을 때는 뱃지 자체를 숨김).
+                            --%>
+                            <c:if test="${not empty related.tmdbScore}">
+                                <span class="related-content-score-badge">
+                                    <span aria-hidden="true">⭐</span>
+                                    ${related.tmdbScore}
+                                </span>
+                            </c:if>
+
                         </div>
 
                         <div class="related-content-info">
@@ -754,38 +813,56 @@
 
     <h2>관련 상품</h2>
 
-    <div class="goods-grid">
+    <c:choose>
 
-        <c:if test="${not empty goodsList}">
+        <c:when test="${not empty goodsList}">
 
-            <c:forEach var="g"
-                       items="${goodsList}">
+            <div class="goods-grid">
 
-                <a href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}"
-                   class="goods-card">
+                <c:forEach var="g"
+                           items="${goodsList}">
 
-                    <img src="${pageContext.request.contextPath}${g.mainImage}"
-                         alt="${g.productName}">
+                    <a href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}"
+                       class="goods-card">
 
-                    <div class="goods-info">
+                        <img src="${pageContext.request.contextPath}${g.mainImage}"
+                             alt="${g.productName}">
 
-                        <p class="name">
-                            ${g.productName}
-                        </p>
+                        <div class="goods-info">
 
-                        <p class="price">
-                            ₩ ${g.discountPrice}
-                        </p>
+                            <p class="name">
+                                ${g.productName}
+                            </p>
 
-                    </div>
+                            <p class="price">
+                                ₩ ${g.discountPrice}
+                            </p>
 
-                </a>
+                        </div>
 
-            </c:forEach>
+                    </a>
 
-        </c:if>
+                </c:forEach>
 
-    </div>
+            </div>
+
+        </c:when>
+
+        <%--
+            [수정] 관련 상품이 없을 때 goods-grid가 빈 채로 렌더링되면서
+            아래 "상품 둘러보기" 링크만 덩그러니 남아 어색해 보였다.
+            관련 콘텐츠 섹션(related-content-empty)과 동일한 빈 상태
+            안내 문구를 재사용해 통일감을 준다.
+        --%>
+        <c:otherwise>
+
+            <div class="related-content-empty">
+                등록된 관련 상품이 아직 없습니다.
+            </div>
+
+        </c:otherwise>
+
+    </c:choose>
 
     <a href="${pageContext.request.contextPath}/goods/list"
        class="more-btn">
@@ -905,6 +982,12 @@
                              data-review-no="${r.reviewNo}">
 
                             <div class="review-meta">
+
+                                <span class="review-avatar" aria-hidden="true">
+                                    <c:if test="${not empty r.writer}">
+                                        ${fn:substring(r.writer, 0, 1)}
+                                    </c:if>
+                                </span>
 
                                 <span class="writer">
                                     ${r.writer}
