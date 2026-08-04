@@ -326,18 +326,6 @@
 
                         </a>
 
-                        <button
-                            type="button"
-                            class="cart-btn"
-                            data-product-no="${g.productNo}"
-                            <c:if test="${g.stock <= 0}">
-                                disabled
-                            </c:if>>
-
-                            🛒
-
-                        </button>
-
                     </article>
 
                 </c:forEach>
