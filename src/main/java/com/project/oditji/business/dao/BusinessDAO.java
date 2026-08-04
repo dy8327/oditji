@@ -165,7 +165,7 @@ public interface BusinessDAO {
 
         // 승인된 이벤트 종료일 연장
         int extendApprovedEvent(@Param("eventNo") long eventNo, @Param("businessNo") long businessNo,
-                        @Param("extendEndDate") java.time.LocalDate extendEndDate);
+                        @Param("extendEndDate") LocalDate extendEndDate);
 
         /*
          * =========================================================

@@ -122,7 +122,7 @@ public interface BusinessService {
          * EVENT.END_DATE를 즉시 변경
          * =========================================================
          */
-        void extendApprovedEvent(long eventNo, long businessNo, java.time.LocalDate extendEndDate, String extendReason);
+        void extendApprovedEvent(long eventNo, long businessNo, LocalDate extendEndDate, String extendReason);
 
         List<GoodsManageVO> getPopularProducts(long businessNo);
 

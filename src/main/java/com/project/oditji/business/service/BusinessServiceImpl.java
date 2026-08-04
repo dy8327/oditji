@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,7 +227,7 @@ public class BusinessServiceImpl
                 Map<Long, List<OrderItemVO>> itemMap = new HashMap<>();
                 for (OrderItemVO item : itemList) {
 
-                        itemMap.computeIfAbsent(item.getOrderNo(), key -> new java.util.ArrayList<>())
+                        itemMap.computeIfAbsent(item.getOrderNo(), key -> new ArrayList<>())
                                         .add(item);
                 }
 
@@ -829,7 +830,7 @@ public class BusinessServiceImpl
                 if (goodsManageVO.getOptionList() == null || goodsManageVO.getOptionList().isEmpty()) {
                         throw new IllegalArgumentException("의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.");
                 }
-                java.util.Set<String> duplicateCheck = new java.util.HashSet<String>();
+                Set<String> duplicateCheck = new HashSet<String>();
                 int totalStock = 0;
                 for (com.project.oditji.goods.vo.ProductOptionVO option : goodsManageVO.getOptionList()) {
                         if (option == null || option.getColorName() == null || option.getColorName().isBlank()
@@ -1756,7 +1757,7 @@ public class BusinessServiceImpl
         public void extendApprovedEvent(
                         long eventNo,
                         long businessNo,
-                        java.time.LocalDate extendEndDate,
+                        LocalDate extendEndDate,
                         String extendReason) {
 
                 EventManageVO existingEvent = getApprovedEventForBusiness(
