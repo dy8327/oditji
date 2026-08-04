@@ -710,16 +710,13 @@ public class BusinessServiceImpl
                 }
 
                 validateProduct(goodsManageVO);
-                // [상품 옵션 기능 추가] PRODUCT.STOCK에는 옵션 재고 합계를 저장합니다.
-                if ((PRODUCT_TYPE_CLOTHES.equals(goodsManageVO.getProductType()) || PRODUCT_TYPE_SHOES.equals(goodsManageVO.getProductType()))
-                                && goodsManageVO.getOptionList() != null) {
-                        int optionTotalStock = goodsManageVO.getOptionList().stream()
-                                        .filter(java.util.Objects::nonNull)
-                                        .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
-                                        .filter(java.util.Objects::nonNull)
-                                        .mapToInt(Integer::intValue).sum();
-                        goodsManageVO.setStock(optionTotalStock);
-                }
+
+                /*
+                 * [상품 옵션 기능 추가]
+                 * 의상/신발은 옵션별 재고의 합계를 PRODUCT.STOCK에 저장합니다.
+                 */
+                applyOptionTotalStock(goodsManageVO);
+
                 validateProductImage(productImage);
 
                 /*
@@ -773,6 +770,40 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+        }
+
+        /*
+         * [상품 옵션 기능 추가]
+         * 의상/신발 상품의 옵션별 재고 합계를 PRODUCT.STOCK에 반영합니다.
+         *
+         * 등록과 수정에서 같은 계산을 사용하도록 분리하여
+         * updateProduct 메서드의 인지 복잡도를 낮춥니다.
+         */
+        private void applyOptionTotalStock(
+                        GoodsManageVO goodsManageVO) {
+
+                String productType = goodsManageVO.getProductType();
+
+                boolean optionProduct = PRODUCT_TYPE_CLOTHES.equals(
+                                productType)
+                                || PRODUCT_TYPE_SHOES.equals(
+                                                productType);
+
+                if (!optionProduct
+                                || goodsManageVO.getOptionList() == null) {
+                        return;
+                }
+
+                int optionTotalStock = goodsManageVO.getOptionList()
+                                .stream()
+                                .filter(java.util.Objects::nonNull)
+                                .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
+                                .filter(java.util.Objects::nonNull)
+                                .mapToInt(Integer::intValue)
+                                .sum();
+
+                goodsManageVO.setStock(
+                                optionTotalStock);
         }
 
         /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장(등록 시 사용) */
@@ -1174,18 +1205,8 @@ public class BusinessServiceImpl
                  * [상품 옵션 기능 추가] 의상/신발은 조합별 재고의 합을
                  * PRODUCT.STOCK에 저장한다. 등록 흐름과 동일한 규칙을 쓴다.
                  */
-                if ((PRODUCT_TYPE_CLOTHES.equals(goodsManageVO.getProductType())
-                                || PRODUCT_TYPE_SHOES.equals(goodsManageVO.getProductType()))
-                                && goodsManageVO.getOptionList() != null) {
-
-                        int optionTotalStock = goodsManageVO.getOptionList().stream()
-                                        .filter(java.util.Objects::nonNull)
-                                        .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
-                                        .filter(java.util.Objects::nonNull)
-                                        .mapToInt(Integer::intValue).sum();
-
-                        goodsManageVO.setStock(optionTotalStock);
-                }
+                applyOptionTotalStock(
+                                goodsManageVO);
 
                 normalizeActorNo(
                                 goodsManageVO);

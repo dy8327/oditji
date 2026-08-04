@@ -109,7 +109,7 @@ public final class PlatformNameNormalizer {
         return switch (toSupportedKey(platformName)) {
             case KEY_NETFLIX -> "Netflix";
             case KEY_TVING -> "TVING";
-            case KEY_WAVVE -> "wavve";
+            case KEY_WAVVE -> KEY_WAVVE;
             case KEY_DISNEY -> "Disney Plus";
             case KEY_WATCHA -> "Watcha";
             case KEY_COUPANG -> "Coupangplay";
