@@ -34,6 +34,10 @@ import com.project.oditji.business.service.NtsBusinessService;
 import com.project.oditji.business.vo.NtsBusinessVerifyVO;
 import com.project.oditji.mail.service.MailService;
 import com.project.oditji.business.vo.BusinessVO;
+import com.project.oditji.favorite.service.FavoriteService;
+import com.project.oditji.wish.service.WishService;
+import com.project.oditji.order.service.OrderService;
+import com.project.oditji.review.service.ReviewService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -74,19 +78,31 @@ public class MemberController {
         private final BusinessService businessService;
         private final NtsBusinessService ntsBusinessService;
         private final MailService mailService;
+        private final FavoriteService favoriteService;
+        private final WishService wishService;
+        private final OrderService orderService;
+        private final ReviewService reviewService;
 
         public MemberController(
                         MemberService memberService,
                         MemberPlatformService memberPlatformService,
                         BusinessService businessService,
                         NtsBusinessService ntsBusinessService,
-                        MailService mailService) {
+                        MailService mailService,
+                        FavoriteService favoriteService,
+                        WishService wishService,
+                        OrderService orderService,
+                        ReviewService reviewService) {
 
                 this.memberService = memberService;
                 this.memberPlatformService = memberPlatformService;
                 this.businessService = businessService;
                 this.ntsBusinessService = ntsBusinessService;
                 this.mailService = mailService;
+                this.favoriteService = favoriteService;
+                this.wishService = wishService;
+                this.orderService = orderService;
+                this.reviewService = reviewService;
                 }
 
         @GetMapping("/join")
@@ -544,6 +560,25 @@ public class MemberController {
 
                 // OTT 정보 수정 모달에서 선택 가능한 전체 플랫폼 목록(로고 포함)
                 model.addAttribute(ATTRIBUTE_PLATFORM_LIST, memberPlatformService.findPlatformList());
+
+                /*
+                 * =========================================================
+                 * 나의 활동 카드에 표시할 개수
+                 * (장바구니 수는 CartModelAdvice에서 전역으로 이미 채워짐)
+                 * =========================================================
+                 */
+                Long memberNo = loginMember.getMemberNo();
+
+                // 찜한 콘텐츠 + 찜한 상품(굿즈) 합산 개수
+                int favoriteContentCount = favoriteService.selectFavoriteList(memberNo).size();
+                int favoriteGoodsCount = wishService.selectWishList(memberNo).size();
+                model.addAttribute("favoriteCount", favoriteContentCount + favoriteGoodsCount);
+
+                // 주문내역 개수
+                model.addAttribute("orderCount", orderService.getOrderCount(memberNo));
+
+                // 내가 작성한 리뷰 개수(콘텐츠 리뷰 + 상품 리뷰 합산)
+                model.addAttribute("reviewCount", reviewService.getMyReviewCount(memberNo));
 
                 return "member/mypage";
         }
