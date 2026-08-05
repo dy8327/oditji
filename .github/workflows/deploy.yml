@@ -66,7 +66,7 @@ jobs:
             -i ~/.ssh/oditji_deploy \
             oditji.war \
             "$SERVER_USER@$SERVER_HOST:/tmp/oditji.war.new"
-
+            
       - name: Deploy application
         run: |
           ssh -i ~/.ssh/oditji_deploy \
@@ -110,12 +110,7 @@ jobs:
             > "$APP_LOG_FILE" 2>&1 || true
 
           echo "===== FIRST ERROR CONTEXT ====="
-       # 최초 오류 위치를 기준으로 앞뒤 로그 출력
-          grep -n -m 1 \
-            -B 30 \
-            -A 150 \
-          -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" \
-          "$APP_LOG_FILE" || true
+          grep -n -m 1 -B 30 -A 150 -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" "$APP_LOG_FILE" || true
 
           echo "===== APP LOG FIRST 200 LINES ====="
           head -n 200 "$APP_LOG_FILE" || true
