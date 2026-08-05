@@ -8,7 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.review.dao.ReviewDAO;
 import com.project.oditji.review.vo.MyReviewVO;
 import com.project.oditji.review.vo.ProductReviewVO;
@@ -268,7 +270,9 @@ class ReviewServiceImplTest {
 
         MyReviewVO review = new MyReviewVO();
         review.setReviewNo(reviewNo);
-        review.setCreatedAt(new Date(createdAt));
+        review.setCreatedAt(LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(createdAt),
+                DateTimeUtil.KOREA_ZONE));
         return review;
     }
 }

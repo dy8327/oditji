@@ -1,6 +1,6 @@
 package com.project.oditji.report.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * REVIEW_REPORT 테이블 매핑 VO.
@@ -20,9 +20,9 @@ public class ReportVO {
     private String status;
     private Long adminNo;
     private String adminMemo;
-    private Date createdAt;
-    private Date processedAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime processedAt;
+    private LocalDateTime updatedAt;
 
     public int getReportNo() {
         return reportNo;
@@ -104,27 +104,27 @@ public class ReportVO {
         this.adminMemo = adminMemo;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getProcessedAt() {
+    public LocalDateTime getProcessedAt() {
         return processedAt;
     }
 
-    public void setProcessedAt(Date processedAt) {
+    public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 }

@@ -1,6 +1,6 @@
 package com.project.oditji.business.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.DeliveryBaseVO;
 
@@ -14,7 +14,7 @@ public class DeliveryManageVO extends DeliveryBaseVO {
 
     private Long memberNo;
     private Long businessNo;
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     public Long getMemberNo() {
         return memberNo;
@@ -32,11 +32,11 @@ public class DeliveryManageVO extends DeliveryBaseVO {
         this.businessNo = businessNo;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 }

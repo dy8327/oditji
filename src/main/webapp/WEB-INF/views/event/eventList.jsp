@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -59,9 +60,9 @@
                                 <div class="event-info">
                                     <h2><c:out value="${event.title}"/></h2>
                                     <p class="event-date">
-                                        <fmt:formatDate value="${event.startDate}" pattern="yyyy.MM.dd"/>
+                                        ${dt:format(event.startDate, 'yyyy.MM.dd')}
                                         ~
-                                        <fmt:formatDate value="${event.endDate}" pattern="yyyy.MM.dd"/>
+                                        ${dt:format(event.endDate, 'yyyy.MM.dd')}
                                     </p>
                                     <c:if test="${not empty event.description}">
                                         <p class="event-card-desc">

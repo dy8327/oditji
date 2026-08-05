@@ -4,7 +4,7 @@ package com.project.oditji.common.vo;
  * TMDB 조회 결과, 콘텐츠 도메인, 관리자 콘텐츠 조회에서 공통으로 사용하는
  * 콘텐츠 기본 메타데이터입니다.
  *
- * 공개일 타입은 화면과 저장 용도에 따라 LocalDate 또는 Date가 사용되므로
+ * 공개일 타입은 화면과 저장 용도에 따라 LocalDate 또는 LocalDateTime가 사용되므로
  * 각 하위 VO에서 별도로 정의합니다.
  */
 public abstract class ContentMetadataVO {

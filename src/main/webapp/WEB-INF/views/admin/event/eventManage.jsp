@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <%--
     상태(tab) / 기간(period) 필터의 현재 선택값.
@@ -259,9 +260,9 @@
                                     (이벤트 기간 문자열, 상태 한글 라벨, JS로 넘길 때 따옴표가
                                     깨지지 않도록 처리한 값)
                                 --%>
-                                <fmt:formatDate var="reqStartDateStr" value="${req.startDate}" pattern="yyyy-MM-dd"/>
-                                <fmt:formatDate var="reqEndDateStr" value="${req.endDate}" pattern="yyyy-MM-dd"/>
-                                <fmt:formatDate var="reqCreatedAtStr" value="${req.createdAt}" pattern="yyyy-MM-dd"/>
+                                <c:set var="reqStartDateStr" value="${dt:format(req.startDate, 'yyyy-MM-dd')}"/>
+                                <c:set var="reqEndDateStr" value="${dt:format(req.endDate, 'yyyy-MM-dd')}"/>
+                                <c:set var="reqCreatedAtStr" value="${dt:format(req.createdAt, 'yyyy-MM-dd')}"/>
 
                                 <%--
                                     사업자가 등록한 이벤트 배너 이미지(EVENT.BANNER_IMAGE) URL.

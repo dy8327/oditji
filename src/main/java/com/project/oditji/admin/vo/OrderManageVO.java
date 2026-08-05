@@ -1,6 +1,6 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.OrderSummaryBaseVO;
 
@@ -28,7 +28,7 @@ public class OrderManageVO extends OrderSummaryBaseVO {
     private String reason;
     private String cancelStatus;
     private String rejectReason;
-    private Date processedAt;
+    private LocalDateTime processedAt;
 
     public Long getOrderItemNo() {
         return orderItemNo;
@@ -166,11 +166,11 @@ public class OrderManageVO extends OrderSummaryBaseVO {
         this.rejectReason = rejectReason;
     }
 
-    public Date getProcessedAt() {
+    public LocalDateTime getProcessedAt() {
         return processedAt;
     }
 
-    public void setProcessedAt(Date processedAt) {
+    public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
     }
 }

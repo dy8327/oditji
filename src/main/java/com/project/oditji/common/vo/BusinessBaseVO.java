@@ -1,6 +1,6 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 관리자 사업자 관리와 사업자 기능에서 공통으로 사용하는 계정·정산 정보입니다.
@@ -17,7 +17,7 @@ public abstract class BusinessBaseVO {
     private String gradeName;
     private Double customRate;
     private String status;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getBusinessNo() {
         return businessNo;
@@ -99,11 +99,11 @@ public abstract class BusinessBaseVO {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

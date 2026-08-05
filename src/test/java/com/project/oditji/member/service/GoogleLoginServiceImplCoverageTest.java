@@ -15,7 +15,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +32,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
 import com.project.oditji.member.exception.MemberBlockedException;
@@ -132,7 +133,7 @@ class GoogleLoginServiceImplCoverageTest {
         resetServer();
         expectTokenAndUser("withdrawn-sub", "탈퇴 회원", null);
         MemberSocialJoinVO withdrawn = joined(21L, "WITHDRAWN");
-        withdrawn.setWithdrawnAt(new Date());
+        withdrawn.setWithdrawnAt(LocalDateTime.now(DateTimeUtil.KOREA_ZONE));
         when(memberSocialDAO.selectMemberBySocial("GOOGLE", "withdrawn-sub"))
                 .thenReturn(withdrawn);
 

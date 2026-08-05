@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -282,8 +283,8 @@ class OrderControllerCoverageTest {
         List<OrderCancelRefundVO> history = List.of(new OrderCancelRefundVO());
         when(orderService.getOrderCount(8L)).thenReturn(8);
         when(orderService.getOrderList(8L, 7, 9)).thenReturn(orders);
-        LocalDate startDate = LocalDate.of(2026, 7, 1);
-        LocalDate endDate = LocalDate.of(2026, 8, 1);
+        LocalDate startDate = LocalDate.of(2026, Month.JULY, 1);
+        LocalDate endDate = LocalDate.of(2026, Month.AUGUST, 1);
         when(cancelRefundService.getMemberCancelRefundHistory(8L, "REFUND", "WAITING", startDate, endDate))
                 .thenReturn(history);
         ExtendedModelMap model = new ExtendedModelMap();

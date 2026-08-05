@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -478,7 +479,7 @@ public class OrderController {
                  * =========================================================
                  */
                 if (startDate == null) {
-                        startDate = LocalDate.now();
+                        startDate = LocalDate.now(DateTimeUtil.KOREA_ZONE);
                 }
 
                 final int pageSize = 3;

@@ -3,6 +3,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -122,9 +123,7 @@
 
                         <div>
 
-                            <fmt:formatDate
-                                value="${o.createdAt}"
-                                pattern="yyyy.MM.dd HH:mm"/>
+                            ${dt:format(o.createdAt, 'yyyy.MM.dd HH:mm')}
 
                         </div>
 
@@ -739,7 +738,7 @@
                                     </td>
                                     <td data-label="주문번호">${history.orderNo}</td>
                                     <td data-label="상품명"><c:out value="${history.productName}"/></td>
-                                    <td data-label="신청일"><fmt:formatDate value="${history.createdAt}" pattern="yyyy.MM.dd"/></td>
+                                    <td data-label="신청일">${dt:format(history.createdAt, 'yyyy.MM.dd')}</td>
                                     <td data-label="금액">₩ <fmt:formatNumber value="${history.refundAmount}" pattern="#,###"/></td>
                                     <td data-label="처리 상태">
                                         <c:choose>

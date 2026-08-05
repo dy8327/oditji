@@ -1,6 +1,6 @@
 package com.project.oditji.favorite.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class FavoriteVO {
 
@@ -9,7 +9,7 @@ public class FavoriteVO {
     private Long contentNo;
     private Long tmdbId;
     private String contentType;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getFavoriteNo() {
         return favoriteNo;
@@ -51,11 +51,11 @@ public class FavoriteVO {
         this.contentType = contentType;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

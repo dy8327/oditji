@@ -1,6 +1,6 @@
 package com.project.oditji.business.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.BusinessBaseVO;
 
@@ -13,7 +13,7 @@ public class BusinessVO extends BusinessBaseVO {
     private String openDate;
     private String licenseFilePath;
     private String ntsBusinessStatus;
-    private Date ntsCheckedAt;
+    private LocalDateTime ntsCheckedAt;
     private String rejectReason;
 
     public String getRepresentativeName() {
@@ -48,11 +48,11 @@ public class BusinessVO extends BusinessBaseVO {
         this.ntsBusinessStatus = ntsBusinessStatus;
     }
 
-    public Date getNtsCheckedAt() {
+    public LocalDateTime getNtsCheckedAt() {
         return ntsCheckedAt;
     }
 
-    public void setNtsCheckedAt(Date ntsCheckedAt) {
+    public void setNtsCheckedAt(LocalDateTime ntsCheckedAt) {
         this.ntsCheckedAt = ntsCheckedAt;
     }
 

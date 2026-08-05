@@ -1,6 +1,6 @@
 package com.project.oditji.review.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 콘텐츠 리뷰 원본 VO와 목록 표시용 VO가 공통으로 사용하는 필드입니다.
@@ -12,7 +12,7 @@ public abstract class ReviewBaseVO {
     private String reviewText;
     private String spoilerYn;
     private String status;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getMemberNo() {
         return memberNo;
@@ -54,11 +54,11 @@ public abstract class ReviewBaseVO {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

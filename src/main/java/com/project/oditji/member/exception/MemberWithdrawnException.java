@@ -1,6 +1,6 @@
 package com.project.oditji.member.exception;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 탈퇴(WITHDRAWN) 상태의 회원이 로그인을 시도할 때 발생하는 예외.
@@ -17,9 +17,9 @@ public class MemberWithdrawnException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private final Long memberNo;
-    private final Date withdrawnAt;
+    private final LocalDateTime withdrawnAt;
 
-    public MemberWithdrawnException(String message, Long memberNo, Date withdrawnAt) {
+    public MemberWithdrawnException(String message, Long memberNo, LocalDateTime withdrawnAt) {
         super(message);
         this.memberNo = memberNo;
         this.withdrawnAt = withdrawnAt;
@@ -29,7 +29,7 @@ public class MemberWithdrawnException extends RuntimeException {
         return memberNo;
     }
 
-    public Date getWithdrawnAt() {
+    public LocalDateTime getWithdrawnAt() {
         return withdrawnAt;
     }
 }

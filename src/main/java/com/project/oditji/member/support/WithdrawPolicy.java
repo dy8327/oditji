@@ -1,6 +1,9 @@
 package com.project.oditji.member.support;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 탈퇴 회원 복구 정책 관련 공통 상수/유틸.
@@ -23,14 +26,16 @@ public final class WithdrawPolicy {
      * 탈퇴 시각(withdrawnAt) 기준 남은 복구 가능 일수를 계산한다.
      * 정보가 없으면 0을 반환한다.
      */
-    public static int calcDaysLeft(Date withdrawnAt) {
+    public static int calcDaysLeft(LocalDateTime withdrawnAt) {
 
         if (withdrawnAt == null) {
             return 0;
         }
 
-        long diffMillis = System.currentTimeMillis() - withdrawnAt.getTime();
-        long diffDays = diffMillis / (1000L * 60 * 60 * 24);
+        long diffDays = Duration.between(
+                withdrawnAt.atZone(DateTimeUtil.KOREA_ZONE),
+                java.time.ZonedDateTime.now(DateTimeUtil.KOREA_ZONE))
+                .toDays();
 
         int daysLeft = (int) (RESTORE_PERIOD_DAYS - diffDays);
 
@@ -40,7 +45,7 @@ public final class WithdrawPolicy {
     /**
      * 로그인 화면에 노출할 탈퇴 안내 메시지를 만든다.
      */
-    public static String buildWithdrawnMessage(Date withdrawnAt) {
+    public static String buildWithdrawnMessage(LocalDateTime withdrawnAt) {
 
         int daysLeft = calcDaysLeft(withdrawnAt);
 

@@ -1,12 +1,12 @@
 package com.project.oditji.cart.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class CartVO {
 
     private Long cartNo;
     private Long memberNo;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getCartNo() {
         return cartNo;
@@ -24,11 +24,11 @@ public class CartVO {
         this.memberNo = memberNo;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

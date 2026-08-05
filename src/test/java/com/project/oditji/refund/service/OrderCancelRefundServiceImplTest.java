@@ -83,8 +83,8 @@ class OrderCancelRefundServiceImplTest {
                 1L,
                 "CANCEL",
                 "APPROVED",
-                java.sql.Date.valueOf("2026-08-01"),
-                java.sql.Date.valueOf("2026-08-04"));
+                LocalDate.of(2026, Month.AUGUST, 1),
+                LocalDate.of(2026, Month.AUGUST, 4));
     }
 
     @Test

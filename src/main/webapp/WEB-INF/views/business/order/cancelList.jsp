@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <%--
     =========================================================
@@ -222,9 +223,7 @@
                                                 <div class="cancel-info-item cancel-info-date">
                                                     <dt>요청일</dt>
                                                     <dd>
-                                                        <fmt:formatDate
-                                                                value="${item.createdAt}"
-                                                                pattern="yyyy-MM-dd HH:mm"/>
+                                                        ${dt:format(item.createdAt, 'yyyy-MM-dd HH:mm')}
                                                     </dd>
                                                 </div>
 

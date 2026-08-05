@@ -1,12 +1,12 @@
 package com.project.oditji.chat.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ChatRoomMemberVO {
 
     private String roomId;
     private int businessNo;
-    private Date joinDate;
+    private LocalDateTime joinDate;
     private String description;
     private String isDefault;
 
@@ -16,7 +16,7 @@ public class ChatRoomMemberVO {
 
     public ChatRoomMemberVO(String roomId,
             int businessNo,
-            Date joinDate,
+            LocalDateTime joinDate,
             String description,
             String isDefault) {
 
@@ -51,11 +51,11 @@ public class ChatRoomMemberVO {
         this.businessNo = businessNo;
     }
 
-    public Date getJoinDate() {
+    public LocalDateTime getJoinDate() {
         return joinDate;
     }
 
-    public void setJoinDate(Date joinDate) {
+    public void setJoinDate(LocalDateTime joinDate) {
         this.joinDate = joinDate;
     }
 

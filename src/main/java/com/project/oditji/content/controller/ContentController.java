@@ -426,8 +426,7 @@ public class ContentController {
 
                                 break;
 
-                        case "coupangplay":
-                        case PLATFORM_COUPANG:
+                        case "coupangplay", PLATFORM_COUPANG:
 
                                 redirectUrl = "https://www.coupangplay.com/query"
                                                 + "?src=page_search&keyword="
@@ -439,8 +438,7 @@ public class ContentController {
                          * Disney+는 검색어 전달 URL이 안정적이지 않아
                          * 공식 홈페이지로 이동합니다.
                          */
-                        case "disney+":
-                        case "disneyplus":
+                        case "disney+", "disneyplus":
 
                                 redirectUrl = "https://www.disneyplus.com/";
 

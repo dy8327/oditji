@@ -2,6 +2,7 @@ package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -207,7 +208,7 @@ class SearchContentAgeRatingServiceCoverageTest {
 
         assertFalse(limited.contains(highPriority));
         assertTrue(limited.contains(lowerPriority));
-        assertFalse(Boolean.TRUE.equals(lowerPriority.getAgeRatingRestrictionChecked()));
+        assertNotEquals(Boolean.TRUE, lowerPriority.getAgeRatingRestrictionChecked());
 
         ReflectionTestUtils.setField(service, "retryMaxPerRefresh", 100);
         when(apiClient.get(anyString())).thenAnswer(invocation -> {

@@ -1,6 +1,6 @@
 package com.project.oditji.business.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class GoodsManageVO {
     private int stock;
     private String description;
     private String status;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     // 조회용
     private String contentTitle;
@@ -162,11 +162,11 @@ public class GoodsManageVO {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

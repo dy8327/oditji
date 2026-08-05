@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.payment.dao.PaymentDAO;
 import com.project.oditji.payment.vo.PaymentVO;
 
@@ -291,7 +292,7 @@ public class PaymentServiceImpl implements PaymentService {
         result.setPaymentAmount(paymentVO.getPaymentAmount());
         result.setCanceledAmount(canceledTotal);
         result.setPaymentStatus(canceledTotal >= paymentVO.getPaymentAmount() ? CANCELED_STATUS : PARTIAL_CANCELED_STATUS);
-        result.setCanceledAt(OffsetDateTime.now().toString());
+        result.setCanceledAt(OffsetDateTime.now(DateTimeUtil.KOREA_ZONE).toString());
         result.setCancelReason(normalizedReason);
 
         return result;
@@ -438,7 +439,7 @@ public class PaymentServiceImpl implements PaymentService {
          * 포트원 응답에 취소 일시가 없는 예외 상황을 대비한다.
          * PAYMENT.CANCELED_AT은 VARCHAR2 컬럼이므로 ISO 문자열로 저장한다.
          */
-        return OffsetDateTime.now().toString();
+        return OffsetDateTime.now(DateTimeUtil.KOREA_ZONE).toString();
     }
 
     /*

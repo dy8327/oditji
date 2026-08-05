@@ -1,6 +1,6 @@
 package com.project.oditji.chat.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ChatRoomVO {
 
@@ -13,7 +13,7 @@ public class ChatRoomVO {
     private String roomType;
     private String roomDescription;
     private int createdBy;
-    private Date createdAt;
+    private LocalDateTime createdAt;
     private String status;
 
     /* ==========================
@@ -30,7 +30,7 @@ public class ChatRoomVO {
     private String lastMessage;
 
     // 최근 메시지 시간
-    private Date lastMessageTime;
+    private LocalDateTime lastMessageTime;
 
     //최대 참여 인원 수
     private int maxMember;
@@ -78,11 +78,11 @@ public class ChatRoomVO {
         this.createdBy = createdBy;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -118,11 +118,11 @@ public class ChatRoomVO {
         this.lastMessage = lastMessage;
     }
 
-    public Date getLastMessageTime() {
+    public LocalDateTime getLastMessageTime() {
         return lastMessageTime;
     }
 
-    public void setLastMessageTime(Date lastMessageTime) {
+    public void setLastMessageTime(LocalDateTime lastMessageTime) {
         this.lastMessageTime = lastMessageTime;
     }
 

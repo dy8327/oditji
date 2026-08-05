@@ -1,6 +1,6 @@
 package com.project.oditji.review.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 상품 리뷰 원본과 마이페이지 통합 리뷰가 공통으로 사용하는 표시 정보입니다.
@@ -10,7 +10,7 @@ public abstract class ProductReviewBaseVO {
     private int reviewNo;
     private double rating;
     private String content;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public int getReviewNo() {
         return reviewNo;
@@ -36,11 +36,11 @@ public abstract class ProductReviewBaseVO {
         this.content = content;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

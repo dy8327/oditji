@@ -1,6 +1,6 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 사업자 배송 관리 화면과 구매자 배송 조회 화면이 공통으로 사용하는
@@ -21,7 +21,7 @@ public abstract class DeliveryBaseVO extends OrderAddressBaseVO {
     private String trackingNumber;
     private String courier;
     private String status;
-    private Date orderCreatedAt;
+    private LocalDateTime orderCreatedAt;
 
     public Integer getProductNo() {
         return productNo;
@@ -111,11 +111,11 @@ public abstract class DeliveryBaseVO extends OrderAddressBaseVO {
         this.status = status;
     }
 
-    public Date getOrderCreatedAt() {
+    public LocalDateTime getOrderCreatedAt() {
         return orderCreatedAt;
     }
 
-    public void setOrderCreatedAt(Date orderCreatedAt) {
+    public void setOrderCreatedAt(LocalDateTime orderCreatedAt) {
         this.orderCreatedAt = orderCreatedAt;
     }
 

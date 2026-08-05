@@ -897,7 +897,7 @@ public class AdminController {
         content.setCastNames(castNames);
         content.setOverview(overview);
         content.setRuntime(runtime);
-        // releaseDate 문자열 -> Date 변환은 화면(포맷) 확정 후 공용 유틸로 처리 필요 (현재는 생략)
+        // releaseDate 문자열 -> LocalDate 변환은 화면(포맷) 확정 후 공용 유틸로 처리 필요 (현재는 생략)
 
         adminService.updateContent(content, platformNos);
 

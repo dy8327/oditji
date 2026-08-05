@@ -1,8 +1,8 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.vo.EventBaseVO;
 
 /**
@@ -14,8 +14,8 @@ public class EventManageVO extends EventBaseVO {
     private static final String STATUS_REJECTED = "REJECTED";
 
     private String businessName;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Long productNo;
     private String productName;
     private Long price;
@@ -30,19 +30,19 @@ public class EventManageVO extends EventBaseVO {
         this.businessName = businessName;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
@@ -121,15 +121,13 @@ public class EventManageVO extends EventBaseVO {
             return null;
         }
 
-        Date today = truncateToDate(new Date());
-        Date start = truncateToDate(startDate);
-        Date end = truncateToDate(endDate);
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
-        if (today.before(start)) {
+        if (today.isBefore(startDate)) {
             return "UPCOMING";
         }
 
-        if (today.after(end)) {
+        if (today.isAfter(endDate)) {
             return "ENDED";
         }
 
@@ -150,14 +148,4 @@ public class EventManageVO extends EventBaseVO {
         };
     }
 
-    private Date truncateToDate(Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        return calendar.getTime();
-    }
 }

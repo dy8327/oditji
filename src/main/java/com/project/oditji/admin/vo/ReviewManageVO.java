@@ -1,6 +1,6 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 리뷰 관리 VO
@@ -21,7 +21,7 @@ public class ReviewManageVO {
     private String status;         // 콘텐츠 리뷰에만 존재 (ACTIVE/HIDDEN/DELETED)
     private Long reportCount;       // REVIEW_REPORT 집계 (신고 탭에서만 사용)
     private String reportReason;    // REVIEW_REPORT 사유 (신고 탭에서만 사용)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getReviewNo() {
         return reviewNo;
@@ -119,11 +119,11 @@ public class ReviewManageVO {
         this.reportReason = reportReason;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

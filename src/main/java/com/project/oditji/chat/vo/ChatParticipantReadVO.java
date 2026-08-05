@@ -1,6 +1,8 @@
 package com.project.oditji.chat.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 메시지별 미열람 참여자 수 계산에 사용하는 참여자 읽음 정보입니다.
@@ -10,7 +12,7 @@ public class ChatParticipantReadVO {
     private Long memberNo;
     private int businessNo;
     private String displayName;
-    private Date joinedAt;
+    private LocalDateTime joinedAt;
     private String lastReadMessageId;
     private Long lastReadEpochMs;
 
@@ -38,11 +40,11 @@ public class ChatParticipantReadVO {
         this.displayName = displayName;
     }
 
-    public Date getJoinedAt() {
+    public LocalDateTime getJoinedAt() {
         return joinedAt;
     }
 
-    public void setJoinedAt(Date joinedAt) {
+    public void setJoinedAt(LocalDateTime joinedAt) {
         this.joinedAt = joinedAt;
     }
 
@@ -51,7 +53,7 @@ public class ChatParticipantReadVO {
      * 채팅 참여 시작 시각을 epoch millisecond로 반환합니다.
      */
     public long getJoinedAtEpochMs() {
-        return joinedAt == null ? 0L : joinedAt.getTime();
+        return DateTimeUtil.toEpochMilli(joinedAt);
     }
 
     public String getLastReadMessageId() {

@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -130,15 +128,9 @@ class EventControllerCoverageTest {
     private EventVO event(String status, LocalDate startDate, LocalDate endDate) {
         EventVO event = new EventVO();
         event.setStatus(status);
-        event.setStartDate(toDate(startDate));
-        event.setEndDate(toDate(endDate));
+        event.setStartDate(startDate);
+        event.setEndDate(endDate);
         return event;
     }
 
-    private Date toDate(LocalDate date) {
-        if (date == null) {
-            return null;
-        }
-        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    }
 }

@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="event"/>
 
@@ -239,8 +240,7 @@
                                     </td>
 
                                     <td class="col-hide-mobile">
-                                        <fmt:formatDate value="${event.createdAt}"
-                                                        pattern="yyyy-MM-dd"/>
+                                        ${dt:format(event.createdAt, 'yyyy-MM-dd')}
                                     </td>
 
                                     <td>
@@ -600,7 +600,7 @@
 
                         <div>
                             <span class="detail-label">등록일</span>
-                            <p><fmt:formatDate value="${event.createdAt}" pattern="yyyy-MM-dd"/></p>
+                            <p>${dt:format(event.createdAt, 'yyyy-MM-dd')}</p>
                         </div>
 
                     </div>

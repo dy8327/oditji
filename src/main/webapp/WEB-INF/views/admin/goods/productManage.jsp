@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <%--
     상태(tab) 필터의 현재 선택값. param이 없으면 '전체'를 의미하는 빈 문자열로 취급한다.
@@ -211,7 +212,7 @@
                                     상세보기 팝업에서 쓸 값들을 미리 변수로 정리해 둔다.
                                     (요청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqStartDateStr 등과 동일한 방식)
                                 --%>
-                                <fmt:formatDate var="reqCreatedAtStr" value="${req.createdAt}" pattern="yyyy-MM-dd"/>
+                                <c:set var="reqCreatedAtStr" value="${dt:format(req.createdAt, 'yyyy-MM-dd')}"/>
 
                                 <c:choose>
                                     <c:when test="${req.status == 'APPROVED'}">

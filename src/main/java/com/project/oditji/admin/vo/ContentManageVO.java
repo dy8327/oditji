@@ -1,6 +1,7 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.ContentMetadataVO;
 
@@ -10,11 +11,11 @@ import com.project.oditji.common.vo.ContentMetadataVO;
 public class ContentManageVO extends ContentMetadataVO {
 
     private Long contentNo;
-    private Date releaseDate;
+    private LocalDate releaseDate;
     private Long viewCount;
     private String platformNames;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Long getContentNo() {
         return contentNo;
@@ -24,11 +25,11 @@ public class ContentManageVO extends ContentMetadataVO {
         this.contentNo = contentNo;
     }
 
-    public Date getReleaseDate() {
+    public LocalDate getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
 
@@ -51,19 +52,19 @@ public class ContentManageVO extends ContentMetadataVO {
         this.platformNames = platformNames;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 }

@@ -1,8 +1,6 @@
 package com.project.oditji.event.controller;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.event.service.EventService;
 import com.project.oditji.event.vo.EventVO;
 
@@ -88,9 +87,9 @@ public class EventController {
      * 동일한 기준(날짜 단위 비교)을 애플리케이션 레벨에서 맞춘다.
      */
     private String resolveActualPeriod(EventVO event) {
-        LocalDate today = LocalDate.now();
-        LocalDate startDate = toLocalDate(event.getStartDate());
-        LocalDate endDate = toLocalDate(event.getEndDate());
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+        LocalDate startDate = event.getStartDate();
+        LocalDate endDate = event.getEndDate();
 
         if ("END".equals(event.getStatus())) {
             return PERIOD_ENDED;
@@ -107,10 +106,6 @@ public class EventController {
         return PERIOD_ONGOING;
     }
 
-    private LocalDate toLocalDate(Date date) {
-        if (date == null) return null;
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    }
 
     private String normalizePeriod(String period) {
         String normalized = period == null

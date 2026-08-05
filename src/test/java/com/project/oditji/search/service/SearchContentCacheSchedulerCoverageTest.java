@@ -10,10 +10,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
@@ -140,22 +140,21 @@ class SearchContentCacheSchedulerCoverageTest {
     }
 
     @Test
-    void shutdownShouldPreventFutureSubmissions() throws Exception {
+    void shutdownShouldPreventFutureSubmissions() {
         scheduler.shutdown();
 
         scheduler.submitRefresh();
-        Thread.sleep(50L);
 
         assertFalse(scheduler.isRefreshing());
         verify(collectorService, never()).collect(anyList(), any());
     }
 
     private void awaitIdle() throws Exception {
-        Instant deadline = Instant.now().plus(Duration.ofSeconds(3));
-
-        while (scheduler.isRefreshing() && Instant.now().isBefore(deadline)) {
-            Thread.sleep(10L);
-        }
+        ExecutorService executor = (ExecutorService) ReflectionTestUtils.getField(
+                scheduler,
+                "refreshExecutor");
+        Future<Boolean> barrier = executor.submit(() -> Boolean.TRUE);
+        barrier.get(3, TimeUnit.SECONDS);
 
         assertFalse(scheduler.isRefreshing());
     }

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 <c:set var="activeMenu" value="settlement" />
 <!DOCTYPE html>
 <html lang="ko">
@@ -46,7 +47,7 @@
                                 <tr>
                                     <td>${item.settlementMonth}</td>
                                     <td>
-                                        <fmt:formatDate value="${item.requestedAt}" pattern="yyyy-MM-dd"/>
+                                        ${dt:format(item.requestedAt, 'yyyy-MM-dd')}
                                     </td>
                                     <td>
                                         <fmt:formatNumber value="${item.totalAmount}" pattern="#,##0"/>원
@@ -74,7 +75,7 @@
                                     <td>
                                         <c:choose>
                                             <c:when test="${not empty item.processedAt}">
-                                                <fmt:formatDate value="${item.processedAt}" pattern="yyyy-MM-dd"/>
+                                                ${dt:format(item.processedAt, 'yyyy-MM-dd')}
                                             </c:when>
                                             <c:otherwise>-</c:otherwise>
                                         </c:choose>

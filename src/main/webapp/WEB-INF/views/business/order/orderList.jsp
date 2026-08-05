@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="order"/>
 
@@ -64,7 +65,7 @@
 
                                 <tr>
                                     <td class="col-hide-mobile"><c:out value="${order.orderNo}"/></td>
-                                    <td class="col-hide-mobile"><fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></td>
+                                    <td class="col-hide-mobile">${dt:format(order.createdAt, 'yyyy-MM-dd HH:mm')}</td>
                                     <td>
                                         <span class="mobile-status-text ${fn:trim(orderStatusClass)}">
                                             <c:choose>
@@ -157,7 +158,7 @@
                         <div class="item-info">
                             <h3>주문번호 : ${order.orderNo}</h3>
                             <div class="meta">
-                                <span>주문일 : <fmt:formatDate value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/></span>
+                                <span>주문일 : ${dt:format(order.createdAt, 'yyyy-MM-dd HH:mm')}</span>
                             </div>
                         </div>
                     </article>

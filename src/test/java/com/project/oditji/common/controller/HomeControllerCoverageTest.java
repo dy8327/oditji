@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,8 +84,8 @@ class HomeControllerCoverageTest {
         when(searchContentPageCacheService.getMainPopularContent(5)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainRecommendedContent(
-                eq(List.of("Netflix", "TVING")),
-                eq(20)))
+                List.of("Netflix", "TVING"),
+                20))
                 .thenReturn(List.of());
 
         ExtendedModelMap model = new ExtendedModelMap();

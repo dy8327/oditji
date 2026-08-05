@@ -1,6 +1,6 @@
 package com.project.oditji.refund.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 주문상품 취소 요청 정보를 저장하고 화면에 전달하는 VO.
@@ -19,8 +19,8 @@ public class OrderCancelRefundVO {
     private Long cancelAmount;
     private String reason;
     private String status;
-    private Date createdAt;
-    private Date processedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime processedAt;
     private String rejectReason;
 
     /*
@@ -137,19 +137,19 @@ public class OrderCancelRefundVO {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getProcessedAt() {
+    public LocalDateTime getProcessedAt() {
         return processedAt;
     }
 
-    public void setProcessedAt(Date processedAt) {
+    public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
     }
 

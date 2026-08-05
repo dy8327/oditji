@@ -3,6 +3,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -156,8 +157,7 @@
 
 											<span>
 
-												<fmt:formatDate value="${review.createdAt}"
-																pattern="yyyy.MM.dd"/>
+												${dt:format(review.createdAt, 'yyyy.MM.dd')}
 
 											</span>
 
