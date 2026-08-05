@@ -44,10 +44,18 @@
 
             <%-- 이메일 인증번호 입력 단계 --%>
             <c:otherwise>
-                <p>
-                    <strong><c:out value="${maskedEmail}"/></strong>로<br>
-                    인증번호를 발송했습니다.
-                </p>
+                <%-- [수정] 발송 안내 문구를 ODITJI 기본 카드 스타일과 어울리는 안내 영역으로 구성 --%>
+                <div class="verification-notice" role="status" aria-live="polite">
+                    <div class="verification-notice-icon" aria-hidden="true">✓</div>
+                    <div class="verification-notice-content">
+                        <span class="verification-notice-title">인증번호 발송 완료</span>
+                        <p class="verification-notice-description">
+                            <strong><c:out value="${maskedEmail}"/></strong>로
+                            6자리 인증번호를 발송했습니다.
+                        </p>
+                        <span class="verification-notice-help">메일함을 확인한 뒤 아래에 인증번호를 입력해 주세요.</span>
+                    </div>
+                </div>
 
                 <form action="${pageContext.request.contextPath}/member/verifyPwCode"
                       method="post">
@@ -74,8 +82,9 @@
             </c:otherwise>
         </c:choose>
 
-        <c:if test="${not empty message}">
-            <p><c:out value="${message}"/></p>
+        <%-- [수정] 인증 단계에서는 위 안내 영역과 문구가 중복되므로 일반 메시지를 표시하지 않음 --%>
+        <c:if test="${not empty message and not verificationStep}">
+            <p class="success-text"><c:out value="${message}"/></p>
         </c:if>
 
         <c:if test="${not empty errorMessage}">
