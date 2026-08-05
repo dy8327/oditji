@@ -29,13 +29,21 @@
 
 	<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-	<main id="mainContent" class="mypage-container">
+	<main id="mainContent" class="mypage-container mypage-review-page">
 
-		<section class="mypage-section-header">
+		<%-- =========================================================
+		     [내가 작성한 리뷰 화면 디자인 수정]
+		     기존 리뷰 조회·필터·삭제 기능과 URL은 그대로 유지하고,
+		     마이페이지의 흑백 영화 배경과 어울리는 화면 전용 클래스만 추가합니다.
+		========================================================= --%>
+
+		<section class="mypage-section-header" aria-labelledby="myReviewTitle">
 
 			<div>
 
-				<h2>내가 작성한 리뷰</h2>
+				<span class="mypage-review-eyebrow">MY REVIEWS</span>
+
+				<h2 id="myReviewTitle">내가 작성한 리뷰</h2>
 
 				<p>내가 작성한 콘텐츠 리뷰와 상품 리뷰를 모두 확인할 수 있습니다.</p>
 
@@ -51,6 +59,9 @@
 		</section>
 
 		<section class="mypage-review">
+
+			<%-- [내가 작성한 리뷰 화면 디자인 수정]
+			     아래 데이터 분기와 버튼 속성은 수정하지 않고, CSS에서 카드 디자인만 변경합니다. --%>
 
 			<c:choose>
 

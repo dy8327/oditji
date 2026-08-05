@@ -1076,3 +1076,457 @@
 .modal-overlay.hidden {
   display: none !important;
 }
+
+/* =========================================================
+   [마이페이지 흑백 시네마 테마 수정 - 2026-08-05]
+   - 헤더, 푸터, body 기본 배경은 수정하지 않습니다.
+   - 마이페이지 내부 패널만 새 흑백 배경 이미지와 어울리도록 재정의합니다.
+   - 기존 클래스와 기능용 ID는 그대로 유지합니다.
+========================================================= */
+.mypage-dashboard .mypage-panel,
+.mypage-dashboard .mypage-hero {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.055), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+.mypage-dashboard .mypage-panel::before {
+  background: linear-gradient(112deg, transparent 0 68%, rgba(255, 255, 255, 0.025));
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 좌측 배경은 원본 배치를 유지한 흑백 파일 사용 */
+.mypage-hero {
+  background-color: #050505;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.02)), url("/oditji/images/mypage-left-bg.png");
+}
+
+.mypage-hero-badge {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.32);
+  color: #f2f2f2;
+}
+
+.mypage-hero-spark {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(10, 10, 10, 0.88) 68%);
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.mypage-hero-line {
+  background: linear-gradient(90deg, transparent, #777 34%, #fff 52%, transparent);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.38);
+}
+
+.mypage-heading-icon {
+  color: #d9dde5;
+}
+
+.mypage-panel-heading p,
+.mypage-profile-email,
+.mypage-created-at,
+.mypage-activity-title,
+.mypage-empty {
+  color: #8f949d;
+}
+
+.mypage-member-type {
+  border-color: rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.055);
+  color: #d7dbe2;
+}
+
+.mypage-profile-image {
+  background: linear-gradient(135deg, #f4f4f4, #777 58%, #fff);
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.16);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 공통 버튼 색상만 무채색으로 변경 */
+.mypage-action-btn {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: linear-gradient(180deg, rgba(42, 44, 49, 0.9), rgba(13, 14, 17, 0.96));
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.035);
+  color: #f2f3f5;
+}
+
+.mypage-action-btn span {
+  color: #d9dce2;
+}
+
+.mypage-action-btn:hover {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 0 20px rgba(255, 255, 255, 0.075),
+    0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] OTT 배경도 동일한 무채색 계열로 연결 */
+.mypage-ott::after {
+  background-image: linear-gradient(90deg, rgba(9, 10, 12, 1) 0%, rgba(9, 10, 12, 0.97) 38%, rgba(9, 10, 12, 0.7) 61%, rgba(9, 10, 12, 0.2) 100%), url("/oditji/images/mypage-ott-bg.png");
+}
+
+.mypage-ott-chip {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(4, 4, 5, 0.78);
+}
+
+.mypage-ott-chip:hover {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(35, 36, 40, 0.9);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 활동 카드 전체를 검정·회색 유리 패널로 통일 */
+.mypage-activity-card {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+}
+
+.mypage-activity-card:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: linear-gradient(145deg, rgba(48, 50, 56, 0.96), rgba(14, 15, 18, 0.99));
+}
+
+.mypage-activity-icon,
+.activity-favorite .mypage-activity-icon,
+.activity-cart .mypage-activity-icon,
+.activity-order .mypage-activity-icon,
+.activity-review .mypage-activity-icon {
+  color: #e5e7eb;
+}
+
+/* =========================================================
+   [회원탈퇴 영역 디자인 수정 - 2026-08-05]
+   - 기존 탈퇴 버튼 ID와 문구는 유지합니다.
+   - 과도한 빨간 배경을 줄이고 흑백 카드 안에 경고색을 포인트로만 사용합니다.
+========================================================= */
+.mypage-withdraw {
+  grid-template-columns: 58px minmax(0, 1fr) 154px;
+  min-height: 88px;
+  padding: 14px 20px;
+  border-color: rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  background: radial-gradient(circle at 86% 50%, rgba(255, 66, 82, 0.08), transparent 20%), linear-gradient(100deg, rgba(19, 20, 24, 0.98), rgba(7, 8, 10, 0.99));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 34px rgba(0, 0, 0, 0.3);
+}
+
+.mypage-withdraw::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 45%);
+}
+
+.mypage-withdraw::after {
+  right: 188px;
+  width: 132px;
+  opacity: 0.12;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px);
+}
+
+.mypage-withdraw-icon {
+  width: 44px;
+  height: 48px;
+  border-color: #c6c8cd;
+  color: #f2f2f3;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+.mypage-withdraw-copy h2 {
+  font-size: 16px;
+}
+
+.mypage-withdraw-copy p {
+  color: #8e929a;
+  font-size: 12.5px;
+}
+
+.mypage-withdraw-btn {
+  width: 140px;
+  border-color: rgba(255, 78, 95, 0.72);
+  background: rgba(52, 12, 19, 0.22);
+  color: #ff6474;
+}
+
+.mypage-withdraw-btn:hover {
+  border-color: #ff6b7a;
+  background: rgba(70, 15, 24, 0.42);
+  box-shadow: 0 0 18px rgba(255, 49, 71, 0.12);
+}
+
+/* =========================================================
+   [최종 추가 수정 - 2026-08-05]
+   요청사항:
+   1) 기존 코드와 기능은 그대로 유지
+   2) 회원탈퇴 왼쪽 경고 아이콘 및 우측 점 장식 제거
+   3) 회원탈퇴 영역을 다른 마이페이지 패널과 동일한 배경으로 통일
+   4) 회원탈퇴 버튼은 기본 투명 배경 + 빨간 테두리,
+      hover/focus 시에만 빨간색으로 채움
+   5) 모바일 OTT 항목을 같은 크기로 정렬
+      - 일반 모바일: 한 줄 3개
+      - 작은 모바일: 한 줄 2개
+   6) 모바일 회원탈퇴 제목 → 안내 문구 → 버튼 순으로 중앙 정렬
+   7) 내가 작성한 리뷰 카드는 내용 길이에 맞춰 자동 높이 적용
+
+   ※ 기존 선택자와 JSP 기능용 ID는 수정하지 않고
+      CSS 하단 재정의 방식으로 필요한 부분만 덮어씁니다.
+========================================================= */
+
+/* ---------------------------------------------------------
+   [수정] 회원탈퇴 영역
+   - 왼쪽 경고 표시와 오른쪽 점 패턴 제거
+   - 다른 마이페이지 영역과 동일한 흑백 패널 배경 적용
+--------------------------------------------------------- */
+.mypage-withdraw {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 154px;
+  align-items: center;
+  column-gap: 24px;
+
+  min-height: 88px;
+  margin-top: 16px;
+  padding: 16px 20px 16px 26px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+
+  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.045), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 34px rgba(0, 0, 0, 0.3);
+}
+
+/* [수정] 회원탈퇴 영역의 왼쪽 경고 아이콘 제거 */
+.mypage-withdraw-icon {
+  display: none;
+}
+
+/* [수정] 회원탈퇴 영역의 우측 점 패턴 및 추가 장식 제거 */
+.mypage-withdraw::before,
+.mypage-withdraw::after {
+  display: none;
+  content: none;
+}
+
+/* [수정] 회원탈퇴 텍스트가 남은 영역 전체를 사용하도록 설정 */
+.mypage-withdraw-copy {
+  min-width: 0;
+}
+
+.mypage-withdraw-copy h2 {
+  margin: 0 0 5px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mypage-withdraw-copy p {
+  margin: 0;
+  color: #8e929a;
+  font-size: 12.5px;
+  line-height: 1.6;
+
+  /* [수정] PC에서도 화면이 좁아질 때 문장이 잘리지 않도록 변경 */
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------
+   [수정] 회원탈퇴 버튼
+   - 기본: 영역 배경이 보이는 투명 상태 + 빨간 테두리
+   - hover/focus: 빨간색 배경으로 채움
+--------------------------------------------------------- */
+.mypage-withdraw-btn {
+  justify-self: end;
+
+  width: 140px;
+  min-height: 48px;
+
+  border: 1px solid #ef334b;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #ff5668;
+
+  box-shadow: none;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mypage-withdraw-btn:hover,
+.mypage-withdraw-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: #ef334b;
+  background: #e92740;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(233, 39, 64, 0.22);
+  outline: none;
+}
+
+/* ---------------------------------------------------------
+   [수정] 태블릿 및 모바일 OTT 영역
+   - OTT 칩 크기를 모두 동일하게 유지
+   - 버튼도 카드 폭에 맞게 출력
+--------------------------------------------------------- */
+@media (max-width: 720px) {
+  .mypage-ott {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 18px;
+    min-height: auto;
+  }
+
+  .mypage-ott-content {
+    width: 100%;
+  }
+
+  /* [수정] 모바일에서는 OTT 항목을 한 줄에 최대 3개씩 표시 */
+  .mypage-ott-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* [수정] OTT 이름 길이와 상관없이 모든 항목 크기를 동일하게 유지 */
+  .mypage-ott-chip {
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+
+  .mypage-ott-chip-logo {
+    flex: 0 0 24px;
+  }
+
+  /* [수정] OTT 정보 수정 버튼을 모바일 카드 전체 폭으로 출력 */
+  .mypage-ott > .mypage-action-btn,
+  .mypage-ott .mypage-action-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 52px;
+  }
+
+  /* -------------------------------------------------------
+     [수정] 모바일 회원탈퇴 정렬
+     제목 → 안내 문구 → 버튼 순서로 모두 중앙 배치
+  ------------------------------------------------------- */
+  .mypage-withdraw {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+    min-height: auto;
+    padding: 24px 20px;
+
+    text-align: center;
+  }
+
+  .mypage-withdraw-copy {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mypage-withdraw-copy h2 {
+    margin-bottom: 7px;
+  }
+
+  .mypage-withdraw-copy p {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+
+    line-height: 1.65;
+    text-align: center;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .mypage-withdraw-btn {
+    justify-self: auto;
+    width: min(100%, 220px);
+    margin: 0 auto;
+  }
+}
+
+/* [수정] 폭이 작은 모바일은 OTT 항목을 한 줄에 2개씩 표시 */
+@media (max-width: 480px) {
+  .mypage-ott-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mypage-ott-chip {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+}
+
+/* ---------------------------------------------------------
+   [수정] 내가 작성한 리뷰 카드 높이
+   - 기존 고정 높이 또는 과도한 최소 높이를 해제
+   - 리뷰 내용 줄 수에 따라 카드가 자연스럽게 늘어나거나 줄어듦
+
+   ※ 리뷰 페이지가 review.css만 불러오는 구조라면,
+      아래 블록만 review.css의 가장 아래에도 동일하게 붙여넣습니다.
+--------------------------------------------------------- */
+.mypage-review-card,
+.my-review-card,
+.review-list-card {
+  height: auto;
+  min-height: 0;
+}
+
+.mypage-review-clickable,
+.my-review-card-link,
+.review-card-link {
+  height: auto;
+  min-height: 0;
+}
+
+.mypage-review-content,
+.my-review-content,
+.review-card-content {
+  height: auto;
+  min-height: 0;
+  margin-bottom: 0;
+
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* [수정] 리뷰 카드 내부가 grid/flex일 때 남는 세로 공간 방지 */
+.mypage-review-card,
+.my-review-card,
+.review-list-card {
+  align-content: start;
+}
+
+.mypage-review-card > *,
+.my-review-card > *,
+.review-list-card > * {
+  min-height: 0;
+}

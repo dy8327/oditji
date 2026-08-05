@@ -221,7 +221,6 @@
 
     <!-- ================= Withdraw ================= -->
     <section class="mypage-withdraw" aria-labelledby="withdrawTitle">
-        <div class="mypage-withdraw-icon" aria-hidden="true">!</div>
         <div class="mypage-withdraw-copy">
             <h2 id="withdrawTitle">회원탈퇴</h2>
             <p>탈퇴 시 계정은 즉시 비활성화되며, 7일 후 모든 데이터가 자동으로 완전히 삭제됩니다.</p>
