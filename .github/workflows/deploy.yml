@@ -102,8 +102,26 @@ jobs:
           if [ "$DEPLOY_OK" != "true" ]; then
             echo "배포 확인 실패"
 
-            echo "===== ODITJI APP ERROR LOG ====="
-            docker logs --tail 500 oditji-app 2>&1 || true
+          echo "===== ODITJI APP ERROR LOG ====="
+          APP_LOG_FILE="/tmp/oditji-app-deploy.log"
+
+          # 이번 배포 시점의 전체 로그를 파일로 저장
+          docker logs --since 15m --timestamps oditji-app \
+            > "$APP_LOG_FILE" 2>&1 || true
+
+          echo "===== FIRST ERROR CONTEXT ====="
+       # 최초 오류 위치를 기준으로 앞뒤 로그 출력
+          grep -n -m 1 \
+            -B 30 \
+            -A 150 \
+          -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" \
+          "$APP_LOG_FILE" || true
+
+          echo "===== APP LOG FIRST 200 LINES ====="
+          head -n 200 "$APP_LOG_FILE" || true
+
+          echo "===== APP LOG LAST 200 LINES ====="
+          tail -n 200 "$APP_LOG_FILE" || true
 
             # 실패한 WAR도 서버에 보관
             cp -f app/oditji.war app/oditji.war.failed || true
