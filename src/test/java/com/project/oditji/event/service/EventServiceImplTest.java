@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +45,7 @@ class EventServiceImplTest {
         assertSame(list, eventService.getEventList(" UPCOMING "));
         assertSame(list, eventService.getEventList("ENDED"));
 
-        verify(eventDAO, org.mockito.Mockito.times(2))
+        verify(eventDAO, times(2))
                 .selectEventList("ongoing");
     }
 

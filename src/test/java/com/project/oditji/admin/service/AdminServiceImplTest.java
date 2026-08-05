@@ -173,11 +173,12 @@ class AdminServiceImplTest {
         adminService.bulkMemberAction(List.of(2L), "delete");
         verify(adminDAO).deleteMember(2L);
 
-        when(adminDAO.selectWithdrawnMemberNos(List.of(3L)))
+        List<Long> unknownActionMemberNos = List.of(3L);
+        when(adminDAO.selectWithdrawnMemberNos(unknownActionMemberNos))
                 .thenReturn(List.of());
         assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.bulkMemberAction(List.of(3L), "unknown"));
+                () -> adminService.bulkMemberAction(unknownActionMemberNos, "unknown"));
     }
 
     @Test
@@ -332,9 +333,10 @@ class AdminServiceImplTest {
         verify(adminDAO).adminDeleteProductReview(10L);
         verify(adminDAO).adminDeleteProductReview(11L);
 
+        List<Long> unknownActionReviewNos = List.of(12L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.bulkProductReviewAction(List.of(12L), "unknown"));
+                () -> adminService.bulkProductReviewAction(unknownActionReviewNos, "unknown"));
     }
 
     @Test

@@ -173,9 +173,11 @@ class SearchContentSnapshotServiceTest {
                 "snapshotPath",
                 invalidTarget.toString());
 
+        List<CachedContentVO> failedContents =
+                List.of(createContent(1L, "실패"));
         assertThrows(
                 IllegalStateException.class,
-                () -> service.saveSnapshot(List.of(createContent(1L, "실패"))));
+                () -> service.saveSnapshot(failedContents));
     }
 
     private CachedContentVO createContent(Long id, String title) {

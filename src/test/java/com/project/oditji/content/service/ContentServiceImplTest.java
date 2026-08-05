@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 
@@ -125,7 +126,7 @@ class ContentServiceImplTest {
         assertEquals("캐시 제목", existing.getTitle());
         assertEquals("Cached Original", existing.getOriginalTitle());
         assertEquals("/poster.jpg", existing.getPosterPath());
-        assertEquals(LocalDate.of(2026, 8, 1), existing.getReleaseDate());
+        assertEquals(LocalDate.of(2026, Month.AUGUST, 1), existing.getReleaseDate());
         assertEquals("드라마, 코미디", existing.getGenreText());
         assertEquals(16, existing.getEpisodeCount().intValue());
         assertEquals("감독명", existing.getDirector());
@@ -140,7 +141,7 @@ class ContentServiceImplTest {
     @Test
     void ensureContentStoredShouldIgnoreBlankAndInvalidCacheValues() {
         ContentVO existing = createContent(21, 201L, "MOVIE");
-        existing.setReleaseDate(LocalDate.of(2020, 1, 1));
+        existing.setReleaseDate(LocalDate.of(2020, Month.JANUARY, 1));
 
         CachedContentVO cached = new CachedContentVO();
         cached.setTitle(" ");
@@ -160,7 +161,7 @@ class ContentServiceImplTest {
         int result = contentService.ensureContentStored(201L, "MOVIE");
 
         assertEquals(21, result);
-        assertEquals(LocalDate.of(2020, 1, 1), existing.getReleaseDate());
+        assertEquals(LocalDate.of(2020, Month.JANUARY, 1), existing.getReleaseDate());
         verify(contentDAO, never()).updateContentFromSearchCache(any());
         verify(tmdbService).saveContentPlatform(existing, Collections.emptyList());
     }

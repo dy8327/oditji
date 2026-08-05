@@ -2,6 +2,7 @@ package com.project.oditji.business.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -139,8 +141,8 @@ class BusinessServiceCoreCoverageTest {
 
     @Test
     void salesStatusAndHistoryShouldValidateDatesAndProvideDefaults() {
-        LocalDate start = LocalDate.of(2026, 8, 1);
-        LocalDate end = LocalDate.of(2026, 8, 4);
+        LocalDate start = LocalDate.of(2026, Month.AUGUST, 1);
+        LocalDate end = LocalDate.of(2026, Month.AUGUST, 4);
 
         when(businessDAO.selectBusinessSalesStatus(10L, start, end))
                 .thenReturn(null);
@@ -169,7 +171,7 @@ class BusinessServiceCoreCoverageTest {
     @Test
     void settlementQueriesAndUpdateShouldCoverSuccessAndFailure() {
         when(businessDAO.selectMonthlySettlementSummary(10L)).thenReturn(null);
-        assertTrue(service.getMonthlySettlementSummary(10L) != null);
+        assertNotNull(service.getMonthlySettlementSummary(10L));
         when(businessDAO.selectSettlementPaymentHistory(10L)).thenReturn(null);
         assertTrue(service.getSettlementPaymentHistory(10L).isEmpty());
 

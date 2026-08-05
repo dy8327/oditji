@@ -1,10 +1,12 @@
 package com.project.oditji.common.interceptor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -144,8 +146,7 @@ class InterceptorAndSchedulerCoverageTest {
     }
 
     @Test
-    void accessLogInterceptorShouldResolveForwardedAndRemoteIpAndIgnoreFailure()
-            throws Exception {
+    void accessLogInterceptorShouldResolveForwardedAndRemoteIpAndIgnoreFailure() {
         AccessLogInterceptor interceptor = new AccessLogInterceptor(accessLogDAO);
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("loginMember")).thenReturn(member(10L, "USER"));
@@ -157,8 +158,8 @@ class InterceptorAndSchedulerCoverageTest {
         ArgumentCaptor<AccessLogVO> captor =
                 ArgumentCaptor.forClass(AccessLogVO.class);
         verify(accessLogDAO).insertAccessLog(captor.capture());
-        assertTrue(Long.valueOf(10L).equals(captor.getValue().getMemberNo()));
-        assertTrue("1.2.3.4".equals(captor.getValue().getAccessIp()));
+        assertEquals(Long.valueOf(10L), captor.getValue().getMemberNo());
+        assertEquals("1.2.3.4", captor.getValue().getAccessIp());
 
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
@@ -180,7 +181,7 @@ class InterceptorAndSchedulerCoverageTest {
                 new EventStatusScheduler(businessDAO);
         eventScheduler.endExpiredEvents();
         eventScheduler.endExpiredEvents();
-        verify(businessDAO, org.mockito.Mockito.times(2))
+        verify(businessDAO, times(2))
                 .updateExpiredEventStatus();
 
         when(contentService.deleteExpiredContentViewHistory())
@@ -190,7 +191,7 @@ class InterceptorAndSchedulerCoverageTest {
                 new ContentViewHistoryCleanupScheduler(contentService);
         cleanupScheduler.cleanupOnApplicationReady();
         cleanupScheduler.cleanupEveryDay();
-        verify(contentService, org.mockito.Mockito.times(2))
+        verify(contentService, times(2))
                 .deleteExpiredContentViewHistory();
     }
 

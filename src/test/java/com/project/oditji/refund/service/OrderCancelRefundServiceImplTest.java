@@ -7,10 +7,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -73,16 +75,16 @@ class OrderCancelRefundServiceImplTest {
                 1L,
                 " cancel ",
                 "approved",
-                LocalDate.of(2026, 8, 1),
-                LocalDate.of(2026, 8, 4));
+                LocalDate.of(2026, Month.AUGUST, 1),
+                LocalDate.of(2026, Month.AUGUST, 4));
 
         assertSame(expected, result);
         verify(refundDAO).selectMemberCancelRefundHistory(
-                eq(1L),
-                eq("CANCEL"),
-                eq("APPROVED"),
-                eq(java.sql.Date.valueOf("2026-08-01")),
-                eq(java.sql.Date.valueOf("2026-08-04")));
+                1L,
+                "CANCEL",
+                "APPROVED",
+                java.sql.Date.valueOf("2026-08-01"),
+                java.sql.Date.valueOf("2026-08-04"));
     }
 
     @Test
@@ -96,13 +98,17 @@ class OrderCancelRefundServiceImplTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.getMemberCancelRefundHistory(
                         1L, null, "done", null, null));
+        LocalDate invalidStartDate =
+                LocalDate.of(2026, Month.AUGUST, 5);
+        LocalDate invalidEndDate =
+                LocalDate.of(2026, Month.AUGUST, 1);
         assertThrows(IllegalArgumentException.class,
                 () -> service.getMemberCancelRefundHistory(
                         1L,
                         "ALL",
                         "ALL",
-                        LocalDate.of(2026, 8, 5),
-                        LocalDate.of(2026, 8, 1)));
+                        invalidStartDate,
+                        invalidEndDate));
     }
 
     @Test
@@ -120,7 +126,7 @@ class OrderCancelRefundServiceImplTest {
 
         ArgumentCaptor<OrderCancelRefundVO> captor =
                 ArgumentCaptor.forClass(OrderCancelRefundVO.class);
-        verify(refundDAO, org.mockito.Mockito.times(2))
+        verify(refundDAO, times(2))
                 .insertCancelRequest(captor.capture());
         assertEquals("FULL", captor.getAllValues().get(0).getCancelType());
         assertEquals(10000L,
@@ -219,15 +225,18 @@ class OrderCancelRefundServiceImplTest {
     void batchPartialRequestShouldRejectInvalidSelectionAndRemoveDuplicates() {
         assertThrows(IllegalArgumentException.class,
                 () -> service.requestOrderItemsCancel(1L, List.of(), "사유"));
+        List<Long> selectionWithNull =
+                java.util.Arrays.asList(1L, null);
         assertThrows(IllegalArgumentException.class,
                 () -> service.requestOrderItemsCancel(
                         1L,
-                        java.util.Arrays.asList(1L, null),
+                        selectionWithNull,
                         "사유"));
+        List<Long> duplicateSelection = List.of(1L, 1L);
         assertThrows(IllegalArgumentException.class,
                 () -> service.requestOrderItemsCancel(
                         1L,
-                        List.of(1L, 1L),
+                        duplicateSelection,
                         "사유"));
     }
 
