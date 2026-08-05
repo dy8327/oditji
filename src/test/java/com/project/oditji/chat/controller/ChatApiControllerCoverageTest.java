@@ -76,7 +76,7 @@ class ChatApiControllerCoverageTest {
     void adminFilterShouldHandleNullAndEmptyLists() {
         loginAdmin();
         when(chatService.getChatRoomList())
-                .thenReturn(null)
+                .thenAnswer(invocation -> null)
                 .thenReturn(List.of());
 
         assertTrue(controller.getRoomList(session).isEmpty());
