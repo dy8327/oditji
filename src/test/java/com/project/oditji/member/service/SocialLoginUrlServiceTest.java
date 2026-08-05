@@ -81,6 +81,10 @@ class SocialLoginUrlServiceTest {
     void googleLoginUrlShouldUseConfiguredOrFallbackProperties() {
         when(environment.getProperty("google.client-id"))
                 .thenReturn(" google-client ");
+        /* 구현체가 OAuth2 표준 속성도 함께 조회하므로 null 반환을 명시합니다. */
+        when(environment.getProperty(
+                "spring.security.oauth2.client.registration.google.client-id"))
+                .thenReturn(null);
         when(environment.getProperty("google.redirect-uri"))
                 .thenReturn("http://localhost/google/callback");
 
