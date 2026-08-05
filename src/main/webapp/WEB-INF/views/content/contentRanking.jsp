@@ -43,7 +43,19 @@
             <button type="button"
                     class="${panel.active ? 'ranking-tab-button active' : 'ranking-tab-button'}"
                     data-ranking-tab="${panel.tabId}">
-                <c:out value="${panel.tabLabel}" />
+
+                <c:if test="${not empty panel.tabLogoImage}">
+
+                    <img class="ranking-tab-logo"
+                         src="${panel.tabLogoImage}"
+                         alt="">
+
+                </c:if>
+
+                <span>
+                    <c:out value="${panel.tabLabel}" />
+                </span>
+
             </button>
 
         </c:forEach>

@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:set var="headerMemberNo"
        value="${not empty sessionScope.memberNo ? sessionScope.memberNo : sessionScope.loginMember.memberNo}" />
@@ -253,17 +254,35 @@
                     </div>
                     </c:if>
 
-                    <%-- 일반 사용자 장바구니 --%>
+                    <%-- 일반 사용자 장바구니
+                         (모바일 반응형에서는 common.css의 .cart-btn 규칙으로 숨김 처리) --%>
                     <c:if test="${sessionScope.loginMember.role ne 'ADMIN' and empty sessionScope.businessNo}">
                         <a href="${pageContext.request.contextPath}/cart"
-                           class="icon-btn"
+                           class="icon-btn cart-btn"
                            title="장바구니"
                            aria-label="장바구니">🛒</a>
                     </c:if>
 
                     <div class="profile-menu">
                         <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
-                            👤 <span>${sessionScope.loginDisplayName}</span>
+                            <c:choose>
+                                <c:when test="${empty sessionScope.loginMember.profileImage}">
+                                    <img class="profile-btn-avatar"
+                                         src="${pageContext.request.contextPath}/images/profile_image.jpg"
+                                         alt="기본 프로필">
+                                </c:when>
+                                <c:when test="${fn:startsWith(sessionScope.loginMember.profileImage, 'http')}">
+                                    <img class="profile-btn-avatar"
+                                         src="${sessionScope.loginMember.profileImage}"
+                                         alt="프로필 이미지">
+                                </c:when>
+                                <c:otherwise>
+                                    <img class="profile-btn-avatar"
+                                         src="${pageContext.request.contextPath}/uploads/profile/${sessionScope.loginMember.profileImage}"
+                                         alt="프로필 이미지">
+                                </c:otherwise>
+                            </c:choose>
+                            <span>${sessionScope.loginDisplayName}</span>
                         </button>
 
                         <div class="profile-dropdown">

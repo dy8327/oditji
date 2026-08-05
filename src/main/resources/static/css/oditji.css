@@ -885,18 +885,23 @@ ul {
     gap: 10px;
     margin-bottom: 36px;
     padding-bottom: 18px;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--line);
 }
 
 .ranking-tab-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     min-width: 105px;
     padding: 12px 20px;
-    border: 1px solid #d8d8d8;
+    border: 1px solid var(--line);
     border-radius: 999px;
-    background: #fff;
-    color: #555;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--text-soft);
     font-size: 14px;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
     transition:
         background-color 0.2s ease,
@@ -904,15 +909,26 @@ ul {
         border-color 0.2s ease;
 }
 
+.ranking-tab-logo {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    object-fit: cover;
+    background: #fff;
+    flex-shrink: 0;
+}
+
 .ranking-tab-button:hover {
-    border-color: #222;
-    color: #111;
+    border-color: var(--line-strong);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
 }
 
 .ranking-tab-button.active {
-    border-color: #111;
-    background: #111;
-    color: #fff;
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.16);
+    color: #ffffff;
 }
 
 .ranking-panel {
@@ -1092,13 +1108,23 @@ ul {
 
 @media (max-width: 560px) {
     .ranking-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
         padding-bottom: 14px;
     }
 
     .ranking-tab-button {
-        flex: 0 0 auto;
+        width: 100%;
+        min-width: 0;
+        padding: 8px 10px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .ranking-tab-logo {
+        width: 16px;
+        height: 16px;
     }
 
     .ranking-list {

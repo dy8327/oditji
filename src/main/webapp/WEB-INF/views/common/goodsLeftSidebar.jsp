@@ -49,6 +49,7 @@
 <c:url var="resetFilterUrl" value="/goods/list">
     <c:param name="keyword" value="${keyword}"/>
     <c:param name="type" value="${type}"/>
+    <c:param name="sort" value="${sort}"/>
     <c:if test="${type eq 'category'}">
         <c:forEach var="selectedType" items="${productTypes}">
             <c:param name="productTypes" value="${selectedType}"/>
@@ -72,6 +73,10 @@
     <input type="hidden"
            name="type"
            value="<c:out value='${type}'/>">
+
+    <input type="hidden"
+           name="sort"
+           value="<c:out value='${sort}'/>">
 
     <c:if test="${type eq 'category'}">
         <c:forEach var="selectedType" items="${productTypes}">

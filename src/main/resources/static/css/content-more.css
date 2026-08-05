@@ -137,6 +137,7 @@ a {
     background: #232323;
     color: #dddddd;
     font-size: 12px;
+    white-space: nowrap;
 }
 
 .selected-platform-chip img {
@@ -146,6 +147,13 @@ a {
     border-radius: 5px;
     background: #ffffff;
     object-fit: cover;
+    flex-shrink: 0;
+}
+
+.selected-platform-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .recommend-guide {
@@ -603,6 +611,21 @@ a {
         width: 155px;
         min-width: 155px;
     }
+
+    .selected-platform-section {
+        padding: 16px;
+    }
+
+    .selected-platform-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .selected-platform-chip {
+        width: 100%;
+        padding: 7px 10px;
+    }
 }
 
 @media (max-width: 520px) {
@@ -610,6 +633,21 @@ a {
     .content-more-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px 8px;
+    }
+
+    .selected-platform-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .selected-platform-chip {
+        font-size: 11px;
+        padding: 7px 9px;
+    }
+
+    .selected-platform-chip img {
+        width: 18px;
+        height: 18px;
     }
 
     .content-more-info {
