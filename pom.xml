@@ -99,6 +99,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc-test</artifactId>
             <scope>test</scope>
+            <!-- JDBC 테스트 스타터가 가져오는 구형 android-json도 제외합니다. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- JUnit, Mockito, MockMvc 등 MVC 테스트 지원 -->

@@ -187,7 +187,11 @@ public class SearchContentManualOverrideService {
             return;
         }
 
-        for (String rawPlatformKey : section.keySet()) {
+        java.util.Iterator<String> keys = section.keys();
+
+        while (keys.hasNext()) {
+            String rawPlatformKey = keys.next();
+
             addManualPlatformOverrides(
                     section,
                     rawPlatformKey,

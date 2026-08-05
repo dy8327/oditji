@@ -819,7 +819,11 @@ public class SearchContentAgeRatingService {
          * 이전 안내에서 사용한 "MOVIE-12345": "15세 이상 관람가"
          * 형태도 함께 지원합니다.
          */
-        for (String key : root.keySet()) {
+        java.util.Iterator<String> keys = root.keys();
+
+        while (keys.hasNext()) {
+            String key = keys.next();
+
             if (!isManualSectionKey(key)) {
                 readFlatManualOverride(
                         root,
@@ -925,7 +929,11 @@ public class SearchContentAgeRatingService {
             return;
         }
 
-        for (String rawTmdbId : section.keySet()) {
+        java.util.Iterator<String> keys = section.keys();
+
+        while (keys.hasNext()) {
+            String rawTmdbId = keys.next();
+
             addManualAgeRating(
                     section,
                     rawTmdbId,

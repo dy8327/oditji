@@ -108,7 +108,7 @@ public class ChatApiController {
         String role = getSessionRole(session);
         boolean admin = isAdmin(session);
         Integer notificationBusinessNo = admin
-                ? ADMIN_BUSINESS_NO
+                ? Integer.valueOf(ADMIN_BUSINESS_NO)
                 : sessionBusinessNo;
 
         if (!hasChatAccess(session) || memberNo == null) {
