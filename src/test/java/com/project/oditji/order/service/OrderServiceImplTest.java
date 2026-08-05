@@ -1,7 +1,7 @@
 package com.project.oditji.order.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,17 +72,20 @@ class OrderServiceImplTest {
 
     @Test
     void prepareCheckoutFromCartShouldRejectInvalidMemberAndEmptySelection() {
+        List<Long> selectedCartItemNos = List.of(1L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> orderService.prepareCheckoutFromCart(null, List.of(1L)));
+                () -> orderService.prepareCheckoutFromCart(null, selectedCartItemNos));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> orderService.prepareCheckoutFromCart(1L, null));
+        List<Long> invalidCartItemNos =
+                java.util.Arrays.asList(null, 0L, -1L);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> orderService.prepareCheckoutFromCart(
                         1L,
-                        java.util.Arrays.asList(null, 0L, -1L)));
+                        invalidCartItemNos));
 
         verify(orderDAO, never()).selectCartItemsForOrder(eq(1L), anyList());
     }
@@ -113,17 +116,19 @@ class OrderServiceImplTest {
         when(orderDAO.selectCartItemsForOrder(1L, List.of(1L, 2L)))
                 .thenReturn(List.of(createAvailableItem(10, "상품", 5, 1)));
 
+        List<Long> missingCartItemNos = List.of(1L, 2L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> orderService.prepareCheckoutFromCart(1L, List.of(1L, 2L)));
+                () -> orderService.prepareCheckoutFromCart(1L, missingCartItemNos));
 
         OrderSheetItemVO soldOut = createAvailableItem(10, "품절상품", 0, 1);
         when(orderDAO.selectCartItemsForOrder(1L, List.of(3L)))
                 .thenReturn(List.of(soldOut));
 
+        List<Long> soldOutCartItemNos = List.of(3L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> orderService.prepareCheckoutFromCart(1L, List.of(3L)));
+                () -> orderService.prepareCheckoutFromCart(1L, soldOutCartItemNos));
     }
 
     @Test
@@ -280,7 +285,7 @@ class OrderServiceImplTest {
 
         assertTrue(first.startsWith("ODT_"));
         assertEquals(36, first.length());
-        assertFalse(first.equals(second));
+        assertNotEquals(first, second);
     }
 
     @Test
@@ -332,56 +337,64 @@ class OrderServiceImplTest {
                         "normalizeCancelReason",
                         new Class<?>[] { String.class },
                         " 단순 변심 "));
+        Class<?>[] cancelReasonParameterTypes = { String.class };
+        String overlongCancelReason = "가".repeat(501);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "normalizeCancelReason",
-                        new Class<?>[] { String.class },
-                        "가".repeat(501)));
+                        cancelReasonParameterTypes,
+                        overlongCancelReason));
     }
 
     @Test
     void deliveryInformationValidationShouldRejectBlankAndLongValues() {
+        Class<?>[] deliveryParameterTypes =
+                { String.class, String.class, String.class };
+        String overlongReceiverName = "가".repeat(51);
+        String overlongReceiverPhone = "0".repeat(21);
+        String overlongAddress = "가".repeat(301);
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
+                        deliveryParameterTypes,
                         " ", "010", "주소"));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
-                        "가".repeat(51), "010", "주소"));
+                        deliveryParameterTypes,
+                        overlongReceiverName, "010", "주소"));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
+                        deliveryParameterTypes,
                         "홍길동", " ", "주소"));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
-                        "홍길동", "0".repeat(21), "주소"));
+                        deliveryParameterTypes,
+                        "홍길동", overlongReceiverPhone, "주소"));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
+                        deliveryParameterTypes,
                         "홍길동", "010", " "));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "validateDeliveryInformation",
-                        new Class<?>[] { String.class, String.class, String.class },
-                        "홍길동", "010", "가".repeat(301)));
+                        deliveryParameterTypes,
+                        "홍길동", "010", overlongAddress));
 
         invokePrivate(
                 "validateDeliveryInformation",
-                new Class<?>[] { String.class, String.class, String.class },
+                deliveryParameterTypes,
                 "홍길동", "010-1234-5678", "서울시");
     }
 

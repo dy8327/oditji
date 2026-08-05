@@ -196,7 +196,15 @@ public class SearchContentCacheScheduler {
 
         } catch (Exception e) {
 
-            log.error("검색 콘텐츠 공용 저장소 갱신 실패", e);
+            if (shuttingDown.get()
+                    || Thread.currentThread().isInterrupted()) {
+
+                log.debug("애플리케이션 종료로 검색 콘텐츠 갱신을 중단합니다.");
+
+            } else {
+
+                log.error("검색 콘텐츠 공용 저장소 갱신 실패", e);
+            }
 
         } finally {
 

@@ -222,7 +222,7 @@ public class SearchContentEnrichmentService {
                         detailUrl
                 );
 
-        if (detail.isEmpty()
+        if (detail.length() == 0
                 || detail.optLong(
                         "id",
                         0L

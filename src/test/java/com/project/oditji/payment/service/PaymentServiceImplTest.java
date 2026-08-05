@@ -47,9 +47,10 @@ class PaymentServiceImplTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> paymentService.verifyPaidPayment(" ", 1000L, "주문"));
+        String overlongPaymentId = "A".repeat(101);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> paymentService.verifyPaidPayment("A".repeat(101), 1000L, "주문"));
+                () -> paymentService.verifyPaidPayment(overlongPaymentId, 1000L, "주문"));
 
         verify(paymentDAO, never()).selectPaymentByPaymentId(org.mockito.ArgumentMatchers.anyString());
     }
@@ -173,11 +174,13 @@ class PaymentServiceImplTest {
                         "extractPaidAmount",
                         Map.of("totalAmount", "2500"))).longValue());
 
+        Map<String, Object> invalidAmount =
+                Map.of("amount", Map.of("total", "invalid"));
         assertThrows(
                 IllegalStateException.class,
                 () -> invokePrivate(
                         "extractPaidAmount",
-                        Map.of("amount", Map.of("total", "invalid"))));
+                        invalidAmount));
     }
 
     @Test
@@ -345,11 +348,12 @@ class PaymentServiceImplTest {
                 invokePrivate(
                         "normalizeCancelReason",
                         "  단순 변심  "));
+        String overlongCancelReason = "가".repeat(501);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invokePrivate(
                         "normalizeCancelReason",
-                        "가".repeat(501)));
+                        overlongCancelReason));
     }
 
     private PaymentVO createPayment(

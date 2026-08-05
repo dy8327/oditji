@@ -275,7 +275,7 @@ public class SearchContentDiscoverService {
             int maxCandidates) {
 
         if (items == null
-                || items.isEmpty()) {
+                || items.length() == 0) {
             return false;
         }
 

@@ -170,13 +170,14 @@ class MemberServiceImplTest {
                         () -> memberService.joinMember(member, null, "N"))
                         .getMessage());
 
+        List<String> netflixSelection = List.of("NETFLIX");
         assertEquals(
                 "OTT 없음과 다른 OTT는 동시에 선택할 수 없습니다.",
                 assertThrows(
                         IllegalArgumentException.class,
                         () -> memberService.joinMember(
                                 member,
-                                List.of("NETFLIX"),
+                                netflixSelection,
                                 "Y"))
                         .getMessage());
     }
@@ -236,13 +237,14 @@ class MemberServiceImplTest {
         when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
         when(memberDAO.selectPlatformNoByCode("UNKNOWN")).thenReturn(null);
 
+        List<String> unknownOttSelection = List.of("UNKNOWN");
         assertEquals(
                 "존재하지 않는 OTT 플랫폼입니다: UNKNOWN",
                 assertThrows(
                         IllegalArgumentException.class,
                         () -> memberService.joinMember(
                                 member,
-                                List.of("UNKNOWN"),
+                                unknownOttSelection,
                                 "N"))
                         .getMessage());
     }
@@ -607,13 +609,14 @@ class MemberServiceImplTest {
 
         when(memberDAO.selectPlatformNoByCode("UNKNOWN")).thenReturn(null);
 
+        List<String> unknownOttSelection = List.of("UNKNOWN");
         assertEquals(
                 "존재하지 않는 OTT: UNKNOWN",
                 assertThrows(
                         IllegalArgumentException.class,
                         () -> memberService.updateMemberOtt(
                                 1L,
-                                List.of("UNKNOWN")))
+                                unknownOttSelection))
                         .getMessage());
     }
 

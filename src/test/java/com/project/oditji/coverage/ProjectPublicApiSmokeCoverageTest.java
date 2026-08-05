@@ -1,11 +1,13 @@
 package com.project.oditji.coverage;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -33,7 +35,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
-import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
 
 /**
@@ -182,8 +183,7 @@ class ProjectPublicApiSmokeCoverageTest {
         Constructor<?>[] constructors = type.getConstructors();
         Arrays.sort(
                 constructors,
-                Comparator.comparingInt(
-                        constructor -> constructor.getParameterCount()));
+                Comparator.comparingInt(Executable::getParameterCount));
 
         for (Constructor<?> constructor : constructors) {
             Object[] arguments = createArguments(
@@ -409,7 +409,7 @@ class ProjectPublicApiSmokeCoverageTest {
 
     private Object createMock(Class<?> type) {
         try {
-            return Mockito.mock(
+            return mock(
                     type,
                     Answers.RETURNS_DEEP_STUBS);
         } catch (MockitoException exception) {

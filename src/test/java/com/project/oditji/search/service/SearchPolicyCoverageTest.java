@@ -2,6 +2,7 @@ package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -278,11 +279,13 @@ class SearchPolicyCoverageTest {
         assertSame(allowed,
                 store.findByTmdbIdAndContentType(10L, " movie "));
         assertNull(store.findByTmdbIdAndContentType(88090L, "TV"));
-        assertTrue(store.getLastUpdatedAt() != null);
+        assertNotNull(store.getLastUpdatedAt());
 
+        List<CachedContentVO> storedContents = store.getAll();
+        CachedContentVO additionalContent = new CachedContentVO();
         assertThrows(
                 UnsupportedOperationException.class,
-                () -> store.getAll().add(new CachedContentVO()));
+                () -> storedContents.add(additionalContent));
 
         store.replaceAll(null);
         assertTrue(store.isEmpty());
@@ -306,9 +309,11 @@ class SearchPolicyCoverageTest {
                 registry.getProviderMap("TV"));
         assertEquals(Map.of(97, "watcha"),
                 registry.getProviderMap(null));
+        Map<Integer, String> movieProviders =
+                registry.getProviderMap("MOVIE");
         assertThrows(
                 UnsupportedOperationException.class,
-                () -> registry.getProviderMap("MOVIE").put(9, "tving"));
+                () -> movieProviders.put(9, "tving"));
     }
 
     @Test

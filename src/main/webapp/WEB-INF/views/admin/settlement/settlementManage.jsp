@@ -359,7 +359,9 @@
 
                                                 <%-- [수정] 주문상품 1건이 아닌 사업자/정산 월 전체를 처리 --%>
                                                 <input type="hidden" name="requestNo" value="${settlement.requestNo}">
-                                                <input type="text" name="rejectReason" class="page-search" placeholder="반려 사유"
+                                                <%-- [접근성] 반려 사유 입력란에 고유 id와 연결된 label을 제공합니다. --%>
+                                                <label for="rejectReason${settlement.requestNo}" class="sr-only">반려 사유</label>
+                                                <input type="text" id="rejectReason${settlement.requestNo}" name="rejectReason" class="page-search" placeholder="반려 사유"
                                                     maxlength="500" required>
                                                 <input type="hidden" name="keyword" value="${param.keyword}">
                                                 <input type="hidden" name="status" value="${currentStatus}">
@@ -543,7 +545,9 @@
             <input type="hidden" name="page" value="${pagination.currentPage}">
 
             <div class="row-detail-actions">
-                <input type="text" name="rejectReason" class="page-search" placeholder="반려 사유를 입력하세요"
+                <%-- [접근성] 모바일 모달 반려 사유 입력란에도 label을 연결합니다. --%>
+                <label for="modalRejectReason" class="sr-only">반려 사유</label>
+                <input type="text" id="modalRejectReason" name="rejectReason" class="page-search" placeholder="반려 사유를 입력하세요"
                     maxlength="500" required>
 
                 <button type="submit" class="btn btn-danger">반려</button>
