@@ -107,19 +107,21 @@ class OrderServicePaymentFlowCoverageTest {
     @Test
     void preparePaymentShouldRejectMissingReloadedProductAndZeroAmount() {
         OrderSheetItemVO requested = item(10, null, "없음", 1, 1, 1000, 0, null);
+        List<OrderSheetItemVO> requestedItems = List.of(requested);
         when(orderDAO.selectProductForOrder(10, null)).thenReturn(null);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> orderService.preparePayment(
-                        1L, List.of(requested), "홍길동", "010", "서울"));
+                        1L, requestedItems, "홍길동", "010", "서울"));
 
         OrderSheetItemVO freeRequested = item(11, null, "무료", 1, 1, 0, 0, null);
+        List<OrderSheetItemVO> freeRequestedItems = List.of(freeRequested);
         OrderSheetItemVO freeCurrent = item(11, null, "무료", 1, 1, 0, 0, null);
         when(orderDAO.selectProductForOrder(11, null)).thenReturn(freeCurrent);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> orderService.preparePayment(
-                        1L, List.of(freeRequested), "홍길동", "010", "서울"));
+                        1L, freeRequestedItems, "홍길동", "010", "서울"));
     }
 
     @Test

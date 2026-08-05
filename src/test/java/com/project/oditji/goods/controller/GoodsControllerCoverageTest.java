@@ -163,12 +163,12 @@ class GoodsControllerCoverageTest {
     void detailShouldReturnNotFoundForMissingGoods() {
         when(goodsService.getGoodsDetail(10)).thenReturn(null);
 
+        MockHttpSession session = new MockHttpSession();
+        ExtendedModelMap model = new ExtendedModelMap();
+
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> controller.detail(
-                        10,
-                        new MockHttpSession(),
-                        new ExtendedModelMap()));
+                () -> controller.detail(10, session, model));
 
         assertEquals(404, exception.getStatusCode().value());
     }

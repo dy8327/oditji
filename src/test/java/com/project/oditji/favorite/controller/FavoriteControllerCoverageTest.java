@@ -1,7 +1,6 @@
 package com.project.oditji.favorite.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -310,7 +309,6 @@ class FavoriteControllerCoverageTest {
             assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         }
         assertTrue(ratings.length > 0);
-        assertFalse("TV".equals("MOVIE"));
     }
 
     private void login(Long memberNo) {

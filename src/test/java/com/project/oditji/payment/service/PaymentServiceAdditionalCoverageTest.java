@@ -1,5 +1,6 @@
 package com.project.oditji.payment.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -88,8 +89,8 @@ class PaymentServiceAdditionalCoverageTest {
         PaymentVO paid = payment("pay-paid", "PAID");
         PaymentVO partial = payment("pay-partial", "PARTIAL_CANCELED");
 
-        invokePrivate("validateCancelablePayment", paid);
-        invokePrivate("validateCancelablePayment", partial);
+        assertDoesNotThrow(() -> invokePrivate("validateCancelablePayment", paid));
+        assertDoesNotThrow(() -> invokePrivate("validateCancelablePayment", partial));
     }
 
     @Test
@@ -145,10 +146,9 @@ class PaymentServiceAdditionalCoverageTest {
 
     @SuppressWarnings("unchecked")
     private <T> T invokePrivate(String methodName, Object... arguments) {
-        T result = (T) ReflectionTestUtils.invokeMethod(
+        return (T) ReflectionTestUtils.invokeMethod(
                 paymentService,
                 methodName,
                 arguments);
-        return result;
     }
 }

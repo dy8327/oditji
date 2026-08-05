@@ -150,9 +150,12 @@ class ContentControllerCoverageTest {
     void detailShouldRejectMissingContent() {
         when(contentService.getContentDetail(10)).thenReturn(null);
 
+        MockHttpSession session = new MockHttpSession();
+        ExtendedModelMap model = new ExtendedModelMap();
+
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> controller.detail(10, new MockHttpSession(), new ExtendedModelMap()));
+                () -> controller.detail(10, session, model));
 
         assertTrue(exception.getMessage().contains("존재하지 않는"));
     }

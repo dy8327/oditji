@@ -45,7 +45,7 @@
             <%-- 이메일 인증번호 입력 단계 --%>
             <c:otherwise>
                 <%-- [수정] 발송 안내 문구를 ODITJI 기본 카드 스타일과 어울리는 안내 영역으로 구성 --%>
-                <div class="verification-notice" role="status" aria-live="polite">
+                <output class="verification-notice" aria-live="polite">
                     <div class="verification-notice-icon" aria-hidden="true">✓</div>
                     <div class="verification-notice-content">
                         <span class="verification-notice-title">인증번호 발송 완료</span>
@@ -55,7 +55,7 @@
                         </p>
                         <span class="verification-notice-help">메일함을 확인한 뒤 아래에 인증번호를 입력해 주세요.</span>
                     </div>
-                </div>
+                </output>
 
                 <form action="${pageContext.request.contextPath}/member/verifyPwCode"
                       method="post">

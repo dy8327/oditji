@@ -77,7 +77,7 @@
         <c:if test="${not empty findIdResult}">
 
             <%-- [수정] 아이디 조회 결과를 비밀번호 찾기 안내 영역과 동일한 디자인 계열로 구성 --%>
-            <div class="find-id-result" role="status" aria-live="polite">
+            <output class="find-id-result" aria-live="polite">
 
                 <div class="find-id-result-icon" aria-hidden="true">✓</div>
 
@@ -100,7 +100,7 @@
 
                 </div>
 
-            </div>
+            </output>
 
         </c:if>
 
