@@ -31,38 +31,38 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeCartButton();
   initializeBuyButton();
 
+  /**
+   * 콘텐츠 사이드바(contentList.js)와 동일한 방식으로 굿즈 필터를 초기화합니다.
+   */
   function initializeGoodsFilter() {
-    const filterForm = document.getElementById("goodsFilterForm");
+    const form = document.getElementById("goodsFilterForm");
 
-    if (!filterForm) {
+    if (!form) {
       return;
     }
 
-    const allCheckboxes = filterForm.querySelectorAll("input[type='checkbox'][data-filter-all]");
+    const allCheckboxes = form.querySelectorAll("input[data-goods-filter-all]");
+    const itemCheckboxes = form.querySelectorAll("input[data-goods-filter-item]");
 
-    const filterCheckboxes = filterForm.querySelectorAll("input[type='checkbox'][data-filter-checkbox]");
-
-    filterCheckboxes.forEach(function (checkbox) {
+    itemCheckboxes.forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
-        const groupName = checkbox.dataset.filterGroup;
-
-        const allCheckbox = filterForm.querySelector("input[data-filter-all]" + "[data-filter-group='" + groupName + "']");
-
-        if (!allCheckbox) {
-          return;
-        }
-
-        const checkedItems = filterForm.querySelectorAll("input[data-filter-checkbox]" + "[data-filter-group='" + groupName + "']:checked");
-
-        allCheckbox.checked = checkedItems.length === 0;
+        updateGoodsFilterAllState(
+          form,
+          checkbox.dataset.goodsFilterGroup
+        );
       });
     });
 
     allCheckboxes.forEach(function (allCheckbox) {
       allCheckbox.addEventListener("change", function () {
-        const groupName = allCheckbox.dataset.filterGroup;
+        const groupName = allCheckbox.dataset.goodsFilterGroup;
 
-        const groupItems = filterForm.querySelectorAll("input[data-filter-checkbox]" + "[data-filter-group='" + groupName + "']");
+        const groupItems = form.querySelectorAll(
+          "input[data-goods-filter-item]"
+          + "[data-goods-filter-group='"
+          + groupName
+          + "']"
+        );
 
         if (allCheckbox.checked) {
           groupItems.forEach(function (item) {
@@ -72,7 +72,12 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        const checkedItems = filterForm.querySelectorAll("input[data-filter-checkbox]" + "[data-filter-group='" + groupName + "']:checked");
+        const checkedItems = form.querySelectorAll(
+          "input[data-goods-filter-item]"
+          + "[data-goods-filter-group='"
+          + groupName
+          + "']:checked"
+        );
 
         if (checkedItems.length === 0) {
           allCheckbox.checked = true;
@@ -80,13 +85,38 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    filterForm.addEventListener("submit", function () {
-      const pageInput = filterForm.querySelector("input[name='page']");
+    form.addEventListener("submit", function () {
+      const pageInput = form.querySelector("input[name='page']");
 
       if (pageInput) {
         pageInput.value = "1";
       }
     });
+  }
+
+  /**
+   * 개별 항목 체크박스 상태에 따라 그룹 내 '전체' 체크박스 선택 여부를 갱신합니다.
+   */
+  function updateGoodsFilterAllState(form, groupName) {
+    const allCheckbox = form.querySelector(
+      "input[data-goods-filter-all]"
+      + "[data-goods-filter-group='"
+      + groupName
+      + "']"
+    );
+
+    if (!allCheckbox) {
+      return;
+    }
+
+    const checkedItems = form.querySelectorAll(
+      "input[data-goods-filter-item]"
+      + "[data-goods-filter-group='"
+      + groupName
+      + "']:checked"
+    );
+
+    allCheckbox.checked = checkedItems.length === 0;
   }
 
   function initializeImageGallery() {

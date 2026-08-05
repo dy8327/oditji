@@ -13,14 +13,6 @@
 }
 
 /* =========================================================
-   PAGE TITLE
-========================================================= */
-
-/* =========================================================
-   LIST GRID (ODITJI STYLE - 5 GRID 유지, content.css와 동일 규격)
-========================================================= */
-
-/* =========================================================
    GOODS CARD
 ========================================================= */
 
@@ -30,19 +22,14 @@
 }
 
 /* =========================================================
-   LINK AREA
-========================================================= */
-
-/* =========================================================
    POSTER(썸네일) AREA
 ========================================================= */
 
 .card-poster {
-  position: relative;
+  position: relative !important;
   width: 100%;
   aspect-ratio: 2 / 3;
   background: #111;
-
   overflow: hidden;
 }
 
@@ -50,7 +37,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-
   transition: transform 0.35s ease;
 }
 
@@ -58,47 +44,44 @@
   transform: scale(1.08);
 }
 
-/* fallback */
-
-/* 할인율 뱃지 */
-.discount-badge {
+/* [개선] 썸네일 포스터 좌측 상단 absolute 위치 할인 뱃지 */
+.card-poster .discount-badge,
+.badge-discount,
+.discount-tag {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  padding: 3px 8px;
-
-  /* [수정] 흰 글자 on #e63946는 대비 약 4.17:1로 부족해 더 진한 톤으로 교체 */
-  background: #e42735;
-  color: #fff;
-
-  border-radius: 999px;
-
-  font-size: 11px;
-  font-weight: 700;
-
+  padding: 3px 6px !important;
+  background: #ff4757 !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 품절 뱃지 */
 .soldout-badge {
   position: absolute;
   inset: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
-
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 2px;
 }
 
 /* =========================================================
-   INFO AREA
+   INFO AREA & PRICE LAYOUT
 ========================================================= */
 
 .card-brand {
@@ -107,56 +90,83 @@
   margin-bottom: 4px;
 }
 
-.card-title {
-  flex: 1;
-
-  font-size: 15px;
-  font-weight: 600;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-title-wrap {
+.card-title-wrap,
+.goods-title-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin-top: 4px;
+  width: 100% !important;
 }
 
-.card-meta {
+.card-title,
+.goods-title {
+  flex: 1;
+  width: 100% !important;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.card-meta,
+.price-container,
+.goods-price-wrap {
   margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.price-original,
+.original-price,
+.price-before {
+  font-size: 12px;
+  color: #888888;
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+/* 할인율과 할인가를 묶어주는 세로/가로 행 스타일 */
+.price-sale-row,
+.discount-price-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
-.price-final {
-  color: #fff;
+.price-final,
+.final-price,
+.sale-price {
+  color: #ffffff;
+  font-size: 15px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.price-final .rate {
-  margin-right: 4px;
-  color: #e63946;
-  font-weight: 700;
+/* ⭕ 할인율 강조 색상 (굿즈디테일과 통일) */
+.price-sale-row .rate,
+.price-meta .rate,
+.price-container .rate,
+.card-meta .rate,
+.discount-rate {
+  color: #ff5c6e !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  margin-right: 2px;
 }
 
-.stock-warning {
+.stock-warning,
+.stock-info {
   color: #e8a93e;
+  white-space: nowrap;
 }
 
 /* =========================================================
    GOODS LIST FAVORITE(WISH) BUTTON
-   - component.css의 공용 .fav-btn(top:10px;right:10px)이
-     .card-item .cart-btn(동일 위치)과 겹치던 문제를 해결하기 위해
-     같은 명세(.card-item 하위)로 오버라이드했었다.
-   - [수정] 목록 카드에서 장바구니 버튼을 제거하면서(옵션 미선택 오류
-     방지) 찜 버튼이 다시 카드 우측 상단에 단독으로 위치하도록 되돌린다.
-   - 콘텐츠 목록의 .content-list-favorite-btn과 동일한 톤/사이즈.
 ========================================================= */
 
 .card-item .card-favorite-btn {
@@ -164,29 +174,21 @@
   top: 10px;
   right: 10px;
   z-index: 3;
-
   display: inline-flex;
   width: 36px;
   height: 36px;
   align-items: center;
   justify-content: center;
   padding: 0;
-
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.68);
   color: #fff;
-
   font-family: inherit;
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .card-item .card-favorite-btn:hover {
@@ -208,49 +210,34 @@
 
 /* =========================================================
    GOODS DETAIL FAVORITE(WISH) BUTTON
-   - 공용 .fav-btn의 원형/36px 강제 스타일을 액션박스 안에서는
-     다른 버튼(cart-btn/buy-btn)과 같은 사각 버튼 형태로 되돌린다.
 ========================================================= */
 
 .detail-info .action-box .fav-btn.detail-favorite-btn {
   position: static;
-
   width: auto;
   height: auto;
   min-width: 0;
   min-height: 44px;
   flex: 1;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-
   margin: 0;
   padding: 11px 16px;
-
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: #2a2a2a;
   color: #fff;
-
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
-
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .detail-info .action-box .fav-btn.detail-favorite-btn:hover {
   transform: translateY(-1px);
-}
-
-.detail-info .action-box .fav-btn.detail-favorite-btn:hover {
   background: #3a3a3a;
 }
 
@@ -261,7 +248,7 @@
 }
 
 /* =========================================================
-   DETAIL LAYOUT (contentDetail 구조 기준)
+   DETAIL LAYOUT
 ========================================================= */
 
 .back-area {
@@ -273,8 +260,6 @@
   font-size: 13px;
 }
 
-/* poster */
-
 .detail-poster img {
   width: 100%;
   height: 100%;
@@ -282,7 +267,6 @@
   display: block;
 }
 
-/* 서브 이미지 갤러리 (PRODUCT_IMAGE) */
 .image-gallery {
   display: flex;
   gap: 8px;
@@ -295,7 +279,6 @@
   object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
-
   border: 2px solid transparent;
   transition: border-color 0.2s;
 }
@@ -304,23 +287,17 @@
   border-color: #fff;
 }
 
-/* info */
-
 .detail-brand {
   font-size: 13px;
   color: #9a9a9a;
   margin-bottom: 6px;
 }
 
-/* title */
-
-/* meta */
 .detail-meta {
   margin-top: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
-
   color: #b0b0b0;
   font-size: 14px;
 }
@@ -332,7 +309,6 @@
 .status-badge {
   padding: 3px 8px;
   border-radius: 6px;
-
   font-size: 12px;
   font-weight: 600;
 }
@@ -352,7 +328,6 @@
   color: #bdbdbd;
 }
 
-/* 가격 박스 */
 .price-box {
   margin-top: 18px;
   display: flex;
@@ -365,7 +340,7 @@
 }
 
 .price-box .rate {
-  color: #e63946;
+  color: #ff5c6e !important;
   font-size: 20px;
   font-weight: 800;
 }
@@ -375,7 +350,6 @@
   font-weight: 800;
 }
 
-/* overview */
 .detail-desc {
   margin-top: 20px;
   color: #dadada;
@@ -391,7 +365,6 @@
   width: 100%;
   max-width: 420px;
   margin-top: 26px;
-
   display: flex;
   align-items: center;
   gap: 10px;
@@ -399,32 +372,21 @@
 
 .detail-info .action-box .btn {
   position: static;
-
   min-width: 0;
   min-height: 44px;
   flex: 1;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   margin: 0;
   padding: 11px 16px;
-
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
-
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
-
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   cursor: pointer;
 }
 
@@ -435,7 +397,6 @@
 .detail-info .action-box .cart-btn {
   width: auto;
   height: auto;
-
   border-color: rgba(255, 255, 255, 0.18);
   background: #2a2a2a;
   color: #fff;
@@ -466,7 +427,7 @@
 }
 
 /* =========================================================
-   DETAIL SECTION (설명 / 리뷰 공통)
+   DETAIL SECTION
 ========================================================= */
 
 .detail-section {
@@ -480,7 +441,7 @@
 }
 
 /* =========================================================
-   GOODS DETAIL 2-COLUMN LAYOUT (본문 + 오른쪽 사이드바)
+   GOODS DETAIL 2-COLUMN LAYOUT
 ========================================================= */
 
 .goods-detail-layout {
@@ -488,7 +449,6 @@
   grid-template-columns: 240px minmax(0, 1fr) 280px;
   gap: 24px;
   align-items: start;
-
   margin-top: 24px;
 }
 
@@ -496,29 +456,16 @@
   min-width: 0;
 }
 
-.goods-detail-left-sidebar {
-  position: sticky;
-  top: 90px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
+.goods-detail-left-sidebar,
 .goods-detail-sidebar {
   position: sticky;
   top: 90px;
-
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* =========================================================
-   SIDEBAR CARD 공통 (관련 콘텐츠 / 관련 배우)
-   RIGHT RECOMMEND SIDEBAR(추천 상품)와 동일한 톤으로 맞춘다.
-========================================================= */
-
+/* SIDEBAR CARD */
 .detail-side-card {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -542,27 +489,19 @@
   padding: 12px;
 }
 
-/* =========================================================
-   RELATED CONTENT CARD (goodsDetail -> 관련 콘텐츠)
-   관련 배우(actor-card)와 동일한 카드 톤 적용
-========================================================= */
-
+/* RELATED CONTENT CARD */
 .side-content-item {
   display: flex;
   align-items: center;
   gap: 10px;
-
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
-
   color: inherit;
   text-decoration: none;
-
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: #1b1b1b;
-
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -572,12 +511,10 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 콘텐츠 포스터 */
 .side-content-poster {
   width: 64px;
   height: 96px;
   flex-shrink: 0;
-
   overflow: hidden;
   border-radius: 7px;
   background: #111;
@@ -585,12 +522,9 @@
 
 .side-content-poster img {
   display: block;
-
   width: 100%;
   height: 100%;
-
   object-fit: cover;
-
   transition: 0.2s ease;
 }
 
@@ -598,73 +532,51 @@
   transform: scale(1.05);
 }
 
-/* 콘텐츠 이미지 없음 */
 .side-content-poster .no-img {
   display: flex;
-
   width: 100%;
   height: 100%;
-
   align-items: center;
   justify-content: center;
-
-  /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
   color: #7d7d7d;
   background: #101010;
-
   font-size: 10px;
 }
 
-/* 콘텐츠 정보 */
 .side-content-info {
   display: flex;
-
   min-width: 0;
-
   flex-direction: column;
   justify-content: center;
-
   gap: 6px;
 }
 
 .side-content-info strong {
   display: block;
-
   overflow: hidden;
-
   color: #fff;
-
   font-size: 13px;
   font-weight: 600;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .side-content-info span {
   color: #999;
-
   font-size: 11px;
 }
 
-/* =========================================================
-   ACTOR CARD (goodsDetail -> 관련 배우)
-   콘텐츠 상세 페이지의 person-card와 동일한 톤으로 맞춘다.
-========================================================= */
-
+/* ACTOR CARD */
 .actor-card {
   display: flex;
   align-items: center;
   gap: 12px;
-
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
-
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: #1b1b1b;
-
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -674,12 +586,10 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 배우 이미지 */
 .actor-card__photo {
   width: 58px;
   height: 58px;
   flex-shrink: 0;
-
   overflow: hidden;
   border-radius: 50%;
   background: #101010;
@@ -692,24 +602,17 @@
   object-fit: cover;
 }
 
-/* 이미지 없음 */
 .actor-card__no-image {
   display: flex;
-
   width: 100%;
   height: 100%;
-
   align-items: center;
   justify-content: center;
-
-  /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
   color: #7d7d7d;
   background: #101010;
-
   font-size: 10px;
 }
 
-/* 배우 정보 */
 .actor-card__info {
   min-width: 0;
 }
@@ -717,7 +620,6 @@
 .actor-card__info strong,
 .actor-card__info span {
   display: block;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -730,7 +632,6 @@
 
 .actor-card__info span {
   margin-top: 5px;
-
   color: #888;
   font-size: 11px;
 }
@@ -741,16 +642,6 @@
   }
 }
 
-/*
- * [수정] 기존에는 이 기준이 1100px이었는데, 그 사이(1100~1500px)에서는
- * 사이드바(240px+280px 고정)는 그대로 붙어있으면서 가운데 본문 카드만
- * 좁아져 상품 이미지(280px 고정) + 3열 뱃지 정보 + 구매 버튼이 서로
- * 밀리며 "S..." 같은 텍스트 잘림, 버튼 찌그러짐이 발생했다(윈도우
- * 화면 분할처럼 브라우저 창을 절반으로 줄였을 때 흔히 걸리는 폭).
- * 본문 카드가 실제로 필요로 하는 최소 폭을 고려해 1열로 전환되는
- * 기준을 1500px로 올려서, 애매하게 좁은 구간 없이 바로 1열 스택으로
- * 넘어가게 한다.
- */
 @media (max-width: 1500px) {
   .goods-detail-layout {
     grid-template-columns: 1fr;
@@ -761,9 +652,6 @@
     position: static;
   }
 
-  /* 모바일 1열 스택 시 상품 정보를 가장 먼저 보여주기 위해
-     DOM 순서(왼쪽사이드바 → 본문 → 오른쪽사이드바)와 무관하게
-     시각적 순서만 재배치한다. */
   .goods-detail-main {
     order: 1;
   }
@@ -781,11 +669,9 @@
   display: inline-block;
   margin-top: 16px;
   padding: 10px 16px;
-
   border-radius: 8px;
   background: #2a2a2a;
   color: #fff;
-
   font-size: 13px;
 }
 
@@ -794,27 +680,7 @@
 }
 
 /* =========================================================
-   REVIEW SCORE SUMMARY
-   .score-box 스타일은 component.css 로 이동 (contentDetail.jsp 와 통일)
-========================================================= */
-
-/* =========================================================
-   PRODUCT REVIEW (PRODUCT_REVIEW 테이블 기준)
-========================================================= */
-
-/* .review-item / .review-meta / .review-content 스타일은
-   component.css 로 이동 (contentDetail.jsp 와 통일) */
-
-/* =========================================================
-   PAGINATION
-========================================================= */
-
-/* =========================================================
-   EMPTY STATE
-========================================================= */
-
-/* =========================================================
-   GOODS LIST 3-COLUMN LAYOUT (leftSidebar / rightSidebar 기준)
+   GOODS LIST 3-COLUMN LAYOUT
 ========================================================= */
 
 .goods-page-container {
@@ -857,27 +723,59 @@
   min-width: 0;
 }
 
-/* 데스크톱에서는 모바일 전용 펼치기 버튼을 숨기고 필터를 항상 노출 */
 .goods-mobile-filter-toggle {
   display: none;
 }
 
-/* =========================================================
-   LEFT FILTER SIDEBAR (상품 검색 필터)
-========================================================= */
+/* LEFT FILTER SIDEBAR (콘텐츠 사이드바 규격 완벽 동일화) */
 
-.filter-group {
-  padding: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.search-filter-form {
+.goods-filter-form {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
   background: #181818;
 }
 
+.goods-filter-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.goods-filter-title-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.goods-filter-title-area h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.goods-filter-title-area span {
+  margin-top: 4px;
+  color: #888888;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.goods-filter-header p {
+  margin: 10px 0 0;
+  color: #888888;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.goods-filter-group {
+  padding: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.goods-filter-group h2,
 .filter-group-title {
   margin: 0 0 14px;
   color: #ffffff;
@@ -885,6 +783,7 @@
   font-weight: 700;
 }
 
+.goods-filter-option,
 .filter-option {
   display: flex;
   align-items: center;
@@ -893,12 +792,15 @@
   color: #b3b3b3;
   font-size: 13px;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+.goods-filter-option:hover,
 .filter-option:hover {
   color: #ffffff;
 }
 
+.goods-filter-option input[type="checkbox"],
 .filter-option input[type="checkbox"] {
   width: 15px;
   height: 15px;
@@ -907,6 +809,7 @@
   cursor: pointer;
 }
 
+.goods-filter-actions,
 .filter-action-box {
   display: flex;
   flex-direction: column;
@@ -914,19 +817,26 @@
   padding: 16px;
 }
 
+.goods-filter-submit-btn,
+.goods-filter-reset-btn,
 .filter-submit-btn,
 .filter-reset-btn {
   display: flex;
+  width: 100%;
   min-height: 38px;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   box-sizing: border-box;
   border-radius: 8px;
   font-size: 12px;
+  font-family: inherit;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+.goods-filter-submit-btn,
 .filter-submit-btn {
   border: 0;
   background: #ffffff;
@@ -934,16 +844,31 @@
   font-weight: 700;
 }
 
+.goods-filter-submit-btn:hover,
+.filter-submit-btn:hover {
+  background: #e6e6e6;
+}
+
+.goods-filter-reset-btn,
 .filter-reset-btn {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: #222222;
   color: #dddddd;
+  font-weight: 600;
 }
 
-/* =========================================================
-   RIGHT RECOMMEND SIDEBAR (추천 상품)
-========================================================= */
+.goods-filter-reset-btn:hover,
+.filter-reset-btn:hover {
+  background: #2c2c2c;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
 
+.goods-filter-reset-icon {
+  font-size: 13px;
+}
+
+/* RIGHT RECOMMEND SIDEBAR */
 .recommend-sidebar {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1053,236 +978,37 @@
 }
 
 /* =========================================================
-   RESPONSIVE - GOODS 3-COLUMN LAYOUT
-========================================================= */
-
-@media (max-width: 1350px) {
-  .goods-layout {
-    grid-template-columns: 210px minmax(0, 1fr);
-  }
-
-  .goods-right-sidebar {
-    display: none;
-  }
-}
-
-@media (max-width: 850px) {
-  .goods-list-container,
-  .goods-detail-container {
-    padding: 28px 24px;
-  }
-
-  .goods-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .goods-left-sidebar,
-  .goods-right-sidebar {
-    position: static;
-    max-height: none;
-    overflow-y: visible;
-  }
-
-  .goods-right-sidebar {
-    display: none;
-  }
-
-  /* 모바일: 필터 사이드바를 접어두고 버튼으로 펼치기 */
-  .goods-mobile-filter-toggle {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    background: #1c1c1c;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
-    font-size: 16px;
-    transition: transform 0.2s ease;
-  }
-
-  .goods-left-sidebar.is-open .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
-    transform: rotate(180deg);
-  }
-
-  .goods-mobile-filter-panel {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.25s ease;
-  }
-
-  .goods-left-sidebar.is-open .goods-mobile-filter-panel {
-    max-height: 2000px;
-  }
-
-  .search-filter-form {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .filter-group {
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    border-bottom: 0;
-  }
-
-  .filter-action-box {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .filter-submit-btn,
-  .filter-reset-btn {
-    flex: 1;
-  }
-}
-
-@media (max-width: 600px) {
-  .search-filter-form {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-group {
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-}
-
-/* =========================================================
-   RESPONSIVE (content.css와 동일 breakpoint 유지)
-========================================================= */
-
-@media (max-width: 1400px) {
-  .card-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 1100px) {
-  .card-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .card-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .detail-info .action-box {
-    max-width: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .card-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .goods-list-container,
-  .goods-detail-container {
-    padding: 20px 16px;
-  }
-
-  .detail-info .action-box {
-    flex-direction: column;
-  }
-
-  .detail-info .action-box .btn,
-  .detail-info .action-box .fav-btn.detail-favorite-btn {
-    width: 100%;
-  }
-}
-
-/* =========================================================
-   [추가] 상품 상세 페이지 본인 리뷰 삭제 영역
-   - 기존 리뷰 카드 레이아웃과 신고 버튼 디자인을 유지한다.
-   ========================================================= */
-.my-product-review-actions {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-}
-
-.product-review-delete-form {
-  margin: 0;
-}
-
-/* [추가] 본인 상품 리뷰 삭제 버튼을 기존 신고 버튼과 유사하게 표시한다. */
-.product-review-delete-btn {
-  padding: 7px 12px;
-  border: 1px solid #7f3035;
-  border-radius: 7px;
-  background: transparent;
-  color: #d96a70;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-/* [추가] 삭제 버튼 마우스 오버 효과 */
-.product-review-delete-btn:hover {
-  background: rgba(127, 48, 53, 0.18);
-}
-
-/* =========================================================
-   [추가] 상품 상세 카드 및 구매 수량 선택 레이아웃
-   - 기존 상품 상세 기능은 유지하고 상단 정보와 리뷰 영역의
-     시각적 구분 및 수량 선택 기능만 개선한다.
+   DETAIL CARD & QUANTITY CONTROL
 ========================================================= */
 
 .goods-detail-card {
   position: relative;
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
-
   gap: 42px;
   margin-bottom: 32px;
   padding: 28px;
-
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)), #181818;
-
-  box-shadow:
-    0 18px 45px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .goods-detail-card .detail-poster {
-  /*
-   * [수정] 기존 프로젝트의 상품 이미지 영역 크기인
-   * 280px를 유지한다.
-   */
   width: 280px;
   min-width: 280px;
   flex-shrink: 0;
-
   overflow: hidden;
   border-radius: 14px;
 }
 
 .goods-detail-card .detail-poster > img,
 .goods-detail-card .detail-poster > .no-img {
-  /*
-   * [수정] 새 디자인에서 강제로 적용했던 1:1 정사각형 비율을 제거한다.
-   * 업로드된 상품 이미지의 기존 비율을 유지해서 표시한다.
-   */
   width: 100%;
   height: auto;
-
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-
   background: #101010;
-
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
 }
 
@@ -1310,7 +1036,7 @@
   height: 58px;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 9px;
+  border-radius: 99px;
   opacity: 0.72;
 }
 
@@ -1443,7 +1169,7 @@
 
 .goods-detail-card .price-box .rate {
   margin-right: 8px;
-  color: #ff5c6e;
+  color: #ff5c6e !important;
   font-size: 17px;
   font-weight: 800;
 }
@@ -1531,7 +1257,7 @@
   margin-top: 15px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 9px;
+  border-radius: 99px;
   background: #111111;
 }
 
@@ -1546,9 +1272,7 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .detail-quantity-button:hover:not(:disabled) {
@@ -1619,6 +1343,7 @@
   text-align: right;
 }
 
+/* REVIEW SECTION */
 .review-section-card {
   margin-top: 0;
   padding: 26px 28px 30px;
@@ -1709,9 +1434,7 @@
   border-color: rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .review-section-card .review-item:hover {
@@ -1759,7 +1482,209 @@
   font-size: 12px;
 }
 
+.my-product-review-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.product-review-delete-form {
+  margin: 0;
+}
+
+.product-review-delete-btn {
+  padding: 7px 12px;
+  border: 1px solid #7f3035;
+  border-radius: 7px;
+  background: transparent;
+  color: #d96a70;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.product-review-delete-btn:hover {
+  background: rgba(127, 48, 53, 0.18);
+}
+
+/* =========================================================
+   PRODUCT OPTIONS
+========================================================= */
+
+.goods-detail-container .detail-product-options {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.goods-detail-container .detail-product-options label {
+  color: #eeeeee;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.goods-detail-container .detail-product-options .detail-option-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 32px 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background-color: #111111;
+  color: #f5f5f5;
+  font-family: inherit;
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c5c8ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.goods-detail-container .detail-product-options .detail-option-select:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.goods-detail-container .detail-product-options .detail-option-select:focus {
+  outline: none;
+  border-color: #2f6fe4;
+}
+
+.goods-detail-container .detail-product-options .detail-option-select:disabled {
+  color: #666666;
+  background-color: #1a1a1a;
+  cursor: not-allowed;
+}
+
+.goods-detail-container .detail-product-options .detail-option-select option {
+  background-color: #1f1f1f;
+  color: #f5f5f5;
+}
+
+.goods-detail-container .detail-product-options .detail-option-stock {
+  grid-column: 2 / 5;
+  color: #9a9a9a;
+  font-size: 14px;
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+========================================================= */
+
+@media (max-width: 1400px) {
+  .card-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1350px) {
+  .goods-layout {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .goods-right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .card-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 850px) {
+  .goods-list-container,
+  .goods-detail-container {
+    padding: 28px 24px;
+  }
+
+  .goods-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-left-sidebar,
+  .goods-right-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .goods-right-sidebar {
+    display: none;
+  }
+
+  .goods-mobile-filter-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: #1c1c1c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .goods-mobile-filter-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-panel {
+    max-height: 2000px;
+  }
+
+  .goods-filter-form,
+  .search-filter-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .goods-filter-header {
+    grid-column: 1 / -1;
+  }
+
+  .goods-filter-group,
+  .filter-group {
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 0;
+  }
+
+  .goods-filter-actions,
+  .filter-action-box {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .goods-filter-submit-btn,
+  .goods-filter-reset-btn,
+  .filter-submit-btn,
+  .filter-reset-btn {
+    flex: 1;
+  }
+
   .goods-detail-card {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -1782,7 +1707,92 @@
   }
 }
 
+/* 모바일 반응형 UI 통일 (3열 그리드 적용) */
+@media screen and (max-width: 768px) {
+  /* 모바일 카드 그리드 3열 지정 및 간격 최적화 */
+  .card-list {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* 3열 공간에 맞춰 패딩과 요소 크기 조율 */
+  .goods-card, .product-item, .card-item {
+    padding: 6px !important;
+  }
+
+  .card-brand {
+    font-size: 10px !important;
+  }
+
+  .goods-title, .card-title {
+    font-size: 12px !important;
+  }
+
+  .badge-discount, .discount-tag, .discount-badge {
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+  }
+
+  /* 가격 영역 세로 계층형 정렬 */
+  .card-meta, .price-container, .goods-price-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+    margin-top: 4px !important;
+  }
+
+  .original-price, .price-before, .price-original {
+    font-size: 10px !important;
+    color: #888888 !important;
+    text-decoration: line-through !important;
+    white-space: nowrap !important;
+  }
+
+  .price-sale-row, .discount-price-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+
+  .discount-rate, .rate {
+    color: #ff5c6e !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+  }
+
+  .final-price, .sale-price, .price-final {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+  }
+
+  .stock-info, .stock-warning {
+    font-size: 9px !important;
+    color: #a0a0a0 !important;
+    margin-top: 2px !important;
+    white-space: nowrap !important;
+  }
+
+  .detail-info .action-box {
+    max-width: none;
+  }
+}
+
 @media (max-width: 600px) {
+  .goods-filter-form,
+  .search-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-filter-group,
+  .filter-group {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
   .goods-detail-card {
     padding: 18px;
     border-radius: 15px;
@@ -1811,92 +1821,34 @@
     padding: 21px 18px 24px;
     border-radius: 15px;
   }
-}
 
-/* =========================================================
-   [상품 옵션 기능 추가]
-   - 팀원 기존 goods.css 전체 유지
-   - 상품 상세 페이지 안에서만 적용되도록 범위 제한
-   - 다른 페이지의 동일 클래스명과 충돌 방지
-========================================================= */
-
-.goods-detail-container .detail-product-options {
-  display: grid;
-  grid-template-columns: 70px minmax(0, 1fr) 70px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-
-  margin-top: 18px;
-  padding: 18px;
-
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.goods-detail-container .detail-product-options label {
-  color: #eeeeee;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.goods-detail-container .detail-product-options .detail-option-select {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 11px 32px 11px 12px;
-
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  background-color: #111111;
-  color: #f5f5f5;
-  font-family: inherit;
-  font-size: 13px;
-
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c5c8ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.goods-detail-container .detail-product-options .detail-option-select:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.goods-detail-container .detail-product-options .detail-option-select:focus {
-  outline: none;
-  border-color: #2f6fe4;
-}
-
-.goods-detail-container .detail-product-options .detail-option-select:disabled {
-  color: #666666;
-  background-color: #1a1a1a;
-  cursor: not-allowed;
-}
-
-.goods-detail-container .detail-product-options .detail-option-select option {
-  background-color: #1f1f1f;
-  color: #f5f5f5;
-}
-
-.goods-detail-container .detail-product-options .detail-option-stock {
-  grid-column: 2 / 5;
-
-  color: #9a9a9a;
-  font-size: 14px;
-}
-
-/* 좁은 화면에서는 옵션명을 위아래로 배치 */
-@media (max-width: 600px) {
   .goods-detail-container .detail-product-options {
     grid-template-columns: 1fr;
   }
 
   .goods-detail-container .detail-product-options .detail-option-stock {
     grid-column: auto;
+  }
+}
+
+/* 초소형 모바일 기기에서도 3열 유지 */
+@media (max-width: 480px) {
+  .card-list {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .goods-list-container,
+  .goods-detail-container {
+    padding: 20px 16px;
+  }
+
+  .detail-info .action-box {
+    flex-direction: column;
+  }
+
+  .detail-info .action-box .btn,
+  .detail-info .action-box .fav-btn.detail-favorite-btn {
+    width: 100%;
   }
 }
