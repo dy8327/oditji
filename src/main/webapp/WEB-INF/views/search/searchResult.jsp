@@ -15,11 +15,34 @@
 
     <title>ODITJI | 검색 결과</title>
 
+    <!-- goodsList / contentList 목록에서 쓰는 카드 디자인을 검색 결과에서도 그대로 재사용합니다. -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/component.css">
+
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/goods.css">
+
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=5">
+
+    <!-- 콘텐츠/굿즈 카드의 찜 버튼 스타일 -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/favorite.css">
+
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/search.css?v=3">
 
+    <!-- favorite.js / search.js의 찜 요청에서 사용하는 컨텍스트 경로 -->
+    <script>
+        const contextPath = "${pageContext.request.contextPath}";
+    </script>
+
+    <!-- 굿즈 카드 찜(.fav-btn) 토글 처리 -->
     <script defer
-            src="${pageContext.request.contextPath}/js/search.js?v=13"></script>
+            src="${pageContext.request.contextPath}/js/favorite.js"></script>
+
+    <script defer
+            src="${pageContext.request.contextPath}/js/search.js?v=15"></script>
 </head>
 <body>
 
@@ -105,12 +128,6 @@
                             </c:otherwise>
                         </c:choose>
                     </p>
-                </div>
-
-                <div class="search-result-summary"
-                     aria-label="현재 표시 결과 수">
-                    <span>현재 표시</span>
-                    <strong><fmt:formatNumber value="${combinedTotalCount}"/></strong>
                 </div>
             </header>
 
@@ -343,8 +360,7 @@
                         <button type="button"
                                 class="search-more-button"
                                 data-search-move-tab="CONTENT">
-                            콘텐츠 전체보기
-                            <span aria-hidden="true">→</span>
+                            더보기
                         </button>
                     </div>
 
@@ -356,60 +372,70 @@
                             </section>
                         </c:when>
 
-                        <%--
-                            전체 탭은 검색어와 필터 선택 여부와 관계없이
-                            포스터 중심의 발견형 카드 UI를 유지합니다.
-
-                            실제 카드 데이터는 allContentResults를 사용하므로
-                            검색어와 콘텐츠 필터가 적용된 결과만 표시됩니다.
-                        --%>
                         <c:otherwise>
-                            <div class="search-discovery-content-grid">
+                            <div class="content-list-card-grid">
                                 <c:forEach var="content" items="${allContentResults}">
-                                    <c:url var="allContentDetailUrl" value="/content/prepare">
+                                    <c:url var="ottCardDetailUrl" value="/content/prepare">
                                         <c:param name="tmdbId" value="${content.tmdbId}"/>
                                         <c:param name="contentType" value="${content.contentType}"/>
                                     </c:url>
 
-                                    <%--
-                                        콘텐츠의 정규화된 연령등급을 카드용 숫자 배지로 변환합니다.
-                                        빈 값이나 알 수 없는 값은 등급 정보 없음(?)으로 처리합니다.
-                                    --%>
-                                    <c:set var="ageBadgeLabel" value="?"/>
-                                    <c:set var="ageBadgeClass" value="unknown"/>
-                                    <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+                                    <c:set var="ottAgeBadgeLabel" value="?"/>
+                                    <c:set var="ottAgeBadgeClass" value="unknown"/>
+                                    <c:set var="ottAgeBadgeTitle" value="등급 정보 없음"/>
 
                                     <c:choose>
                                         <c:when test="${content.ageRating eq '전체 관람가'}">
-                                            <c:set var="ageBadgeLabel" value="ALL"/>
-                                            <c:set var="ageBadgeClass" value="all"/>
-                                            <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                                            <c:set var="ottAgeBadgeLabel" value="ALL"/>
+                                            <c:set var="ottAgeBadgeClass" value="all"/>
+                                            <c:set var="ottAgeBadgeTitle" value="전체 관람가"/>
                                         </c:when>
                                         <c:when test="${content.ageRating eq '7세 이상 관람가'}">
-                                            <c:set var="ageBadgeLabel" value="7"/>
-                                            <c:set var="ageBadgeClass" value="age7"/>
-                                            <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                                            <c:set var="ottAgeBadgeLabel" value="7"/>
+                                            <c:set var="ottAgeBadgeClass" value="age7"/>
+                                            <c:set var="ottAgeBadgeTitle" value="7세 이상 관람가"/>
                                         </c:when>
                                         <c:when test="${content.ageRating eq '12세 이상 관람가'}">
-                                            <c:set var="ageBadgeLabel" value="12"/>
-                                            <c:set var="ageBadgeClass" value="age12"/>
-                                            <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                                            <c:set var="ottAgeBadgeLabel" value="12"/>
+                                            <c:set var="ottAgeBadgeClass" value="age12"/>
+                                            <c:set var="ottAgeBadgeTitle" value="12세 이상 관람가"/>
                                         </c:when>
                                         <c:when test="${content.ageRating eq '15세 이상 관람가'}">
-                                            <c:set var="ageBadgeLabel" value="15"/>
-                                            <c:set var="ageBadgeClass" value="age15"/>
-                                            <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                                            <c:set var="ottAgeBadgeLabel" value="15"/>
+                                            <c:set var="ottAgeBadgeClass" value="age15"/>
+                                            <c:set var="ottAgeBadgeTitle" value="15세 이상 관람가"/>
                                         </c:when>
                                         <c:when test="${content.ageRating eq '청소년 관람불가'}">
-                                            <c:set var="ageBadgeLabel" value="19"/>
-                                            <c:set var="ageBadgeClass" value="adult"/>
-                                            <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                                            <c:set var="ottAgeBadgeLabel" value="19"/>
+                                            <c:set var="ottAgeBadgeClass" value="adult"/>
+                                            <c:set var="ottAgeBadgeTitle" value="청소년 관람불가"/>
                                         </c:when>
                                     </c:choose>
 
-                                    <article class="search-discovery-card">
-                                        <a href="${allContentDetailUrl}">
-                                            <div class="search-discovery-poster">
+                                    <c:set var="ottTypeLabel" value="드라마"/>
+                                    <c:set var="ottTypeBadgeClass" value="drama"/>
+                                    <c:choose>
+                                        <c:when test="${fn:contains(content.genreText, '애니메이션')}">
+                                            <c:set var="ottTypeLabel" value="애니메이션"/>
+                                            <c:set var="ottTypeBadgeClass" value="animation"/>
+                                        </c:when>
+                                        <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">
+                                            <c:set var="ottTypeLabel" value="다큐멘터리"/>
+                                            <c:set var="ottTypeBadgeClass" value="documentary"/>
+                                        </c:when>
+                                        <c:when test="${content.contentType eq 'TV' and (fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크'))}">
+                                            <c:set var="ottTypeLabel" value="예능"/>
+                                            <c:set var="ottTypeBadgeClass" value="variety"/>
+                                        </c:when>
+                                        <c:when test="${content.contentType eq 'MOVIE'}">
+                                            <c:set var="ottTypeLabel" value="영화"/>
+                                            <c:set var="ottTypeBadgeClass" value="movie"/>
+                                        </c:when>
+                                    </c:choose>
+
+                                    <article class="content-list-card">
+                                        <a class="content-list-card-link" href="${ottCardDetailUrl}">
+                                            <div class="content-list-card-poster">
                                                 <c:choose>
                                                     <c:when test="${not empty content.posterPath}">
                                                         <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
@@ -417,51 +443,81 @@
                                                              loading="lazy">
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <div class="search-content-no-image">NO IMAGE</div>
+                                                        <div class="no-img">NO IMAGE</div>
                                                     </c:otherwise>
                                                 </c:choose>
 
-                                                <span class="search-discovery-age-rating"
-                                                      title="<c:out value='${ageBadgeTitle}'/>">
-                                                    <span class="age-rating-badge is-${ageBadgeClass}"
-                                                          aria-label="<c:out value='${ageBadgeTitle}'/>">
-                                                        <c:out value="${ageBadgeLabel}"/>
+                                                <span class="content-list-type-badge is-${ottTypeBadgeClass}">
+                                                    <c:out value="${ottTypeLabel}"/>
+                                                </span>
+
+                                                <span class="content-list-poster-age-rating" title="<c:out value='${ottAgeBadgeTitle}'/>">
+                                                    <span class="age-rating-badge is-${ottAgeBadgeClass}"
+                                                          aria-label="<c:out value='${ottAgeBadgeTitle}'/>">
+                                                        <c:out value="${ottAgeBadgeLabel}"/>
                                                     </span>
                                                 </span>
 
                                                 <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
-                                                    <span class="search-discovery-score">
-                                                        ★ <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
+                                                    <span class="content-list-score-badge">
+                                                        <span aria-hidden="true">★</span>
+                                                        <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
                                                     </span>
                                                 </c:if>
                                             </div>
 
-                                            <div class="search-discovery-info">
-                                                <div class="search-discovery-badge-row">
-                                                    <span class="search-content-type-badge">
+                                            <div class="content-list-card-info">
+                                                <h2><c:out value="${content.title}"/></h2>
+
+                                                <div class="content-list-card-meta">
+                                                    <span>
                                                         <c:choose>
-                                                            <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
-                                                            <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
-                                                            <c:otherwise>TV</c:otherwise>
+                                                            <c:when test="${not empty content.releaseDate}">
+                                                                <c:out value="${content.releaseDate}"/>
+                                                            </c:when>
+                                                            <c:otherwise>공개일 미정</c:otherwise>
                                                         </c:choose>
                                                     </span>
+                                                    <span><c:out value="${ottTypeLabel}"/></span>
                                                 </div>
 
-                                                <h3><c:out value="${content.title}"/></h3>
-
-                                                <p>
-                                                    <c:choose>
-                                                        <c:when test="${not empty content.releaseDate}">
-                                                            <c:out value="${content.releaseDate}"/>
-                                                        </c:when>
-                                                        <c:otherwise>공개일 정보 없음</c:otherwise>
-                                                    </c:choose>
-                                                </p>
+                                                <c:if test="${not empty content.genreText}">
+                                                    <p class="content-list-card-genre"><c:out value="${content.genreText}"/></p>
+                                                </c:if>
                                             </div>
                                         </a>
+
+                                        <div class="content-list-card-bottom">
+                                            <c:if test="${not empty content.platformList}">
+                                                <div class="content-list-platform-row" aria-label="시청 가능한 OTT 플랫폼">
+                                                    <c:forEach var="platform" items="${content.platformList}" begin="0" end="2">
+                                                        <c:if test="${not empty platform.logoImage}">
+                                                            <img src="${platform.logoImage}"
+                                                                 alt="<c:out value='${platform.platformName}'/>"
+                                                                 title="<c:out value='${platform.platformName}'/>"
+                                                                 loading="lazy">
+                                                        </c:if>
+                                                    </c:forEach>
+
+                                                    <c:if test="${fn:length(content.platformList) > 3}">
+                                                        <span class="content-list-platform-more">
+                                                            +${fn:length(content.platformList) - 3}
+                                                        </span>
+                                                    </c:if>
+                                                </div>
+                                            </c:if>
+
+                                            <button type="button"
+                                                    class="content-list-favorite-btn"
+                                                    data-content-list-favorite
+                                                    data-tmdb-id="${content.tmdbId}"
+                                                    data-content-type="${content.contentType}"
+                                                    aria-pressed="false"
+                                                    aria-label="<c:out value='${content.title}'/> 찜하기"
+                                                    title="찜하기">
+                                                <span aria-hidden="true">♡</span>
+                                            </button>
+                                        </div>
                                     </article>
                                 </c:forEach>
                             </div>
@@ -484,8 +540,7 @@
                         <button type="button"
                                 class="search-more-button"
                                 data-search-move-tab="GOODS">
-                            상품 전체보기
-                            <span aria-hidden="true">→</span>
+                            더보기
                         </button>
                     </div>
 
@@ -497,11 +552,30 @@
                             </section>
                         </c:when>
                         <c:otherwise>
-                            <div class="search-goods-grid search-all-goods-grid">
+                            <section class="card-list">
                                 <c:forEach var="goods" items="${allGoodsResults}">
-                                    <article class="search-goods-card">
-                                        <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
-                                            <div class="search-goods-image">
+                                    <article class="card-item${goods.stock <= 0 ? ' is-soldout' : ''}">
+                                        <button type="button"
+                                                class="fav-btn card-favorite-btn${wishedProductNoSet.contains(goods.productNo) ? ' active' : ''}"
+                                                data-type="goods"
+                                                data-product-no="${goods.productNo}"
+                                                aria-pressed="${wishedProductNoSet.contains(goods.productNo)}"
+                                                aria-label="<c:out value='${goods.productName}'/> 찜하기"
+                                                title="찜하기">
+                                            <c:choose>
+                                                <c:when test="${wishedProductNoSet.contains(goods.productNo)}">♥</c:when>
+                                                <c:otherwise>♡</c:otherwise>
+                                            </c:choose>
+                                        </button>
+
+                                        <a class="card-link"
+                                           href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
+                                            <div class="card-poster">
+                                                <!-- ⭕ 할인 뱃지를 포스터 이미지 왼쪽 위로 이동 -->
+                                                <c:if test="${goods.discountRate > 0}">
+                                                    <span class="discount-badge">할인</span>
+                                                </c:if>
+
                                                 <c:choose>
                                                     <c:when test="${not empty goods.mainImage}">
                                                         <img src="${pageContext.request.contextPath}${goods.mainImage}"
@@ -509,42 +583,68 @@
                                                              loading="lazy">
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <div class="search-goods-no-image">NO IMAGE</div>
+                                                        <div class="no-img">NO IMAGE</div>
                                                     </c:otherwise>
                                                 </c:choose>
 
                                                 <c:if test="${goods.stock <= 0}">
-                                                    <span class="search-goods-soldout">품절</span>
+                                                    <div class="soldout-badge">SOLD OUT</div>
                                                 </c:if>
                                             </div>
 
-                                            <div class="search-goods-info">
-                                                <p class="search-goods-business">
-                                                    <c:out value="${goods.businessName}"/>
+                                            <div class="card-info">
+                                                <p class="card-brand">
+                                                    <c:choose>
+                                                        <c:when test="${not empty goods.businessName}">
+                                                            <c:out value="${goods.businessName}"/>
+                                                        </c:when>
+                                                        <c:otherwise>판매자 정보 없음</c:otherwise>
+                                                    </c:choose>
                                                 </p>
-                                                <h3><c:out value="${goods.productName}"/></h3>
 
-                                                <c:choose>
-                                                    <c:when test="${goods.discountRate > 0}">
-                                                        <p class="search-goods-price">
-                                                            <span class="search-goods-rate">${goods.discountRate}%</span>
-                                                            <strong><fmt:formatNumber value="${goods.discountPrice}"/>원</strong>
-                                                        </p>
-                                                        <p class="search-goods-original">
-                                                            <fmt:formatNumber value="${goods.price}"/>원
-                                                        </p>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <p class="search-goods-price">
-                                                            <strong><fmt:formatNumber value="${goods.price}"/>원</strong>
-                                                        </p>
-                                                    </c:otherwise>
-                                                </c:choose>
+                                                <!-- ⭕ 뱃지 삭제 후 상품 제목 100% 확보 -->
+                                                <div class="card-title-wrap">
+                                                    <h3 class="card-title"><c:out value="${goods.productName}"/></h3>
+                                                </div>
+
+                                                <!-- ⭕ 가격 영역 정렬 개선 -->
+                                                <div class="card-meta">
+                                                    <c:choose>
+                                                        <c:when test="${goods.discountRate > 0}">
+                                                            <span class="price-original">
+                                                                ₩<fmt:formatNumber value="${goods.price}" pattern="#,###"/>
+                                                            </span>
+                                                            <div class="price-sale-row">
+                                                                <span class="rate">${goods.discountRate}%</span>
+                                                                <span class="price-final">
+                                                                    ₩<fmt:formatNumber value="${goods.discountPrice}" pattern="#,###"/>
+                                                                </span>
+                                                            </div>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="price-final">
+                                                                ₩<fmt:formatNumber value="${goods.price}" pattern="#,###"/>
+                                                            </span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+
+                                                <div class="card-sub">
+                                                    <c:choose>
+                                                        <c:when test="${goods.stock <= 0}">
+                                                            <span class="stock-warning">품절</span>
+                                                        </c:when>
+                                                        <c:when test="${goods.stock <= 5}">
+                                                            <span class="stock-warning">재고 ${goods.stock}개 남음</span>
+                                                        </c:when>
+                                                        <c:otherwise>재고 ${goods.stock}개</c:otherwise>
+                                                    </c:choose>
+                                                </div>
                                             </div>
                                         </a>
                                     </article>
                                 </c:forEach>
-                            </div>
+                            </section>
                         </c:otherwise>
                     </c:choose>
                 </section>
@@ -576,164 +676,158 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <div class="search-content-list">
+                        <div class="content-list-card-grid">
                             <c:forEach var="content" items="${contentResults}">
-                                <c:url var="contentDetailUrl" value="/content/prepare">
+                                <c:url var="ottCardDetailUrl" value="/content/prepare">
                                     <c:param name="tmdbId" value="${content.tmdbId}"/>
                                     <c:param name="contentType" value="${content.contentType}"/>
                                 </c:url>
 
-                                <%--
-                                    콘텐츠의 정규화된 연령등급을 카드용 숫자 배지로 변환합니다.
-                                    빈 값이나 알 수 없는 값은 등급 정보 없음(?)으로 처리합니다.
-                                --%>
-                                <c:set var="ageBadgeLabel" value="?"/>
-                                <c:set var="ageBadgeClass" value="unknown"/>
-                                <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
+                                <c:set var="ottAgeBadgeLabel" value="?"/>
+                                <c:set var="ottAgeBadgeClass" value="unknown"/>
+                                <c:set var="ottAgeBadgeTitle" value="등급 정보 없음"/>
 
                                 <c:choose>
                                     <c:when test="${content.ageRating eq '전체 관람가'}">
-                                        <c:set var="ageBadgeLabel" value="ALL"/>
-                                        <c:set var="ageBadgeClass" value="all"/>
-                                        <c:set var="ageBadgeTitle" value="전체 관람가"/>
+                                        <c:set var="ottAgeBadgeLabel" value="ALL"/>
+                                        <c:set var="ottAgeBadgeClass" value="all"/>
+                                        <c:set var="ottAgeBadgeTitle" value="전체 관람가"/>
                                     </c:when>
                                     <c:when test="${content.ageRating eq '7세 이상 관람가'}">
-                                        <c:set var="ageBadgeLabel" value="7"/>
-                                        <c:set var="ageBadgeClass" value="age7"/>
-                                        <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
+                                        <c:set var="ottAgeBadgeLabel" value="7"/>
+                                        <c:set var="ottAgeBadgeClass" value="age7"/>
+                                        <c:set var="ottAgeBadgeTitle" value="7세 이상 관람가"/>
                                     </c:when>
                                     <c:when test="${content.ageRating eq '12세 이상 관람가'}">
-                                        <c:set var="ageBadgeLabel" value="12"/>
-                                        <c:set var="ageBadgeClass" value="age12"/>
-                                        <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
+                                        <c:set var="ottAgeBadgeLabel" value="12"/>
+                                        <c:set var="ottAgeBadgeClass" value="age12"/>
+                                        <c:set var="ottAgeBadgeTitle" value="12세 이상 관람가"/>
                                     </c:when>
                                     <c:when test="${content.ageRating eq '15세 이상 관람가'}">
-                                        <c:set var="ageBadgeLabel" value="15"/>
-                                        <c:set var="ageBadgeClass" value="age15"/>
-                                        <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
+                                        <c:set var="ottAgeBadgeLabel" value="15"/>
+                                        <c:set var="ottAgeBadgeClass" value="age15"/>
+                                        <c:set var="ottAgeBadgeTitle" value="15세 이상 관람가"/>
                                     </c:when>
                                     <c:when test="${content.ageRating eq '청소년 관람불가'}">
-                                        <c:set var="ageBadgeLabel" value="19"/>
-                                        <c:set var="ageBadgeClass" value="adult"/>
-                                        <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
+                                        <c:set var="ottAgeBadgeLabel" value="19"/>
+                                        <c:set var="ottAgeBadgeClass" value="adult"/>
+                                        <c:set var="ottAgeBadgeTitle" value="청소년 관람불가"/>
                                     </c:when>
                                 </c:choose>
 
-                                <article class="search-content-item">
-                                    <a class="search-content-link" href="${contentDetailUrl}">
-                                        <div class="search-content-poster">
+                                <c:set var="ottTypeLabel" value="드라마"/>
+                                <c:set var="ottTypeBadgeClass" value="drama"/>
+                                <c:choose>
+                                    <c:when test="${fn:contains(content.genreText, '애니메이션')}">
+                                        <c:set var="ottTypeLabel" value="애니메이션"/>
+                                        <c:set var="ottTypeBadgeClass" value="animation"/>
+                                    </c:when>
+                                    <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">
+                                        <c:set var="ottTypeLabel" value="다큐멘터리"/>
+                                        <c:set var="ottTypeBadgeClass" value="documentary"/>
+                                    </c:when>
+                                    <c:when test="${content.contentType eq 'TV' and (fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크'))}">
+                                        <c:set var="ottTypeLabel" value="예능"/>
+                                        <c:set var="ottTypeBadgeClass" value="variety"/>
+                                    </c:when>
+                                    <c:when test="${content.contentType eq 'MOVIE'}">
+                                        <c:set var="ottTypeLabel" value="영화"/>
+                                        <c:set var="ottTypeBadgeClass" value="movie"/>
+                                    </c:when>
+                                </c:choose>
+
+                                <article class="content-list-card">
+                                    <a class="content-list-card-link" href="${ottCardDetailUrl}">
+                                        <div class="content-list-card-poster">
                                             <c:choose>
                                                 <c:when test="${not empty content.posterPath}">
-                                                    <img src="https://image.tmdb.org/t/p/w300${content.posterPath}"
+                                                    <img src="https://image.tmdb.org/t/p/w500${content.posterPath}"
                                                          alt="<c:out value='${content.title}'/>"
                                                          loading="lazy">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <div class="search-content-no-image">NO IMAGE</div>
+                                                    <div class="no-img">NO IMAGE</div>
                                                 </c:otherwise>
                                             </c:choose>
 
-                                            <span class="search-content-age-rating"
-                                                  title="<c:out value='${ageBadgeTitle}'/>">
-                                                <span class="age-rating-badge is-${ageBadgeClass}"
-                                                      aria-label="<c:out value='${ageBadgeTitle}'/>">
-                                                    <c:out value="${ageBadgeLabel}"/>
+                                            <span class="content-list-type-badge is-${ottTypeBadgeClass}">
+                                                <c:out value="${ottTypeLabel}"/>
+                                            </span>
+
+                                            <span class="content-list-poster-age-rating" title="<c:out value='${ottAgeBadgeTitle}'/>">
+                                                <span class="age-rating-badge is-${ottAgeBadgeClass}"
+                                                      aria-label="<c:out value='${ottAgeBadgeTitle}'/>">
+                                                    <c:out value="${ottAgeBadgeLabel}"/>
                                                 </span>
                                             </span>
+
+                                            <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
+                                                <span class="content-list-score-badge">
+                                                    <span aria-hidden="true">★</span>
+                                                    <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
+                                                </span>
+                                            </c:if>
                                         </div>
 
-                                        <div class="search-content-info">
-                                            <div class="search-content-title-row">
-                                                <div>
-                                                    <div class="search-content-badge-row">
-                                                        <span class="search-content-type-badge">
-                                                            <c:choose>
-                                                                <c:when test="${content.contentType eq 'MOVIE'}">영화</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '애니메이션')}">애니메이션</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">다큐멘터리</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '리얼리티') or fn:contains(content.genreText, '토크')}">예능</c:when>
-                                                                <c:when test="${fn:contains(content.genreText, '드라마')}">드라마</c:when>
-                                                                <c:otherwise>TV</c:otherwise>
-                                                            </c:choose>
-                                                        </span>
-                                                    </div>
-                                                    <h3 class="search-content-title"><c:out value="${content.title}"/></h3>
-                                                </div>
+                                        <div class="content-list-card-info">
+                                            <h2><c:out value="${content.title}"/></h2>
 
-                                                <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
-                                                    <span class="search-content-score">
-                                                        ★ <fmt:formatNumber value="${content.tmdbScore}" pattern="0.0"/>
+                                            <div class="content-list-card-meta">
+                                                <span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty content.releaseDate}">
+                                                            <c:out value="${content.releaseDate}"/>
+                                                        </c:when>
+                                                        <c:otherwise>공개일 미정</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <span><c:out value="${ottTypeLabel}"/></span>
+                                            </div>
+
+                                            <c:if test="${not empty content.genreText}">
+                                                <p class="content-list-card-genre"><c:out value="${content.genreText}"/></p>
+                                            </c:if>
+                                        </div>
+                                    </a>
+
+                                    <div class="content-list-card-bottom">
+                                        <c:if test="${not empty content.platformList}">
+                                            <div class="content-list-platform-row" aria-label="시청 가능한 OTT 플랫폼">
+                                                <c:forEach var="platform" items="${content.platformList}" begin="0" end="2">
+                                                    <c:if test="${not empty platform.logoImage}">
+                                                        <img src="${platform.logoImage}"
+                                                             alt="<c:out value='${platform.platformName}'/>"
+                                                             title="<c:out value='${platform.platformName}'/>"
+                                                             loading="lazy">
+                                                    </c:if>
+                                                </c:forEach>
+
+                                                <c:if test="${fn:length(content.platformList) > 3}">
+                                                    <span class="content-list-platform-more">
+                                                        +${fn:length(content.platformList) - 3}
                                                     </span>
                                                 </c:if>
                                             </div>
+                                        </c:if>
 
-                                            <c:if test="${content.matchType eq 'PERSON'}">
-                                                <p class="search-person-match">
-                                                    <c:out value="${content.matchedPersonRole}"/> 검색 결과 ·
-                                                    <c:out value="${content.matchedPersonName}"/>
-                                                    <c:choose>
-                                                        <c:when test="${content.matchedPersonRole eq '감독'}"> 연출</c:when>
-                                                        <c:otherwise> 출연</c:otherwise>
-                                                    </c:choose>
-                                                </p>
-                                            </c:if>
-
-                                            <div class="search-content-meta">
-                                                <c:if test="${not empty content.releaseDate}">
-                                                    <span><c:out value="${content.releaseDate}"/></span>
-                                                </c:if>
-                                                <c:if test="${not empty content.genreText}">
-                                                    <span><c:out value="${content.genreText}"/></span>
-                                                </c:if>
-                                            </div>
-
-                                            <c:if test="${not empty content.overview}">
-                                                <p class="search-content-overview">
-                                                    <c:out value="${content.overview}"/>
-                                                </p>
-                                            </c:if>
-
-                                            <div class="search-content-bottom-row">
-                                                <div class="search-content-platform-list">
-                                                    <c:forEach var="platform"
-                                                               items="${content.platformList}"
-                                                               varStatus="platformStatus">
-                                                        <c:if test="${platformStatus.index < 4}">
-                                                            <c:choose>
-                                                                <c:when test="${not empty platform.logoImage}">
-                                                                    <img class="search-content-platform-logo"
-                                                                         src="${platform.logoImage}"
-                                                                         alt="<c:out value='${platform.platformName}'/>"
-                                                                         title="<c:out value='${platform.platformName}'/>"
-                                                                         loading="lazy">
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <span class="search-platform-name">
-                                                                        <c:out value="${platform.platformName}"/>
-                                                                    </span>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </c:if>
-                                                    </c:forEach>
-
-                                                    <c:if test="${content.platformList.size() > 4}">
-                                                        <span class="search-platform-more">
-                                                            +${content.platformList.size() - 4}
-                                                        </span>
-                                                    </c:if>
-                                                </div>
-
-                                                <span class="search-detail-label">상세보기 →</span>
-                                            </div>
-                                        </div>
-                                    </a>
+                                        <button type="button"
+                                                class="content-list-favorite-btn"
+                                                data-content-list-favorite
+                                                data-tmdb-id="${content.tmdbId}"
+                                                data-content-type="${content.contentType}"
+                                                aria-pressed="false"
+                                                aria-label="<c:out value='${content.title}'/> 찜하기"
+                                                title="찜하기">
+                                            <span aria-hidden="true">♡</span>
+                                        </button>
+                                    </div>
                                 </article>
                             </c:forEach>
                         </div>
                     </c:otherwise>
                 </c:choose>
 
-                <%-- 현재 페이지 기준 앞뒤 2페이지를 표시하는 콘텐츠 페이징 --%>
+                <%-- 콘텐츠 페이징 --%>
                 <c:if test="${contentTotalPages > 1}">
                     <c:set var="contentStartPage" value="${contentCurrentPage - 2}"/>
                     <c:set var="contentEndPage" value="${contentCurrentPage + 2}"/>
@@ -829,11 +923,30 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <div class="search-goods-grid">
+                        <section class="card-list">
                             <c:forEach var="goods" items="${goodsResults}">
-                                <article class="search-goods-card">
-                                    <a href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
-                                        <div class="search-goods-image">
+                                <article class="card-item${goods.stock <= 0 ? ' is-soldout' : ''}">
+                                    <button type="button"
+                                            class="fav-btn card-favorite-btn${wishedProductNoSet.contains(goods.productNo) ? ' active' : ''}"
+                                            data-type="goods"
+                                            data-product-no="${goods.productNo}"
+                                            aria-pressed="${wishedProductNoSet.contains(goods.productNo)}"
+                                            aria-label="<c:out value='${goods.productName}'/> 찜하기"
+                                            title="찜하기">
+                                        <c:choose>
+                                            <c:when test="${wishedProductNoSet.contains(goods.productNo)}">♥</c:when>
+                                            <c:otherwise>♡</c:otherwise>
+                                        </c:choose>
+                                    </button>
+
+                                    <a class="card-link"
+                                       href="${pageContext.request.contextPath}/goods/goodsDetail/${goods.productNo}">
+                                        <div class="card-poster">
+                                            <!-- ⭕ 할인 뱃지를 포스터 이미지 왼쪽 위로 이동 -->
+                                            <c:if test="${goods.discountRate > 0}">
+                                                <span class="discount-badge">할인</span>
+                                            </c:if>
+
                                             <c:choose>
                                                 <c:when test="${not empty goods.mainImage}">
                                                     <img src="${pageContext.request.contextPath}${goods.mainImage}"
@@ -841,40 +954,68 @@
                                                          loading="lazy">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <div class="search-goods-no-image">NO IMAGE</div>
+                                                    <div class="no-img">NO IMAGE</div>
                                                 </c:otherwise>
                                             </c:choose>
 
                                             <c:if test="${goods.stock <= 0}">
-                                                <span class="search-goods-soldout">품절</span>
+                                                <div class="soldout-badge">SOLD OUT</div>
                                             </c:if>
                                         </div>
 
-                                        <div class="search-goods-info">
-                                            <p class="search-goods-business"><c:out value="${goods.businessName}"/></p>
-                                            <h3><c:out value="${goods.productName}"/></h3>
+                                        <div class="card-info">
+                                            <p class="card-brand">
+                                                <c:choose>
+                                                    <c:when test="${not empty goods.businessName}">
+                                                        <c:out value="${goods.businessName}"/>
+                                                    </c:when>
+                                                    <c:otherwise>판매자 정보 없음</c:otherwise>
+                                                </c:choose>
+                                            </p>
 
-                                            <c:choose>
-                                                <c:when test="${goods.discountRate > 0}">
-                                                    <p class="search-goods-price">
-                                                        <span class="search-goods-rate">${goods.discountRate}%</span>
-                                                        <strong><fmt:formatNumber value="${goods.discountPrice}"/>원</strong>
-                                                    </p>
-                                                    <p class="search-goods-original">
-                                                        <fmt:formatNumber value="${goods.price}"/>원
-                                                    </p>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <p class="search-goods-price">
-                                                        <strong><fmt:formatNumber value="${goods.price}"/>원</strong>
-                                                    </p>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <!-- ⭕ 뱃지 삭제 후 상품 제목 100% 확보 -->
+                                            <div class="card-title-wrap">
+                                                <h3 class="card-title"><c:out value="${goods.productName}"/></h3>
+                                            </div>
+
+                                            <!-- ⭕ 가격 영역 정렬 개선 -->
+                                            <div class="card-meta">
+                                                <c:choose>
+                                                    <c:when test="${goods.discountRate > 0}">
+                                                        <span class="price-original">
+                                                            ₩<fmt:formatNumber value="${goods.price}" pattern="#,###"/>
+                                                        </span>
+                                                        <div class="price-sale-row">
+                                                            <span class="rate">${goods.discountRate}%</span>
+                                                            <span class="price-final">
+                                                                ₩<fmt:formatNumber value="${goods.discountPrice}" pattern="#,###"/>
+                                                            </span>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="price-final">
+                                                            ₩<fmt:formatNumber value="${goods.price}" pattern="#,###"/>
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+
+                                            <div class="card-sub">
+                                                <c:choose>
+                                                    <c:when test="${goods.stock <= 0}">
+                                                        <span class="stock-warning">품절</span>
+                                                    </c:when>
+                                                    <c:when test="${goods.stock <= 5}">
+                                                        <span class="stock-warning">재고 ${goods.stock}개 남음</span>
+                                                    </c:when>
+                                                    <c:otherwise>재고 ${goods.stock}개</c:otherwise>
+                                                </c:choose>
+                                            </div>
                                         </div>
                                     </a>
                                 </article>
                             </c:forEach>
-                        </div>
+                        </section>
                     </c:otherwise>
                 </c:choose>
 

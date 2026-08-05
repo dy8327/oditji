@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeSearchMoreButtons();
     initializeActiveFilterChips();
     initializePaginationFilterPreservation();
+    initializeSearchContentFavorites();
 });
 
 /**
@@ -611,4 +612,149 @@ function setFormValue(form, name, value) {
     }
 
     input.value = value;
+}
+
+
+/**
+ * 검색 결과의 콘텐츠 카드 찜 버튼을 처리합니다.
+ * (contentList.js의 콘텐츠 카드 찜 처리와 동일한 방식:
+ *  tmdbId 기준으로 상태를 조회/토글합니다.)
+ */
+function initializeSearchContentFavorites() {
+    const buttons = Array.from(
+        document.querySelectorAll("[data-content-list-favorite]")
+    );
+
+    if (buttons.length === 0) {
+        return;
+    }
+
+    buttons.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            toggleSearchContentFavorite(button);
+        });
+
+        loadSearchContentFavoriteStatus(button);
+    });
+}
+
+async function loadSearchContentFavoriteStatus(button) {
+    const tmdbId = button.dataset.tmdbId;
+    const contentType = button.dataset.contentType;
+
+    if (!tmdbId || !contentType) {
+        return;
+    }
+
+    const query = new URLSearchParams({
+        tmdbId: tmdbId,
+        contentType: contentType
+    });
+
+    try {
+        const response = await fetch(
+            contextPath + "/favorite/status-by-tmdb?" + query.toString(),
+            {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const result = await response.json();
+
+        setSearchContentFavoriteState(button, result.active === true);
+
+    } catch (error) {
+        console.error("찜 상태 조회 실패:", error);
+    }
+}
+
+async function toggleSearchContentFavorite(button) {
+    if (button.dataset.loading === "true") {
+        return;
+    }
+
+    const tmdbId = button.dataset.tmdbId;
+    const contentType = button.dataset.contentType;
+
+    if (!tmdbId || !contentType) {
+        await showAlert("콘텐츠 정보를 확인할 수 없습니다.", "warning");
+        return;
+    }
+
+    button.dataset.loading = "true";
+    button.disabled = true;
+
+    try {
+        const response = await fetch(
+            contextPath + "/favorite/toggle-by-tmdb",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    tmdbId: Number(tmdbId),
+                    contentType: contentType
+                })
+            }
+        );
+
+        if (response.status === 401) {
+            const moveLogin = await showConfirm(
+                "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                "info"
+            );
+
+            if (moveLogin) {
+                const currentUrl =
+                    window.location.pathname + window.location.search;
+
+                window.location.href =
+                    `${contextPath}/member/login?returnUrl=${encodeURIComponent(currentUrl)}`;
+            }
+
+            return;
+        }
+
+        const result = await response.json().catch(function () {
+            return {};
+        });
+
+        if (!response.ok) {
+            throw new Error(result.message || "찜 처리에 실패했습니다.");
+        }
+
+        setSearchContentFavoriteState(button, result.active === true);
+
+    } catch (error) {
+        console.error(error);
+        await showAlert(error.message || "찜 처리 중 오류가 발생했습니다.", "error");
+
+    } finally {
+        button.dataset.loading = "false";
+        button.disabled = false;
+    }
+}
+
+function setSearchContentFavoriteState(button, active) {
+    const icon = button.querySelector("span");
+
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+    button.setAttribute("title", active ? "찜 해제" : "찜하기");
+
+    if (icon) {
+        icon.textContent = active ? "♥" : "♡";
+    }
 }
