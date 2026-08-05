@@ -4,6 +4,7 @@ pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 
@@ -77,13 +78,9 @@ pageEncoding="UTF-8"%>
                         </h1>
 
                         <p class="event-period">
-                            <fmt:formatDate
-                                    value="${event.startDate}"
-                                    pattern="yyyy.MM.dd"/>
+                            ${dt:format(event.startDate, 'yyyy.MM.dd')}
                             ~
-                            <fmt:formatDate
-                                    value="${event.endDate}"
-                                    pattern="yyyy.MM.dd"/>
+                            ${dt:format(event.endDate, 'yyyy.MM.dd')}
                         </p>
 
                     </div>

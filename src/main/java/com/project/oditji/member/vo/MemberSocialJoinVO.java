@@ -1,6 +1,6 @@
 package com.project.oditji.member.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 소셜 로그인 회원 조회 결과입니다.
@@ -13,7 +13,7 @@ public class MemberSocialJoinVO extends MemberVO {
     private int socialNo;
     private String provider;
     private String providerUserId;
-    private Date socialCreatedAt;
+    private LocalDateTime socialCreatedAt;
 
     public int getSocialNo() {
         return socialNo;
@@ -39,11 +39,11 @@ public class MemberSocialJoinVO extends MemberVO {
         this.providerUserId = providerUserId;
     }
 
-    public Date getSocialCreatedAt() {
+    public LocalDateTime getSocialCreatedAt() {
         return socialCreatedAt;
     }
 
-    public void setSocialCreatedAt(Date socialCreatedAt) {
+    public void setSocialCreatedAt(LocalDateTime socialCreatedAt) {
         this.socialCreatedAt = socialCreatedAt;
     }
 }

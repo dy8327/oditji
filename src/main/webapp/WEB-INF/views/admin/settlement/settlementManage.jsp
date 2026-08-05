@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="settlement"/>
 
@@ -216,7 +217,7 @@
                                     (신청일 문자열, 상태 한글 라벨. eventManage.jsp의 reqCreatedAtStr /
                                     reqStatusLabel 등과 동일한 방식)
                                 --%>
-                                <fmt:formatDate var="settlementRequestedAtStr" value="${settlement.requestedAt}" pattern="yyyy-MM-dd"/>
+                                <c:set var="settlementRequestedAtStr" value="${dt:format(settlement.requestedAt, 'yyyy-MM-dd')}"/>
 
                                 <c:choose>
                                     <c:when test="${settlement.status == 'DONE'}">

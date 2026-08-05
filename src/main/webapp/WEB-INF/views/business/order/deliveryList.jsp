@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="delivery"/>
 
@@ -94,7 +95,7 @@
                                     <div><span>상품명</span><strong><c:out value="${delivery.productName}"/></strong></div>
                                     <div><span>수량</span><strong><c:out value="${delivery.quantity}"/>개</strong></div>
                                     <div><span>판매금액</span><strong><fmt:formatNumber value="${delivery.itemTotalPrice}" pattern="#,###"/>원</strong></div>
-                                    <div><span>주문일</span><strong><fmt:formatDate value="${delivery.orderCreatedAt}" pattern="yyyy-MM-dd HH:mm"/></strong></div>
+                                    <div><span>주문일</span><strong>${dt:format(delivery.orderCreatedAt, 'yyyy-MM-dd HH:mm')}</strong></div>
                                     <div><span>수령인</span><strong><c:out value="${delivery.receiverName}"/></strong></div>
                                     <div><span>연락처</span><strong><c:out value="${delivery.receiverPhone}"/></strong></div>
                                     <div class="delivery-address"><span>배송지</span><strong><c:out value="${delivery.address}"/></strong></div>

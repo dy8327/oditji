@@ -1,6 +1,6 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 모니터링 VO
@@ -16,7 +16,7 @@ public class MonitoringVO {
     private Long memberNo;
     private String memberId;
     private String nickname;
-    private Date lastAccessAt;
+    private LocalDateTime lastAccessAt;
     private Long productClickCount;
     private String accessIp;
 
@@ -44,11 +44,11 @@ public class MonitoringVO {
         this.nickname = nickname;
     }
 
-    public Date getLastAccessAt() {
+    public LocalDateTime getLastAccessAt() {
         return lastAccessAt;
     }
 
-    public void setLastAccessAt(Date lastAccessAt) {
+    public void setLastAccessAt(LocalDateTime lastAccessAt) {
         this.lastAccessAt = lastAccessAt;
     }
 

@@ -15,14 +15,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +28,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -336,20 +336,11 @@ class ProjectPublicApiSmokeCoverageTest {
         if (type == BigInteger.class) {
             return BigInteger.ONE;
         }
-        if (type == Date.class) {
-            return new Date();
-        }
-        if (type == java.sql.Date.class) {
-            return java.sql.Date.valueOf(LocalDate.now());
-        }
-        if (type == Timestamp.class) {
-            return Timestamp.valueOf(LocalDateTime.now());
-        }
         if (type == LocalDate.class) {
             return LocalDate.now();
         }
         if (type == LocalDateTime.class) {
-            return LocalDateTime.now();
+            return LocalDateTime.now(DateTimeUtil.KOREA_ZONE);
         }
         if (type == Instant.class) {
             return Instant.now();

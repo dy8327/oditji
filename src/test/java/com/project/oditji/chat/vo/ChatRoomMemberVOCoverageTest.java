@@ -3,7 +3,8 @@ package com.project.oditji.chat.vo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,7 @@ class ChatRoomMemberVOCoverageTest {
 
     @Test
     void fullConstructorAndAccessorsShouldExposeParticipantData() {
-        Date joinedAt = new Date(1234L);
+        LocalDateTime joinedAt = LocalDateTime.of(2026, Month.AUGUST, 5, 12, 34);
         ChatRoomMemberVO member = new ChatRoomMemberVO(
                 "room-1",
                 20,
@@ -34,7 +35,7 @@ class ChatRoomMemberVOCoverageTest {
     @Test
     void defaultConstructorSettersShouldUpdateParticipantData() {
         ChatRoomMemberVO member = new ChatRoomMemberVO();
-        Date joinedAt = new Date(5678L);
+        LocalDateTime joinedAt = LocalDateTime.of(2026, Month.AUGUST, 5, 12, 35);
 
         member.setRoomId("room-2");
         member.setBusinessNo(30);

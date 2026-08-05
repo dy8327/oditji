@@ -1,12 +1,12 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 사용자 이벤트 조회, 사업자 이벤트 관리, 관리자 이벤트 관리에서 공통으로 사용하는
  * 이벤트 기본 정보입니다.
  *
- * 시작일과 종료일은 화면 용도에 따라 Date 또는 LocalDate를 사용하므로
+ * 시작일과 종료일은 화면 용도에 따라 LocalDateTime 또는 LocalDate를 사용하므로
  * 각 하위 VO에서 별도로 정의합니다.
  */
 public abstract class EventBaseVO {
@@ -16,7 +16,7 @@ public abstract class EventBaseVO {
     private String description;
     private String bannerImage;
     private String status;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getEventNo() {
         return eventNo;
@@ -58,11 +58,11 @@ public abstract class EventBaseVO {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

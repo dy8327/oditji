@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="monitoring"/>
 
@@ -119,8 +120,8 @@
                                          yyMMdd(예: 260730)로 짧게 표시한다. admin.css의 .pc-access-date/
                                          .mobile-access-date가 화면 폭에 따라 둘 중 하나만 보여준다. --%>
                                     <td>
-                                        <span class="pc-access-date"><fmt:formatDate value="${row.lastAccessAt}" pattern="yyyy-MM-dd"/></span>
-                                        <span class="mobile-access-date"><fmt:formatDate value="${row.lastAccessAt}" pattern="yyMMdd"/></span>
+                                        <span class="pc-access-date">${dt:format(row.lastAccessAt, 'yyyy-MM-dd')}</span>
+                                        <span class="mobile-access-date">${dt:format(row.lastAccessAt, 'yyMMdd')}</span>
                                     </td>
                                     <td>${row.productClickCount}</td>
                                     <td>${row.accessIp}</td>

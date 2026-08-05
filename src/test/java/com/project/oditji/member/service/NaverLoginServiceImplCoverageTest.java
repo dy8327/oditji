@@ -15,7 +15,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.member.dao.MemberDAO;
 import com.project.oditji.member.dao.MemberSocialDAO;
 import com.project.oditji.member.exception.MemberBlockedException;
@@ -113,7 +114,7 @@ class NaverLoginServiceImplCoverageTest {
         resetServer();
         expectTokenAndProfile("withdrawn-id", null, "탈퇴", null);
         MemberSocialJoinVO withdrawn = joined(21L, "WITHDRAWN");
-        withdrawn.setWithdrawnAt(new Date());
+        withdrawn.setWithdrawnAt(LocalDateTime.now(DateTimeUtil.KOREA_ZONE));
         when(memberSocialDAO.selectMemberBySocial("NAVER", "withdrawn-id"))
                 .thenReturn(withdrawn);
 

@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -145,9 +146,7 @@
 
                             <td>
 
-                                <fmt:formatDate
-                                    value="${payment.createdAt}"
-                                    pattern="yyyy-MM-dd HH:mm:ss"/>
+                                ${dt:format(payment.createdAt, 'yyyy-MM-dd HH:mm:ss')}
 
                             </td>
 

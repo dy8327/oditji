@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
@@ -1069,7 +1070,7 @@ public class BusinessController {
                  * 기본 조회 기간으로 사용한다. 한쪽 날짜만 전달된 경우에도
                  * 누락된 날짜만 기본값으로 보완한다.
                  */
-                LocalDate today = LocalDate.now();
+                LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
                 LocalDate resolvedStartDate = startDate == null ? today.withDayOfMonth(1) : startDate;
                 LocalDate resolvedEndDate = endDate == null ? today : endDate;
 

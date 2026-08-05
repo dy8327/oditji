@@ -1,6 +1,6 @@
 package com.project.oditji.admin.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.LongProductSummaryVO;
 
@@ -23,7 +23,7 @@ public class ProductManageVO extends LongProductSummaryVO {
     private String description;
     private String status;        // WAITING, APPROVED, REJECTED
     private String mainImage;     // PRODUCT_IMAGE 중 IS_MAIN='Y' 조인
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getBusinessNo() {
         return businessNo;
@@ -105,11 +105,11 @@ public class ProductManageVO extends LongProductSummaryVO {
         this.mainImage = mainImage;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

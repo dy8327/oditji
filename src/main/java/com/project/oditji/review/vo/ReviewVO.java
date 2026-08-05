@@ -1,6 +1,6 @@
 package com.project.oditji.review.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * REVIEW 테이블(콘텐츠 리뷰) 원본 매핑 VO입니다.
@@ -10,7 +10,7 @@ public class ReviewVO extends ReviewBaseVO {
 
     private Long reviewNo;
     private int contentNo;
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     public Long getReviewNo() {
         return reviewNo;
@@ -28,11 +28,11 @@ public class ReviewVO extends ReviewBaseVO {
         this.contentNo = contentNo;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 }

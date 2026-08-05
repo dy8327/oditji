@@ -1,6 +1,6 @@
 package com.project.oditji.refund.dao;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -17,8 +17,8 @@ public interface OrderCancelRefundDAO {
                         @Param("memberNo") Long memberNo,
                         @Param("historyType") String historyType,
                         @Param("status") String status,
-                        @Param("startDate") Date startDate,
-                        @Param("endDate") Date endDate);
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
 
         List<OrderItemVO> selectCancelableItemsByOrder(@Param("memberNo") Long memberNo,
                         @Param("orderNo") Long orderNo);

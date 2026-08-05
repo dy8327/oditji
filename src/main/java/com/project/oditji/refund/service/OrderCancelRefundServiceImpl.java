@@ -1,6 +1,5 @@
 package com.project.oditji.refund.service;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -79,8 +78,8 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         return orderCancelRefundDAO.selectMemberCancelRefundHistory(
                 memberNo, normalizedType, normalizedStatus,
-                startDate == null ? null : Date.valueOf(startDate),
-                endDate == null ? null : Date.valueOf(endDate));
+                startDate,
+                endDate);
     }
 
     private enum SetType {

@@ -1,6 +1,6 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 사용자 주문 목록과 관리자 주문 조회가 공통으로 사용하는 주문 기본 정보입니다.
@@ -12,7 +12,7 @@ public abstract class OrderSummaryBaseVO extends OrderAddressBaseVO {
     private Long orderNo;
     private Long totalAmount;
     private String orderStatus;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getOrderNo() {
         return orderNo;
@@ -38,11 +38,11 @@ public abstract class OrderSummaryBaseVO extends OrderAddressBaseVO {
         this.orderStatus = orderStatus;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

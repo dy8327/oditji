@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.search.vo.CachedContentVO;
@@ -132,7 +133,7 @@ public class SearchContentPageCacheService {
                 );
 
         LocalDate today =
-                LocalDate.now();
+                LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
         Map<String, SearchResultVO> selectedMap =
                 new LinkedHashMap<String, SearchResultVO>();
@@ -1063,7 +1064,7 @@ public class SearchContentPageCacheService {
              * 최근 30일 이내 공개된 콘텐츠만 표시합니다.
              */
             LocalDate today =
-                    LocalDate.now();
+                    LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
             LocalDate startDate =
                     today.minusDays(30);

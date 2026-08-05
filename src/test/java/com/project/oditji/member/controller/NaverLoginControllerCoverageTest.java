@@ -8,7 +8,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.NaverLoginService;
@@ -177,7 +178,7 @@ class NaverLoginControllerCoverageTest {
     void withdrawnMemberShouldSaveNaverRestoreSession() {
         sessionValues.put("naverOAuthState", "state");
         when(naverLoginService.naverLogin("code", "state"))
-                .thenThrow(new MemberWithdrawnException("withdrawn", 88L, new Date()));
+                .thenThrow(new MemberWithdrawnException("withdrawn", 88L, LocalDateTime.now(DateTimeUtil.KOREA_ZONE)));
 
         assertEquals(
                 "redirect:/member/login",

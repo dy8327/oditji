@@ -2,10 +2,13 @@ package com.project.oditji.notification.vo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 알림 표시용 파생 값과 헤더 컨텍스트의 방어 로직을 검증합니다.
@@ -13,12 +16,15 @@ import org.junit.jupiter.api.Test;
 class NotificationVOTest {
 
     @Test
-    void getCreatedAtEpochMsShouldHandleNullAndDate() {
+    void getCreatedAtEpochMsShouldHandleNullAndLocalDateTime() {
 
         NotificationVO notification = new NotificationVO();
         assertEquals(0L, notification.getCreatedAtEpochMs());
 
-        notification.setCreatedAt(new Date(1_234L));
+        LocalDateTime createdAt = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(1_234L),
+                DateTimeUtil.KOREA_ZONE);
+        notification.setCreatedAt(createdAt);
         assertEquals(1_234L, notification.getCreatedAtEpochMs());
     }
 

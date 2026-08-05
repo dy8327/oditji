@@ -1,6 +1,6 @@
 package com.project.oditji.event.vo;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.project.oditji.common.vo.EventBaseVO;
@@ -10,23 +10,23 @@ import com.project.oditji.common.vo.EventBaseVO;
  */
 public class EventVO extends EventBaseVO {
 
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private List<EventProductVO> products;
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 

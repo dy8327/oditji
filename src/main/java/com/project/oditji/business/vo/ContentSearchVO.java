@@ -1,6 +1,6 @@
 package com.project.oditji.business.vo;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.project.oditji.common.vo.ContentMetadataVO;
 
@@ -10,7 +10,7 @@ import com.project.oditji.common.vo.ContentMetadataVO;
 public class ContentSearchVO extends ContentMetadataVO {
 
     private Long contentNo;
-    private Date releaseDate;
+    private LocalDate releaseDate;
 
     public Long getContentNo() {
         return contentNo;
@@ -20,11 +20,11 @@ public class ContentSearchVO extends ContentMetadataVO {
         this.contentNo = contentNo;
     }
 
-    public Date getReleaseDate() {
+    public LocalDate getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
 

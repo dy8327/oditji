@@ -2,7 +2,8 @@ package com.project.oditji.common.vo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,8 +15,8 @@ class SettlementRequestVOCoverageTest {
     @Test
     void allSettlementRequestFieldsShouldRoundTrip() {
         SettlementRequestVO request = new SettlementRequestVO();
-        Date requestedAt = new Date(1000L);
-        Date processedAt = new Date(2000L);
+        LocalDateTime requestedAt = LocalDateTime.of(2026, Month.AUGUST, 5, 10, 0);
+        LocalDateTime processedAt = LocalDateTime.of(2026, Month.AUGUST, 5, 11, 0);
 
         request.setRequestNo(1L);
         request.setBusinessNo(2L);

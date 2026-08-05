@@ -9,7 +9,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.member.exception.MemberBlockedException;
 import com.project.oditji.member.exception.MemberWithdrawnException;
 import com.project.oditji.member.service.GoogleLoginService;
@@ -176,7 +177,7 @@ class GoogleLoginControllerCoverageTest {
     @Test
     void withdrawnMemberShouldSaveRestoreSession() {
         sessionValues.put("googleOAuthState", "state");
-        Date withdrawnAt = new Date();
+        LocalDateTime withdrawnAt = LocalDateTime.now(DateTimeUtil.KOREA_ZONE);
         when(googleLoginService.googleLogin("code"))
                 .thenThrow(new MemberWithdrawnException("withdrawn", 77L, withdrawnAt));
 

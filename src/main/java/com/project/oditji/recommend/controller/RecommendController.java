@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.service.MainContentPlatformService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
@@ -372,7 +373,7 @@ public class RecommendController {
                 distinctContentList(mergedList);
 
         LocalDate today =
-                LocalDate.now();
+                LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
         LocalDate startDate =
                 today.minusMonths(

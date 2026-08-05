@@ -13,9 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +36,7 @@ import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.vo.SettlementRequestVO;
 import com.project.oditji.notification.service.NotificationService;
 
@@ -96,7 +95,7 @@ class AdminServiceImplTest {
     void getMemberListShouldNormalizePageAndCalculateDeleteDays() {
         MemberManageVO withdrawn = new MemberManageVO();
         withdrawn.setStatus("WITHDRAWN");
-        withdrawn.setWithdrawnAt(Date.from(Instant.now().minus(8, ChronoUnit.DAYS)));
+        withdrawn.setWithdrawnAt(LocalDateTime.now(DateTimeUtil.KOREA_ZONE).minusDays(8));
 
         MemberManageVO active = new MemberManageVO();
         active.setStatus("ACTIVE");

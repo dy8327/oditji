@@ -1,6 +1,6 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 접속 로그 VO (테이블: ACCESS_LOG)
@@ -13,7 +13,7 @@ public class AccessLogVO {
     private String accessIp;
     private String userAgent;
     private String accessUrl;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getAccessLogNo() {
         return accessLogNo;
@@ -55,11 +55,11 @@ public class AccessLogVO {
         this.accessUrl = accessUrl;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

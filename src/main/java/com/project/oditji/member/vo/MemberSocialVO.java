@@ -1,6 +1,6 @@
 package com.project.oditji.member.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class MemberSocialVO {
 
@@ -8,7 +8,7 @@ public class MemberSocialVO {
     private long memberNo;
     private String provider;
     private String providerUserId;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public int getSocialNo() {
         return socialNo;
@@ -42,11 +42,11 @@ public class MemberSocialVO {
         this.providerUserId = providerUserId;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

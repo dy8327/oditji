@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.common.service.MainContentPlatformService;
 import com.project.oditji.common.util.PlatformNameNormalizer;
@@ -96,13 +97,12 @@ class PlatformAndSupportCoverageTest {
     void withdrawPolicyShouldCalculateRemainingDaysAndMessages() {
         assertEquals(0, WithdrawPolicy.calcDaysLeft(null));
 
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now(DateTimeUtil.KOREA_ZONE);
         assertEquals(WithdrawPolicy.RESTORE_PERIOD_DAYS,
                 WithdrawPolicy.calcDaysLeft(now));
         assertTrue(WithdrawPolicy.buildWithdrawnMessage(now).contains("일 남음"));
 
-        long eightDays = 8L * 24 * 60 * 60 * 1000;
-        Date expired = new Date(System.currentTimeMillis() - eightDays);
+        LocalDateTime expired = LocalDateTime.now(DateTimeUtil.KOREA_ZONE).minusDays(8);
         assertEquals(0, WithdrawPolicy.calcDaysLeft(expired));
         assertEquals(
                 "탈퇴한 계정입니다. 복구 가능 기한이 지났습니다.",
@@ -343,7 +343,7 @@ class PlatformAndSupportCoverageTest {
         MemberBlockedException blocked = new MemberBlockedException("차단");
         assertEquals("차단", blocked.getMessage());
 
-        Date withdrawnAt = new Date();
+        LocalDateTime withdrawnAt = LocalDateTime.now(DateTimeUtil.KOREA_ZONE);
         MemberWithdrawnException withdrawn = new MemberWithdrawnException(
                 "탈퇴",
                 10L,
@@ -351,7 +351,7 @@ class PlatformAndSupportCoverageTest {
         assertEquals("탈퇴", withdrawn.getMessage());
         assertEquals(10L, withdrawn.getMemberNo());
         assertSame(withdrawnAt, withdrawn.getWithdrawnAt());
-        assertFalse(withdrawn.getWithdrawnAt().after(new Date()));
+        assertFalse(withdrawn.getWithdrawnAt().isAfter(LocalDateTime.now(DateTimeUtil.KOREA_ZONE)));
     }
 
     private LoginOptions createOptions() {

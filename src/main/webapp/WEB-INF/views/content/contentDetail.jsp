@@ -7,6 +7,7 @@
            uri="jakarta.tags.fmt" %>
 
 <%@ taglib prefix="fn"
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
            uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
@@ -1001,9 +1002,7 @@
                                 </span>
 
                                 <span class="date">
-                                    <fmt:formatDate
-                                        value="${r.createdAt}"
-                                        pattern="yyyy-MM-dd"/>
+                                    ${dt:format(r.createdAt, 'yyyy-MM-dd')}
                                 </span>
 
                                 <c:choose>

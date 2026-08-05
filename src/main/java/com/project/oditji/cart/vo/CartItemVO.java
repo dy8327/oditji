@@ -1,6 +1,6 @@
 package com.project.oditji.cart.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.project.oditji.common.vo.ProductSaleInfoVO;
 
@@ -13,7 +13,7 @@ public class CartItemVO extends ProductSaleInfoVO {
 
     private Long cartItemNo;
     private Long cartNo;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getCartItemNo() {
         return cartItemNo;
@@ -31,11 +31,11 @@ public class CartItemVO extends ProductSaleInfoVO {
         this.cartNo = cartNo;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

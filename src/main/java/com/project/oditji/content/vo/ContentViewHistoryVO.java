@@ -1,6 +1,7 @@
 package com.project.oditji.content.vo;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 회원의 콘텐츠 상세페이지 조회 이력을 담는 VO입니다.
@@ -17,9 +18,9 @@ public class ContentViewHistoryVO {
     private Long memberNo;
     private int contentNo;
     private int viewCount;
-    private Date viewDate;
-    private Date firstViewedAt;
-    private Date lastViewedAt;
+    private LocalDate viewDate;
+    private LocalDateTime firstViewedAt;
+    private LocalDateTime lastViewedAt;
 
     public Long getViewHistoryNo() {
         return viewHistoryNo;
@@ -61,32 +62,32 @@ public class ContentViewHistoryVO {
         this.viewCount = viewCount;
     }
 
-    public Date getViewDate() {
+    public LocalDate getViewDate() {
         return viewDate;
     }
 
     public void setViewDate(
-            Date viewDate) {
+            LocalDate viewDate) {
 
         this.viewDate = viewDate;
     }
 
-    public Date getFirstViewedAt() {
+    public LocalDateTime getFirstViewedAt() {
         return firstViewedAt;
     }
 
     public void setFirstViewedAt(
-            Date firstViewedAt) {
+            LocalDateTime firstViewedAt) {
 
         this.firstViewedAt = firstViewedAt;
     }
 
-    public Date getLastViewedAt() {
+    public LocalDateTime getLastViewedAt() {
         return lastViewedAt;
     }
 
     public void setLastViewedAt(
-            Date lastViewedAt) {
+            LocalDateTime lastViewedAt) {
 
         this.lastViewedAt = lastViewedAt;
     }

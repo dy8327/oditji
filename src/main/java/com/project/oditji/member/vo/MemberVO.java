@@ -1,6 +1,6 @@
 package com.project.oditji.member.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -28,9 +28,9 @@ public class MemberVO implements Serializable {
     private String role;
     private String status;
     private String adultVerified;
-    private Date createdAt;
-    private Date updatedAt;
-    private Date withdrawnAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime withdrawnAt;
 
     public Long getMemberNo() {
         return memberNo;
@@ -120,27 +120,27 @@ public class MemberVO implements Serializable {
         this.adultVerified = adultVerified;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public Date getWithdrawnAt() {
+    public LocalDateTime getWithdrawnAt() {
         return withdrawnAt;
     }
 
-    public void setWithdrawnAt(Date withdrawnAt) {
+    public void setWithdrawnAt(LocalDateTime withdrawnAt) {
         this.withdrawnAt = withdrawnAt;
     }
 }

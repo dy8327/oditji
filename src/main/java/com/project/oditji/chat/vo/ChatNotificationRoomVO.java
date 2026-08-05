@@ -1,6 +1,8 @@
 package com.project.oditji.chat.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 공통 헤더의 채팅 알림 계산에 필요한 채팅방 정보입니다.
@@ -13,7 +15,7 @@ public class ChatNotificationRoomVO {
     private String roomId;
     private String roomName;
     private String roomType;
-    private Date accessStartAt;
+    private LocalDateTime accessStartAt;
     private String lastReadMessageId;
     private Long lastReadEpochMs;
 
@@ -41,11 +43,11 @@ public class ChatNotificationRoomVO {
         this.roomType = roomType;
     }
 
-    public Date getAccessStartAt() {
+    public LocalDateTime getAccessStartAt() {
         return accessStartAt;
     }
 
-    public void setAccessStartAt(Date accessStartAt) {
+    public void setAccessStartAt(LocalDateTime accessStartAt) {
         this.accessStartAt = accessStartAt;
     }
 
@@ -54,7 +56,7 @@ public class ChatNotificationRoomVO {
      * 채팅방 접근 시작 시각을 epoch millisecond로 반환합니다.
      */
     public long getAccessStartEpochMs() {
-        return accessStartAt == null ? 0L : accessStartAt.getTime();
+        return DateTimeUtil.toEpochMilli(accessStartAt);
     }
 
     public String getLastReadMessageId() {

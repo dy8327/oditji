@@ -38,6 +38,7 @@ import com.project.oditji.admin.vo.ProductManageVO;
 import com.project.oditji.admin.vo.ProductStatVO;
 import com.project.oditji.admin.vo.ReviewManageVO;
 import com.project.oditji.admin.vo.ReviewStatVO;
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.vo.SettlementRequestVO;
 import com.project.oditji.admin.vo.SettlementStatVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
@@ -164,8 +165,8 @@ public class AdminServiceImpl implements AdminService {
         }
 
         long elapsedDays = java.time.temporal.ChronoUnit.DAYS.between(
-                member.getWithdrawnAt().toInstant(),
-                java.time.Instant.now());
+                member.getWithdrawnAt().atZone(DateTimeUtil.KOREA_ZONE),
+                java.time.ZonedDateTime.now(DateTimeUtil.KOREA_ZONE));
 
         int remaining = (int) (WITHDRAW_AUTO_DELETE_DAYS - elapsedDays);
         member.setRemainingDeleteDays(Math.max(remaining, 0));

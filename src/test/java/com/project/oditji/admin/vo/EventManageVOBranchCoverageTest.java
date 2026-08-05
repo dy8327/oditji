@@ -3,10 +3,11 @@ package com.project.oditji.admin.vo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 관리자 이벤트 VO의 할인 금액, 승인 상태와 진행 상태 분기를 검증합니다.
@@ -16,8 +17,8 @@ class EventManageVOBranchCoverageTest {
     @Test
     void accessorsAndDiscountedPriceShouldHandleValuesAndNulls() {
         EventManageVO event = new EventManageVO();
-        Date start = relativeDate(-1);
-        Date end = relativeDate(1);
+        LocalDate start = relativeDate(-1);
+        LocalDate end = relativeDate(1);
 
         event.setBusinessName("ODITJI STORE");
         event.setStartDate(start);
@@ -93,9 +94,7 @@ class EventManageVOBranchCoverageTest {
         assertEquals("종료", event.getProgressStatusLabel());
     }
 
-    private Date relativeDate(int offsetDays) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, offsetDays);
-        return calendar.getTime();
+    private LocalDate relativeDate(int offsetDays) {
+        return LocalDate.now(DateTimeUtil.KOREA_ZONE).plusDays(offsetDays);
     }
 }

@@ -5,6 +5,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="commonTag" tagdir="/WEB-INF/tags/common" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -122,7 +123,7 @@
                             <p class="mypage-profile-email">${loginMember.email}</p>
                             <p class="mypage-created-at">
                                 <span aria-hidden="true">▣</span>
-                                가입일 : <fmt:formatDate value="${loginMember.createdAt}" pattern="yyyy-MM-dd"/>
+                                가입일 : ${dt:format(loginMember.createdAt, 'yyyy-MM-dd')}
                             </p>
                         </div>
                     </div>

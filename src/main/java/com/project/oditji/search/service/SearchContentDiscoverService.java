@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.search.vo.CachedContentVO;
 
 /**
@@ -130,7 +131,7 @@ public class SearchContentDiscoverService {
                 joinProviderIds(providerIds);
 
         int currentYear =
-                Year.now().getValue() + 1;
+                Year.now(DateTimeUtil.KOREA_ZONE).getValue() + 1;
 
         for (int year = currentYear;
              year >= startYear && result.size() < targetCount;
@@ -203,7 +204,7 @@ public class SearchContentDiscoverService {
                 new ArrayList<CachedContentVO>();
 
         int currentYear =
-                Year.now().getValue() + 1;
+                Year.now(DateTimeUtil.KOREA_ZONE).getValue() + 1;
 
         int lastYear =
                 Math.max(

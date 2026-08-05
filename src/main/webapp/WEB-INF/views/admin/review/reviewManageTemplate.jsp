@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <%--
     탭(all/report)의 현재 선택값. param이 없으면 '전체'를 의미한다.
@@ -224,9 +225,7 @@
 
                                 <c:forEach var="review" items="${reviewItems}">
 
-                                    <fmt:formatDate var="reviewCreatedAtStr"
-                                                    value="${review.createdAt}"
-                                                    pattern="yyyy-MM-dd"/>
+                                    <c:set var="reviewCreatedAtStr" value="${dt:format(review.createdAt, 'yyyy-MM-dd')}"/>
 
                                     <c:set var="reviewTargetName"
                                            value="${reviewKind eq 'PRODUCT' ? review.productName : review.contentTitle}"/>

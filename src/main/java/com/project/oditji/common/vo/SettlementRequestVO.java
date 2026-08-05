@@ -1,6 +1,6 @@
 package com.project.oditji.common.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /* 사업자 정산 요청 묶음 정보 */
 public class SettlementRequestVO {
@@ -17,8 +17,8 @@ public class SettlementRequestVO {
     private String accountNumber;
     private String accountHolder;
     private String status;
-    private Date requestedAt;
-    private Date processedAt;
+    private LocalDateTime requestedAt;
+    private LocalDateTime processedAt;
     private String rejectReason;
 
     public Long getRequestNo() {
@@ -117,19 +117,19 @@ public class SettlementRequestVO {
         this.status = status;
     }
 
-    public Date getRequestedAt() {
+    public LocalDateTime getRequestedAt() {
         return requestedAt;
     }
 
-    public void setRequestedAt(Date requestedAt) {
+    public void setRequestedAt(LocalDateTime requestedAt) {
         this.requestedAt = requestedAt;
     }
 
-    public Date getProcessedAt() {
+    public LocalDateTime getProcessedAt() {
         return processedAt;
     }
 
-    public void setProcessedAt(Date processedAt) {
+    public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
     }
 

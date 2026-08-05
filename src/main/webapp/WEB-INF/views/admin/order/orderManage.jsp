@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
 
 <c:set var="activeMenu" value="order"/>
 <c:set var="currentTab" value="${empty param.tab ? 'order' : param.tab}"/>
@@ -218,7 +219,7 @@
                                                     (모달이 안 열리는 원인). eventManage/refund 상세보기와 동일하게
                                                     data-* 속성 + openOrderDetailModal(this)로 바꿔 이 문제를 없앤다.
                                                 --%>
-                                                <fmt:formatDate var="orderCreatedAtStr" value="${order.createdAt}" pattern="yyyy-MM-dd HH:mm"/>
+                                                <c:set var="orderCreatedAtStr" value="${dt:format(order.createdAt, 'yyyy-MM-dd HH:mm')}"/>
                                                 <button type="button" class="btn btn-dark"
                                                         data-order-no="${order.orderNo}"
                                                         data-product-name="${fn:escapeXml(order.productName)}"
@@ -316,8 +317,8 @@
                                                     열리지 않았다. data-* 속성 + openRefundDetailModal(this)로
                                                     바꿔 JS 쪽 기대와 맞춘다.
                                                 --%>
-                                                <fmt:formatDate var="refundCreatedAtStr" value="${refund.createdAt}" pattern="yyyy-MM-dd HH:mm"/>
-                                                <fmt:formatDate var="refundProcessedAtStr" value="${refund.processedAt}" pattern="yyyy-MM-dd HH:mm"/>
+                                                <c:set var="refundCreatedAtStr" value="${dt:format(refund.createdAt, 'yyyy-MM-dd HH:mm')}"/>
+                                                <c:set var="refundProcessedAtStr" value="${dt:format(refund.processedAt, 'yyyy-MM-dd HH:mm')}"/>
                                                 <button type="button" class="btn btn-dark"
                                                         data-order-no="${refund.orderNo}"
                                                         data-product-name="${fn:escapeXml(refund.productName)}"

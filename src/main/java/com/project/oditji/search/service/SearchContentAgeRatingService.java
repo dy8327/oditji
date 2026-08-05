@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.search.vo.CachedContentVO;
 
 /**
@@ -499,7 +500,7 @@ public class SearchContentAgeRatingService {
         }
 
         content.setAgeRatingLastCheckedAt(
-                LocalDateTime.now().toString()
+                LocalDateTime.now(DateTimeUtil.KOREA_ZONE).toString()
         );
     }
 
@@ -589,7 +590,7 @@ public class SearchContentAgeRatingService {
 
         root.put(
                 "generatedAt",
-                LocalDateTime.now().toString()
+                LocalDateTime.now(DateTimeUtil.KOREA_ZONE).toString()
         );
 
         root.put(
@@ -734,7 +735,7 @@ public class SearchContentAgeRatingService {
         return new AgeRatingResult(
                 content,
                 ageRating,
-                LocalDateTime.now().toString(),
+                LocalDateTime.now(DateTimeUtil.KOREA_ZONE).toString(),
                 true,
                 restricted
         );

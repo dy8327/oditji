@@ -1,6 +1,6 @@
 package com.project.oditji.payment.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class PaymentVO {
 
@@ -18,7 +18,7 @@ public class PaymentVO {
     private String paidAt;
     private String canceledAt;
     private String cancelReason;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getPaymentNo() {
         return paymentNo;
@@ -124,11 +124,11 @@ public class PaymentVO {
         this.cancelReason = cancelReason;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

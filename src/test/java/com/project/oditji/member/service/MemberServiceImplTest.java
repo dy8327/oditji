@@ -12,7 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.member.dao.MemberDAO;
@@ -434,7 +435,7 @@ class MemberServiceImplTest {
                 MemberBlockedException.class,
                 () -> memberService.loginMember(request));
 
-        Date withdrawnAt = new Date();
+        LocalDateTime withdrawnAt = LocalDateTime.now(DateTimeUtil.KOREA_ZONE);
         MemberVO withdrawn = createStoredLoginMember("WITHDRAWN");
         withdrawn.setWithdrawnAt(withdrawnAt);
         when(memberDAO.loginMember(request)).thenReturn(withdrawn);

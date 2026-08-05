@@ -1,13 +1,13 @@
 package com.project.oditji.wish.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class WishVO {
 
     private Long wishNo;
     private Long memberNo;
     private Integer productNo;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public Long getWishNo() {
         return wishNo;
@@ -33,11 +33,11 @@ public class WishVO {
         this.productNo = productNo;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

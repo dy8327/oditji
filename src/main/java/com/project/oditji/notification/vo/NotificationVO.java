@@ -1,6 +1,8 @@
 package com.project.oditji.notification.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
+import com.project.oditji.common.util.DateTimeUtil;
 
 /**
  * 일반 회원, 사업자, 관리자가 공통으로 사용하는 알림 정보를 전달합니다.
@@ -16,8 +18,8 @@ public class NotificationVO {
     private String referenceType;
     private Long referenceNo;
     private String isRead;
-    private Date createdAt;
-    private Date readAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime readAt;
 
     public Long getNotificationNo() {
         return notificationNo;
@@ -91,19 +93,19 @@ public class NotificationVO {
         this.isRead = isRead;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getReadAt() {
+    public LocalDateTime getReadAt() {
         return readAt;
     }
 
-    public void setReadAt(Date readAt) {
+    public void setReadAt(LocalDateTime readAt) {
         this.readAt = readAt;
     }
 
@@ -111,7 +113,7 @@ public class NotificationVO {
      * 브라우저에서 채팅 알림과 업무 알림을 최신순으로 정렬할 때 사용합니다.
      */
     public long getCreatedAtEpochMs() {
-        return createdAt == null ? 0L : createdAt.getTime();
+        return DateTimeUtil.toEpochMilli(createdAt);
     }
 
     /**

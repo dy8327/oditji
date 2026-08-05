@@ -1,13 +1,13 @@
 package com.project.oditji.member.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class MemberPlatformVO {
 
     private int memberPlatformNo;
     private Long memberNo;
     private Long platformNo;
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public int getMemberPlatformNo() {
         return memberPlatformNo;
@@ -33,11 +33,11 @@ public class MemberPlatformVO {
         this.platformNo = platformNo;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }
