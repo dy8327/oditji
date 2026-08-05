@@ -107,6 +107,16 @@ public class RecommendServiceImpl
 
             scoreList =
                     new ArrayList<RecommendOttScoreVO>();
+
+        } else {
+
+            /*
+             * DAO가 List.of() 같은 불변 목록을 반환해도
+             * Service 정렬 과정에서 예외가 발생하지 않도록 복사합니다.
+             */
+            scoreList =
+                    new ArrayList<RecommendOttScoreVO>(
+                            scoreList);
         }
 
         /*

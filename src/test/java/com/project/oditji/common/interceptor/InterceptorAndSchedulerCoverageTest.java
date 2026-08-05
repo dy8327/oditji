@@ -136,6 +136,8 @@ class InterceptorAndSchedulerCoverageTest {
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("loginMember"))
                 .thenReturn(member(2L, "BUSINESS"));
+        /* 실제 인터셉터가 사업자 번호를 먼저 확인하므로 함께 설정합니다. */
+        when(session.getAttribute("businessNo")).thenReturn(20L);
         when(session.getAttribute("businessStatus")).thenReturn("WAITING");
         assertFalse(interceptor.preHandle(request, response, new Object()));
         verify(response).sendError(HttpServletResponse.SC_FORBIDDEN);

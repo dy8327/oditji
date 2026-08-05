@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -124,7 +125,7 @@ public class SearchContentSnapshotService {
 
             result.add(content);
 
-        } catch (RuntimeException e) {
+        } catch (JSONException e) {
 
             /*
              * 특정 JSONL 한 줄이 손상되어도

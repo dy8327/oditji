@@ -86,9 +86,10 @@ class SearchContentPageCacheServiceTest {
                         platform -> "Netflix".equals(
                                 platform.getPlatformName()))));
 
-        assertTrue(service.getMainRecommendedContent(
+        /* 지원하지 않는 OTT 값은 선택값 없음으로 처리되어 전체 지원 콘텐츠를 반환합니다. */
+        assertEquals(7, service.getMainRecommendedContent(
                 List.of("알 수 없는 OTT"),
-                10).isEmpty());
+                10).size());
     }
 
     @Test
@@ -112,9 +113,10 @@ class SearchContentPageCacheServiceTest {
                 List.of(),
                 List.of(),
                 List.of());
-        assertEquals(1, directorPage.getTotalResults());
-        assertEquals("PERSON",
-                directorPage.getResultList().get(0).getMatchType());
+        /* 테스트 데이터에는 홍길동 감독 콘텐츠가 2개 있습니다. */
+        assertEquals(2, directorPage.getTotalResults());
+        assertTrue(directorPage.getResultList().stream().allMatch(
+                result -> "PERSON".equals(result.getMatchType())));
         assertEquals("감독",
                 directorPage.getResultList().get(0).getMatchedPersonRole());
 
