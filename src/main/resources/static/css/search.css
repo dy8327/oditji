@@ -24,7 +24,8 @@
     min-height: calc(100vh - 72px);
     padding: 40px 28px 72px;
     background:
-        radial-gradient(circle at 72% -20%, rgba(255, 255, 255, 0.045), transparent 30%),
+        radial-gradient(circle at 78% -12%, rgba(255, 210, 120, 0.06), transparent 34%),
+        radial-gradient(circle at 8% 0%, rgba(120, 170, 255, 0.05), transparent 30%),
         var(--search-bg);
     color: var(--search-text);
     box-sizing: border-box;
@@ -115,6 +116,36 @@
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.16em;
+}
+
+.search-result-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.search-result-eyebrow::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--search-yellow);
+    box-shadow: 0 0 0 0 rgba(255, 215, 94, 0.55);
+    animation: searchEyebrowPulse 2.2s ease-out infinite;
+}
+
+@keyframes searchEyebrowPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 94, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 7px rgba(255, 215, 94, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 94, 0);
+    }
 }
 
 .search-filter-header h2 {
@@ -367,7 +398,11 @@
 
 .search-result-hero h1 {
     margin: 7px 0 0;
-    color: #ffffff;
+    background: linear-gradient(100deg, #ffffff 40%, #d9dde3 70%, #ffffff 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
     font-size: clamp(25px, 2.4vw, 35px);
     font-weight: 800;
     line-height: 1.26;
@@ -379,39 +414,6 @@
     color: var(--search-text-soft);
     font-size: 13px;
     line-height: 1.65;
-}
-
-/* 현재 화면에 표시되는 전체 건수 카드 */
-.search-result-summary {
-    display: flex;
-    min-width: 104px;
-    min-height: 76px;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: 10px 16px 12px;
-    border: 1px solid var(--search-border);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.025);
-}
-
-/* 숫자는 JSP 작성 순서와 관계없이 두 번째 줄에 배치합니다. */
-.search-result-summary strong {
-    order: 2;
-    margin-top: 11px;
-    color: #ffffff;
-    font-size: 24px;
-    font-weight: 800;
-    line-height: 1;
-}
-
-/* '현재 표시' 문구를 카드 위쪽에 붙여 배치합니다. */
-.search-result-summary span {
-    order: 1;
-    margin: 0;
-    color: var(--search-text-muted);
-    font-size: 10px;
-    line-height: 1;
 }
 
 .search-result-tabs {
@@ -465,6 +467,7 @@
 .search-result-tab.is-active {
     background: #ffffff;
     color: #111315;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
 .search-result-tab.is-active b {
@@ -595,26 +598,35 @@
     font-size: 11px;
 }
 
-.search-more-button {
-    display: inline-flex;
-    min-height: 36px;
-    align-items: center;
-    gap: 8px;
-    padding: 0 13px;
-    border: 1px solid var(--search-border-strong);
-    border-radius: 9px;
+/*
+ * index.jsp 메인 화면의 '더보기'(.section-more)와 동일한 스타일로 통일합니다.
+ * 주의: 이 파일 상단의 전역 리셋 규칙 `.search-page-container button { font: inherit; color: inherit; }`은
+ * 클래스 1개 + 태그 1개 = 명시도(0,1,1)를 갖습니다. `.search-more-button`(클래스 1개 = 명시도(0,1,0))은
+ * 이보다 명시도가 낮아 소스 순서와 무관하게 항상 리셋 규칙에 덮어써집니다.
+ * 그래서 여기서는 태그 선택자를 함께 써서(`button.search-more-button`) 명시도를 (0,1,1)로 맞췄고,
+ * 같은 명시도에서는 이 파일 안에서 더 나중에 선언된 규칙이 이기므로 의도한 스타일이 정상 적용됩니다.
+ */
+button.search-more-button {
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
     background: transparent;
-    color: var(--search-text-soft);
-    font-size: 11px;
-    font-weight: 700;
+    color: #9f9f9f;
+    font-size: 13px;
+    font-weight: 400;
     cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: color 0.2s ease;
 }
 
-.search-more-button:hover {
-    border-color: rgba(255, 255, 255, 0.32);
-    background: rgba(255, 255, 255, 0.05);
+button.search-more-button:hover {
     color: #ffffff;
+}
+
+button.search-more-button:focus-visible {
+    color: #ffffff;
+    outline: 2px solid var(--search-yellow);
+    outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .empty-state {
@@ -646,519 +658,13 @@
 }
 
 /* =========================================================
-   검색어 없음: 발견형 콘텐츠 카드
+   콘텐츠 / 굿즈 카드
+   - 이제 콘텐츠 카드는 content-list-modern.css의 .content-list-card-*,
+     굿즈 카드는 goods.css의 .card-item(.card-list) 컴포넌트를 그대로
+     재사용합니다 (goodsList / contentList 목록과 카드 UI 통일).
+   - 검색 결과 전용 카드 스타일(.ott-card-*, .search-goods-*)은
+     더 이상 마크업에서 쓰이지 않아 제거했습니다.
 ========================================================= */
-
-.search-discovery-content-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 15px;
-}
-
-.search-discovery-card {
-    min-width: 0;
-}
-
-.search-discovery-card > a {
-    display: block;
-}
-
-.search-discovery-poster {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 2 / 3;
-    border: 1px solid var(--search-border);
-    border-radius: 14px;
-    background: var(--search-panel);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
-}
-
-.search-discovery-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.28s ease, filter 0.28s ease;
-}
-
-.search-discovery-card:hover .search-discovery-poster img {
-    transform: scale(1.035);
-    filter: brightness(1.05);
-}
-
-.search-discovery-score {
-    position: absolute;
-    right: 9px;
-    bottom: 9px;
-    display: inline-flex;
-    min-height: 27px;
-    align-items: center;
-    padding: 0 9px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    background: rgba(8, 9, 10, 0.82);
-    color: var(--search-yellow);
-    font-size: 10px;
-    font-weight: 800;
-    backdrop-filter: blur(8px);
-}
-
-.search-discovery-info {
-    padding: 12px 2px 0;
-}
-
-.search-discovery-badge-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.search-discovery-age-rating {
-    position: absolute;
-    top: 9px;
-    right: 9px;
-    z-index: 2;
-    display: inline-flex;
-}
-
-.search-discovery-age-rating .age-rating-badge {
-    width: 21px;
-    height: 21px;
-    font-size: 8.5px;
-}
-
-.search-discovery-age-rating .age-rating-badge.is-all {
-    width: 27px;
-    font-size: 7px;
-}
-
-.search-discovery-info h3 {
-    overflow: hidden;
-    margin: 7px 0 0;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 750;
-    line-height: 1.45;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.search-discovery-info p {
-    margin: 5px 0 0;
-    color: var(--search-text-muted);
-    font-size: 10px;
-}
-
-/* =========================================================
-   가로형 콘텐츠 카드
-========================================================= */
-
-.search-content-list {
-    display: grid;
-    gap: 11px;
-    width: 100%;
-}
-
-.search-content-list-preview {
-    max-width: 1120px;
-}
-
-.search-content-item {
-    overflow: hidden;
-    border: 1px solid var(--search-border);
-    border-radius: 15px;
-    background: var(--search-panel);
-    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-}
-
-.search-content-item:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: var(--search-panel-hover);
-    box-shadow: 0 15px 32px rgba(0, 0, 0, 0.2);
-}
-
-.search-content-link {
-    display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
-    min-height: 138px;
-    padding: 10px 14px 10px 10px;
-    gap: 16px;
-}
-
-.search-content-poster {
-    position: relative;
-    overflow: hidden;
-    width: 92px;
-    height: 138px;
-    border-radius: 10px;
-    background: #0e1011;
-}
-
-.search-content-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.search-content-no-image,
-.search-goods-no-image {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(145deg, #24272a, #121416);
-    color: #6f757c;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-}
-
-.search-content-info {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2px 0;
-}
-
-.search-content-title-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.search-content-title-row > div {
-    min-width: 0;
-}
-
-.search-content-type-badge {
-    display: inline-flex;
-    min-height: 21px;
-    align-items: center;
-    padding: 0 8px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    color: #c8ccd1;
-    font-size: 9px;
-    font-weight: 800;
-}
-
-/* =========================================================
-   관람등급 배지
-   - 콘텐츠 목록과 동일한 색상 체계를 사용합니다.
-   - 청소년 관람불가는 19, 등급 정보 없음은 ? 로 구분합니다.
-========================================================= */
-
-.age-rating-badge {
-    display: inline-flex;
-    width: 21px;
-    height: 21px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    color: #ffffff;
-    font-size: 8.5px;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
-}
-
-.age-rating-badge.is-all {
-    width: 27px;
-    border-radius: 999px;
-    background: #2f855a;
-    font-size: 7px;
-    letter-spacing: 0;
-}
-
-.age-rating-badge.is-age7 {
-    background: #3478b9;
-}
-
-.age-rating-badge.is-age12 {
-    background: #b88416;
-}
-
-.age-rating-badge.is-age15 {
-    background: #ce6428;
-}
-
-.age-rating-badge.is-adult {
-    background: #c53f45;
-}
-
-.age-rating-badge.is-unknown {
-    background: #555c66;
-}
-
-.search-content-age-rating {
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    z-index: 2;
-    display: inline-flex;
-}
-
-.search-content-age-rating .age-rating-badge {
-    width: 20px;
-    height: 20px;
-    font-size: 8px;
-}
-
-.search-content-age-rating .age-rating-badge.is-all {
-    width: 26px;
-    font-size: 6.7px;
-}
-
-.search-content-badge-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.search-content-title {
-    overflow: hidden;
-    margin: 7px 0 0;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 800;
-    line-height: 1.35;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.search-content-score {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 3px;
-    padding-top: 4px;
-    color: var(--search-yellow);
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.search-person-match {
-    margin: 7px 0 0;
-    color: #9fc7ff;
-    font-size: 10px;
-    line-height: 1.45;
-}
-
-.search-content-meta {
-    display: flex;
-    min-width: 0;
-    flex-wrap: wrap;
-    gap: 0;
-    margin-top: 8px;
-    color: var(--search-text-muted);
-    font-size: 10px;
-}
-
-.search-content-meta span {
-    display: inline-flex;
-    min-width: 0;
-    align-items: center;
-}
-
-.search-content-meta span + span::before {
-    content: "·";
-    margin: 0 7px;
-    color: #535960;
-}
-
-.search-content-meta span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.search-content-overview {
-    display: -webkit-box;
-    overflow: hidden;
-    margin: 9px 0 0;
-    color: #a9afb6;
-    font-size: 11px;
-    line-height: 1.55;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-}
-
-.search-content-bottom-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-top: auto;
-    padding-top: 10px;
-}
-
-.search-content-platform-list {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 6px;
-}
-
-.search-content-platform-logo {
-    width: 23px;
-    height: 23px;
-    flex: 0 0 23px;
-    border: 1px solid rgba(255, 255, 255, 0.13);
-    border-radius: 6px;
-    object-fit: cover;
-    background: #ffffff;
-}
-
-.search-platform-name,
-.search-platform-more {
-    display: inline-flex;
-    min-height: 23px;
-    align-items: center;
-    padding: 0 7px;
-    border: 1px solid var(--search-border);
-    border-radius: 6px;
-    color: var(--search-text-soft);
-    font-size: 9px;
-}
-
-.search-detail-label {
-    flex: 0 0 auto;
-    color: var(--search-text-muted);
-    font-size: 10px;
-    transition: color 0.16s ease, transform 0.16s ease;
-}
-
-.search-content-item:hover .search-detail-label {
-    transform: translateX(2px);
-    color: #ffffff;
-}
-
-/* =========================================================
-   상품 카드
-========================================================= */
-
-.search-goods-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-}
-
-.search-all-goods-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.search-goods-card {
-    min-width: 0;
-    overflow: hidden;
-    border: 1px solid var(--search-border);
-    border-radius: 15px;
-    background: var(--search-panel);
-    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.search-goods-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 15px 32px rgba(0, 0, 0, 0.22);
-}
-
-.search-goods-card > a {
-    display: block;
-}
-
-.search-goods-image {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    background: #0f1112;
-}
-
-.search-goods-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.25s ease;
-}
-
-.search-goods-card:hover .search-goods-image img {
-    transform: scale(1.035);
-}
-
-.search-goods-soldout {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(8, 9, 10, 0.72);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 800;
-    backdrop-filter: blur(2px);
-}
-
-.search-goods-info {
-    min-height: 116px;
-    padding: 14px;
-}
-
-.search-goods-business {
-    overflow: hidden;
-    margin: 0;
-    color: var(--search-text-muted);
-    font-size: 9px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.search-goods-info h3 {
-    display: -webkit-box;
-    overflow: hidden;
-    min-height: 38px;
-    margin: 7px 0 0;
-    color: #f5f6f7;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.45;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-}
-
-.search-goods-price {
-    display: flex;
-    align-items: baseline;
-    gap: 7px;
-    margin: 12px 0 0;
-}
-
-.search-goods-price strong {
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.search-goods-rate {
-    color: var(--search-danger);
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.search-goods-original {
-    margin: 4px 0 0;
-    color: #696f76;
-    font-size: 10px;
-    text-decoration: line-through;
-}
 
 /* =========================================================
    페이지 이동
@@ -1400,15 +906,6 @@ body.search-modal-open {
         grid-template-columns: 224px minmax(0, 1fr);
         gap: 24px;
     }
-
-    .search-discovery-content-grid,
-    .search-all-goods-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .search-goods-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
 }
 
 @media (max-width: 920px) {
@@ -1483,11 +980,6 @@ body.search-modal-open {
     .search-result-hero {
         min-height: 0;
     }
-
-    .search-discovery-content-grid,
-    .search-all-goods-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
 }
 
 @media (max-width: 680px) {
@@ -1502,10 +994,6 @@ body.search-modal-open {
 
     .search-result-hero {
         align-items: flex-start;
-    }
-
-    .search-result-summary {
-        display: none;
     }
 
     .search-result-tabs {
@@ -1530,86 +1018,11 @@ body.search-modal-open {
         margin-left: auto;
     }
 
-    .search-discovery-content-grid,
-    .search-all-goods-grid,
-    .search-goods-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .search-discovery-info {
-        padding: 8px 1px 0;
-    }
-
-    .search-discovery-info h3 {
-        font-size: 12px;
-    }
-
-    .search-discovery-info p {
-        display: none;
-    }
-
-    .search-goods-info {
-        min-height: 0;
-        padding: 8px;
-    }
-
-    .search-goods-info h3 {
-        min-height: 0;
-        font-size: 12px;
-    }
-
-    .search-content-link {
-        grid-template-columns: 78px minmax(0, 1fr);
-        min-height: 122px;
-        gap: 12px;
-        padding-right: 11px;
-    }
-
-    .search-content-poster {
-        width: 78px;
-        height: 117px;
-    }
-
-    .search-content-overview,
-    .search-detail-label {
-        display: none;
-    }
-
-    .search-content-meta span:last-child {
-        max-width: 220px;
-    }
-
     .search-section-heading {
         align-items: center;
     }
 
-    .search-more-button {
-        padding: 0 10px;
-    }
-
-    .search-more-button span {
-        display: none;
-    }
-
     .ott-modal-option-grid {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 430px) {
-    .search-discovery-content-grid,
-    .search-all-goods-grid,
-    .search-goods-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .search-content-score {
-        display: none;
-    }
-
-    .search-content-platform-logo:nth-of-type(n + 4) {
-        display: none;
     }
 }

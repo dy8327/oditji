@@ -130,80 +130,70 @@
         </c:if>
 
         <!-- =================================================
-             GOODS CARD LIST
+            GOODS CARD LIST
         ================================================== -->
         <c:if test="${not empty goodsList}">
 
             <section class="card-list">
 
-                <c:forEach var="g"
-                           items="${goodsList}">
+                <c:forEach var="g" items="${goodsList}">
 
-                    <article
-                        class="card-item
-                        ${g.stock <= 0
-                            ? 'is-soldout'
-                            : ''}">
+                    <article class="card-item ${g.stock <= 0 ? 'is-soldout' : ''}">
 
-                        <button
-                            type="button"
-                            class="fav-btn card-favorite-btn${wishedProductNoSet.contains(g.productNo) ? ' active' : ''}"
-                            data-type="goods"
-                            data-product-no="${g.productNo}"
-                            aria-pressed="${wishedProductNoSet.contains(g.productNo)}"
-                            aria-label="<c:out value='${g.productName}'/> 찜하기"
-                            title="찜하기">
+                        <button type="button"
+                                class="fav-btn card-favorite-btn${wishedProductNoSet.contains(g.productNo) ? ' active' : ''}"
+                                data-type="goods"
+                                data-product-no="${g.productNo}"
+                                aria-pressed="${wishedProductNoSet.contains(g.productNo)}"
+                                aria-label="<c:out value='${g.productName}'/> 찜하기"
+                                title="찜하기">
 
                             <c:choose>
-
                                 <c:when test="${wishedProductNoSet.contains(g.productNo)}">♥</c:when>
-
                                 <c:otherwise>♡</c:otherwise>
-
                             </c:choose>
 
                         </button>
 
-                        <a class="card-link"
-                           href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}">
+                        <a class="card-link" href="${pageContext.request.contextPath}/goods/goodsDetail/${g.productNo}">
 
                             <div class="card-poster">
+
+                                <!-- ⭕ [개선 1] 할인 뱃지를 포스터 이미지 내부(왼쪽 상단)로 이동 -->
+                                <c:if test="${g.discountRate > 0}">
+                                    <span class="discount-badge">
+                                        할인
+                                    </span>
+                                </c:if>
 
                                 <c:choose>
 
                                     <c:when test="${not empty g.mainImage}">
-
-                                        <img
-                                            class="goods-card-image"
+                                        <img class="goods-card-image"
                                             src="${pageContext.request.contextPath}${g.mainImage}"
                                             alt="<c:out value='${g.productName}'/>"
                                             loading="lazy"
                                             data-fallback-target="goodsImageFallback-${g.productNo}"/>
 
                                         <div class="no-img"
-                                             id="goodsImageFallback-${g.productNo}"
-                                             style="display:none;">
+                                            id="goodsImageFallback-${g.productNo}"
+                                            style="display:none;">
                                             NO IMAGE
                                         </div>
-
                                     </c:when>
 
                                     <c:otherwise>
-
                                         <div class="no-img">
                                             NO IMAGE
                                         </div>
-
                                     </c:otherwise>
 
                                 </c:choose>
 
                                 <c:if test="${g.stock <= 0}">
-
                                     <div class="soldout-badge">
                                         SOLD OUT
                                     </div>
-
                                 </c:if>
 
                             </div>
@@ -211,35 +201,21 @@
                             <div class="card-info">
 
                                 <p class="card-brand">
-
                                     <c:choose>
-
                                         <c:when test="${not empty g.businessName}">
                                             <c:out value="${g.businessName}"/>
                                         </c:when>
-
                                         <c:otherwise>
                                             판매자 정보 없음
                                         </c:otherwise>
-
                                     </c:choose>
-
                                 </p>
 
+                                <!-- ⭕ [개선 2] 뱃지를 제거하여 제목이 한 줄 전체(100%)를 사용할 수 있게 변경 -->
                                 <div class="card-title-wrap">
-
                                     <h3 class="card-title">
                                         <c:out value="${g.productName}"/>
                                     </h3>
-
-                                    <c:if test="${g.discountRate > 0}">
-
-                                        <span class="discount-badge">
-                                            할인
-                                        </span>
-
-                                    </c:if>
-
                                 </div>
 
                                 <div class="card-meta">
@@ -248,39 +224,25 @@
 
                                         <c:when test="${g.discountRate > 0}">
 
+                                            <!-- 정가를 상단에 깔끔하게 배치 -->
                                             <span class="price-original">
-
-                                                ₩
-                                                <fmt:formatNumber
-                                                    value="${g.price}"
-                                                    pattern="#,###"/>
-
+                                                ₩ <fmt:formatNumber value="${g.price}" pattern="#,###"/>
                                             </span>
 
-                                            <span class="price-final">
-
-                                                <span class="rate">
-                                                    ${g.discountRate}%
+                                            <!-- 할인율과 할인가를 한 줄 세트로 배치 -->
+                                            <div class="price-sale-row">
+                                                <span class="rate">${g.discountRate}%</span>
+                                                <span class="price-final">
+                                                    ₩ <fmt:formatNumber value="${g.discountPrice}" pattern="#,###"/>
                                                 </span>
-
-                                                ₩
-                                                <fmt:formatNumber
-                                                    value="${g.discountPrice}"
-                                                    pattern="#,###"/>
-
-                                            </span>
+                                            </div>
 
                                         </c:when>
 
                                         <c:otherwise>
 
                                             <span class="price-final">
-
-                                                ₩
-                                                <fmt:formatNumber
-                                                    value="${g.price}"
-                                                    pattern="#,###"/>
-
+                                                ₩ <fmt:formatNumber value="${g.price}" pattern="#,###"/>
                                             </span>
 
                                         </c:otherwise>
@@ -294,28 +256,19 @@
                                     <c:choose>
 
                                         <c:when test="${g.stock <= 0}">
-
                                             <span class="stock-warning">
                                                 품절
                                             </span>
-
                                         </c:when>
 
                                         <c:when test="${g.stock <= 5}">
-
                                             <span class="stock-warning">
-
-                                                재고
-                                                ${g.stock}개 남음
-
+                                                재고 ${g.stock}개 남음
                                             </span>
-
                                         </c:when>
 
                                         <c:otherwise>
-
                                             재고 ${g.stock}개
-
                                         </c:otherwise>
 
                                     </c:choose>

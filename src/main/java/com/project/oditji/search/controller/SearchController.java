@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -14,12 +15,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.project.oditji.common.util.PlatformNameNormalizer;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
+import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
+import com.project.oditji.wish.service.WishService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class SearchController {
@@ -35,6 +40,7 @@ public class SearchController {
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final GoodsService goodsService;
     private final TmdbDAO tmdbDAO;
+    private final WishService wishService;
 
     @Value("${tmdb.api.image-base-url}")
     private String imageBaseUrl;
@@ -42,7 +48,8 @@ public class SearchController {
     public SearchController(
             SearchContentPageCacheService searchContentPageCacheService,
             GoodsService goodsService,
-            TmdbDAO tmdbDAO) {
+            TmdbDAO tmdbDAO,
+            WishService wishService) {
 
         this.searchContentPageCacheService =
                 searchContentPageCacheService;
@@ -52,11 +59,15 @@ public class SearchController {
 
         this.tmdbDAO =
                 tmdbDAO;
+
+        this.wishService =
+                wishService;
     }
 
     @GetMapping("/search")
     public String searchResult(
             SearchVO searchVO,
+            HttpSession session,
             Model model) {
 
         if (searchVO == null) {
@@ -334,9 +345,32 @@ public class SearchController {
                         tmdbDAO.selectActivePlatformList()
                 );
 
+        /*
+         * 로그인 회원이 찜한 상품 번호 목록
+         *
+         * goodsList.jsp의 상품 카드와 동일한 찜(♥) 버튼을 검색 결과에서도
+         * 그대로 재사용하기 위해, goodsList 화면과 같은 방식으로
+         * wishedProductNoSet을 모델에 담아 전달합니다.
+         */
+        MemberVO loginMember =
+                (MemberVO) session.getAttribute("loginMember");
+
+        Long loginMemberNo =
+                loginMember == null
+                        ? null
+                        : loginMember.getMemberNo();
+
+        Set<Integer> wishedProductNoSet =
+                wishService.getWishedProductNoSet(loginMemberNo);
+
         model.addAttribute(
                 "searchVO",
                 searchVO
+        );
+
+        model.addAttribute(
+                "wishedProductNoSet",
+                wishedProductNoSet
         );
 
         model.addAttribute(
