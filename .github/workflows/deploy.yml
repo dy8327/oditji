@@ -60,6 +60,14 @@ jobs:
           ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      - name: Verify WAR contents
+        run: |
+          echo "===== WAR JSP CHECK ====="
+          jar tf oditji.war | grep "WEB-INF/views/index.jsp"
+          jar tf oditji.war | grep "WEB-INF/views/error/404.jsp"
+          jar tf oditji.war | grep "WEB-INF/views/error/500.jsp"
+          jar tf oditji.war | grep "HomeController.class"
+          
       - name: Upload WAR
         run: |
           scp \
