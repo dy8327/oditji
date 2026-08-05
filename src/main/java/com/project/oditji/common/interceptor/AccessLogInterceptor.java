@@ -46,9 +46,9 @@ public class AccessLogInterceptor implements HandlerInterceptor {
 
             accessLog.setMemberNo(loginMember == null ? null : loginMember.getMemberNo());
             accessLog.setAccessIp(resolveClientIp(request));
-            accessLog.setUserAgent(request.getHeader("User-Agent"));
-            accessLog.setAccessUrl(request.getRequestURI());
-
+            accessLog.setUserAgent(limitLength(request.getHeader("User-Agent"), 500));
+            accessLog.setAccessUrl(limitLength(request.getRequestURI(), 500)
+);
             accessLogDAO.insertAccessLog(accessLog);
 
         } catch (Exception e) {
@@ -70,5 +70,13 @@ public class AccessLogInterceptor implements HandlerInterceptor {
         }
 
         return request.getRemoteAddr();
+    }
+
+    private String limitLength(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+
+        return value.substring(0, maxLength);
     }
 }
