@@ -105,7 +105,7 @@ class GoodsControllerCoverageTest {
         when(goodsService.searchGoods(
                 "keyword", null, null, null,
                 false, false, null, null,
-                "all", 3, 10))
+                "all", "latest", 3, 10))
                 .thenReturn(List.of());
 
         ExtendedModelMap model = new ExtendedModelMap();
@@ -119,12 +119,14 @@ class GoodsControllerCoverageTest {
                 null,
                 null,
                 "invalid",
+                "latest",
                 99,
                 new MockHttpSession(),
                 model);
 
         assertEquals("goods/goodsList", view);
         assertEquals("all", model.get("type"));
+        assertEquals("latest", model.get("sort"));
         assertEquals(3, model.get("page"));
         assertEquals(3, model.get("totalPage"));
         assertEquals(21, model.get("totalCount"));
@@ -149,6 +151,7 @@ class GoodsControllerCoverageTest {
                 List.of("10000_30000"),
                 List.of("IN_STOCK"),
                 "popular",
+                "popular",
                 0,
                 session,
                 model);
@@ -156,6 +159,7 @@ class GoodsControllerCoverageTest {
         assertEquals("goods/goodsList", view);
         assertEquals(1, model.get("page"));
         assertEquals("popular", model.get("type"));
+        assertEquals("popular", model.get("sort"));
         assertEquals(Set.of(1, 2), model.get("wishedProductNoSet"));
     }
 
@@ -234,6 +238,7 @@ class GoodsControllerCoverageTest {
                 null,
                 null,
                 type,
+                "popular",
                 page,
                 new MockHttpSession(),
                 model);

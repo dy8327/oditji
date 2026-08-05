@@ -3,6 +3,7 @@ package com.project.oditji.goods.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,7 +30,7 @@ class GoodsServiceDefaultMethodTest {
     @Test
     void searchWithTypeShouldDelegateWithoutExtendedFilters() {
         List<GoodsVO> expected = List.of(new GoodsVO());
-        when(service.searchGoods(
+        doReturn(expected).when(service).searchGoods(
                 "검색어",
                 productTypes,
                 1000,
@@ -40,7 +41,7 @@ class GoodsServiceDefaultMethodTest {
                 null,
                 "popular",
                 1,
-                10)).thenReturn(expected);
+                10);
 
         List<GoodsVO> result = service.searchGoods(
                 "검색어",
@@ -71,7 +72,7 @@ class GoodsServiceDefaultMethodTest {
     @Test
     void searchWithoutTypeShouldUseAllAndNoExtendedFilters() {
         List<GoodsVO> expected = List.of(new GoodsVO());
-        when(service.searchGoods(
+        doReturn(expected).when(service).searchGoods(
                 "검색어",
                 productTypes,
                 null,
@@ -82,7 +83,7 @@ class GoodsServiceDefaultMethodTest {
                 null,
                 "all",
                 2,
-                20)).thenReturn(expected);
+                20);
 
         List<GoodsVO> result = service.searchGoods(
                 "검색어",

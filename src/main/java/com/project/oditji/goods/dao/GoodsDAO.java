@@ -21,6 +21,7 @@ public interface GoodsDAO {
                         @Param("priceRanges") List<String> priceRanges,
                         @Param("stockStatus") List<String> stockStatus,
                         @Param("type") String type,
+                        @Param("sort") String sort,
                         @Param("startRow") int startRow,
                         @Param("endRow") int endRow);
 

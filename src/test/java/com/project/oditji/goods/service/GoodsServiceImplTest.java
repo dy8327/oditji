@@ -47,6 +47,7 @@ class GoodsServiceImplTest {
                 List.of("UNDER_10000", "OVER_100000"),
                 List.of("IN_STOCK", "SOLD_OUT"),
                 "popular",
+                "popular",
                 1,
                 100)).thenReturn(result);
 
@@ -92,6 +93,7 @@ class GoodsServiceImplTest {
                 List.of(),
                 List.of(),
                 "all",
+                "popular",
                 13,
                 24)).thenReturn(null);
 

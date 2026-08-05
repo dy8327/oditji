@@ -66,6 +66,7 @@ public class GoodsController {
             @RequestParam(required = false) List<String> priceRanges,
             @RequestParam(required = false) List<String> stockStatus,
             @RequestParam(required = false, defaultValue = "all") String type,
+            @RequestParam(required = false, defaultValue = "popular") String sort,
             @RequestParam(required = false, defaultValue = "1") int page,
             HttpSession session,
             Model model) {
@@ -115,6 +116,7 @@ public class GoodsController {
                 priceRanges,
                 stockStatus,
                 normalizedType,
+                sort,
                 normalizedPage,
                 GOODS_PAGE_SIZE);
 
@@ -134,6 +136,8 @@ public class GoodsController {
         model.addAttribute("priceRanges", priceRanges);
         model.addAttribute("stockStatus", stockStatus);
         model.addAttribute("type", normalizedType);
+        // [추가] 정렬 select(정렬 드롭다운)에서 선택한 정렬 조건을 화면에 그대로 유지합니다.
+        model.addAttribute("sort", sort);
         // [추가] 선택한 세부 카테고리명을 목록 제목에 표시합니다.
         model.addAttribute("selectedCategoryName", selectedCategoryName);
         model.addAttribute("totalCount", totalCount);
