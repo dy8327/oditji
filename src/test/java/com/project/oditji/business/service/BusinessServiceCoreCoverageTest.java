@@ -65,7 +65,8 @@ class BusinessServiceCoreCoverageTest {
                 searchContentStore,
                 tmdbService,
                 notificationService,
-                tempDirectory.resolve("product").toString());
+                tempDirectory.resolve("product").toString(),
+                tempDirectory.resolve("event").toString());
     }
 
     @Test
