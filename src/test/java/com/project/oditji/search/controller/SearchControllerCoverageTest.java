@@ -6,15 +6,16 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ExtendedModelMap;
-
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
@@ -23,6 +24,7 @@ import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
+import com.project.oditji.wish.service.WishService;
 
 /** 통합 검색 입력값 정규화, 페이징, 제목 및 OTT 로고 구성을 검증합니다. */
 @ExtendWith(MockitoExtension.class)
@@ -37,14 +39,24 @@ class SearchControllerCoverageTest {
     @Mock
     private TmdbDAO tmdbDAO;
 
+    @Mock
+    private WishService wishService;
+
     private SearchController controller;
+    private MockHttpSession session;
 
     @BeforeEach
     void setUp() {
         controller = new SearchController(
                 searchContentPageCacheService,
                 goodsService,
-                tmdbDAO);
+                tmdbDAO,
+                wishService);
+        session = new MockHttpSession();
+
+        when(wishService.getWishedProductNoSet(null))
+                .thenReturn(Set.of());
+
         ReflectionTestUtils.setField(
                 controller,
                 "imageBaseUrl",
@@ -69,7 +81,7 @@ class SearchControllerCoverageTest {
         when(tmdbDAO.selectActivePlatformList()).thenReturn(null);
 
         ExtendedModelMap model = new ExtendedModelMap();
-        String view = controller.searchResult(null, model);
+        String view = controller.searchResult(null, session, model);
 
         assertEquals("search/searchResult", view);
         assertEquals("", model.get("keyword"));
@@ -139,7 +151,7 @@ class SearchControllerCoverageTest {
                 null));
 
         ExtendedModelMap model = new ExtendedModelMap();
-        String view = controller.searchResult(searchVO, model);
+        String view = controller.searchResult(searchVO, session, model);
 
         assertEquals("search/searchResult", view);
         assertEquals("test", searchVO.getKeyword());
@@ -177,8 +189,8 @@ class SearchControllerCoverageTest {
 
         ExtendedModelMap contentModel = new ExtendedModelMap();
         ExtendedModelMap goodsModel = new ExtendedModelMap();
-        controller.searchResult(contentSearch, contentModel);
-        controller.searchResult(goodsSearch, goodsModel);
+        controller.searchResult(contentSearch, session, contentModel);
+        controller.searchResult(goodsSearch, session, goodsModel);
 
         assertEquals("지금 인기 있는 콘텐츠", contentModel.get("searchTitle"));
         assertEquals("현재 판매 중인 상품", goodsModel.get("searchTitle"));
@@ -193,12 +205,12 @@ class SearchControllerCoverageTest {
 
         stubSearch("영화", List.of());
         ExtendedModelMap keywordModel = new ExtendedModelMap();
-        controller.searchResult(keywordSearch, keywordModel);
+        controller.searchResult(keywordSearch, session, keywordModel);
         assertEquals("'영화' 검색 결과", keywordModel.get("searchTitle"));
 
         stubSearch("", List.of("28"));
         ExtendedModelMap filterModel = new ExtendedModelMap();
-        controller.searchResult(filterSearch, filterModel);
+        controller.searchResult(filterSearch, session, filterModel);
         assertEquals("선택 조건 검색 결과", filterModel.get("searchTitle"));
     }
 
