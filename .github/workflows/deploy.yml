@@ -1,0 +1,122 @@
+name: Deploy ODITJI
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oditji-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build WAR
+        run: |
+          mvn -B clean package -DskipTests
+
+          WAR_FILE="$(find target -maxdepth 1 -type f -name '*.war' -print -quit)"
+
+          if [ -z "$WAR_FILE" ]; then
+            echo "WAR 파일을 찾지 못했습니다."
+            exit 1
+          fi
+
+          cp "$WAR_FILE" oditji.war
+          ls -lh oditji.war
+
+      - name: Configure SSH
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SERVER_SSH_KEY" > ~/.ssh/oditji_deploy
+          chmod 600 ~/.ssh/oditji_deploy
+
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload WAR
+        run: |
+          scp \
+            -i ~/.ssh/oditji_deploy \
+            oditji.war \
+            "$SERVER_USER@$SERVER_HOST:/tmp/oditji.war.new"
+
+      - name: Deploy application
+        run: |
+          ssh -i ~/.ssh/oditji_deploy \
+            "$SERVER_USER@$SERVER_HOST" \
+            'bash -s' <<'REMOTE'
+          set -e
+
+          cd /opt/oditji
+
+          if [ -f app/oditji.war ]; then
+            cp app/oditji.war app/oditji.war.bak
+          fi
+
+          mv /tmp/oditji.war.new app/oditji.war
+
+          docker compose up -d --force-recreate app
+
+          sleep 20
+          docker compose restart nginx
+
+          DEPLOY_OK=false
+
+          for i in $(seq 1 24); do
+            if curl -fsS http://127.0.0.1/oditji/ > /dev/null; then
+              DEPLOY_OK=true
+              break
+            fi
+
+            echo "애플리케이션 시작 대기 중... ($i/24)"
+            sleep 5
+          done
+
+          if [ "$DEPLOY_OK" != "true" ]; then
+            echo "배포 확인 실패"
+
+            docker logs --tail 100 oditji-app || true
+
+            if [ -f app/oditji.war.bak ]; then
+              echo "이전 WAR 파일로 복구합니다."
+              mv -f app/oditji.war.bak app/oditji.war
+              docker compose up -d --force-recreate app
+              sleep 20
+              docker compose restart nginx
+            fi
+
+            exit 1
+          fi
+
+          rm -f app/oditji.war.bak
+
+          echo "ODITJI 배포 완료"
+          docker compose ps
+          REMOTE
