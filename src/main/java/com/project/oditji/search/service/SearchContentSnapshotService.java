@@ -42,7 +42,7 @@ public class SearchContentSnapshotService {
     @Value("${search.content-cache.snapshot-enabled:true}")
     private boolean snapshotEnabled;
 
-    @Value("${search.content-cache.snapshot-path:C:/oditji/cache/search-content-cache.jsonl}")
+    @Value("${search.content-cache.snapshot-path}")
     private String snapshotPath;
 
     private final SearchContentPolicyService contentPolicyService;
