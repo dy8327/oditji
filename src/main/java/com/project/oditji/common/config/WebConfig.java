@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.project.oditji.common.interceptor.AccessLogInterceptor;
 import com.project.oditji.common.interceptor.AdminCheckInterceptor;
@@ -40,6 +42,17 @@ public WebConfig(
     this.profileUploadPath = profileUploadPath;
     this.productUploadPath = productUploadPath;
     this.eventUploadPath = eventUploadPath;
+}
+
+@Bean
+public InternalResourceViewResolver jspViewResolver() {
+    InternalResourceViewResolver resolver =
+            new InternalResourceViewResolver();
+
+    resolver.setPrefix("/WEB-INF/views/");
+    resolver.setSuffix(".jsp");
+
+    return resolver;
 }
 
     @Override
@@ -82,7 +95,8 @@ public WebConfig(
                         "/images/**",
                         "/uploads/**",
                         "/favicon.ico",
-                        "/error"
+                        "/error",
+                        "/error/**"
                 );
     }
     @Override
