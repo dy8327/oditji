@@ -21,6 +21,13 @@ public class GoodsServiceImpl implements GoodsService {
         this.goodsDAO = goodsDAO;
     }
 
+    private static final List<String> VALID_SORTS = java.util.Arrays.asList(
+            "popular",
+            "latest",
+            "price_asc",
+            "price_desc",
+            "title");
+
     @Override
     public List<GoodsVO> searchGoods(
             String keyword,
@@ -32,6 +39,7 @@ public class GoodsServiceImpl implements GoodsService {
             List<String> priceRanges,
             List<String> stockStatus,
             String type,
+            String sort,
             int page,
             int pageSize) {
 
@@ -52,6 +60,7 @@ public class GoodsServiceImpl implements GoodsService {
         }
 
         String normalizedType = normalizeListType(type);
+        String normalizedSort = normalizeSort(sort);
         int normalizedPage = normalizePage(page);
         int normalizedPageSize = normalizePageSize(pageSize);
         int startRow = (normalizedPage - 1) * normalizedPageSize + 1;
@@ -67,6 +76,7 @@ public class GoodsServiceImpl implements GoodsService {
                 normalizedPriceRanges,
                 normalizedStockStatus,
                 normalizedType,
+                normalizedSort,
                 startRow,
                 endRow);
 
@@ -244,6 +254,24 @@ public class GoodsServiceImpl implements GoodsService {
         return "popular".equals(normalized)
                 ? "popular"
                 : "all";
+    }
+
+    /**
+     * [추가] 목록 상단 정렬 select(contentList.jsp와 통일한 정렬 UI)에서 전달된 값을
+     * 허용된 값(popular/latest/price_asc/price_desc/title)으로만 정규화합니다.
+     * 허용되지 않은 값이거나 비어 있으면 기본값(popular)을 사용합니다.
+     */
+    private String normalizeSort(String sort) {
+
+        if (sort == null) {
+            return "popular";
+        }
+
+        String normalized = sort.trim().toLowerCase();
+
+        return VALID_SORTS.contains(normalized)
+                ? normalized
+                : "popular";
     }
 
     private String normalizeKeyword(String keyword) {

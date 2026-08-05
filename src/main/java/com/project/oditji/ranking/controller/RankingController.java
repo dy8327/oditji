@@ -2,6 +2,7 @@ package com.project.oditji.ranking.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.project.oditji.member.service.MemberPlatformService;
+import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.ranking.service.RankingService;
 import com.project.oditji.search.vo.SearchResultVO;
 
@@ -43,12 +46,16 @@ public class RankingController {
     };
 
     private final RankingService rankingService;
+    private final MemberPlatformService memberPlatformService;
 
     public RankingController(
-            RankingService rankingService) {
+            RankingService rankingService,
+            MemberPlatformService memberPlatformService) {
 
         this.rankingService =
                 rankingService;
+        this.memberPlatformService =
+                memberPlatformService;
     }
 
     /**
@@ -74,10 +81,14 @@ public class RankingController {
                                 PLATFORM_RANKING_LIMIT
                         );
 
+        Map<String, String> platformLogoMap =
+                createPlatformLogoMap();
+
         List<Map<String, Object>> rankingPanels =
                 createRankingPanels(
                         overallRanking,
-                        platformRankings
+                        platformRankings,
+                        platformLogoMap
                 );
 
         model.addAttribute(
@@ -160,7 +171,8 @@ public class RankingController {
      */
     private List<Map<String, Object>> createRankingPanels(
             List<SearchResultVO> overallRanking,
-            Map<String, List<SearchResultVO>> platformRankings) {
+            Map<String, List<SearchResultVO>> platformRankings,
+            Map<String, String> platformLogoMap) {
 
         List<Map<String, Object>> rankingPanels =
                 new ArrayList<Map<String, Object>>();
@@ -169,6 +181,7 @@ public class RankingController {
                 createRankingPanel(
                         "overall",
                         "전체",
+                        null,
                         "전체 인기 콘텐츠",
                         "지원 OTT에서 제공되는 영화와 TV 통합 인기순입니다.",
                         overallRanking,
@@ -183,12 +196,39 @@ public class RankingController {
                             platformDefinition[TAB_ID_INDEX],
                             platformDefinition[DISPLAY_NAME_INDEX],
                             platformDefinition[PLATFORM_KEY_INDEX],
-                            platformRankings
+                            platformRankings,
+                            platformLogoMap
                     )
             );
         }
 
         return rankingPanels;
+    }
+
+    /**
+     * OTT_PLATFORM 테이블에 등록된 플랫폼명을 키로,
+     * 로고 이미지 경로를 값으로 갖는 조회용 맵을 만듭니다.
+     */
+    private Map<String, String> createPlatformLogoMap() {
+
+        Map<String, String> platformLogoMap =
+                new HashMap<String, String>();
+
+        List<PlatformVO> platformList =
+                memberPlatformService.findPlatformList();
+
+        if (platformList != null) {
+
+            for (PlatformVO platform : platformList) {
+
+                platformLogoMap.put(
+                        platform.getPlatformName(),
+                        platform.getLogoImage()
+                );
+            }
+        }
+
+        return platformLogoMap;
     }
 
     /**
@@ -198,7 +238,8 @@ public class RankingController {
             String tabId,
             String displayName,
             String platformKey,
-            Map<String, List<SearchResultVO>> platformRankings) {
+            Map<String, List<SearchResultVO>> platformRankings,
+            Map<String, String> platformLogoMap) {
 
         List<SearchResultVO> rankingList =
                 platformRankings.getOrDefault(
@@ -209,6 +250,7 @@ public class RankingController {
         return createRankingPanel(
                 tabId,
                 displayName,
+                platformLogoMap.get(platformKey),
                 displayName + " 인기 콘텐츠",
                 "한국 " + displayName
                         + " 정액제 제공 콘텐츠 기준입니다.",
@@ -225,6 +267,7 @@ public class RankingController {
     private Map<String, Object> createRankingPanel(
             String tabId,
             String tabLabel,
+            String tabLogoImage,
             String title,
             String description,
             List<SearchResultVO> rankingList,
@@ -236,6 +279,7 @@ public class RankingController {
 
         rankingPanel.put("tabId", tabId);
         rankingPanel.put("tabLabel", tabLabel);
+        rankingPanel.put("tabLogoImage", tabLogoImage);
         rankingPanel.put("title", title);
         rankingPanel.put("description", description);
         rankingPanel.put("rankingList", rankingList);

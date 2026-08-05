@@ -1110,16 +1110,26 @@
     .content-list-toolbar {
         align-items: stretch;
         flex-direction: column;
+        gap: 12px;
     }
 
     .content-list-sort-form {
         justify-content: flex-end;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .content-list-card-grid,
     .content-recommend-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px 10px;
+    }
+
+    /* 모바일에서는 한 페이지 20개 중 마지막 2개를 숨겨 3열 그리드가
+       6줄로 딱 맞아떨어지도록 합니다(20 -> 18개 노출). 페이징/전체
+       건수 계산 등 서버 로직은 그대로 두고 화면 표시만 조정합니다. */
+    .content-list-card-grid > .content-list-card:nth-child(n + 19) {
+        display: none;
     }
 
     .content-filter-form {
@@ -1192,6 +1202,29 @@
 
     .content-list-card-bottom {
         padding: 0 9px 9px;
+    }
+
+    /* 페이지 버튼(«, ‹, 숫자, ›, »)이 좁은 화면 폭에서 한 줄을
+       넘어가면 마지막 버튼만 다음 줄로 떨어져 레이아웃이 깨져
+       보였습니다. 버튼 크기/여백을 줄여 한 줄 안에 모두 들어오게
+       하고, 혹시라도 넘칠 경우에도 가운데 정렬이 유지되도록
+       합니다. */
+    .content-list-pagination {
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 4px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .content-list-pagination .page-btn,
+    .content-list-pagination .page-now {
+        min-width: 28px;
+        height: 28px;
+        padding: 0 6px;
+        font-size: 11px;
+        flex: 0 0 auto;
     }
 }
 

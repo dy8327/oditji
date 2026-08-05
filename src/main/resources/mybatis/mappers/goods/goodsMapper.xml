@@ -339,21 +339,43 @@
             SELECT
                 ROW_NUMBER() OVER (
                     ORDER BY
-                        CASE
-                            WHEN #{type} = 'popular'
-                                 AND NVL(P.STOCK, 0) > 0
-                            THEN 0
-                            WHEN #{type} = 'popular'
-                            THEN 1
-                            ELSE 0
-                        END,
-                        CASE
-                            WHEN #{type} = 'popular'
-                            THEN NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
-                            ELSE 0
-                        END DESC,
-                        P.CREATED_AT DESC,
-                        P.PRODUCT_NO DESC
+                        <choose>
+                            <!-- 낮은 가격순: 실제 노출 판매가(이벤트 할인 우선 적용) 기준 오름차순 -->
+                            <when test="sort == 'price_asc'">
+                                <include refid="effectivePriceExpr"/> ASC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 높은 가격순: 실제 노출 판매가 기준 내림차순 -->
+                            <when test="sort == 'price_desc'">
+                                <include refid="effectivePriceExpr"/> DESC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 가나다순 -->
+                            <when test="sort == 'title'">
+                                P.PRODUCT_NAME ASC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 최신순 -->
+                            <when test="sort == 'latest'">
+                                P.CREATED_AT DESC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 인기순(기본값): 재고 있는 상품 우선, 할인율 높은 순, 최신순 -->
+                            <otherwise>
+                                CASE
+                                    WHEN NVL(P.STOCK, 0) > 0
+                                    THEN 0
+                                    ELSE 1
+                                END,
+                                NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                                P.CREATED_AT DESC,
+                                P.PRODUCT_NO DESC
+                            </otherwise>
+                        </choose>
                 ) AS RN,
 
                 P.PRODUCT_NO,

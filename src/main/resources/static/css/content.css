@@ -688,8 +688,23 @@
     margin: 0 auto;
   }
 
+  /* 모바일에서는 포스터 아래 정보 영역(제목/뱃지/메타/장르/평점)이
+     세로로 쌓이므로, 왼쪽 정렬 대신 포스터와 같은 기준으로
+     가운데 정렬해 보기 좋게 정리합니다. (데스크톱은 기존 왼쪽
+     정렬 그대로 유지) */
+  .info-box {
+    text-align: center;
+  }
+
+  .title-row,
+  .meta-chip-list,
+  .info-box .genre {
+    justify-content: center;
+  }
+
   .score-box {
     gap: 8px;
+    justify-content: center;
   }
 
   .score-badge {

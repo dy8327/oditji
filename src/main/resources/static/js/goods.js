@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   initializeGoodsFilter();
+  initializeGoodsSort();
+  initializeGoodsSelectedFilterChips();
   initializeImageGallery();
 
   /*
@@ -117,6 +119,64 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     allCheckbox.checked = checkedItems.length === 0;
+  }
+
+  /**
+   * 정렬 선택값이 변경되면 현재 필터 조건을 유지한 채
+   * 첫 페이지부터 다시 조회합니다. (contentList.js의 initializeContentSort와 동일)
+   */
+  function initializeGoodsSort() {
+    const select = document.querySelector("[data-goods-sort-select]");
+
+    if (!select || !select.form) {
+      return;
+    }
+
+    select.addEventListener("change", function () {
+      const pageInput = select.form.querySelector("input[name='page']");
+
+      if (pageInput) {
+        pageInput.value = "1";
+      }
+
+      select.form.submit();
+    });
+  }
+
+  /**
+   * 목록 상단의 선택 필터 칩을 누르면 해당 값만 URL에서 제거하고
+   * 나머지 필터와 정렬 조건은 그대로 유지합니다. (contentList.js와 동일)
+   */
+  function initializeGoodsSelectedFilterChips() {
+    const chips = document.querySelectorAll("[data-goods-filter-chip]");
+
+    chips.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        const parameterName = chip.dataset.filterName;
+        const parameterValue = chip.dataset.filterValue;
+
+        if (!parameterName) {
+          return;
+        }
+
+        const currentUrl = new URL(window.location.href);
+        const nextParameters = new URLSearchParams();
+
+        currentUrl.searchParams.forEach(function (value, name) {
+          const isTarget = name === parameterName && value === parameterValue;
+
+          if (!isTarget) {
+            nextParameters.append(name, value);
+          }
+        });
+
+        nextParameters.set("page", "1");
+
+        const queryString = nextParameters.toString();
+
+        window.location.href = currentUrl.pathname + (queryString ? "?" + queryString : "");
+      });
+    });
   }
 
   function initializeImageGallery() {

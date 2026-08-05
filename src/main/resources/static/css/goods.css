@@ -13,6 +13,175 @@
 }
 
 /* =========================================================
+   GOODS LIST HEADER
+   (content-list-modern.css의 PAGE HEADER와 동일한 구조)
+========================================================= */
+
+.goods-list-header {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.goods-list-heading {
+  min-width: 0;
+}
+
+.goods-list-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #838b9a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.goods-list-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.goods-list-header .list-title {
+  margin: 0;
+}
+
+.goods-list-result-count {
+  color: #8f96a3;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.goods-list-result-count strong {
+  margin: 0 2px 0 4px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.goods-list-header p {
+  margin: 10px 0 0;
+  color: #8f96a3;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   SELECTED FILTERS + SORT
+   (content-list-modern.css의 toolbar와 동일한 구조)
+========================================================= */
+
+.goods-list-toolbar {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #18191b;
+}
+
+.goods-selected-filter-area {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.goods-selected-filter-label {
+  flex-shrink: 0;
+  color: #c7cbd2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.goods-selected-filter-list {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.goods-selected-filter-chip {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: #24262a;
+  color: #f0f1f3;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.goods-selected-filter-chip:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: #2d3035;
+  transform: translateY(-1px);
+}
+
+.goods-selected-filter-chip span:last-child {
+  color: #9fa5af;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.goods-selected-filter-clear {
+  color: #8e949e;
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.goods-selected-filter-clear:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.goods-selected-filter-empty {
+  color: #777f8c;
+  font-size: 12px;
+}
+
+.goods-list-sort-form {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.goods-list-sort-form label {
+  color: #8f96a3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.goods-list-sort-form select {
+  min-width: 108px;
+  height: 36px;
+  padding: 0 34px 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: #222429;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.goods-list-sort-form select:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* =========================================================
    GOODS CARD
 ========================================================= */
 
@@ -1704,6 +1873,28 @@
 
   .review-section-card .score-box {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .goods-list-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .goods-list-sort-form {
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@media (max-width: 460px) {
+  .goods-list-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
   }
 }
 
