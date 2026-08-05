@@ -1,5 +1,8 @@
 package com.project.oditji.common.config;
 
+import java.nio.file.Paths;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -17,18 +20,27 @@ public class WebConfig implements WebMvcConfigurer {
     private final AdminCheckInterceptor adminCheckInterceptor;
     private final BusinessCheckInterceptor businessCheckInterceptor;
     private final AccessLogInterceptor accessLogInterceptor;
+    private final String profileUploadPath;
+    private final String productUploadPath;
+    private final String eventUploadPath;
 
-    public WebConfig(
-            LoginCheckInterceptor loginCheckInterceptor,
-            AdminCheckInterceptor adminCheckInterceptor,
-            BusinessCheckInterceptor businessCheckInterceptor,
-            AccessLogInterceptor accessLogInterceptor) {
+public WebConfig(
+        LoginCheckInterceptor loginCheckInterceptor,
+        AdminCheckInterceptor adminCheckInterceptor,
+        BusinessCheckInterceptor businessCheckInterceptor,
+        AccessLogInterceptor accessLogInterceptor,
+        @Value("${oditji.upload.profile-path}") String profileUploadPath,
+        @Value("${oditji.upload.product-path}") String productUploadPath,
+        @Value("${oditji.upload.event-path}") String eventUploadPath) {
 
-        this.loginCheckInterceptor = loginCheckInterceptor;
-        this.adminCheckInterceptor = adminCheckInterceptor;
-        this.businessCheckInterceptor = businessCheckInterceptor;
-        this.accessLogInterceptor = accessLogInterceptor;
-    }
+    this.loginCheckInterceptor = loginCheckInterceptor;
+    this.adminCheckInterceptor = adminCheckInterceptor;
+    this.businessCheckInterceptor = businessCheckInterceptor;
+    this.accessLogInterceptor = accessLogInterceptor;
+    this.profileUploadPath = profileUploadPath;
+    this.productUploadPath = productUploadPath;
+    this.eventUploadPath = eventUploadPath;
+}
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -73,16 +85,21 @@ public class WebConfig implements WebMvcConfigurer {
                         "/error"
                 );
     }
-
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/profile/**")
-                .addResourceLocations("file:///C:/oditji/uploads/profile/");
+                .addResourceLocations(toResourceLocation(profileUploadPath));
 
         registry.addResourceHandler("/uploads/product/**")
-                .addResourceLocations("file:///C:/oditji/uploads/product/");
+                .addResourceLocations(toResourceLocation(productUploadPath));
 
         registry.addResourceHandler("/uploads/event/**")
-                .addResourceLocations("file:///C:/oditji/uploads/event/");
-    }
+                .addResourceLocations(toResourceLocation(eventUploadPath));
+        }
+
+        private String toResourceLocation(String path) {
+        String location = Paths.get(path).toAbsolutePath().normalize().toUri().toString();
+        return location.endsWith("/") ? location : location + "/";
+        }
+    
 }

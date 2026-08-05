@@ -72,10 +72,10 @@ public class SearchContentAgeRatingService {
     @Value("${search.content-cache.manual-age-rating-override-enabled:true}")
     private boolean manualOverrideEnabled;
 
-    @Value("${search.content-cache.manual-age-rating-override-path:C:/oditji/cache/manual-age-rating-overrides.json}")
+    @Value("${search.content-cache.manual-age-rating-override-path}")
     private String manualOverridePath;
 
-    @Value("${search.content-cache.missing-age-rating-path:C:/oditji/cache/missing-age-rating-candidates.json}")
+    @Value("${search.content-cache.missing-age-rating-path}")
     private String missingCandidatePath;
 
     private final TmdbApiClient apiClient;

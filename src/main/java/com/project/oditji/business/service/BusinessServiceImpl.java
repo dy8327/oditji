@@ -84,10 +84,7 @@ public class BusinessServiceImpl
          * application.properties를 추가로 수정하지 않고
          * 기존 ODITJI 외부 업로드 폴더 구조를 그대로 사용한다.
          */
-        private final Path eventUploadDirectory = Paths.get(
-                        "C:/oditji/uploads/event")
-                        .toAbsolutePath()
-                        .normalize();
+        private final Path eventUploadDirectory;
 
         public BusinessServiceImpl(
                         BusinessDAO businessDAO,
@@ -96,7 +93,8 @@ public class BusinessServiceImpl
                         TmdbService tmdbService,
                         NotificationService notificationService,
                         @Value("${oditji.upload.product-path:"
-                                        + "uploads/product}") String productUploadPath) {
+                                        + "uploads/product}") String productUploadPath,
+                        @Value("${oditji.upload.event-path:uploads/event}") String eventUploadPath) {
 
                 this.businessDAO = businessDAO;
                 this.contentService = contentService;
@@ -106,6 +104,9 @@ public class BusinessServiceImpl
 
                 this.productUploadDirectory = Paths.get(
                                 productUploadPath)
+                                .toAbsolutePath()
+                                .normalize();
+                this.eventUploadDirectory = Paths.get(eventUploadPath)
                                 .toAbsolutePath()
                                 .normalize();
         }

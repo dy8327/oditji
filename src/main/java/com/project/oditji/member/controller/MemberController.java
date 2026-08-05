@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,9 @@ public class MemberController {
         private final OrderService orderService;
         private final ReviewService reviewService;
 
+        private final String profileUploadPath;
+        private final String businessLicenseUploadPath;
+
         @SuppressWarnings("java:S107")
         public MemberController(
                         MemberService memberService,
@@ -93,7 +97,9 @@ public class MemberController {
                         FavoriteService favoriteService,
                         WishService wishService,
                         OrderService orderService,
-                        ReviewService reviewService) {
+                        ReviewService reviewService,
+                        @Value("${oditji.upload.profile-path}") String profileUploadPath,
+                        @Value("${oditji.upload.business-license-path}") String businessLicenseUploadPath) {
 
                 this.memberService = memberService;
                 this.memberPlatformService = memberPlatformService;
@@ -104,7 +110,9 @@ public class MemberController {
                 this.wishService = wishService;
                 this.orderService = orderService;
                 this.reviewService = reviewService;
-                }
+                this.profileUploadPath = profileUploadPath;
+                this.businessLicenseUploadPath = businessLicenseUploadPath;
+        }
 
         @GetMapping("/join")
         public String joinForm(Model model) {
@@ -243,14 +251,13 @@ public class MemberController {
                         throw new IllegalArgumentException("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.");
                 }
 
-                String licenseUploadDir = "C:/oditji/uploads/business-license/";
-                File licenseDir = new File(licenseUploadDir);
+                File licenseDir = new File(businessLicenseUploadPath);
                 if (!licenseDir.exists() && !licenseDir.mkdirs() && !licenseDir.exists()) {
                         throw new IllegalStateException("사업자등록증 저장 폴더를 생성할 수 없습니다.");
                 }
 
                 String savedLicenseName = UUID.randomUUID().toString() + licenseExt;
-                licenseFile.transferTo(new File(licenseUploadDir + savedLicenseName));
+                licenseFile.transferTo(new File(licenseDir, savedLicenseName));
 
                 return savedLicenseName;
         }
@@ -1172,8 +1179,7 @@ public class MemberController {
                         throw new IllegalArgumentException("정상적인 이미지 파일이 아닙니다.");
                 }
 
-                String uploadDir = "C:/oditji/uploads/profile/";
-                File dir = new File(uploadDir);
+                File dir = new File(profileUploadPath);
 
                 if (!dir.exists() && !dir.mkdirs()) {
                         throw new IllegalStateException("프로필 이미지 저장 폴더를 생성할 수 없습니다.");
