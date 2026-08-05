@@ -1025,3 +1025,172 @@
   outline: 2px solid #3b82f6;
   outline-offset: 1px;
 }
+
+/* =========================================================
+   PASSWORD VERIFICATION NOTICE
+   [수정] 비밀번호 찾기 인증번호 발송 안내 영역
+========================================================= */
+
+.verification-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  margin-bottom: 22px;
+  padding: 16px;
+
+  background: #242a35;
+  border: 1px solid #36527d;
+  border-radius: 12px;
+}
+
+.verification-notice-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #1e6ff5;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.verification-notice-content {
+  min-width: 0;
+}
+
+.verification-notice-title {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.verification-notice-description {
+  margin: 0 0 5px;
+
+  color: #d9e6ff;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.verification-notice-description strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.verification-notice-help {
+  display: block;
+
+  color: #9aa7ba;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* [수정] 일반 성공 메시지가 필요한 다른 단계에서 사용할 스타일 */
+.success-text {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+
+  border-radius: 10px;
+  background: rgba(30, 111, 245, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+
+  color: #cfe0ff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   FIND ID RESULT
+   [수정] 아이디 찾기 조회 결과 안내 영역
+========================================================= */
+
+.find-id-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  margin-top: 18px;
+  padding: 16px;
+
+  background: #242a35;
+  border: 1px solid #36527d;
+  border-radius: 12px;
+}
+
+.find-id-result-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #1e6ff5;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.find-id-result-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.find-id-result-title {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.find-id-result-description {
+  margin: 0 0 10px;
+
+  color: #d9e6ff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* [수정] 조회된 회원 아이디 강조 표시 */
+.find-id-result-id {
+  display: block;
+  width: 100%;
+
+  margin-bottom: 8px;
+  padding: 10px 12px;
+
+  border-radius: 9px;
+  background: rgba(30, 111, 245, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.38);
+
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  word-break: break-all;
+}
+
+.find-id-result-help {
+  display: block;
+
+  color: #9aa7ba;
+  font-size: 12px;
+  line-height: 1.5;
+}

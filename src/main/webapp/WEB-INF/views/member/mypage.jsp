@@ -44,377 +44,195 @@
 
 <main id="mainContent" class="mypage-container">
 
-
-<!-- ================= Welcome ================= -->
-
-
-<section class="mypage-welcome">
-
-    <p class="mypage-greeting">
-        안녕하세요.
-    </p>
-
-    <h1>
-        ${loginMember.nickname}님 👋
-    </h1>
-
-    <p class="mypage-message">
-        오늘도 ODITJI에서 즐거운 콘텐츠를 찾아보세요.
-    </p>
-
-</section>
-
-
-
-
-
-<!-- ================= Profile ================= -->
-
-
-<section class="mypage-profile">
-
-    <div class="mypage-profile-left">
-
-        <div class="mypage-profile-image">
-
-            <c:choose>
-
-                <c:when test="${empty loginMember.profileImage}">
-
-                    <img class="profile-img"
-                         src="${pageContext.request.contextPath}/images/profile_image.jpg"
-                         alt="기본 프로필">
-
-                </c:when>
-
-                <c:when test="${fn:startsWith(loginMember.profileImage, 'http')}">
-
-                    <img class="profile-img"
-                         src="${loginMember.profileImage}"
-                         alt="${loginProvider eq 'NAVER' ? '네이버 프로필' : (loginProvider eq 'GOOGLE' ? '구글 프로필' : '카카오 프로필')}">
-
-                </c:when>
-
-                <c:otherwise>
-
-                    <img class="profile-img"
-                         src="${pageContext.request.contextPath}/uploads/profile/${loginMember.profileImage}"
-                         alt="업로드 프로필">
-
-                </c:otherwise>
-
-            </c:choose>
-
-        </div>
-
-
-        <div class="mypage-profile-info">
-
-            <h2>
-                ${loginMember.nickname}
-            </h2>
-
-            <p>
-                ${loginMember.email}
-            </p>
-
-            <span class="mypage-member-type">
-
-                <c:choose>
-
-                    <c:when test="${loginMember.role eq 'ADMIN'}">
-                        관리자
-                    </c:when>
-
-                    <c:when test="${business ne null}">
-                        사업자
-                    </c:when>
-
-                    <c:otherwise>
-                        일반 회원
-                    </c:otherwise>
-
-                </c:choose>
-
-            </span>
-
-            <p class="mypage-created-at">
-                가입일 :
-                <fmt:formatDate value="${loginMember.createdAt}" pattern="yyyy-MM-dd"/>
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div class="mypage-profile-right">
-
-        <button type="button"
-                id="updateMemberBtn">
-
-            회원정보 수정
-
-        </button>
-
-    </div>
-
-</section>
-
-<!-- ================= OTT ================= -->
-
-
-<section class="mypage-ott"
-         id="mypageOttSection">
-
-    <div class="mypage-section-header">
-
-        <div>
-
-            <h2>
-                내 OTT
-            </h2>
-
-            <p>
-                현재 이용 중인 OTT 플랫폼입니다.
-            </p>
-
-        </div>
-
-        <button type="button"
-                id="updateOttBtn">
-
-            OTT 정보 수정
-
-        </button>
-
-    </div>
-
-
-    <div class="mypage-ott-list">
-
-        <c:choose>
-
-            <c:when test="${not empty ottList}">
-
-                <c:forEach var="ott"
-                           items="${ottList}">
-
-                    <a class="mypage-ott-chip"
-                       href="${ott.siteUrl}"
-                       target="_blank"
-                       rel="noopener noreferrer">
-
-                        <img class="mypage-ott-chip-logo"
-                             src="${ott.logoImage}"
-                             alt="${ott.platformName}">
-
-                        <span>
-                            <c:choose>
-                                <c:when test="${ott.platformName eq 'Netflix'}">
-                                    넷플릭스
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Disney Plus'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Disney+'}">
-                                    디즈니+
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Tving'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'TVING'}">
-                                    티빙
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Wavve'}">
-                                    웨이브
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Watcha'}">
-                                    왓챠
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Coupangplay'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:when test="${ott.platformName eq 'Coupang Play'}">
-                                    쿠팡플레이
-                                </c:when>
-                                <c:otherwise>
-                                    ${ott.platformName}
-                                </c:otherwise>
-                            </c:choose>
-                        </span>
-
-                    </a>
-
-                </c:forEach>
-
-            </c:when>
-
-            <c:otherwise>
-
-                <div class="mypage-empty">
-
-                    등록된 OTT가 없습니다.
-
+    <!-- =========================================================
+         [마이페이지 디자인 수정]
+         기존 조회 데이터와 버튼 ID는 그대로 유지하고,
+         화면 배치만 시안에 맞게 좌측 비주얼 + 우측 정보 카드 구조로 변경했습니다.
+    ========================================================== -->
+    <div class="mypage-dashboard">
+
+        <!-- [마이페이지 디자인 수정] 좌측 브랜드 비주얼 영역 -->
+        <section class="mypage-hero" aria-labelledby="mypageGreetingTitle">
+            <span class="mypage-hero-badge">MY PAGE</span>
+
+            <div class="mypage-hero-copy">
+                <p>안녕하세요,</p>
+                <h1 id="mypageGreetingTitle">${loginMember.nickname}님</h1>
+                <span class="mypage-hero-spark" aria-hidden="true">✦</span>
+                <div class="mypage-hero-line" aria-hidden="true"></div>
+                <p class="mypage-hero-message">
+                    오늘도 ODITJI에서<br>
+                    즐거운 콘텐츠를 찾아보세요.
+                </p>
+            </div>
+
+            <!-- =========================================================
+                 [마이페이지 배경 이미지 수정]
+                 인삿말과 회원명은 JSP에서 동적으로 출력하고,
+                 영화 장식은 mypage-left-bg.png 배경 이미지로만 표시합니다.
+                 따라서 회원명과 안내 문구가 이미지에 고정되지 않습니다.
+            ========================================================== -->
+        </section>
+
+        <div class="mypage-content-column">
+
+            <!-- ================= Profile ================= -->
+            <section class="mypage-panel mypage-profile" aria-labelledby="profileTitle">
+                <div class="mypage-panel-heading">
+                    <span class="mypage-heading-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0"/></svg>
+                    </span>
+                    <h2 id="profileTitle">프로필</h2>
                 </div>
 
-            </c:otherwise>
+                <div class="mypage-profile-body">
+                    <div class="mypage-profile-left">
+                        <div class="mypage-profile-image">
+                            <c:choose>
+                                <c:when test="${empty loginMember.profileImage}">
+                                    <img class="profile-img"
+                                         src="${pageContext.request.contextPath}/images/profile_image.jpg"
+                                         alt="기본 프로필">
+                                </c:when>
+                                <c:when test="${fn:startsWith(loginMember.profileImage, 'http')}">
+                                    <img class="profile-img"
+                                         src="${loginMember.profileImage}"
+                                         alt="${loginProvider eq 'NAVER' ? '네이버 프로필' : (loginProvider eq 'GOOGLE' ? '구글 프로필' : '카카오 프로필')}">
+                                </c:when>
+                                <c:otherwise>
+                                    <img class="profile-img"
+                                         src="${pageContext.request.contextPath}/uploads/profile/${loginMember.profileImage}"
+                                         alt="업로드 프로필">
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
 
-        </c:choose>
+                        <div class="mypage-profile-info">
+                            <div class="mypage-name-row">
+                                <h3>${loginMember.nickname}</h3>
+                                <span class="mypage-member-type">
+                                    <span aria-hidden="true">◇</span>
+                                    <c:choose>
+                                        <c:when test="${loginMember.role eq 'ADMIN'}">관리자</c:when>
+                                        <c:when test="${business ne null}">사업자</c:when>
+                                        <c:otherwise>일반 회원</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                            <p class="mypage-profile-email">${loginMember.email}</p>
+                            <p class="mypage-created-at">
+                                <span aria-hidden="true">▣</span>
+                                가입일 : <fmt:formatDate value="${loginMember.createdAt}" pattern="yyyy-MM-dd"/>
+                            </p>
+                        </div>
+                    </div>
 
-    </div>
+                    <!-- 기존 JS가 사용하는 ID 유지 -->
+                    <button type="button" id="updateMemberBtn" class="mypage-action-btn">
+                        회원정보 수정 <span aria-hidden="true">›</span>
+                    </button>
+                </div>
+            </section>
 
-</section>
+            <!-- ================= OTT ================= -->
+            <section class="mypage-panel mypage-ott" id="mypageOttSection" aria-labelledby="ottTitle">
+                <div class="mypage-ott-content">
+                    <div class="mypage-panel-heading mypage-panel-heading-inline">
+                        <span class="mypage-heading-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="m8 3 4 3 4-3"/></svg>
+                        </span>
+                        <h2 id="ottTitle">내 OTT</h2>
+                        <p>현재 이용 중인 OTT 플랫폼입니다.</p>
+                    </div>
 
+                    <div class="mypage-ott-list">
+                        <c:choose>
+                            <c:when test="${not empty ottList}">
+                                <c:forEach var="ott" items="${ottList}">
+                                    <a class="mypage-ott-chip"
+                                       href="${ott.siteUrl}"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        <img class="mypage-ott-chip-logo"
+                                             src="${ott.logoImage}"
+                                             alt="${ott.platformName}">
+                                        <span>
+                                            <c:choose>
+                                                <c:when test="${ott.platformName eq 'Netflix'}">넷플릭스</c:when>
+                                                <c:when test="${ott.platformName eq 'Disney Plus' or ott.platformName eq 'Disney+'}">디즈니+</c:when>
+                                                <c:when test="${ott.platformName eq 'Tving' or ott.platformName eq 'TVING'}">티빙</c:when>
+                                                <c:when test="${ott.platformName eq 'Wavve' or ott.platformName eq 'wavve'}">웨이브</c:when>
+                                                <c:when test="${ott.platformName eq 'Watcha'}">왓챠</c:when>
+                                                <c:when test="${ott.platformName eq 'Coupangplay' or ott.platformName eq 'Coupang Play'}">쿠팡플레이</c:when>
+                                                <c:otherwise>${ott.platformName}</c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </a>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="mypage-empty">등록된 OTT가 없습니다.</div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
 
+                <!-- 기존 JS가 사용하는 ID 유지 -->
+                <button type="button" id="updateOttBtn" class="mypage-action-btn">
+                    OTT 정보 수정 <span aria-hidden="true">›</span>
+                </button>
+            </section>
 
+            <!-- ================= My Activity ================= -->
+            <section class="mypage-panel mypage-activity" aria-labelledby="activityTitle">
+                <div class="mypage-panel-heading mypage-panel-heading-inline">
+                    <span class="mypage-heading-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>
+                    </span>
+                    <h2 id="activityTitle">나의 활동</h2>
+                    <p>ODITJI에서의 활동 내역입니다.</p>
+                </div>
 
-
-<!-- ================= My Activity ================= -->
-
-
-<section class="mypage-activity">
-
-    <div class="mypage-section-header">
-
-        <div>
-
-            <h2>
-                나의 활동
-            </h2>
-
-            <p>
-                ODITJI에서의 활동 내역입니다.
-            </p>
-
+                <div class="mypage-activity-grid">
+                    <a href="${pageContext.request.contextPath}/favorite/list" class="mypage-activity-card activity-favorite">
+                        <span class="mypage-activity-icon" aria-hidden="true">♥</span>
+                        <span class="mypage-activity-count">${favoriteCount}</span>
+                        <span class="mypage-activity-title">찜 목록</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/cart" class="mypage-activity-card activity-cart">
+                        <span class="mypage-activity-icon" aria-hidden="true">🛒</span>
+                        <span class="mypage-activity-count">${cartCount}</span>
+                        <span class="mypage-activity-title">장바구니</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/order/list" class="mypage-activity-card activity-order">
+                        <span class="mypage-activity-icon" aria-hidden="true">▣</span>
+                        <span class="mypage-activity-count">${orderCount}</span>
+                        <span class="mypage-activity-title">주문내역</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/review/myReviewList" class="mypage-activity-card activity-review">
+                        <span class="mypage-activity-icon" aria-hidden="true">★</span>
+                        <span class="mypage-activity-count">${reviewCount}</span>
+                        <span class="mypage-activity-title">내가 작성한 리뷰</span>
+                    </a>
+                </div>
+            </section>
         </div>
-
     </div>
 
-
-    <div class="mypage-activity-grid">
-
-
-        <a href="${pageContext.request.contextPath}/favorite/list"
-           class="mypage-activity-card">
-
-            <div class="mypage-activity-icon">
-                ❤️
-            </div>
-
-            <div class="mypage-activity-count">
-                ${favoriteCount}
-            </div>
-
-            <div class="mypage-activity-title">
-                찜 목록
-            </div>
-
-        </a>
-
-
-
-        <a href="${pageContext.request.contextPath}/cart"
-           class="mypage-activity-card">
-
-            <div class="mypage-activity-icon">
-                🛒
-            </div>
-
-            <div class="mypage-activity-count">
-                ${cartCount}
-            </div>
-
-            <div class="mypage-activity-title">
-                장바구니
-            </div>
-
-        </a>
-
-
-
-        <a href="${pageContext.request.contextPath}/order/list"
-           class="mypage-activity-card">
-
-            <div class="mypage-activity-icon">
-                📦
-            </div>
-
-            <div class="mypage-activity-count">
-                ${orderCount}
-            </div>
-
-            <div class="mypage-activity-title">
-                주문내역
-            </div>
-
-        </a>
-
-
-
-        <a href="${pageContext.request.contextPath}/review/myReviewList"
-           class="mypage-activity-card">
-
-            <div class="mypage-activity-icon">
-                ⭐
-            </div>
-
-            <div class="mypage-activity-count">
-                ${reviewCount}
-            </div>
-
-            <div class="mypage-activity-title">
-                내가 작성한 리뷰
-            </div>
-
-        </a>
-
-
-    </div>
-
-</section>
-
-
-
-
-
-<!-- ================= Withdraw ================= -->
-
-
-<section class="mypage-withdraw">
-
-    <div class="mypage-section-header">
-
-        <div>
-
-            <h2>
-                회원탈퇴
-            </h2>
-
-            <p>
-                탈퇴 시 계정은 즉시 비활성화되며, 7일 후 모든 데이터가 자동으로 완전히 삭제됩니다.
-            </p>
-
+    <!-- ================= Withdraw ================= -->
+    <section class="mypage-withdraw" aria-labelledby="withdrawTitle">
+        <div class="mypage-withdraw-icon" aria-hidden="true">!</div>
+        <div class="mypage-withdraw-copy">
+            <h2 id="withdrawTitle">회원탈퇴</h2>
+            <p>탈퇴 시 계정은 즉시 비활성화되며, 7일 후 모든 데이터가 자동으로 완전히 삭제됩니다.</p>
         </div>
-
-    </div>
-
-
-    <div class="mypage-account-danger">
-
-        <button type="button"
-                id="deleteBtn"
-                class="btn-danger">
-
-            회원탈퇴
-
+        <!-- 기존 JS가 사용하는 ID 유지 -->
+        <button type="button" id="deleteBtn" class="mypage-withdraw-btn">
+            회원탈퇴 <span aria-hidden="true">›</span>
         </button>
-
-    </div>
-
-</section>
-
+    </section>
 </main>
+
 
 <!-- ================= MEMBER MODAL ================= -->
 

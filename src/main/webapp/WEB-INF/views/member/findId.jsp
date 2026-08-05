@@ -76,15 +76,29 @@
 
         <c:if test="${not empty findIdResult}">
 
-            <div class="result-box">
+            <%-- [수정] 아이디 조회 결과를 비밀번호 찾기 안내 영역과 동일한 디자인 계열로 구성 --%>
+            <div class="find-id-result" role="status" aria-live="polite">
 
-                <h3>조회 결과</h3>
+                <div class="find-id-result-icon" aria-hidden="true">✓</div>
 
-                <p>
-                    회원님의 아이디는
-                    <strong>${findIdResult}</strong>
-                    입니다.
-                </p>
+                <div class="find-id-result-content">
+
+                    <span class="find-id-result-title">조회 결과</span>
+
+                    <p class="find-id-result-description">
+                        회원님의 아이디를 찾았습니다.
+                    </p>
+
+                    <%-- [수정] 조회된 아이디를 별도 영역으로 강조하고 EL 출력 시 이스케이프 처리 --%>
+                    <strong class="find-id-result-id">
+                        <c:out value="${findIdResult}"/>
+                    </strong>
+
+                    <span class="find-id-result-help">
+                        로그인 후 ODITJI 서비스를 이용해 보세요.
+                    </span>
+
+                </div>
 
             </div>
 

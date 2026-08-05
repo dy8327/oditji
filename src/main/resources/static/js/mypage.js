@@ -323,10 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const confirmed = await showConfirm(
-      "정말 회원을 탈퇴하시겠습니까?\n" + "탈퇴 후 7일 동안 복구할 수 있으며, 이후 데이터가 삭제됩니다.",
-      "warning"
-    );
+    const confirmed = await showConfirm("정말 회원을 탈퇴하시겠습니까?\n" + "탈퇴 후 7일 동안 복구할 수 있으며, 이후 데이터가 삭제됩니다.", "warning");
 
     if (!confirmed) {
       return;
