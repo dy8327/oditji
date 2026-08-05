@@ -102,7 +102,11 @@ jobs:
           if [ "$DEPLOY_OK" != "true" ]; then
             echo "배포 확인 실패"
 
-            docker logs --tail 100 oditji-app || true
+            echo "===== ODITJI APP ERROR LOG ====="
+            docker logs --tail 500 oditji-app 2>&1 || true
+
+            # 실패한 WAR도 서버에 보관
+            cp -f app/oditji.war app/oditji.war.failed || true
 
             if [ -f app/oditji.war.bak ]; then
               echo "이전 WAR 파일로 복구합니다."
