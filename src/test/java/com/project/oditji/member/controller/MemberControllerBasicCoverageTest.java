@@ -10,9 +10,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpSession;
@@ -58,21 +58,12 @@ class MemberControllerBasicCoverageTest {
     @Mock
     private ReviewService reviewService;
 
+    /**
+     * 실제 컨트롤러 생성자 인자 변경에 테스트가 직접 결합되지 않도록
+     * Mockito가 현재 생성자를 선택하여 Mock을 주입하게 합니다.
+     */
+    @InjectMocks
     private MemberController controller;
-
-    @BeforeEach
-    void setUp() {
-        controller = new MemberController(
-                memberService,
-                memberPlatformService,
-                businessService,
-                ntsBusinessService,
-                mailService,
-                favoriteService,
-                wishService,
-                orderService,
-                reviewService);
-    }
 
     @Test
     void joinFormAndBusinessVerificationShouldDelegate() {
