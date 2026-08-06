@@ -347,49 +347,75 @@ const savedTmdbActorId =
 
                 </div>
 
+                <%-- [수정] 대표 이미지와 선택 세부 이미지를 명확히 분리한다. --%>
                 <div class="form-group">
 
                     <label class="form-label"
-                        for="detailImages">
-                        상품 세부 이미지
+                           for="productImage">
+                        상품 기본 이미지
                     </label>
 
-                    <%-- [추가]
-                        사업자 상품 등록 폼 레이아웃은 그대로 유지하면서
-                        세부 이미지 여러 장을 추가로 등록할 수 있도록 한다.
-                    --%>
-                    <div class="file-box file-box--stack">
+                    <div class="file-box product-image-file-box">
 
                         <input type="file"
-                            id="detailImages"
-                            name="detailImages"
-                            accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
-                            multiple
-                            onchange="updateDetailFileNames(this);">
+                               id="productImage"
+                               name="productImage"
+                               accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                               required>
 
-                        <div class="file-name-stack">
+                        <span id="productImageFileName">
+                            선택된 파일 없음
+                        </span>
 
-                            <span id="selectedDetailFileSummary">
+                    </div>
+
+                    <p class="form-help">
+                        상품 목록과 상세 페이지의 대표 이미지로 사용됩니다.
+                        JPG, JPEG, PNG, GIF, WEBP 형식의 10MB 이하 이미지를 등록해주세요.
+                    </p>
+
+                </div>
+
+                <div class="form-group">
+
+                    <div class="detail-image-label-row">
+                        <span class="form-label detail-image-label">
+                            세부 이미지 등록 (선택)
+                        </span>
+
+                        <%-- [추가] + 버튼을 누르면 독립된 파일 입력창을 한 줄씩 추가한다. --%>
+                        <button type="button"
+                                id="addDetailImageBtn"
+                                class="detail-image-add-btn"
+                                aria-label="세부 이미지 입력 추가">
+                            +
+                        </button>
+                    </div>
+
+                    <div id="detailImageRows" class="detail-image-rows">
+
+                        <div class="detail-image-row">
+                            <input type="file"
+                                   class="detail-image-input"
+                                   name="detailImages"
+                                   accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+
+                            <span class="detail-image-file-name">
                                 선택된 파일 없음
                             </span>
 
-                            <ul id="selectedDetailFileList"
-                                class="selected-file-list"></ul>
-
+                            <button type="button"
+                                    class="detail-image-remove-btn"
+                                    aria-label="세부 이미지 입력 삭제"
+                                    hidden>
+                                삭제
+                            </button>
                         </div>
 
                     </div>
 
                     <p class="form-help">
-                        세부 이미지는 여러 장 등록할 수 있습니다.
-                        상품 상세 페이지 하단 썸네일 영역에 3개씩 슬라이드 형태로 표시됩니다.
-                    </p>
-
-                </div>
-
-                    <p class="form-help">
-                        JPG, JPEG, PNG, GIF, WEBP 형식의
-                        10MB 이하 이미지를 등록해주세요.
+                        필요한 만큼 + 버튼으로 입력창을 추가할 수 있으며 최대 10장까지 등록할 수 있습니다.
                     </p>
 
                 </div>
