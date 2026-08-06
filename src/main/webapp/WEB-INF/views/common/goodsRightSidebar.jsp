@@ -1,8 +1,7 @@
-<%@ page language="java"
-         contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <section class="recommend-sidebar">
 
@@ -81,12 +80,18 @@
 
                                 <c:choose>
 
+                                    <%-- 할인 상품: 소수점 없이 천 단위 쉼표 적용 --%>
                                     <c:when test="${recommend.discountRate > 0}">
-                                        ₩ ${recommend.price - (recommend.price * recommend.discountRate / 100)}
+                                        ₩ <fmt:formatNumber
+                                            value="${recommend.price - (recommend.price * recommend.discountRate / 100)}"
+                                            pattern="#,##0"/>
                                     </c:when>
 
+                                    <%-- 일반 상품: 소수점 없이 천 단위 쉼표 적용 --%>
                                     <c:otherwise>
-                                        ₩ ${recommend.price}
+                                        ₩ <fmt:formatNumber
+                                            value="${recommend.price}"
+                                            pattern="#,##0"/>
                                     </c:otherwise>
 
                                 </c:choose>
