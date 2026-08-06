@@ -81,10 +81,12 @@ public interface BusinessService {
         /*
          * =========================================================
          * 상품 수정 요청
-         * 새 이미지가 전달되지 않으면 기존 이미지를 유지
+         * - 기본 이미지가 없으면 기존 기본 이미지 유지
+         * - 세부 이미지가 없으면 기존 세부 이미지 유지
+         * - 세부 이미지가 전달되면 기존 세부 이미지를 새 이미지로 교체
          * =========================================================
          */
-        void updateProduct(GoodsManageVO goodsManageVO, MultipartFile productImage);
+        void updateProduct(GoodsManageVO goodsManageVO, MultipartFile productImage, MultipartFile[] detailImages);
 
         /*
          * =========================================================
