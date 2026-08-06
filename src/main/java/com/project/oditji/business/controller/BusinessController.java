@@ -24,6 +24,7 @@ import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventFormVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.DeliveryManageVO;
@@ -95,20 +96,12 @@ public class BusinessController {
         @GetMapping("/main")
         public String businessMain(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
                 model.addAttribute(MODEL_BUSINESS, business);
                 /* 사업자 메인 대시보드 통계 */
                 BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
@@ -132,20 +125,12 @@ public class BusinessController {
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 int totalCount = businessService.getProductListCountByBusinessNo(business.getBusinessNo(), keyword);
                 PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_CARD_PAGE_SIZE,
@@ -167,21 +152,12 @@ public class BusinessController {
         @GetMapping("/product/register")
         public String productRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품을 등록할 수 있습니다.");
@@ -209,21 +185,12 @@ public class BusinessController {
                         @RequestParam(value = "productImage", required = false) MultipartFile productImage,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품을 등록할 수 있습니다.");
@@ -529,20 +496,12 @@ public class BusinessController {
         public String productDeleteProcess(@RequestParam("productNo") long productNo, @RequestParam("reason") String reason,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
@@ -592,19 +551,12 @@ public class BusinessController {
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
                 int totalCount = businessService.getEventListCountByBusinessNo(business.getBusinessNo(), keyword);
@@ -664,20 +616,12 @@ public class BusinessController {
         @GetMapping("/event/register")
         public String eventRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
@@ -718,35 +662,17 @@ public class BusinessController {
          */
         @PostMapping("/event/register")
         public String eventRegisterProcess(
-
-                        @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "description", required = false) String description,
-                        @RequestParam("startDate") LocalDate startDate,
-                        @RequestParam("endDate") LocalDate endDate,
-
-                        // 선택한 연결 상품 목록
-                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
-                        // 상품별 할인율 목록
-                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+                        @ModelAttribute EventFormVO eventForm,
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE,"승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
@@ -754,27 +680,16 @@ public class BusinessController {
                         return REDIRECT_BUSINESS_MAIN;
                 }
 
-                if (hasInvalidDiscountRate(discountRateList)) {
+                if (hasInvalidDiscountRate(eventForm.getDiscountRateList())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                         return REDIRECT_EVENT_REGISTER;
                 }
 
-                EventManageVO eventManageVO = new EventManageVO();
-
-                eventManageVO.setBusinessNo(business.getBusinessNo());
-                eventManageVO.setTitle(eventTitle);
-                eventManageVO.setDescription(description);
-                eventManageVO.setStartDate(startDate);
-                eventManageVO.setEndDate(endDate);
-
-                /*
-                 * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
-                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
-                 */
-                eventManageVO.setStatus("WAITING");
-                eventManageVO.setProductNoList(productNoList);
-                eventManageVO.setDiscountRateList(discountRateList);
+                EventManageVO eventManageVO = createEventManageVO(
+                                null,
+                                business.getBusinessNo(),
+                                eventForm);
 
                 try {
                         long eventNo = businessService.registerEvent(eventManageVO, eventImage);
@@ -825,87 +740,38 @@ public class BusinessController {
         @PostMapping("/event/update")
         public String eventUpdateProcess(
                         @RequestParam("eventNo") long eventNo,
-                        @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "description", required = false) String description,
-                        @RequestParam("startDate") LocalDate startDate,
-                        @RequestParam("endDate") LocalDate endDate,
-                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
-
-                        //상품별 할인율 목록
-                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+                        @ModelAttribute EventFormVO eventForm,
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+                BusinessVO business = businessAccess.business();
 
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
+                if (hasInvalidDiscountRate(eventForm.getDiscountRateList())) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
-                        return REDIRECT_HOME;
+                        return REDIRECT_EVENT_LIST;
                 }
 
-                if (discountRateList != null) {
-                        for (Integer rate : discountRateList) {
-                                if (rate ==null || rate < 0 || rate > 100) {
-                                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
-
-                                        return REDIRECT_EVENT_LIST;
-                                }
-                        }
-                }
-
-                EventManageVO eventManageVO = new EventManageVO();
-
-                eventManageVO.setEventNo(eventNo);
-                eventManageVO.setBusinessNo(business.getBusinessNo());
-                eventManageVO.setTitle(eventTitle);
-                eventManageVO.setDescription(description);
-                eventManageVO.setStartDate(startDate);
-                eventManageVO.setEndDate(endDate);
+                EventManageVO eventManageVO = createEventManageVO(
+                                eventNo,
+                                business.getBusinessNo(),
+                                eventForm);
 
                 /*
-                 * 이벤트 수정 요청은 반드시 관리자 재승인을 거치므로
-                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
+                 * [리팩터링] 수정 폼이 eventList.jsp 모달로 통합되면서
+                 * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
                  */
-                eventManageVO.setStatus("WAITING");
-                eventManageVO.setProductNoList(productNoList);
-                eventManageVO.setDiscountRateList(discountRateList);
-
-                try {
-                        businessService.updateApprovedEvent(eventManageVO, eventImage);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "이벤트 수정 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
-
-                        return REDIRECT_EVENT_LIST;
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute( ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        /*
-                         * [리팩터링] 수정 폼이 eventList.jsp 모달로 통합되면서
-                         * 별도 GET /event/update 재표시 페이지가 없어졌다.
-                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
-                         */
-                        return REDIRECT_EVENT_LIST;
-
-               } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("이벤트 수정 처리 중 오류 - eventNo: {}", eventNo, e);
-                        }
-                        redirectAttributes.addFlashAttribute(
-                                ATTR_ERROR_MESSAGE,
-                                "이벤트 수정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
+                return processEventChange(
+                                () -> businessService.updateApprovedEvent(eventManageVO, eventImage),
+                                eventNo,
+                                "수정",
+                                redirectAttributes);
         }
 
         /*
@@ -943,48 +809,26 @@ public class BusinessController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+                BusinessVO business = businessAccess.business();
 
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
-
-                try {
-                        businessService.extendApprovedEvent(eventNo, business.getBusinessNo(), extendEndDate, extendReason);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "이벤트 연장 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
-
-                        return REDIRECT_EVENT_LIST;
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        /*
-                         * [리팩터링] 연장 폼이 eventList.jsp 모달로 통합되면서
-                         * 별도 GET /event/extend 재표시 페이지가 없어졌다.
-                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
-                         */
-                        return REDIRECT_EVENT_LIST;
-
-               } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("이벤트 연장 처리 중 오류 - eventNo: {}", eventNo, e);
-                        }
-                        redirectAttributes.addFlashAttribute(
-                                ATTR_ERROR_MESSAGE,
-                                "이벤트 연장 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
+                /*
+                 * [리팩터링] 연장 폼이 eventList.jsp 모달로 통합되면서
+                 * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                 */
+                return processEventChange(
+                                () -> businessService.extendApprovedEvent(
+                                                eventNo,
+                                                business.getBusinessNo(),
+                                                extendEndDate,
+                                                extendReason),
+                                eventNo,
+                                "연장",
+                                redirectAttributes);
         }
 
         /*
@@ -1096,18 +940,12 @@ public class BusinessController {
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 /*
                  * 날짜를 입력하지 않고 처음 진입하면 이번 달 1일부터 오늘까지를
@@ -1173,22 +1011,12 @@ public class BusinessController {
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                /* 로그인 회원과 연결된 사업자 조회 */
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 int totalCount = businessService.getBusinessOrderListCount(business.getBusinessNo());
                 PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE, BUSINESS_PAGE_BLOCK_SIZE);
@@ -1229,19 +1057,12 @@ public class BusinessController {
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 try {
                         /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
@@ -1288,19 +1109,12 @@ public class BusinessController {
                         @RequestParam(name = "returnPage", required = false, defaultValue = "1") int returnPage,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 try {
                         businessService.updateBusinessDelivery(business.getBusinessNo(), orderItemNo, courier, trackingNumber, status);
@@ -1416,17 +1230,45 @@ public class BusinessController {
 
                 Long memberNo = getLoginMemberNo(session);
 
+                return processCancelDecision(
+                                () -> orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason),
+                                "취소 요청을 반려했습니다.",
+                                "반려",
+                                memberNo,
+                                cancelNo,
+                                redirectAttributes);
+        }
+
+        /**
+         * 취소 요청 승인과 반려에서 공통으로 사용하는 처리 결과 및 예외 응답입니다.
+         */
+        private String processCancelDecision(
+                        Runnable decisionAction,
+                        String successMessage,
+                        String actionName,
+                        Long memberNo,
+                        Long cancelNo,
+                        RedirectAttributes redirectAttributes) {
+
                 try {
-                        orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "취소 요청을 반려했습니다.");
+                        decisionAction.run();
+                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, successMessage);
 
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
-                                log.error("취소 요청 반려 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
+                                log.error(
+                                                "취소 요청 {} 처리 중 오류 - memberNo: {}, cancelNo: {}",
+                                                actionName,
+                                                memberNo,
+                                                cancelNo,
+                                                e);
                         }
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "취소 요청 반려 처리 중 오류가 발생했습니다.");
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_ERROR_MESSAGE,
+                                        "취소 요청 " + actionName + " 처리 중 오류가 발생했습니다.");
                 }
 
                 if (returnStatus != null && !returnStatus.isBlank()) {
@@ -1439,6 +1281,63 @@ public class BusinessController {
                 return "redirect:/business/cancel/list";
         }
 
+        /**
+         * 이벤트 수정과 연장에서 공통으로 사용하는 처리 결과 및 예외 응답입니다.
+         */
+        private String processEventChange(
+                        Runnable eventAction,
+                        long eventNo,
+                        String actionName,
+                        RedirectAttributes redirectAttributes) {
+
+                try {
+                        eventAction.run();
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_SUCCESS_MESSAGE,
+                                        "이벤트 " + actionName + " 요청이 접수되었습니다. "
+                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("이벤트 {} 처리 중 오류 - eventNo: {}", actionName, eventNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_ERROR_MESSAGE,
+                                        "이벤트 " + actionName + " 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                }
+
+                return REDIRECT_EVENT_LIST;
+        }
+
+        /**
+         * 이벤트 등록과 수정에서 공통으로 사용하는 EVENT 저장 객체를 생성합니다.
+         */
+        private EventManageVO createEventManageVO(
+                        Long eventNo,
+                        long businessNo,
+                        EventFormVO eventForm) {
+
+                EventManageVO eventManageVO = new EventManageVO();
+
+                if (eventNo != null) {
+                        eventManageVO.setEventNo(eventNo);
+                }
+
+                eventManageVO.setBusinessNo(businessNo);
+                eventManageVO.setTitle(eventForm.getEventTitle());
+                eventManageVO.setDescription(eventForm.getDescription());
+                eventManageVO.setStartDate(eventForm.getStartDate());
+                eventManageVO.setEndDate(eventForm.getEndDate());
+                eventManageVO.setStatus("WAITING");
+                eventManageVO.setProductNoList(eventForm.getProductNoList());
+                eventManageVO.setDiscountRateList(eventForm.getDiscountRateList());
+
+                return eventManageVO;
+        }
+
         /* 이벤트 상품별 할인율 유효성 검사 */
         private static boolean hasInvalidDiscountRate(List<Integer> discountRateList) {
 
@@ -1447,7 +1346,7 @@ public class BusinessController {
                 }
 
                 for (Integer rate : discountRateList) {
-                        if (rate < 0 || rate > 100) {
+                        if (rate == null || rate < 0 || rate > 100) {
                                 return true;
                         }
                 }
@@ -1473,17 +1372,41 @@ public class BusinessController {
          * 세션 회원번호와 BUSINESS 연결 여부를 한 곳에서 확인한다.
          */
         private BusinessVO getLoginBusiness(HttpSession session, RedirectAttributes redirectAttributes) {
+                return getBusinessAccess(session, redirectAttributes).business();
+        }
+
+        /**
+         * 로그인 회원과 연결된 사업자를 한 번만 조회하고,
+         * 실패 시 사용할 이동 경로까지 함께 반환합니다.
+         */
+        private BusinessAccess getBusinessAccess(
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
                 Long memberNo = getLoginMemberNo(session);
+
                 if (memberNo == null) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return null;
+                        return new BusinessAccess(null, REDIRECT_MEMBER_LOGIN);
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+
                 if (business == null) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
+                        return new BusinessAccess(null, REDIRECT_HOME);
                 }
-                return business;
+
+                return new BusinessAccess(business, null);
+        }
+
+        private record BusinessAccess(
+                        BusinessVO business,
+                        String redirectUrl) {
+
+                private boolean denied() {
+                        return business == null;
+                }
         }
 
         private Long getLoginMemberNo(

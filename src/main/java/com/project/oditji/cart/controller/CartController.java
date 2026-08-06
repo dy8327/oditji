@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.project.oditji.cart.service.CartService;
+import com.project.oditji.common.util.ApiResponseUtil;
+import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.cart.vo.CartItemVO;
 import com.project.oditji.cart.vo.CartRequestVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -42,7 +44,7 @@ public class CartController {
     @GetMapping
     public String cart(HttpSession session, Model model) {
 
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
         if (loginMember == null) {
             return "redirect:/member/login?redirect=/cart";
@@ -69,10 +71,10 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> addCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
         if (loginMember == null) {
-            return loginRequiredResponse();
+            return ApiResponseUtil.loginRequired();
         }
 
         try {
@@ -82,20 +84,20 @@ public class CartController {
                     requestVO.getOptionNo(),
                     requestVO.getQuantity());
 
-            Map<String, Object> response = successResponse("장바구니에 상품을 담았습니다.");
+            Map<String, Object> response = ApiResponseUtil.success("장바구니에 상품을 담았습니다.");
             response.put(RESPONSE_CART_COUNT, cartCount);
 
             return response;
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(e.getMessage());
+            return ApiResponseUtil.failure(e.getMessage());
 
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("장바구니 상품 추가 중 오류 - productNo: {}", requestVO.getProductNo(), e);
             }
-            return failResponse("장바구니 처리 중 오류가 발생했습니다.");
+            return ApiResponseUtil.failure("장바구니 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -104,10 +106,10 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> updateCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
         if (loginMember == null) {
-            return loginRequiredResponse();
+            return ApiResponseUtil.loginRequired();
         }
 
         try {
@@ -116,17 +118,17 @@ public class CartController {
                     requestVO.getCartItemNo(),
                     requestVO.getQuantity());
 
-            return successResponse("수량이 변경되었습니다.");
+            return ApiResponseUtil.success("수량이 변경되었습니다.");
 
         } catch (IllegalArgumentException e) {
 
-            return failResponse(e.getMessage());
+            return ApiResponseUtil.failure(e.getMessage());
 
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("장바구니 수량 변경 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
             }
-            return failResponse("수량 변경 중 오류가 발생했습니다.");
+            return ApiResponseUtil.failure("수량 변경 중 오류가 발생했습니다.");
         }
     }
 
@@ -135,67 +137,46 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> deleteCartItem(@RequestBody CartRequestVO requestVO, HttpSession session) {
 
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
         if (loginMember == null) {
-            return loginRequiredResponse();
+            return ApiResponseUtil.loginRequired();
         }
 
-        try {
-            cartService.deleteCartItem(loginMember.getMemberNo(), requestVO.getCartItemNo());
-
-            Map<String, Object> response = successResponse("장바구니에서 상품을 삭제했습니다.");
-            response.put(RESPONSE_CART_COUNT, cartService.countCartItems(loginMember.getMemberNo()));
-
-            return response;
-
-        } catch (IllegalArgumentException e) {
-
-            return failResponse(e.getMessage());
-
-        } catch (Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("장바구니 상품 삭제 중 오류 - cartItemNo: {}", requestVO.getCartItemNo(), e);
-            }
-            return failResponse("상품 삭제 중 오류가 발생했습니다.");
-        }
+        return executeDelete(
+                loginMember,
+                () -> cartService.deleteCartItem(
+                        loginMember.getMemberNo(),
+                        requestVO.getCartItemNo()),
+                "장바구니에서 상품을 삭제했습니다.",
+                "상품 삭제 중 오류가 발생했습니다.",
+                "장바구니 상품 삭제 중 오류 - cartItemNo: "
+                        + requestVO.getCartItemNo());
     }
-
     // 선택한 장바구니 상품 삭제
     @PostMapping("/delete-selected")
     @ResponseBody
     public Map<String, Object> deleteSelectedCartItems(@RequestBody CartRequestVO requestVO, HttpSession session) {
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
         if (loginMember == null) {
-            return loginRequiredResponse();
+            return ApiResponseUtil.loginRequired();
         }
 
-        try {
-            cartService.deleteSelectedCartItems(loginMember.getMemberNo(), requestVO.getCartItemNos());
-
-            Map<String, Object> response = successResponse("선택한 상품을 삭제했습니다.");
-            response.put(RESPONSE_CART_COUNT, cartService.countCartItems(loginMember.getMemberNo()));
-
-            return response;
-
-        } catch (IllegalArgumentException e) {
-
-            return failResponse(e.getMessage());
-
-        } catch (Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("선택한 장바구니 상품 삭제 중 오류", e);
-            }
-            return failResponse("선택 상품 삭제 중 오류가 발생했습니다.");
-        }
+        return executeDelete(
+                loginMember,
+                () -> cartService.deleteSelectedCartItems(
+                        loginMember.getMemberNo(),
+                        requestVO.getCartItemNos()),
+                "선택한 상품을 삭제했습니다.",
+                "선택 상품 삭제 중 오류가 발생했습니다.",
+                "선택한 장바구니 상품 삭제 중 오류");
     }
-
     // 헤더나 다른 화면에서 사용할 장바구니 개수
     @GetMapping("/count")
     @ResponseBody
     public Map<String, Object> countCartItems(HttpSession session) {
-        MemberVO loginMember = getLoginMember(session);
+        MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
         Map<String, Object> response = new LinkedHashMap<String, Object>();
 
         if (loginMember == null) {
@@ -211,44 +192,24 @@ public class CartController {
         return response;
     }
 
-    private MemberVO getLoginMember(HttpSession session) {
-        Object sessionMember = session.getAttribute("loginMember");
-        if (!(sessionMember instanceof MemberVO)) {
-            return null;
-        }
 
-        MemberVO loginMember = (MemberVO) sessionMember;
-        if (loginMember.getMemberNo() == null || loginMember.getMemberNo() <= 0) {
+    private Map<String, Object> executeDelete(
+            MemberVO loginMember,
+            Runnable deleteAction,
+            String successMessage,
+            String errorMessage,
+            String logMessage) {
 
-            return null;
-        }
-
-        return loginMember;
+        return ApiResponseUtil.execute(
+                deleteAction,
+                successMessage,
+                errorMessage,
+                log,
+                logMessage,
+                response -> response.put(
+                        RESPONSE_CART_COUNT,
+                        cartService.countCartItems(
+                                loginMember.getMemberNo())));
     }
 
-    private Map<String, Object> successResponse(String message) {
-        Map<String, Object> response = new LinkedHashMap<String, Object>();
-
-        response.put(RESPONSE_SUCCESS, true);
-        response.put("message", message);
-
-        return response;
-    }
-
-    private Map<String, Object> failResponse(String message) {
-        Map<String, Object> response = new LinkedHashMap<String, Object>();
-
-        response.put(RESPONSE_SUCCESS, false);
-        response.put("message", message);
-
-        return response;
-    }
-
-    private Map<String, Object> loginRequiredResponse() {
-
-        Map<String, Object> response = failResponse("로그인이 필요한 서비스입니다.");
-        response.put("loginRequired", true);
-
-        return response;
-    }
 }

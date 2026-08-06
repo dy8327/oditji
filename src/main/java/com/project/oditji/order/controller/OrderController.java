@@ -1,9 +1,9 @@
 package com.project.oditji.order.controller;
 
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongFunction;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,7 +22,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.project.oditji.common.util.ApiResponseUtil;
 import com.project.oditji.common.util.DateTimeUtil;
+import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -80,35 +82,12 @@ public class OrderController {
         public Map<String, Object> checkoutFromCart(@RequestBody OrderCheckoutRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
-
-                if (loginMember == null) {
-                        return loginRequiredResponse();
-                }
-
-                try {
-                        List<OrderSheetItemVO> sheetItems = orderService.prepareCheckoutFromCart(
-                                        loginMember.getMemberNo(), requestVO.getCartItemNos());
-
-                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
-                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
-
-                        Map<String, Object> response = successResponse("주문서를 작성해주세요.");
-                        response.put(RESPONSE_REDIRECT_URL, "/order");
-
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-
-                        return failResponse(e.getMessage());
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("장바구니 주문서 작성 중 오류", e);
-                        }
-
-                        return failResponse("주문서 작성 중 오류가 발생했습니다.");
-                }
-
+                return prepareOrderSheet(
+                                session,
+                                memberNo -> orderService.prepareCheckoutFromCart(
+                                                memberNo,
+                                                requestVO.getCartItemNos()),
+                                "장바구니 주문서 작성 중 오류");
         }
 
         // 상품 상세 바로 구매 주문서 작성 준비
@@ -116,42 +95,21 @@ public class OrderController {
         @ResponseBody
         public Map<String, Object> directOrder(@RequestBody OrderDirectRequestVO requestVO, HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
-
-                if (loginMember == null) {
-                        return loginRequiredResponse();
-                }
-
-                try {
-                        List<OrderSheetItemVO> sheetItems = orderService.prepareDirectOrder(
-                                        loginMember.getMemberNo(), requestVO.getProductNo(), requestVO.getOptionNo(),
-                                        requestVO.getQuantity());
-
-                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
-                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
-
-                        Map<String, Object> response = successResponse("주문서를 작성해주세요.");
-                        response.put(RESPONSE_REDIRECT_URL, "/order");
-
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-
-                        return failResponse(e.getMessage());
-
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("바로 구매 주문서 작성 중 오류", e);
-                        }
-                        return failResponse("주문서 작성 중 오류가 발생했습니다.");
-                }
+                return prepareOrderSheet(
+                                session,
+                                memberNo -> orderService.prepareDirectOrder(
+                                                memberNo,
+                                                requestVO.getProductNo(),
+                                                requestVO.getOptionNo(),
+                                                requestVO.getQuantity()),
+                                "바로 구매 주문서 작성 중 오류");
         }
 
         // 주문서 화면
         @GetMapping
         public String orderSheet(HttpSession session, Model model) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
                         return "redirect:/member/login?redirect=/order";
@@ -186,10 +144,10 @@ public class OrderController {
         @ResponseBody
         public Map<String, Object> preparePayment(@RequestBody OrderSubmitRequestVO requestVO, HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 @SuppressWarnings("unchecked")
@@ -198,7 +156,7 @@ public class OrderController {
 
                 if (sheetItems == null || sheetItems.isEmpty()) {
 
-                        return failResponse("주문서 정보가 만료되었습니다. " + "다시 주문해주세요.");
+                        return ApiResponseUtil.failure("주문서 정보가 만료되었습니다. " + "다시 주문해주세요.");
                 }
 
                 try {
@@ -213,7 +171,7 @@ public class OrderController {
                         prepareVO.setChannelKey(paymentChannelKey);
                         session.setAttribute(PAYMENT_PREPARE_SESSION_KEY, prepareVO);
 
-                        Map<String, Object> response = successResponse("결제 준비가 완료되었습니다.");
+                        Map<String, Object> response = ApiResponseUtil.success("결제 준비가 완료되었습니다.");
 
                         response.put("storeId", prepareVO.getStoreId());
                         response.put("channelKey", prepareVO.getChannelKey());
@@ -225,14 +183,14 @@ public class OrderController {
 
                 } catch (IllegalArgumentException e) {
 
-                        return failResponse(e.getMessage());
+                        return ApiResponseUtil.failure(e.getMessage());
 
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
                                 log.error("결제 준비 중 오류", e);
                         }
 
-                        return failResponse("결제 준비 중 오류가 발생했습니다.");
+                        return ApiResponseUtil.failure("결제 준비 중 오류가 발생했습니다.");
                 }
         }
 
@@ -242,22 +200,22 @@ public class OrderController {
         public Map<String, Object> completePayment(@RequestBody OrderPaymentCompleteRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 if (requestVO == null || requestVO.getPaymentId() == null || requestVO.getPaymentId().isBlank()) {
 
-                        return failResponse("결제 ID가 없습니다.");
+                        return ApiResponseUtil.failure("결제 ID가 없습니다.");
                 }
 
                 OrderPaymentPrepareVO prepareVO = (OrderPaymentPrepareVO) session
                                 .getAttribute(PAYMENT_PREPARE_SESSION_KEY);
 
                 if (prepareVO == null) {
-                        return failResponse("결제 준비 정보가 만료되었습니다. " + "주문서를 다시 작성해주세요.");
+                        return ApiResponseUtil.failure("결제 준비 정보가 만료되었습니다. " + "주문서를 다시 작성해주세요.");
                 }
 
                 try {
@@ -269,7 +227,7 @@ public class OrderController {
                         session.removeAttribute(ORDER_SHEET_SESSION_KEY);
                         session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
 
-                        Map<String, Object> response = successResponse("결제와 주문이 완료되었습니다.");
+                        Map<String, Object> response = ApiResponseUtil.success("결제와 주문이 완료되었습니다.");
 
                         response.put("orderNo", orderNo);
                         response.put(RESPONSE_REDIRECT_URL, "/order/complete/" + orderNo);
@@ -278,13 +236,13 @@ public class OrderController {
 
                 } catch (IllegalArgumentException e) {
 
-                        return failResponse(e.getMessage());
+                        return ApiResponseUtil.failure(e.getMessage());
 
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
                                 log.error("결제 검증 및 주문 확정 중 오류 - paymentId: {}", requestVO.getPaymentId(), e);
                         }
-                        return failResponse("결제 검증 또는 주문 처리 중 오류가 발생했습니다.");
+                        return ApiResponseUtil.failure("결제 검증 또는 주문 처리 중 오류가 발생했습니다.");
                 }
         }
 
@@ -294,48 +252,27 @@ public class OrderController {
         public Map<String, Object> cancelPayment(@RequestBody OrderPaymentCancelRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 if (requestVO == null) {
-                        return failResponse(
+                        return ApiResponseUtil.failure(
                                         "결제 취소 요청 정보가 없습니다.");
                 }
 
-                try {
-                        /*
-                         * =========================================================
-                         * [주문 취소 요청 방식으로 변경]
-                         *
-                         * 사용자가 버튼을 누르는 즉시 포트원을 취소하지 않고
-                         * 사업자 승인 대기 상태의 취소 요청을 등록한다.
-                         * =========================================================
-                         */
-                        orderCancelRefundService.requestOrderCancel(
-                                        loginMember.getMemberNo(),
-                                        requestVO.getOrderNo(),
-                                        requestVO.getReason());
-
-                        Map<String, Object> response = successResponse("주문 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
-
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-
-                        return failResponse(e.getMessage());
-
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("주문 전체 취소 요청 처리 중 오류 - orderNo: {}", requestVO.getOrderNo(), e);
-                        }
-                        return failResponse("주문 취소 요청 처리 중 오류가 발생했습니다.");
-                }
+                return processCancelRequest(
+                                () -> orderCancelRefundService.requestOrderCancel(
+                                                loginMember.getMemberNo(),
+                                                requestVO.getOrderNo(),
+                                                requestVO.getReason()),
+                                "주문 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.",
+                                "주문 취소 요청 처리 중 오류가 발생했습니다.",
+                                "주문 전체 취소 요청 처리 중 오류 - orderNo: "
+                                                + requestVO.getOrderNo());
         }
-
         /*
          * =========================================================
          * [상품별 부분 취소 요청 기능 추가]
@@ -349,37 +286,26 @@ public class OrderController {
         public Map<String, Object> cancelOrderItem(@RequestBody OrderPaymentCancelRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 if (requestVO == null || requestVO.getOrderItemNo() == null) {
-                        return failResponse("부분 취소 요청 정보가 없습니다.");
+                        return ApiResponseUtil.failure("부분 취소 요청 정보가 없습니다.");
                 }
 
-                try {
-                        orderCancelRefundService.requestOrderItemCancel(
-                                        loginMember.getMemberNo(),
-                                        requestVO.getOrderItemNo(),
-                                        requestVO.getReason());
-
-                        Map<String, Object> response = successResponse("상품 부분 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-                        return failResponse(e.getMessage());
-
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("상품 부분 취소 요청 처리 중 오류 - orderItemNo: {}", requestVO.getOrderItemNo(), e);
-                        }
-                        return failResponse("상품 부분 취소 요청 처리 중 오류가 발생했습니다.");
-                }
+                return processCancelRequest(
+                                () -> orderCancelRefundService.requestOrderItemCancel(
+                                                loginMember.getMemberNo(),
+                                                requestVO.getOrderItemNo(),
+                                                requestVO.getReason()),
+                                "상품 부분 취소 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.",
+                                "상품 부분 취소 요청 처리 중 오류가 발생했습니다.",
+                                "상품 부분 취소 요청 처리 중 오류 - orderItemNo: "
+                                                + requestVO.getOrderItemNo());
         }
-
         /*
          * =========================================================
          * [추가] 선택 상품 일괄 취소/환불 요청
@@ -392,42 +318,30 @@ public class OrderController {
                         @RequestBody OrderPaymentCancelRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 if (requestVO == null || requestVO.getOrderItemNos() == null
                                 || requestVO.getOrderItemNos().isEmpty()) {
-                        return failResponse("선택한 주문상품이 없습니다.");
+                        return ApiResponseUtil.failure("선택한 주문상품이 없습니다.");
                 }
 
-                try {
-                        orderCancelRefundService.requestOrderItemsCancel(
-                                        loginMember.getMemberNo(),
-                                        requestVO.getOrderItemNos(),
-                                        requestVO.getReason());
-
-                        Map<String, Object> response = successResponse(
-                                        "선택한 상품의 취소/환불 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.");
-                        response.put(RESPONSE_REDIRECT_URL, ORDER_LIST_URL);
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-                        return failResponse(e.getMessage());
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("선택 상품 일괄 취소/환불 요청 처리 중 오류", e);
-                        }
-                        return failResponse("선택 상품 취소/환불 요청 처리 중 오류가 발생했습니다.");
-                }
+                return processCancelRequest(
+                                () -> orderCancelRefundService.requestOrderItemsCancel(
+                                                loginMember.getMemberNo(),
+                                                requestVO.getOrderItemNos(),
+                                                requestVO.getReason()),
+                                "선택한 상품의 취소/환불 요청이 접수되었습니다. 사업자 승인 후 환불됩니다.",
+                                "선택 상품 취소/환불 요청 처리 중 오류가 발생했습니다.",
+                                "선택 상품 일괄 취소/환불 요청 처리 중 오류");
         }
-
         // 주문 완료 화면
         @GetMapping("/complete/{orderNo}")
         public String orderComplete(@PathVariable Long orderNo, HttpSession session, Model model) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
                         return "redirect:/member/login?redirect=/order/list";
@@ -462,7 +376,7 @@ public class OrderController {
                         @RequestParam(name = "tab", defaultValue = "order") String tab,
                         HttpSession session, Model model) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
                         return "redirect:/member/login?redirect=/order/list";
@@ -540,14 +454,14 @@ public class OrderController {
                         @RequestParam(name = "orderItemNo") Long orderItemNo,
                         HttpSession session) {
 
-                MemberVO loginMember = getLoginMember(session);
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
                 if (loginMember == null) {
-                        return loginRequiredResponse();
+                        return ApiResponseUtil.loginRequired();
                 }
 
                 if (orderItemNo == null) {
-                        return failResponse("조회할 주문상품 번호가 없습니다.");
+                        return ApiResponseUtil.failure("조회할 주문상품 번호가 없습니다.");
                 }
 
                 try {
@@ -555,65 +469,73 @@ public class OrderController {
                                         loginMember.getMemberNo(),
                                         orderItemNo);
 
-                        Map<String, Object> response = successResponse("배송 정보를 조회했습니다.");
+                        Map<String, Object> response = ApiResponseUtil.success("배송 정보를 조회했습니다.");
                         response.put("delivery", delivery);
 
                         return response;
 
                 } catch (IllegalArgumentException e) {
-                        return failResponse(e.getMessage());
+                        return ApiResponseUtil.failure(e.getMessage());
 
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
                                 log.error("배송 조회 처리 중 오류 - orderItemNo: {}", orderItemNo, e);
                         }
-                        return failResponse("배송 정보 조회 중 오류가 발생했습니다.");
+                        return ApiResponseUtil.failure("배송 정보 조회 중 오류가 발생했습니다.");
                 }
         }
 
-        // 세션에서 현재 로그인된 사용자 정보를 검증 및 반환한다.
-        private MemberVO getLoginMember(HttpSession session) {
-                Object sessionMember = session.getAttribute("loginMember");
+        /**
+         * 장바구니 주문과 바로 구매에서 공통으로 사용하는 주문서 준비 처리입니다.
+         */
+        private Map<String, Object> prepareOrderSheet(
+                        HttpSession session,
+                        LongFunction<List<OrderSheetItemVO>> sheetItemLoader,
+                        String logMessage) {
 
-                if (!(sessionMember instanceof MemberVO)) {
-                        return null;
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
+
+                if (loginMember == null) {
+                        return ApiResponseUtil.loginRequired();
                 }
 
-                MemberVO loginMember = (MemberVO) sessionMember;
-                if (loginMember.getMemberNo() == null || loginMember.getMemberNo() <= 0) {
+                try {
+                        List<OrderSheetItemVO> sheetItems = sheetItemLoader.apply(loginMember.getMemberNo());
 
-                        return null;
+                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
+                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
+
+                        Map<String, Object> response = ApiResponseUtil.success("주문서를 작성해주세요.");
+                        response.put(RESPONSE_REDIRECT_URL, "/order");
+
+                        return response;
+
+                } catch (IllegalArgumentException e) {
+                        return ApiResponseUtil.failure(e.getMessage());
+
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error(logMessage, e);
+                        }
+                        return ApiResponseUtil.failure("주문서 작성 중 오류가 발생했습니다.");
                 }
-
-                return loginMember;
         }
 
-        // 성공 응답 Map 생성
-        private Map<String, Object> successResponse(String message) {
-                Map<String, Object> response = new LinkedHashMap<String, Object>();
+        private Map<String, Object> processCancelRequest(
+                        Runnable requestAction,
+                        String successMessage,
+                        String errorMessage,
+                        String logMessage) {
 
-                response.put("success", true);
-                response.put("message", message);
-
-                return response;
+                return ApiResponseUtil.execute(
+                                requestAction,
+                                successMessage,
+                                errorMessage,
+                                log,
+                                logMessage,
+                                response -> response.put(
+                                                RESPONSE_REDIRECT_URL,
+                                                ORDER_LIST_URL));
         }
 
-        // 실패 응답 Map 생성
-        private Map<String, Object> failResponse(String message) {
-                Map<String, Object> response = new LinkedHashMap<String, Object>();
-
-                response.put("success", false);
-                response.put("message", message);
-
-                return response;
-        }
-
-        // 로그인 필요 응답 Map 생성
-        private Map<String, Object> loginRequiredResponse() {
-                Map<String, Object> response = failResponse("로그인이 필요한 서비스입니다.");
-
-                response.put("loginRequired", true);
-
-                return response;
-        }
 }

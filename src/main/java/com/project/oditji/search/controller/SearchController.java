@@ -1,7 +1,6 @@
 package com.project.oditji.search.controller;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -12,16 +11,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.project.oditji.common.util.PlatformNameNormalizer;
+import com.project.oditji.common.util.FilterValueNormalizer;
+import com.project.oditji.common.util.GoodsFilterModelUtil;
+import com.project.oditji.common.util.LoginMemberUtil;
+import com.project.oditji.common.util.OttPlatformUtil;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
-import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
-import com.project.oditji.tmdb.vo.OttPlatformVO;
 import com.project.oditji.wish.service.WishService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,6 +36,12 @@ public class SearchController {
     private static final int ALL_GOODS_PREVIEW_SIZE = 5;
     private static final String SEARCH_TAB_CONTENT = "CONTENT";
     private static final String SEARCH_TAB_GOODS = "GOODS";
+    private static final Set<String> VALID_CONTENT_CATEGORIES = Set.of(
+            "MOVIE",
+            "DRAMA",
+            "ANIMATION",
+            "VARIETY",
+            "DOCUMENTARY");
 
     private final SearchContentPageCacheService searchContentPageCacheService;
     private final GoodsService goodsService;
@@ -341,7 +347,7 @@ public class SearchController {
          * 활성 OTT 플랫폼 로고
          */
         Map<String, String> ottLogoMap =
-                createOttLogoMap(
+                OttPlatformUtil.createLogoMap(
                         tmdbDAO.selectActivePlatformList()
                 );
 
@@ -352,13 +358,8 @@ public class SearchController {
          * 그대로 재사용하기 위해, goodsList 화면과 같은 방식으로
          * wishedProductNoSet을 모델에 담아 전달합니다.
          */
-        MemberVO loginMember =
-                (MemberVO) session.getAttribute("loginMember");
-
         Long loginMemberNo =
-                loginMember == null
-                        ? null
-                        : loginMember.getMemberNo();
+                LoginMemberUtil.getLoginMemberNo(session);
 
         Set<Integer> wishedProductNoSet =
                 wishService.getWishedProductNoSet(loginMemberNo);
@@ -463,10 +464,14 @@ public class SearchController {
                 contentTotalCount
         );
 
-        model.addAttribute(
-                "keyword",
-                keyword
-        );
+        model.addAllAttributes(GoodsFilterModelUtil.create(
+                keyword,
+                productTypes,
+                availableProductTypes,
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly));
 
         model.addAttribute(
                 "contentCategories",
@@ -486,36 +491,6 @@ public class SearchController {
         model.addAttribute(
                 "ageRatings",
                 ageRatings
-        );
-
-        model.addAttribute(
-                "productTypes",
-                productTypes
-        );
-
-        model.addAttribute(
-                "availableProductTypes",
-                availableProductTypes
-        );
-
-        model.addAttribute(
-                "minPrice",
-                minPrice
-        );
-
-        model.addAttribute(
-                "maxPrice",
-                maxPrice
-        );
-
-        model.addAttribute(
-                "discountOnly",
-                discountOnly
-        );
-
-        model.addAttribute(
-                "inStockOnly",
-                inStockOnly
         );
 
         model.addAttribute(
@@ -542,46 +517,6 @@ public class SearchController {
     }
 
     /**
-     * 활성 OTT 플랫폼 목록을 플랫폼명-로고 주소 Map으로 변환합니다.
-     */
-    private Map<String, String> createOttLogoMap(
-            List<OttPlatformVO> platformList) {
-
-        Map<String, String> logoMap =
-                new LinkedHashMap<String, String>();
-
-        if (platformList == null) {
-            return logoMap;
-        }
-
-        for (OttPlatformVO platform : platformList) {
-
-            if (platform == null
-                    || platform.getPlatformName() == null
-                    || platform.getLogoImage() == null
-                    || platform.getLogoImage().isBlank()) {
-
-                continue;
-            }
-
-            String platformKey =
-                    PlatformNameNormalizer.toKey(
-                            platform.getPlatformName()
-                    );
-
-            if (!platformKey.isEmpty()) {
-
-                logoMap.put(
-                        platformKey,
-                        platform.getLogoImage()
-                );
-            }
-        }
-
-        return logoMap;
-    }
-
-    /**
      * 콘텐츠 분류 필터에서 허용하는 값만 남깁니다.
      *
      * 시스템 기본 언어에 따라 대문자 변환 결과가 달라지지 않도록
@@ -590,66 +525,15 @@ public class SearchController {
     private List<String> normalizeContentCategories(
             List<String> sourceList) {
 
-        List<String> safeList =
-                new ArrayList<String>();
-
-        if (sourceList == null) {
-            return safeList;
-        }
-
-        for (String value : sourceList) {
-
-            if (value == null) {
-                continue;
-            }
-
-            String normalized =
-                    value.trim().toUpperCase(Locale.ROOT);
-
-            if (("MOVIE".equals(normalized)
-                    || "DRAMA".equals(normalized)
-                    || "ANIMATION".equals(normalized)
-                    || "VARIETY".equals(normalized)
-                    || "DOCUMENTARY".equals(normalized))
-                    && !safeList.contains(normalized)) {
-
-                safeList.add(normalized);
-            }
-        }
-
-        return safeList;
+        return FilterValueNormalizer.distinctUpperCaseAllowed(
+                sourceList,
+                VALID_CONTENT_CATEGORIES);
     }
 
-    /**
-     * null, 빈 문자열, 중복값을 제거한 안전한 필터 목록을 만듭니다.
-     */
     private List<String> createSafeList(
             List<String> sourceList) {
 
-        List<String> safeList =
-                new ArrayList<String>();
-
-        if (sourceList == null) {
-            return safeList;
-        }
-
-        for (String value : sourceList) {
-
-            if (value == null) {
-                continue;
-            }
-
-            String normalizedValue =
-                    value.trim();
-
-            if (!normalizedValue.isEmpty()
-                    && !safeList.contains(normalizedValue)) {
-
-                safeList.add(normalizedValue);
-            }
-        }
-
-        return safeList;
+        return FilterValueNormalizer.distinctTrimmed(sourceList);
     }
 
     /**

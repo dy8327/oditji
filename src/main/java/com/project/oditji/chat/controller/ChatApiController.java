@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.support.ChatSessionSupport;
 import com.project.oditji.chat.vo.ChatNotificationContextVO;
 import com.project.oditji.chat.vo.ChatNotificationRoomVO;
 import com.project.oditji.chat.vo.ChatParticipantReadVO;
 import com.project.oditji.chat.vo.ChatReadStateVO;
 import com.project.oditji.chat.vo.ChatResponseVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
-import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -27,10 +27,6 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/chat/api")
 public class ChatApiController {
 
-    private static final long ADMIN_MEMBER_NO = 1L;
-    private static final int ADMIN_BUSINESS_NO = 1;
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROOM_TYPE_NOTICE = "NOTICE";
     private static final String MESSAGE_LOGIN_INFO_NOT_FOUND = "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.";
     private static final String MESSAGE_ROOM_NOT_FOUND = "존재하지 않는 채팅방입니다.";
     private static final String RESPONSE_SUCCESS = "success";
@@ -50,14 +46,14 @@ public class ChatApiController {
     @GetMapping("/rooms")
     public List<ChatRoomVO> getRoomList(HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return List.of();
         }
 
         List<ChatRoomVO> roomList = chatService.getChatRoomList();
 
-        if (isAdmin(session)) {
-            return filterNoticeRooms(roomList);
+        if (ChatSessionSupport.isAdmin(session)) {
+            return ChatSessionSupport.filterNoticeRooms(roomList);
         }
 
         return roomList;
@@ -70,15 +66,15 @@ public class ChatApiController {
     @GetMapping("/rooms/my")
     public List<ChatRoomVO> getMyRoomList(HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return List.of();
         }
 
-        if (isAdmin(session)) {
-            return filterNoticeRooms(chatService.getChatRoomList());
+        if (ChatSessionSupport.isAdmin(session)) {
+            return ChatSessionSupport.filterNoticeRooms(chatService.getChatRoomList());
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         return chatService.getMyChatRoomList(businessNo);
     }
 
@@ -103,15 +99,15 @@ public class ChatApiController {
     public ChatNotificationContextVO getNotificationContext(
             HttpSession session) {
 
-        Long memberNo = getSessionMemberNo(session);
-        Integer sessionBusinessNo = getSessionBusinessNo(session);
-        String role = getSessionRole(session);
-        boolean admin = isAdmin(session);
+        Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+        Integer sessionBusinessNo = ChatSessionSupport.getSessionBusinessNo(session);
+        String role = ChatSessionSupport.getSessionRole(session);
+        boolean admin = ChatSessionSupport.isAdmin(session);
         Integer notificationBusinessNo = admin
-                ? Integer.valueOf(ADMIN_BUSINESS_NO)
+                ? Integer.valueOf(ChatSessionSupport.ADMIN_BUSINESS_NO)
                 : sessionBusinessNo;
 
-        if (!hasChatAccess(session) || memberNo == null) {
+        if (!ChatSessionSupport.hasChatAccess(session) || memberNo == null) {
             return new ChatNotificationContextVO(
                     false,
                     memberNo,
@@ -165,9 +161,9 @@ public class ChatApiController {
             @RequestParam("lastReadEpochMs") long lastReadEpochMs,
             HttpSession session) {
 
-        Long memberNo = getSessionMemberNo(session);
+        Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
 
-        if (memberNo == null || !hasChatAccess(session)) {
+        if (memberNo == null || !ChatSessionSupport.hasChatAccess(session)) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
@@ -222,7 +218,7 @@ public class ChatApiController {
             @RequestParam("roomId") String roomId,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
@@ -238,21 +234,21 @@ public class ChatApiController {
                     MESSAGE_ROOM_NOT_FOUND);
         }
 
-        if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+        if (ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
             return new ChatResponseVO(
                     true,
                     ChatResult.SUCCESS,
                     "공지방으로 이동합니다.");
         }
 
-        if (isAdmin(session)) {
+        if (ChatSessionSupport.isAdmin(session)) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
                     "관리자는 공지방만 이용할 수 있습니다.");
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         int result = chatService.joinChatRoom(roomId, businessNo);
 
         return switch (result) {
@@ -283,21 +279,21 @@ public class ChatApiController {
 
         Map<String, Object> response = new HashMap<>();
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             response.put(RESPONSE_SUCCESS, false);
             response.put(RESPONSE_MESSAGE, MESSAGE_LOGIN_INFO_NOT_FOUND);
             response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
-        if (isAdmin(session)) {
+        if (ChatSessionSupport.isAdmin(session)) {
             response.put(RESPONSE_SUCCESS, false);
             response.put(RESPONSE_MESSAGE, "관리자는 자유방 나가기 기능을 사용할 수 없습니다.");
             response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
@@ -307,7 +303,7 @@ public class ChatApiController {
             return response;
         }
 
-        if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+        if (ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
             response.put(RESPONSE_SUCCESS, false);
             response.put(RESPONSE_MESSAGE, "공지방에서는 나가기 기능을 사용할 수 없습니다.");
             response.put(RESPONSE_WILL_DELETE_ROOM, false);
@@ -344,21 +340,21 @@ public class ChatApiController {
             @RequestParam("roomId") String roomId,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
                     MESSAGE_LOGIN_INFO_NOT_FOUND);
         }
 
-        if (isAdmin(session)) {
+        if (ChatSessionSupport.isAdmin(session)) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
                     "관리자는 자유방 나가기 기능을 사용할 수 없습니다.");
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
@@ -368,7 +364,7 @@ public class ChatApiController {
                     MESSAGE_ROOM_NOT_FOUND);
         }
 
-        if (ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
+        if (ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType())) {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
@@ -402,7 +398,7 @@ public class ChatApiController {
             String roomId,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return null;
         }
 
@@ -412,9 +408,9 @@ public class ChatApiController {
             return null;
         }
 
-        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        boolean noticeRoom = ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType());
 
-        if (isAdmin(session)) {
+        if (ChatSessionSupport.isAdmin(session)) {
             return noticeRoom ? room : null;
         }
 
@@ -422,7 +418,7 @@ public class ChatApiController {
             return room;
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
 
         return businessNo != null
                 && chatService.isChatRoomMember(roomId, businessNo)
@@ -430,113 +426,5 @@ public class ChatApiController {
                         : null;
     }
 
-    /**
-     * 관리자 여부를 MEMBER_NO=1, ROLE=ADMIN 기준으로 확인합니다.
-     */
-    private boolean isAdmin(HttpSession session) {
 
-        Long memberNo = getSessionMemberNo(session);
-        String role = getSessionRole(session);
-
-        return memberNo != null
-                && memberNo.longValue() == ADMIN_MEMBER_NO
-                && ROLE_ADMIN.equals(role);
-    }
-
-    /**
-     * 관리자 또는 사업자 채팅 접근 가능 여부를 확인합니다.
-     */
-    private boolean hasChatAccess(HttpSession session) {
-        return isAdmin(session) || getSessionBusinessNo(session) != null;
-    }
-
-    /**
-     * 실제 로그인 사업자의 세션 사업자 번호를 반환합니다.
-     */
-    private Integer getSessionBusinessNo(HttpSession session) {
-
-        Object value = session.getAttribute("businessNo");
-
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-
-        return null;
-    }
-
-    /**
-     * 로그인 방식별 세션 키 차이를 고려해 회원 번호를 조회합니다.
-     */
-    private Long getSessionMemberNo(HttpSession session) {
-
-        Long memberNo = getLongSessionValue(session, "memberNo");
-
-        if (memberNo != null) {
-            return memberNo;
-        }
-
-        memberNo = getLongSessionValue(session, "loginMemberNo");
-
-        if (memberNo != null) {
-            return memberNo;
-        }
-
-        Object loginMember = session.getAttribute("loginMember");
-
-        if (loginMember instanceof MemberVO member) {
-            return member.getMemberNo();
-        }
-
-        return null;
-    }
-
-    /**
-     * 로그인 역할을 세션 문자열 또는 로그인 회원 객체에서 조회합니다.
-     */
-    private String getSessionRole(HttpSession session) {
-
-        Object role = session.getAttribute("role");
-
-        if (role != null && !String.valueOf(role).isBlank()) {
-            return String.valueOf(role);
-        }
-
-        Object loginMember = session.getAttribute("loginMember");
-
-        if (loginMember instanceof MemberVO member) {
-            return member.getRole();
-        }
-
-        return null;
-    }
-
-    /**
-     * 세션의 숫자 값을 Long으로 변환합니다.
-     */
-    private Long getLongSessionValue(
-            HttpSession session,
-            String attributeName) {
-
-        Object value = session.getAttribute(attributeName);
-
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-
-        return null;
-    }
-
-    /**
-     * 관리자 목록에는 공지방만 남깁니다.
-     */
-    private List<ChatRoomVO> filterNoticeRooms(List<ChatRoomVO> roomList) {
-
-        if (roomList == null || roomList.isEmpty()) {
-            return List.of();
-        }
-
-        return roomList.stream()
-                .filter(room -> ROOM_TYPE_NOTICE.equals(room.getRoomType()))
-                .toList();
-    }
 }

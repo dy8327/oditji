@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.oditji.common.util.GoodsFilterModelUtil;
+import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
-import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.report.service.ReportService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ProductReviewVO;
@@ -120,19 +121,19 @@ public class GoodsController {
                 normalizedPage,
                 GOODS_PAGE_SIZE);
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Long loginMemberNo = LoginMemberUtil.getLoginMemberNo(session);
         Set<Integer> wishedProductNoSet = wishService.getWishedProductNoSet(loginMemberNo);
 
         model.addAttribute("goodsList", goodsList);
         model.addAttribute("recommendedGoodsList", goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE));
-        model.addAttribute("availableProductTypes", goodsService.getSearchProductTypes());
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("productTypes", productTypes);
-        model.addAttribute("minPrice", minPrice);
-        model.addAttribute("maxPrice", maxPrice);
-        model.addAttribute("discountOnly", discountOnly);
-        model.addAttribute("inStockOnly", inStockOnly);
+        model.addAllAttributes(GoodsFilterModelUtil.create(
+                keyword,
+                productTypes,
+                goodsService.getSearchProductTypes(),
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly));
         model.addAttribute("priceRanges", priceRanges);
         model.addAttribute("stockStatus", stockStatus);
         model.addAttribute("type", normalizedType);
@@ -192,8 +193,7 @@ public class GoodsController {
             }
         }
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Long loginMemberNo = LoginMemberUtil.getLoginMemberNo(session);
         goodsService.addProductClickLog(productNo, loginMemberNo);
         Set<Integer> reportedReviewSet = reportService.getReportedProductReviewSet(loginMemberNo);
 
@@ -235,43 +235,22 @@ public class GoodsController {
 
         String productType = productTypes.get(0);
 
-        if ("BOOK".equals(productType)) {
-            return "도서";
-        }
-
-        if ("CLOTHES".equals(productType)) {
-            return "의상";
-        }
-
-        if ("SHOES".equals(productType)) {
-            return "신발";
-        }
-
-        if ("OST".equals(productType)) {
-            return "OST";
-        }
-
-        if ("PROP".equals(productType)) {
-            return "소품";
-        }
-
-        if ("GOODS".equals(productType)) {
-            return "굿즈";
-        }
-
-        if ("FIGURE".equals(productType)) {
-            return "피규어";
-        }
-
-        if ("POSTER".equals(productType)) {
-            return "포스터";
-        }
-
-        if ("ETC".equals(productType)) {
-            return "기타";
-        }
-
-        return null;
+        /*
+         * [중복 코드 개선] 동일한 if-return 구조를 switch 표현식으로 통합합니다.
+         * 허용된 상품 종류와 화면 표시명은 기존과 동일합니다.
+         */
+        return switch (productType) {
+            case "BOOK" -> "도서";
+            case "CLOTHES" -> "의상";
+            case "SHOES" -> "신발";
+            case "OST" -> "OST";
+            case "PROP" -> "소품";
+            case "GOODS" -> "굿즈";
+            case "FIGURE" -> "피규어";
+            case "POSTER" -> "포스터";
+            case "ETC" -> "기타";
+            default -> null;
+        };
     }
 
     /** 잘못된 상품 목록 유형은 전체 상품으로 처리합니다. */

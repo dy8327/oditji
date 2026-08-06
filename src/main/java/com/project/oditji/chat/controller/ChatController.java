@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.support.ChatSessionSupport;
 import com.project.oditji.chat.vo.ChatRoomVO;
-import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -21,10 +21,6 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/chat")
 public class ChatController {
 
-    private static final long ADMIN_MEMBER_NO = 1L;
-    private static final int ADMIN_BUSINESS_NO = 1;
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROOM_TYPE_NOTICE = "NOTICE";
     private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
     private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
     private static final String REDIRECT_CHAT_LIST = "redirect:/chat/list";
@@ -44,18 +40,18 @@ public class ChatController {
     @GetMapping("/list")
     public String roomList(HttpSession session, Model model) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        boolean admin = isAdmin(session);
+        boolean admin = ChatSessionSupport.isAdmin(session);
         List<ChatRoomVO> roomList = chatService.getChatRoomList();
 
         if (admin) {
-            roomList = filterNoticeRooms(roomList);
+            roomList = ChatSessionSupport.filterNoticeRooms(roomList);
         }
 
-        addLoginChatAttributes(session, model);
+        ChatSessionSupport.addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
 
         return "chat/roomList";
@@ -69,19 +65,19 @@ public class ChatController {
     @GetMapping("/my")
     public String myRoomList(HttpSession session, Model model) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        if (isAdmin(session)) {
+        if (ChatSessionSupport.isAdmin(session)) {
             return REDIRECT_CHAT_LIST;
         }
 
-        Integer businessNo = getSessionBusinessNo(session);
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         List<ChatRoomVO> roomList =
                 chatService.getMyChatRoomList(businessNo);
 
-        addLoginChatAttributes(session, model);
+        ChatSessionSupport.addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
 
         return "chat/roomList";
@@ -100,7 +96,7 @@ public class ChatController {
             HttpSession session,
             Model model) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
@@ -110,8 +106,8 @@ public class ChatController {
             return REDIRECT_CHAT_LIST;
         }
 
-        boolean admin = isAdmin(session);
-        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        boolean noticeRoom = ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType());
 
         /* 관리자는 직접 URL로 접근해도 자유방에 들어갈 수 없습니다. */
         if (admin && !noticeRoom) {
@@ -121,7 +117,7 @@ public class ChatController {
         boolean joined = false;
 
         if (!admin && !noticeRoom) {
-            Integer businessNo = getSessionBusinessNo(session);
+            Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
             joined = chatService.isChatRoomMember(roomId, businessNo);
 
             if (!joined) {
@@ -129,7 +125,7 @@ public class ChatController {
             }
         }
 
-        addLoginChatAttributes(session, model);
+        ChatSessionSupport.addLoginChatAttributes(session, model);
         model.addAttribute("room", room);
         model.addAttribute("isNoticeRoom", noticeRoom);
         model.addAttribute("isJoined", joined);
@@ -146,11 +142,11 @@ public class ChatController {
     @GetMapping("/create")
     public String createForm(HttpSession session, Model model) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        addLoginChatAttributes(session, model);
+        ChatSessionSupport.addLoginChatAttributes(session, model);
 
         return "chat/createRoom";
     }
@@ -166,17 +162,17 @@ public class ChatController {
             ChatRoomVO chatRoom,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        boolean admin = isAdmin(session);
-        Integer chatBusinessNo = getChatBusinessNo(session);
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        Integer chatBusinessNo = ChatSessionSupport.getChatBusinessNo(session);
 
         chatRoom.setCreatedBy(chatBusinessNo);
 
         if (admin) {
-            chatRoom.setRoomType(ROOM_TYPE_NOTICE);
+            chatRoom.setRoomType(ChatSessionSupport.ROOM_TYPE_NOTICE);
             chatRoom.setIsDefault("Y");
             chatRoom.setMaxMember(9999);
         } else {
@@ -208,7 +204,7 @@ public class ChatController {
             @RequestParam("roomId") String roomId,
             HttpSession session) {
 
-        if (!hasChatAccess(session)) {
+        if (!ChatSessionSupport.hasChatAccess(session)) {
             return REDIRECT_MEMBER_LOGIN;
         }
 
@@ -218,9 +214,9 @@ public class ChatController {
             return REDIRECT_CHAT_LIST;
         }
 
-        boolean admin = isAdmin(session);
-        boolean noticeRoom = ROOM_TYPE_NOTICE.equals(room.getRoomType());
-        Integer businessNo = getSessionBusinessNo(session);
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        boolean noticeRoom = ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
 
         boolean canDelete = admin
                 ? noticeRoom
@@ -247,171 +243,5 @@ public class ChatController {
         return "chat controller ok";
     }
 
-    /**
-     * JSP에서 공통으로 사용하는 로그인 채팅 정보를 전달합니다.
-     */
-    private void addLoginChatAttributes(
-            HttpSession session,
-            Model model) {
 
-        model.addAttribute("memberNo", getSessionMemberNo(session));
-        model.addAttribute("businessNo", getChatBusinessNo(session));
-        model.addAttribute("businessName", getChatDisplayName(session));
-        model.addAttribute("role", getSessionRole(session));
-        model.addAttribute("isAdmin", isAdmin(session));
-    }
-
-    /**
-     * 관리자 여부를 MEMBER_NO=1, ROLE=ADMIN 기준으로 확인합니다.
-     *
-     * 일반 관리자 로그인 세션에는 businessNo가 없을 수 있으므로
-     * 관리자 판별 조건에서 session.businessNo는 요구하지 않습니다.
-     */
-    private boolean isAdmin(HttpSession session) {
-
-        Long memberNo = getSessionMemberNo(session);
-        String role = getSessionRole(session);
-
-        return memberNo != null
-                && memberNo.longValue() == ADMIN_MEMBER_NO
-                && ROLE_ADMIN.equals(role);
-    }
-
-    /**
-     * 관리자 또는 사업자 채팅 접근 가능 여부를 확인합니다.
-     */
-    private boolean hasChatAccess(HttpSession session) {
-        return isAdmin(session) || getSessionBusinessNo(session) != null;
-    }
-
-    /**
-     * 실제 로그인 사업자의 세션 사업자 번호를 반환합니다.
-     */
-    private Integer getSessionBusinessNo(HttpSession session) {
-
-        Object value = session.getAttribute("businessNo");
-
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-
-        return null;
-    }
-
-    /**
-     * 채팅에서 사용할 사업자 번호를 반환합니다.
-     * 관리자 세션에 businessNo가 없어도 고정 관리자 사업자 번호 1을 사용합니다.
-     */
-    private Integer getChatBusinessNo(HttpSession session) {
-
-        if (isAdmin(session)) {
-            return ADMIN_BUSINESS_NO;
-        }
-
-        return getSessionBusinessNo(session);
-    }
-
-    /**
-     * 로그인 방식별 세션 키 차이를 고려해 회원 번호를 조회합니다.
-     */
-    private Long getSessionMemberNo(HttpSession session) {
-
-        Long memberNo = getLongSessionValue(session, "memberNo");
-
-        if (memberNo != null) {
-            return memberNo;
-        }
-
-        memberNo = getLongSessionValue(session, "loginMemberNo");
-
-        if (memberNo != null) {
-            return memberNo;
-        }
-
-        Object loginMember = session.getAttribute("loginMember");
-
-        if (loginMember instanceof MemberVO member) {
-            return member.getMemberNo();
-        }
-
-        return null;
-    }
-
-    /**
-     * 로그인 역할을 세션 문자열 또는 로그인 회원 객체에서 조회합니다.
-     */
-    private String getSessionRole(HttpSession session) {
-
-        Object role = session.getAttribute("role");
-
-        if (role != null && !String.valueOf(role).isBlank()) {
-            return String.valueOf(role);
-        }
-
-        Object loginMember = session.getAttribute("loginMember");
-
-        if (loginMember instanceof MemberVO member) {
-            return member.getRole();
-        }
-
-        return null;
-    }
-
-    /**
-     * 세션의 숫자 값을 Long으로 변환합니다.
-     */
-    private Long getLongSessionValue(
-            HttpSession session,
-            String attributeName) {
-
-        Object value = session.getAttribute(attributeName);
-
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-
-        return null;
-    }
-
-    /**
-     * 채팅 화면에 보여줄 이름을 반환합니다.
-     */
-    private String getChatDisplayName(HttpSession session) {
-
-        if (isAdmin(session)) {
-            return "ODITJI 관리자";
-        }
-
-        Object businessName = session.getAttribute("businessName");
-
-        if (businessName != null
-                && !String.valueOf(businessName).isBlank()) {
-
-            return String.valueOf(businessName);
-        }
-
-        Object displayName = session.getAttribute("loginDisplayName");
-
-        if (displayName != null
-                && !String.valueOf(displayName).isBlank()) {
-
-            return String.valueOf(displayName);
-        }
-
-        return "사업자";
-    }
-
-    /**
-     * 관리자 목록에는 공지방만 남깁니다.
-     */
-    private List<ChatRoomVO> filterNoticeRooms(List<ChatRoomVO> roomList) {
-
-        if (roomList == null || roomList.isEmpty()) {
-            return List.of();
-        }
-
-        return roomList.stream()
-                .filter(room -> ROOM_TYPE_NOTICE.equals(room.getRoomType()))
-                .toList();
-    }
 }
