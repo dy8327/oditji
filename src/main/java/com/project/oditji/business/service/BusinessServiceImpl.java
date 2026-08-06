@@ -895,6 +895,35 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
+         * [상품 세부 이미지 수정 추가]
+         * 수정 요청에서 실제 선택된 세부 이미지가 있는지 확인합니다.
+         * 비어 있는 file input도 배열 요소로 전달될 수 있으므로
+         * 배열 길이뿐 아니라 MultipartFile.isEmpty()까지 검사합니다.
+         * =========================================================
+         */
+        private boolean hasSelectedDetailImage(
+                        MultipartFile[] detailImages) {
+
+                if (detailImages == null
+                                || detailImages.length == 0) {
+
+                        return false;
+                }
+
+                for (MultipartFile detailImage : detailImages) {
+
+                        if (detailImage != null
+                                        && !detailImage.isEmpty()) {
+
+                                return true;
+                        }
+                }
+
+                return false;
+        }
+
+        /*
+         * =========================================================
          * 세부 이미지 저장
          * - PRODUCT_IMAGE에 대표 이미지 외 추가 이미지들을 IS_MAIN='N'으로 저장
          * =========================================================
@@ -1274,6 +1303,15 @@ public class BusinessServiceImpl
                                                 businessDAO.selectProductOptionsByProductNo(
                                                                 product.getProductNo()));
                         }
+
+                        /*
+                         * [상품 세부 이미지 수정 추가]
+                         * 상품 수정 모달에서 기존 세부 이미지 파일명을 표시할 수 있도록
+                         * 대표 이미지 외 이미지 경로 목록을 함께 조회합니다.
+                         */
+                        product.setDetailImagePathList(
+                                        businessDAO.selectProductDetailImagePathList(
+                                                        product.getProductNo()));
                 }
 
                 return productList;
@@ -1339,7 +1377,8 @@ public class BusinessServiceImpl
         @Transactional
         public void updateProduct(
                         GoodsManageVO goodsManageVO,
-                        MultipartFile productImage) {
+                        MultipartFile productImage,
+                        MultipartFile[] detailImages) {
 
                 if (goodsManageVO == null) {
 
@@ -1394,7 +1433,12 @@ public class BusinessServiceImpl
                 goodsManageVO.setStatus(
                                 STATUS_WAITING);
 
-                Path savedPhysicalPath = null;
+                /*
+                 * [상품 세부 이미지 수정 추가]
+                 * 기본 이미지와 세부 이미지가 여러 장 저장될 수 있으므로
+                 * 이번 수정에서 새로 생성한 파일 경로를 목록으로 관리합니다.
+                 */
+                List<Path> savedPhysicalPathList = new ArrayList<Path>();
 
                 try {
 
@@ -1426,7 +1470,8 @@ public class BusinessServiceImpl
                                 SavedFileInfo savedFileInfo = saveProductImage(
                                                 productImage);
 
-                                savedPhysicalPath = savedFileInfo.physicalPath();
+                                savedPhysicalPathList.add(
+                                                savedFileInfo.physicalPath());
 
                                 goodsManageVO.setImagePath(
                                                 savedFileInfo.webPath());
@@ -1454,14 +1499,35 @@ public class BusinessServiceImpl
                                 }
                         }
 
+                        /*
+                         * [상품 세부 이미지 수정 추가]
+                         * 새 세부 이미지가 하나 이상 선택된 경우에만 기존 세부 이미지를
+                         * 삭제하고 새 이미지로 교체합니다. 선택된 파일이 없으면 기존 이미지를 유지합니다.
+                         */
+                        if (hasSelectedDetailImage(detailImages)) {
+
+                                validateDetailImages(detailImages);
+
+                                businessDAO.deleteProductDetailImagesByProductNo(
+                                                goodsManageVO.getProductNo());
+
+                                saveDetailProductImages(
+                                                goodsManageVO.getProductNo(),
+                                                detailImages,
+                                                savedPhysicalPathList);
+                        }
+
                 } catch (RuntimeException e) {
 
                         /*
-                         * DB 작업이 실패하면 이번 수정 과정에서
-                         * 새로 저장한 이미지 파일만 삭제한다.
+                         * [상품 세부 이미지 수정 추가]
+                         * DB 작업 실패 시 이번 수정에서 새로 저장한 기본 이미지와
+                         * 세부 이미지 파일을 모두 정리합니다.
                          */
-                        deleteSavedFileQuietly(
-                                        savedPhysicalPath);
+                        for (Path savedPhysicalPath : savedPhysicalPathList) {
+
+                                deleteSavedFileQuietly(savedPhysicalPath);
+                        }
 
                         throw e;
                 }
