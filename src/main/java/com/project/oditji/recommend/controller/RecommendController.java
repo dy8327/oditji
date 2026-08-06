@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.project.oditji.common.util.DateTimeUtil;
+import com.project.oditji.common.util.PlatformSelectionUtil;
 import com.project.oditji.common.service.MainContentPlatformService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
@@ -78,7 +79,7 @@ public class RecommendController {
                         );
 
         List<String> selectedPlatformNames =
-                extractPlatformNames(
+                PlatformSelectionUtil.extractPlatformNames(
                         selectedPlatformList
                 );
 
@@ -252,36 +253,6 @@ public class RecommendController {
                 : safeList(
                         pageVO.getResultList()
                 );
-    }
-
-    private List<String> extractPlatformNames(
-            List<PlatformVO> platformList) {
-
-        List<String> platformNames =
-                new ArrayList<String>();
-
-        if (platformList == null) {
-            return platformNames;
-        }
-
-        for (PlatformVO platform : platformList) {
-
-            if (platform == null
-                    || platform.getPlatformName() == null
-                    || platform.getPlatformName().isBlank()) {
-                continue;
-            }
-
-            if (!platformNames.contains(
-                    platform.getPlatformName())) {
-
-                platformNames.add(
-                        platform.getPlatformName()
-                );
-            }
-        }
-
-        return platformNames;
     }
 
     private List<SearchResultVO> safeList(
