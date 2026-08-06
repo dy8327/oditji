@@ -566,9 +566,19 @@
 .detail-info .action-box .cart-btn {
   width: auto;
   height: auto;
+  gap: 6px;
   border-color: rgba(255, 255, 255, 0.18);
   background: #2a2a2a;
   color: #fff;
+}
+
+.detail-info .action-box .cart-btn .cart-icon {
+  display: inline-flex;
+}
+
+.detail-info .action-box .cart-btn .cart-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .detail-info .action-box .cart-btn:hover {

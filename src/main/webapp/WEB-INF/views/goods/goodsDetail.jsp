@@ -113,7 +113,7 @@
 
                             <c:if test="${not empty content.tmdbScore}">
                                 ·
-                                ⭐
+                                <span class="rating">★</span>
                                 <fmt:formatNumber
                                     value="${content.tmdbScore}"
                                     pattern="0.0"/>
@@ -524,7 +524,18 @@
                     data-product-no="${goods.productNo}"
                     data-stock="${goods.stock}"
                     ${goods.stock <= 0 ? 'disabled' : ''}>
-                🛒 장바구니
+                <span class="cart-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6.2"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <circle cx="10" cy="20" r="1.4" fill="currentColor"/>
+                        <circle cx="17" cy="20" r="1.4" fill="currentColor"/>
+                    </svg>
+                </span>
+                장바구니
             </button>
 
             <%-- [수정] 선택한 수량과 재고 정보를 바로 구매 처리에서 사용한다. --%>
@@ -644,7 +655,7 @@
                             </span>
 
                             <span class="rating">
-                                ⭐
+                                ★
                                 <fmt:formatNumber
                                     value="${r.rating}"
                                     pattern="0.0"/>
@@ -693,7 +704,20 @@
 
                                     <span class="report-btn reported"
                                           aria-disabled="true">
-                                        🚨 신고완료
+                                        <span class="report-btn-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                                      stroke="currentColor"
+                                                      stroke-width="2"
+                                                      stroke-linecap="round"
+                                                      stroke-linejoin="round"/>
+                                                <line x1="4" y1="22" x2="4" y2="3"
+                                                      stroke="currentColor"
+                                                      stroke-width="2"
+                                                      stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                        신고완료
                                     </span>
 
                                 </c:when>
@@ -706,7 +730,20 @@
                                             data-review-type="PRODUCT"
                                             data-review-no="${r.reviewNo}"
                                             aria-label="<c:out value='${r.writer}'/>님의 리뷰 신고">
-                                        🚨 신고
+                                        <span class="report-btn-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none">
+                                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                                      stroke="currentColor"
+                                                      stroke-width="2"
+                                                      stroke-linecap="round"
+                                                      stroke-linejoin="round"/>
+                                                <line x1="4" y1="22" x2="4" y2="3"
+                                                      stroke="currentColor"
+                                                      stroke-width="2"
+                                                      stroke-linecap="round"/>
+                                            </svg>
+                                        </span>
+                                        신고
                                     </button>
 
                                 </c:otherwise>

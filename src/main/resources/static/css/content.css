@@ -275,6 +275,15 @@
   font-weight: 600;
 }
 
+.content-view-count .view-count-icon {
+  display: inline-flex;
+}
+
+.content-view-count .view-count-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* meta - 콘텐츠 유형 / 길이 / 공개일을 알약(pill) 형태 칩으로 표시 */
 .info-box .meta {
   margin: 0;
@@ -374,6 +383,14 @@
 .score-badge-icon {
   font-size: 15px;
   line-height: 1;
+}
+
+.score-badge--tmdb .score-badge-icon {
+  color: #ffd54a;
+}
+
+.score-badge--user .score-badge-icon {
+  color: #e5e7eb;
 }
 
 .score-badge-text {

@@ -462,6 +462,16 @@
     0 0 22px rgba(0, 0, 0, 0.16);
 }
 
+.mypage-activity-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .mypage-activity-count {
   align-self: end;
   color: #fff;
@@ -1406,11 +1416,11 @@
 
   /* [수정] OTT 이름 길이와 상관없이 모든 항목 크기를 동일하게 유지 */
   .mypage-ott-chip {
-    justify-content: center;
+    justify-content: flex-start;
     width: 100%;
     min-width: 0;
     min-height: 46px;
-    padding: 0 10px;
+    padding: 0 14px;
     box-sizing: border-box;
   }
 
