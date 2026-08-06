@@ -25,9 +25,9 @@ public class AdminCheckInterceptor implements HandlerInterceptor {
 
         // 관리자 외 접근 차단
         if (!"ADMIN".equals(loginMember.getRole())) {
+            // sendError 이후 직접 forward까지 수행하면 응답이 중복 처리될 수 있습니다.
+            // /error로 위임하여 CustomErrorController가 403 안내 화면을 렌더링합니다.
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp")
-                .forward(request, response);
             return false;
         }
 
