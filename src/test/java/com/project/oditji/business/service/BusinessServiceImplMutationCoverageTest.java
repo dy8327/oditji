@@ -122,7 +122,7 @@ class BusinessServiceImplMutationCoverageTest {
         when(businessDAO.insertProductImage(goods)).thenReturn(1);
         MockMultipartFile image = image("main.png", "image/png");
 
-        long productNo = service.registerProduct(goods, image);
+        long productNo = service.registerProduct(goods, image, null);
 
         assertEquals(500L, productNo);
         assertEquals("WAITING", goods.getStatus());
@@ -157,7 +157,7 @@ class BusinessServiceImplMutationCoverageTest {
         when(businessDAO.insertProductOption(any(ProductOptionVO.class))).thenReturn(1);
         when(businessDAO.insertProductImage(goods)).thenReturn(1);
 
-        assertEquals(501L, service.registerProduct(goods, image("clothes.jpg", "image/jpeg")));
+        assertEquals(501L, service.registerProduct(goods, image("clothes.jpg", "image/jpeg"), null));
         assertEquals("CLOTHES", goods.getProductType());
         assertEquals(5, goods.getStock());
         assertEquals("Black", first.getColorName());
@@ -172,18 +172,18 @@ class BusinessServiceImplMutationCoverageTest {
         MockMultipartFile mainImage = image("main.png", "image/png");
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(null, mainImage));
+                () -> service.registerProduct(null, mainImage, null));
 
         GoodsManageVO noContent = validProduct("ETC");
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(noContent, mainImage));
+                () -> service.registerProduct(noContent, mainImage, null));
 
         GoodsManageVO noImage = validProduct("ETC");
         noImage.setContentNo(1L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(noImage, null));
+                () -> service.registerProduct(noImage, null, null));
 
         GoodsManageVO duplicateOptions = validProduct("CLOTHES");
         duplicateOptions.setContentNo(2L);
@@ -202,7 +202,8 @@ class BusinessServiceImplMutationCoverageTest {
                 IllegalArgumentException.class,
                 () -> service.registerProduct(
                         duplicateOptions,
-                        duplicateImage));
+                        duplicateImage,
+                        null));
 
         GoodsManageVO insertFailure = validProduct("ETC");
         insertFailure.setContentNo(3L);
@@ -213,7 +214,8 @@ class BusinessServiceImplMutationCoverageTest {
                 IllegalStateException.class,
                 () -> service.registerProduct(
                         insertFailure,
-                        failureImage));
+                        failureImage,
+                        null));
     }
 
     @Test
