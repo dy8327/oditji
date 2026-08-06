@@ -27,7 +27,7 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     private static final List<String> VALID_SORTS = Arrays.asList(
-            "popular",
+            POPULAR,
             "latest",
             "price_asc",
             "price_desc",
