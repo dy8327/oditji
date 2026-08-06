@@ -1530,12 +1530,17 @@
    - 상품 영역이 눌리지 않도록 좌우 비율 조정
 ====================================================== */
 
+/* =====================================================
+   [마이페이지 영역 크기 통일]
+   구매내역 페이지의 바깥 영역을 마이페이지와 동일한
+   최대 너비와 좌우 여백으로 맞춘다.
+====================================================== */
 .order-list-container {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1480px, calc(100% - 64px));
   max-width: none;
   box-sizing: border-box;
-  margin: 0 auto;
-  padding: 40px 0 80px;
+  margin: 32px auto 54px;
+  padding: 16px 28px 54px;
 }
 
 .order-list-container > h1 {
@@ -1593,8 +1598,10 @@
 }
 
 @media (max-width: 1000px) {
+  /* [마이페이지 영역 크기 통일]
+     태블릿에서도 컨테이너가 760px로 강제 축소되지 않도록 수정한다. */
   .order-list-container {
-    width: min(760px, calc(100% - 40px));
+    width: calc(100% - 40px);
   }
 
   .order-list-container .order-card-main {
@@ -1603,9 +1610,12 @@
 }
 
 @media (max-width: 560px) {
+  /* [마이페이지 영역 크기 통일]
+     모바일 페이지 좌우 여백과 상하 간격을 통일한다. */
   .order-list-container {
     width: calc(100% - 28px);
-    padding-top: 28px;
+    margin: 24px auto 44px;
+    padding: 0 0 44px;
   }
 
   .order-list-container .order-card {
@@ -3112,4 +3122,121 @@
   .order-list-container .refund-table tbody tr + tr {
     border-top: 1px solid #303036;
   }
+}
+
+/* =========================================================
+   [수정] 나의 주문내역 탭 디자인 통일
+   - 내가 작성한 리뷰 페이지의 캡슐형 탭 디자인과 통일합니다.
+   - 기존 구매내역/취소·환불 내역 전환 기능은 유지합니다.
+   - 기존 녹색 활성 탭 스타일보다 우선 적용되도록 파일 끝에 둡니다.
+========================================================= */
+
+.order-list-container .order-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  width: auto;
+  gap: 10px;
+
+  margin: 0 0 28px;
+  padding: 0 0 20px;
+
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.order-list-container .order-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: none;
+  width: auto;
+  min-width: 0;
+  min-height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow: none;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.order-list-container .order-tab-btn:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.order-list-container .order-tab-btn.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+.order-list-container .order-tab-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+/* [수정] 모바일에서도 버튼을 억지로 전체 너비로 늘리지 않고
+   리뷰 페이지와 같은 캡슐형 크기를 유지합니다. */
+@media (max-width: 560px) {
+  .order-list-container .order-tabs {
+    width: auto;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+  }
+
+  .order-list-container .order-tab-btn {
+    flex: none;
+    width: auto;
+    min-width: 0;
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 조회 버튼 배경색만 변경
+   - 기존 크기, 여백, 테두리 형태는 유지합니다.
+========================================================= */
+.order-list-container .history-search-btn {
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: rgba(255, 255, 255, 0.62);
+  color: #111216;
+}
+
+/* [수정] 마우스를 올려도 기존 초록색으로 돌아가지 않도록 유지 */
+.order-list-container .history-search-btn:hover {
+  background: linear-gradient(180deg, #ffffff, #d4d5d8);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #111216;
 }
