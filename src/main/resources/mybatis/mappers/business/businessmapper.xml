@@ -414,10 +414,30 @@
 
 
     <!-- =====================================================
+         사업자가 등록한 상품 목록 검색 조건 (목록/카운트 공용)
+
+         [페이징 리팩터링 추가] 상품명 / 관련 콘텐츠명 / 관련 배우명을
+         대상으로 검색한다. productList.jsp 검색창 placeholder와 동일한 범위.
+    ====================================================== -->
+    <sql id="productListSearchCondition">
+        WHERE P.BUSINESS_NO = #{businessNo}
+        <if test="keyword != null and keyword != ''">
+            AND (
+                UPPER(P.PRODUCT_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(C.TITLE) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(A.ACTOR_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+            )
+        </if>
+    </sql>
+
+    <!-- =====================================================
          사업자가 등록한 상품 목록
+
+         [페이징 리팩터링] 관리자 목록 화면(PaginationUtil/PageVO)과
+         동일한 방식으로 offset/pageSize를 받아 페이지 단위로 조회한다.
     ====================================================== -->
     <select id="selectProductListByBusinessNo"
-            parameterType="long"
+            parameterType="map"
             resultType="com.project.oditji.business.vo.GoodsManageVO">
 
         SELECT
@@ -457,9 +477,33 @@
         LEFT JOIN ACTOR A
           ON A.ACTOR_NO = P.ACTOR_NO
 
-        WHERE P.BUSINESS_NO = #{businessNo}
+        <include refid="productListSearchCondition"/>
 
         ORDER BY P.PRODUCT_NO DESC
+
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- [페이징 리팩터링 추가] 상품 목록 전체 건수 (검색 조건 동일 적용) -->
+    <select id="selectProductListCountByBusinessNo"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM PRODUCT P
+
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        JOIN CONTENT C
+          ON C.CONTENT_NO = P.CONTENT_NO
+
+        LEFT JOIN ACTOR A
+          ON A.ACTOR_NO = P.ACTOR_NO
+
+        <include refid="productListSearchCondition"/>
 
     </select>
 
@@ -823,6 +867,60 @@
 
         ORDER BY E.EVENT_NO DESC
 
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- =====================================================
+         [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수
+
+         목록 쿼리는 LISTAGG 집계 때문에 EVENT_NO 단위로 GROUP BY 되어
+         있으므로, 카운트는 같은 검색 조건에서 EVENT_NO 중복 없이 센다.
+    ====================================================== -->
+    <select id="selectEventListCountByBusinessNo"
+            resultType="int">
+
+        SELECT COUNT(DISTINCT E.EVENT_NO)
+
+        FROM EVENT E
+
+        JOIN EVENT_PRODUCT EP
+          ON EP.EVENT_NO = E.EVENT_NO
+
+        JOIN PRODUCT P
+          ON P.PRODUCT_NO = EP.PRODUCT_NO
+         AND P.BUSINESS_NO = #{businessNo}
+
+        WHERE EXISTS (
+                SELECT 1
+                FROM EVENT_PRODUCT EP2
+                JOIN PRODUCT P2
+                  ON P2.PRODUCT_NO = EP2.PRODUCT_NO
+                WHERE EP2.EVENT_NO = E.EVENT_NO
+                  AND P2.BUSINESS_NO = #{businessNo}
+        )
+
+        <if test="keyword != null and keyword != ''">
+            AND (
+                UPPER(E.TITLE)
+                    LIKE '%' || UPPER(#{keyword}) || '%'
+
+                OR UPPER(E.STATUS)
+                    LIKE '%' || UPPER(#{keyword}) || '%'
+
+                OR EXISTS (
+                    SELECT 1
+                    FROM EVENT_PRODUCT EP3
+                    JOIN PRODUCT P3
+                      ON P3.PRODUCT_NO = EP3.PRODUCT_NO
+                    WHERE EP3.EVENT_NO = E.EVENT_NO
+                      AND P3.BUSINESS_NO = #{businessNo}
+                      AND UPPER(P3.PRODUCT_NAME)
+                              LIKE '%' || UPPER(#{keyword}) || '%'
+                )
+            )
+        </if>
+
     </select>
 
 
@@ -1178,7 +1276,7 @@
 
     <!-- 사업자 주문 현황 - 주문 목록 조회 -->
     <select id="selectBusinessOrderList"
-            parameterType="long"
+            parameterType="map"
             resultType="com.project.oditji.order.vo.OrderVO">
 
         SELECT
@@ -1207,6 +1305,19 @@
             O.CREATED_AT
 
         ORDER BY O.CREATED_AT DESC
+
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- [페이징 리팩터링 추가] 사업자 주문 목록 전체 건수 (ORDER_NO 단위로 중복 없이) -->
+    <select id="selectBusinessOrderListCount"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(DISTINCT OI.ORDER_NO)
+        FROM ORDER_ITEM OI
+        WHERE OI.BUSINESS_NO = #{businessNo}
 
     </select>
 
@@ -1266,6 +1377,28 @@
          DELIVERY 미등록 주문상품도 PREPARING 상태로 목록에 노출한다.
          취소/환불 관련 주문상품은 배송 관리 대상에서 제외한다.
     ====================================================== -->
+    <!-- [페이징 리팩터링 추가] 배송 목록 조회/카운트 공용 검색 조건 -->
+    <sql id="deliveryListSearchCondition">
+        WHERE OI.BUSINESS_NO = #{businessNo}
+          AND OI.STATUS NOT IN ('CANCEL_REQUEST', 'CANCELED', 'REFUNDED')
+        <if test="status != null and status != ''">
+          AND NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+              ) = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (
+                TO_CHAR(OI.ORDER_NO) LIKE '%' || #{keyword} || '%'
+                OR TO_CHAR(OI.ORDER_ITEM_NO) LIKE '%' || #{keyword} || '%'
+                OR UPPER(P.PRODUCT_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                OR UPPER(O.RECEIVER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+              )
+        </if>
+    </sql>
+
     <select id="selectBusinessDeliveryList"
             resultType="com.project.oditji.business.vo.DeliveryManageVO">
         SELECT
@@ -1297,25 +1430,23 @@
           ON P.PRODUCT_NO = OI.PRODUCT_NO
         LEFT JOIN DELIVERY D
           ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
-        WHERE OI.BUSINESS_NO = #{businessNo}
-          AND OI.STATUS NOT IN ('CANCEL_REQUEST', 'CANCELED', 'REFUNDED')
-        <if test="status != null and status != ''">
-          AND NVL(D.STATUS,
-                CASE
-                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
-                    ELSE 'CONFIRMED'
-                END
-              ) = #{status}
-        </if>
-        <if test="keyword != null and keyword != ''">
-          AND (
-                TO_CHAR(OI.ORDER_NO) LIKE '%' || #{keyword} || '%'
-                OR TO_CHAR(OI.ORDER_ITEM_NO) LIKE '%' || #{keyword} || '%'
-                OR UPPER(P.PRODUCT_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
-                OR UPPER(O.RECEIVER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
-              )
-        </if>
+        <include refid="deliveryListSearchCondition"/>
         ORDER BY O.CREATED_AT DESC, OI.ORDER_ITEM_NO DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <!-- [페이징 리팩터링 추가] 배송 목록 전체 건수 (검색 조건 동일 적용) -->
+    <select id="selectBusinessDeliveryListCount"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM ORDER_ITEM OI
+        JOIN ORDERS O
+          ON O.ORDER_NO = OI.ORDER_NO
+        JOIN PRODUCT P
+          ON P.PRODUCT_NO = OI.PRODUCT_NO
+        LEFT JOIN DELIVERY D
+          ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+        <include refid="deliveryListSearchCondition"/>
     </select>
 
     <!-- 배송 변경 전 사업자 소유 주문상품과 현재 상태 확인 -->
@@ -1487,6 +1618,27 @@
           AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
         GROUP BY TRUNC(O.CREATED_AT)
         ORDER BY SALE_DATE DESC
+
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- [페이징 리팩터링 추가] 날짜별 판매 내역 전체 건수 (조회 기간 내 판매가 발생한 날짜 수) -->
+    <select id="selectBusinessSalesHistoryCount"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM (
+            SELECT TRUNC(O.CREATED_AT) AS SALE_DATE
+            FROM ORDER_ITEM OI
+            JOIN ORDERS O
+              ON O.ORDER_NO = OI.ORDER_NO
+            WHERE OI.BUSINESS_NO = #{businessNo}
+              AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+              AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
+              AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
+            GROUP BY TRUNC(O.CREATED_AT)
+        )
 
     </select>
 

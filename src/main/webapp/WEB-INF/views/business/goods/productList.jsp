@@ -361,41 +361,26 @@ const contextPath =
 
 
                 <c:if test="${not empty pagination
-                            and pagination.totalPages > 0}">
+                            and pagination.totalPage > 0}">
 
                     <div class="pagination">
 
-                        <c:choose>
+                        <!-- 이전 블록 -->
+                        <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}"
+                           class="${!pagination.prev ? 'disabled' : ''}">
+                            &laquo;
+                        </a>
 
-                            <c:when test="${pagination.currentPage > 1}">
+                        <!-- 이전 페이지 -->
+                        <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}"
+                           class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                            &lsaquo;
+                        </a>
 
-                                <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}">
-                                    &lt;
-                                </a>
-
-                            </c:when>
-
-                            <c:otherwise>
-
-                                <%--
-                                    이동할 이전 페이지가 없으므로 링크처럼 동작시키지 않고
-                                    비활성화된 기본 button을 사용한다.
-                                --%>
-                                <button type="button"
-                                        disabled
-                                        aria-label="이전 페이지 없음"
-                                        style="display:flex;justify-content:center;align-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--biz-radius-sm);background:var(--biz-surface-1);color:var(--biz-text-dim);opacity:0.45;cursor:not-allowed;">
-                                    &lt;
-                                </button>
-
-                            </c:otherwise>
-
-                        </c:choose>
-
-
+                        <!-- 페이지 번호 -->
                         <c:forEach var="p"
-                                   begin="1"
-                                   end="${pagination.totalPages}">
+                                   begin="${pagination.startPage}"
+                                   end="${pagination.endPage}">
 
                             <a href="?page=${p}&keyword=${param.keyword}"
                                class="${pagination.currentPage == p
@@ -408,31 +393,17 @@ const contextPath =
 
                         </c:forEach>
 
+                        <!-- 다음 페이지 -->
+                        <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}"
+                           class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                            &rsaquo;
+                        </a>
 
-                        <c:choose>
-
-                            <c:when test="${pagination.currentPage
-                                            < pagination.totalPages}">
-
-                                <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}">
-                                    &gt;
-                                </a>
-
-                            </c:when>
-
-                            <c:otherwise>
-
-                                <%-- 이동할 다음 페이지가 없는 경우 비활성화된 button을 표시한다. --%>
-                                <button type="button"
-                                        disabled
-                                        aria-label="다음 페이지 없음"
-                                        style="display:flex;justify-content:center;align-items:center;width:34px;height:34px;padding:0;border:0;border-radius:var(--biz-radius-sm);background:var(--biz-surface-1);color:var(--biz-text-dim);opacity:0.45;cursor:not-allowed;">
-                                    &gt;
-                                </button>
-
-                            </c:otherwise>
-
-                        </c:choose>
+                        <!-- 다음 블록 -->
+                        <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}"
+                           class="${!pagination.next ? 'disabled' : ''}">
+                            &raquo;
+                        </a>
 
                     </div>
 

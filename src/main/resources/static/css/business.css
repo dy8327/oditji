@@ -690,6 +690,18 @@
   color: var(--biz-text);
 }
 
+/*
+ * [페이징 리팩터링 추가] 이동 불가한 이전/다음(블록) 버튼 상태.
+ * admin.css .admin-wrap .pagination a.disabled과 동일한 패턴.
+ */
+.business-wrap .pagination a.disabled {
+  color: var(--biz-text-dim);
+
+  opacity: 0.35;
+
+  pointer-events: none;
+}
+
 /* =====================================================
    Responsive
    ===================================================== */

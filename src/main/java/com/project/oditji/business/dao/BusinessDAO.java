@@ -81,8 +81,20 @@ public interface BusinessDAO {
          */
         List<GoodsManageVO> selectApprovedProductListByBusinessNo(@Param("businessNo") long businessNo);
 
-        // 사업자가 등록한 상품 목록
-        List<GoodsManageVO> selectProductListByBusinessNo(@Param("businessNo") long businessNo);
+        /*
+         * =========================================================
+         * 사업자가 등록한 상품 목록
+         * [페이징 리팩터링] 관리자 목록 화면과 동일하게 검색어/offset/pageSize를
+         * 받아 페이지 단위로 조회한다. 전체 건수는 selectProductListCountByBusinessNo로 별도 조회.
+         * =========================================================
+         */
+        List<GoodsManageVO> selectProductListByBusinessNo(@Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword, @Param("offset") int offset,
+                        @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용)
+        int selectProductListCountByBusinessNo(@Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword);
 
         /*
          * =========================================================
@@ -152,8 +164,17 @@ public interface BusinessDAO {
          */
         List<EventProductVO> selectEventProductListByEventNo(@Param("eventNo") long eventNo);
 
-        // 사업자 이벤트 목록 조회 * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인.
+        /*
+         * [페이징 리팩터링] 사업자 이벤트 목록 조회
+         * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인하며,
+         * offset/pageSize로 페이지 단위 조회한다.
+         */
         List<EventManageVO> selectEventListByBusinessNo(@Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword, @Param("offset") int offset,
+                        @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용)
+        int selectEventListCountByBusinessNo(@Param("businessNo") long businessNo,
                         @Param("keyword") String keyword);
 
         // 승인된 이벤트 단건 조회 * EVENT_NO와 BUSINESS_NO를 함께 검사.
@@ -203,8 +224,12 @@ public interface BusinessDAO {
         List<GoodsManageVO> selectPopularProductsByBusinessNo(@Param("businessNo") long businessNo,
                         @Param("limit") int limit);
 
-        // 사업자 주문 현황 - 주문 목록 조회
-        List<OrderVO> selectBusinessOrderList(@Param("businessNo") long businessNo);
+        // [페이징 리팩터링] 사업자 주문 현황 - 주문 목록 조회 (offset/pageSize로 페이지 단위 조회)
+        List<OrderVO> selectBusinessOrderList(@Param("businessNo") long businessNo,
+                        @Param("offset") int offset, @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자 주문 목록 전체 건수
+        int selectBusinessOrderListCount(@Param("businessNo") long businessNo);
 
         // 사업자 주문 현황 - 주문 상품 목록 조회
         List<OrderItemVO> selectBusinessOrderItemList(@Param("businessNo") long businessNo);
@@ -227,7 +252,20 @@ public interface BusinessDAO {
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
 
+        /*
+         * [페이징 리팩터링] 날짜별 판매 내역 - offset/pageSize로 페이지 단위 조회한다.
+         * 조회 기간 요약(selectBusinessSalesStatus)은 DUAL 기준 단일 행이라
+         * 페이징 대상이 아니다.
+         */
         List<SettlementManageVO> selectBusinessSalesHistory(
+                        @Param("businessNo") long businessNo,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        @Param("offset") int offset,
+                        @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 판매 내역 전체 건수 (조회 기간 내 판매가 발생한 날짜 수)
+        int selectBusinessSalesHistoryCount(
                         @Param("businessNo") long businessNo,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate);
@@ -263,6 +301,14 @@ public interface BusinessDAO {
          * =========================================================
          */
         List<DeliveryManageVO> selectBusinessDeliveryList(
+                        @Param("businessNo") long businessNo,
+                        @Param("status") String status,
+                        @Param("keyword") String keyword,
+                        @Param("offset") int offset,
+                        @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 배송 목록 전체 건수 (검색 조건 동일 적용)
+        int selectBusinessDeliveryListCount(
                         @Param("businessNo") long businessNo,
                         @Param("status") String status,
                         @Param("keyword") String keyword);

@@ -108,6 +108,7 @@
                                     <input type="hidden" name="orderItemNo" value="${delivery.orderItemNo}">
                                     <input type="hidden" name="returnStatus" value="${fn:escapeXml(selectedStatus)}">
                                     <input type="hidden" name="returnKeyword" value="${fn:escapeXml(keyword)}">
+                                    <input type="hidden" name="returnPage" value="${empty pagination.currentPage ? 1 : pagination.currentPage}">
 
                                     <div class="delivery-form-field">
                                         <label for="courier-${delivery.orderItemNo}">택배사</label>
@@ -152,6 +153,56 @@
                     <div class="delivery-empty">조회된 배송 대상 주문상품이 없습니다.</div>
                 </c:otherwise>
             </c:choose>
+
+            <%-- [페이징 리팩터링 추가] 관리자 목록 화면과 동일한 블록 네비게이션 방식.
+                 상태/검색어 필터를 유지한 채로 페이지만 이동한다. --%>
+            <c:if test="${not empty pagination
+                        and pagination.totalPage > 0}">
+
+                <div class="pagination">
+
+                    <!-- 이전 블록 -->
+                    <a href="?status=${selectedStatus}&keyword=${keyword}&page=${pagination.startPage - 1}"
+                       class="${!pagination.prev ? 'disabled' : ''}">
+                        &laquo;
+                    </a>
+
+                    <!-- 이전 페이지 -->
+                    <a href="?status=${selectedStatus}&keyword=${keyword}&page=${pagination.currentPage - 1}"
+                       class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                        &lsaquo;
+                    </a>
+
+                    <!-- 페이지 번호 -->
+                    <c:forEach var="p"
+                               begin="${pagination.startPage}"
+                               end="${pagination.endPage}">
+
+                        <a href="?status=${selectedStatus}&keyword=${keyword}&page=${p}"
+                           class="${pagination.currentPage == p
+                               ? 'active'
+                               : ''}">
+                            ${p}
+                        </a>
+
+                    </c:forEach>
+
+                    <!-- 다음 페이지 -->
+                    <a href="?status=${selectedStatus}&keyword=${keyword}&page=${pagination.currentPage + 1}"
+                       class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                        &rsaquo;
+                    </a>
+
+                    <!-- 다음 블록 -->
+                    <a href="?status=${selectedStatus}&keyword=${keyword}&page=${pagination.endPage + 1}"
+                       class="${!pagination.next ? 'disabled' : ''}">
+                        &raquo;
+                    </a>
+
+                </div>
+
+            </c:if>
+
         </section>
     </main>
 </div>

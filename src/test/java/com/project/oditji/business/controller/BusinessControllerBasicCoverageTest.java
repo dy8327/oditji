@@ -102,11 +102,14 @@ class BusinessControllerBasicCoverageTest {
         BusinessVO business = business(30L, "APPROVED");
         List<GoodsManageVO> products = List.of(new GoodsManageVO());
         when(businessService.getBusinessByMemberNo(11L)).thenReturn(business);
-        when(businessService.getProductListByBusinessNo(30L)).thenReturn(products);
+        when(businessService.getProductListCountByBusinessNo(30L, null)).thenReturn(1);
+        when(businessService.getProductListByBusinessNo(30L, null, 1, 5)).thenReturn(products);
         MockHttpSession session = sessionWith("memberNo", " 11 ");
         ExtendedModelMap model = new ExtendedModelMap();
 
         String view = controller.productList(
+                null,
+                1,
                 session,
                 model,
                 new RedirectAttributesModelMap());
@@ -254,6 +257,8 @@ class BusinessControllerBasicCoverageTest {
         when(businessService.getBusinessByMemberNo(16L)).thenReturn(null);
 
         String view = controller.productList(
+                null,
+                1,
                 session,
                 new ExtendedModelMap(),
                 new RedirectAttributesModelMap());
