@@ -1236,6 +1236,8 @@ public class BusinessController {
                                 "반려",
                                 memberNo,
                                 cancelNo,
+                                returnStatus,
+                                returnPage,
                                 redirectAttributes);
         }
 
@@ -1248,6 +1250,8 @@ public class BusinessController {
                         String actionName,
                         Long memberNo,
                         Long cancelNo,
+                        String returnStatus,
+                        int returnPage,
                         RedirectAttributes redirectAttributes) {
 
                 try {
