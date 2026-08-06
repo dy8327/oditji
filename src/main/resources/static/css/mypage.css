@@ -1406,11 +1406,11 @@
 
   /* [수정] OTT 이름 길이와 상관없이 모든 항목 크기를 동일하게 유지 */
   .mypage-ott-chip {
-    justify-content: center;
+    justify-content: flex-start;
     width: 100%;
     min-width: 0;
     min-height: 46px;
-    padding: 0 10px;
+    padding: 0 14px;
     box-sizing: border-box;
   }
 
