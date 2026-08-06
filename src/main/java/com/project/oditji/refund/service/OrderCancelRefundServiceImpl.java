@@ -17,6 +17,7 @@ import com.project.oditji.payment.vo.PaymentVO;
 import com.project.oditji.refund.dao.OrderCancelRefundDAO;
 import com.project.oditji.refund.vo.OrderCancelRefundVO;
 import com.project.oditji.notification.service.NotificationService;
+import com.project.oditji.common.util.PaginationUtil;
 
 @Service
 public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
@@ -282,16 +283,35 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     }
 
     @Override
-    public List<OrderCancelRefundVO> getBusinessCancelList(Long memberNo, String status) {
+    public List<OrderCancelRefundVO> getBusinessCancelList(Long memberNo, String status, int currentPage,
+            int pageSize) {
 
         BusinessVO business = getBusiness(memberNo);
-        String normalizedStatus = status == null || status.isBlank() || "ALL".equalsIgnoreCase(status)
-                ? null
-                : status.trim().toUpperCase();
+        String normalizedStatus = normalizeCancelStatusFilter(status);
+        int offset = PaginationUtil.offset(currentPage, pageSize);
 
         return orderCancelRefundDAO.selectCancelListByBusiness(
                 business.getBusinessNo(),
-                normalizedStatus);
+                normalizedStatus,
+                offset,
+                pageSize);
+    }
+
+    /* [페이징 리팩터링 추가] 사업자 취소 목록 전체 건수 (검색 조건 동일 적용) */
+    @Override
+    public int getBusinessCancelListCount(Long memberNo, String status) {
+
+        BusinessVO business = getBusiness(memberNo);
+        String normalizedStatus = normalizeCancelStatusFilter(status);
+
+        return orderCancelRefundDAO.selectCancelListByBusinessCount(business.getBusinessNo(), normalizedStatus);
+    }
+
+    /* [페이징 리팩터링 추가] status 필터 정규화 공용 헬퍼 (ALL/빈 값은 전체 조회로 취급) */
+    private String normalizeCancelStatusFilter(String status) {
+        return status == null || status.isBlank() || "ALL".equalsIgnoreCase(status)
+                ? null
+                : status.trim().toUpperCase();
     }
 
     /*

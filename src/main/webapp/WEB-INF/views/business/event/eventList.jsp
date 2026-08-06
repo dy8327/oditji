@@ -343,32 +343,52 @@
 
             </table>
 
-            <div class="pagination">
+            <c:if test="${not empty pagination
+                        and pagination.totalPage > 0}">
 
-                <a href="#">
-                    ‹
-                </a>
+                <div class="pagination">
 
-                <c:forEach var="p"
-                           begin="1"
-                           end="${empty pagination.totalPages
-                               ? 1
-                               : pagination.totalPages}">
-
-                    <a href="?page=${p}"
-                       class="${pagination.currentPage == p
-                           ? 'active'
-                           : ''}">
-                        ${p}
+                    <!-- 이전 블록 -->
+                    <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}"
+                       class="${!pagination.prev ? 'disabled' : ''}">
+                        &laquo;
                     </a>
 
-                </c:forEach>
+                    <!-- 이전 페이지 -->
+                    <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}"
+                       class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                        &lsaquo;
+                    </a>
 
-                <a href="#">
-                    ›
-                </a>
+                    <!-- 페이지 번호 -->
+                    <c:forEach var="p"
+                               begin="${pagination.startPage}"
+                               end="${pagination.endPage}">
 
-            </div>
+                        <a href="?page=${p}&keyword=${param.keyword}"
+                           class="${pagination.currentPage == p
+                               ? 'active'
+                               : ''}">
+                            ${p}
+                        </a>
+
+                    </c:forEach>
+
+                    <!-- 다음 페이지 -->
+                    <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}"
+                       class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                        &rsaquo;
+                    </a>
+
+                    <!-- 다음 블록 -->
+                    <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}"
+                       class="${!pagination.next ? 'disabled' : ''}">
+                        &raquo;
+                    </a>
+
+                </div>
+
+            </c:if>
 
         </section>
 

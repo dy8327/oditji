@@ -9,21 +9,9 @@
 <c:set var="headerChatEnabled"
        value="${headerRole eq 'ADMIN' or (headerRole eq 'BUSINESS' and not empty sessionScope.businessNo)}" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=9">
-
-<script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
-<script defer src="${pageContext.request.contextPath}/js/common.js?v=9"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<%--
-    Spring Security CSRF 토큰을 공통 JavaScript에서 사용할 수 있도록 노출합니다.
-    Spring Security가 GET 요청에 제공하는 _csrf request attribute를 직접 참조하여
-    deferred CSRF token도 실제 값으로 확정되도록 합니다.
---%>
-<meta name="_csrf" content="${_csrf.token}">
-<meta name="_csrf_header" content="${_csrf.headerName}">
-<meta name="_csrf_parameter" content="${_csrf.parameterName}">
+<%-- CSS/공통 스크립트/CSRF meta는 head-assets.jsp로 분리되어 있습니다.
+     (embed 모드 페이지에서 header.jsp 전체를 생략해도 이 조각만은 별도로 include해야 합니다.) --%>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 
 <a href="#mainContent" class="skip-link">본문 바로가기</a>
 

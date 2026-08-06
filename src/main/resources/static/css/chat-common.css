@@ -1,0 +1,261 @@
+/*
+ * 채팅 기능 전역 공통 스타일 (카카오톡 다크테마 디자인 토큰 + 3단 대시보드 셸)
+ *
+ * chat-room-list.css / chat-room.css / chat-create-room.css 는 이 파일을
+ * 함께 로드한다는 전제로 --kakao-* 변수를 사용한다.
+ * roomList.jsp 는 이 파일을 대시보드 셸(splitview grid)로 직접 사용하고,
+ * room.jsp / createRoom.jsp 는 iframe 으로 임베드될 때(embed=1) 이 파일의
+ * 임베드 초기화 규칙만 함께 적용받는다.
+ */
+
+:root {
+    --kakao-bg-0: #121212;      /* 페이지 바탕 (패널 사이 여백) */
+    --kakao-bg-1: #191919;      /* 대화 영역 배경 */
+    --kakao-bg-2: #222222;      /* 패널/카드 기본 배경 */
+    --kakao-bg-3: #2b2b2b;      /* 입력창, 상승된 컴포넌트 */
+    --kakao-bg-4: #333333;      /* hover/active 배경 */
+    --kakao-border: #3a3a3a;
+    --kakao-border-soft: #2f2f2f;
+
+    --kakao-yellow: #FEE500;
+    --kakao-yellow-dark: #F2C94C;
+    --kakao-yellow-deep: #3D3512; /* 내 말풍선 다크 변형 */
+
+    --kakao-mine-bubble: var(--kakao-yellow);
+    --kakao-mine-text: #201d00;
+    --kakao-other-bubble: #2A2A2A;
+    --kakao-other-text: #F5F5F5;
+
+    --kakao-text-primary: #FFFFFF;
+    --kakao-text-secondary: #ABABAB;
+    --kakao-text-tertiary: #7A7A7A;
+
+    --kakao-danger: #FF5B5B;
+    --kakao-success: #4CD787;
+
+    --kakao-radius-lg: 16px;
+    --kakao-radius: 12px;
+    --kakao-radius-sm: 8px;
+
+    --panel-left-width: 320px;
+    --panel-right-width: 340px;
+    /*
+     * roomList.jsp는 항상 header.jsp(사이트 전역 내비게이션 바, common.css의
+     * --header-height: 80px)를 .chat-dashboard 위에 함께 출력한다.
+     * 이 변수는 그 실제 높이를 그대로 따라가도록 --header-height를 기본값으로 두되,
+     * common.css가 어떤 이유로 로드되지 않는 경우를 대비해 80px을 폴백으로 둔다.
+     */
+    --dashboard-header-height: var(--header-height, 80px);
+
+    --kakao-font: "Pretendard", "Noto Sans KR", "맑은 고딕", Arial, sans-serif;
+}
+
+.chat-dashboard,
+.chat-dashboard * {
+    box-sizing: border-box;
+    font-family: var(--kakao-font);
+}
+
+body.chat-dashboard-page {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--kakao-bg-0);
+    color: var(--kakao-text-primary);
+}
+
+/*
+ * 데스크톱: Left(방 목록) | Middle(채팅방) | Right(방 생성) 3단 splitview.
+ * 모바일: 아래 미디어쿼리에서 단일 컬럼으로 전환된다.
+ *
+ * height:100vh였던 이전 값은 위에 얹히는 전역 헤더(header.jsp, 80px)의
+ * 높이를 전혀 빼주지 않아서, body 전체 높이가 뷰포트보다 80px 더 커지고
+ * 그만큼 페이지 자체(바깥쪽)가 세로 스크롤되는 문제가 있었다.
+ * 그 결과 좌측 방 목록/입력창-전송 버튼이 뷰포트 아래로 밀려나 매번
+ * 페이지를 스크롤해야만 보였고, 정작 각 패널 안쪽의 스크롤 영역
+ * (.room-list-scroll, .message-area 등)은 제 역할을 못 하고 있었다.
+ * 헤더 높이를 빼서 대시보드가 "헤더 아래 남은 뷰포트"에 정확히 맞도록 한다.
+ */
+.chat-dashboard {
+    display: grid;
+    grid-template-columns: var(--panel-left-width) minmax(0, 1fr) var(--panel-right-width);
+    height: calc(100vh - var(--dashboard-header-height));
+    background: var(--kakao-bg-0);
+    overflow: hidden;
+}
+
+.chat-dashboard .dashboard-panel {
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--kakao-bg-2);
+}
+
+.chat-dashboard .panel-left {
+    border-right: 1px solid var(--kakao-border);
+}
+
+.chat-dashboard .panel-right {
+    border-left: 1px solid var(--kakao-border);
+}
+
+.chat-dashboard .panel-middle {
+    background: var(--kakao-bg-1);
+}
+
+.dashboard-panel .panel-frame {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    display: block;
+}
+
+.dashboard-panel .panel-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--kakao-text-tertiary);
+    text-align: center;
+    padding: 40px;
+}
+
+.dashboard-panel .panel-placeholder .placeholder-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--kakao-bg-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--kakao-yellow-dark);
+}
+
+/* 모바일 전용 하단 플로팅 방 생성 버튼 (데스크톱은 오른쪽 패널이 항상 보이므로 숨김) */
+.mobile-fab {
+    display: none;
+}
+
+/* 모바일에서 방 생성 패널을 모달로 띄우기 위한 오버레이 */
+.mobile-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.55);
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.mobile-modal-overlay.open {
+    display: flex;
+}
+
+.mobile-modal-sheet {
+    width: 100%;
+    max-width: 480px;
+    max-height: 88vh;
+    background: var(--kakao-bg-2);
+    border-radius: 18px 18px 0 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    animation: sheet-up 0.22s ease-out;
+}
+
+@keyframes sheet-up {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.mobile-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--kakao-border);
+}
+
+.mobile-modal-head span {
+    font-weight: 700;
+    color: var(--kakao-text-primary);
+}
+
+.mobile-modal-close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--kakao-bg-3);
+    color: var(--kakao-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.mobile-modal-close:hover {
+    background: var(--kakao-bg-4);
+    color: var(--kakao-text-primary);
+}
+
+.mobile-modal-sheet .panel-frame {
+    height: 72vh;
+}
+
+/* ===================== 모바일 (<=768px): 단일 화면 전환 ===================== */
+@media (max-width: 768px) {
+
+    .chat-dashboard {
+        display: block;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .chat-dashboard .dashboard-panel {
+        height: auto;
+        border: 0 !important;
+    }
+
+    /* 목록 화면에서는 middle/right 패널을 완전히 숨긴다 (카카오톡 앱처럼 목록이 곧 홈 화면) */
+    .chat-dashboard .panel-middle,
+    .chat-dashboard .panel-right {
+        display: none;
+    }
+
+    .mobile-fab {
+        display: flex;
+        position: fixed;
+        right: 20px;
+        bottom: 24px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 0;
+        background: var(--kakao-yellow);
+        color: #201d00;
+        font-size: 26px;
+        line-height: 1;
+        align-items: center;
+        justify-content: center;
+        /*
+         * "+" 글자는 폰트 자체의 상하 여백이 비대칭이라 flex로
+         * 정중앙에 둬도 시각적으로 살짝 아래로 처져 보인다.
+         * 아래쪽 여백을 살짝 더 줘서 글자를 위로 밀어 보정한다.
+         */
+        padding-bottom: 3px;
+        box-shadow: 0 6px 18px rgba(254, 229, 0, 0.35);
+        cursor: pointer;
+        z-index: 150;
+    }
+
+    .mobile-fab:hover {
+        filter: brightness(1.05);
+    }
+}

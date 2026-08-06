@@ -4,6 +4,13 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%--
+    embed=1 로 접근하면 roomList.jsp 의 중앙 패널(iframe) 안에서 렌더링된다.
+    이 페이지 자체는 독립 URL(/chat/room/{roomId})로도 그대로 동작해야 하므로
+    embed 여부는 요청 파라미터로만 판단하고 컨트롤러/서비스는 건드리지 않는다.
+--%>
+<c:set var="isEmbedded" value="${param.embed eq '1'}" />
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -11,11 +18,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${room.roomName}</title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room.css?v=2">
-</head>
-<body class="chat-page">
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=3">
 
-<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- embed 모드에서 header.jsp(내비게이션 바)는 생략하더라도
+     CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는
+     /chat/api/read, /chat/api/leave fetch 요청에 필수이므로 항상 로드합니다. --%>
+<c:if test="${isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
+</c:if>
+</head>
+<body class="chat-page ${isEmbedded ? 'embedded' : ''}">
+
+<c:if test="${not isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+</c:if>
 
 <div id="chatPageData"
      data-context-path="${pageContext.request.contextPath}"
@@ -25,7 +43,8 @@
      data-business-no="${businessNo}"
      data-business-name="${businessName}"
      data-role="${role}"
-     data-admin="${isAdmin}">
+     data-admin="${isAdmin}"
+     data-embedded="${isEmbedded}">
 </div>
 
 <div id="mainContent" class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
@@ -61,6 +80,9 @@
             </c:choose>
         </p>
 
+        <%-- embed 모드(데스크톱 중앙 패널)에서는 좌측 목록이 항상 보이므로
+             이 버튼은 CSS(body.chat-page.embedded #roomListBtn)에서 숨긴다.
+             모바일 전체화면 진입 시에는 그대로 노출되어 뒤로 가기 역할을 한다. --%>
         <div class="top-btn-area">
             <button type="button"
                     id="roomListBtn">
@@ -100,11 +122,6 @@
         <c:otherwise>
             <div class="input-area">
 
-                <%--
-                    메시지 입력창에 명시적인 label을 연결한다.
-                    화면 디자인에는 영향을 주지 않으면서 스크린 리더에는
-                    입력 목적이 전달되도록 label을 시각적으로만 숨긴다.
-                --%>
                 <label for="messageInput"
                        style="position:absolute;
                               width:1px;
@@ -143,7 +160,7 @@
 </div>
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js?v=3"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=4"></script>
 
 </body>
 </html>

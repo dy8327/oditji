@@ -124,18 +124,18 @@ class BusinessServiceCoreCoverageTest {
         OrderItemVO secondItem = new OrderItemVO();
         secondItem.setOrderNo(100L);
 
-        when(businessDAO.selectBusinessOrderList(10L))
+        when(businessDAO.selectBusinessOrderList(10L, 0, 10))
                 .thenReturn(List.of(firstOrder, secondOrder));
         when(businessDAO.selectBusinessOrderItemList(10L))
                 .thenReturn(List.of(firstItem, secondItem));
 
-        List<OrderVO> result = service.getBusinessOrderList(10L);
+        List<OrderVO> result = service.getBusinessOrderList(10L, 1, 10);
         assertEquals(2, result.size());
         assertEquals(2, firstOrder.getItems().size());
         assertTrue(secondOrder.getItems().isEmpty());
 
-        when(businessDAO.selectBusinessOrderList(11L)).thenReturn(null);
-        assertTrue(service.getBusinessOrderList(11L).isEmpty());
+        when(businessDAO.selectBusinessOrderList(11L, 0, 10)).thenReturn(null);
+        assertTrue(service.getBusinessOrderList(11L, 1, 10).isEmpty());
         when(businessDAO.selectBusinessOrderItemList(12L)).thenReturn(null);
         assertTrue(service.getBusinessOrderItemList(12L).isEmpty());
     }
@@ -157,9 +157,9 @@ class BusinessServiceCoreCoverageTest {
         assertEquals("판매 상품 없음",
                 service.getBusinessSalesStatus(11L, start, end).getProductName());
 
-        when(businessDAO.selectBusinessSalesHistory(10L, start, end))
+        when(businessDAO.selectBusinessSalesHistory(10L, start, end, 0, 10))
                 .thenReturn(null);
-        assertTrue(service.getBusinessSalesHistory(10L, start, end).isEmpty());
+        assertTrue(service.getBusinessSalesHistory(10L, start, end, 1, 10).isEmpty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.getBusinessSalesStatus(0L, start, end));
@@ -298,8 +298,8 @@ class BusinessServiceCoreCoverageTest {
         when(businessDAO.selectApprovedProductListByBusinessNo(10L))
                 .thenReturn(null);
         assertTrue(service.getApprovedProductListByBusinessNo(10L).isEmpty());
-        when(businessDAO.selectProductListByBusinessNo(10L)).thenReturn(null);
-        assertTrue(service.getProductListByBusinessNo(10L).isEmpty());
+        when(businessDAO.selectProductListByBusinessNo(10L, null, 0, 10)).thenReturn(null);
+        assertTrue(service.getProductListByBusinessNo(10L, null, 1, 10).isEmpty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.getContentByNo(0L));

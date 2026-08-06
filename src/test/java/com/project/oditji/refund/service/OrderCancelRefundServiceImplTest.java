@@ -245,12 +245,12 @@ class OrderCancelRefundServiceImplTest {
         BusinessVO business = business(50L);
         List<OrderCancelRefundVO> expected = List.of(new OrderCancelRefundVO());
         when(businessDAO.selectBusinessByMemberNo(5L)).thenReturn(business);
-        when(refundDAO.selectCancelListByBusiness(50L, "WAITING"))
+        when(refundDAO.selectCancelListByBusiness(50L, "WAITING", 0, 10))
                 .thenReturn(expected);
 
-        assertSame(expected, service.getBusinessCancelList(5L, " waiting "));
-        service.getBusinessCancelList(5L, "ALL");
-        verify(refundDAO).selectCancelListByBusiness(50L, null);
+        assertSame(expected, service.getBusinessCancelList(5L, " waiting ", 1, 10));
+        service.getBusinessCancelList(5L, "ALL", 1, 10);
+        verify(refundDAO).selectCancelListByBusiness(50L, null, 0, 10);
     }
 
     @Test

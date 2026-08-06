@@ -58,8 +58,17 @@ public interface BusinessService {
         List<GoodsManageVO> getApprovedProductListByBusinessNo(
                         long businessNo);
 
-        // 사업자가 등록한 상품 목록 조회
-        List<GoodsManageVO> getProductListByBusinessNo(long businessNo);
+        /*
+         * =========================================================
+         * [페이징 리팩터링] 사업자가 등록한 상품 목록 조회
+         * 관리자 목록 화면과 동일하게 currentPage/pageSize로 페이지 단위 조회.
+         * =========================================================
+         */
+        List<GoodsManageVO> getProductListByBusinessNo(long businessNo, String keyword, int currentPage,
+                        int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용)
+        int getProductListCountByBusinessNo(long businessNo, String keyword);
 
         /*
          * =========================================================
@@ -95,8 +104,12 @@ public interface BusinessService {
          */
         long registerEvent(EventManageVO eventManageVO, MultipartFile eventImage);
 
-        // 사업자 이벤트 목록 조회
-        List<EventManageVO> getEventListByBusinessNo(long businessNo, String keyword);
+        // [페이징 리팩터링] 사업자 이벤트 목록 조회 (currentPage/pageSize로 페이지 단위 조회)
+        List<EventManageVO> getEventListByBusinessNo(long businessNo, String keyword, int currentPage,
+                        int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용)
+        int getEventListCountByBusinessNo(long businessNo, String keyword);
 
         /*
          * =========================================================
@@ -126,8 +139,11 @@ public interface BusinessService {
 
         List<GoodsManageVO> getPopularProducts(long businessNo);
 
-        // 사업자 주문 현황 - 주문 목록 조회
-        List<OrderVO> getBusinessOrderList(long businessNo);
+        // [페이징 리팩터링] 사업자 주문 현황 - 주문 목록 조회 (currentPage/pageSize로 페이지 단위 조회)
+        List<OrderVO> getBusinessOrderList(long businessNo, int currentPage, int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자 주문 목록 전체 건수
+        int getBusinessOrderListCount(long businessNo);
 
         // 사업자 주문 현황 - 주문 상품 목록 조회
         List<OrderItemVO> getBusinessOrderItemList(long businessNo);
@@ -146,7 +162,12 @@ public interface BusinessService {
          */
         SettlementManageVO getBusinessSalesStatus(long businessNo, LocalDate startDate, LocalDate endDate);
 
-        List<SettlementManageVO> getBusinessSalesHistory(long businessNo, LocalDate startDate, LocalDate endDate);
+        // [페이징 리팩터링] currentPage/pageSize로 페이지 단위 조회
+        List<SettlementManageVO> getBusinessSalesHistory(long businessNo, LocalDate startDate, LocalDate endDate,
+                        int currentPage, int pageSize);
+
+        // [페이징 리팩터링 추가] 판매 내역 전체 건수 (조회 기간 내 판매가 발생한 날짜 수)
+        int getBusinessSalesHistoryCount(long businessNo, LocalDate startDate, LocalDate endDate);
 
         /*
         * =========================================================
@@ -170,7 +191,12 @@ public interface BusinessService {
          * 상태와 검색어는 선택 조건이며 사업자 소유 주문상품만 반환.
          * =========================================================
          */
-        List<DeliveryManageVO> getBusinessDeliveryList(long businessNo, String status, String keyword);
+        // [페이징 리팩터링] currentPage/pageSize로 페이지 단위 조회
+        List<DeliveryManageVO> getBusinessDeliveryList(long businessNo, String status, String keyword,
+                        int currentPage, int pageSize);
+
+        // [페이징 리팩터링 추가] 배송 목록 전체 건수 (검색 조건 동일 적용)
+        int getBusinessDeliveryListCount(long businessNo, String status, String keyword);
 
         /*
          * =========================================================

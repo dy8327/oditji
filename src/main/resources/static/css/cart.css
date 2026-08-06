@@ -2,10 +2,16 @@
    CART PAGE
 ========================================================= */
 
+/* =========================================================
+   [마이페이지 영역 크기 통일]
+   장바구니 바깥 영역을 마이페이지와 동일한 너비로 맞춘다.
+========================================================= */
 .cart-container {
-  width: 100%;
+  width: min(1480px, calc(100% - 64px));
+  max-width: none;
   box-sizing: border-box;
-  padding: 40px 60px 80px;
+  margin: 32px auto 54px;
+  padding: 16px 28px 54px;
 }
 
 /* =========================================================
@@ -41,28 +47,41 @@
   font-size: 13px;
 }
 
+/* =========================================================
+   [수정] 상품 더 보기 버튼 디자인 통일
+   - 내 리뷰 페이지의 비활성 콘텐츠 리뷰 탭 스타일과 동일하게 적용
+   - 위치, 링크 경로, 주변 레이아웃은 변경하지 않음
+========================================================= */
 .continue-shopping-btn {
   display: inline-flex;
-  min-height: 40px;
   align-items: center;
   justify-content: center;
+
   box-sizing: border-box;
-  padding: 0 16px;
+  min-height: 42px;
+  padding: 0 18px;
+
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  background: #222222;
-  color: #dddddd;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
+
+  cursor: pointer;
+
   transition:
+    border-color 0.2s ease,
     background-color 0.2s ease,
-    border-color 0.2s ease;
+    color 0.2s ease;
 }
 
 .continue-shopping-btn:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
 }
 
 /* =========================================================
@@ -447,7 +466,9 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .checkout-btn:hover {
@@ -456,10 +477,10 @@
 }
 
 .checkout-btn:disabled {
-    background: #333333;
-    /* [수정] #777777 on #333333는 대비 약 2.82:1로 부족해 더 밝게 교체 */
-    color: #9c9c9c;
-    cursor: not-allowed;
+  background: #333333;
+  /* [수정] #777777 on #333333는 대비 약 2.82:1로 부족해 더 밝게 교체 */
+  color: #9c9c9c;
+  cursor: not-allowed;
 }
 
 /* =========================================================
@@ -570,8 +591,12 @@
 }
 
 @media (max-width: 760px) {
+  /* [마이페이지 영역 크기 통일]
+    모바일 화면에서는 좌우 여백을 줄인다. */
   .cart-container {
-    padding: 30px 20px 60px;
+    width: calc(100% - 40px);
+    margin: 24px auto 44px;
+    padding: 0 0 44px;
   }
 
   .cart-header {

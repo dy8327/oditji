@@ -33,6 +33,8 @@ import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.business.vo.BusinessDashboardVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -63,6 +65,24 @@ public class BusinessController {
         private static final String STATUS_APPROVED = "APPROVED";
         private static final String ACTIVE_MENU_SETTLEMENT = "settlement";
         private static final String SESSION_LOGIN_MEMBER_NO = "loginMemberNo";
+        private static final String ATTR_PAGINATION = "pagination";
+
+        /*
+         * [페이징 리팩터링 추가] 사업자 목록 화면 공용 페이징 설정.
+         * 관리자 목록 화면(AdminController의 ADMIN_PAGE_SIZE/ADMIN_PAGE_BLOCK_SIZE)과
+         * 동일하게 한 페이지 10건, 페이지 번호 5개 단위 블록으로 맞춘다.
+         */
+        private static final int BUSINESS_PAGE_SIZE = 10;
+        private static final int BUSINESS_PAGE_BLOCK_SIZE = 5;
+
+        /*
+         * [페이징 리팩터링] 상품 목록처럼 항목 하나당 이미지/상세정보가 큰
+         * 카드형 화면은 한 페이지에 너무 많이 나오면 스크롤이 길어지므로
+         * 5건 단위로 별도 관리한다. (상품 목록/배송 관리/취소·환불 관리)
+         * 표 형태로 한 줄씩 나오는 화면(이벤트 목록/주문 현황/판매 현황)은
+         * 기존 BUSINESS_PAGE_SIZE(10건)를 그대로 사용한다.
+         */
+        private static final int BUSINESS_CARD_PAGE_SIZE = 5;
 
         public BusinessController(
                         BusinessService businessService,
@@ -93,9 +113,17 @@ public class BusinessController {
                 return "business/main/businessMain";
         }
 
-        /* 상품 목록 */
+        /*
+         * 상품 목록
+         *
+         * [페이징 리팩터링] 관리자 목록 화면과 동일한 방식(PaginationUtil/PageVO)으로
+         * 검색어(keyword) + 페이지(page)를 함께 처리한다.
+         */
         @GetMapping("/product/list")
-        public String productList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        public String productList(
+                        @RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
+                        @RequestParam(required = false, defaultValue = "1") int page,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
                 if (businessAccess.denied()) {
@@ -104,9 +132,17 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(business.getBusinessNo());
+                int totalCount = businessService.getProductListCountByBusinessNo(business.getBusinessNo(), keyword);
+                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_CARD_PAGE_SIZE,
+                                BUSINESS_PAGE_BLOCK_SIZE);
+
+                List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
+                                business.getBusinessNo(), keyword, pagination.getCurrentPage(), BUSINESS_CARD_PAGE_SIZE);
+
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
+                model.addAttribute(PARAM_KEYWORD, keyword);
+                model.addAttribute(ATTR_PAGINATION, pagination);
                 model.addAttribute(MODEL_ACTIVE_MENU, "product");
 
                 return "business/goods/productList";
@@ -512,6 +548,7 @@ public class BusinessController {
          */
         @GetMapping("/event/list")
         public String eventList(@RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
+                        @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -521,7 +558,12 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(business.getBusinessNo(), keyword);
+                /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
+                int totalCount = businessService.getEventListCountByBusinessNo(business.getBusinessNo(), keyword);
+                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE, BUSINESS_PAGE_BLOCK_SIZE);
+
+                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(
+                                business.getBusinessNo(), keyword, pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
 
                 /*
                  * [리팩터링 추가] 이벤트 수정 요청 모달(공용 1개, #eventUpdateModal)이
@@ -557,6 +599,7 @@ public class BusinessController {
                 model.addAttribute(PARAM_KEYWORD, keyword);
                 model.addAttribute("eventList", eventList);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
+                model.addAttribute(ATTR_PAGINATION, pagination);
                 model.addAttribute(MODEL_ACTIVE_MENU, MODEL_EVENT);
 
                 return "business/event/eventList";
@@ -894,6 +937,7 @@ public class BusinessController {
         public String sales(
                         @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                         @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                        @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -915,14 +959,23 @@ public class BusinessController {
                 try {
                         SettlementManageVO salesStatus = businessService.getBusinessSalesStatus(
                                         business.getBusinessNo(), resolvedStartDate, resolvedEndDate);
-                        List<SettlementManageVO> salesHistory = businessService.getBusinessSalesHistory(
+
+                        /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
+                        int totalCount = businessService.getBusinessSalesHistoryCount(
                                         business.getBusinessNo(), resolvedStartDate, resolvedEndDate);
+                        PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE,
+                                        BUSINESS_PAGE_BLOCK_SIZE);
+
+                        List<SettlementManageVO> salesHistory = businessService.getBusinessSalesHistory(
+                                        business.getBusinessNo(), resolvedStartDate, resolvedEndDate,
+                                        pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
 
                         model.addAttribute(MODEL_BUSINESS, business);
                         model.addAttribute("salesStatus", salesStatus);
                         model.addAttribute("salesHistory", salesHistory);
                         model.addAttribute("startDate", resolvedStartDate);
                         model.addAttribute("endDate", resolvedEndDate);
+                        model.addAttribute(ATTR_PAGINATION, pagination);
                         model.addAttribute(MODEL_ACTIVE_MENU, "sales");
 
                         return "business/settlement/salesStatus";
@@ -946,9 +999,17 @@ public class BusinessController {
                 return "business/community/businessChat";
         }
 
-        /* 사업자 주문 현황 */
+        /*
+         * 사업자 주문 현황
+         *
+         * [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지(page)를 처리한다.
+         * 알림 딥링크(openOrderNo)로 들어온 주문은 최신순 정렬 기준 대부분 1페이지에
+         * 위치하지만, 다른 페이지에 있는 경우까지는 별도로 찾아가지 않는다(기존 동작 유지).
+         */
         @GetMapping("/order/list")
-        public String orderList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        public String orderList(
+                        @RequestParam(required = false, defaultValue = "1") int page,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
                 if (businessAccess.denied()) {
@@ -957,11 +1018,16 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
+                int totalCount = businessService.getBusinessOrderListCount(business.getBusinessNo());
+                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE, BUSINESS_PAGE_BLOCK_SIZE);
+
                 /* 해당 사업자의 주문 목록 조회 */
-                List<OrderVO> orderList = businessService.getBusinessOrderList(business.getBusinessNo());
+                List<OrderVO> orderList = businessService.getBusinessOrderList(
+                                business.getBusinessNo(), pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute("orderList", orderList);
+                model.addAttribute(ATTR_PAGINATION, pagination);
                 model.addAttribute(MODEL_ACTIVE_MENU, MODEL_ORDER);
 
                 return "business/order/orderList";
@@ -988,6 +1054,7 @@ public class BusinessController {
         public String deliveryList(
                         @RequestParam(name = "status", required = false) String status,
                         @RequestParam(name = PARAM_KEYWORD, required = false) String keyword,
+                        @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -998,12 +1065,21 @@ public class BusinessController {
                 BusinessVO business = businessAccess.business();
 
                 try {
-                        List<DeliveryManageVO> deliveryList = businessService.getBusinessDeliveryList(business.getBusinessNo(), status, keyword);
+                        /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
+                        int totalCount = businessService.getBusinessDeliveryListCount(
+                                        business.getBusinessNo(), status, keyword);
+                        PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_CARD_PAGE_SIZE,
+                                        BUSINESS_PAGE_BLOCK_SIZE);
+
+                        List<DeliveryManageVO> deliveryList = businessService.getBusinessDeliveryList(
+                                        business.getBusinessNo(), status, keyword,
+                                        pagination.getCurrentPage(), BUSINESS_CARD_PAGE_SIZE);
 
                         model.addAttribute(MODEL_BUSINESS, business);
                         model.addAttribute("deliveryList", deliveryList);
                         model.addAttribute("selectedStatus", status);
                         model.addAttribute(PARAM_KEYWORD, keyword);
+                        model.addAttribute(ATTR_PAGINATION, pagination);
                         model.addAttribute(MODEL_ACTIVE_MENU, "delivery");
 
                         return "business/order/deliveryList";
@@ -1030,6 +1106,7 @@ public class BusinessController {
                         @RequestParam("status") String status,
                         @RequestParam(name = "returnStatus", required = false) String returnStatus,
                         @RequestParam(name = "returnKeyword", required = false) String returnKeyword,
+                        @RequestParam(name = "returnPage", required = false, defaultValue = "1") int returnPage,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -1053,12 +1130,15 @@ public class BusinessController {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "배송 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
                 }
 
-                /* 목록에서 사용하던 검색 조건을 유지하여 같은 화면으로 돌아간다. */
+                /* 목록에서 사용하던 검색 조건과 페이지를 유지하여 같은 화면으로 돌아간다. */
                 if (returnStatus != null && !returnStatus.isBlank()) {
                         redirectAttributes.addAttribute("status", returnStatus);
                 }
                 if (returnKeyword != null && !returnKeyword.isBlank()) {
                         redirectAttributes.addAttribute(PARAM_KEYWORD, returnKeyword);
+                }
+                if (returnPage > 1) {
+                        redirectAttributes.addAttribute("page", returnPage);
                 }
 
                 return "redirect:/business/delivery/list";
@@ -1066,7 +1146,9 @@ public class BusinessController {
 
         /* 취소 및 환불 관리 */
         @GetMapping("/cancel/list")
-        public String cancelList(@RequestParam(name = "status", required = false) String status, HttpSession session,
+        public String cancelList(@RequestParam(name = "status", required = false) String status,
+                        @RequestParam(required = false, defaultValue = "1") int page,
+                        HttpSession session,
                         Model model, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
@@ -1077,7 +1159,14 @@ public class BusinessController {
                 }
 
                 try {
-                        model.addAttribute("cancelList", orderCancelRefundService.getBusinessCancelList(memberNo, status));
+                        /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
+                        int totalCount = orderCancelRefundService.getBusinessCancelListCount(memberNo, status);
+                        PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_CARD_PAGE_SIZE,
+                                        BUSINESS_PAGE_BLOCK_SIZE);
+
+                        model.addAttribute("cancelList", orderCancelRefundService.getBusinessCancelList(
+                                        memberNo, status, pagination.getCurrentPage(), BUSINESS_CARD_PAGE_SIZE));
+                        model.addAttribute(ATTR_PAGINATION, pagination);
                         model.addAttribute(MODEL_ACTIVE_MENU, "cancel");
                         return "business/order/cancelList";
 
@@ -1094,17 +1183,35 @@ public class BusinessController {
          * =========================================================
          */
         @PostMapping("/cancel/approve")
-        public String approveCancel(@RequestParam("cancelNo") Long cancelNo, HttpSession session, RedirectAttributes redirectAttributes) {
+        public String approveCancel(@RequestParam("cancelNo") Long cancelNo,
+                        @RequestParam(name = "returnStatus", required = false) String returnStatus,
+                        @RequestParam(name = "returnPage", required = false, defaultValue = "1") int returnPage,
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
-                return processCancelDecision(
-                                () -> orderCancelRefundService.approveCancel(memberNo, cancelNo),
-                                "취소 요청을 승인하고 환불을 완료했습니다.",
-                                "승인",
-                                memberNo,
-                                cancelNo,
-                                redirectAttributes);
+                try {
+                        orderCancelRefundService.approveCancel(memberNo, cancelNo);
+                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "취소 요청을 승인하고 환불을 완료했습니다.");
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("취소 요청 승인 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "취소 요청 승인 처리 중 오류가 발생했습니다.");
+                }
+
+                /* [페이징 리팩터링 추가] 목록에서 보던 상태 필터와 페이지를 유지하여 같은 화면으로 돌아간다. */
+                if (returnStatus != null && !returnStatus.isBlank()) {
+                        redirectAttributes.addAttribute("status", returnStatus);
+                }
+                if (returnPage > 1) {
+                        redirectAttributes.addAttribute("page", returnPage);
+                }
+
+                return "redirect:/business/cancel/list";
         }
 
         /*
@@ -1117,6 +1224,8 @@ public class BusinessController {
         public String rejectCancel(
                         @RequestParam("cancelNo") Long cancelNo,
                         @RequestParam(name = "rejectReason", required = false) String rejectReason,
+                        @RequestParam(name = "returnStatus", required = false) String returnStatus,
+                        @RequestParam(name = "returnPage", required = false, defaultValue = "1") int returnPage,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
@@ -1160,6 +1269,13 @@ public class BusinessController {
                         redirectAttributes.addFlashAttribute(
                                         ATTR_ERROR_MESSAGE,
                                         "취소 요청 " + actionName + " 처리 중 오류가 발생했습니다.");
+                }
+
+                if (returnStatus != null && !returnStatus.isBlank()) {
+                        redirectAttributes.addAttribute("status", returnStatus);
+                }
+                if (returnPage > 1) {
+                        redirectAttributes.addAttribute("page", returnPage);
                 }
 
                 return "redirect:/business/cancel/list";
