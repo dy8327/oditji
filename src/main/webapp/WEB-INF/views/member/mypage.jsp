@@ -201,7 +201,13 @@
                         <span class="mypage-activity-title">찜 목록</span>
                     </a>
                     <a href="${pageContext.request.contextPath}/cart" class="mypage-activity-card activity-cart">
-                        <span class="mypage-activity-icon" aria-hidden="true">🛒</span>
+                        <span class="mypage-activity-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6.2"/>
+                                <circle cx="10" cy="20" r="1.4"/>
+                                <circle cx="17" cy="20" r="1.4"/>
+                            </svg>
+                        </span>
                         <span class="mypage-activity-count">${cartCount}</span>
                         <span class="mypage-activity-title">장바구니</span>
                     </a>

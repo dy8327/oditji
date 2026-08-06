@@ -3,6 +3,7 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
 
 <!DOCTYPE html>
@@ -16,7 +17,7 @@
 <title>ODITJI MAIN</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/main.css?v=2">
+      href="${pageContext.request.contextPath}/css/main.css?v=4">
 
 <script defer
         src="${pageContext.request.contextPath}/js/main.js"></script>
@@ -28,94 +29,370 @@
 
 <main id="mainContent" class="main">
 
-    <section class="hero">
+    <%--
+        실제 OTT(넷플릭스/웨이브/티빙) 메인처럼 화면 폭 전체를 채우는
+        시네마틱 배너로 교체합니다. "오늘의 콘텐츠"의 백드롭 이미지를
+        재사용해 자동으로 넘어가는 슬라이드를 구성하고, 데이터가
+        없을 때는 "추천 콘텐츠" → 브랜드 소개 문구 순으로 대체합니다.
+    --%>
+    <c:choose>
+        <c:when test="${not empty todayContentList}">
+            <c:set var="heroContentList" value="${todayContentList}" />
+            <c:set var="heroEyebrow" value="오늘의 콘텐츠" />
+        </c:when>
+        <c:when test="${not empty recommendedContentList}">
+            <c:set var="heroContentList" value="${recommendedContentList}" />
+            <c:set var="heroEyebrow" value="추천 콘텐츠" />
+        </c:when>
+        <c:otherwise>
+            <c:set var="heroContentList" value="${null}" />
+        </c:otherwise>
+    </c:choose>
 
-        <div class="hero-left">
+    <section class="hero"
+             id="mainHero"
+             aria-roledescription="carousel"
+             aria-label="오디지 추천 배너">
 
-            <div class="hero-sub">
-                OTT 통합 검색 서비스
-            </div>
+        <div class="hero-slides" id="heroSlides">
 
-            <h1 class="hero-title">
-                세상 모든 OTT<br>
-                오딧지?!
-            </h1>
+            <%-- 브랜드 소개 슬라이드: 콘텐츠 유무와 상관없이 항상 첫 번째로 노출 --%>
+            <article class="hero-slide is-active hero-slide-fallback"
+                     data-slide-index="0"
+                     aria-hidden="false">
 
-            <p class="hero-desc">
-                영화, 드라마, 예능, 그리고 관련 굿즈까지<br>
-                OTT 정보를 한 번에 확인하세요.
-            </p>
+                <div class="hero-slide-bg hero-slide-bg-empty" aria-hidden="true"></div>
+                <div class="hero-slide-scrim" aria-hidden="true"></div>
 
-        </div>
+                <div class="hero-slide-body">
 
-        <div class="hero-right">
+                    <span class="hero-eyebrow">
+                        OTT 통합 검색 서비스
+                    </span>
 
-            <div class="hero-box">
+                    <h1 class="hero-slide-title">
+                        세상 모든 OTT<br>
+                        오딧지?!
+                    </h1>
 
-                <div class="box-title">
-                    인기 콘텐츠
+                    <p class="hero-slide-desc">
+                        영화, 드라마, 예능, 그리고 관련 굿즈까지<br>
+                        OTT 정보를 한 번에 확인하세요.
+                    </p>
+
                 </div>
 
-                <div class="box-list">
+            </article>
 
-                    <c:choose>
+            <c:if test="${not empty heroContentList}">
 
-                        <c:when test="${not empty popularContentList}">
+                    <c:forEach var="content"
+                               items="${heroContentList}"
+                               begin="0"
+                               end="4"
+                               varStatus="heroStatus">
 
-                            <c:forEach var="content"
-                                       items="${popularContentList}"
-                                       begin="0"
-                                       end="4"
-                                       varStatus="status">
+                        <c:set var="heroAgeLabel" value="?"/>
+                        <c:set var="heroAgeClass" value="unknown"/>
+                        <c:set var="heroAgeTitle" value="등급 정보 없음"/>
 
-                                <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
-                                   class="box-item">
+                        <c:choose>
+                            <c:when test="${content.ageRating eq '전체 관람가'}">
+                                <c:set var="heroAgeLabel" value="ALL"/>
+                                <c:set var="heroAgeClass" value="all"/>
+                                <c:set var="heroAgeTitle" value="전체 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '7세 이상 관람가'}">
+                                <c:set var="heroAgeLabel" value="7"/>
+                                <c:set var="heroAgeClass" value="age7"/>
+                                <c:set var="heroAgeTitle" value="7세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '12세 이상 관람가'}">
+                                <c:set var="heroAgeLabel" value="12"/>
+                                <c:set var="heroAgeClass" value="age12"/>
+                                <c:set var="heroAgeTitle" value="12세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '15세 이상 관람가'}">
+                                <c:set var="heroAgeLabel" value="15"/>
+                                <c:set var="heroAgeClass" value="age15"/>
+                                <c:set var="heroAgeTitle" value="15세 이상 관람가"/>
+                            </c:when>
+                            <c:when test="${content.ageRating eq '청소년 관람불가'}">
+                                <c:set var="heroAgeLabel" value="19"/>
+                                <c:set var="heroAgeClass" value="adult"/>
+                                <c:set var="heroAgeTitle" value="청소년 관람불가"/>
+                            </c:when>
+                        </c:choose>
 
-                                    <span class="box-rank">
-                                        ${status.count}
+                        <article class="hero-slide"
+                                 data-slide-index="${heroStatus.index + 1}"
+                                 aria-hidden="true">
+
+                            <c:choose>
+                                <c:when test="${not empty content.backdropPath}">
+                                    <div class="hero-slide-bg"
+                                         style="background-image:url('https://image.tmdb.org/t/p/original${content.backdropPath}');"
+                                         aria-hidden="true"></div>
+                                </c:when>
+                                <c:when test="${not empty content.posterPath}">
+                                    <div class="hero-slide-bg hero-slide-bg-poster"
+                                         style="background-image:url('https://image.tmdb.org/t/p/original${content.posterPath}');"
+                                         aria-hidden="true"></div>
+                                    <img class="hero-slide-poster-img"
+                                         src="https://image.tmdb.org/t/p/w500${content.posterPath}"
+                                         alt=""
+                                         aria-hidden="true"
+                                         loading="lazy">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="hero-slide-bg hero-slide-bg-empty" aria-hidden="true"></div>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <div class="hero-slide-scrim" aria-hidden="true"></div>
+
+                            <div class="hero-slide-body">
+
+                                <span class="hero-eyebrow">
+                                    오디지 PICK · <c:out value="${heroEyebrow}"/>
+                                </span>
+
+                                <h1 class="hero-slide-title">
+                                    <c:out value="${content.title}"/>
+                                </h1>
+
+                                <div class="hero-slide-meta">
+
+                                    <span class="content-age-rating-badge is-${heroAgeClass}"
+                                          title="<c:out value='${heroAgeTitle}'/>">
+                                        ${heroAgeLabel}
                                     </span>
 
-                                    <span class="box-name">
-                                        ${content.title}
+                                    <span class="hero-meta-chip">
+                                        ${content.contentType eq 'MOVIE' ? '영화' : '시리즈'}
                                     </span>
 
-                                    <c:if test="${not empty content.tmdbScore}">
-                                        <span class="box-score">
-                                            ⭐ ${content.tmdbScore}
+                                    <c:if test="${not empty content.tmdbScore and content.tmdbScore > 0}">
+                                        <span class="hero-meta-score">
+                                            ★ ${content.tmdbScore}
                                         </span>
                                     </c:if>
 
-                                </a>
+                                    <c:if test="${not empty content.genreText}">
+                                        <span class="hero-meta-genre">
+                                            <c:out value="${content.genreText}"/>
+                                        </span>
+                                    </c:if>
 
-                            </c:forEach>
+                                </div>
 
-                        </c:when>
+                                <c:if test="${not empty content.overview}">
+                                    <p class="hero-slide-desc">
+                                        <c:out value="${content.overview}"/>
+                                    </p>
+                                </c:if>
 
-                        <c:otherwise>
+                                <div class="hero-slide-actions">
 
-                            <div class="box-empty">
-                                인기 콘텐츠를 불러오지 못했습니다.
+                                    <a class="hero-btn hero-btn-primary"
+                                       href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}">
+                                        <span aria-hidden="true">▶</span> 자세히 보기
+                                    </a>
+
+                                    <a class="hero-btn hero-btn-ghost"
+                                       href="#todaySection">
+                                        더 많은 콘텐츠
+                                    </a>
+
+                                </div>
+
                             </div>
 
-                        </c:otherwise>
+                        </article>
 
-                    </c:choose>
+                    </c:forEach>
 
-                </div>
-
-            </div>
+            </c:if>
 
         </div>
 
+        <%-- 실시간 인기 콘텐츠는 배너 위 오버레이가 아니라
+             넷플릭스식 'TOP 10' 가로 스크롤 섹션으로 배너 아래에 별도 노출 --%>
+
+        <%-- 빠른 탐색 칩: 히어로 하단 좌측의 여백을 채우면서 콘텐츠 탐색 동선을 강화 --%>
+        <nav class="hero-quick-links" aria-label="빠른 콘텐츠 탐색">
+
+            <a href="${pageContext.request.contextPath}/content/list?type=popular"
+               class="hero-quick-link">
+                🔥 인기 콘텐츠
+            </a>
+
+            <a href="${pageContext.request.contextPath}/content/list?type=new"
+               class="hero-quick-link">
+                🆕 신규 콘텐츠
+            </a>
+
+            <a href="${pageContext.request.contextPath}/ranking"
+               class="hero-quick-link">
+                🏆 랭킹
+            </a>
+
+            <a href="${pageContext.request.contextPath}/recommend"
+               class="hero-quick-link">
+                ✨ 맞춤 추천
+            </a>
+
+            <a href="${pageContext.request.contextPath}/goods/list?type=popular"
+               class="hero-quick-link">
+                🛍️ 인기 굿즈
+            </a>
+
+        </nav>
+
+        <c:if test="${not empty heroContentList}">
+
+            <button type="button"
+                    class="hero-nav hero-nav-prev"
+                    id="heroPrevBtn"
+                    aria-label="이전 배너 보기"
+                    onclick="moveHero(-1)">
+                ‹
+            </button>
+
+            <button type="button"
+                    class="hero-nav hero-nav-next"
+                    id="heroNextBtn"
+                    aria-label="다음 배너 보기"
+                    onclick="moveHero(1)">
+                ›
+            </button>
+
+            <div class="hero-dots"
+                 id="heroDots"
+                 role="tablist"
+                 aria-label="배너 선택">
+
+                <button type="button"
+                        class="hero-dot is-active"
+                        role="tab"
+                        aria-selected="true"
+                        aria-label="오디지 소개 배너로 이동"
+                        onclick="goHero(0)"></button>
+
+                <c:forEach var="content"
+                           items="${heroContentList}"
+                           begin="0"
+                           end="4"
+                           varStatus="dotStatus">
+
+                    <button type="button"
+                            class="hero-dot"
+                            role="tab"
+                            aria-selected="false"
+                            aria-label="<c:out value='${content.title}'/> 배너로 이동"
+                            onclick="goHero(${dotStatus.index + 1})"></button>
+
+                </c:forEach>
+
+            </div>
+
+        </c:if>
+
     </section>
 
-    <section class="slider-section">
+    <%-- 실시간 인기 콘텐츠: 넷플릭스/웨이브 스타일의 랭킹 넘버 + 카드 가로 스크롤 --%>
+    <section class="slider-section rank-slider-section" id="popularRankSection">
 
         <div class="section-header">
 
             <div>
 
                 <h2 class="section-title">
+                    <span class="section-eyebrow section-eyebrow--rank">LIVE</span>
+                    실시간 인기 콘텐츠
+                </h2>
+
+                <p class="section-description">
+                    지금 오디지에서 가장 많이 찾는 콘텐츠
+                </p>
+
+            </div>
+
+            <a href="${pageContext.request.contextPath}/ranking"
+               class="section-more">
+                더보기 <span aria-hidden="true">›</span>
+            </a>
+
+        </div>
+
+        <div class="slider">
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="실시간 인기 콘텐츠 이전 목록"
+                    onclick="moveSlider('rank','left')">
+                ‹
+            </button>
+
+            <div class="track rank-track"
+                 id="rankSlider">
+
+                <c:choose>
+
+                    <c:when test="${not empty popularContentList}">
+
+                        <c:forEach var="content"
+                                   items="${popularContentList}"
+                                   begin="0"
+                                   end="9"
+                                   varStatus="status">
+
+                            <div class="rank-item">
+
+                                <span class="rank-number"
+                                      aria-hidden="true">
+                                    ${status.count}
+                                </span>
+
+                                <oditji:contentCard content="${content}" variant="main" />
+
+                            </div>
+
+                        </c:forEach>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <div class="slider-empty">
+                            인기 콘텐츠를 불러오지 못했습니다.
+                        </div>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="실시간 인기 콘텐츠 다음 목록"
+                    onclick="moveSlider('rank','right')">
+                ›
+            </button>
+
+        </div>
+
+    </section>
+
+    <section class="slider-section" id="todaySection">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2 class="section-title">
+                    <span class="section-eyebrow section-eyebrow--today">TODAY</span>
                     오늘의 콘텐츠
                 </h2>
 
@@ -127,7 +404,7 @@
 
             <a href="${pageContext.request.contextPath}/content/today"
                class="section-more">
-                더보기
+                더보기 <span aria-hidden="true">›</span>
             </a>
 
         </div>
@@ -187,6 +464,7 @@
             <div>
 
                 <h2 class="section-title">
+                    <span class="section-eyebrow section-eyebrow--recommend">PICK</span>
                     추천 콘텐츠
                 </h2>
 
@@ -210,7 +488,7 @@
 
             <a href="${pageContext.request.contextPath}/recommend"
                class="section-more">
-                더보기
+                더보기 <span aria-hidden="true">›</span>
             </a>
 
         </div>

@@ -176,7 +176,16 @@
                 --%>
                 <span class="content-view-count"
                       aria-label="조회수 ${content.viewCount}회">
-                    <span aria-hidden="true">👁</span>
+                    <span class="view-count-icon" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </span>
                     ${content.viewCount}
                 </span>
 
@@ -228,7 +237,7 @@
         <div class="score-box">
 
             <span class="score-badge score-badge--tmdb">
-                <span class="score-badge-icon" aria-hidden="true">⭐</span>
+                <span class="score-badge-icon" aria-hidden="true">★</span>
                 <span class="score-badge-text">
                     <em>글로벌 평점</em>
                     <strong>${content.tmdbScore}</strong>
@@ -236,7 +245,7 @@
             </span>
 
             <span class="score-badge score-badge--user">
-                <span class="score-badge-icon" aria-hidden="true">⭐</span>
+                <span class="score-badge-icon" aria-hidden="true">★</span>
                 <span class="score-badge-text">
                     <em>오딧지 평점</em>
 
@@ -673,7 +682,7 @@
                             --%>
                             <c:if test="${not empty related.tmdbScore}">
                                 <span class="related-content-score-badge">
-                                    <span aria-hidden="true">⭐</span>
+                                    <span aria-hidden="true">★</span>
                                     ${related.tmdbScore}
                                 </span>
                             </c:if>
@@ -707,7 +716,7 @@
                                     <c:choose>
 
                                         <c:when test="${not empty related.tmdbScore}">
-                                            ⭐ ${related.tmdbScore}
+                                            ★ ${related.tmdbScore}
                                         </c:when>
 
                                         <c:otherwise>
@@ -995,7 +1004,7 @@
                                 </span>
 
                                 <span class="rating">
-                                    ⭐
+                                    ★
                                     <fmt:formatNumber
                                         value="${r.rating}"
                                         pattern="0.0"/>
@@ -1034,7 +1043,20 @@
 
                                         <span class="report-btn reported"
                                               aria-disabled="true">
-                                            🚨 신고완료
+                                            <span class="report-btn-icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" fill="none">
+                                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                                          stroke="currentColor"
+                                                          stroke-width="2"
+                                                          stroke-linecap="round"
+                                                          stroke-linejoin="round"/>
+                                                    <line x1="4" y1="22" x2="4" y2="3"
+                                                          stroke="currentColor"
+                                                          stroke-width="2"
+                                                          stroke-linecap="round"/>
+                                                </svg>
+                                            </span>
+                                            신고완료
                                         </span>
 
                                     </c:when>
@@ -1045,7 +1067,20 @@
                                                 class="report-btn"
                                                 data-review-type="CONTENT"
                                                 data-review-no="${r.reviewNo}">
-                                            🚨 신고
+                                            <span class="report-btn-icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" fill="none">
+                                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                                          stroke="currentColor"
+                                                          stroke-width="2"
+                                                          stroke-linecap="round"
+                                                          stroke-linejoin="round"/>
+                                                    <line x1="4" y1="22" x2="4" y2="3"
+                                                          stroke="currentColor"
+                                                          stroke-width="2"
+                                                          stroke-linecap="round"/>
+                                                </svg>
+                                            </span>
+                                            신고
                                         </button>
 
                                     </c:otherwise>

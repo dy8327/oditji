@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class HomeController {
 
-    private static final int MAIN_POPULAR_LIMIT = 5;
+    private static final int MAIN_POPULAR_LIMIT = 10;
     private static final int MAIN_SLIDER_LIMIT = 20;
 
     private final SearchContentPageCacheService
