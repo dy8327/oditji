@@ -24,6 +24,7 @@ import com.project.oditji.business.service.BusinessService;
 import com.project.oditji.business.vo.ActorSearchVO;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.ContentSearchVO;
+import com.project.oditji.business.vo.EventFormVO;
 import com.project.oditji.business.vo.EventManageVO;
 import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.DeliveryManageVO;
@@ -618,16 +619,7 @@ public class BusinessController {
          */
         @PostMapping("/event/register")
         public String eventRegisterProcess(
-
-                        @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "description", required = false) String description,
-                        @RequestParam("startDate") LocalDate startDate,
-                        @RequestParam("endDate") LocalDate endDate,
-
-                        // 선택한 연결 상품 목록
-                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
-                        // 상품별 할인율 목록
-                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+                        @ModelAttribute EventFormVO eventForm,
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
@@ -645,7 +637,7 @@ public class BusinessController {
                         return REDIRECT_BUSINESS_MAIN;
                 }
 
-                if (hasInvalidDiscountRate(discountRateList)) {
+                if (hasInvalidDiscountRate(eventForm.getDiscountRateList())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                         return REDIRECT_EVENT_REGISTER;
@@ -654,13 +646,7 @@ public class BusinessController {
                 EventManageVO eventManageVO = createEventManageVO(
                                 null,
                                 business.getBusinessNo(),
-                                new EventForm(
-                                                eventTitle,
-                                                description,
-                                                startDate,
-                                                endDate,
-                                                productNoList,
-                                                discountRateList));
+                                eventForm);
 
                 try {
                         long eventNo = businessService.registerEvent(eventManageVO, eventImage);
@@ -711,14 +697,7 @@ public class BusinessController {
         @PostMapping("/event/update")
         public String eventUpdateProcess(
                         @RequestParam("eventNo") long eventNo,
-                        @RequestParam("eventTitle") String eventTitle,
-                        @RequestParam(value = "description", required = false) String description,
-                        @RequestParam("startDate") LocalDate startDate,
-                        @RequestParam("endDate") LocalDate endDate,
-                        @RequestParam(value = "productNoList", required = false) List<Long> productNoList,
-
-                        //상품별 할인율 목록
-                        @RequestParam(value = "discountRateList", required = false) List<Integer> discountRateList,
+                        @ModelAttribute EventFormVO eventForm,
                         @RequestParam(value = "eventImage", required = false) MultipartFile eventImage,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
@@ -730,7 +709,7 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                if (hasInvalidDiscountRate(discountRateList)) {
+                if (hasInvalidDiscountRate(eventForm.getDiscountRateList())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
                         return REDIRECT_EVENT_LIST;
@@ -739,40 +718,17 @@ public class BusinessController {
                 EventManageVO eventManageVO = createEventManageVO(
                                 eventNo,
                                 business.getBusinessNo(),
-                                new EventForm(
-                                                eventTitle,
-                                                description,
-                                                startDate,
-                                                endDate,
-                                                productNoList,
-                                                discountRateList));
+                                eventForm);
 
-                try {
-                        businessService.updateApprovedEvent(eventManageVO, eventImage);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "이벤트 수정 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
-
-                        return REDIRECT_EVENT_LIST;
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute( ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        /*
-                         * [리팩터링] 수정 폼이 eventList.jsp 모달로 통합되면서
-                         * 별도 GET /event/update 재표시 페이지가 없어졌다.
-                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
-                         */
-                        return REDIRECT_EVENT_LIST;
-
-               } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("이벤트 수정 처리 중 오류 - eventNo: {}", eventNo, e);
-                        }
-                        redirectAttributes.addFlashAttribute(
-                                ATTR_ERROR_MESSAGE,
-                                "이벤트 수정 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
+                /*
+                 * [리팩터링] 수정 폼이 eventList.jsp 모달로 통합되면서
+                 * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                 */
+                return processEventChange(
+                                () -> businessService.updateApprovedEvent(eventManageVO, eventImage),
+                                eventNo,
+                                "수정",
+                                redirectAttributes);
         }
 
         /*
@@ -817,32 +773,19 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                try {
-                        businessService.extendApprovedEvent(eventNo, business.getBusinessNo(), extendEndDate, extendReason);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "이벤트 연장 요청이 접수되었습니다. " + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
-
-                        return REDIRECT_EVENT_LIST;
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-
-                        /*
-                         * [리팩터링] 연장 폼이 eventList.jsp 모달로 통합되면서
-                         * 별도 GET /event/extend 재표시 페이지가 없어졌다.
-                         * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
-                         */
-                        return REDIRECT_EVENT_LIST;
-
-               } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("이벤트 연장 처리 중 오류 - eventNo: {}", eventNo, e);
-                        }
-                        redirectAttributes.addFlashAttribute(
-                                ATTR_ERROR_MESSAGE,
-                                "이벤트 연장 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-
-                        return REDIRECT_EVENT_LIST;
-                }
+                /*
+                 * [리팩터링] 연장 폼이 eventList.jsp 모달로 통합되면서
+                 * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
+                 */
+                return processEventChange(
+                                () -> businessService.extendApprovedEvent(
+                                                eventNo,
+                                                business.getBusinessNo(),
+                                                extendEndDate,
+                                                extendReason),
+                                eventNo,
+                                "연장",
+                                redirectAttributes);
         }
 
         /*
@@ -1155,20 +1098,13 @@ public class BusinessController {
 
                 Long memberNo = getLoginMemberNo(session);
 
-                try {
-                        orderCancelRefundService.approveCancel(memberNo, cancelNo);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "취소 요청을 승인하고 환불을 완료했습니다.");
-
-                } catch (IllegalArgumentException | IllegalStateException e) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("취소 요청 승인 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
-                        }
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "취소 요청 승인 처리 중 오류가 발생했습니다.");
-                }
-
-                return "redirect:/business/cancel/list";
+                return processCancelDecision(
+                                () -> orderCancelRefundService.approveCancel(memberNo, cancelNo),
+                                "취소 요청을 승인하고 환불을 완료했습니다.",
+                                "승인",
+                                memberNo,
+                                cancelNo,
+                                redirectAttributes);
         }
 
         /*
@@ -1185,20 +1121,79 @@ public class BusinessController {
 
                 Long memberNo = getLoginMemberNo(session);
 
+                return processCancelDecision(
+                                () -> orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason),
+                                "취소 요청을 반려했습니다.",
+                                "반려",
+                                memberNo,
+                                cancelNo,
+                                redirectAttributes);
+        }
+
+        /**
+         * 취소 요청 승인과 반려에서 공통으로 사용하는 처리 결과 및 예외 응답입니다.
+         */
+        private String processCancelDecision(
+                        Runnable decisionAction,
+                        String successMessage,
+                        String actionName,
+                        Long memberNo,
+                        Long cancelNo,
+                        RedirectAttributes redirectAttributes) {
+
                 try {
-                        orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "취소 요청을 반려했습니다.");
+                        decisionAction.run();
+                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, successMessage);
 
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+
                 } catch (Exception e) {
                         if (log.isErrorEnabled()) {
-                                log.error("취소 요청 반려 처리 중 오류 - memberNo: {}, cancelNo: {}", memberNo, cancelNo, e);
+                                log.error(
+                                                "취소 요청 {} 처리 중 오류 - memberNo: {}, cancelNo: {}",
+                                                actionName,
+                                                memberNo,
+                                                cancelNo,
+                                                e);
                         }
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "취소 요청 반려 처리 중 오류가 발생했습니다.");
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_ERROR_MESSAGE,
+                                        "취소 요청 " + actionName + " 처리 중 오류가 발생했습니다.");
                 }
 
                 return "redirect:/business/cancel/list";
+        }
+
+        /**
+         * 이벤트 수정과 연장에서 공통으로 사용하는 처리 결과 및 예외 응답입니다.
+         */
+        private String processEventChange(
+                        Runnable eventAction,
+                        long eventNo,
+                        String actionName,
+                        RedirectAttributes redirectAttributes) {
+
+                try {
+                        eventAction.run();
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_SUCCESS_MESSAGE,
+                                        "이벤트 " + actionName + " 요청이 접수되었습니다. "
+                                                        + "관리자 승인 전까지 사용자 화면에 노출되지 않습니다.");
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error("이벤트 {} 처리 중 오류 - eventNo: {}", actionName, eventNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_ERROR_MESSAGE,
+                                        "이벤트 " + actionName + " 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                }
+
+                return REDIRECT_EVENT_LIST;
         }
 
         /**
@@ -1207,7 +1202,7 @@ public class BusinessController {
         private EventManageVO createEventManageVO(
                         Long eventNo,
                         long businessNo,
-                        EventForm eventForm) {
+                        EventFormVO eventForm) {
 
                 EventManageVO eventManageVO = new EventManageVO();
 
@@ -1216,13 +1211,13 @@ public class BusinessController {
                 }
 
                 eventManageVO.setBusinessNo(businessNo);
-                eventManageVO.setTitle(eventForm.title());
-                eventManageVO.setDescription(eventForm.description());
-                eventManageVO.setStartDate(eventForm.startDate());
-                eventManageVO.setEndDate(eventForm.endDate());
+                eventManageVO.setTitle(eventForm.getEventTitle());
+                eventManageVO.setDescription(eventForm.getDescription());
+                eventManageVO.setStartDate(eventForm.getStartDate());
+                eventManageVO.setEndDate(eventForm.getEndDate());
                 eventManageVO.setStatus("WAITING");
-                eventManageVO.setProductNoList(eventForm.productNoList());
-                eventManageVO.setDiscountRateList(eventForm.discountRateList());
+                eventManageVO.setProductNoList(eventForm.getProductNoList());
+                eventManageVO.setDiscountRateList(eventForm.getDiscountRateList());
 
                 return eventManageVO;
         }
@@ -1287,15 +1282,6 @@ public class BusinessController {
                 }
 
                 return new BusinessAccess(business, null);
-        }
-
-        private record EventForm(
-                        String title,
-                        String description,
-                        LocalDate startDate,
-                        LocalDate endDate,
-                        List<Long> productNoList,
-                        List<Integer> discountRateList) {
         }
 
         private record BusinessAccess(

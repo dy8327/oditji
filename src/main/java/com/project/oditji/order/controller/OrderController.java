@@ -3,6 +3,7 @@ package com.project.oditji.order.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -81,35 +82,12 @@ public class OrderController {
         public Map<String, Object> checkoutFromCart(@RequestBody OrderCheckoutRequestVO requestVO,
                         HttpSession session) {
 
-                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
-
-                if (loginMember == null) {
-                        return ApiResponseUtil.loginRequired();
-                }
-
-                try {
-                        List<OrderSheetItemVO> sheetItems = orderService.prepareCheckoutFromCart(
-                                        loginMember.getMemberNo(), requestVO.getCartItemNos());
-
-                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
-                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
-
-                        Map<String, Object> response = ApiResponseUtil.success("주문서를 작성해주세요.");
-                        response.put(RESPONSE_REDIRECT_URL, "/order");
-
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-
-                        return ApiResponseUtil.failure(e.getMessage());
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("장바구니 주문서 작성 중 오류", e);
-                        }
-
-                        return ApiResponseUtil.failure("주문서 작성 중 오류가 발생했습니다.");
-                }
-
+                return prepareOrderSheet(
+                                session,
+                                memberNo -> orderService.prepareCheckoutFromCart(
+                                                memberNo,
+                                                requestVO.getCartItemNos()),
+                                "장바구니 주문서 작성 중 오류");
         }
 
         // 상품 상세 바로 구매 주문서 작성 준비
@@ -117,35 +95,14 @@ public class OrderController {
         @ResponseBody
         public Map<String, Object> directOrder(@RequestBody OrderDirectRequestVO requestVO, HttpSession session) {
 
-                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
-
-                if (loginMember == null) {
-                        return ApiResponseUtil.loginRequired();
-                }
-
-                try {
-                        List<OrderSheetItemVO> sheetItems = orderService.prepareDirectOrder(
-                                        loginMember.getMemberNo(), requestVO.getProductNo(), requestVO.getOptionNo(),
-                                        requestVO.getQuantity());
-
-                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
-                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
-
-                        Map<String, Object> response = ApiResponseUtil.success("주문서를 작성해주세요.");
-                        response.put(RESPONSE_REDIRECT_URL, "/order");
-
-                        return response;
-
-                } catch (IllegalArgumentException e) {
-
-                        return ApiResponseUtil.failure(e.getMessage());
-
-                } catch (Exception e) {
-                        if (log.isErrorEnabled()) {
-                                log.error("바로 구매 주문서 작성 중 오류", e);
-                        }
-                        return ApiResponseUtil.failure("주문서 작성 중 오류가 발생했습니다.");
-                }
+                return prepareOrderSheet(
+                                session,
+                                memberNo -> orderService.prepareDirectOrder(
+                                                memberNo,
+                                                requestVO.getProductNo(),
+                                                requestVO.getOptionNo(),
+                                                requestVO.getQuantity()),
+                                "바로 구매 주문서 작성 중 오류");
         }
 
         // 주문서 화면
@@ -525,6 +482,42 @@ public class OrderController {
                                 log.error("배송 조회 처리 중 오류 - orderItemNo: {}", orderItemNo, e);
                         }
                         return ApiResponseUtil.failure("배송 정보 조회 중 오류가 발생했습니다.");
+                }
+        }
+
+        /**
+         * 장바구니 주문과 바로 구매에서 공통으로 사용하는 주문서 준비 처리입니다.
+         */
+        private Map<String, Object> prepareOrderSheet(
+                        HttpSession session,
+                        Function<Long, List<OrderSheetItemVO>> sheetItemLoader,
+                        String logMessage) {
+
+                MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
+
+                if (loginMember == null) {
+                        return ApiResponseUtil.loginRequired();
+                }
+
+                try {
+                        List<OrderSheetItemVO> sheetItems = sheetItemLoader.apply(loginMember.getMemberNo());
+
+                        session.setAttribute(ORDER_SHEET_SESSION_KEY, sheetItems);
+                        session.removeAttribute(PAYMENT_PREPARE_SESSION_KEY);
+
+                        Map<String, Object> response = ApiResponseUtil.success("주문서를 작성해주세요.");
+                        response.put(RESPONSE_REDIRECT_URL, "/order");
+
+                        return response;
+
+                } catch (IllegalArgumentException e) {
+                        return ApiResponseUtil.failure(e.getMessage());
+
+                } catch (Exception e) {
+                        if (log.isErrorEnabled()) {
+                                log.error(logMessage, e);
+                        }
+                        return ApiResponseUtil.failure("주문서 작성 중 오류가 발생했습니다.");
                 }
         }
 

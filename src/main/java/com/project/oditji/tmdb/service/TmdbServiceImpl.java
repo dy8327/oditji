@@ -3,6 +3,7 @@ package com.project.oditji.tmdb.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,6 +71,22 @@ public class TmdbServiceImpl implements TmdbService {
 
     private static final Map<Integer, String> TV_GENRES =
             TmdbGenreUtil.tvGenres();
+
+    /* 미국 연령 등급 변환표를 공통 조회 방식으로 관리합니다. */
+    private static final Map<String, String> US_TV_AGE_RATINGS = Map.of(
+            "TVY", "ALL",
+            "TVY7", "ALL",
+            "TVG", "ALL",
+            "TVPG", "12",
+            "TV14", "15",
+            "TVMA", "18");
+
+    private static final Map<String, String> US_MOVIE_AGE_RATINGS = Map.of(
+            "G", "ALL",
+            "PG", "12",
+            "PG13", "15",
+            "R", "18",
+            "NC17", "18");
 
     private final TmdbDAO tmdbDAO;
     private final RestTemplate restTemplate;
@@ -1250,18 +1267,10 @@ public class TmdbServiceImpl implements TmdbService {
                 continue;
             }
 
-            String name = crew.path("name").asString(null);
-
-            if (name != null
-                    && !name.isBlank()
-                    && !names.contains(name)) {
-                names.add(name);
-            }
+            addUniqueName(names, crew);
         }
 
-        return names.isEmpty()
-                ? null
-                : String.join(", ", names);
+        return joinNames(names);
     }
 
     private String parseTvCreator(JsonNode createdByNode) {
@@ -1287,15 +1296,26 @@ public class TmdbServiceImpl implements TmdbService {
                 break;
             }
 
-            String name = item.path("name").asString(null);
-
-            if (name != null
-                    && !name.isBlank()
-                    && !names.contains(name)) {
-                names.add(name);
-            }
+            addUniqueName(names, item);
         }
 
+        return joinNames(names);
+    }
+
+    /** 중복되지 않은 TMDB 인물 이름만 목록에 추가합니다. */
+    private void addUniqueName(List<String> names, JsonNode item) {
+
+        String name = item.path("name").asString(null);
+
+        if (name != null
+                && !name.isBlank()
+                && !names.contains(name)) {
+            names.add(name);
+        }
+    }
+
+    /** 이름 목록을 DB 저장 형식으로 변환합니다. */
+    private String joinNames(List<String> names) {
         return names.isEmpty()
                 ? null
                 : String.join(", ", names);
@@ -1481,49 +1501,19 @@ public class TmdbServiceImpl implements TmdbService {
 
     private String convertUsTvAgeRating(
             String value) {
-
-        if ("TVY".equals(value)
-                || "TVY7".equals(value)
-                || "TVG".equals(value)) {
-            return "ALL";
-        }
-
-        if ("TVPG".equals(value)) {
-            return "12";
-        }
-
-        if ("TV14".equals(value)) {
-            return "15";
-        }
-
-        if ("TVMA".equals(value)) {
-            return "18";
-        }
-
-        return AGE_RATING_UNKNOWN;
+        return getMappedAgeRating(US_TV_AGE_RATINGS, value);
     }
 
     private String convertUsMovieAgeRating(
             String value) {
+        return getMappedAgeRating(US_MOVIE_AGE_RATINGS, value);
+    }
 
-        if ("G".equals(value)) {
-            return "ALL";
-        }
-
-        if ("PG".equals(value)) {
-            return "12";
-        }
-
-        if ("PG13".equals(value)) {
-            return "15";
-        }
-
-        if ("R".equals(value)
-                || "NC17".equals(value)) {
-            return "18";
-        }
-
-        return AGE_RATING_UNKNOWN;
+    /** 미국 등급 변환표에 없는 값은 기존과 같이 UNKNOWN으로 처리합니다. */
+    private String getMappedAgeRating(
+            Map<String, String> ageRatingMap,
+            String value) {
+        return ageRatingMap.getOrDefault(value, AGE_RATING_UNKNOWN);
     }
 
     private String firstNonBlank(
@@ -1970,20 +1960,8 @@ public class TmdbServiceImpl implements TmdbService {
     private int compareNullableDoubleDescending(
             Double first,
             Double second) {
-
-        if (first == null && second == null) {
-            return 0;
-        }
-
-        if (first == null) {
-            return 1;
-        }
-
-        if (second == null) {
-            return -1;
-        }
-
-        return Double.compare(second, first);
+        return Comparator.nullsLast(Comparator.<Double>reverseOrder())
+                .compare(first, second);
     }
 
 }
