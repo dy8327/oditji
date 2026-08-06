@@ -44,12 +44,13 @@ public class BusinessCheckInterceptor implements HandlerInterceptor {
         Object businessNo = session.getAttribute("businessNo");
         String businessStatus = (String) session.getAttribute("businessStatus");
 
-        /* 승인된 사업자 외 접근 차단 */
+       /* 승인된 사업자 외 접근 차단 */
         if (businessNo == null || !"APPROVED".equals(businessStatus)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp")
+                    .forward(request, response);
             return false;
         }
-
         return true;
     }
 
