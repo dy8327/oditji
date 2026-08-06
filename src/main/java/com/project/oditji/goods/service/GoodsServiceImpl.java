@@ -1,8 +1,10 @@
 package com.project.oditji.goods.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.goods.dao.GoodsDAO;
 import com.project.oditji.goods.vo.GoodsVO;
+import com.project.oditji.goods.vo.ProductOptionVO;
 
 @Service
 @Transactional(readOnly = true)
@@ -21,8 +24,10 @@ public class GoodsServiceImpl implements GoodsService {
         this.goodsDAO = goodsDAO;
     }
 
-    private static final List<String> VALID_SORTS = java.util.Arrays.asList(
-            "popular",
+    private static final String POPULAR = "popular";
+
+    private static final List<String> VALID_SORTS = Arrays.asList(
+            POPULAR,
             "latest",
             "price_asc",
             "price_desc",
@@ -179,9 +184,9 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<com.project.oditji.goods.vo.ProductOptionVO> getProductOptionList(int productNo) {
-        java.util.List<com.project.oditji.goods.vo.ProductOptionVO> list = goodsDAO.selectProductOptionList(productNo);
-        return list == null ? java.util.Collections.emptyList() : list;
+    public List<ProductOptionVO> getProductOptionList(int productNo) {
+        List<ProductOptionVO> list = goodsDAO.selectProductOptionList(productNo);
+        return list == null ? Collections.emptyList() : list;
     }
 
     @Override
@@ -249,10 +254,10 @@ public class GoodsServiceImpl implements GoodsService {
             return "all";
         }
 
-        String normalized = type.trim().toLowerCase();
+        String normalized = type.trim().toLowerCase(Locale.ROOT);
 
-        return "popular".equals(normalized)
-                ? "popular"
+        return POPULAR.equals(normalized)
+                ? POPULAR
                 : "all";
     }
 
@@ -264,14 +269,14 @@ public class GoodsServiceImpl implements GoodsService {
     private String normalizeSort(String sort) {
 
         if (sort == null) {
-            return "popular";
+            return POPULAR;
         }
 
-        String normalized = sort.trim().toLowerCase();
+        String normalized = sort.trim().toLowerCase(Locale.ROOT);
 
         return VALID_SORTS.contains(normalized)
                 ? normalized
-                : "popular";
+                : POPULAR;
     }
 
     private String normalizeKeyword(String keyword) {
@@ -304,14 +309,14 @@ public class GoodsServiceImpl implements GoodsService {
         return normalizedList;
     }
 
-    private static final List<String> VALID_PRICE_RANGES = java.util.Arrays.asList(
+    private static final List<String> VALID_PRICE_RANGES = Arrays.asList(
             "UNDER_10000",
             "RANGE_10000_30000",
             "RANGE_30000_50000",
             "RANGE_50000_100000",
             "OVER_100000");
 
-    private static final List<String> VALID_STOCK_STATUS = java.util.Arrays.asList(
+    private static final List<String> VALID_STOCK_STATUS = Arrays.asList(
             "IN_STOCK",
             "SOLD_OUT");
 
