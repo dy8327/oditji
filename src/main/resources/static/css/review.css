@@ -1,44 +1,54 @@
 .mypage-review-tabs {
   display: flex;
-  gap: 12px;
-  margin-bottom: 25px;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .review-tab {
-  padding: 10px 22px;
-  border: none;
-  border-radius: 30px;
-
-  background: #2d2d2d;
-  color: #bdbdbd;
-
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #979ca5;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .review-tab:hover {
-  background: #3a3a3a;
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
   color: #fff;
 }
 
 .review-tab.active {
-  background: #6d4aff;
-  color: #fff;
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  color: #111216;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
 }
 
 .mypage-review-filter-empty {
   text-align: center;
-  padding: 70px 20px;
+  padding: 76px 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .mypage-filter-empty-title {
   margin-top: 18px;
   font-size: 22px;
+  color: #f2f3f5;
 }
 
 .mypage-filter-empty-message {
   margin-top: 12px;
-  color: #9d9d9d;
+  color: #8f949d;
+  line-height: 1.7;
 }
 
 /* =========================
@@ -47,87 +57,55 @@
 
 .review-modal {
   position: fixed;
-
   top: 0;
   left: 0;
-
   width: 100%;
   height: 100%;
-
   background: rgba(0, 0, 0, 0.7);
-
   display: flex;
-
   justify-content: center;
-
   align-items: center;
-
   z-index: 9999;
 }
 
 /* 모달 내부 */
-
 .review-modal-content {
   width: 460px;
-
   background: #202020;
-
   color: #ffffff;
-
   padding: 32px;
-
   border-radius: 16px;
-
   border: 1px solid #333;
-
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 /* 제목 */
-
 .review-modal-content h2 {
   margin: 0 0 28px;
-
   font-size: 22px;
-
   font-weight: 700;
 }
 
 /* label */
-
 .review-modal-content label {
   display: block;
-
   margin-bottom: 10px;
-
   color: #ddd;
-
   font-size: 14px;
-
   font-weight: 600;
 }
 
 /* 평점 select */
-
 .review-modal-content select {
   width: 100%;
-
   height: 44px;
-
   padding: 0 14px;
-
   border-radius: 8px;
-
   border: 1px solid #444;
-
   background: #2a2a2a;
-
   color: #ffffff;
-
   font-size: 15px;
-
   cursor: pointer;
-
   outline: none;
 }
 
@@ -136,32 +114,19 @@
 }
 
 /* 리뷰 textarea */
-
 .review-modal-content textarea {
   width: 100%;
-
   height: 140px;
-
   margin-top: 20px;
-
   padding: 14px;
-
   box-sizing: border-box;
-
   resize: none;
-
   border-radius: 8px;
-
   border: 1px solid #444;
-
   background: #2a2a2a;
-
   color: #fff;
-
   font-size: 14px;
-
   line-height: 1.5;
-
   outline: none;
 }
 
@@ -174,32 +139,21 @@
 }
 
 /* 버튼 영역 */
-
 .review-modal-content button {
   height: 42px;
-
   padding: 0 24px;
-
   margin-top: 25px;
-
   margin-right: 8px;
-
   border: none;
-
   border-radius: 8px;
-
   font-size: 14px;
-
   font-weight: 600;
-
   cursor: pointer;
 }
 
 /* 등록 버튼 */
-
 .review-modal-content button[type="submit"] {
   background: #7eb1ff;
-
   color: #181818;
 }
 
@@ -208,44 +162,13 @@
 }
 
 /* 취소 버튼 */
-
 #closeReviewModal {
   background: #333;
-
   color: #ddd;
 }
 
 #closeReviewModal:hover {
   background: #444;
-}
-
-@media (max-width: 768px) {
-  .mypage-review-tabs {
-    flex-wrap: wrap;
-  }
-
-  .review-modal-content {
-    width: 92%;
-    max-width: 460px;
-    padding: 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .review-tab {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-
-  .review-modal-content h2 {
-    font-size: 19px;
-  }
-
-  .review-modal-content button {
-    width: 100%;
-    margin-right: 0;
-    margin-top: 10px;
-  }
 }
 
 /* =========================================================
@@ -370,43 +293,30 @@
     0 18px 38px rgba(0, 0, 0, 0.24);
 }
 
-.mypage-review-tabs {
-  gap: 10px;
-  margin-bottom: 22px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-}
+/* =========================================================
+   [내가 작성한 리뷰 높이 최종 수정 - 2026-08-06]
+   - 기존 리뷰 조회, 탭 필터, 상세 이동, 삭제 기능은 그대로 유지합니다.
+   - 리뷰 카드가 리뷰 내용 줄 수만큼만 높이를 사용하도록 수정합니다.
+   - 모바일에서도 동일하게 불필요한 빈 높이가 생기지 않도록 처리합니다.
+========================================================= */
 
-.review-tab {
-  min-height: 42px;
-  padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
-  color: #979ca5;
-  font-weight: 600;
-}
-
-.review-tab:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.review-tab.active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
-  color: #111216;
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
-}
-
+/* [수정] 리뷰 목록의 각 행이 카드의 실제 콘텐츠 높이만 사용 */
 .mypage-review-list {
   display: grid;
   gap: 14px;
+  align-items: start;
+  grid-auto-rows: max-content;
 }
 
+/* [수정] 리뷰 카드가 부모 영역의 높이에 맞춰 늘어나지 않도록 설정 */
 .mypage-review-card {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  min-height: 0;
+  align-self: start;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(32, 34, 39, 0.9), rgba(12, 13, 16, 0.98));
@@ -434,15 +344,22 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
 }
 
+/* [수정] 클릭 가능한 본문 영역도 내부 내용 높이만 사용 */
 .mypage-review-clickable {
-  padding: 22px 24px 16px 26px;
+  display: block;
+  height: auto;
+  min-height: 0;
+  padding: 22px 24px 12px 26px;
+  box-sizing: border-box;
 }
 
+/* [수정] 제목, 날짜, 평점 영역의 불필요한 세로 확장 방지 */
 .mypage-review-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+  min-height: 0;
 }
 
 .mypage-review-top h3 {
@@ -468,18 +385,25 @@
   font-weight: 700;
 }
 
+/* [수정] 리뷰 문장 줄 수만큼만 높이가 결정되도록 설정 */
 .mypage-review-content {
-  margin: 18px 0 0;
+  height: auto;
+  min-height: 0;
+  margin: 14px 0 0;
   color: #b5b9c0;
   font-size: 14px;
-  line-height: 1.75;
-  white-space: pre-line;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* [수정] 삭제 버튼 영역의 위아래 불필요한 여백 축소 */
 .mypage-review-actions {
   display: flex;
   justify-content: flex-end;
-  padding: 0 22px 18px;
+  min-height: 0;
+  padding: 0 22px 14px;
 }
 
 .mypage-review-delete-form {
@@ -506,7 +430,6 @@
   background: rgba(90, 18, 29, 0.34);
 }
 
-.mypage-review-filter-empty,
 .mypage-empty-box {
   padding: 76px 24px;
   border: 1px dashed rgba(255, 255, 255, 0.16);
@@ -520,13 +443,11 @@
   font-size: 40px;
 }
 
-.mypage-empty-box h3,
-.mypage-filter-empty-title {
+.mypage-empty-box h3 {
   color: #f2f3f5;
 }
 
-.mypage-empty-box p,
-.mypage-filter-empty-message {
+.mypage-empty-box p {
   color: #8f949d;
   line-height: 1.7;
 }
@@ -541,6 +462,21 @@
   color: #111216;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* =========================
+   반응형 미디어 쿼리
+========================= */
+@media (max-width: 768px) {
+  .mypage-review-tabs {
+    flex-wrap: wrap;
+  }
+
+  .review-modal-content {
+    width: 92%;
+    max-width: 460px;
+    padding: 24px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -562,62 +498,42 @@
   .mypage-review-top {
     flex-direction: column;
   }
-}
 
-/* =========================================================
-   [내가 작성한 리뷰 높이 최종 수정 - 2026-08-05]
-   - 기존 리뷰 조회, 탭 필터, 상세 이동, 삭제 기능은 그대로 유지합니다.
-   - 기존 디자인 속성은 유지하고 카드의 불필요한 고정 높이만 해제합니다.
-   - 리뷰 내용 줄 수에 따라 카드가 자연스럽게 늘어나거나 줄어듭니다.
-========================================================= */
+  .mypage-review-card {
+    height: fit-content;
+    min-height: 0;
+  }
 
-/* [수정] 리뷰 목록 자체가 각 카드의 실제 높이만 사용하도록 설정 */
-.mypage-review-list {
-  align-items: start;
-  grid-auto-rows: auto;
-}
+  .mypage-review-clickable {
+    height: auto;
+    min-height: 0;
+    padding: 18px 18px 12px 22px;
+  }
 
-/* [수정] 리뷰 카드의 고정 높이와 과도한 최소 높이 제거 */
-.mypage-review-card {
-  height: auto;
-  min-height: 0;
-  align-self: start;
-}
-
-/* [수정] 클릭 가능한 리뷰 본문 영역도 내용 높이만 사용 */
-.mypage-review-clickable {
-  height: auto;
-  min-height: 0;
-  box-sizing: border-box;
-}
-
-/* [수정] 리뷰 상단 정보가 불필요하게 세로로 늘어나지 않도록 설정 */
-.mypage-review-top {
-  min-height: 0;
-}
-
-/* [수정] 리뷰 문장은 줄 수에 맞게 자연스럽게 높이가 결정되도록 설정 */
-.mypage-review-content {
-  height: auto;
-  min-height: 0;
-  margin: 18px 0 0;
-
-  white-space: pre-line;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
-
-/* [수정] 삭제 버튼 영역도 필요한 높이만 차지하도록 설정 */
-.mypage-review-actions {
-  min-height: 0;
-}
-
-/* [수정] 모바일에서도 동일하게 리뷰 내용만큼 카드 높이를 사용 */
-@media (max-width: 760px) {
-  .mypage-review-card,
-  .mypage-review-clickable,
   .mypage-review-content {
     height: auto;
     min-height: 0;
+    margin-top: 12px;
+  }
+
+  .mypage-review-actions {
+    padding: 0 18px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .review-modal-content h2 {
+    font-size: 19px;
+  }
+
+  .review-modal-content button {
+    width: 100%;
+    margin-right: 0;
+    margin-top: 10px;
   }
 }
