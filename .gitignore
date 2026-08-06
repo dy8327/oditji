@@ -38,3 +38,13 @@ build/
 # 검색 콘텐츠 캐시
 /cache/
 /uploads/
+
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+serviceAccountKey.json
+firebase-adminsdk*.json
+application-local.properties
