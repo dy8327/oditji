@@ -18,16 +18,16 @@ import com.project.oditji.goods.vo.ProductOptionVO;
 @Transactional(readOnly = true)
 public class GoodsServiceImpl implements GoodsService {
 
+    private static final String POPULAR = "popular";
+
     private final GoodsDAO goodsDAO;
 
     public GoodsServiceImpl(GoodsDAO goodsDAO) {
         this.goodsDAO = goodsDAO;
     }
 
-    private static final String POPULAR = "popular";
-
     private static final List<String> VALID_SORTS = Arrays.asList(
-            POPULAR,
+            "popular",
             "latest",
             "price_asc",
             "price_desc",

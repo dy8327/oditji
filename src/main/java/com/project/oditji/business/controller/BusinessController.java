@@ -75,20 +75,12 @@ public class BusinessController {
         @GetMapping("/main")
         public String businessMain(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
                 model.addAttribute(MODEL_BUSINESS, business);
                 /* 사업자 메인 대시보드 통계 */
                 BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
@@ -104,20 +96,12 @@ public class BusinessController {
         @GetMapping("/product/list")
         public String productList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(business.getBusinessNo());
                 model.addAttribute(MODEL_BUSINESS, business);
@@ -131,21 +115,12 @@ public class BusinessController {
         @GetMapping("/product/register")
         public String productRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품을 등록할 수 있습니다.");
@@ -173,21 +148,12 @@ public class BusinessController {
                         @RequestParam(value = "productImage", required = false) MultipartFile productImage,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품을 등록할 수 있습니다.");
@@ -493,20 +459,12 @@ public class BusinessController {
         public String productDeleteProcess(@RequestParam("productNo") long productNo, @RequestParam("reason") String reason,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 상품 삭제를 요청할 수 있습니다.");
@@ -555,19 +513,12 @@ public class BusinessController {
         public String eventList(@RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 List<EventManageVO> eventList = businessService.getEventListByBusinessNo(business.getBusinessNo(), keyword);
 
@@ -621,20 +572,12 @@ public class BusinessController {
         @GetMapping("/event/register")
         public String eventRegister(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
@@ -689,21 +632,12 @@ public class BusinessController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE,"승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
@@ -794,21 +728,12 @@ public class BusinessController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 if (discountRateList != null) {
                         for (Integer rate : discountRateList) {
@@ -900,21 +825,12 @@ public class BusinessController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 try {
                         businessService.extendApprovedEvent(eventNo, business.getBusinessNo(), extendEndDate, extendReason);
@@ -1052,18 +968,12 @@ public class BusinessController {
                         @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 /*
                  * 날짜를 입력하지 않고 처음 진입하면 이번 달 1일부터 오늘까지를
@@ -1112,22 +1022,12 @@ public class BusinessController {
         @GetMapping("/order/list")
         public String orderList(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                /* 로그인 회원과 연결된 사업자 조회 */
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 /* 해당 사업자의 주문 목록 조회 */
                 List<OrderVO> orderList = businessService.getBusinessOrderList(business.getBusinessNo());
@@ -1162,19 +1062,12 @@ public class BusinessController {
                         @RequestParam(name = PARAM_KEYWORD, required = false) String keyword,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 try {
                         List<DeliveryManageVO> deliveryList = businessService.getBusinessDeliveryList(business.getBusinessNo(), status, keyword);
@@ -1211,19 +1104,12 @@ public class BusinessController {
                         @RequestParam(name = "returnKeyword", required = false) String returnKeyword,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
-                Long memberNo = getLoginMemberNo(session);
-
-                if (memberNo == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return REDIRECT_MEMBER_LOGIN;
+                BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
+                if (businessAccess.denied()) {
+                        return businessAccess.redirectUrl();
                 }
 
-                BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
-
-                if (business == null) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
-                        return REDIRECT_HOME;
-                }
+                BusinessVO business = businessAccess.business();
 
                 try {
                         businessService.updateBusinessDelivery(business.getBusinessNo(), orderItemNo, courier, trackingNumber, status);
@@ -1364,17 +1250,41 @@ public class BusinessController {
          * 세션 회원번호와 BUSINESS 연결 여부를 한 곳에서 확인한다.
          */
         private BusinessVO getLoginBusiness(HttpSession session, RedirectAttributes redirectAttributes) {
+                return getBusinessAccess(session, redirectAttributes).business();
+        }
+
+        /**
+         * 로그인 회원과 연결된 사업자를 한 번만 조회하고,
+         * 실패 시 사용할 이동 경로까지 함께 반환합니다.
+         */
+        private BusinessAccess getBusinessAccess(
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
+
                 Long memberNo = getLoginMemberNo(session);
+
                 if (memberNo == null) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, LOGIN_MEMBER_ERROR_MESSAGE);
-                        return null;
+                        return new BusinessAccess(null, REDIRECT_MEMBER_LOGIN);
                 }
 
                 BusinessVO business = businessService.getBusinessByMemberNo(memberNo);
+
                 if (business == null) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, BUSINESS_NOT_FOUND_MESSAGE);
+                        return new BusinessAccess(null, REDIRECT_HOME);
                 }
-                return business;
+
+                return new BusinessAccess(business, null);
+        }
+
+        private record BusinessAccess(
+                        BusinessVO business,
+                        String redirectUrl) {
+
+                private boolean denied() {
+                        return business == null;
+                }
         }
 
         private Long getLoginMemberNo(

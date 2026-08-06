@@ -251,6 +251,16 @@
                 <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
                 <sonar.exclusions>**/test/**, **/Q*.java</sonar.exclusions>
 
+                <!--
+                    VO의 getter/setter와 JSP 화면 마크업은 구조상 반복이 발생하므로
+                    중복 코드(CPD) 계산에서만 제외합니다.
+                    Security, Reliability, Maintainability 분석 대상에서는 유지됩니다.
+                -->
+                <sonar.cpd.exclusions>
+                    **/vo/**/*.java,
+                    **/WEB-INF/views/**/*.jsp
+                </sonar.cpd.exclusions>
+
                 <!-- JaCoCo XML 커버리지 보고서 경로 -->
                 <sonar.coverage.jacoco.xmlReportPaths>
                     ${project.build.directory}/site/jacoco/jacoco.xml
