@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -32,6 +33,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
     public Object handleNotFoundException(Exception e, HttpServletRequest request) {
         return createErrorResponse(request, HttpStatus.NOT_FOUND, "요청한 페이지를 찾을 수 없습니다.", "error/404");
+    }
+
+    // 컨트롤러 또는 메서드 보안에서 발생한 접근 거부
+    @ExceptionHandler(AccessDeniedException.class)
+    public Object handleAccessDeniedException(AccessDeniedException e, HttpServletRequest request) {
+        if (log.isWarnEnabled()) {
+            log.warn("접근 권한 없음 - {} {}", request.getMethod(), request.getRequestURI());
+        }
+        return createErrorResponse(request, HttpStatus.FORBIDDEN,
+                "해당 페이지에 접근할 수 있는 권한이 없습니다.", "error/403");
     }
 
     // 잘못된 요청 및 입력값 예외
@@ -84,9 +95,12 @@ public class GlobalExceptionHandler {
             log.warn("요청 처리 실패 - {} {} : {}", request.getMethod(), request.getRequestURI(), e.getReason());
         }
 
-        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+        HttpStatus status = HttpStatus.resolve(e.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
         String message = e.getReason() == null ? "요청을 처리할 수 없습니다." : e.getReason();
-        String viewName = status == HttpStatus.NOT_FOUND ? "error/404" : "error/500";
+        String viewName = resolveViewName(status);
 
         return createErrorResponse(request, status, message, viewName);
     }
@@ -142,6 +156,20 @@ public class GlobalExceptionHandler {
         modelAndView.addObject("errorCode", status.value());
         modelAndView.addObject("errorMessage", message);
         return modelAndView;
+    }
+
+
+    private String resolveViewName(HttpStatus status) {
+        if (status == HttpStatus.FORBIDDEN) {
+            return "error/403";
+        }
+        if (status == HttpStatus.NOT_FOUND) {
+            return "error/404";
+        }
+        if (status.is5xxServerError()) {
+            return "error/500";
+        }
+        return VIEW_ERROR_COMMON;
     }
 
     private boolean isJsonRequest(HttpServletRequest request) {

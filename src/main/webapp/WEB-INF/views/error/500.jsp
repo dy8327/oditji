@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -23,7 +24,10 @@
         </div>
 
         <div class="error-sub">
-            잠시 후 다시 시도해주세요.
+            <c:choose>
+                <c:when test="${not empty errorMessage}"><c:out value="${errorMessage}"/></c:when>
+                <c:otherwise>잠시 후 다시 시도해주세요.</c:otherwise>
+            </c:choose>
         </div>
 
         <div class="error-btns">

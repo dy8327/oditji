@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -25,7 +26,10 @@
         </div>
 
         <div class="error-sub">
-            해당 페이지에 접근할 수 있는 권한이 없습니다.
+            <c:choose>
+                <c:when test="${not empty errorMessage}"><c:out value="${errorMessage}"/></c:when>
+                <c:otherwise>해당 페이지에 접근할 수 있는 권한이 없습니다.</c:otherwise>
+            </c:choose>
         </div>
 
         <div class="error-btns">

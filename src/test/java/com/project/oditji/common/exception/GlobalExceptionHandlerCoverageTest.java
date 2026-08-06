@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -44,6 +45,18 @@ class GlobalExceptionHandlerCoverageTest {
         assertEquals("error/404", response.getViewName());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatus());
         assertEquals(404, response.getModel().get("errorCode"));
+    }
+
+    @Test
+    void accessDeniedShouldReturn403View() {
+        ModelAndView response = assertInstanceOf(
+                ModelAndView.class,
+                handler.handleAccessDeniedException(
+                        new AccessDeniedException("denied"),
+                        htmlRequest("/admin/product/list")));
+
+        assertEquals("error/403", response.getViewName());
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatus());
     }
 
     @Test
@@ -151,10 +164,19 @@ class GlobalExceptionHandlerCoverageTest {
                         new ResponseStatusException(HttpStatus.BAD_REQUEST),
                         htmlRequest("/content")));
 
-        assertEquals("error/500", badRequest.getViewName());
+        assertEquals("error/common", badRequest.getViewName());
         assertEquals(
                 "요청을 처리할 수 없습니다.",
                 badRequest.getModel().get("errorMessage"));
+
+        ModelAndView forbidden = assertInstanceOf(
+                ModelAndView.class,
+                handler.handleResponseStatusException(
+                        new ResponseStatusException(HttpStatus.FORBIDDEN, "권한 없음"),
+                        htmlRequest("/admin/product/list")));
+
+        assertEquals("error/403", forbidden.getViewName());
+        assertEquals(HttpStatus.FORBIDDEN, forbidden.getStatus());
     }
 
     @Test

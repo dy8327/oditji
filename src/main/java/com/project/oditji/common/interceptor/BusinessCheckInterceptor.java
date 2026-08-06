@@ -46,9 +46,8 @@ public class BusinessCheckInterceptor implements HandlerInterceptor {
 
        /* 승인된 사업자 외 접근 차단 */
         if (businessNo == null || !"APPROVED".equals(businessStatus)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp")
-                    .forward(request, response);
+            // 필터·인터셉터 단계의 오류도 동일한 안내 화면을 사용하도록 /error로 위임합니다.
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
         return true;
