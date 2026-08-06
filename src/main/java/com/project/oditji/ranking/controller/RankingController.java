@@ -177,16 +177,21 @@ public class RankingController {
         List<Map<String, Object>> rankingPanels =
                 new ArrayList<Map<String, Object>>();
 
-        rankingPanels.add(
-                createRankingPanel(
+        RankingPanelDefinition overallPanelDefinition =
+                new RankingPanelDefinition(
                         "overall",
                         "전체",
                         null,
                         "전체 인기 콘텐츠",
                         "지원 OTT에서 제공되는 영화와 TV 통합 인기순입니다.",
-                        overallRanking,
                         "전체 인기 랭킹을 불러오지 못했습니다.",
                         true
+                );
+
+        rankingPanels.add(
+                createRankingPanel(
+                        overallPanelDefinition,
+                        overallRanking
                 )
         );
 
@@ -247,17 +252,22 @@ public class RankingController {
                         Collections.emptyList()
                 );
 
+        RankingPanelDefinition panelDefinition =
+                new RankingPanelDefinition(
+                        tabId,
+                        displayName,
+                        platformLogoMap.get(platformKey),
+                        displayName + " 인기 콘텐츠",
+                        "한국 " + displayName
+                                + " 정액제 제공 콘텐츠 기준입니다.",
+                        displayName
+                                + " 인기 랭킹을 불러오지 못했습니다.",
+                        false
+                );
+
         return createRankingPanel(
-                tabId,
-                displayName,
-                platformLogoMap.get(platformKey),
-                displayName + " 인기 콘텐츠",
-                "한국 " + displayName
-                        + " 정액제 제공 콘텐츠 기준입니다.",
-                rankingList,
-                displayName
-                        + " 인기 랭킹을 불러오지 못했습니다.",
-                false
+                panelDefinition,
+                rankingList
         );
     }
 
@@ -265,27 +275,54 @@ public class RankingController {
      * 랭킹 패널 한 개를 JSP에서 사용할 Map 형태로 구성합니다.
      */
     private Map<String, Object> createRankingPanel(
-            String tabId,
-            String tabLabel,
-            String tabLogoImage,
-            String title,
-            String description,
-            List<SearchResultVO> rankingList,
-            String emptyMessage,
-            boolean active) {
+            RankingPanelDefinition panelDefinition,
+            List<SearchResultVO> rankingList) {
 
         Map<String, Object> rankingPanel =
                 new LinkedHashMap<String, Object>();
 
-        rankingPanel.put("tabId", tabId);
-        rankingPanel.put("tabLabel", tabLabel);
-        rankingPanel.put("tabLogoImage", tabLogoImage);
-        rankingPanel.put("title", title);
-        rankingPanel.put("description", description);
+        rankingPanel.put("tabId", panelDefinition.tabId);
+        rankingPanel.put("tabLabel", panelDefinition.tabLabel);
+        rankingPanel.put("tabLogoImage", panelDefinition.tabLogoImage);
+        rankingPanel.put("title", panelDefinition.title);
+        rankingPanel.put("description", panelDefinition.description);
         rankingPanel.put("rankingList", rankingList);
-        rankingPanel.put("emptyMessage", emptyMessage);
-        rankingPanel.put("active", active);
+        rankingPanel.put("emptyMessage", panelDefinition.emptyMessage);
+        rankingPanel.put("active", panelDefinition.active);
 
         return rankingPanel;
+    }
+
+    /**
+     * 랭킹 패널의 화면 메타데이터를 하나의 값 객체로 묶어
+     * 패널 생성 메서드의 매개변수 수를 줄입니다.
+     */
+    private static final class RankingPanelDefinition {
+
+        private final String tabId;
+        private final String tabLabel;
+        private final String tabLogoImage;
+        private final String title;
+        private final String description;
+        private final String emptyMessage;
+        private final boolean active;
+
+        private RankingPanelDefinition(
+                String tabId,
+                String tabLabel,
+                String tabLogoImage,
+                String title,
+                String description,
+                String emptyMessage,
+                boolean active) {
+
+            this.tabId = tabId;
+            this.tabLabel = tabLabel;
+            this.tabLogoImage = tabLogoImage;
+            this.title = title;
+            this.description = description;
+            this.emptyMessage = emptyMessage;
+            this.active = active;
+        }
     }
 }
