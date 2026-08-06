@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -36,11 +37,19 @@ public class SecurityConfig {
      *
      * 인증/인가 자체는 기존 LoginCheckInterceptor,
      * AdminCheckInterceptor, BusinessCheckInterceptor 구조를 유지한다.
+     *
+     * X-Frame-Options는 기본값(DENY)이 roomList.jsp의 중앙/우측 패널이
+     * 같은 출처의 /chat/room/{id}, /chat/create 를 iframe으로 띄우는 것까지
+     * 막아버리므로 SAMEORIGIN으로 완화한다. 다른 출처에서의 클릭재킹 방어는
+     * 그대로 유지된다(다른 사이트에서 이 앱을 iframe으로 감싸는 것은 여전히 차단됨).
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
             .csrf(Customizer.withDefaults())
+            .headers(headers -> headers
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            )
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
