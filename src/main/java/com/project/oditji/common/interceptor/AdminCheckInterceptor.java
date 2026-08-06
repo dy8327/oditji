@@ -26,6 +26,8 @@ public class AdminCheckInterceptor implements HandlerInterceptor {
         // 관리자 외 접근 차단
         if (!"ADMIN".equals(loginMember.getRole())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp")
+                .forward(request, response);
             return false;
         }
 
