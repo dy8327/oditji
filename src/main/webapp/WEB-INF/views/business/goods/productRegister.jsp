@@ -350,24 +350,42 @@ const savedTmdbActorId =
                 <div class="form-group">
 
                     <label class="form-label"
-                           for="productImage">
-                        상품 대표 이미지
+                        for="detailImages">
+                        상품 세부 이미지
                     </label>
 
-                    <div class="file-box">
+                    <%-- [추가]
+                        사업자 상품 등록 폼 레이아웃은 그대로 유지하면서
+                        세부 이미지 여러 장을 추가로 등록할 수 있도록 한다.
+                    --%>
+                    <div class="file-box file-box--stack">
 
                         <input type="file"
-                               id="productImage"
-                               name="productImage"
-                               accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
-                               onchange="updateFileName(this);"
-                               required>
+                            id="detailImages"
+                            name="detailImages"
+                            accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                            multiple
+                            onchange="updateDetailFileNames(this);">
 
-                        <span id="selectedFileName">
-                            선택된 파일 없음
-                        </span>
+                        <div class="file-name-stack">
+
+                            <span id="selectedDetailFileSummary">
+                                선택된 파일 없음
+                            </span>
+
+                            <ul id="selectedDetailFileList"
+                                class="selected-file-list"></ul>
+
+                        </div>
 
                     </div>
+
+                    <p class="form-help">
+                        세부 이미지는 여러 장 등록할 수 있습니다.
+                        상품 상세 페이지 하단 썸네일 영역에 3개씩 슬라이드 형태로 표시됩니다.
+                    </p>
+
+                </div>
 
                     <p class="form-help">
                         JPG, JPEG, PNG, GIF, WEBP 형식의

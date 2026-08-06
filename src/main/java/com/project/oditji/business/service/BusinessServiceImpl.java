@@ -71,7 +71,8 @@ public class BusinessServiceImpl
 
         private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
-        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of(PRODUCT_TYPE_CLOTHES, "PROP", "GOODS", "OST", "BOOK",
+        private static final Set<String> ALLOWED_PRODUCT_TYPES = Set.of(PRODUCT_TYPE_CLOTHES, "PROP", "GOODS", "OST",
+                        "BOOK",
                         "FIGURE", PRODUCT_TYPE_SHOES, "POSTER", "ETC");
 
         private final BusinessDAO businessDAO;
@@ -382,7 +383,7 @@ public class BusinessServiceImpl
                 return history == null ? Collections.emptyList() : history;
         }
 
-       /* 사업자 정산 요청 */
+        /* 사업자 정산 요청 */
         @Override
         @Transactional
         public void requestSettlementConfirmation(long businessNo) {
@@ -429,6 +430,7 @@ public class BusinessServiceImpl
                                 "SETTLEMENT_REQUEST",
                                 settlementRequest.getRequestNo());
         }
+
         /* [수정] 사업자 정산 계좌 조회 */
         @Override
         public SettlementManageVO getSettlementAccount(long businessNo) {
@@ -718,7 +720,8 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
-                if (!Set.of("CONFIRMED", DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED).contains(normalizedStatus)) {
+                if (!Set.of("CONFIRMED", DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED)
+                                .contains(normalizedStatus)) {
                         throw new IllegalArgumentException("올바르지 않은 배송 상태 검색 조건입니다.");
                 }
 
@@ -732,7 +735,8 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
-                if (!Set.of(DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED).contains(normalizedStatus)) {
+                if (!Set.of(DELIVERY_STATUS_PREPARING, DELIVERY_STATUS_SHIPPING, DELIVERY_STATUS_DELIVERED)
+                                .contains(normalizedStatus)) {
                         throw new IllegalArgumentException("변경할 수 없는 배송 상태입니다.");
                 }
 
@@ -782,7 +786,10 @@ public class BusinessServiceImpl
          */
         @Override
         @Transactional
-        public long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage) {
+        public long registerProduct(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage,
+                        MultipartFile[] detailImages) {
 
                 if (goodsManageVO == null) {
                         throw new IllegalArgumentException("상품 등록 정보가 없습니다.");
@@ -797,29 +804,32 @@ public class BusinessServiceImpl
                 applyOptionTotalStock(goodsManageVO);
 
                 validateProductImage(productImage);
+                validateDetailImages(detailImages);
 
                 /*
                  * JSONL에서 선택한 콘텐츠를 실제 상품 저장 직전에 DB에 준비합니다.
-                 * ContentService 내부에서 CONTENT, ACTOR, DIRECTOR,
-                 * CONTENT_ACTOR, CONTENT_DIRECTOR, CONTENT_PLATFORM을 저장합니다.
                  */
                 prepareProductContent(goodsManageVO);
                 resolveProductActor(goodsManageVO);
                 validateContentActor(goodsManageVO);
 
-                Path savedPhysicalPath = null;
+                List<Path> savedPhysicalPathList = new ArrayList<Path>();
 
                 try {
                         SavedFileInfo savedFileInfo = saveProductImage(productImage);
-                        savedPhysicalPath = savedFileInfo.physicalPath();
+
+                        savedPhysicalPathList.add(savedFileInfo.physicalPath());
+
                         goodsManageVO.setImagePath(savedFileInfo.webPath());
                         goodsManageVO.setIsMain("Y");
                         goodsManageVO.setStatus(STATUS_WAITING);
 
                         int productResult = businessDAO.insertProduct(goodsManageVO);
+
                         if (productResult != 1) {
                                 throw new IllegalStateException("상품 등록에 실패했습니다.");
                         }
+
                         if (goodsManageVO.getProductNo() <= 0) {
                                 throw new IllegalStateException("등록된 상품 번호를 확인할 수 없습니다.");
                         }
@@ -833,6 +843,9 @@ public class BusinessServiceImpl
                                 throw new IllegalStateException("상품 대표 이미지 등록에 실패했습니다.");
                         }
 
+                        /* [추가] 세부 이미지 여러 장 저장 */
+                        saveDetailProductImages(goodsManageVO.getProductNo(), detailImages, savedPhysicalPathList);
+
                         notificationService.createForAdmins(
                                         "PRODUCT_REQUEST",
                                         "상품 승인 요청",
@@ -845,9 +858,75 @@ public class BusinessServiceImpl
                         return goodsManageVO.getProductNo();
 
                 } catch (RuntimeException e) {
-                        deleteSavedFileQuietly(savedPhysicalPath);
+                        for (Path path : savedPhysicalPathList) {
+                                deleteSavedFileQuietly(path);
+                        }
 
                         throw e;
+                }
+        }
+
+        /*
+         * =========================================================
+         * 세부 이미지 검증
+         * =========================================================
+         */
+        private void validateDetailImages(MultipartFile[] detailImages) {
+                if (detailImages == null || detailImages.length == 0) {
+                        return;
+                }
+
+                int validImageCount = 0;
+
+                for (MultipartFile detailImage : detailImages) {
+                        if (detailImage == null || detailImage.isEmpty()) {
+                                continue;
+                        }
+
+                        validImageCount++;
+
+                        if (validImageCount > 10) {
+                                throw new IllegalArgumentException("상품 세부 이미지는 최대 10장까지 등록할 수 있습니다.");
+                        }
+
+                        validateProductImage(detailImage);
+                }
+        }
+
+        /*
+         * =========================================================
+         * 세부 이미지 저장
+         * - PRODUCT_IMAGE에 대표 이미지 외 추가 이미지들을 IS_MAIN='N'으로 저장
+         * =========================================================
+         */
+        private void saveDetailProductImages(
+                        long productNo,
+                        MultipartFile[] detailImages,
+                        List<Path> savedPhysicalPathList) {
+
+                if (detailImages == null || detailImages.length == 0) {
+                        return;
+                }
+
+                for (MultipartFile detailImage : detailImages) {
+                        if (detailImage == null || detailImage.isEmpty()) {
+                                continue;
+                        }
+
+                        SavedFileInfo savedFileInfo = saveProductImage(detailImage);
+
+                        savedPhysicalPathList.add(savedFileInfo.physicalPath());
+
+                        GoodsManageVO detailImageVO = new GoodsManageVO();
+                        detailImageVO.setProductNo(productNo);
+                        detailImageVO.setImagePath(savedFileInfo.webPath());
+                        detailImageVO.setIsMain("N");
+
+                        int imageInsertResult = businessDAO.insertProductImage(detailImageVO);
+
+                        if (imageInsertResult != 1) {
+                                throw new IllegalStateException("상품 세부 이미지 등록에 실패했습니다.");
+                        }
                 }
         }
 
@@ -1469,11 +1548,11 @@ public class BusinessServiceImpl
                  * 현재 단계에서는 서버 로그로 확인한다.
                  */
                 if (log.isInfoEnabled()) {
-                log.info("===== 상품 삭제 요청 =====");
-                log.info("상품 번호: {}", productNo);
-                log.info("사업자 번호: {}", businessNo);
-                log.info("상품명: {}", existingProduct.getProductName());
-                log.info("삭제 사유: {}", normalizedReason);
+                        log.info("===== 상품 삭제 요청 =====");
+                        log.info("상품 번호: {}", productNo);
+                        log.info("사업자 번호: {}", businessNo);
+                        log.info("상품명: {}", existingProduct.getProductName());
+                        log.info("삭제 사유: {}", normalizedReason);
                 }
                 int updateResult = businessDAO.updateProductDeleteRequest(
                                 productNo,
@@ -1887,14 +1966,14 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException(
                                         "이벤트 연장 사유는 1000자 이하로 입력해주세요.");
                 }
-                 if (log.isInfoEnabled()) {
-                log.info("===== 이벤트 연장 요청 =====");
-                log.info("이벤트 번호: {}", eventNo);
-                log.info("사업자 번호: {}", businessNo);
-                log.info("기존 종료일: {}", existingEvent.getEndDate());
-                log.info("연장 종료일: {}", extendEndDate);
-                log.info("연장 사유: {}", normalizedReason);
-                 }
+                if (log.isInfoEnabled()) {
+                        log.info("===== 이벤트 연장 요청 =====");
+                        log.info("이벤트 번호: {}", eventNo);
+                        log.info("사업자 번호: {}", businessNo);
+                        log.info("기존 종료일: {}", existingEvent.getEndDate());
+                        log.info("연장 종료일: {}", extendEndDate);
+                        log.info("연장 사유: {}", normalizedReason);
+                }
                 int updateResult = businessDAO.extendApprovedEvent(
                                 eventNo,
                                 businessNo,

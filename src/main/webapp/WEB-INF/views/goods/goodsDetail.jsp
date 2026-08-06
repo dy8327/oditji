@@ -191,73 +191,123 @@
 
 <div class="goods-detail-main">
 
-<%-- [수정] 상품 이미지와 상품 정보를 하나의 카드형 레이아웃으로 묶고,
-     상품 상세 화면에서 구매 수량과 총 상품 금액을 함께 확인할 수 있도록 한다. --%>
+<%-- =====================================================
+     [레이아웃 병합]
+     기존 JSP 출력값과 상품 옵션/수량 처리 로직은 유지하고,
+     오른쪽 수정본의 상품 상단 카드 레이아웃 구조만 반영한다.
+====================================================== --%>
 <section class="detail-header goods-detail-card">
 
+    <%-- =====================================================
+         [수정]
+         왼쪽: 대표 이미지 + 세부 이미지 3개씩 슬라이드
+         오른쪽: 4번째 시안처럼 상단 요약 레이아웃 구성
+    ====================================================== --%>
     <div class="detail-poster">
 
-        <c:choose>
+        <div class="detail-main-image-wrap">
 
-            <c:when test="${not empty goods.mainImage}">
+            <c:choose>
 
-                <c:choose>
+                <c:when test="${not empty goods.mainImage}">
 
-                    <c:when test="${fn:startsWith(goods.mainImage, 'http://')
-                                    or fn:startsWith(goods.mainImage, 'https://')}">
+                    <c:choose>
 
-                        <img id="mainImage"
-                             src="${goods.mainImage}"
-                             alt="<c:out value='${goods.productName}'/>">
+                        <c:when test="${fn:startsWith(goods.mainImage, 'http://')
+                                        or fn:startsWith(goods.mainImage, 'https://')}">
 
-                    </c:when>
+                            <img id="mainImage"
+                                 src="${goods.mainImage}"
+                                 alt="<c:out value='${goods.productName}'/>">
 
-                    <c:otherwise>
+                        </c:when>
 
-                        <img id="mainImage"
-                             src="${pageContext.request.contextPath}${goods.mainImage}"
-                             alt="<c:out value='${goods.productName}'/>">
+                        <c:otherwise>
 
-                    </c:otherwise>
+                            <img id="mainImage"
+                                 src="${pageContext.request.contextPath}${goods.mainImage}"
+                                 alt="<c:out value='${goods.productName}'/>">
 
-                </c:choose>
+                        </c:otherwise>
 
-            </c:when>
+                    </c:choose>
 
-            <c:otherwise>
+                </c:when>
 
-                <div class="no-img">
-                    NO IMAGE
+                <c:otherwise>
+
+                    <div class="no-img">
+                        NO IMAGE
+                    </div>
+
+                </c:otherwise>
+
+            </c:choose>
+
+        </div>
+
+        <%-- [추가] 대표 이미지 제외한 세부 이미지만 아래 슬라이드 영역에 노출 --%>
+        <c:set var="detailImageCount" value="0"/>
+
+        <c:forEach var="img" items="${imageList}">
+            <c:if test="${img.isMain ne 'Y'}">
+                <c:set var="detailImageCount" value="${detailImageCount + 1}"/>
+            </c:if>
+        </c:forEach>
+
+        <c:if test="${detailImageCount > 0}">
+
+            <div class="detail-sub-gallery">
+
+                <button type="button"
+                        class="detail-gallery-nav prev"
+                        aria-label="이전 세부 이미지"
+                        disabled>
+                    ‹
+                </button>
+
+                <div class="detail-gallery-viewport">
+
+                    <div class="detail-gallery-track">
+
+                        <c:forEach var="img" items="${imageList}">
+
+                            <c:if test="${img.isMain ne 'Y'}">
+
+                                <c:set var="imageUrl"
+                                       value="${img.imagePath}"/>
+
+                                <c:if test="${not fn:startsWith(imageUrl, 'http://')
+                                            and not fn:startsWith(imageUrl, 'https://')}">
+
+                                    <c:set var="imageUrl"
+                                           value="${pageContext.request.contextPath}${imageUrl}"/>
+
+                                </c:if>
+
+                                <button type="button"
+                                        class="detail-gallery-thumb"
+                                        data-full="${imageUrl}"
+                                        aria-label="세부 이미지 보기">
+
+                                    <img src="${imageUrl}"
+                                         alt="<c:out value='${goods.productName}'/> 세부 이미지">
+
+                                </button>
+
+                            </c:if>
+
+                        </c:forEach>
+
+                    </div>
+
                 </div>
 
-            </c:otherwise>
-
-        </c:choose>
-
-        <c:if test="${not empty imageList}">
-
-            <div class="image-gallery">
-
-                <c:forEach var="img"
-                           items="${imageList}">
-
-                    <c:set var="imageUrl"
-                           value="${img.imagePath}"/>
-
-                    <c:if test="${not fn:startsWith(imageUrl, 'http://')
-                                and not fn:startsWith(imageUrl, 'https://')}">
-
-                        <c:set var="imageUrl"
-                               value="${pageContext.request.contextPath}${imageUrl}"/>
-
-                    </c:if>
-
-                    <img src="${imageUrl}"
-                         alt="<c:out value='${goods.productName}'/>"
-                         class="${img.isMain eq 'Y' ? 'is-active' : ''}"
-                         data-full="${imageUrl}">
-
-                </c:forEach>
+                <button type="button"
+                        class="detail-gallery-nav next"
+                        aria-label="다음 세부 이미지">
+                    ›
+                </button>
 
             </div>
 
@@ -267,24 +317,100 @@
 
     <div class="detail-info">
 
-        <%-- [수정] 판매자 정보를 작은 라벨과 함께 표시한다. --%>
-        <div class="detail-brand-row">
+        <%-- =====================================================
+             [수정] 상단 요약 레이아웃
+        ====================================================== --%>
+        <div class="detail-summary-top">
 
-            <span class="detail-brand-label">
-                판매자
-            </span>
+            <div class="detail-summary-heading">
 
-            <p class="detail-brand">
-                <c:out value="${goods.businessName}"/>
-            </p>
+                <div class="detail-brand-row">
+
+                    <span class="detail-brand-label">
+                        판매자
+                    </span>
+
+                    <p class="detail-brand">
+                        <c:out value="${goods.businessName}"/>
+                    </p>
+
+                </div>
+
+                <div class="detail-title-line">
+
+                    <h1 class="detail-title">
+                        <c:out value="${goods.productName}"/>
+                    </h1>
+
+                    <c:choose>
+
+                        <c:when test="${goods.stock <= 0}">
+                            <span class="status-badge sold-out">
+                                품절
+                            </span>
+                        </c:when>
+
+                        <c:otherwise>
+                            <span class="status-badge on-sale">
+                                판매중
+                            </span>
+                        </c:otherwise>
+
+                    </c:choose>
+
+                </div>
+
+            </div>
+
+            <div class="price-box">
+
+                <div class="price-value">
+
+                    <c:choose>
+
+                        <c:when test="${goods.discountRate > 0}">
+
+                            <span class="price-original">
+                                ₩
+                                <fmt:formatNumber
+                                    value="${goods.price}"
+                                    pattern="#,###"/>
+                            </span>
+
+                            <span class="price-final">
+
+                                <span class="rate">
+                                    ${goods.discountRate}%
+                                </span>
+
+                                ₩
+                                <fmt:formatNumber
+                                    value="${goods.discountPrice}"
+                                    pattern="#,###"/>
+
+                            </span>
+
+                        </c:when>
+
+                        <c:otherwise>
+
+                            <span class="price-final">
+                                ₩
+                                <fmt:formatNumber
+                                    value="${goods.price}"
+                                    pattern="#,###"/>
+                            </span>
+
+                        </c:otherwise>
+
+                    </c:choose>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <h1 class="detail-title">
-            <c:out value="${goods.productName}"/>
-        </h1>
-
-        <%-- [수정] 상품 종류, 판매 상태, 재고를 각각 구분된 정보 카드로 표시한다. --%>
         <div class="detail-meta">
 
             <span class="detail-meta-item">
@@ -308,19 +434,15 @@
                 <c:choose>
 
                     <c:when test="${goods.stock <= 0}">
-
                         <span class="status-badge sold-out">
                             품절
                         </span>
-
                     </c:when>
 
                     <c:otherwise>
-
                         <span class="status-badge on-sale">
                             판매중
                         </span>
-
                     </c:otherwise>
 
                 </c:choose>
@@ -343,59 +465,6 @@
 
         </div>
 
-        <%-- [수정] 가격 정보를 별도 영역으로 분리해 핵심 정보가 강조되도록 한다. --%>
-        <div class="price-box">
-
-            <div class="price-label">
-                판매가
-            </div>
-
-            <div class="price-value">
-
-                <c:choose>
-
-                    <c:when test="${goods.discountRate > 0}">
-
-                        <span class="price-original">
-                            ₩
-                            <fmt:formatNumber
-                                value="${goods.price}"
-                                pattern="#,###"/>
-                        </span>
-
-                        <span class="price-final">
-
-                            <span class="rate">
-                                ${goods.discountRate}%
-                            </span>
-
-                            ₩
-                            <fmt:formatNumber
-                                value="${goods.discountPrice}"
-                                pattern="#,###"/>
-
-                        </span>
-
-                    </c:when>
-
-                    <c:otherwise>
-
-                        <span class="price-final">
-                            ₩
-                            <fmt:formatNumber
-                                value="${goods.price}"
-                                pattern="#,###"/>
-                        </span>
-
-                    </c:otherwise>
-
-                </c:choose>
-
-            </div>
-
-        </div>
-
-        <%-- [수정] 상품 설명을 별도의 박스로 표시한다. --%>
         <div class="detail-description-box">
 
             <span class="detail-description-title">
@@ -418,7 +487,6 @@
             <script type="application/json" id="productOptionData">[<c:forEach var="opt" items="${productOptionList}" varStatus="st">{"optionNo":${opt.optionNo},"color":"${fn:escapeXml(opt.colorName)}","size":"${fn:escapeXml(opt.sizeName)}","stock":${opt.stock}}<c:if test="${not st.last}">,</c:if></c:forEach>]</script>
         </c:if>
 
-        <%-- [추가] 바로 구매와 장바구니에 사용할 상품 수량을 선택한다. --%>
         <div class="detail-purchase-option">
 
             <div class="detail-purchase-option-header">
@@ -429,16 +497,26 @@
                         구매 수량
                     </strong>
 
-                    <span>
-                        최대
-                        <fmt:formatNumber
-                            value="${goods.stock}"
-                            pattern="#,###"/>개까지 선택할 수 있습니다.
+                    <%-- [유지] 옵션 상품은 옵션 선택 후 선택 옵션 재고를 안내한다. --%>
+                    <span id="detailQuantityGuide">
+                        <c:choose>
+
+                            <c:when test="${not empty productOptionList}">
+                                옵션을 선택해주세요.
+                            </c:when>
+
+                            <c:otherwise>
+                                최대
+                                <fmt:formatNumber
+                                    value="${goods.stock}"
+                                    pattern="#,###"/>개까지 선택할 수 있습니다.
+                            </c:otherwise>
+
+                        </c:choose>
                     </span>
 
                 </div>
 
-                <%-- [추가] 선택한 수량에 따른 총 상품 금액을 표시한다. --%>
                 <div class="detail-total-price">
 
                     <span>
@@ -456,7 +534,6 @@
 
             </div>
 
-            <%-- [추가] 수량은 최소 1개부터 현재 재고까지만 선택할 수 있다. --%>
             <div class="detail-quantity-control"
                  data-unit-price="${goods.discountRate > 0 ? goods.discountPrice : goods.price}"
                  data-stock="${goods.stock}">
@@ -505,11 +582,8 @@
                 <span class="fav-icon">
 
                     <c:choose>
-
                         <c:when test="${wishActive}">♥</c:when>
-
                         <c:otherwise>♡</c:otherwise>
-
                     </c:choose>
 
                 </span>
@@ -518,7 +592,6 @@
 
             </button>
 
-            <%-- [수정] 선택한 수량과 재고 정보를 장바구니 처리에서 사용한다. --%>
             <button type="button"
                     class="btn cart-btn"
                     data-product-no="${goods.productNo}"
@@ -538,7 +611,6 @@
                 장바구니
             </button>
 
-            <%-- [수정] 선택한 수량과 재고 정보를 바로 구매 처리에서 사용한다. --%>
             <button type="button"
                     class="btn btn-primary buy-btn"
                     data-product-no="${goods.productNo}"
@@ -549,13 +621,10 @@
 
         </div>
 
-        <%-- [추가] 품절 상태일 때 구매 불가 안내 문구를 표시한다. --%>
         <c:if test="${goods.stock <= 0}">
-
             <p class="sold-out-guide">
                 현재 품절된 상품입니다.
             </p>
-
         </c:if>
 
     </div>

@@ -138,7 +138,8 @@ public class BusinessController {
                                 BUSINESS_PAGE_BLOCK_SIZE);
 
                 List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
-                                business.getBusinessNo(), keyword, pagination.getCurrentPage(), BUSINESS_CARD_PAGE_SIZE);
+                                business.getBusinessNo(), keyword, pagination.getCurrentPage(),
+                                BUSINESS_CARD_PAGE_SIZE);
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
@@ -184,6 +185,10 @@ public class BusinessController {
                         @ModelAttribute(MODEL_PRODUCT_FORM) GoodsManageVO goodsManageVO,
 
                         @RequestParam(value = "productImage", required = false) MultipartFile productImage,
+
+                        /* [추가] 대표 이미지 외 세부 이미지 여러 장 업로드 */
+                        @RequestParam(value = "detailImages", required = false) MultipartFile[] detailImages,
+
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -199,20 +204,14 @@ public class BusinessController {
                         return REDIRECT_BUSINESS_MAIN;
                 }
 
-                /*
-                 * 화면에서 BUSINESS_NO가 전달되더라도 사용하지 않음.
-                 * 현재 로그인 회원과 연결된 사업자 번호를 서버에서 설정.
-                 */
                 goodsManageVO.setBusinessNo(business.getBusinessNo());
 
-                /* 배우 선택값이 없거나 0 이하이면 PRODUCT.ACTOR_NO에 NULL이 저장되도록 처리. */
                 if (goodsManageVO.getActorNo() != null && goodsManageVO.getActorNo() <= 0) {
-
                         goodsManageVO.setActorNo(null);
                 }
 
                 try {
-                        long productNo = businessService.registerProduct(goodsManageVO, productImage);
+                        long productNo = businessService.registerProduct(goodsManageVO, productImage, detailImages);
 
                         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "상품 등록 요청이 완료되었습니다. "
                                         + "관리자 승인 후 판매됩니다.");
@@ -228,13 +227,13 @@ public class BusinessController {
                         return "redirect:/business/product/register";
 
                 } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("상품 등록 처리 중 오류 발생", e);
-                }
-                redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "상품 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-                redirectAttributes.addFlashAttribute(MODEL_PRODUCT_FORM, goodsManageVO);
+                        if (log.isErrorEnabled()) {
+                                log.error("상품 등록 처리 중 오류 발생", e);
+                        }
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "상품 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        redirectAttributes.addFlashAttribute(MODEL_PRODUCT_FORM, goodsManageVO);
 
-                return "redirect:/business/product/register";
+                        return "redirect:/business/product/register";
                 }
         }
 
@@ -250,13 +249,11 @@ public class BusinessController {
                         @RequestParam(value = "mode", required = false, defaultValue = "database") String mode,
                         Model model) {
 
-                boolean registerMode =
-                                "register".equalsIgnoreCase(mode);
+                boolean registerMode = "register".equalsIgnoreCase(mode);
 
-                List<ContentSearchVO> contentList =
-                                registerMode
-                                                ? businessService.getCachedContentList(keyword)
-                                                : businessService.getContentList(keyword);
+                List<ContentSearchVO> contentList = registerMode
+                                ? businessService.getCachedContentList(keyword)
+                                : businessService.getContentList(keyword);
 
                 model.addAttribute(PARAM_KEYWORD, keyword);
                 model.addAttribute("mode", registerMode
@@ -302,10 +299,9 @@ public class BusinessController {
                         @RequestParam("tmdbId") Long tmdbId,
                         @RequestParam("contentType") String contentType) {
 
-                List<ActorSearchVO> actorList =
-                                businessService.getActorPreview(
-                                                tmdbId,
-                                                contentType);
+                List<ActorSearchVO> actorList = businessService.getActorPreview(
+                                tmdbId,
+                                contentType);
 
                 return actorList == null
                                 ? Collections.emptyList()
@@ -338,7 +334,6 @@ public class BusinessController {
         @GetMapping("/api/actor/list")
         @ResponseBody
         public List<ActorSearchVO> actorListByContentApi(@RequestParam("contentNo") long contentNo) {
-
 
                 if (contentNo <= 0) {
                         return Collections.emptyList();
@@ -450,17 +445,17 @@ public class BusinessController {
                          * 별도 GET /product/update 재표시 페이지가 없어졌다.
                          * 오류 시에도 목록으로 돌아가 상단 알림으로 안내한다.
                          * (입력값 유지 대신 모달을 다시 열어 값을 채워야 하므로,
-                         *  입력값은 유지하지 않는다 - eventExtend와 동일한 처리 방식)
+                         * 입력값은 유지하지 않는다 - eventExtend와 동일한 처리 방식)
                          */
                         return REDIRECT_PRODUCT_LIST;
 
                 } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("상품 수정 처리 중 오류 - productNo: {}", goodsManageVO.getProductNo(), e);
-                }
-                redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "상품 수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        if (log.isErrorEnabled()) {
+                                log.error("상품 수정 처리 중 오류 - productNo: {}", goodsManageVO.getProductNo(), e);
+                        }
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "상품 수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                return REDIRECT_PRODUCT_LIST;
+                        return REDIRECT_PRODUCT_LIST;
                 }
         }
 
@@ -494,7 +489,8 @@ public class BusinessController {
          * =========================================================
          */
         @PostMapping("/product/delete")
-        public String productDeleteProcess(@RequestParam("productNo") long productNo, @RequestParam("reason") String reason,
+        public String productDeleteProcess(@RequestParam("productNo") long productNo,
+                        @RequestParam("reason") String reason,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
@@ -512,7 +508,8 @@ public class BusinessController {
 
                 try {
                         businessService.requestProductDelete(productNo, business.getBusinessNo(), reason);
-                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "상품 삭제 요청이 완료되었습니다. " + "관리자 승인 후 최종 처리됩니다.");
+                        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE,
+                                        "상품 삭제 요청이 완료되었습니다. " + "관리자 승인 후 최종 처리됩니다.");
 
                         return REDIRECT_PRODUCT_LIST;
 
@@ -527,14 +524,14 @@ public class BusinessController {
                         return REDIRECT_PRODUCT_LIST;
 
                 } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("상품 삭제 요청 처리 중 오류 - productNo: {}", productNo, e);
-                }
-                redirectAttributes.addFlashAttribute(
-                        ATTR_ERROR_MESSAGE,
-                        "상품 삭제 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        if (log.isErrorEnabled()) {
+                                log.error("상품 삭제 요청 처리 중 오류 - productNo: {}", productNo, e);
+                        }
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_ERROR_MESSAGE,
+                                        "상품 삭제 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
-                return REDIRECT_PRODUCT_LIST;
+                        return REDIRECT_PRODUCT_LIST;
                 }
         }
 
@@ -561,7 +558,8 @@ public class BusinessController {
 
                 /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
                 int totalCount = businessService.getEventListCountByBusinessNo(business.getBusinessNo(), keyword);
-                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE, BUSINESS_PAGE_BLOCK_SIZE);
+                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE,
+                                BUSINESS_PAGE_BLOCK_SIZE);
 
                 List<EventManageVO> eventList = businessService.getEventListByBusinessNo(
                                 business.getBusinessNo(), keyword, pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
@@ -594,7 +592,8 @@ public class BusinessController {
                  * 상품 목록. eventUpdate.jsp/eventRegister.jsp에서 쓰던 것과 동일한
                  * 서비스 메서드를 그대로 재사용한다.
                  */
-                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
+                List<GoodsManageVO> productList = businessService
+                                .getApprovedProductListByBusinessNo(business.getBusinessNo());
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(PARAM_KEYWORD, keyword);
@@ -635,7 +634,8 @@ public class BusinessController {
                  * 별도 검색 JSP를 추가하지 않고 현재 이벤트 등록 화면의
                  * 상품 검색 모달에서 이 목록을 사용한다.
                  */
-                List<GoodsManageVO> productList = businessService.getApprovedProductListByBusinessNo(business.getBusinessNo());
+                List<GoodsManageVO> productList = businessService
+                                .getApprovedProductListByBusinessNo(business.getBusinessNo());
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
@@ -676,7 +676,7 @@ public class BusinessController {
                 BusinessVO business = businessAccess.business();
 
                 if (!STATUS_APPROVED.equals(business.getStatus())) {
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE,"승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "승인된 사업자만 이벤트 등록을 요청할 수 있습니다.");
 
                         return REDIRECT_BUSINESS_MAIN;
                 }
@@ -712,7 +712,8 @@ public class BusinessController {
                         if (log.isErrorEnabled()) {
                                 log.error("이벤트 등록 처리 중 오류", e);
                         }
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 등록 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE,
+                                        "이벤트 등록 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 
                         return REDIRECT_EVENT_REGISTER;
                 }
@@ -847,7 +848,8 @@ public class BusinessController {
                 }
 
                 model.addAttribute(MODEL_BUSINESS, business);
-                model.addAttribute("settlementSummary", businessService.getMonthlySettlementSummary(business.getBusinessNo()));
+                model.addAttribute("settlementSummary",
+                                businessService.getMonthlySettlementSummary(business.getBusinessNo()));
                 model.addAttribute("settlementAccount", businessService.getSettlementAccount(business.getBusinessNo()));
                 model.addAttribute(MODEL_ACTIVE_MENU, ACTIVE_MENU_SETTLEMENT);
 
@@ -883,7 +885,8 @@ public class BusinessController {
                 }
 
                 model.addAttribute(MODEL_BUSINESS, business);
-                model.addAttribute("settlementHistory", businessService.getSettlementPaymentHistory(business.getBusinessNo()));
+                model.addAttribute("settlementHistory",
+                                businessService.getSettlementPaymentHistory(business.getBusinessNo()));
                 model.addAttribute(MODEL_ACTIVE_MENU, ACTIVE_MENU_SETTLEMENT);
 
                 return "business/settlement/settlementComplete";
@@ -920,7 +923,8 @@ public class BusinessController {
                 }
 
                 try {
-                        businessService.updateSettlementAccount(business.getBusinessNo(), bankName, accountNumber, accountHolder);
+                        businessService.updateSettlementAccount(business.getBusinessNo(), bankName, accountNumber,
+                                        accountHolder);
                         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "정산 계좌 정보가 저장되었습니다.");
                 } catch (IllegalArgumentException | IllegalStateException e) {
                         redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
@@ -1020,7 +1024,8 @@ public class BusinessController {
                 BusinessVO business = businessAccess.business();
 
                 int totalCount = businessService.getBusinessOrderListCount(business.getBusinessNo());
-                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE, BUSINESS_PAGE_BLOCK_SIZE);
+                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE,
+                                BUSINESS_PAGE_BLOCK_SIZE);
 
                 /* 해당 사업자의 주문 목록 조회 */
                 List<OrderVO> orderList = businessService.getBusinessOrderList(
@@ -1118,7 +1123,8 @@ public class BusinessController {
                 BusinessVO business = businessAccess.business();
 
                 try {
-                        businessService.updateBusinessDelivery(business.getBusinessNo(), orderItemNo, courier, trackingNumber, status);
+                        businessService.updateBusinessDelivery(business.getBusinessNo(), orderItemNo, courier,
+                                        trackingNumber, status);
 
                         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MESSAGE, "배송 정보가 저장되었습니다.");
 
@@ -1128,7 +1134,8 @@ public class BusinessController {
                         if (log.isErrorEnabled()) {
                                 log.error("배송 정보 저장 중 오류 - orderItemNo: {}", orderItemNo, e);
                         }
-                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "배송 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE,
+                                        "배송 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
                 }
 
                 /* 목록에서 사용하던 검색 조건과 페이지를 유지하여 같은 화면으로 돌아간다. */
@@ -1422,7 +1429,6 @@ public class BusinessController {
 
         private Long getLoginMemberNo(
                         HttpSession session) {
-
 
                 // 현재 ODITJI 표준 세션 키
                 Object loginMemberNo = session.getAttribute(SESSION_LOGIN_MEMBER_NO);

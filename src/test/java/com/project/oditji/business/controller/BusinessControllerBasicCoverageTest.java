@@ -33,250 +33,244 @@ import com.project.oditji.member.vo.MemberVO;
 @ExtendWith(MockitoExtension.class)
 class BusinessControllerBasicCoverageTest {
 
-    @Mock
-    private BusinessService businessService;
+        @Mock
+        private BusinessService businessService;
 
-    @Mock
-    private OrderCancelRefundService orderCancelRefundService;
+        @Mock
+        private OrderCancelRefundService orderCancelRefundService;
 
-    private BusinessController controller;
+        private BusinessController controller;
 
-    @BeforeEach
-    void setUp() {
-        controller = new BusinessController(
-                businessService,
-                orderCancelRefundService);
-    }
+        @BeforeEach
+        void setUp() {
+                controller = new BusinessController(
+                                businessService,
+                                orderCancelRefundService);
+        }
 
-    @Test
-    void mainShouldRedirectGuestAndMemberWithoutBusiness() {
-        RedirectAttributesModelMap guestRedirect = new RedirectAttributesModelMap();
-        String guestView = controller.businessMain(
-                new MockHttpSession(),
-                new ExtendedModelMap(),
-                guestRedirect);
+        @Test
+        void mainShouldRedirectGuestAndMemberWithoutBusiness() {
+                RedirectAttributesModelMap guestRedirect = new RedirectAttributesModelMap();
+                String guestView = controller.businessMain(
+                                new MockHttpSession(),
+                                new ExtendedModelMap(),
+                                guestRedirect);
 
-        assertEquals("redirect:/member/login", guestView);
-        assertEquals(
-                "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.",
-                guestRedirect.getFlashAttributes().get("errorMessage"));
+                assertEquals("redirect:/member/login", guestView);
+                assertEquals(
+                                "로그인 회원 정보를 확인할 수 없습니다. 다시 로그인해주세요.",
+                                guestRedirect.getFlashAttributes().get("errorMessage"));
 
-        MockHttpSession memberSession = sessionWith("loginMemberNo", 10L);
-        when(businessService.getBusinessByMemberNo(10L)).thenReturn(null);
-        RedirectAttributesModelMap memberRedirect = new RedirectAttributesModelMap();
-        String memberView = controller.businessMain(
-                memberSession,
-                new ExtendedModelMap(),
-                memberRedirect);
+                MockHttpSession memberSession = sessionWith("loginMemberNo", 10L);
+                when(businessService.getBusinessByMemberNo(10L)).thenReturn(null);
+                RedirectAttributesModelMap memberRedirect = new RedirectAttributesModelMap();
+                String memberView = controller.businessMain(
+                                memberSession,
+                                new ExtendedModelMap(),
+                                memberRedirect);
 
-        assertEquals("redirect:/", memberView);
-        assertEquals(
-                "로그인 회원과 연결된 사업자 정보가 없습니다.",
-                memberRedirect.getFlashAttributes().get("errorMessage"));
-    }
+                assertEquals("redirect:/", memberView);
+                assertEquals(
+                                "로그인 회원과 연결된 사업자 정보가 없습니다.",
+                                memberRedirect.getFlashAttributes().get("errorMessage"));
+        }
 
-    @Test
-    void mainShouldLoadDashboardAndPopularProducts() {
-        BusinessVO business = business(20L, "APPROVED");
-        BusinessDashboardVO dashboard = new BusinessDashboardVO();
-        List<GoodsManageVO> popular = List.of(new GoodsManageVO());
-        when(businessService.getBusinessByMemberNo(10L)).thenReturn(business);
-        when(businessService.getBusinessDashboard(20L)).thenReturn(dashboard);
-        when(businessService.getPopularProducts(20L)).thenReturn(popular);
-        ExtendedModelMap model = new ExtendedModelMap();
+        @Test
+        void mainShouldLoadDashboardAndPopularProducts() {
+                BusinessVO business = business(20L, "APPROVED");
+                BusinessDashboardVO dashboard = new BusinessDashboardVO();
+                List<GoodsManageVO> popular = List.of(new GoodsManageVO());
+                when(businessService.getBusinessByMemberNo(10L)).thenReturn(business);
+                when(businessService.getBusinessDashboard(20L)).thenReturn(dashboard);
+                when(businessService.getPopularProducts(20L)).thenReturn(popular);
+                ExtendedModelMap model = new ExtendedModelMap();
 
-        String view = controller.businessMain(
-                sessionWith("loginMemberNo", 10L),
-                model,
-                new RedirectAttributesModelMap());
+                String view = controller.businessMain(
+                                sessionWith("loginMemberNo", 10L),
+                                model,
+                                new RedirectAttributesModelMap());
 
-        assertEquals("business/main/businessMain", view);
-        assertSame(business, model.get("business"));
-        assertSame(dashboard, model.get("businessMain"));
-        assertEquals(popular, dashboard.getPopularProducts());
-        assertEquals("main", model.get("activeMenu"));
-    }
+                assertEquals("business/main/businessMain", view);
+                assertSame(business, model.get("business"));
+                assertSame(dashboard, model.get("businessMain"));
+                assertEquals(popular, dashboard.getPopularProducts());
+                assertEquals("main", model.get("activeMenu"));
+        }
 
-    @Test
-    void productListShouldSupportLegacyStringMemberNumberAndCacheStandardKey() {
-        BusinessVO business = business(30L, "APPROVED");
-        List<GoodsManageVO> products = List.of(new GoodsManageVO());
-        when(businessService.getBusinessByMemberNo(11L)).thenReturn(business);
-        when(businessService.getProductListCountByBusinessNo(30L, null)).thenReturn(1);
-        when(businessService.getProductListByBusinessNo(30L, null, 1, 5)).thenReturn(products);
-        MockHttpSession session = sessionWith("memberNo", " 11 ");
-        ExtendedModelMap model = new ExtendedModelMap();
+        @Test
+        void productListShouldSupportLegacyStringMemberNumberAndCacheStandardKey() {
+                BusinessVO business = business(30L, "APPROVED");
+                List<GoodsManageVO> products = List.of(new GoodsManageVO());
+                when(businessService.getBusinessByMemberNo(11L)).thenReturn(business);
+                when(businessService.getProductListCountByBusinessNo(30L, null)).thenReturn(1);
+                when(businessService.getProductListByBusinessNo(30L, null, 1, 5)).thenReturn(products);
+                MockHttpSession session = sessionWith("memberNo", " 11 ");
+                ExtendedModelMap model = new ExtendedModelMap();
 
-        String view = controller.productList(
-                null,
-                1,
-                session,
-                model,
-                new RedirectAttributesModelMap());
+                String view = controller.productList(
+                                null,
+                                1,
+                                session,
+                                model,
+                                new RedirectAttributesModelMap());
 
-        assertEquals("business/goods/productList", view);
-        assertEquals(11L, session.getAttribute("loginMemberNo"));
-        assertEquals(products, model.get("productList"));
-        assertEquals("product", model.get("activeMenu"));
-    }
+                assertEquals("business/goods/productList", view);
+                assertEquals(11L, session.getAttribute("loginMemberNo"));
+                assertEquals(products, model.get("productList"));
+                assertEquals("product", model.get("activeMenu"));
+        }
 
-    @Test
-    void productRegisterShouldRequireApprovedBusiness() {
-        when(businessService.getBusinessByMemberNo(12L))
-                .thenReturn(business(31L, "WAITING"));
-        RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
+        @Test
+        void productRegisterShouldRequireApprovedBusiness() {
+                when(businessService.getBusinessByMemberNo(12L))
+                                .thenReturn(business(31L, "WAITING"));
+                RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
 
-        String view = controller.productRegister(
-                sessionWith("loginMemberNo", 12L),
-                new ExtendedModelMap(),
-                redirect);
+                String view = controller.productRegister(
+                                sessionWith("loginMemberNo", 12L),
+                                new ExtendedModelMap(),
+                                redirect);
 
-        assertEquals("redirect:/business/main", view);
-        assertEquals(
-                "승인된 사업자만 상품을 등록할 수 있습니다.",
-                redirect.getFlashAttributes().get("errorMessage"));
-    }
+                assertEquals("redirect:/business/main", view);
+                assertEquals(
+                                "승인된 사업자만 상품을 등록할 수 있습니다.",
+                                redirect.getFlashAttributes().get("errorMessage"));
+        }
 
-    @Test
-    void productRegisterShouldCreateFormOnlyWhenMissing() {
-        BusinessVO business = business(32L, "APPROVED");
-        when(businessService.getBusinessByMemberNo(13L)).thenReturn(business);
-        ExtendedModelMap emptyModel = new ExtendedModelMap();
+        @Test
+        void productRegisterShouldCreateFormOnlyWhenMissing() {
+                BusinessVO business = business(32L, "APPROVED");
+                when(businessService.getBusinessByMemberNo(13L)).thenReturn(business);
+                ExtendedModelMap emptyModel = new ExtendedModelMap();
 
-        String firstView = controller.productRegister(
-                sessionWith("loginMemberNo", 13L),
-                emptyModel,
-                new RedirectAttributesModelMap());
+                String firstView = controller.productRegister(
+                                sessionWith("loginMemberNo", 13L),
+                                emptyModel,
+                                new RedirectAttributesModelMap());
 
-        assertEquals("business/goods/productRegister", firstView);
-        assertTrue(emptyModel.get("productForm") instanceof GoodsManageVO);
+                assertEquals("business/goods/productRegister", firstView);
+                assertTrue(emptyModel.get("productForm") instanceof GoodsManageVO);
 
-        GoodsManageVO existing = new GoodsManageVO();
-        ExtendedModelMap existingModel = new ExtendedModelMap();
-        existingModel.addAttribute("productForm", existing);
-        String secondView = controller.productRegister(
-                sessionWith("loginMemberNo", 13L),
-                existingModel,
-                new RedirectAttributesModelMap());
+                GoodsManageVO existing = new GoodsManageVO();
+                ExtendedModelMap existingModel = new ExtendedModelMap();
+                existingModel.addAttribute("productForm", existing);
+                String secondView = controller.productRegister(
+                                sessionWith("loginMemberNo", 13L),
+                                existingModel,
+                                new RedirectAttributesModelMap());
 
-        assertEquals("business/goods/productRegister", secondView);
-        assertSame(existing, existingModel.get("productForm"));
-    }
+                assertEquals("business/goods/productRegister", secondView);
+                assertSame(existing, existingModel.get("productForm"));
+        }
 
-    @Test
-    void productRegisterProcessShouldUseAuthenticatedBusinessAndNormalizeActor() {
-        BusinessVO business = business(40L, "APPROVED");
-        when(businessService.getBusinessByMemberNo(14L)).thenReturn(business);
-        GoodsManageVO form = new GoodsManageVO();
-        form.setActorNo(0L);
-        MockMultipartFile image = new MockMultipartFile(
-                "productImage",
-                "product.png",
-                "image/png",
-                new byte[] { 1 });
-        when(businessService.registerProduct(form, image)).thenReturn(99L);
-        RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
+        @Test
+        void productRegisterProcessShouldUseAuthenticatedBusinessAndNormalizeActor() {
+                BusinessVO business = business(40L, "APPROVED");
+                when(businessService.getBusinessByMemberNo(14L)).thenReturn(business);
+                GoodsManageVO form = new GoodsManageVO();
+                form.setActorNo(0L);
+                MockMultipartFile image = new MockMultipartFile(
+                                "productImage",
+                                "product.png",
+                                "image/png",
+                                new byte[] { 1 });
+                when(businessService.registerProduct(form, image, null)).thenReturn(99L);
+                RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
 
-        String view = controller.productRegisterProcess(
-                form,
-                image,
-                sessionWith("loginMemberNo", 14L),
-                redirect);
+                String view = controller.productRegisterProcess(form, image, null, sessionWith("loginMemberNo", 14L),
+                                redirect);
 
-        assertEquals("redirect:/business/product/list", view);
-        assertEquals(40L, form.getBusinessNo());
-        assertNull(form.getActorNo());
-        assertEquals(99L, redirect.getFlashAttributes().get("registeredProductNo"));
-        assertTrue(redirect.getFlashAttributes().get("successMessage").toString()
-                .contains("상품 등록 요청이 완료"));
-    }
+                assertEquals("redirect:/business/product/list", view);
+                assertEquals(40L, form.getBusinessNo());
+                assertNull(form.getActorNo());
+                assertEquals(99L, redirect.getFlashAttributes().get("registeredProductNo"));
+                assertTrue(redirect.getFlashAttributes().get("successMessage").toString()
+                                .contains("상품 등록 요청이 완료"));
+        }
 
-    @Test
-    void productRegisterProcessShouldPreserveFormForDomainFailure() {
-        BusinessVO business = business(41L, "APPROVED");
-        when(businessService.getBusinessByMemberNo(15L)).thenReturn(business);
-        GoodsManageVO form = new GoodsManageVO();
-        when(businessService.registerProduct(form, null))
-                .thenThrow(new IllegalArgumentException("상품명이 필요합니다."));
-        RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
+        @Test
+        void productRegisterProcessShouldPreserveFormForDomainFailure() {
+                BusinessVO business = business(41L, "APPROVED");
+                when(businessService.getBusinessByMemberNo(15L)).thenReturn(business);
+                GoodsManageVO form = new GoodsManageVO();
+                when(businessService.registerProduct(form, null, null))
+                                .thenThrow(new IllegalArgumentException("상품명이 필요합니다."));
+                RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
 
-        String view = controller.productRegisterProcess(
-                form,
-                null,
-                sessionWith("loginMemberNo", 15L),
-                redirect);
+                String view = controller.productRegisterProcess(form, null, null, sessionWith("loginMemberNo", 15L),
+                                redirect);
 
-        assertEquals("redirect:/business/product/register", view);
-        assertEquals("상품명이 필요합니다.", redirect.getFlashAttributes().get("errorMessage"));
-        assertSame(form, redirect.getFlashAttributes().get("productForm"));
-    }
+                assertEquals("redirect:/business/product/register", view);
+                assertEquals("상품명이 필요합니다.", redirect.getFlashAttributes().get("errorMessage"));
+                assertSame(form, redirect.getFlashAttributes().get("productForm"));
+        }
 
-    @Test
-    void contentSearchShouldSelectCachedOrDatabaseSource() {
-        List<ContentSearchVO> cached = List.of(new ContentSearchVO());
-        List<ContentSearchVO> database = List.of(new ContentSearchVO());
-        when(businessService.getCachedContentList("movie")).thenReturn(cached);
-        when(businessService.getContentList("drama")).thenReturn(database);
+        @Test
+        void contentSearchShouldSelectCachedOrDatabaseSource() {
+                List<ContentSearchVO> cached = List.of(new ContentSearchVO());
+                List<ContentSearchVO> database = List.of(new ContentSearchVO());
+                when(businessService.getCachedContentList("movie")).thenReturn(cached);
+                when(businessService.getContentList("drama")).thenReturn(database);
 
-        ExtendedModelMap cachedModel = new ExtendedModelMap();
-        ExtendedModelMap databaseModel = new ExtendedModelMap();
-        String cachedView = controller.contentSearch("movie", "REGISTER", cachedModel);
-        String databaseView = controller.contentSearch("drama", "database", databaseModel);
+                ExtendedModelMap cachedModel = new ExtendedModelMap();
+                ExtendedModelMap databaseModel = new ExtendedModelMap();
+                String cachedView = controller.contentSearch("movie", "REGISTER", cachedModel);
+                String databaseView = controller.contentSearch("drama", "database", databaseModel);
 
-        assertEquals("business/goods/contentSearch", cachedView);
-        assertEquals("register", cachedModel.get("mode"));
-        assertEquals(cached, cachedModel.get("contentList"));
-        assertEquals("business/goods/contentSearch", databaseView);
-        assertEquals("database", databaseModel.get("mode"));
-        assertEquals(database, databaseModel.get("contentList"));
-    }
+                assertEquals("business/goods/contentSearch", cachedView);
+                assertEquals("register", cachedModel.get("mode"));
+                assertEquals(cached, cachedModel.get("contentList"));
+                assertEquals("business/goods/contentSearch", databaseView);
+                assertEquals("database", databaseModel.get("mode"));
+                assertEquals(database, databaseModel.get("contentList"));
+        }
 
-    @Test
-    void contentApisShouldReturnSafeCollectionsAndDelegateValidRequests() {
-        when(businessService.getContentList("none")).thenReturn(null);
-        when(businessService.getActorPreview(100L, "MOVIE")).thenReturn(null);
-        ContentSearchVO detail = new ContentSearchVO();
-        when(businessService.getContentByNo(3L)).thenReturn(detail);
-        List<ActorSearchVO> actors = List.of(new ActorSearchVO());
-        when(businessService.getActorListByContentNo(3L)).thenReturn(actors);
+        @Test
+        void contentApisShouldReturnSafeCollectionsAndDelegateValidRequests() {
+                when(businessService.getContentList("none")).thenReturn(null);
+                when(businessService.getActorPreview(100L, "MOVIE")).thenReturn(null);
+                ContentSearchVO detail = new ContentSearchVO();
+                when(businessService.getContentByNo(3L)).thenReturn(detail);
+                List<ActorSearchVO> actors = List.of(new ActorSearchVO());
+                when(businessService.getActorListByContentNo(3L)).thenReturn(actors);
 
-        assertEquals(List.of(), controller.contentListApi("none"));
-        assertEquals(List.of(), controller.contentActorPreviewApi(100L, "MOVIE"));
-        assertSame(detail, controller.contentDetailApi(3L));
-        assertEquals(List.of(), controller.actorListByContentApi(0L));
-        assertEquals(actors, controller.actorListByContentApi(3L));
-        verify(businessService, never()).getActorListByContentNo(0L);
-    }
+                assertEquals(List.of(), controller.contentListApi("none"));
+                assertEquals(List.of(), controller.contentActorPreviewApi(100L, "MOVIE"));
+                assertSame(detail, controller.contentDetailApi(3L));
+                assertEquals(List.of(), controller.actorListByContentApi(0L));
+                assertEquals(actors, controller.actorListByContentApi(3L));
+                verify(businessService, never()).getActorListByContentNo(0L);
+        }
 
-    @Test
-    void loginMemberObjectShouldBeAcceptedAsSessionFallback() {
-        MemberVO member = new MemberVO();
-        member.setMemberNo(16L);
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginMember", member);
-        when(businessService.getBusinessByMemberNo(16L)).thenReturn(null);
+        @Test
+        void loginMemberObjectShouldBeAcceptedAsSessionFallback() {
+                MemberVO member = new MemberVO();
+                member.setMemberNo(16L);
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute("loginMember", member);
+                when(businessService.getBusinessByMemberNo(16L)).thenReturn(null);
 
-        String view = controller.productList(
-                null,
-                1,
-                session,
-                new ExtendedModelMap(),
-                new RedirectAttributesModelMap());
+                String view = controller.productList(
+                                null,
+                                1,
+                                session,
+                                new ExtendedModelMap(),
+                                new RedirectAttributesModelMap());
 
-        assertEquals("redirect:/", view);
-        assertEquals(16L, session.getAttribute("loginMemberNo"));
-    }
+                assertEquals("redirect:/", view);
+                assertEquals(16L, session.getAttribute("loginMemberNo"));
+        }
 
-    private BusinessVO business(Long businessNo, String status) {
-        BusinessVO business = new BusinessVO();
-        business.setBusinessNo(businessNo);
-        business.setStatus(status);
-        return business;
-    }
+        private BusinessVO business(Long businessNo, String status) {
+                BusinessVO business = new BusinessVO();
+                business.setBusinessNo(businessNo);
+                business.setStatus(status);
+                return business;
+        }
 
-    private MockHttpSession sessionWith(String key, Object value) {
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(key, value);
-        return session;
-    }
+        private MockHttpSession sessionWith(String key, Object value) {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(key, value);
+                return session;
+        }
 }

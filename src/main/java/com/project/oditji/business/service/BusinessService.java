@@ -30,7 +30,7 @@ public interface BusinessService {
                         String businessNumber);
 
         // 상품 등록
-        long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage);
+        long registerProduct(GoodsManageVO goodsManageVO, MultipartFile productImage, MultipartFile[] detailImages);
 
         // 기존 DB 콘텐츠 검색 목록 조회
         List<ContentSearchVO> getContentList(String keyword);
@@ -170,11 +170,11 @@ public interface BusinessService {
         int getBusinessSalesHistoryCount(long businessNo, LocalDate startDate, LocalDate endDate);
 
         /*
-        * =========================================================
-        * 사업자 정산 관리
-        * 정산 가능 금액, 정산 요청 내역, 정산 계좌를 관리한다.
-        * =========================================================
-        */
+         * =========================================================
+         * 사업자 정산 관리
+         * 정산 가능 금액, 정산 요청 내역, 정산 계좌를 관리한다.
+         * =========================================================
+         */
         SettlementManageVO getMonthlySettlementSummary(long businessNo);
 
         List<SettlementRequestVO> getSettlementPaymentHistory(long businessNo);

@@ -163,14 +163,71 @@ function resetActorSelect() {
 /* =========================================================
    이미지 파일명 출력
 ========================================================= */
-function updateFileName(input) {
-  const fileNameElement = document.getElementById("selectedFileName");
+/* =========================================================
+   세부 이미지 파일명 목록 출력
+========================================================= */
+function updateDetailFileNames(input) {
+  const summaryElement = document.getElementById("selectedDetailFileSummary");
+  const listElement = document.getElementById("selectedDetailFileList");
 
-  if (input.files && input.files.length > 0) {
-    fileNameElement.textContent = input.files[0].name;
-  } else {
-    fileNameElement.textContent = "선택된 파일 없음";
+  if (!summaryElement || !listElement) {
+    return;
   }
+
+  listElement.innerHTML = "";
+
+  const files = Array.from(input.files || []);
+
+  if (files.length === 0) {
+    summaryElement.textContent = "선택된 파일 없음";
+    return;
+  }
+
+  summaryElement.textContent = files.length + "개 파일 선택";
+
+  files.forEach(function (file) {
+    const listItem = document.createElement("li");
+    listItem.textContent = file.name;
+    listElement.appendChild(listItem);
+  });
+}
+
+/* =========================================================
+   대표 이미지/세부 이미지 공통 검증
+========================================================= */
+function validateImageFiles(fileList, label, maxCount) {
+  const maxImageSize = 10 * 1024 * 1024;
+  const allowedExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+  const files = Array.from(fileList || []).filter(function (file) {
+    return file && file.size > 0;
+  });
+
+  if (maxCount && files.length > maxCount) {
+    showAlert(label + "는 최대 " + maxCount + "장까지 등록할 수 있습니다.", "warning");
+    return false;
+  }
+
+  for (const file of files) {
+    const fileName = (file.name || "").toLowerCase();
+    const extension = fileName.includes(".") ? fileName.split(".").pop() : "";
+
+    if (!allowedExtensions.includes(extension)) {
+      showAlert(label + "는 JPG, JPEG, PNG, GIF, WEBP 형식만 업로드할 수 있습니다.", "warning");
+      return false;
+    }
+
+    if (file.type && !file.type.startsWith("image/")) {
+      showAlert("이미지 파일만 업로드할 수 있습니다.", "warning");
+      return false;
+    }
+
+    if (file.size > maxImageSize) {
+      showAlert(label + "는 10MB 이하만 업로드할 수 있습니다.", "warning");
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /* =========================================================
@@ -178,20 +235,14 @@ function updateFileName(input) {
 ========================================================= */
 function validateProductForm(event) {
   const productName = document.getElementById("productName").value.trim();
-
   const productType = document.getElementById("productType").value;
-
   const price = Number(document.getElementById("price").value);
-
   const discountRate = Number(document.getElementById("discountRate").value);
-
   const stock = Number(document.getElementById("stock").value);
-
   const tmdbId = Number(document.getElementById("tmdbId").value);
-
   const contentType = document.getElementById("contentType").value;
-
   const productImage = document.getElementById("productImage");
+  const detailImages = document.getElementById("detailImages");
 
   if (!productName) {
     showAlert("상품명을 입력해주세요.", "warning");
@@ -225,6 +276,14 @@ function validateProductForm(event) {
 
   if (!productImage.files || productImage.files.length === 0) {
     showAlert("상품 대표 이미지를 선택해주세요.", "warning");
+    return false;
+  }
+
+  if (!validateImageFiles(productImage.files, "상품 대표 이미지", 1)) {
+    return false;
+  }
+
+  if (detailImages && !validateImageFiles(detailImages.files, "상품 세부 이미지", 10)) {
     return false;
   }
 
