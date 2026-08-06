@@ -62,6 +62,7 @@ public class BusinessController {
         private static final String MODEL_EVENT = "event";
         private static final String MODEL_ORDER = "order";
         private static final String PARAM_KEYWORD = "keyword";
+        private static final String PARAM_STATUS = "status";
         private static final String STATUS_APPROVED = "APPROVED";
         private static final String ACTIVE_MENU_SETTLEMENT = "settlement";
         private static final String SESSION_LOGIN_MEMBER_NO = "loginMemberNo";
@@ -1052,7 +1053,7 @@ public class BusinessController {
          */
         @GetMapping("/delivery/list")
         public String deliveryList(
-                        @RequestParam(name = "status", required = false) String status,
+                        @RequestParam(name = PARAM_STATUS, required = false) String status,
                         @RequestParam(name = PARAM_KEYWORD, required = false) String keyword,
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
@@ -1103,7 +1104,7 @@ public class BusinessController {
                         @RequestParam("orderItemNo") long orderItemNo,
                         @RequestParam(name = "courier", required = false) String courier,
                         @RequestParam(name = "trackingNumber", required = false) String trackingNumber,
-                        @RequestParam("status") String status,
+                        @RequestParam(PARAM_STATUS) String status,
                         @RequestParam(name = "returnStatus", required = false) String returnStatus,
                         @RequestParam(name = "returnKeyword", required = false) String returnKeyword,
                         @RequestParam(name = "returnPage", required = false, defaultValue = "1") int returnPage,
@@ -1132,7 +1133,7 @@ public class BusinessController {
 
                 /* 목록에서 사용하던 검색 조건과 페이지를 유지하여 같은 화면으로 돌아간다. */
                 if (returnStatus != null && !returnStatus.isBlank()) {
-                        redirectAttributes.addAttribute("status", returnStatus);
+                        redirectAttributes.addAttribute(PARAM_STATUS, returnStatus);
                 }
                 if (returnKeyword != null && !returnKeyword.isBlank()) {
                         redirectAttributes.addAttribute(PARAM_KEYWORD, returnKeyword);
@@ -1146,7 +1147,7 @@ public class BusinessController {
 
         /* 취소 및 환불 관리 */
         @GetMapping("/cancel/list")
-        public String cancelList(@RequestParam(name = "status", required = false) String status,
+        public String cancelList(@RequestParam(name = PARAM_STATUS, required = false) String status,
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session,
                         Model model, RedirectAttributes redirectAttributes) {
@@ -1205,7 +1206,7 @@ public class BusinessController {
 
                 /* [페이징 리팩터링 추가] 목록에서 보던 상태 필터와 페이지를 유지하여 같은 화면으로 돌아간다. */
                 if (returnStatus != null && !returnStatus.isBlank()) {
-                        redirectAttributes.addAttribute("status", returnStatus);
+                        redirectAttributes.addAttribute(PARAM_STATUS, returnStatus);
                 }
                 if (returnPage > 1) {
                         redirectAttributes.addAttribute("page", returnPage);
@@ -1234,8 +1235,7 @@ public class BusinessController {
                                 () -> orderCancelRefundService.rejectCancel(memberNo, cancelNo, rejectReason),
                                 "취소 요청을 반려했습니다.",
                                 "반려",
-                                memberNo,
-                                cancelNo,
+                                new CancelDecisionContext(memberNo, cancelNo),
                                 returnStatus,
                                 returnPage,
                                 redirectAttributes);
@@ -1248,8 +1248,7 @@ public class BusinessController {
                         Runnable decisionAction,
                         String successMessage,
                         String actionName,
-                        Long memberNo,
-                        Long cancelNo,
+                        CancelDecisionContext context,
                         String returnStatus,
                         int returnPage,
                         RedirectAttributes redirectAttributes) {
@@ -1266,8 +1265,8 @@ public class BusinessController {
                                 log.error(
                                                 "취소 요청 {} 처리 중 오류 - memberNo: {}, cancelNo: {}",
                                                 actionName,
-                                                memberNo,
-                                                cancelNo,
+                                                context.memberNo(),
+                                                context.cancelNo(),
                                                 e);
                         }
                         redirectAttributes.addFlashAttribute(
@@ -1276,13 +1275,21 @@ public class BusinessController {
                 }
 
                 if (returnStatus != null && !returnStatus.isBlank()) {
-                        redirectAttributes.addAttribute("status", returnStatus);
+                        redirectAttributes.addAttribute(PARAM_STATUS, returnStatus);
                 }
                 if (returnPage > 1) {
                         redirectAttributes.addAttribute("page", returnPage);
                 }
 
                 return "redirect:/business/cancel/list";
+        }
+
+        /**
+         * 취소 요청 처리 로그에 필요한 식별값을 하나의 객체로 묶습니다.
+         */
+        private record CancelDecisionContext(
+                        Long memberNo,
+                        Long cancelNo) {
         }
 
         /**
