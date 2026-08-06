@@ -8,7 +8,10 @@
 
             <!-- 왼쪽 -->
             <div class="footer-left">
-                ODITJI
+                <div class="footer-logo">ODITJI</div>
+                <div class="footer-contact">
+                    고객센터 <a href="tel:000-0000-0000" class="footer-contact-number">000-0000-0000</a>
+                </div>
             </div>
 
             <!-- 가운데 -->
