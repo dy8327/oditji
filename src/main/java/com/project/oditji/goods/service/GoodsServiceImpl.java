@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.oditji.common.util.FilterValueNormalizer;
 import com.project.oditji.goods.dao.GoodsDAO;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.goods.vo.ProductOptionVO;
@@ -48,22 +49,9 @@ public class GoodsServiceImpl implements GoodsService {
             int page,
             int pageSize) {
 
-        String normalizedKeyword = normalizeKeyword(keyword);
-        List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
-        Integer normalizedMinPrice = normalizePrice(minPrice);
-        Integer normalizedMaxPrice = normalizePrice(maxPrice);
-        List<String> normalizedPriceRanges = normalizePriceRanges(priceRanges);
-        List<String> normalizedStockStatus = normalizeStockStatus(stockStatus);
-
-        if (normalizedMinPrice != null
-                && normalizedMaxPrice != null
-                && normalizedMinPrice > normalizedMaxPrice) {
-
-            int temporaryPrice = normalizedMinPrice;
-            normalizedMinPrice = normalizedMaxPrice;
-            normalizedMaxPrice = temporaryPrice;
-        }
-
+        GoodsTextFilters filters = normalizeTextFilters(
+                keyword, productTypes, priceRanges, stockStatus);
+        PriceBounds prices = normalizePriceBounds(minPrice, maxPrice);
         String normalizedType = normalizeListType(type);
         String normalizedSort = normalizeSort(sort);
         int normalizedPage = normalizePage(page);
@@ -72,14 +60,14 @@ public class GoodsServiceImpl implements GoodsService {
         int endRow = normalizedPage * normalizedPageSize;
 
         List<GoodsVO> resultList = goodsDAO.selectSearchGoods(
-                normalizedKeyword,
-                normalizedProductTypes,
-                normalizedMinPrice,
-                normalizedMaxPrice,
+                filters.keyword(),
+                filters.productTypes(),
+                prices.minPrice(),
+                prices.maxPrice(),
                 discountOnly,
                 inStockOnly,
-                normalizedPriceRanges,
-                normalizedStockStatus,
+                filters.priceRanges(),
+                filters.stockStatus(),
                 normalizedType,
                 normalizedSort,
                 startRow,
@@ -101,31 +89,19 @@ public class GoodsServiceImpl implements GoodsService {
             List<String> priceRanges,
             List<String> stockStatus) {
 
-        String normalizedKeyword = normalizeKeyword(keyword);
-        List<String> normalizedProductTypes = normalizeProductTypes(productTypes);
-        Integer normalizedMinPrice = normalizePrice(minPrice);
-        Integer normalizedMaxPrice = normalizePrice(maxPrice);
-        List<String> normalizedPriceRanges = normalizePriceRanges(priceRanges);
-        List<String> normalizedStockStatus = normalizeStockStatus(stockStatus);
-
-        if (normalizedMinPrice != null
-                && normalizedMaxPrice != null
-                && normalizedMinPrice > normalizedMaxPrice) {
-
-            int temporaryPrice = normalizedMinPrice;
-            normalizedMinPrice = normalizedMaxPrice;
-            normalizedMaxPrice = temporaryPrice;
-        }
+        GoodsTextFilters filters = normalizeTextFilters(
+                keyword, productTypes, priceRanges, stockStatus);
+        PriceBounds prices = normalizePriceBounds(minPrice, maxPrice);
 
         return goodsDAO.countSearchGoods(
-                normalizedKeyword,
-                normalizedProductTypes,
-                normalizedMinPrice,
-                normalizedMaxPrice,
+                filters.keyword(),
+                filters.productTypes(),
+                prices.minPrice(),
+                prices.maxPrice(),
                 discountOnly,
                 inStockOnly,
-                normalizedPriceRanges,
-                normalizedStockStatus);
+                filters.priceRanges(),
+                filters.stockStatus());
     }
 
     @Override
@@ -279,34 +255,36 @@ public class GoodsServiceImpl implements GoodsService {
                 : POPULAR;
     }
 
-    private String normalizeKeyword(String keyword) {
-        return keyword == null ? "" : keyword.trim();
+    private GoodsTextFilters normalizeTextFilters(
+            String keyword,
+            List<String> productTypes,
+            List<String> priceRanges,
+            List<String> stockStatus) {
+
+        return new GoodsTextFilters(
+                keyword == null ? "" : keyword.trim(),
+                FilterValueNormalizer.distinctTrimmed(productTypes),
+                FilterValueNormalizer.distinctAllowed(
+                        priceRanges, VALID_PRICE_RANGES),
+                FilterValueNormalizer.distinctAllowed(
+                        stockStatus, VALID_STOCK_STATUS));
     }
 
-    private List<String> normalizeProductTypes(List<String> sourceList) {
+    private PriceBounds normalizePriceBounds(
+            Integer minPrice,
+            Integer maxPrice) {
 
-        List<String> normalizedList = new ArrayList<String>();
+        Integer normalizedMinPrice = normalizePrice(minPrice);
+        Integer normalizedMaxPrice = normalizePrice(maxPrice);
 
-        if (sourceList == null) {
-            return normalizedList;
+        if (normalizedMinPrice != null
+                && normalizedMaxPrice != null
+                && normalizedMinPrice > normalizedMaxPrice) {
+
+            return new PriceBounds(normalizedMaxPrice, normalizedMinPrice);
         }
 
-        for (String productType : sourceList) {
-
-            if (productType == null) {
-                continue;
-            }
-
-            String normalized = productType.trim();
-
-            if (!normalized.isEmpty()
-                    && !normalizedList.contains(normalized)) {
-
-                normalizedList.add(normalized);
-            }
-        }
-
-        return normalizedList;
+        return new PriceBounds(normalizedMinPrice, normalizedMaxPrice);
     }
 
     private static final List<String> VALID_PRICE_RANGES = Arrays.asList(
@@ -319,58 +297,6 @@ public class GoodsServiceImpl implements GoodsService {
     private static final List<String> VALID_STOCK_STATUS = Arrays.asList(
             "IN_STOCK",
             "SOLD_OUT");
-
-    private List<String> normalizePriceRanges(List<String> sourceList) {
-
-        List<String> normalizedList = new ArrayList<String>();
-
-        if (sourceList == null) {
-            return normalizedList;
-        }
-
-        for (String priceRange : sourceList) {
-
-            if (priceRange == null) {
-                continue;
-            }
-
-            String normalized = priceRange.trim();
-
-            if (VALID_PRICE_RANGES.contains(normalized)
-                    && !normalizedList.contains(normalized)) {
-
-                normalizedList.add(normalized);
-            }
-        }
-
-        return normalizedList;
-    }
-
-    private List<String> normalizeStockStatus(List<String> sourceList) {
-
-        List<String> normalizedList = new ArrayList<String>();
-
-        if (sourceList == null) {
-            return normalizedList;
-        }
-
-        for (String status : sourceList) {
-
-            if (status == null) {
-                continue;
-            }
-
-            String normalized = status.trim();
-
-            if (VALID_STOCK_STATUS.contains(normalized)
-                    && !normalizedList.contains(normalized)) {
-
-                normalizedList.add(normalized);
-            }
-        }
-
-        return normalizedList;
-    }
 
     private Integer normalizePrice(Integer price) {
 
@@ -393,4 +319,16 @@ public class GoodsServiceImpl implements GoodsService {
 
         return Math.min(pageSize, 100);
     }
+    private record GoodsTextFilters(
+            String keyword,
+            List<String> productTypes,
+            List<String> priceRanges,
+            List<String> stockStatus) {
+    }
+
+    private record PriceBounds(
+            Integer minPrice,
+            Integer maxPrice) {
+    }
+
 }

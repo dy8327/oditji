@@ -2,7 +2,6 @@ package com.project.oditji.search.service;
 
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.project.oditji.common.util.DateTimeUtil;
+import com.project.oditji.common.util.TmdbGenreUtil;
 import com.project.oditji.search.vo.CachedContentVO;
 
 /**
@@ -35,8 +35,8 @@ public class SearchContentDiscoverService {
     private static final String JSON_ORIGINAL_TITLE = "original_title";
     private static final String JSON_ORIGINAL_NAME = "original_name";
 
-    private static final Map<Integer, String> MOVIE_GENRES = createMovieGenreMap();
-    private static final Map<Integer, String> TV_GENRES = createTvGenreMap();
+    private static final Map<Integer, String> MOVIE_GENRES = TmdbGenreUtil.movieGenres();
+    private static final Map<Integer, String> TV_GENRES = TmdbGenreUtil.tvGenres();
 
     @Value("${search.content-cache.start-year:1950}")
     private int startYear;
@@ -509,48 +509,5 @@ public class SearchContentDiscoverService {
         return json.optDouble(key);
     }
 
-    private static Map<Integer, String> createMovieGenreMap() {
-        Map<Integer, String> map = new LinkedHashMap<Integer, String>();
-        map.put(28, "액션");
-        map.put(12, "모험");
-        map.put(16, "애니메이션");
-        map.put(35, "코미디");
-        map.put(80, "범죄");
-        map.put(99, "다큐멘터리");
-        map.put(18, "드라마");
-        map.put(10751, "가족");
-        map.put(14, "판타지");
-        map.put(36, "역사");
-        map.put(27, "공포");
-        map.put(10402, "음악");
-        map.put(9648, "미스터리");
-        map.put(10749, "로맨스");
-        map.put(878, "SF");
-        map.put(10770, "TV 영화");
-        map.put(53, "스릴러");
-        map.put(10752, "전쟁");
-        map.put(37, "서부");
-        return Collections.unmodifiableMap(map);
-    }
 
-    private static Map<Integer, String> createTvGenreMap() {
-        Map<Integer, String> map = new LinkedHashMap<Integer, String>();
-        map.put(10759, "액션·모험");
-        map.put(16, "애니메이션");
-        map.put(35, "코미디");
-        map.put(80, "범죄");
-        map.put(99, "다큐멘터리");
-        map.put(18, "드라마");
-        map.put(10751, "가족");
-        map.put(10762, "키즈");
-        map.put(9648, "미스터리");
-        map.put(10763, "뉴스");
-        map.put(10764, "리얼리티");
-        map.put(10765, "SF·판타지");
-        map.put(10766, "연속극");
-        map.put(10767, "토크");
-        map.put(10768, "전쟁·정치");
-        map.put(37, "서부");
-        return Collections.unmodifiableMap(map);
-    }
 }

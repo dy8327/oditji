@@ -2,7 +2,6 @@ package com.project.oditji.content.controller;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
-import com.project.oditji.common.util.PlatformNameNormalizer;
+import com.project.oditji.common.util.OttPlatformUtil;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
 import com.project.oditji.content.vo.ContentVO;
@@ -137,7 +136,7 @@ public class ContentController {
                                 safeProviders,
                                 safeAgeRatings);
 
-                Map<String, String> ottLogoMap = createOttLogoMap(
+                Map<String, String> ottLogoMap = OttPlatformUtil.createLogoMap(
                                 tmdbDAO.selectActivePlatformList());
 
                 model.addAttribute(
@@ -493,43 +492,6 @@ public class ContentController {
                                 relatedGoodsList);
 
                 return "content/personFilmography";
-        }
-
-        /**
-         * OTT_PLATFORM 테이블에서 조회한 플랫폼 목록을
-         * JSP에서 사용하기 편한 로고 URL Map으로 변환합니다.
-         */
-        private Map<String, String> createOttLogoMap(
-                        List<OttPlatformVO> platformList) {
-
-                Map<String, String> logoMap = new LinkedHashMap<String, String>();
-
-                if (platformList == null) {
-                        return logoMap;
-                }
-
-                for (OttPlatformVO platform : platformList) {
-
-                        if (platform == null
-                                        || platform.getPlatformName() == null
-                                        || platform.getLogoImage() == null
-                                        || platform.getLogoImage().isBlank()) {
-
-                                continue;
-                        }
-
-                        String platformKey = PlatformNameNormalizer.toKey(
-                                        platform.getPlatformName());
-
-                        if (!platformKey.isEmpty()) {
-
-                                logoMap.put(
-                                                platformKey,
-                                                platform.getLogoImage());
-                        }
-                }
-
-                return logoMap;
         }
 
         private String normalizeListType(

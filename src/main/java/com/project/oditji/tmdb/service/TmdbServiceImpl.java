@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import com.project.oditji.common.util.TmdbGenreUtil;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.content.vo.FilmographyVO;
 import com.project.oditji.content.vo.PersonFilmographyVO;
@@ -65,10 +66,10 @@ public class TmdbServiceImpl implements TmdbService {
     private static final String PLATFORM_KEY_COUPANG = "coupang";
 
     private static final Map<Integer, String> MOVIE_GENRES =
-            createMovieGenreMap();
+            TmdbGenreUtil.movieGenres();
 
     private static final Map<Integer, String> TV_GENRES =
-            createTvGenreMap();
+            TmdbGenreUtil.tvGenres();
 
     private final TmdbDAO tmdbDAO;
     private final RestTemplate restTemplate;
@@ -755,73 +756,78 @@ public class TmdbServiceImpl implements TmdbService {
     }
 
     private ContentVO createMovieContentVO(Long tmdbId) {
+        return createContentVO(tmdbId, CONTENT_TYPE_MOVIE);
+    }
 
-        JsonNode root =
-                getDetailRoot(tmdbId, CONTENT_TYPE_MOVIE, true);
+    private ContentVO createTvContentVO(Long tmdbId) {
+        return createContentVO(tmdbId, "TV");
+    }
+
+    private ContentVO createContentVO(
+            Long tmdbId,
+            String contentType) {
+
+        boolean movie = CONTENT_TYPE_MOVIE.equals(contentType);
+        JsonNode root = getDetailRoot(tmdbId, contentType, true);
+
+        String titleKey = movie ? JSON_TITLE : "name";
+        String originalTitleKey = movie
+                ? JSON_ORIGINAL_TITLE
+                : JSON_ORIGINAL_NAME;
+        String releaseDateKey = movie
+                ? JSON_RELEASE_DATE
+                : JSON_FIRST_AIR_DATE;
 
         ContentVO vo = new ContentVO();
         vo.setTmdbId(root.path("id").asLong());
-        vo.setContentType(CONTENT_TYPE_MOVIE);
+        vo.setContentType(contentType);
         vo.setTitle(firstNonBlank(
-                root.path(JSON_TITLE).asString(null),
-                root.path(JSON_ORIGINAL_TITLE).asString(null)));
-        vo.setOriginalTitle(
-                root.path(JSON_ORIGINAL_TITLE).asString(null));
+                root.path(titleKey).asString(null),
+                root.path(originalTitleKey).asString(null)));
+        vo.setOriginalTitle(root.path(originalTitleKey).asString(null));
         vo.setOverview(root.path(JSON_OVERVIEW).asString(null));
         vo.setPosterPath(root.path(JSON_POSTER_PATH).asString(null));
         vo.setBackdropPath(root.path(JSON_BACKDROP_PATH).asString(null));
         vo.setReleaseDate(parseDate(
-                root.path(JSON_RELEASE_DATE).asString(null)));
+                root.path(releaseDateKey).asString(null)));
         vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
+        vo.setCastNames(limitLength(
+                parseCastNames(root.path(JSON_CREDITS).path("cast")),
+                500));
+        vo.setTmdbScore(nullableDouble(
+                root.path(JSON_VOTE_AVERAGE)));
+
+        if (movie) {
+            fillMovieSpecificContent(vo, root);
+        } else {
+            fillTvSpecificContent(vo, root);
+        }
+
+        return vo;
+    }
+
+    private void fillMovieSpecificContent(
+            ContentVO vo,
+            JsonNode root) {
+
         vo.setRuntime(nullableInt(root.path("runtime")));
         vo.setEpisodeCount(null);
         vo.setDirector(limitLength(
                 parseDirector(root.path(JSON_CREDITS).path("crew")),
                 100));
-        vo.setCastNames(limitLength(
-                parseCastNames(root.path(JSON_CREDITS).path("cast")),
-                500));
         vo.setAgeRating(extractMovieAgeRating(root));
-        vo.setTmdbScore(nullableDouble(
-                root.path(JSON_VOTE_AVERAGE)));
-
-        return vo;
     }
 
-    private ContentVO createTvContentVO(Long tmdbId) {
+    private void fillTvSpecificContent(
+            ContentVO vo,
+            JsonNode root) {
 
-        JsonNode root =
-                getDetailRoot(tmdbId, "TV", true);
-
-        ContentVO vo = new ContentVO();
-        vo.setTmdbId(root.path("id").asLong());
-        vo.setContentType("TV");
-        vo.setTitle(firstNonBlank(
-                root.path("name").asString(null),
-                root.path(JSON_ORIGINAL_NAME).asString(null)));
-        vo.setOriginalTitle(
-                root.path(JSON_ORIGINAL_NAME).asString(null));
-        vo.setOverview(root.path(JSON_OVERVIEW).asString(null));
-        vo.setPosterPath(root.path(JSON_POSTER_PATH).asString(null));
-        vo.setBackdropPath(root.path(JSON_BACKDROP_PATH).asString(null));
-        vo.setReleaseDate(parseDate(
-                root.path(JSON_FIRST_AIR_DATE).asString(null)));
-        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
-        vo.setRuntime(parseTvRuntime(
-                root.path("episode_run_time")));
-        vo.setEpisodeCount(nullableInt(
-                root.path("number_of_episodes")));
+        vo.setRuntime(parseTvRuntime(root.path("episode_run_time")));
+        vo.setEpisodeCount(nullableInt(root.path("number_of_episodes")));
         vo.setDirector(limitLength(
                 parseTvCreator(root.path(JSON_CREATED_BY)),
                 100));
-        vo.setCastNames(limitLength(
-                parseCastNames(root.path(JSON_CREDITS).path("cast")),
-                500));
         vo.setAgeRating(extractTvAgeRating(root));
-        vo.setTmdbScore(nullableDouble(
-                root.path(JSON_VOTE_AVERAGE)));
-
-        return vo;
     }
 
     private JsonNode getDetailRoot(
@@ -1169,58 +1175,6 @@ public class TmdbServiceImpl implements TmdbService {
                 : TV_GENRES.get(genreId);
     }
 
-    private static Map<Integer, String> createMovieGenreMap() {
-
-        Map<Integer, String> map =
-                new LinkedHashMap<Integer, String>();
-
-        map.put(28, "액션");
-        map.put(12, "모험");
-        map.put(16, "애니메이션");
-        map.put(35, "코미디");
-        map.put(80, "범죄");
-        map.put(99, "다큐멘터리");
-        map.put(18, "드라마");
-        map.put(10751, "가족");
-        map.put(14, "판타지");
-        map.put(36, "역사");
-        map.put(27, "공포");
-        map.put(10402, "음악");
-        map.put(9648, "미스터리");
-        map.put(10749, "로맨스");
-        map.put(878, "SF");
-        map.put(10770, "TV 영화");
-        map.put(53, "스릴러");
-        map.put(10752, "전쟁");
-        map.put(37, "서부");
-
-        return Collections.unmodifiableMap(map);
-    }
-
-    private static Map<Integer, String> createTvGenreMap() {
-
-        Map<Integer, String> map =
-                new LinkedHashMap<Integer, String>();
-
-        map.put(10759, "액션·모험");
-        map.put(16, "애니메이션");
-        map.put(35, "코미디");
-        map.put(80, "범죄");
-        map.put(99, "다큐멘터리");
-        map.put(18, "드라마");
-        map.put(10751, "가족");
-        map.put(10762, "키즈");
-        map.put(9648, "미스터리");
-        map.put(10763, "뉴스");
-        map.put(10764, "리얼리티");
-        map.put(10765, "SF·판타지");
-        map.put(10766, "연속극");
-        map.put(10767, "토크");
-        map.put(10768, "전쟁·정치");
-        map.put(37, "서부");
-
-        return Collections.unmodifiableMap(map);
-    }
 
     private JsonNode callTmdbApi(String url) {
 
@@ -1311,45 +1265,29 @@ public class TmdbServiceImpl implements TmdbService {
     }
 
     private String parseTvCreator(JsonNode createdByNode) {
-
-        if (createdByNode == null
-                || !createdByNode.isArray()) {
-            return null;
-        }
-
-        List<String> names = new ArrayList<String>();
-
-        for (JsonNode creator : createdByNode) {
-            String name =
-                    creator.path("name").asString(null);
-
-            if (name != null
-                    && !name.isBlank()
-                    && !names.contains(name)) {
-                names.add(name);
-            }
-        }
-
-        return names.isEmpty()
-                ? null
-                : String.join(", ", names);
+        return parseNameList(createdByNode, Integer.MAX_VALUE);
     }
 
     private String parseCastNames(JsonNode castNode) {
+        return parseNameList(castNode, CAST_SAVE_LIMIT);
+    }
 
-        if (castNode == null || !castNode.isArray()) {
+    private String parseNameList(
+            JsonNode sourceNode,
+            int limit) {
+
+        if (sourceNode == null || !sourceNode.isArray()) {
             return null;
         }
 
         List<String> names = new ArrayList<String>();
 
-        for (JsonNode cast : castNode) {
-
-            if (names.size() >= CAST_SAVE_LIMIT) {
+        for (JsonNode item : sourceNode) {
+            if (names.size() >= limit) {
                 break;
             }
 
-            String name = cast.path("name").asString(null);
+            String name = item.path("name").asString(null);
 
             if (name != null
                     && !name.isBlank()
@@ -1379,6 +1317,25 @@ public class TmdbServiceImpl implements TmdbService {
         JsonNode results =
                 root.path("release_dates").path(JSON_RESULTS);
 
+        return extractPreferredCountryAgeRating(
+                results,
+                this::extractSupportedMovieCountryAgeRating);
+    }
+
+    private String extractTvAgeRating(JsonNode root) {
+
+        JsonNode results =
+                root.path("content_ratings").path(JSON_RESULTS);
+
+        return extractPreferredCountryAgeRating(
+                results,
+                this::extractSupportedTvCountryAgeRating);
+    }
+
+    private String extractPreferredCountryAgeRating(
+            JsonNode results,
+            CountryAgeRatingExtractor ratingExtractor) {
+
         if (!results.isArray()) {
             return AGE_RATING_UNKNOWN;
         }
@@ -1386,13 +1343,10 @@ public class TmdbServiceImpl implements TmdbService {
         String usRating = null;
 
         for (JsonNode country : results) {
-
             String countryCode =
                     country.path("iso_3166_1").asString(null);
-            String converted = extractSupportedMovieCountryAgeRating(
-                    country,
-                    countryCode
-            );
+            String converted = ratingExtractor.extract(
+                    country, countryCode);
 
             if ("KR".equals(countryCode) && converted != null) {
                 return converted;
@@ -1416,79 +1370,7 @@ public class TmdbServiceImpl implements TmdbService {
             return null;
         }
 
-        return extractMovieCountryAgeRating(
-                country,
-                countryCode
-        );
-    }
-
-    private boolean isSupportedAgeRatingCountry(
-            String countryCode) {
-
-        return "KR".equals(countryCode)
-                || "US".equals(countryCode);
-    }
-
-    private String extractMovieCountryAgeRating(
-            JsonNode country,
-            String countryCode) {
-
-        JsonNode dates =
-                country.path("release_dates");
-
-        if (!dates.isArray()) {
-            return null;
-        }
-
-        for (JsonNode item : dates) {
-
-            String converted = convertAgeRating(
-                    countryCode,
-                    item.path("certification")
-                            .asString(null),
-                    false
-            );
-
-            if (converted != null) {
-                return converted;
-            }
-        }
-
-        return null;
-    }
-
-    private String extractTvAgeRating(JsonNode root) {
-
-        JsonNode results =
-                root.path("content_ratings").path(JSON_RESULTS);
-
-        if (!results.isArray()) {
-            return AGE_RATING_UNKNOWN;
-        }
-
-        String usRating = null;
-
-        for (JsonNode country : results) {
-
-            String countryCode =
-                    country.path("iso_3166_1").asString(null);
-            String converted = extractSupportedTvCountryAgeRating(
-                    country,
-                    countryCode
-            );
-
-            if ("KR".equals(countryCode) && converted != null) {
-                return converted;
-            }
-
-            if ("US".equals(countryCode) && usRating == null) {
-                usRating = converted;
-            }
-        }
-
-        return usRating == null
-                ? AGE_RATING_UNKNOWN
-                : usRating;
+        return extractMovieCountryAgeRating(country, countryCode);
     }
 
     private String extractSupportedTvCountryAgeRating(
@@ -1502,8 +1384,43 @@ public class TmdbServiceImpl implements TmdbService {
         return convertAgeRating(
                 countryCode,
                 country.path("rating").asString(null),
-                true
-        );
+                true);
+    }
+
+    private boolean isSupportedAgeRatingCountry(
+            String countryCode) {
+
+        return "KR".equals(countryCode)
+                || "US".equals(countryCode);
+    }
+
+    private String extractMovieCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
+
+        JsonNode dates = country.path("release_dates");
+
+        if (!dates.isArray()) {
+            return null;
+        }
+
+        for (JsonNode item : dates) {
+            String converted = convertAgeRating(
+                    countryCode,
+                    item.path("certification").asString(null),
+                    false);
+
+            if (converted != null) {
+                return converted;
+            }
+        }
+
+        return null;
+    }
+
+    @FunctionalInterface
+    private interface CountryAgeRatingExtractor {
+        String extract(JsonNode country, String countryCode);
     }
 
     private String convertAgeRating(

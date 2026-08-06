@@ -651,21 +651,16 @@ public class BusinessController {
                         return REDIRECT_EVENT_REGISTER;
                 }
 
-                EventManageVO eventManageVO = new EventManageVO();
-
-                eventManageVO.setBusinessNo(business.getBusinessNo());
-                eventManageVO.setTitle(eventTitle);
-                eventManageVO.setDescription(description);
-                eventManageVO.setStartDate(startDate);
-                eventManageVO.setEndDate(endDate);
-
-                /*
-                 * 이벤트 등록 요청은 반드시 관리자 승인을 거치므로
-                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
-                 */
-                eventManageVO.setStatus("WAITING");
-                eventManageVO.setProductNoList(productNoList);
-                eventManageVO.setDiscountRateList(discountRateList);
+                EventManageVO eventManageVO = createEventManageVO(
+                                null,
+                                business.getBusinessNo(),
+                                new EventForm(
+                                                eventTitle,
+                                                description,
+                                                startDate,
+                                                endDate,
+                                                productNoList,
+                                                discountRateList));
 
                 try {
                         long eventNo = businessService.registerEvent(eventManageVO, eventImage);
@@ -735,32 +730,22 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                if (discountRateList != null) {
-                        for (Integer rate : discountRateList) {
-                                if (rate ==null || rate < 0 || rate > 100) {
-                                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
+                if (hasInvalidDiscountRate(discountRateList)) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, "이벤트 할인율은 0~100 사이로 입력해주세요.");
 
-                                        return REDIRECT_EVENT_LIST;
-                                }
-                        }
+                        return REDIRECT_EVENT_LIST;
                 }
 
-                EventManageVO eventManageVO = new EventManageVO();
-
-                eventManageVO.setEventNo(eventNo);
-                eventManageVO.setBusinessNo(business.getBusinessNo());
-                eventManageVO.setTitle(eventTitle);
-                eventManageVO.setDescription(description);
-                eventManageVO.setStartDate(startDate);
-                eventManageVO.setEndDate(endDate);
-
-                /*
-                 * 이벤트 수정 요청은 반드시 관리자 재승인을 거치므로
-                 * 화면 전달값과 무관하게 WAITING 상태로 저장한다.
-                 */
-                eventManageVO.setStatus("WAITING");
-                eventManageVO.setProductNoList(productNoList);
-                eventManageVO.setDiscountRateList(discountRateList);
+                EventManageVO eventManageVO = createEventManageVO(
+                                eventNo,
+                                business.getBusinessNo(),
+                                new EventForm(
+                                                eventTitle,
+                                                description,
+                                                startDate,
+                                                endDate,
+                                                productNoList,
+                                                discountRateList));
 
                 try {
                         businessService.updateApprovedEvent(eventManageVO, eventImage);
@@ -1216,6 +1201,32 @@ public class BusinessController {
                 return "redirect:/business/cancel/list";
         }
 
+        /**
+         * 이벤트 등록과 수정에서 공통으로 사용하는 EVENT 저장 객체를 생성합니다.
+         */
+        private EventManageVO createEventManageVO(
+                        Long eventNo,
+                        long businessNo,
+                        EventForm eventForm) {
+
+                EventManageVO eventManageVO = new EventManageVO();
+
+                if (eventNo != null) {
+                        eventManageVO.setEventNo(eventNo);
+                }
+
+                eventManageVO.setBusinessNo(businessNo);
+                eventManageVO.setTitle(eventForm.title());
+                eventManageVO.setDescription(eventForm.description());
+                eventManageVO.setStartDate(eventForm.startDate());
+                eventManageVO.setEndDate(eventForm.endDate());
+                eventManageVO.setStatus("WAITING");
+                eventManageVO.setProductNoList(eventForm.productNoList());
+                eventManageVO.setDiscountRateList(eventForm.discountRateList());
+
+                return eventManageVO;
+        }
+
         /* 이벤트 상품별 할인율 유효성 검사 */
         private static boolean hasInvalidDiscountRate(List<Integer> discountRateList) {
 
@@ -1224,7 +1235,7 @@ public class BusinessController {
                 }
 
                 for (Integer rate : discountRateList) {
-                        if (rate < 0 || rate > 100) {
+                        if (rate == null || rate < 0 || rate > 100) {
                                 return true;
                         }
                 }
@@ -1276,6 +1287,15 @@ public class BusinessController {
                 }
 
                 return new BusinessAccess(business, null);
+        }
+
+        private record EventForm(
+                        String title,
+                        String description,
+                        LocalDate startDate,
+                        LocalDate endDate,
+                        List<Long> productNoList,
+                        List<Integer> discountRateList) {
         }
 
         private record BusinessAccess(

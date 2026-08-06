@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.project.oditji.common.util.GoodsFilterModelUtil;
+import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
-import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.report.service.ReportService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ProductReviewVO;
@@ -120,19 +121,19 @@ public class GoodsController {
                 normalizedPage,
                 GOODS_PAGE_SIZE);
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Long loginMemberNo = LoginMemberUtil.getLoginMemberNo(session);
         Set<Integer> wishedProductNoSet = wishService.getWishedProductNoSet(loginMemberNo);
 
         model.addAttribute("goodsList", goodsList);
         model.addAttribute("recommendedGoodsList", goodsService.getRecommendedGoods(RECOMMEND_GOODS_SIZE));
-        model.addAttribute("availableProductTypes", goodsService.getSearchProductTypes());
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("productTypes", productTypes);
-        model.addAttribute("minPrice", minPrice);
-        model.addAttribute("maxPrice", maxPrice);
-        model.addAttribute("discountOnly", discountOnly);
-        model.addAttribute("inStockOnly", inStockOnly);
+        model.addAllAttributes(GoodsFilterModelUtil.create(
+                keyword,
+                productTypes,
+                goodsService.getSearchProductTypes(),
+                minPrice,
+                maxPrice,
+                discountOnly,
+                inStockOnly));
         model.addAttribute("priceRanges", priceRanges);
         model.addAttribute("stockStatus", stockStatus);
         model.addAttribute("type", normalizedType);
@@ -192,8 +193,7 @@ public class GoodsController {
             }
         }
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-        Long loginMemberNo = loginMember == null ? null : loginMember.getMemberNo();
+        Long loginMemberNo = LoginMemberUtil.getLoginMemberNo(session);
         goodsService.addProductClickLog(productNo, loginMemberNo);
         Set<Integer> reportedReviewSet = reportService.getReportedProductReviewSet(loginMemberNo);
 
