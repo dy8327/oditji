@@ -3,7 +3,7 @@ package com.project.oditji.order.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.LongFunction;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -490,7 +490,7 @@ public class OrderController {
          */
         private Map<String, Object> prepareOrderSheet(
                         HttpSession session,
-                        Function<Long, List<OrderSheetItemVO>> sheetItemLoader,
+                        LongFunction<List<OrderSheetItemVO>> sheetItemLoader,
                         String logMessage) {
 
                 MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
