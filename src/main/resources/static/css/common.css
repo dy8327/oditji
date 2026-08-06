@@ -1501,13 +1501,99 @@ html {
   border-color: var(--color-point);
 }
 
-@media (max-width:576px){
+@media (max-width: 576px) {
+  .back-to-top-btn {
+    right: 16px;
+    bottom: 16px;
+    width: 44px;
+    height: 44px;
+  }
+}
 
-    .back-to-top-btn{
-        right:16px;
-        bottom:16px;
-        width:44px;
-        height:44px;
-    }
+/* =========================================================
+   [수정] 이벤트 기간 탭 디자인 통일
+   - 내 리뷰 페이지의 캡슐형 탭 스타일과 동일하게 적용
+   - 진행 중/예정/종료 이동 기능과 링크 경로는 그대로 유지
+========================================================= */
 
+.event-period-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  flex-shrink: 0;
+  width: auto;
+  gap: 10px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.event-period-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+  padding: 0 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.event-period-links a:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.event-period-links a.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+/* [수정] 기존 기간별 빨강·파랑·회색 활성 배경을 동일한 탭 색상으로 덮어쓰기 */
+.event-period-link--ongoing.active,
+.event-period-link--upcoming.active,
+.event-period-link--ended.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  color: #111216;
+}
+
+.event-period-links a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .event-period-links {
+    gap: 8px;
+  }
+
+  .event-period-links a {
+    min-height: 40px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
 }
