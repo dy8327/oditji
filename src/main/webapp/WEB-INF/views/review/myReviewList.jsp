@@ -171,11 +171,8 @@
 
 									</div>
 
-									<p class="mypage-review-content">
-
-										<c:out value="${review.content}"/>
-
-									</p>
+									<%-- [수정] JSP 들여쓰기와 줄바꿈이 리뷰 내용의 빈 줄로 출력되지 않도록 한 줄로 작성 --%>
+									<p class="mypage-review-content"><c:out value="${review.content}"/></p>
 
 								</a>
 
