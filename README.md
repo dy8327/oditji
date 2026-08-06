@@ -159,7 +159,6 @@ flowchart LR
 | --- | --- |
 | JUnit 5 | 단위·통합 테스트 |
 | Mockito | Service·Controller 의존성 Mock 테스트 |
-| MockMvc | MVC 요청·응답 테스트 |
 | JaCoCo | 테스트 커버리지 측정 |
 | SonarQube | 정적 분석과 품질 점검 |
 
