@@ -6,9 +6,9 @@
 <%@ taglib prefix="fmt"
            uri="jakarta.tags.fmt" %>
 
-<%@ taglib prefix="fn"
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
-           uri="jakarta.tags.functions" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
