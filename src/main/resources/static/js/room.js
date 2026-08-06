@@ -30,6 +30,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const isAdmin = pageData.dataset.admin === "true";
 
     /*
+     * roomList.jsp 의 중앙 패널 iframe(embed=1) 안에서 열렸는지 여부입니다.
+     * 임베드 상태에서는 "목록으로"/"나가기" 후 이동을 부모 창(roomList)에
+     * postMessage로 위임해 iframe 내부에서 전체 페이지 이동이 일어나지 않도록 합니다.
+     */
+    const isEmbedded = pageData.dataset.embedded === "true"
+        || window.self !== window.top;
+
+    /*
      * 메시지 수정은 최초 전송 시각(sendTime)을 기준으로
      * 5분 이내에만 허용합니다.
      */
@@ -160,11 +168,84 @@ document.addEventListener("DOMContentLoaded", function() {
         return "NAME:" + String(message.senderName || "");
     }
 
+    const AVATAR_COLOR_COUNT = 6;
+
+    /**
+     * 상대 메시지 묶음 앞에 표시할 원형 프로필의 이니셜 글자를 만듭니다.
+     * 공지 메시지는 발신자 표기가 "[관리자] 이름" 형태이므로 실제 이름만 사용합니다.
+     *
+     * @param {Object} message 메시지
+     * @returns {string} 아바타에 표시할 한 글자
+     */
+    function getAvatarInitial(message) {
+
+        const name = String((message && message.senderName) || "").trim();
+
+        return name ? name.charAt(0).toUpperCase() : "?";
+    }
+
+    /**
+     * 발신자 식별키를 해시하여 항상 같은 사람이 같은 색 아바타를 갖도록 합니다.
+     *
+     * @param {Object} message 메시지
+     * @returns {string} avatar-color-N 클래스명
+     */
+    function getAvatarColorClass(message) {
+
+        const identity = getMessageSenderIdentity(message) || "unknown";
+
+        let hash = 0;
+
+        for (let index = 0; index < identity.length; index += 1) {
+            hash = (hash * 31 + identity.charCodeAt(index)) >>> 0;
+        }
+
+        return "avatar-color-" + (hash % AVATAR_COLOR_COUNT);
+    }
+
     let latestMessageList = [];
     let participantReadList = [];
     let lastSavedReadKey = "";
     let readStateRequestInFlight = false;
     let readerRefreshTimer = null;
+
+    /*
+     * 안읽음 인원수 배지가 나중에 추가/제거되면서 메시지 영역 높이가
+     * 바뀌어도, 사용자가 과거 메시지를 읽으려고 위로 스크롤해둔 상태라면
+     * 그 위치를 강제로 끌어내리지 않기 위한 임계값입니다.
+     */
+    const NEAR_BOTTOM_THRESHOLD_PX = 80;
+
+    /**
+     * 메시지 영역이 이미 맨 아래(또는 그 근처)에 있는지 확인합니다.
+     *
+     * @returns {boolean} 맨 아래 근처 여부
+     */
+    function isMessageAreaNearBottom() {
+
+        if (!messageArea) {
+            return false;
+        }
+
+        const distanceFromBottom =
+            messageArea.scrollHeight
+            - messageArea.scrollTop
+            - messageArea.clientHeight;
+
+        return distanceFromBottom <= NEAR_BOTTOM_THRESHOLD_PX;
+    }
+
+    /**
+     * 메시지 영역을 맨 아래로 스크롤합니다.
+     */
+    function scrollMessageAreaToBottom() {
+
+        if (!messageArea) {
+            return;
+        }
+
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }
 
     /**
      * 현재 방의 권한을 확인한 후 메시지를 전송합니다.
@@ -810,6 +891,15 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
+        /*
+         * 안읽음 배지가 새로 붙거나 떨어지면서 메시지 줄 높이가 바뀌기 전에
+         * 현재 스크롤이 맨 아래 근처였는지 먼저 기억해둡니다.
+         * 배지 반영 후 이 상태였을 때만 다시 맨 아래로 맞춰서,
+         * 메시지 전송 직후 배지가 붙으며 살짝 가려지는 문제를 막습니다.
+         * (과거 메시지를 읽으려고 위로 스크롤해둔 경우에는 끌어내리지 않습니다.)
+         */
+        const wasNearBottom = isMessageAreaNearBottom();
+
         const messageById = new Map();
         const messageIndexById = new Map();
 
@@ -886,6 +976,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     unreadCount + "명이 아직 읽지 않음"
                 );
             });
+
+        if (wasNearBottom) {
+            scrollMessageAreaToBottom();
+        }
     }
 
     /**
@@ -956,13 +1050,14 @@ document.addEventListener("DOMContentLoaded", function() {
              * 같은 묶음의 첫 메시지에만 발신자명을 표시합니다.
              * 내 메시지는 기존 화면과 동일하게 발신자 영역을 CSS에서 숨깁니다.
              */
+            let sender = null;
+
             if (!sameAsPrevious) {
-                const sender = document.createElement("div");
+                sender = document.createElement("div");
                 sender.className = "sender";
                 sender.textContent = noticeMessage
                     ? "[관리자] " + message.senderName
                     : message.senderName;
-                row.appendChild(sender);
             }
 
             const messageLine = document.createElement("div");
@@ -1025,11 +1120,44 @@ document.addEventListener("DOMContentLoaded", function() {
                 );
             }
 
-            row.appendChild(messageLine);
+            if (mine) {
+                /* 내 메시지: 발신자 표기가 없으므로 기존과 동일하게 바로 붙입니다. */
+                row.appendChild(messageLine);
+            } else {
+                /*
+                 * 상대 메시지: 카카오톡처럼 좌측에 원형 프로필을 두고,
+                 * 이름 + 말풍선을 세로로 쌓은 콘텐츠 컬럼을 오른쪽에 배치합니다.
+                 * 묶음 중간/끝 메시지도 정렬을 맞추기 위해 아바타 자리는 항상 만들되
+                 * CSS(group-middle/group-end)에서 시각적으로만 숨깁니다.
+                 */
+                const avatarSlot = document.createElement("div");
+                avatarSlot.className = "avatar-slot";
+
+                if (!sameAsPrevious) {
+                    const avatarCircle = document.createElement("div");
+                    avatarCircle.className =
+                        "avatar-circle " + getAvatarColorClass(message);
+                    avatarCircle.textContent = getAvatarInitial(message);
+                    avatarSlot.appendChild(avatarCircle);
+                }
+
+                const contentCol = document.createElement("div");
+                contentCol.className = "content-col";
+
+                if (sender) {
+                    contentCol.appendChild(sender);
+                }
+
+                contentCol.appendChild(messageLine);
+
+                row.appendChild(avatarSlot);
+                row.appendChild(contentCol);
+            }
+
             messageArea.appendChild(row);
         });
 
-        messageArea.scrollTop = messageArea.scrollHeight;
+        scrollMessageAreaToBottom();
     }
 
     /**
@@ -1080,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", function() {
             await showAlert(data.message || "채팅방 나가기 처리가 완료되었습니다.", data.success ? "success" : "info");
 
             if (data.success) {
-                location.href = contextPath + "/chat/list";
+                goToRoomList();
             }
         })
         .catch(function(error) {
@@ -1102,8 +1230,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (roomListBtn) {
         roomListBtn.addEventListener("click", function() {
-            location.href = contextPath + "/chat/list";
+            goToRoomList();
         });
+    }
+
+    /**
+     * 채팅방 목록으로 이동합니다.
+     * iframe으로 임베드된 상태(데스크톱 중앙 패널/모바일)에서는 iframe 자체를
+     * 이동시키지 않고 부모 대시보드(roomList)에 위임하여 좌측 목록 화면으로 돌아갑니다.
+     */
+    function goToRoomList() {
+
+        if (isEmbedded && window.parent) {
+            window.parent.postMessage(
+                { source: "oditji-chat-room", action: "close-room" },
+                window.location.origin
+            );
+            return;
+        }
+
+        location.href = contextPath + "/chat/list";
     }
 
     if (sendBtn && messageInput) {

@@ -34,7 +34,13 @@ public interface OrderCancelRefundDAO {
 
         int updateOrderItemCancelRequested(@Param("orderItemNo") Long orderItemNo);
 
+        // [페이징 리팩터링] currentPage/pageSize로 페이지 단위 조회
         List<OrderCancelRefundVO> selectCancelListByBusiness(@Param("businessNo") Long businessNo,
+                        @Param("status") String status, @Param("offset") int offset,
+                        @Param("pageSize") int pageSize);
+
+        // [페이징 리팩터링 추가] 사업자 취소 목록 전체 건수 (검색 조건 동일 적용)
+        int selectCancelListByBusinessCount(@Param("businessNo") Long businessNo,
                         @Param("status") String status);
 
         OrderCancelRefundVO selectCancelRequestForBusiness(@Param("cancelNo") Long cancelNo,

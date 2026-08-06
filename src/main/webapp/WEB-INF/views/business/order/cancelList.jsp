@@ -256,6 +256,14 @@
                                                            name="cancelNo"
                                                            value="${item.cancelNo}">
 
+                                                    <input type="hidden"
+                                                           name="returnStatus"
+                                                           value="${param.status}">
+
+                                                    <input type="hidden"
+                                                           name="returnPage"
+                                                           value="${empty pagination.currentPage ? 1 : pagination.currentPage}">
+
                                                     <button type="submit"
                                                             class="btn btn-dark cancel-approve-button">
                                                         <c:choose>
@@ -284,6 +292,14 @@
                                                     <input type="hidden"
                                                            name="cancelNo"
                                                            value="${item.cancelNo}">
+
+                                                    <input type="hidden"
+                                                           name="returnStatus"
+                                                           value="${param.status}">
+
+                                                    <input type="hidden"
+                                                           name="returnPage"
+                                                           value="${empty pagination.currentPage ? 1 : pagination.currentPage}">
 
                                                     <%--
                                                         SonarQube 접근성 이슈 대응:
@@ -328,6 +344,55 @@
                         </c:choose>
 
                     </div>
+
+                    <%-- [페이징 리팩터링 추가] 관리자 목록 화면과 동일한 블록 네비게이션 방식.
+                         상태 필터(param.status)를 유지한 채로 페이지만 이동한다. --%>
+                    <c:if test="${not empty pagination
+                                and pagination.totalPage > 0}">
+
+                        <div class="pagination">
+
+                            <!-- 이전 블록 -->
+                            <a href="?status=${param.status}&page=${pagination.startPage - 1}"
+                               class="${!pagination.prev ? 'disabled' : ''}">
+                                &laquo;
+                            </a>
+
+                            <!-- 이전 페이지 -->
+                            <a href="?status=${param.status}&page=${pagination.currentPage - 1}"
+                               class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                                &lsaquo;
+                            </a>
+
+                            <!-- 페이지 번호 -->
+                            <c:forEach var="p"
+                                       begin="${pagination.startPage}"
+                                       end="${pagination.endPage}">
+
+                                <a href="?status=${param.status}&page=${p}"
+                                   class="${pagination.currentPage == p
+                                       ? 'active'
+                                       : ''}">
+                                    ${p}
+                                </a>
+
+                            </c:forEach>
+
+                            <!-- 다음 페이지 -->
+                            <a href="?status=${param.status}&page=${pagination.currentPage + 1}"
+                               class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                                &rsaquo;
+                            </a>
+
+                            <!-- 다음 블록 -->
+                            <a href="?status=${param.status}&page=${pagination.endPage + 1}"
+                               class="${!pagination.next ? 'disabled' : ''}">
+                                &raquo;
+                            </a>
+
+                        </div>
+
+                    </c:if>
 
                 </section>
 

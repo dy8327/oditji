@@ -42,6 +42,7 @@ import com.project.oditji.search.vo.CachedContentVO;
 import com.project.oditji.tmdb.service.TmdbService;
 import com.project.oditji.tmdb.vo.ActorVO;
 import com.project.oditji.common.vo.SettlementRequestVO;
+import com.project.oditji.common.util.PaginationUtil;
 
 @Service
 public class BusinessServiceImpl
@@ -211,17 +212,23 @@ public class BusinessServiceImpl
          * =========================================================
          */
         @Override
-        public List<OrderVO> getBusinessOrderList(long businessNo) {
+        public List<OrderVO> getBusinessOrderList(long businessNo, int currentPage, int pageSize) {
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                List<OrderVO> orderList = businessDAO.selectBusinessOrderList(businessNo);
+                int offset = PaginationUtil.offset(currentPage, pageSize);
+                List<OrderVO> orderList = businessDAO.selectBusinessOrderList(businessNo, offset, pageSize);
                 if (orderList == null || orderList.isEmpty()) {
 
                         return Collections.emptyList();
                 }
 
+                /*
+                 * [페이징 리팩터링] 상품 매핑용 전체 주문상품 목록은 페이지와 무관하게
+                 * 그대로 전체 조회한다. 현재 페이지에 표시되는 주문에만 연결되므로
+                 * 데이터 정확성에는 영향이 없다.
+                 */
                 List<OrderItemVO> itemList = getBusinessOrderItemList(businessNo);
 
                 /* ORDER_NO별 주문 상품 묶기 */
@@ -238,6 +245,16 @@ public class BusinessServiceImpl
                 }
 
                 return orderList;
+        }
+
+        /* [페이징 리팩터링 추가] 사업자 주문 목록 전체 건수 */
+        @Override
+        public int getBusinessOrderListCount(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                return businessDAO.selectBusinessOrderListCount(businessNo);
         }
 
         /* 사업자 주문 현황 - 주문 상품 목록 조회 */
@@ -289,19 +306,34 @@ public class BusinessServiceImpl
                 return salesStatus;
         }
 
-        /* 날짜별 판매 내역 조회. */
+        /* [페이징 리팩터링] 날짜별 판매 내역 조회. currentPage/pageSize로 페이지 단위 조회한다. */
         @Override
         public List<SettlementManageVO> getBusinessSalesHistory(
+                        long businessNo,
+                        LocalDate startDate,
+                        LocalDate endDate,
+                        int currentPage,
+                        int pageSize) {
+
+                validateSalesSearchCondition(businessNo, startDate, endDate);
+
+                int offset = PaginationUtil.offset(currentPage, pageSize);
+                List<SettlementManageVO> salesHistory = businessDAO.selectBusinessSalesHistory(
+                                businessNo, startDate, endDate, offset, pageSize);
+
+                return salesHistory == null ? Collections.emptyList() : salesHistory;
+        }
+
+        /* [페이징 리팩터링 추가] 판매 내역 전체 건수 (조회 기간 내 판매가 발생한 날짜 수) */
+        @Override
+        public int getBusinessSalesHistoryCount(
                         long businessNo,
                         LocalDate startDate,
                         LocalDate endDate) {
 
                 validateSalesSearchCondition(businessNo, startDate, endDate);
 
-                List<SettlementManageVO> salesHistory = businessDAO.selectBusinessSalesHistory(
-                                businessNo, startDate, endDate);
-
-                return salesHistory == null ? Collections.emptyList() : salesHistory;
+                return businessDAO.selectBusinessSalesHistoryCount(businessNo, startDate, endDate);
         }
 
         /* 판매 현황 검색 기간과 사업자 번호 공통 검증. */
@@ -448,23 +480,42 @@ public class BusinessServiceImpl
         public List<DeliveryManageVO> getBusinessDeliveryList(
                         long businessNo,
                         String status,
-                        String keyword) {
+                        String keyword,
+                        int currentPage,
+                        int pageSize) {
 
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
                 String normalizedStatus = normalizeDeliveryStatusFilter(status);
-                String normalizedKeyword = keyword == null ? null : keyword.trim();
-
-                if (normalizedKeyword != null && normalizedKeyword.isEmpty()) {
-                        normalizedKeyword = null;
-                }
+                String normalizedKeyword = normalizeKeyword(keyword);
+                int offset = PaginationUtil.offset(currentPage, pageSize);
 
                 List<DeliveryManageVO> deliveryList = businessDAO.selectBusinessDeliveryList(
-                                businessNo, normalizedStatus, normalizedKeyword);
+                                businessNo, normalizedStatus, normalizedKeyword, offset, pageSize);
 
                 return deliveryList == null ? Collections.emptyList() : deliveryList;
+        }
+
+        /* [페이징 리팩터링 추가] 배송 목록 전체 건수 (검색 조건 동일 적용) */
+        @Override
+        public int getBusinessDeliveryListCount(long businessNo, String status, String keyword) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                String normalizedStatus = normalizeDeliveryStatusFilter(status);
+                String normalizedKeyword = normalizeKeyword(keyword);
+
+                return businessDAO.selectBusinessDeliveryListCount(businessNo, normalizedStatus, normalizedKeyword);
+        }
+
+        /* [페이징 리팩터링 추가] 검색어 앞뒤 공백 제거 후 빈 문자열이면 null로 취급하는 공용 헬퍼 */
+        private String normalizeKeyword(String keyword) {
+                String normalizedKeyword = keyword == null ? null : keyword.trim();
+                return (normalizedKeyword != null && normalizedKeyword.isEmpty()) ? null : normalizedKeyword;
         }
 
         /*
@@ -1105,12 +1156,13 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 사업자가 등록한 상품 목록 조회
+         * [페이징 리팩터링] 사업자가 등록한 상품 목록 조회
+         * 관리자 목록 화면과 동일하게 currentPage/pageSize로 페이지 단위 조회한다.
          * =========================================================
          */
         @Override
         public List<GoodsManageVO> getProductListByBusinessNo(
-                        long businessNo) {
+                        long businessNo, String keyword, int currentPage, int pageSize) {
 
                 if (businessNo <= 0) {
 
@@ -1118,8 +1170,11 @@ public class BusinessServiceImpl
                                         "올바르지 않은 사업자 번호입니다.");
                 }
 
+                String normalizedKeyword = normalizeKeyword(keyword);
+                int offset = PaginationUtil.offset(currentPage, pageSize);
+
                 List<GoodsManageVO> productList = businessDAO.selectProductListByBusinessNo(
-                                businessNo);
+                                businessNo, normalizedKeyword, offset, pageSize);
 
                 if (productList == null) {
                         return Collections.emptyList();
@@ -1143,6 +1198,17 @@ public class BusinessServiceImpl
                 }
 
                 return productList;
+        }
+
+        /* [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용) */
+        @Override
+        public int getProductListCountByBusinessNo(long businessNo, String keyword) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                return businessDAO.selectProductListCountByBusinessNo(businessNo, normalizeKeyword(keyword));
         }
 
         /*
@@ -1549,13 +1615,16 @@ public class BusinessServiceImpl
 
         /*
          * =========================================================
-         * 사업자 이벤트 목록 조회
+         * [페이징 리팩터링] 사업자 이벤트 목록 조회
+         * currentPage/pageSize로 페이지 단위 조회한다.
          * =========================================================
          */
         @Override
         public List<EventManageVO> getEventListByBusinessNo(
                         long businessNo,
-                        String keyword) {
+                        String keyword,
+                        int currentPage,
+                        int pageSize) {
 
                 if (businessNo <= 0) {
 
@@ -1563,26 +1632,31 @@ public class BusinessServiceImpl
                                         "올바르지 않은 사업자 번호입니다.");
                 }
 
-                String searchKeyword = keyword;
-
-                if (searchKeyword != null) {
-
-                        searchKeyword = searchKeyword.trim();
-
-                        if (searchKeyword.isEmpty()) {
-                                searchKeyword = null;
-                        }
-                }
+                String searchKeyword = normalizeKeyword(keyword);
+                int offset = PaginationUtil.offset(currentPage, pageSize);
 
                 List<EventManageVO> eventList = businessDAO.selectEventListByBusinessNo(
                                 businessNo,
-                                searchKeyword);
+                                searchKeyword,
+                                offset,
+                                pageSize);
 
                 if (eventList == null) {
                         return Collections.emptyList();
                 }
 
                 return eventList;
+        }
+
+        /* [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용) */
+        @Override
+        public int getEventListCountByBusinessNo(long businessNo, String keyword) {
+
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                return businessDAO.selectEventListCountByBusinessNo(businessNo, normalizeKeyword(keyword));
         }
 
         /*

@@ -4,6 +4,9 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- roomList.jsp 의 우측 패널(desktop) / 모바일 생성 모달에서는 embed=1 로 로드된다. --%>
+<c:set var="isEmbedded" value="${param.embed eq '1'}" />
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -11,11 +14,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>채팅방 생성</title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-create-room.css?v=2">
-</head>
-<body class="chat-create-page">
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-create-room.css?v=3">
 
-<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<%-- embed 모드에서 header.jsp(내비게이션 바)는 생략하더라도
+     CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는 폼 제출에 필수이므로
+     항상 로드합니다. --%>
+<c:if test="${isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
+</c:if>
+</head>
+<body class="chat-create-page ${isEmbedded ? 'embedded' : ''}">
+
+<c:if test="${not isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+</c:if>
 
 <div id="mainContent" class="create-room-container">
 
@@ -42,7 +56,8 @@
     <form action="${pageContext.request.contextPath}/chat/create"
           method="post"
           class="create-room-form"
-          id="createRoomForm">
+          id="createRoomForm"
+          data-embedded="${isEmbedded}">
 
         <div class="form-group">
             <label for="roomName">채팅방 이름</label>

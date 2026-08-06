@@ -249,6 +249,35 @@
                       ELSE 2
                   END,
                   MIN(CR.CREATED_AT) DESC
+
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+
+    </select>
+
+    <!-- =========================================================
+         [페이징 리팩터링 추가] 사업자 취소 목록 전체 건수
+
+         목록 쿼리와 동일하게 ORDER_NO/BUSINESS_NO/CANCEL_TYPE/CANCEL_GROUP_NO
+         단위로 그룹핑한 뒤, 그룹 결과 건수를 센다. (WAITING/APPROVED/REJECTED
+         집계는 그룹 내 상태 우선순위로 계산되므로 목록과 동일한 HAVING을 적용한다.)
+    ========================================================== -->
+    <select id="selectCancelListByBusinessCount" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+            SELECT 1
+              FROM CANCEL_REQUEST CR
+              JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = CR.ORDER_ITEM_NO
+              JOIN PRODUCT P ON P.PRODUCT_NO = OI.PRODUCT_NO
+             WHERE OI.BUSINESS_NO = #{businessNo}
+             GROUP BY CR.ORDER_NO, OI.BUSINESS_NO, CR.CANCEL_TYPE, CR.CANCEL_GROUP_NO
+            <if test="status != null and status != ''">
+            HAVING CASE
+                       WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0 THEN 'REJECTED'
+                       WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0 THEN 'WAITING'
+                       ELSE 'APPROVED'
+                   END = #{status}
+            </if>
+        )
     </select>
 
     <select id="selectCancelRequestForBusiness" resultMap="cancelRequestResultMap">

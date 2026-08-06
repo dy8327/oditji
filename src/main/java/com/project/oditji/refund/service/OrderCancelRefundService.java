@@ -20,7 +20,11 @@ public interface OrderCancelRefundService {
     /* [부분 취소 기능 추가] 주문상품 한 건 취소 요청 */
     void requestOrderItemCancel(Long memberNo, Long orderItemNo, String reason);
 
-    List<OrderCancelRefundVO> getBusinessCancelList(Long memberNo, String status);
+    // [페이징 리팩터링] currentPage/pageSize로 페이지 단위 조회
+    List<OrderCancelRefundVO> getBusinessCancelList(Long memberNo, String status, int currentPage, int pageSize);
+
+    // [페이징 리팩터링 추가] 사업자 취소 목록 전체 건수 (검색 조건 동일 적용)
+    int getBusinessCancelListCount(Long memberNo, String status);
 
     void approveCancel(Long memberNo, Long cancelNo);
 
