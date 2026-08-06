@@ -53,7 +53,7 @@ class AdminControllerExtendedCoverageTest {
                 "business",
                 2);
         assertEquals(
-                "redirect:/admin/member/list?page=2",
+                "redirect:/admin/member/list?page=2&memberType=business",
                 restoreView);
         verify(adminService).restoreMember(11L);
 
