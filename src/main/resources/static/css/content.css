@@ -140,9 +140,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(100deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 55%),
-    linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, rgba(12, 12, 12, 0.82) 65%, #181818 100%);
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 55%), linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, rgba(12, 12, 12, 0.82) 65%, #181818 100%);
   pointer-events: none;
 }
 
@@ -1220,71 +1218,114 @@
   flex-shrink: 0;
 }
 
+/* =========================================================
+   [수정] 필모그래피 탭 디자인 통일
+   - 내 리뷰 페이지의 캡슐형 탭 디자인과 동일하게 적용
+   - 출연작/감독/제작 참여/관련 상품 탭 기능은 그대로 유지
+========================================================= */
+
 .filmography-tabs {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
+
   gap: 10px;
   margin-bottom: 24px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .filmography-tab-button {
   display: inline-flex;
-  min-height: 42px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
+
+  width: auto;
+  min-width: 0;
+  min-height: 42px;
   padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
-  background: #1c1c1c;
-  color: #a8a8a8;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+
   cursor: pointer;
+  box-shadow: none;
+
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
     color 0.2s ease,
-    transform 0.2s ease;
+    box-shadow 0.2s ease;
 }
 
+/* [수정] 기존 원형 숫자 배지를 제거하고 괄호 형태로 표시 */
 .filmography-tab-button span {
-  display: inline-flex;
-  min-width: 23px;
-  height: 23px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 7px;
-  box-sizing: border-box;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-  color: #c8c8c8;
-  font-size: 11px;
+  display: inline;
+
+  min-width: 0;
+  height: auto;
+  padding: 0;
+
+  border-radius: 0;
+  background: transparent;
+
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.filmography-tab-button span::before {
+  content: "(";
+}
+
+.filmography-tab-button span::after {
+  content: ")";
 }
 
 .filmography-tab-button:hover {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+
   color: #ffffff;
-  transform: translateY(-1px);
+
+  transform: none;
 }
 
 .filmography-tab-button:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid rgba(255, 255, 255, 0.8);
   outline-offset: 3px;
 }
 
+/* [수정] 활성 탭을 리뷰 페이지와 같은 밝은 회색 계열로 표시 */
 .filmography-tab-button.is-active {
-  border-color: #ffffff;
-  background: #ffffff;
-  color: #111111;
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
 }
 
 .filmography-tab-button.is-active span {
-  background: #202020;
-  color: #ffffff;
+  background: transparent;
+  color: inherit;
+}
+
+/* [수정] 활성 탭에 마우스를 올려도 동일 계열 유지 */
+.filmography-tab-button.is-active:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, #ffffff, #d4d5d8);
+
+  color: #111216;
 }
 
 .filmography-tab-panel[hidden] {
@@ -1338,31 +1379,35 @@
 }
 
 @media (max-width: 650px) {
-  .filmography-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-  }
-
+  /* [수정] 모바일에서도 탭을 독립된 캡슐형 버튼으로 유지 */
   .filmography-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 8px;
+    padding-bottom: 16px;
   }
 
   .filmography-tab-button {
+    flex: none;
+
+    width: auto;
     min-width: 0;
     min-height: 40px;
-    gap: 5px;
-    padding: 0 8px;
-    font-size: 11px;
+
+    gap: 4px;
+    padding: 0 15px;
+
+    font-size: 12px;
   }
 
   .filmography-tab-button span {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    font-size: 10px;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+
+    font-size: inherit;
   }
 }
 
