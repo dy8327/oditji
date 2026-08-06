@@ -48,10 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     itemCheckboxes.forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
-        updateGoodsFilterAllState(
-          form,
-          checkbox.dataset.goodsFilterGroup
-        );
+        updateGoodsFilterAllState(form, checkbox.dataset.goodsFilterGroup);
       });
     });
 
@@ -59,12 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
       allCheckbox.addEventListener("change", function () {
         const groupName = allCheckbox.dataset.goodsFilterGroup;
 
-        const groupItems = form.querySelectorAll(
-          "input[data-goods-filter-item]"
-          + "[data-goods-filter-group='"
-          + groupName
-          + "']"
-        );
+        const groupItems = form.querySelectorAll("input[data-goods-filter-item]" + "[data-goods-filter-group='" + groupName + "']");
 
         if (allCheckbox.checked) {
           groupItems.forEach(function (item) {
@@ -74,12 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        const checkedItems = form.querySelectorAll(
-          "input[data-goods-filter-item]"
-          + "[data-goods-filter-group='"
-          + groupName
-          + "']:checked"
-        );
+        const checkedItems = form.querySelectorAll("input[data-goods-filter-item]" + "[data-goods-filter-group='" + groupName + "']:checked");
 
         if (checkedItems.length === 0) {
           allCheckbox.checked = true;
@@ -100,23 +87,13 @@ document.addEventListener("DOMContentLoaded", function () {
    * 개별 항목 체크박스 상태에 따라 그룹 내 '전체' 체크박스 선택 여부를 갱신합니다.
    */
   function updateGoodsFilterAllState(form, groupName) {
-    const allCheckbox = form.querySelector(
-      "input[data-goods-filter-all]"
-      + "[data-goods-filter-group='"
-      + groupName
-      + "']"
-    );
+    const allCheckbox = form.querySelector("input[data-goods-filter-all]" + "[data-goods-filter-group='" + groupName + "']");
 
     if (!allCheckbox) {
       return;
     }
 
-    const checkedItems = form.querySelectorAll(
-      "input[data-goods-filter-item]"
-      + "[data-goods-filter-group='"
-      + groupName
-      + "']:checked"
-    );
+    const checkedItems = form.querySelectorAll("input[data-goods-filter-item]" + "[data-goods-filter-group='" + groupName + "']:checked");
 
     allCheckbox.checked = checkedItems.length === 0;
   }
@@ -181,16 +158,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function initializeImageGallery() {
     const mainImage = document.getElementById("mainImage");
+    const thumbButtons = Array.from(document.querySelectorAll(".detail-gallery-thumb"));
+    const track = document.querySelector(".detail-gallery-track");
+    const prevButton = document.querySelector(".detail-gallery-nav.prev");
+    const nextButton = document.querySelector(".detail-gallery-nav.next");
 
-    const galleryImages = document.querySelectorAll(".image-gallery img");
-
-    if (!mainImage || galleryImages.length === 0) {
+    if (!mainImage) {
       return;
     }
 
-    galleryImages.forEach(function (galleryImage) {
-      galleryImage.addEventListener("click", function () {
-        const fullImage = galleryImage.dataset.full;
+    /* =====================================================
+     * [추가] 세부 이미지 클릭 시 대표 이미지 교체
+     * ===================================================== */
+    thumbButtons.forEach(function (thumbButton, index) {
+      thumbButton.addEventListener("click", function () {
+        const fullImage = thumbButton.dataset.full;
 
         if (!fullImage) {
           return;
@@ -198,18 +180,83 @@ document.addEventListener("DOMContentLoaded", function () {
 
         mainImage.src = fullImage;
 
-        galleryImages.forEach(function (item) {
+        thumbButtons.forEach(function (item) {
           item.classList.remove("is-active");
         });
 
-        galleryImage.classList.add("is-active");
+        thumbButton.classList.add("is-active");
       });
+
+      /* [추가] 첫 번째 세부 이미지를 기본 활성화 상태로 표시 */
+      if (index === 0) {
+        thumbButton.classList.add("is-active");
+      }
     });
+
+    /* =====================================================
+     * [추가] 세부 이미지가 4장 이상일 때 3개씩 보이도록 슬라이드 처리
+     * ===================================================== */
+    if (!track || thumbButtons.length === 0 || !prevButton || !nextButton) {
+      return;
+    }
+
+    const visibleCount = 3;
+    let pageIndex = 0;
+
+    function updateGallerySlider() {
+      const maxPageIndex = Math.max(0, Math.ceil(thumbButtons.length / visibleCount) - 1);
+
+      if (pageIndex > maxPageIndex) {
+        pageIndex = maxPageIndex;
+      }
+
+      if (thumbButtons.length <= visibleCount) {
+        track.style.transform = "translateX(0)";
+        prevButton.disabled = true;
+        nextButton.disabled = true;
+        return;
+      }
+
+      const firstThumb = thumbButtons[0];
+      const thumbWidth = firstThumb.getBoundingClientRect().width;
+      const gapValue = window.getComputedStyle(track).gap || "0px";
+      const gap = Number.parseFloat(gapValue) || 0;
+      const moveWidth = (thumbWidth + gap) * visibleCount * pageIndex;
+
+      track.style.transform = "translateX(-" + moveWidth + "px)";
+
+      prevButton.disabled = pageIndex <= 0;
+      nextButton.disabled = pageIndex >= maxPageIndex;
+    }
+
+    prevButton.addEventListener("click", function () {
+      if (pageIndex <= 0) {
+        return;
+      }
+
+      pageIndex -= 1;
+      updateGallerySlider();
+    });
+
+    nextButton.addEventListener("click", function () {
+      const maxPageIndex = Math.max(0, Math.ceil(thumbButtons.length / visibleCount) - 1);
+
+      if (pageIndex >= maxPageIndex) {
+        return;
+      }
+
+      pageIndex += 1;
+      updateGallerySlider();
+    });
+
+    window.addEventListener("resize", updateGallerySlider);
+
+    updateGallerySlider();
   }
 
   /*
-   * [추가] 상품 상세 화면의 구매 수량을 관리한다.
-   * 수량은 최소 1개부터 현재 상품 재고까지만 선택할 수 있다.
+   * [수정] 상품 상세 화면의 구매 수량을 관리한다.
+   * 옵션 상품은 현재 선택한 옵션 재고까지만 수량을 선택할 수 있다.
    */
   function initializeDetailQuantity() {
     const quantityControl = document.querySelector(".detail-quantity-control");
@@ -226,14 +273,35 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const stock = Number(quantityControl.dataset.stock);
-
     const unitPrice = Number(quantityControl.dataset.unitPrice);
 
-    /* [추가] 입력한 수량을 1개부터 재고 범위 안으로 보정한다. */
+    /*
+     * [수정] 재고를 페이지 최초 로딩 시 한 번만 저장하지 않고,
+     * 수량을 변경할 때마다 현재 data-stock 값을 다시 가져온다.
+     *
+     * 옵션 선택 시 syncQuantity()에서 data-stock이
+     * 선택 옵션 재고로 변경되므로 해당 값을 기준으로 수량을 제한한다.
+     */
+    function getCurrentStock() {
+      const currentStock = Number(quantityControl.dataset.stock);
+
+      if (!Number.isInteger(currentStock) || currentStock < 0) {
+        return 0;
+      }
+
+      return currentStock;
+    }
+
+    /*
+     * [수정] 입력한 수량을 1개부터
+     * 현재 선택 옵션 재고 범위 안으로 보정한다.
+     */
     function normalizeQuantity() {
-      if (!Number.isInteger(stock) || stock <= 0) {
+      const stock = getCurrentStock();
+
+      if (stock <= 0) {
         quantityInput.value = "0";
+
         return 0;
       }
 
@@ -252,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return quantity;
     }
 
-    /* [추가] 선택 수량에 따라 총 상품 금액을 다시 계산한다. */
+    /* [유지] 선택 수량에 따라 총 상품 금액을 다시 계산한다. */
     function updateTotalPrice(quantity) {
       if (!totalPriceElement || !Number.isFinite(unitPrice)) {
         return;
@@ -263,14 +331,22 @@ document.addEventListener("DOMContentLoaded", function () {
       totalPriceElement.textContent = "₩ " + totalPrice.toLocaleString("ko-KR");
     }
 
-    /* [추가] 최소·최대 수량에 따라 증감 버튼 상태를 조정한다. */
+    /*
+     * [수정] 현재 선택 옵션 재고를 기준으로
+     * 수량 감소·증가 버튼의 활성화 상태를 변경한다.
+     */
     function updateQuantityButtons(quantity) {
-      if (!Number.isInteger(stock) || stock <= 0) {
+      const stock = getCurrentStock();
+
+      if (stock <= 0) {
         minusButton.disabled = true;
         plusButton.disabled = true;
         quantityInput.disabled = true;
+
         return;
       }
+
+      quantityInput.disabled = false;
 
       minusButton.disabled = quantity <= 1;
 
@@ -281,6 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const quantity = normalizeQuantity();
 
       updateTotalPrice(quantity);
+
       updateQuantityButtons(quantity);
     }
 
@@ -297,9 +374,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     plusButton.addEventListener("click", function () {
+      /*
+       * [수정] 버튼을 클릭할 때마다 현재 선택 옵션 재고를 다시 확인한다.
+       */
+      const stock = getCurrentStock();
+
       const currentQuantity = normalizeQuantity();
 
-      if (currentQuantity >= stock) {
+      if (stock <= 0 || currentQuantity >= stock) {
+        updateQuantityButtons(currentQuantity);
+
         return;
       }
 
@@ -309,10 +393,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     quantityInput.addEventListener("input", function () {
+      const stock = getCurrentStock();
+
       const quantity = Number(quantityInput.value);
 
       if (Number.isInteger(quantity) && quantity >= 1 && quantity <= stock) {
         updateTotalPrice(quantity);
+
         updateQuantityButtons(quantity);
       }
     });
@@ -635,6 +722,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const colorEl = document.getElementById("detailColor");
   const sizeEl = document.getElementById("detailSize");
   const stockText = document.getElementById("detailOptionStock");
+  /* [수정] 구매 수량 안내 문구도 선택 옵션 재고에 맞춰 변경한다. */
+  const quantityGuide = document.getElementById("detailQuantityGuide");
   if (!dataEl || !colorEl || !sizeEl) {
     window.getSelectedProductOption = () => null;
     return;
@@ -652,20 +741,59 @@ document.addEventListener("DOMContentLoaded", function () {
   function syncQuantity(option) {
     const control = document.querySelector(".detail-quantity-control");
     const input = document.getElementById("detailQuantity");
+    const minusButton = document.getElementById("detailQuantityMinus");
+    const plusButton = document.getElementById("detailQuantityPlus");
     const buttons = document.querySelectorAll(".cart-btn,.buy-btn");
     const stock = option ? Number(option.stock) : 0;
-    if (control) control.dataset.stock = String(stock);
+
+    /* [유지] 수량 제어에 사용하는 재고를 선택 옵션 재고로 변경한다. */
+    if (control) {
+      control.dataset.stock = String(stock);
+    }
+
     if (input) {
       input.max = String(stock);
       input.value = stock > 0 ? "1" : "0";
       input.disabled = stock <= 0;
       input.dispatchEvent(new Event("change"));
     }
+
+    /*
+     * [수정] 옵션을 다시 선택하거나 초기화했을 때
+     * 수량 증가·감소 버튼 상태도 함께 변경한다.
+     */
+    if (minusButton) {
+      minusButton.disabled = stock <= 0 || stock === 1;
+    }
+
+    if (plusButton) {
+      plusButton.disabled = stock <= 1;
+    }
+
+    /* [유지] 장바구니와 바로 구매 버튼에 선택 옵션 재고를 저장한다. */
     buttons.forEach((btn) => {
       btn.dataset.stock = String(stock);
       btn.disabled = stock <= 0;
     });
-    if (stockText) stockText.textContent = option ? `선택 옵션 재고: ${stock.toLocaleString()}개` : "색상과 사이즈를 선택해주세요.";
+
+    /* [유지] 선택한 옵션의 실제 재고를 표시한다. */
+    if (stockText) {
+      stockText.textContent = option ? `선택 옵션 재고: ${stock.toLocaleString("ko-KR")}개` : "색상과 사이즈를 선택해주세요.";
+    }
+
+    /*
+     * [수정] 구매 수량 안내도 전체 상품 재고가 아닌
+     * 현재 선택한 옵션 재고를 기준으로 표시한다.
+     */
+    if (quantityGuide) {
+      if (!option) {
+        quantityGuide.textContent = "옵션을 선택해주세요.";
+      } else if (stock <= 0) {
+        quantityGuide.textContent = "선택한 옵션은 품절입니다.";
+      } else {
+        quantityGuide.textContent = `최대 ${stock.toLocaleString("ko-KR")}개까지 선택할 수 있습니다.`;
+      }
+    }
   }
   colorEl.addEventListener("change", () => {
     sizeEl.innerHTML = '<option value="">사이즈 선택</option>';
