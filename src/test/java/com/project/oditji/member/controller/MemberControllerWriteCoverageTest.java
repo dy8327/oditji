@@ -245,7 +245,7 @@ class MemberControllerWriteCoverageTest {
     }
 
     @Test
-    void joinShouldRejectInvalidProfileAndConvertUnexpectedFailureToGenericMessage() throws Exception {
+    void joinShouldRejectInvalidProfileAndConvertUnexpectedFailureToGenericMessage() {
         MockMultipartFile invalidImage = new MockMultipartFile(
                 "profileImageFile",
                 "fake.png",

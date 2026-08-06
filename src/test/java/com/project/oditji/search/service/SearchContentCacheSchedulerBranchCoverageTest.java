@@ -5,12 +5,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.AfterEach;
@@ -52,8 +52,7 @@ class SearchContentCacheSchedulerBranchCoverageTest {
     }
 
     @Test
-    void initializeShouldRestoreSnapshotAndRefreshWhenStartupOptionIsEnabled()
-            throws Exception {
+    void initializeShouldRestoreSnapshotAndRefreshWhenStartupOptionIsEnabled() {
 
         List<CachedContentVO> snapshot = List.of(content(1L));
         List<CachedContentVO> refreshed = List.of(content(2L));
@@ -67,22 +66,25 @@ class SearchContentCacheSchedulerBranchCoverageTest {
         ReflectionTestUtils.setField(scheduler, "initializeOnStartup", true);
 
         scheduler.initialize();
-        awaitIdle();
+
+        verify(searchContentStore, timeout(3_000L)).replaceAll(refreshed);
+        scheduler.shutdown();
 
         verify(searchContentStore, times(2)).replaceAll(anyList());
         verify(snapshotService, times(2)).saveSnapshot(refreshed);
     }
 
     @Test
-    void nullRefreshResultShouldKeepExistingSnapshotAndResetState()
-            throws Exception {
+    void nullRefreshResultShouldKeepExistingSnapshotAndResetState() {
 
         List<CachedContentVO> previous = List.of(content(3L));
         when(searchContentStore.getAll()).thenReturn(previous);
         when(collectorService.collect(eq(previous), any())).thenReturn(null);
 
         scheduler.submitRefresh();
-        awaitIdle();
+
+        verify(collectorService, timeout(3_000L)).collect(eq(previous), any());
+        scheduler.shutdown();
 
         assertFalse(scheduler.isRefreshing());
         verify(snapshotService, never()).saveSnapshot(anyList());
@@ -99,16 +101,6 @@ class SearchContentCacheSchedulerBranchCoverageTest {
 
         assertFalse(scheduler.isRefreshing());
         verify(collectorService, never()).collect(anyList(), any());
-    }
-
-    private void awaitIdle() throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3L);
-
-        while (scheduler.isRefreshing() && System.nanoTime() < deadline) {
-            TimeUnit.MILLISECONDS.sleep(10L);
-        }
-
-        assertFalse(scheduler.isRefreshing());
     }
 
     private CachedContentVO content(Long tmdbId) {
