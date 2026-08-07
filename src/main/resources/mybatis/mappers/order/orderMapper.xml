@@ -303,7 +303,8 @@
             P.PRODUCT_TYPE,
             P.PRICE,
             NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
-            CASE WHEN #{optionNo} IS NULL THEN NVL(P.STOCK, 0) ELSE NVL(PO.STOCK, 0) END AS STOCK,
+            <!-- [수정] 옵션 없는 상품의 null 파라미터 타입 지정 -->
+            CASE WHEN #{optionNo, jdbcType=NUMERIC} IS NULL THEN NVL(P.STOCK, 0) ELSE NVL(PO.STOCK, 0) END AS STOCK,
             PO.OPTION_NO, PO.COLOR_NAME, PO.SIZE_NAME,
             P.STATUS,
             B.BUSINESS_NAME,
@@ -312,12 +313,13 @@
 
         INNER JOIN BUSINESS B
             ON B.BUSINESS_NO = P.BUSINESS_NO
-        LEFT JOIN PRODUCT_OPTION PO ON PO.PRODUCT_NO = P.PRODUCT_NO AND PO.OPTION_NO = #{optionNo}
+        <!-- [수정] 옵션 없는 상품의 null 파라미터 Oracle 타입 오류 방지 -->
+        LEFT JOIN PRODUCT_OPTION PO ON PO.PRODUCT_NO = P.PRODUCT_NO AND PO.OPTION_NO = #{optionNo, jdbcType=NUMERIC}
 
         <include refid="mainImageJoin"/>
         <include refid="activeEventDiscountJoin"/>
         WHERE P.PRODUCT_NO = #{productNo}
-          AND (#{optionNo} IS NULL OR PO.OPTION_NO IS NOT NULL)
+          AND (#{optionNo, jdbcType=NUMERIC} IS NULL OR PO.OPTION_NO IS NOT NULL)
 
     </select>
 
