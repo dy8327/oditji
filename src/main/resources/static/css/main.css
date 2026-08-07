@@ -1148,6 +1148,68 @@ a {
     }
 }
 
+/* ================= HERO: 모바일 가로 스크롤 ================= */
+/* 좁은 화면에서는 opacity 크로스페이드 대신 스와이프로 직접 넘겨보는
+   가로 스크롤 목록으로 전환한다. 화살표/점 내비게이션은 스와이프와
+   중복되므로 숨기고, JS 자동재생도 이 구간에서는 동작하지 않는다
+   (main.js의 isHeroMobileViewport 참고). */
+@media (max-width: 767px) {
+
+    .hero {
+        height: auto;
+    }
+
+    .hero-slides {
+        position: relative;
+        inset: auto;
+        height: 460px;
+
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .hero-slides::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hero-slide {
+        position: relative;
+        inset: auto;
+        height: 100%;
+
+        flex: 0 0 100%;
+        width: 100%;
+
+        opacity: 1;
+        scroll-snap-align: start;
+        transition: none;
+    }
+
+    .hero-slide:not(.is-active) {
+        pointer-events: auto;
+    }
+
+    .hero-slide-bg {
+        transform: none;
+        transition: none;
+    }
+
+    /* 화살표는 스와이프와 중복이라 계속 숨기지만, 인디케이터(점)는
+       지금 몇 번째 슬라이드인지, 총 몇 장인지 보여주는 역할을 하므로
+       모바일에서도 노출한다(자동 재생도 이 구간부터 함께 켠다). */
+    .hero-nav {
+        display: none;
+    }
+
+    .hero-dots {
+        bottom: 14px;
+    }
+}
+
 /* ================= MOTION PREFERENCES ================= */
 
 @media (prefers-reduced-motion: reduce) {
