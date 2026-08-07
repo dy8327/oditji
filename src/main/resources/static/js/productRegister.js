@@ -164,32 +164,93 @@ function resetActorSelect() {
    이미지 파일명 출력
 ========================================================= */
 /* =========================================================
-   세부 이미지 파일명 목록 출력
+   [수정] 대표 이미지 파일명 표시
 ========================================================= */
-function updateDetailFileNames(input) {
-  const summaryElement = document.getElementById("selectedDetailFileSummary");
-  const listElement = document.getElementById("selectedDetailFileList");
+function updateProductImageFileName(input) {
+  const fileNameElement = document.getElementById("productImageFileName");
 
-  if (!summaryElement || !listElement) {
+  if (!fileNameElement) {
     return;
   }
 
-  listElement.innerHTML = "";
+  const file = input.files && input.files[0];
+  fileNameElement.textContent = file ? file.name : "선택된 파일 없음";
+}
 
-  const files = Array.from(input.files || []);
+/* =========================================================
+   [추가] 세부 이미지 입력창 추가/삭제 및 파일명 표시
+========================================================= */
+function initializeDetailImageInputs() {
+  const rows = document.getElementById("detailImageRows");
+  const addButton = document.getElementById("addDetailImageBtn");
 
-  if (files.length === 0) {
-    summaryElement.textContent = "선택된 파일 없음";
+  if (!rows || !addButton) {
     return;
   }
 
-  summaryElement.textContent = files.length + "개 파일 선택";
+  const maxDetailImageCount = 10;
 
-  files.forEach(function (file) {
-    const listItem = document.createElement("li");
-    listItem.textContent = file.name;
-    listElement.appendChild(listItem);
+  function updateRemoveButtons() {
+    const rowList = rows.querySelectorAll(".detail-image-row");
+
+    rowList.forEach(function (row, index) {
+      const removeButton = row.querySelector(".detail-image-remove-btn");
+      removeButton.hidden = rowList.length === 1 && index === 0;
+    });
+
+    addButton.disabled = rowList.length >= maxDetailImageCount;
+  }
+
+  function bindRow(row) {
+    const input = row.querySelector(".detail-image-input");
+    const fileName = row.querySelector(".detail-image-file-name");
+    const removeButton = row.querySelector(".detail-image-remove-btn");
+
+    input.addEventListener("change", function () {
+      const selectedFile = input.files && input.files[0];
+      fileName.textContent = selectedFile ? selectedFile.name : "선택된 파일 없음";
+    });
+
+    removeButton.addEventListener("click", function () {
+      row.remove();
+      updateRemoveButtons();
+    });
+  }
+
+  rows.querySelectorAll(".detail-image-row").forEach(bindRow);
+
+  addButton.addEventListener("click", function () {
+    if (rows.querySelectorAll(".detail-image-row").length >= maxDetailImageCount) {
+      showAlert("상품 세부 이미지는 최대 10장까지 등록할 수 있습니다.", "warning");
+      return;
+    }
+
+    const row = document.createElement("div");
+    row.className = "detail-image-row";
+    row.innerHTML = `
+      <input type="file"
+             class="detail-image-input"
+             name="detailImages"
+             accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+      <span class="detail-image-file-name">선택된 파일 없음</span>
+      <button type="button"
+              class="detail-image-remove-btn"
+              aria-label="세부 이미지 입력 삭제">삭제</button>`;
+
+    rows.appendChild(row);
+    bindRow(row);
+    updateRemoveButtons();
   });
+
+  updateRemoveButtons();
+}
+
+function getSelectedDetailImageFiles() {
+  return Array.from(document.querySelectorAll(".detail-image-input"))
+    .map(function (input) {
+      return input.files && input.files[0];
+    })
+    .filter(Boolean);
 }
 
 /* =========================================================
@@ -242,7 +303,7 @@ function validateProductForm(event) {
   const tmdbId = Number(document.getElementById("tmdbId").value);
   const contentType = document.getElementById("contentType").value;
   const productImage = document.getElementById("productImage");
-  const detailImages = document.getElementById("detailImages");
+  const detailImageFiles = getSelectedDetailImageFiles();
 
   if (!productName) {
     showAlert("상품명을 입력해주세요.", "warning");
@@ -283,7 +344,7 @@ function validateProductForm(event) {
     return false;
   }
 
-  if (detailImages && !validateImageFiles(detailImages.files, "상품 세부 이미지", 10)) {
+  if (!validateImageFiles(detailImageFiles, "상품 세부 이미지", 10)) {
     return false;
   }
 
@@ -297,6 +358,16 @@ function validateProductForm(event) {
    배우 목록과 이전 배우 선택값을 복원합니다.
 ========================================================= */
 document.addEventListener("DOMContentLoaded", function () {
+  const productImage = document.getElementById("productImage");
+
+  if (productImage) {
+    productImage.addEventListener("change", function () {
+      updateProductImageFileName(productImage);
+    });
+  }
+
+  initializeDetailImageInputs();
+
   const tmdbId = document.getElementById("tmdbId").value;
 
   const contentType = document.getElementById("contentType").value;

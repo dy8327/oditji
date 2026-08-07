@@ -53,6 +53,26 @@ public interface BusinessDAO {
 
         int insertProductImage(GoodsManageVO goodsManageVO);
 
+        /*
+         * =========================================================
+         * [상품 세부 이미지 수정]
+         *
+         * 상품에 등록된 세부 이미지 경로를 조회합니다.
+         * 대표 이미지(IS_MAIN='Y')는 제외합니다.
+         * =========================================================
+         */
+        List<String> selectProductDetailImagePathList(@Param("productNo") long productNo);
+
+        /*
+         * =========================================================
+         * [상품 세부 이미지 수정]
+         *
+         * 새 세부 이미지가 전달된 경우 기존 세부 이미지 DB 행을 삭제합니다.
+         * 대표 이미지는 삭제하지 않습니다.
+         * =========================================================
+         */
+        int deleteProductDetailImagesByProductNo(@Param("productNo") long productNo);
+
         // 콘텐츠 검색 목록
         List<ContentSearchVO> selectBusinessContentList(@Param("keyword") String keyword);
 
@@ -110,6 +130,13 @@ public interface BusinessDAO {
 
         // 기존 대표 이미지 수정
         int updateProductMainImage(GoodsManageVO goodsManageVO);
+
+        /*
+         * [상품 세부 이미지 수정]
+         * 기본 이미지(IS_MAIN='Y')는 유지하고
+         * 기존 세부 이미지(IS_MAIN='N')만 삭제합니다.
+         */
+        int deleteProductDetailImages(@Param("productNo") long productNo);
 
         /*
          * =========================================================
@@ -283,8 +310,8 @@ public interface BusinessDAO {
 
         /* 요청 대상 정산 원장에 요청 번호 연결 */
         int updateSettlementRequestNo(
-                @Param("businessNo") long businessNo,
-                @Param("requestNo") long requestNo);
+                        @Param("businessNo") long businessNo,
+                        @Param("requestNo") long requestNo);
 
         SettlementManageVO selectSettlementAccount(@Param("businessNo") long businessNo);
 

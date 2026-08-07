@@ -223,6 +223,44 @@
 
     </insert>
 
+    <!-- =====================================================
+     [상품 세부 이미지 수정]
+     상품에 등록된 세부 이미지 경로 조회
+    ====================================================== -->
+    <select id="selectProductDetailImagePathList"
+            parameterType="long"
+            resultType="string">
+
+        SELECT
+            IMAGE_PATH
+
+        FROM PRODUCT_IMAGE
+
+        WHERE PRODUCT_NO = #{productNo}
+        AND IS_MAIN = 'N'
+
+        ORDER BY IMAGE_NO
+
+    </select>
+
+
+    <!-- =====================================================
+        [상품 세부 이미지 수정]
+        기존 세부 이미지 DB 행 삭제
+
+        대표 이미지(IS_MAIN='Y')는 유지하고
+        세부 이미지(IS_MAIN='N')만 삭제합니다.
+    ====================================================== -->
+    <delete id="deleteProductDetailImagesByProductNo"
+            parameterType="long">
+
+        DELETE FROM PRODUCT_IMAGE
+
+        WHERE PRODUCT_NO = #{productNo}
+        AND IS_MAIN = 'N'
+
+    </delete>
+
 
     <!-- =====================================================
          콘텐츠 검색
@@ -608,6 +646,19 @@
           AND IS_MAIN = 'Y'
 
     </update>
+
+    <!-- =====================================================
+     상품 기존 세부 이미지 삭제
+     대표 이미지는 유지하고 IS_MAIN='N'인 이미지들만 삭제합니다.
+    ====================================================== -->
+    <delete id="deleteProductDetailImages"
+            parameterType="long">
+
+        DELETE FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+        AND IS_MAIN = 'N'
+
+    </delete>
 
 
     <!-- =====================================================

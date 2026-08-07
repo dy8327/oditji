@@ -369,8 +369,15 @@ public class BusinessController {
 
                         @RequestParam(value = "productImage", required = false) MultipartFile productImage,
 
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+                        /*
+                         * [상품 세부 이미지 수정]
+                         * productList.jsp에서 name="detailImages"로 전송되는
+                         * 여러 개의 세부 이미지 파일을 배열로 받습니다.
+                         *
+                         * 상품 등록 처리와 동일하게 MultipartFile[]을 사용합니다.
+                         */
+                        @RequestParam(value = "detailImages", required = false) MultipartFile[] detailImages,
+                        HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
 
@@ -425,9 +432,7 @@ public class BusinessController {
 
                 try {
 
-                        businessService.updateProduct(
-                                        goodsManageVO,
-                                        productImage);
+                        businessService.updateProduct(goodsManageVO, productImage, detailImages);
 
                         redirectAttributes.addFlashAttribute(
                                         ATTR_SUCCESS_MESSAGE,
