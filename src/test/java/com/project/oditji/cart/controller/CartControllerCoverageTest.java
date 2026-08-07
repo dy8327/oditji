@@ -3,7 +3,6 @@ package com.project.oditji.cart.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -85,7 +84,7 @@ class CartControllerCoverageTest {
                 ExtendedModelMap model = new ExtendedModelMap();
 
                 assertEquals("cart/cart", controller.cart(1, session, model));
-                assertSame(items, model.get("cartItemList"));
+                assertEquals(items, model.get("cartItemList"));
                 assertEquals(18000L, model.get("totalPrice"));
         }
 

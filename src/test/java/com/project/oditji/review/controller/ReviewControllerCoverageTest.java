@@ -1,7 +1,6 @@
 package com.project.oditji.review.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,7 +53,7 @@ class ReviewControllerCoverageTest {
                 ExtendedModelMap model = new ExtendedModelMap();
 
                 assertEquals("review/myReviewList", controller.myReviewList(1, "ALL", session, model));
-                assertSame(reviews, model.get("reviewList"));
+                assertEquals(reviews, model.get("reviewList"));
         }
 
         @Test

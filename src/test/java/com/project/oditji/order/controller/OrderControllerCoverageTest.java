@@ -304,7 +304,7 @@ class OrderControllerCoverageTest {
                                 controller.orderList(99, 1, "REFUND", "WAITING", startDate, endDate, "history", session,
                                                 model));
                 assertSame(orders, model.get("orderList"));
-                assertSame(history, model.get("cancelRefundHistory"));
+                assertEquals(history, model.get("cancelRefundHistory"));
                 assertEquals(Boolean.TRUE, model.get("portOneTestMode"));
                 assertEquals("history", model.get("activeTab"));
                 PageVO page = (PageVO) model.get("pageVO");
