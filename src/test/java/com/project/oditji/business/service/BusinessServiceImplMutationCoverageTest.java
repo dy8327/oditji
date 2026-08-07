@@ -231,7 +231,7 @@ class BusinessServiceImplMutationCoverageTest {
                 when(businessDAO.selectProductForUpdate(700L, 10L)).thenReturn(existing);
                 when(businessDAO.updateProduct(input)).thenReturn(1);
 
-                service.updateProduct(input, null, null);
+                service.updateProduct(input, null, null, false, null);
 
                 assertEquals("WAITING", input.getStatus());
                 assertNull(input.getActorNo());
@@ -260,7 +260,7 @@ class BusinessServiceImplMutationCoverageTest {
                 when(businessDAO.updateProductMainImage(input)).thenReturn(0);
                 when(businessDAO.insertProductImage(input)).thenReturn(1);
 
-                service.updateProduct(input, image("updated.webp", "image/webp"), null);
+                service.updateProduct(input, image("updated.webp", "image/webp"), null, false, null);
 
                 assertEquals(4, input.getStock());
                 assertEquals(701L, option.getProductNo());
@@ -272,19 +272,19 @@ class BusinessServiceImplMutationCoverageTest {
         void updateProductShouldRejectOwnershipStateValidationAndPersistenceFailures() {
                 assertThrows(
                                 IllegalArgumentException.class,
-                                () -> service.updateProduct(null, null, null));
+                                () -> service.updateProduct(null, null, null, false, null));
 
                 GoodsManageVO invalidNo = validProduct("ETC");
                 assertThrows(
                                 IllegalArgumentException.class,
-                                () -> service.updateProduct(invalidNo, null, null));
+                                () -> service.updateProduct(invalidNo, null, null, false, null));
 
                 GoodsManageVO missing = validProduct("ETC");
                 missing.setProductNo(800L);
                 when(businessDAO.selectProductForUpdate(800L, 10L)).thenReturn(null);
                 assertThrows(
                                 IllegalArgumentException.class,
-                                () -> service.updateProduct(missing, null, null));
+                                () -> service.updateProduct(missing, null, null, false, null));
 
                 GoodsManageVO deleteRequested = validProduct("ETC");
                 deleteRequested.setProductNo(801L);
@@ -293,7 +293,7 @@ class BusinessServiceImplMutationCoverageTest {
                 when(businessDAO.selectProductForUpdate(801L, 10L)).thenReturn(deleteState);
                 assertThrows(
                                 IllegalStateException.class,
-                                () -> service.updateProduct(deleteRequested, null, null));
+                                () -> service.updateProduct(deleteRequested, null, null, false, null));
 
                 GoodsManageVO updateFailure = validProduct("ETC");
                 updateFailure.setProductNo(802L);
@@ -303,7 +303,7 @@ class BusinessServiceImplMutationCoverageTest {
                 when(businessDAO.updateProduct(updateFailure)).thenReturn(0);
                 assertThrows(
                                 IllegalStateException.class,
-                                () -> service.updateProduct(updateFailure, null, null));
+                                () -> service.updateProduct(updateFailure, null, null, false, null));
         }
 
         @Test

@@ -24,6 +24,8 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/payment.css">
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
+    <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
 </head>
 
 <body>
@@ -583,62 +585,16 @@
 
     </c:forEach>
 
-    <!-- 주문 3건 단위 페이지 번호 -->
-    <c:if test="${not empty orderList && pageVO.totalPage > 1}">
-
-        <nav class="order-pagination"
-             aria-label="주문내역 페이지">
-
-            <c:if test="${pageVO.prev}">
-
-                <a class="order-page-link order-page-arrow"
-                   href="${pageContext.request.contextPath}/order/list?page=${pageVO.startPage - 1}"
-                   aria-label="이전 페이지 묶음">
-                    ‹
-                </a>
-
-            </c:if>
-
-            <c:forEach var="pageNo"
-                       begin="${pageVO.startPage}"
-                       end="${pageVO.endPage}">
-
-                <c:choose>
-
-                    <c:when test="${pageNo eq pageVO.currentPage}">
-
-                        <span class="order-page-link active"
-                              aria-current="page">
-                            ${pageNo}
-                        </span>
-
-                    </c:when>
-
-                    <c:otherwise>
-
-                        <a class="order-page-link"
-                           href="${pageContext.request.contextPath}/order/list?page=${pageNo}">
-                            ${pageNo}
-                        </a>
-
-                    </c:otherwise>
-
-                </c:choose>
-
-            </c:forEach>
-
-            <c:if test="${pageVO.next}">
-
-                <a class="order-page-link order-page-arrow"
-                   href="${pageContext.request.contextPath}/order/list?page=${pageVO.endPage + 1}"
-                   aria-label="다음 페이지 묶음">
-                    ›
-                </a>
-
-            </c:if>
-
-        </nav>
-
+    <!-- [수정] 콘텐츠 목록과 동일한 주문내역 페이지네이션 -->
+    <c:if test="${not empty orderList}">
+        <nav class="oditji-pagination"
+             data-pagination
+             data-current-page="${pageVO.currentPage}"
+             data-total-page="${pageVO.totalPage}"
+             data-page-param="page"
+             data-fixed-param-name="tab"
+             data-fixed-param-value="order"
+             aria-label="주문내역 페이지"></nav>
     </c:if>
 
     </div>
@@ -779,6 +735,17 @@
                 </div>
             </c:otherwise>
         </c:choose>
+
+        <c:if test="${historyPageVO.totalCount > 0}">
+            <nav class="oditji-pagination"
+                 data-pagination
+                 data-current-page="${historyPageVO.currentPage}"
+                 data-total-page="${historyPageVO.totalPage}"
+                 data-page-param="historyPage"
+                 data-fixed-param-name="tab"
+                 data-fixed-param-value="history"
+                 aria-label="취소 환불 내역 페이지"></nav>
+        </c:if>
     </div>
     <!-- // 취소/환불 내역 탭 패널 -->
 

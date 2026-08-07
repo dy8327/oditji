@@ -168,29 +168,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =====================================================
-     * [추가] 세부 이미지 클릭 시 대표 이미지 교체
+     * [상품 상세 이미지 동작 수정]
+     * 큰 이미지는 등록된 기본 이미지로 고정합니다.
+     * 세부 이미지에 마우스를 올린 동안만 해당 이미지를 미리 보여주고,
+     * 마우스를 떼거나 포커스가 빠지면 기본 이미지로 되돌립니다.
      * ===================================================== */
-    thumbButtons.forEach(function (thumbButton, index) {
-      thumbButton.addEventListener("click", function () {
-        const fullImage = thumbButton.dataset.full;
+    const registeredMainImageSrc = mainImage.currentSrc || mainImage.src;
 
-        if (!fullImage) {
-          return;
-        }
+    function previewDetailImage(thumbButton) {
+      const fullImage = thumbButton.dataset.full;
 
-        mainImage.src = fullImage;
+      if (!fullImage) {
+        return;
+      }
 
-        thumbButtons.forEach(function (item) {
-          item.classList.remove("is-active");
-        });
+      mainImage.src = fullImage;
+      thumbButton.classList.add("is-active");
+    }
 
-        thumbButton.classList.add("is-active");
+    function restoreRegisteredMainImage(thumbButton) {
+      mainImage.src = registeredMainImageSrc;
+      thumbButton.classList.remove("is-active");
+    }
+
+    thumbButtons.forEach(function (thumbButton) {
+      thumbButton.addEventListener("mouseenter", function () {
+        previewDetailImage(thumbButton);
       });
 
-      /* [추가] 첫 번째 세부 이미지를 기본 활성화 상태로 표시 */
-      if (index === 0) {
-        thumbButton.classList.add("is-active");
-      }
+      thumbButton.addEventListener("mouseleave", function () {
+        restoreRegisteredMainImage(thumbButton);
+      });
+
+      /* 키보드 사용자도 동일하게 미리보기를 사용할 수 있게 합니다. */
+      thumbButton.addEventListener("focus", function () {
+        previewDetailImage(thumbButton);
+      });
+
+      thumbButton.addEventListener("blur", function () {
+        restoreRegisteredMainImage(thumbButton);
+      });
+
+      /* 클릭해도 큰 이미지가 상세 이미지로 고정되지 않도록 기본 동작만 막습니다. */
+      thumbButton.addEventListener("click", function (event) {
+        event.preventDefault();
+      });
     });
 
     /* =====================================================

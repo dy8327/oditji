@@ -1579,16 +1579,51 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const fileNameElement = document.createElement("span");
+      /* [상품 이미지 개별 삭제 추가] 파일명과 X 버튼을 한 묶음으로 표시합니다. */
+      const imageItem = document.createElement("span");
+      imageItem.className = "existing-detail-image-item";
+      imageItem.dataset.imagePath = imagePath;
 
+      const fileNameElement = document.createElement("span");
       fileNameElement.className = "existing-detail-image-name";
       fileNameElement.textContent = imageFileName;
       fileNameElement.title = imageFileName;
 
-      listElement.appendChild(fileNameElement);
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "existing-image-remove-btn";
+      removeButton.setAttribute("aria-label", imageFileName + " 삭제");
+      removeButton.title = "이 세부 이미지 삭제";
+      removeButton.innerHTML = "&times;";
+
+      removeButton.addEventListener("click", function () {
+        /*
+         * 실제 DB 삭제는 수정 요청 제출 시 수행합니다.
+         * 같은 name의 hidden input을 추가하여 삭제할 경로만 서버로 전송합니다.
+         */
+        const deletedPathInput = document.createElement("input");
+        deletedPathInput.type = "hidden";
+        deletedPathInput.name = "deletedDetailImagePaths";
+        deletedPathInput.value = imagePath;
+        deletedPathInput.className = "deleted-detail-image-path";
+
+        listElement.appendChild(deletedPathInput);
+        imageItem.remove();
+
+        if (listElement.querySelectorAll(".existing-detail-image-item").length === 0) {
+          const emptyElement = document.createElement("span");
+          emptyElement.className = "existing-detail-image-empty";
+          emptyElement.textContent = "등록된 세부 이미지 없음";
+          listElement.insertBefore(emptyElement, listElement.firstChild);
+        }
+      });
+
+      imageItem.appendChild(fileNameElement);
+      imageItem.appendChild(removeButton);
+      listElement.appendChild(imageItem);
     });
 
-    if (listElement.children.length === 0) {
+    if (listElement.querySelectorAll(".existing-detail-image-item").length === 0) {
       const emptyElement = document.createElement("span");
 
       emptyElement.className = "existing-detail-image-empty";
@@ -1651,6 +1686,48 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   }
+
+  /*
+   * [상품 이미지 개별 삭제 추가]
+   * 기본 이미지 파일명 옆 X 버튼을 누르면 삭제 예약 상태로 변경합니다.
+   * 새 기본 이미지를 다시 선택하면 삭제 예약을 자동으로 취소합니다.
+   */
+  function initializeExistingMainImageDeleteButton() {
+    const removeButton = document.getElementById("removeExistingMainImageBtn");
+    const deleteFlag = document.getElementById("deleteMainImage");
+    const existingImagePathElement = document.getElementById("existingImagePath");
+    const productImageInput = document.getElementById("productImage");
+    const selectedFileNameElement = document.getElementById("selectedFileName");
+
+    if (!removeButton || !deleteFlag || !selectedFileNameElement) {
+      return;
+    }
+
+    removeButton.addEventListener("click", function () {
+      deleteFlag.value = "true";
+      removeButton.hidden = true;
+      selectedFileNameElement.textContent = "등록된 기본 이미지 없음";
+      selectedFileNameElement.title = "";
+
+      if (productImageInput) {
+        productImageInput.value = "";
+      }
+    });
+
+    if (productImageInput) {
+      productImageInput.addEventListener("change", function () {
+        if (productImageInput.files && productImageInput.files.length > 0) {
+          deleteFlag.value = "false";
+          removeButton.hidden = true;
+        } else {
+          const hasExistingImage = Boolean(existingImagePathElement && existingImagePathElement.value);
+          removeButton.hidden = !hasExistingImage || deleteFlag.value === "true";
+        }
+      });
+    }
+  }
+
+  initializeExistingMainImageDeleteButton();
 
   /*
    * [상품 옵션 기능 추가]
@@ -1716,6 +1793,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (existingImagePathElement) {
       existingImagePathElement.value = button.dataset.imagePath || "";
+    }
+
+    /* [상품 이미지 개별 삭제 추가] 다른 상품에서 선택한 삭제 상태를 초기화합니다. */
+    const deleteMainImageElement = document.getElementById("deleteMainImage");
+    const removeExistingMainImageButton = document.getElementById("removeExistingMainImageBtn");
+
+    if (deleteMainImageElement) {
+      deleteMainImageElement.value = "false";
+    }
+
+    if (removeExistingMainImageButton) {
+      removeExistingMainImageButton.hidden = !(button.dataset.imagePath || "");
     }
 
     /*

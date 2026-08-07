@@ -25,6 +25,8 @@
             src="${pageContext.request.contextPath}/js/cart.js">
     </script>
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
+    <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">
@@ -445,6 +447,15 @@
         </c:otherwise>
 
     </c:choose>
+
+    <c:if test="${cartTotalCount > 0}">
+        <nav class="oditji-pagination"
+             data-pagination
+             data-current-page="${pageVO.currentPage}"
+             data-total-page="${pageVO.totalPage}"
+             data-page-param="page"
+             aria-label="장바구니 페이지"></nav>
+    </c:if>
 
 </main>
 

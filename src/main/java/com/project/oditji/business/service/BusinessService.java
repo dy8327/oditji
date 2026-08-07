@@ -83,10 +83,15 @@ public interface BusinessService {
          * 상품 수정 요청
          * - 기본 이미지가 없으면 기존 기본 이미지 유지
          * - 세부 이미지가 없으면 기존 세부 이미지 유지
-         * - 세부 이미지가 전달되면 기존 세부 이미지를 새 이미지로 교체
+         * - 기존 세부 이미지는 선택한 항목만 삭제하고 새 이미지는 추가
          * =========================================================
          */
-        void updateProduct(GoodsManageVO goodsManageVO, MultipartFile productImage, MultipartFile[] detailImages);
+        void updateProduct(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage,
+                        MultipartFile[] detailImages,
+                        boolean deleteMainImage,
+                        String[] deletedDetailImagePaths);
 
         /*
          * =========================================================

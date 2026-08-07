@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -66,6 +67,8 @@ class BusinessControllerAdditionalCoverageTest {
                                                 form,
                                                 null,
                                                 null,
+                                                false,
+                                                null,
                                                 new MockHttpSession(),
                                                 guestRedirect));
 
@@ -75,6 +78,8 @@ class BusinessControllerAdditionalCoverageTest {
                                 controller.productUpdateProcess(
                                                 form,
                                                 null,
+                                                null,
+                                                false,
                                                 null,
                                                 session(10L),
                                                 new RedirectAttributesModelMap()));
@@ -86,6 +91,8 @@ class BusinessControllerAdditionalCoverageTest {
                                 controller.productUpdateProcess(
                                                 form,
                                                 null,
+                                                null,
+                                                false,
                                                 null,
                                                 session(11L),
                                                 new RedirectAttributesModelMap()));
@@ -99,6 +106,8 @@ class BusinessControllerAdditionalCoverageTest {
                                                 form,
                                                 null,
                                                 null,
+                                                false,
+                                                null,
                                                 session(12L),
                                                 successRedirect));
                 assertEquals(21L, form.getBusinessNo());
@@ -110,13 +119,15 @@ class BusinessControllerAdditionalCoverageTest {
 
                 doThrow(new IllegalArgumentException("수정 검증 실패"))
                                 .when(businessService)
-                                .updateProduct(any(GoodsManageVO.class), any(), any());
+                                .updateProduct(any(GoodsManageVO.class), any(), any(), anyBoolean(), any());
                 RedirectAttributesModelMap domainRedirect = new RedirectAttributesModelMap();
                 assertEquals(
                                 "redirect:/business/product/list",
                                 controller.productUpdateProcess(
                                                 form,
                                                 null,
+                                                null,
+                                                false,
                                                 null,
                                                 session(12L),
                                                 domainRedirect));

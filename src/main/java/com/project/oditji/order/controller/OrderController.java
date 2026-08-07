@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import com.project.oditji.common.util.ApiResponseUtil;
 import com.project.oditji.common.util.LoginMemberUtil;
+import com.project.oditji.common.util.PaginationUtil;
 import com.project.oditji.refund.service.OrderCancelRefundService;
+import com.project.oditji.refund.vo.OrderCancelRefundVO;
 import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
@@ -272,6 +274,7 @@ public class OrderController {
                                 "주문 전체 취소 요청 처리 중 오류 - orderNo: "
                                                 + requestVO.getOrderNo());
         }
+
         /*
          * =========================================================
          * [상품별 부분 취소 요청 기능 추가]
@@ -305,6 +308,7 @@ public class OrderController {
                                 "상품 부분 취소 요청 처리 중 오류 - orderItemNo: "
                                                 + requestVO.getOrderItemNo());
         }
+
         /*
          * =========================================================
          * [추가] 선택 상품 일괄 취소/환불 요청
@@ -336,6 +340,7 @@ public class OrderController {
                                 "선택 상품 취소/환불 요청 처리 중 오류가 발생했습니다.",
                                 "선택 상품 일괄 취소/환불 요청 처리 중 오류");
         }
+
         // 주문 완료 화면
         @GetMapping("/complete/{orderNo}")
         public String orderComplete(@PathVariable Long orderNo, HttpSession session, Model model) {
@@ -367,6 +372,7 @@ public class OrderController {
         @GetMapping("/list")
         public String orderList(
                         @RequestParam(name = "page", defaultValue = "1") int page,
+                        @RequestParam(name = "historyPage", defaultValue = "1") int historyPage,
                         /* [추가] 취소/환불 내역 조회 조건 */
                         @RequestParam(name = "historyType", defaultValue = "ALL") String historyType,
                         @RequestParam(name = "historyStatus", defaultValue = "ALL") String historyStatus,
@@ -429,10 +435,15 @@ public class OrderController {
                 model.addAttribute("portOneTestMode", portOneTestMode);
 
                 /* [추가] 취소/환불 내역은 주문 페이지네이션과 분리하여 조건 조회한다. */
-                model.addAttribute("cancelRefundHistory",
-                                orderCancelRefundService.getMemberCancelRefundHistory(
+                List<OrderCancelRefundVO> allCancelRefundHistory = orderCancelRefundService
+                                .getMemberCancelRefundHistory(
                                                 loginMember.getMemberNo(), historyType, historyStatus, startDate,
-                                                endDate));
+                                                endDate);
+                PageVO historyPageVO = PaginationUtil.createPage(historyPage, 8, allCancelRefundHistory.size());
+
+                model.addAttribute("cancelRefundHistory",
+                                PaginationUtil.slice(allCancelRefundHistory, historyPageVO));
+                model.addAttribute("historyPageVO", historyPageVO);
                 model.addAttribute("historyType", historyType);
                 model.addAttribute("historyStatus", historyStatus);
                 model.addAttribute("historyStartDate", startDate);

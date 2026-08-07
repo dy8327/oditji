@@ -377,6 +377,14 @@ public class BusinessController {
                          * 상품 등록 처리와 동일하게 MultipartFile[]을 사용합니다.
                          */
                         @RequestParam(value = "detailImages", required = false) MultipartFile[] detailImages,
+
+                        /*
+                         * [상품 이미지 개별 삭제 추가]
+                         * 수정 모달에서 기본 이미지의 X 버튼을 누르면 true,
+                         * 기존 세부 이미지의 X 버튼을 누르면 해당 이미지 경로 배열이 전달됩니다.
+                         */
+                        @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
+                        @RequestParam(value = "deletedDetailImagePaths", required = false) String[] deletedDetailImagePaths,
                         HttpSession session, RedirectAttributes redirectAttributes) {
 
                 Long memberNo = getLoginMemberNo(session);
@@ -432,7 +440,12 @@ public class BusinessController {
 
                 try {
 
-                        businessService.updateProduct(goodsManageVO, productImage, detailImages);
+                        businessService.updateProduct(
+                                        goodsManageVO,
+                                        productImage,
+                                        detailImages,
+                                        deleteMainImage,
+                                        deletedDetailImagePaths);
 
                         redirectAttributes.addFlashAttribute(
                                         ATTR_SUCCESS_MESSAGE,

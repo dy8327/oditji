@@ -131,6 +131,13 @@ public interface BusinessDAO {
         // 기존 대표 이미지 수정
         int updateProductMainImage(GoodsManageVO goodsManageVO);
 
+        /* [상품 이미지 개별 삭제 추가] 현재 상품의 대표 이미지 한 건 삭제 */
+        int deleteProductMainImageByProductNo(@Param("productNo") long productNo);
+
+        /* [상품 이미지 개별 삭제 추가] 현재 상품의 특정 세부 이미지 한 건 삭제 */
+        int deleteProductDetailImageByPath(@Param("productNo") long productNo,
+                        @Param("imagePath") String imagePath);
+
         /*
          * [상품 세부 이미지 수정]
          * 기본 이미지(IS_MAIN='Y')는 유지하고

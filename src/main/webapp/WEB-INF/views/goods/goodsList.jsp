@@ -38,6 +38,8 @@
         src="${pageContext.request.contextPath}/js/favorite.js">
 </script>
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
+    <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">
@@ -614,36 +616,15 @@
         </c:url>
 
         <!-- =================================================
-             PAGINATION
+             [수정] 콘텐츠 목록과 동일한 공통 페이지네이션
         ================================================== -->
         <c:if test="${totalCount > 0}">
-
-            <section class="pagination">
-
-                <c:if test="${page > 1}">
-
-                    <a class="page-btn"
-                       href="${previousPageUrl}">
-                        ‹
-                    </a>
-
-                </c:if>
-
-                <span class="page-now">
-                    ${page}
-                </span>
-
-                <c:if test="${page < totalPage}">
-
-                    <a class="page-btn"
-                       href="${nextPageUrl}">
-                        ›
-                    </a>
-
-                </c:if>
-
-            </section>
-
+            <nav class="oditji-pagination"
+                 data-pagination
+                 data-current-page="${page}"
+                 data-total-page="${totalPage}"
+                 data-page-param="page"
+                 aria-label="상품 목록 페이지"></nav>
         </c:if>
 
     </div>

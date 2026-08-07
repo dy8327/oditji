@@ -1,6 +1,7 @@
 package com.project.oditji.event.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.project.oditji.common.util.DateTimeUtil;
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.event.service.EventService;
 import com.project.oditji.event.vo.EventVO;
 
@@ -21,6 +24,7 @@ public class EventController {
     private static final String PERIOD_ENDED = "ended";
     private static final String PERIOD_UPCOMING = "upcoming";
     private static final String PERIOD_ONGOING = "ongoing";
+    private static final int EVENT_PAGE_SIZE = 6;
 
     private final EventService eventService;
 
@@ -36,11 +40,17 @@ public class EventController {
     @GetMapping("/event/list")
     public String eventList(
             @RequestParam(defaultValue = PERIOD_ONGOING) String period,
+            @RequestParam(defaultValue = "1") int page,
             Model model) {
 
         String normalizedPeriod = normalizePeriod(period);
+        List<EventVO> allEventList = eventService.getEventList(normalizedPeriod);
+        PageVO pageVO = PaginationUtil.createPage(page, EVENT_PAGE_SIZE, allEventList.size());
 
-        model.addAttribute("eventList", eventService.getEventList(normalizedPeriod));
+        // [추가] 이벤트 목록도 다른 사용자 목록 화면과 동일한 페이지 번호 방식으로 나눕니다.
+        model.addAttribute("eventList", PaginationUtil.slice(allEventList, pageVO));
+        model.addAttribute("eventTotalCount", allEventList.size());
+        model.addAttribute("pageVO", pageVO);
         model.addAttribute("period", normalizedPeriod);
         model.addAttribute("periodTitle", createPeriodTitle(normalizedPeriod));
         model.addAttribute("periodDescription", createPeriodDescription(normalizedPeriod));
@@ -60,8 +70,7 @@ public class EventController {
         if (event == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "존재하지 않는 이벤트입니다."
-            );
+                    "존재하지 않는 이벤트입니다.");
         }
 
         /*
@@ -106,7 +115,6 @@ public class EventController {
         return PERIOD_ONGOING;
     }
 
-
     private String normalizePeriod(String period) {
         String normalized = period == null
                 ? PERIOD_ONGOING
@@ -120,26 +128,34 @@ public class EventController {
     }
 
     private String createPeriodTitle(String period) {
-        if (PERIOD_UPCOMING.equals(period)) return "예정된 할인 이벤트";
-        if (PERIOD_ENDED.equals(period)) return "종료된 할인 이벤트";
+        if (PERIOD_UPCOMING.equals(period))
+            return "예정된 할인 이벤트";
+        if (PERIOD_ENDED.equals(period))
+            return "종료된 할인 이벤트";
         return "진행 중인 할인 이벤트";
     }
 
     private String createPeriodDescription(String period) {
-        if (PERIOD_UPCOMING.equals(period)) return "곧 시작될 상품 할인 이벤트입니다.";
-        if (PERIOD_ENDED.equals(period)) return "판매 기간이 종료된 상품 할인 이벤트입니다.";
+        if (PERIOD_UPCOMING.equals(period))
+            return "곧 시작될 상품 할인 이벤트입니다.";
+        if (PERIOD_ENDED.equals(period))
+            return "판매 기간이 종료된 상품 할인 이벤트입니다.";
         return "현재 참여할 수 있는 상품 할인 이벤트입니다.";
     }
 
     private String createPeriodBadge(String period) {
-        if (PERIOD_UPCOMING.equals(period)) return "예정";
-        if (PERIOD_ENDED.equals(period)) return "종료";
+        if (PERIOD_UPCOMING.equals(period))
+            return "예정";
+        if (PERIOD_ENDED.equals(period))
+            return "종료";
         return "진행 중";
     }
 
     private String createEmptyMessage(String period) {
-        if (PERIOD_UPCOMING.equals(period)) return "예정된 이벤트가 없습니다.";
-        if (PERIOD_ENDED.equals(period)) return "종료된 이벤트가 없습니다.";
+        if (PERIOD_UPCOMING.equals(period))
+            return "예정된 이벤트가 없습니다.";
+        if (PERIOD_ENDED.equals(period))
+            return "종료된 이벤트가 없습니다.";
         return "진행 중인 이벤트가 없습니다.";
     }
 }

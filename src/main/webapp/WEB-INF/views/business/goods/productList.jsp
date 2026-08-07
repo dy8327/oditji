@@ -680,6 +680,12 @@ const contextPath =
                             name="imagePath"
                             value="">
 
+                        <%-- [상품 이미지 개별 삭제 추가] X 클릭 상태를 서버로 전달 --%>
+                        <input type="hidden"
+                            id="deleteMainImage"
+                            name="deleteMainImage"
+                            value="false">
+
                         <div class="custom-file-row">
 
                             <label for="productImage"
@@ -707,10 +713,20 @@ const contextPath =
                                 등록된 기본 이미지 없음
                             </span>
 
+                            <%-- [상품 이미지 개별 삭제 추가] 현재 기본 이미지 삭제 예약 버튼 --%>
+                            <button type="button"
+                                    id="removeExistingMainImageBtn"
+                                    class="existing-image-remove-btn"
+                                    aria-label="현재 등록된 기본 이미지 삭제"
+                                    title="현재 등록된 기본 이미지 삭제"
+                                    hidden>
+                                &times;
+                            </button>
+
                         </div>
 
                         <p class="form-help">
-                            새 이미지를 선택하지 않으면 현재 등록된 기본 이미지가 그대로 유지됩니다.
+                            X 버튼을 누르면 현재 기본 이미지가 삭제되고, 새 이미지를 선택하면 해당 이미지로 교체됩니다.
                         </p>
 
                     </div>
@@ -770,8 +786,8 @@ const contextPath =
                         <%-- =================================================
                             새 세부 이미지 파일 입력 영역
 
-                            하나 이상의 파일을 선택하면 기존 세부 이미지를 삭제하고
-                            새로 선택한 이미지들로 교체합니다.
+                            기존 파일명의 X 버튼으로 원하는 이미지만 삭제하고,
+                            새로 선택한 이미지는 남아 있는 기존 이미지 뒤에 추가합니다.
                         ================================================= --%>
                         <div id="updateDetailImageContainer"
                             class="detail-image-input-list">
@@ -807,8 +823,8 @@ const contextPath =
                         </div>
 
                         <p class="form-help">
-                            새 세부 이미지를 하나 이상 선택하면 기존 세부 이미지는 선택한 이미지들로 교체됩니다.
-                            선택하지 않으면 현재 등록된 세부 이미지가 그대로 유지됩니다.
+                            기존 파일명 옆 X 버튼을 누르면 해당 이미지만 삭제됩니다.
+                            새 파일은 기존 이미지에 추가되며, 최종 세부 이미지는 최대 10장까지 가능합니다.
                         </p>
 
                     </div>

@@ -72,7 +72,7 @@ class FavoriteControllerCoverageTest {
     void listShouldRedirectAnonymousMember() {
         assertEquals(
                 "redirect:/member/login",
-                controller.favoriteList(session, new ExtendedModelMap()));
+                controller.favoriteList(1, 1, "content", session, new ExtendedModelMap()));
     }
 
     @Test
@@ -84,7 +84,7 @@ class FavoriteControllerCoverageTest {
         when(wishService.selectWishList(1L)).thenReturn(goods);
         ExtendedModelMap model = new ExtendedModelMap();
 
-        assertEquals("favorite/favoriteList", controller.favoriteList(session, model));
+        assertEquals("favorite/favoriteList", controller.favoriteList(1, 1, "content", session, model));
         assertEquals(contents, model.get("contentFavoriteList"));
         assertEquals(2, model.get("contentCount"));
         assertEquals(goods, model.get("goodsFavoriteList"));
@@ -296,7 +296,7 @@ class FavoriteControllerCoverageTest {
     @Test
     void ratingAliasesShouldExerciseAdditionalRestrictedFormats() {
         login(12L);
-        String[] ratings = {null, " ", "NOT RATED", "Unrated", "NR"};
+        String[] ratings = { null, " ", "NOT RATED", "Unrated", "NR" };
 
         for (int i = 0; i < ratings.length; i++) {
             long contentNo = 30L + i;
