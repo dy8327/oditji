@@ -1995,35 +1995,33 @@
   font-size: 13px;
 }
 
-.delivery-info-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.delivery-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
   padding: 20px 0;
 }
 
-.delivery-info-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px 24px;
-}
-
-.delivery-info-row > div {
+.delivery-info-grid > div {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.delivery-info-row span {
+.delivery-info-grid span {
   color: #9da3ad;
   font-size: 12px;
 }
 
-.delivery-info-row strong {
+.delivery-info-grid strong {
   overflow-wrap: anywhere;
   color: #f1f2f4;
   font-size: 14px;
+}
+
+.delivery-address {
+  grid-column: 1 / -1;
 }
 
 .delivery-update-form {
@@ -2059,6 +2057,10 @@
 }
 
 @media (max-width: 1000px) {
+  .delivery-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .delivery-update-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2084,9 +2086,13 @@
     flex-direction: column;
   }
 
-  .delivery-info-row,
+  .delivery-info-grid,
   .delivery-update-form {
     grid-template-columns: 1fr;
+  }
+
+  .delivery-address {
+    grid-column: auto;
   }
 }
 
@@ -3922,4 +3928,62 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* =========================================================
+   [상품 이미지 개별 삭제 추가]
+   수정 모달의 현재 기본/세부 이미지 파일명 옆 X 버튼
+========================================================= */
+.business-wrap #productUpdateModal .existing-detail-image-item {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--biz-border);
+  border-radius: 999px;
+  background: var(--biz-surface-1);
+}
+
+.business-wrap #productUpdateModal .existing-detail-image-item .existing-detail-image-name {
+  min-width: 0;
+  padding: 7px 4px 7px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.business-wrap #productUpdateModal .existing-image-remove-btn {
+  display: inline-flex;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--biz-text-sub);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.business-wrap #productUpdateModal .custom-file-row > .existing-image-remove-btn {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  margin: 5px 8px 5px 0;
+  border: 1px solid var(--biz-border);
+}
+
+.business-wrap #productUpdateModal .existing-image-remove-btn:hover,
+.business-wrap #productUpdateModal .existing-image-remove-btn:focus-visible {
+  background: rgba(224, 82, 82, 0.12);
+  color: var(--biz-danger);
+  outline: none;
+}
+
+.business-wrap #productUpdateModal .existing-image-remove-btn[hidden] {
+  display: none;
 }
