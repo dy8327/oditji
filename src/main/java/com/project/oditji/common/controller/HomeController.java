@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpSession;
 public class HomeController {
 
     private static final int MAIN_POPULAR_LIMIT = 10;
+    private static final int MAIN_POPULAR_SECTION_EXTRA_LIMIT = 20;
     private static final int MAIN_SLIDER_LIMIT = 20;
 
     private final SearchContentPageCacheService
@@ -46,16 +47,42 @@ public class HomeController {
             HttpSession session) {
 
         /*
-         * 메인 우측 인기 콘텐츠
+         * 메인 우측 인기 콘텐츠 + 인기 콘텐츠 섹션
          *
          * TMDB API를 호출하지 않고
          * JSONL에서 적재된 공용 검색 콘텐츠를
          * 인기도 순으로 조회한다.
+         *
+         * 실시간 인기 콘텐츠(랭킹 TOP10)와
+         * 그 아래 "인기 콘텐츠" 슬라이더가
+         * 완전히 같은 10개를 중복 노출하지 않도록,
+         * 넉넉히 (TOP10 + 여분) 조회한 뒤 구간을 나눠 사용한다.
          */
-        List<SearchResultVO> popularContentList =
+        List<SearchResultVO> popularContentPool =
                 searchContentPageCacheService
                         .getMainPopularContent(
                                 MAIN_POPULAR_LIMIT
+                                        + MAIN_POPULAR_SECTION_EXTRA_LIMIT
+                        );
+
+        List<SearchResultVO> popularContentList =
+                popularContentPool.size() <= MAIN_POPULAR_LIMIT
+                        ? popularContentPool
+                        : new ArrayList<SearchResultVO>(
+                                popularContentPool.subList(
+                                        0,
+                                        MAIN_POPULAR_LIMIT
+                                )
+                        );
+
+        List<SearchResultVO> popularSectionContentList =
+                popularContentPool.size() <= MAIN_POPULAR_LIMIT
+                        ? new ArrayList<SearchResultVO>()
+                        : new ArrayList<SearchResultVO>(
+                                popularContentPool.subList(
+                                        MAIN_POPULAR_LIMIT,
+                                        popularContentPool.size()
+                                )
                         );
 
         /*
@@ -71,6 +98,20 @@ public class HomeController {
         List<SearchResultVO> todayContentList =
                 searchContentPageCacheService
                         .getMainTodayContent(
+                                MAIN_SLIDER_LIMIT
+                        );
+
+        /*
+         * 신규 콘텐츠
+         *
+         * 공개일(releaseDate) 내림차순으로 정렬한
+         * 최신 콘텐츠를 노출한다. "오늘의 콘텐츠"처럼
+         * 최근 30/90일로 필터링해 보충하지 않고,
+         * 전체 콘텐츠를 최신순으로 정렬해 그대로 사용한다.
+         */
+        List<SearchResultVO> newContentList =
+                searchContentPageCacheService
+                        .getMainNewContent(
                                 MAIN_SLIDER_LIMIT
                         );
 
@@ -119,8 +160,18 @@ public class HomeController {
         );
 
         model.addAttribute(
+                "popularSectionContentList",
+                popularSectionContentList
+        );
+
+        model.addAttribute(
                 "todayContentList",
                 todayContentList
+        );
+
+        model.addAttribute(
+                "newContentList",
+                newContentList
         );
 
         model.addAttribute(
