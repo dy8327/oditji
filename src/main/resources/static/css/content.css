@@ -2419,6 +2419,13 @@ body.spoiler-modal-open {
   position: fixed;
   inset: 0;
   width: auto;
+  /*
+   * [수정] 모달 하단이 화면 밖으로 잘리는 현상 수정
+   * <dialog>는 기본적으로 height: fit-content라서, height를 명시하지
+   * 않으면 오버레이가 모달 내용물 높이만큼만 생겨 하단이 잘려 보인다.
+   * width처럼 height도 100%로 고정해 항상 뷰포트 전체를 덮게 한다.
+   */
+  height: 100%;
   max-width: none;
   margin: 0;
   border: 0;
@@ -2432,12 +2439,16 @@ body.spoiler-modal-open {
 }
 .spoiler-confirm-dialog {
   width: min(100%, 390px);
+  /* [수정] 안내문이 길어져도 모달 박스 자체가 화면 밖으로 넘치지 않도록 보호 */
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   padding: 26px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   background: #202020;
   color: #fff;
   text-align: center;
+  box-sizing: border-box;
 }
 .spoiler-confirm-dialog h3 {
   margin: 0 0 14px;

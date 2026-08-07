@@ -16,6 +16,15 @@ function prefersReducedMotion() {
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/* 767px 이하에서는 히어로가 opacity 크로스페이드 대신 CSS 가로 스크롤
+   (scroll-snap) 목록으로 바뀐다. 그 구간에서는 자동 넘김을 scrollTo로
+   구현하고, 사용자가 직접 스와이프하면 그 위치에 맞춰 인디케이터를
+   갱신한다. */
+function isHeroMobileViewport() {
+    return window.matchMedia
+        && window.matchMedia('(max-width: 767px)').matches;
+}
+
 /* ---------------------------------------------------------
    히어로 배너 (자동 재생 + 좌우 화살표 + 인디케이터)
 --------------------------------------------------------- */
@@ -28,6 +37,7 @@ function initHeroCarousel() {
         return;
     }
 
+    const track = document.getElementById('heroSlides');
     const slides = root.querySelectorAll('.hero-slide');
 
     if (slides.length <= 1) {
@@ -38,8 +48,11 @@ function initHeroCarousel() {
 
     let currentIndex = 0;
     let timerId = null;
+    let isMobile = isHeroMobileViewport();
 
-    function show(index) {
+    /* 인디케이터/aria 상태만 맞추는 부분. 실제 화면 이동(크로스페이드 or
+       가로 스크롤)은 show()에서 모드에 따라 별도로 처리한다. */
+    function syncActiveIndex(index) {
 
         currentIndex = (index + slides.length) % slides.length;
 
@@ -67,6 +80,27 @@ function initHeroCarousel() {
 
     }
 
+    function show(index, behavior) {
+
+        syncActiveIndex(index);
+
+        /* 모바일(가로 스크롤 스와이프 레이아웃)에서는 opacity 크로스페이드
+           대신 해당 슬라이드 위치로 스크롤을 이동시켜 자동 넘김을 구현한다. */
+        if (isMobile && track) {
+
+            const targetSlide = slides[currentIndex];
+
+            if (targetSlide) {
+                track.scrollTo({
+                    left: targetSlide.offsetLeft,
+                    behavior: behavior || (prefersReducedMotion() ? 'auto' : 'smooth')
+                });
+            }
+
+        }
+
+    }
+
     function startTimer() {
 
         if (prefersReducedMotion()) {
@@ -77,7 +111,7 @@ function initHeroCarousel() {
 
         timerId = window.setInterval(function () {
             show(currentIndex + 1);
-        }, 6500);
+        }, 3000);
 
     }
 
@@ -130,7 +164,62 @@ function initHeroCarousel() {
 
     });
 
-    show(0);
+    /* 모바일: 손가락으로 스와이프하는 동안은 자동 넘김을 멈추고,
+       스크롤이 멈춘 위치에 맞춰 인디케이터를 갱신한 뒤 타이머를
+       다시 시작한다. */
+    if (track) {
+
+        track.addEventListener('touchstart', stopTimer, { passive: true });
+
+        let scrollEndTimer = null;
+
+        track.addEventListener('scroll', function () {
+
+            if (!isMobile) {
+                return;
+            }
+
+            window.clearTimeout(scrollEndTimer);
+
+            scrollEndTimer = window.setTimeout(function () {
+
+                let closestIndex = 0;
+                let closestDistance = Infinity;
+
+                slides.forEach(function (slide, i) {
+
+                    const distance = Math.abs(slide.offsetLeft - track.scrollLeft);
+
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestIndex = i;
+                    }
+
+                });
+
+                syncActiveIndex(closestIndex);
+                restartTimer();
+
+            }, 120);
+
+        }, { passive: true });
+
+    }
+
+    /* 화면 폭이 데스크톱 ↔ 모바일 기준선을 넘나들 때(창 크기 조절,
+       기기 회전) 넘김 방식을 다시 맞춘다. */
+    window.addEventListener('resize', function () {
+
+        const nowMobile = isHeroMobileViewport();
+
+        if (nowMobile !== isMobile) {
+            isMobile = nowMobile;
+            show(currentIndex, 'auto');
+        }
+
+    });
+
+    show(0, 'auto');
     startTimer();
 
 }
