@@ -249,7 +249,7 @@
                                         해당 주문상품의 배송 정보를 볼 수 있도록 한다.
                                         =========================================================
                                     --%>
-                                    <c:if test="${i.status eq 'DELIVERED'}">
+                                    <c:if test="${i.status ne 'CANCELED'}">
 
                                         <button type="button"
                                                 class="delivery-detail-btn"
@@ -259,7 +259,7 @@
 
                                     </c:if>
 
-                                    <c:if test="${o.orderStatus ne 'CANCELED'}">
+                                    <c:if test="${i.status eq 'DELIVERED'}">
 
                                         <button type="button"
                                                 class="review-btn"
