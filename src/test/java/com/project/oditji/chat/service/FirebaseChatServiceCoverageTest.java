@@ -387,11 +387,14 @@ class FirebaseChatServiceCoverageTest {
         FirebaseChatService disabledService = service(false);
         ChatRoomVO room = room("ROOM_8", "방", "PUBLIC", 10);
 
+        List<ChatRoomVO> roomList = List.of(room);
+        List<ChatRoomVO> emptyJoinedRoomList = List.of();
+
         assertThrows(
                 IllegalStateException.class,
                 () -> disabledService.synchronizeCurrentUser(
-                        List.of(room),
-                        List.of(),
+                        roomList,
+                        emptyJoinedRoomList,
                         MEMBER_NO,
                         BUSINESS_NO,
                         "BUSINESS",
@@ -469,10 +472,12 @@ class FirebaseChatServiceCoverageTest {
 
         ChatRoomVO room = room("ROOM_11", "자유방", "PUBLIC", 10);
 
+        List<ChatRoomVO> roomList = List.of(room);
+
         IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
                 () -> service.synchronizeCurrentUser(
-                        List.of(room),
+                        roomList,
                         null,
                         MEMBER_NO,
                         BUSINESS_NO,

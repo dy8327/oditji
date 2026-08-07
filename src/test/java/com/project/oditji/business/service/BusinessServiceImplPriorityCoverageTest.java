@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -105,12 +106,16 @@ class BusinessServiceImplPriorityCoverageTest {
         when(businessDAO.selectProductDetailImagePathList(700L))
                 .thenReturn(existingDetailImages);
 
+        MultipartFile[] newDetailImagesForLimit = new MultipartFile[] {
+                image("new.png", "image/png")
+        };
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.updateProduct(
                         input,
                         null,
-                        new MultipartFile[] { image("new.png", "image/png") },
+                        newDetailImagesForLimit,
                         false,
                         null));
 
@@ -230,11 +235,13 @@ class BusinessServiceImplPriorityCoverageTest {
         when(businessDAO.updateProductMainImage(input)).thenReturn(0);
         when(businessDAO.insertProductImage(input)).thenReturn(0);
 
+        MultipartFile failedMainImage = image("failed-main.png", "image/png");
+
         assertThrows(
                 IllegalStateException.class,
                 () -> service.updateProduct(
                         input,
-                        image("failed-main.png", "image/png"),
+                        failedMainImage,
                         null,
                         false,
                         null));
@@ -255,12 +262,16 @@ class BusinessServiceImplPriorityCoverageTest {
         when(businessDAO.insertProductImage(any(GoodsManageVO.class)))
                 .thenReturn(0);
 
+        MultipartFile[] failedDetailImages = new MultipartFile[] {
+                image("failed-detail.gif", "image/gif")
+        };
+
         assertThrows(
                 IllegalStateException.class,
                 () -> service.updateProduct(
                         input,
                         null,
-                        new MultipartFile[] { image("failed-detail.gif", "image/gif") },
+                        failedDetailImages,
                         false,
                         null));
 
@@ -387,27 +398,31 @@ class BusinessServiceImplPriorityCoverageTest {
                 IllegalArgumentException.class,
                 () -> service.registerProduct(product, emptyImage, null));
 
+        GoodsManageVO noExtensionProduct = newProductForRegistration();
         MultipartFile noExtension = image("image", "image/png");
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(newProductForRegistration(), noExtension, null));
+                () -> service.registerProduct(noExtensionProduct, noExtension, null));
 
+        GoodsManageVO invalidExtensionProduct = newProductForRegistration();
         MultipartFile invalidExtension = image("image.exe", "image/png");
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(newProductForRegistration(), invalidExtension, null));
+                () -> service.registerProduct(invalidExtensionProduct, invalidExtension, null));
 
+        GoodsManageVO invalidContentTypeProduct = newProductForRegistration();
         MultipartFile invalidContentType = image("image.png", "text/plain");
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(newProductForRegistration(), invalidContentType, null));
+                () -> service.registerProduct(invalidContentTypeProduct, invalidContentType, null));
 
-        MultipartFile oversizedImage = org.mockito.Mockito.mock(MultipartFile.class);
+        GoodsManageVO oversizedProduct = newProductForRegistration();
+        MultipartFile oversizedImage = mock(MultipartFile.class);
         when(oversizedImage.isEmpty()).thenReturn(false);
         when(oversizedImage.getSize()).thenReturn(10L * 1024L * 1024L + 1L);
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.registerProduct(newProductForRegistration(), oversizedImage, null));
+                () -> service.registerProduct(oversizedProduct, oversizedImage, null));
     }
 
     @Test
@@ -426,12 +441,13 @@ class BusinessServiceImplPriorityCoverageTest {
 
         // 실제 선택 파일은 10장이므로 허용 범위입니다. 콘텐츠 검증까지 진행되는지 확인합니다.
         GoodsManageVO tenImages = newProductForRegistration();
+        MultipartFile tenImagesMainImage = image("main.png", "image/png");
         when(businessDAO.selectContentByNo(100L)).thenReturn(null);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.registerProduct(
                         tenImages,
-                        image("main.png", "image/png"),
+                        tenImagesMainImage,
                         detailImages));
 
         MultipartFile[] elevenImages = new MultipartFile[11];
@@ -439,11 +455,14 @@ class BusinessServiceImplPriorityCoverageTest {
             elevenImages[index] = image("too-many-" + index + ".jpg", "image/jpeg");
         }
 
+        GoodsManageVO elevenImagesProduct = newProductForRegistration();
+        MultipartFile elevenImagesMainImage = image("main.jpg", "image/jpeg");
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.registerProduct(
-                        newProductForRegistration(),
-                        image("main.jpg", "image/jpeg"),
+                        elevenImagesProduct,
+                        elevenImagesMainImage,
                         elevenImages));
     }
 
