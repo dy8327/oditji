@@ -1408,207 +1408,270 @@ public class BusinessServiceImpl
                         boolean deleteMainImage,
                         String[] deletedDetailImagePaths) {
 
-                if (goodsManageVO == null) {
+                validateProductUpdateRequest(goodsManageVO);
 
+                GoodsManageVO existingProduct = getExistingProductForUpdate(goodsManageVO);
+
+                Set<String> requestedDeletedDetailImagePathSet = resolveDeletedDetailImagePaths(
+                                goodsManageVO.getProductNo(),
+                                detailImages,
+                                deletedDetailImagePaths);
+
+                prepareProductForUpdate(goodsManageVO);
+
+                List<Path> savedPhysicalPathList = new ArrayList<Path>();
+                List<Path> oldPhysicalPathListToDelete = new ArrayList<Path>();
+
+                try {
+                        updateProductAndOptions(goodsManageVO);
+
+                        processMainProductImageUpdate(
+                                        goodsManageVO,
+                                        existingProduct,
+                                        productImage,
+                                        deleteMainImage,
+                                        savedPhysicalPathList,
+                                        oldPhysicalPathListToDelete);
+
+                        processDetailProductImageUpdate(
+                                        goodsManageVO.getProductNo(),
+                                        detailImages,
+                                        requestedDeletedDetailImagePathSet,
+                                        savedPhysicalPathList,
+                                        oldPhysicalPathListToDelete);
+
+                } catch (RuntimeException e) {
+                        deleteSavedFiles(savedPhysicalPathList);
+                        throw e;
+                }
+
+                registerProductImageFilesForDeletionAfterCommit(
+                                oldPhysicalPathListToDelete);
+
+                createProductReapprovalNotification(goodsManageVO);
+        }
+
+        /*
+         * [SonarQube Brain Method / 인지 복잡도 개선]
+         * 상품 수정 진입 검증을 분리하여 updateProduct의 분기와 지역변수 수를 줄입니다.
+         */
+        private void validateProductUpdateRequest(
+                        GoodsManageVO goodsManageVO) {
+
+                if (goodsManageVO == null) {
                         throw new IllegalArgumentException(
                                         "상품 수정 정보가 없습니다.");
                 }
 
                 if (goodsManageVO.getProductNo() <= 0) {
-
                         throw new IllegalArgumentException(
                                         "올바르지 않은 상품 번호입니다.");
                 }
+        }
+
+        /* [SonarQube Brain Method / 인지 복잡도 개선] 수정 대상 조회와 상태 검증을 분리합니다. */
+        private GoodsManageVO getExistingProductForUpdate(
+                        GoodsManageVO goodsManageVO) {
 
                 GoodsManageVO existingProduct = businessDAO.selectProductForUpdate(
                                 goodsManageVO.getProductNo(),
                                 goodsManageVO.getBusinessNo());
 
                 if (existingProduct == null) {
-
                         throw new IllegalArgumentException(
                                         "상품이 존재하지 않거나 "
                                                         + "수정 권한이 없습니다.");
                 }
 
-                if ("DELETE_REQUESTED".equals(
-                                existingProduct.getStatus())) {
-
+                if ("DELETE_REQUESTED".equals(existingProduct.getStatus())) {
                         throw new IllegalStateException(
                                         "삭제 요청 중인 상품은 수정할 수 없습니다.");
                 }
 
-                /*
-                 * [상품 이미지 개별 삭제 추가]
-                 * 클라이언트가 보낸 경로를 그대로 신뢰하지 않고, DB에 실제 등록된
-                 * 현재 상품의 세부 이미지 경로와 대조한 값만 삭제 대상으로 사용합니다.
-                 */
+                return existingProduct;
+        }
+
+        /*
+         * [상품 이미지 개별 삭제 / SonarQube 개선]
+         * 요청 경로는 DB의 현재 세부 이미지 경로와 대조하고, 수정 후 총 이미지 수를 검증합니다.
+         */
+        private Set<String> resolveDeletedDetailImagePaths(
+                        long productNo,
+                        MultipartFile[] detailImages,
+                        String[] deletedDetailImagePaths) {
+
                 List<String> existingDetailImagePaths = businessDAO.selectProductDetailImagePathList(
-                                goodsManageVO.getProductNo());
+                                productNo);
+
+                Set<String> requestedDeletedDetailImagePathSet = filterExistingDetailImagePaths(
+                                existingDetailImagePaths,
+                                deletedDetailImagePaths);
+
+                validateDetailImageCountAfterUpdate(
+                                existingDetailImagePaths.size(),
+                                requestedDeletedDetailImagePathSet.size(),
+                                detailImages);
+
+                return requestedDeletedDetailImagePathSet;
+        }
+
+        private Set<String> filterExistingDetailImagePaths(
+                        List<String> existingDetailImagePaths,
+                        String[] deletedDetailImagePaths) {
 
                 Set<String> requestedDeletedDetailImagePathSet = new HashSet<String>();
 
-                if (deletedDetailImagePaths != null) {
-                        for (String deletedDetailImagePath : deletedDetailImagePaths) {
-                                if (deletedDetailImagePath != null
-                                                && existingDetailImagePaths.contains(deletedDetailImagePath)) {
-                                        requestedDeletedDetailImagePathSet.add(deletedDetailImagePath);
-                                }
+                if (deletedDetailImagePaths == null) {
+                        return requestedDeletedDetailImagePathSet;
+                }
+
+                for (String deletedDetailImagePath : deletedDetailImagePaths) {
+                        if (deletedDetailImagePath != null
+                                        && existingDetailImagePaths.contains(deletedDetailImagePath)) {
+                                requestedDeletedDetailImagePathSet.add(deletedDetailImagePath);
                         }
                 }
 
-                int selectedNewDetailImageCount = countSelectedDetailImages(detailImages);
-                int remainingDetailImageCount = existingDetailImagePaths.size()
-                                - requestedDeletedDetailImagePathSet.size()
-                                + selectedNewDetailImageCount;
+                return requestedDeletedDetailImagePathSet;
+        }
+
+        private void validateDetailImageCountAfterUpdate(
+                        int existingDetailImageCount,
+                        int deletedDetailImageCount,
+                        MultipartFile[] detailImages) {
+
+                int remainingDetailImageCount = existingDetailImageCount
+                                - deletedDetailImageCount
+                                + countSelectedDetailImages(detailImages);
 
                 if (remainingDetailImageCount > 10) {
                         throw new IllegalArgumentException(
                                         "상품 세부 이미지는 삭제 후 새로 추가한 이미지를 포함해 최대 10장까지 등록할 수 있습니다.");
                 }
+        }
 
-                validateProduct(
-                                goodsManageVO);
+        /* [SonarQube Brain Method / 인지 복잡도 개선] 상품 값 검증과 수정 전 정규화를 묶어 분리합니다. */
+        private void prepareProductForUpdate(
+                        GoodsManageVO goodsManageVO) {
 
-                /*
-                 * [상품 옵션 기능 추가] 의상/신발은 조합별 재고의 합을
-                 * PRODUCT.STOCK에 저장한다. 등록 흐름과 동일한 규칙을 쓴다.
-                 */
-                applyOptionTotalStock(
-                                goodsManageVO);
+                validateProduct(goodsManageVO);
+                applyOptionTotalStock(goodsManageVO);
+                normalizeActorNo(goodsManageVO);
+                validateContentActor(goodsManageVO);
+                goodsManageVO.setStatus(STATUS_WAITING);
+        }
 
-                normalizeActorNo(
-                                goodsManageVO);
+        private void updateProductAndOptions(
+                        GoodsManageVO goodsManageVO) {
 
-                validateContentActor(
-                                goodsManageVO);
+                int updateResult = businessDAO.updateProduct(goodsManageVO);
 
-                /*
-                 * 수정 요청이 들어오면 관리자 재승인을 받을 수 있도록
-                 * 승인 상태를 WAITING으로 변경한다.
-                 */
-                goodsManageVO.setStatus(
-                                STATUS_WAITING);
-
-                /*
-                 * [상품 세부 이미지 수정 추가]
-                 * 기본 이미지와 세부 이미지가 여러 장 저장될 수 있으므로
-                 * 이번 수정에서 새로 생성한 파일 경로를 목록으로 관리합니다.
-                 */
-                List<Path> savedPhysicalPathList = new ArrayList<Path>();
-
-                /* DB 작업이 모두 성공한 뒤 실제 기존 파일을 삭제하기 위한 목록입니다. */
-                List<Path> oldPhysicalPathListToDelete = new ArrayList<Path>();
-
-                try {
-
-                        int updateResult = businessDAO.updateProduct(
-                                        goodsManageVO);
-
-                        if (updateResult != 1) {
-
-                                throw new IllegalStateException(
-                                                "상품 수정에 실패했습니다.");
-                        }
-
-                        /*
-                         * [상품 옵션 기능 추가] 기존 색상-사이즈 옵션 조합을
-                         * 전부 지우고 화면에서 넘어온 조합으로 다시 저장한다.
-                         */
-                        replaceProductOptions(
-                                        goodsManageVO);
-
-                        /*
-                         * [상품 기본 이미지 개별 삭제 추가]
-                         * 새 기본 이미지가 선택되면 기존 대표 이미지 경로를 교체하고,
-                         * 선택하지 않은 상태에서 X 삭제 예약이 있으면 대표 이미지 행을 삭제합니다.
-                         *
-                         * [SonarQube 인지 복잡도 개선]
-                         * 대표 이미지 교체 로직은 별도 메서드로 분리해
-                         * updateProduct의 책임과 중첩 분기를 줄입니다.
-                         */
-                        if (productImage != null && !productImage.isEmpty()) {
-
-                                updateMainProductImageIfSelected(
-                                                goodsManageVO,
-                                                productImage,
-                                                savedPhysicalPathList);
-
-                                Path oldMainImagePhysicalPath = resolveProductImagePhysicalPath(
-                                                existingProduct.getImagePath());
-
-                                if (oldMainImagePhysicalPath != null) {
-                                        oldPhysicalPathListToDelete.add(
-                                                        oldMainImagePhysicalPath);
-                                }
-
-                        } else if (deleteMainImage) {
-
-                                businessDAO.deleteProductMainImageByProductNo(
-                                                goodsManageVO.getProductNo());
-
-                                Path oldMainImagePhysicalPath = resolveProductImagePhysicalPath(
-                                                existingProduct.getImagePath());
-
-                                if (oldMainImagePhysicalPath != null) {
-                                        oldPhysicalPathListToDelete.add(
-                                                        oldMainImagePhysicalPath);
-                                }
-                        }
-
-                        /*
-                         * [상품 세부 이미지 개별 삭제 추가]
-                         * X를 누른 기존 이미지만 DB에서 삭제하고, 새로 선택한 이미지는
-                         * 남아 있는 기존 이미지 뒤에 추가합니다. 더 이상 전체 교체하지 않습니다.
-                         */
-                        for (String deletedDetailImagePath : requestedDeletedDetailImagePathSet) {
-
-                                int deletedImageCount = businessDAO.deleteProductDetailImageByPath(
-                                                goodsManageVO.getProductNo(),
-                                                deletedDetailImagePath);
-
-                                if (deletedImageCount == 1) {
-                                        Path deletedPhysicalPath = resolveProductImagePhysicalPath(
-                                                        deletedDetailImagePath);
-
-                                        if (deletedPhysicalPath != null) {
-                                                oldPhysicalPathListToDelete.add(deletedPhysicalPath);
-                                        }
-                                }
-                        }
-
-                        if (hasSelectedDetailImage(detailImages)) {
-
-                                validateDetailImages(detailImages);
-
-                                saveDetailProductImages(
-                                                goodsManageVO.getProductNo(),
-                                                detailImages,
-                                                savedPhysicalPathList);
-                        }
-
-                } catch (RuntimeException e) {
-
-                        /*
-                         * [상품 세부 이미지 수정 추가]
-                         * DB 작업 실패 시 이번 수정에서 새로 저장한 기본 이미지와
-                         * 세부 이미지 파일을 모두 정리합니다.
-                         */
-                        for (Path savedPhysicalPath : savedPhysicalPathList) {
-
-                                deleteSavedFileQuietly(savedPhysicalPath);
-                        }
-
-                        throw e;
+                if (updateResult != 1) {
+                        throw new IllegalStateException(
+                                        "상품 수정에 실패했습니다.");
                 }
 
-                /*
-                 * DB 트랜잭션이 실제 커밋된 뒤에만 기존 파일을 삭제합니다.
-                 * 이후 알림 저장 등에서 예외가 발생해 롤백될 때 원본 파일이 먼저
-                 * 사라지는 문제를 막습니다.
-                 */
-                registerProductImageFilesForDeletionAfterCommit(
+                replaceProductOptions(goodsManageVO);
+        }
+
+        /*
+         * [상품 기본 이미지 개별 삭제 / SonarQube 개선]
+         * 새 대표 이미지 교체와 대표 이미지 삭제 예약을 한 메서드에서 처리합니다.
+         */
+        private void processMainProductImageUpdate(
+                        GoodsManageVO goodsManageVO,
+                        GoodsManageVO existingProduct,
+                        MultipartFile productImage,
+                        boolean deleteMainImage,
+                        List<Path> savedPhysicalPathList,
+                        List<Path> oldPhysicalPathListToDelete) {
+
+                if (productImage != null && !productImage.isEmpty()) {
+                        updateMainProductImageIfSelected(
+                                        goodsManageVO,
+                                        productImage,
+                                        savedPhysicalPathList);
+                        addProductImagePathForDeletion(
+                                        existingProduct.getImagePath(),
+                                        oldPhysicalPathListToDelete);
+                        return;
+                }
+
+                if (deleteMainImage) {
+                        businessDAO.deleteProductMainImageByProductNo(
+                                        goodsManageVO.getProductNo());
+                        addProductImagePathForDeletion(
+                                        existingProduct.getImagePath(),
+                                        oldPhysicalPathListToDelete);
+                }
+        }
+
+        /*
+         * [상품 세부 이미지 개별 삭제 / SonarQube 개선]
+         * 기존 선택 이미지 삭제와 새 세부 이미지 추가를 분리된 흐름으로 처리합니다.
+         */
+        private void processDetailProductImageUpdate(
+                        long productNo,
+                        MultipartFile[] detailImages,
+                        Set<String> requestedDeletedDetailImagePathSet,
+                        List<Path> savedPhysicalPathList,
+                        List<Path> oldPhysicalPathListToDelete) {
+
+                deleteRequestedDetailProductImages(
+                                productNo,
+                                requestedDeletedDetailImagePathSet,
                                 oldPhysicalPathListToDelete);
+
+                if (!hasSelectedDetailImage(detailImages)) {
+                        return;
+                }
+
+                validateDetailImages(detailImages);
+                saveDetailProductImages(
+                                productNo,
+                                detailImages,
+                                savedPhysicalPathList);
+        }
+
+        private void deleteRequestedDetailProductImages(
+                        long productNo,
+                        Set<String> requestedDeletedDetailImagePathSet,
+                        List<Path> oldPhysicalPathListToDelete) {
+
+                for (String deletedDetailImagePath : requestedDeletedDetailImagePathSet) {
+                        int deletedImageCount = businessDAO.deleteProductDetailImageByPath(
+                                        productNo,
+                                        deletedDetailImagePath);
+
+                        if (deletedImageCount == 1) {
+                                addProductImagePathForDeletion(
+                                                deletedDetailImagePath,
+                                                oldPhysicalPathListToDelete);
+                        }
+                }
+        }
+
+        private void addProductImagePathForDeletion(
+                        String imageWebPath,
+                        List<Path> oldPhysicalPathListToDelete) {
+
+                Path physicalPath = resolveProductImagePhysicalPath(imageWebPath);
+
+                if (physicalPath != null) {
+                        oldPhysicalPathListToDelete.add(physicalPath);
+                }
+        }
+
+        private void deleteSavedFiles(
+                        List<Path> savedPhysicalPathList) {
+
+                for (Path savedPhysicalPath : savedPhysicalPathList) {
+                        deleteSavedFileQuietly(savedPhysicalPath);
+                }
+        }
+
+        private void createProductReapprovalNotification(
+                        GoodsManageVO goodsManageVO) {
 
                 notificationService.createForAdmins(
                                 "PRODUCT_REQUEST",
