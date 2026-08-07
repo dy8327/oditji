@@ -723,7 +723,8 @@ const contextPath =
 
                         <div class="detail-image-label-row">
 
-                            <label class="form-label">
+                            <%-- [SonarQube 접근성] 그룹 제목 라벨을 첫 번째 세부 이미지 입력과 연결합니다. --%>
+                            <label for="updateDetailImage0" class="form-label">
                                 세부 이미지 변경
                                 <span class="optional-text">(선택)</span>
                             </label>

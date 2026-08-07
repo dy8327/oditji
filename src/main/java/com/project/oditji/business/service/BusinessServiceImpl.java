@@ -1459,45 +1459,14 @@ public class BusinessServiceImpl
                                         goodsManageVO);
 
                         /*
-                         * 새 이미지가 선택된 경우에만 이미지 정보를 변경한다.
+                         * [SonarQube 인지 복잡도 개선]
+                         * 대표 이미지 교체 분기를 별도 메서드로 분리해 updateProduct의
+                         * 책임과 중첩 분기를 줄인다. 실제 처리 규칙은 기존과 동일하다.
                          */
-                        if (productImage != null
-                                        && !productImage.isEmpty()) {
-
-                                validateProductImage(
-                                                productImage);
-
-                                SavedFileInfo savedFileInfo = saveProductImage(
-                                                productImage);
-
-                                savedPhysicalPathList.add(
-                                                savedFileInfo.physicalPath());
-
-                                goodsManageVO.setImagePath(
-                                                savedFileInfo.webPath());
-
-                                goodsManageVO.setIsMain(
-                                                "Y");
-
-                                int imageUpdateResult = businessDAO.updateProductMainImage(
-                                                goodsManageVO);
-
-                                /*
-                                 * 기존 대표 이미지가 없는 상품이면
-                                 * 새로운 대표 이미지 행을 등록한다.
-                                 */
-                                if (imageUpdateResult == 0) {
-
-                                        int imageInsertResult = businessDAO.insertProductImage(
-                                                        goodsManageVO);
-
-                                        if (imageInsertResult != 1) {
-
-                                                throw new IllegalStateException(
-                                                                "상품 대표 이미지 수정에 실패했습니다.");
-                                        }
-                                }
-                        }
+                        updateMainProductImageIfSelected(
+                                        goodsManageVO,
+                                        productImage,
+                                        savedPhysicalPathList);
 
                         /*
                          * [상품 세부 이미지 수정 추가]
@@ -1540,6 +1509,55 @@ public class BusinessServiceImpl
                                 "/admin/product/list?tab=waiting",
                                 REFERENCE_TYPE_PRODUCT,
                                 goodsManageVO.getProductNo());
+        }
+
+        /*
+         * [SonarQube 인지 복잡도 개선]
+         * 상품 수정 중 대표 이미지 교체 처리만 분리한다.
+         */
+        private void updateMainProductImageIfSelected(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage,
+                        List<Path> savedPhysicalPathList) {
+
+                if (productImage == null
+                                || productImage.isEmpty()) {
+                        return;
+                }
+
+                validateProductImage(
+                                productImage);
+
+                SavedFileInfo savedFileInfo = saveProductImage(
+                                productImage);
+
+                savedPhysicalPathList.add(
+                                savedFileInfo.physicalPath());
+
+                goodsManageVO.setImagePath(
+                                savedFileInfo.webPath());
+
+                goodsManageVO.setIsMain(
+                                "Y");
+
+                int imageUpdateResult = businessDAO.updateProductMainImage(
+                                goodsManageVO);
+
+                /*
+                 * 기존 대표 이미지가 없는 상품이면
+                 * 새로운 대표 이미지 행을 등록한다.
+                 */
+                if (imageUpdateResult == 0) {
+
+                        int imageInsertResult = businessDAO.insertProductImage(
+                                        goodsManageVO);
+
+                        if (imageInsertResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "상품 대표 이미지 수정에 실패했습니다.");
+                        }
+                }
         }
 
         /*

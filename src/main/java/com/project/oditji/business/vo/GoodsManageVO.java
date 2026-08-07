@@ -278,11 +278,12 @@ public class GoodsManageVO {
                 jsonBuilder.append(",");
             }
 
-            String imagePath = detailImagePathList.get(i);
+            /* [SonarQube] 필드 imagePath와 이름이 겹치지 않도록 지역 변수명을 명확히 구분합니다. */
+            String detailImagePath = detailImagePathList.get(i);
 
-            String escapedImagePath = imagePath == null
+            String escapedImagePath = detailImagePath == null
                     ? ""
-                    : imagePath
+                    : detailImagePath
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")
                             .replace("\r", "\\r")

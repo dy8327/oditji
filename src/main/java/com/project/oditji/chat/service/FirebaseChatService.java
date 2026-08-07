@@ -38,6 +38,8 @@ public class FirebaseChatService {
     private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_INACTIVE = "INACTIVE";
+    /* [SonarQube] Firestore 갱신 시 반복 사용하는 필드명을 상수로 관리합니다. */
+    private static final String FIELD_UPDATED_AT = "updatedAt";
     private static final int FIREBASE_WAIT_SECONDS = 15;
 
     private final boolean configuredEnabled;
@@ -138,26 +140,28 @@ public class FirebaseChatService {
                     createRoomData(room, STATUS_ACTIVE),
                     SetOptions.merge()));
 
-            if (!ROOM_TYPE_PUBLIC.equals(room.getRoomType())) {
-                continue;
-            }
+            /*
+             * [SonarQube] 루프 내 continue 사용 수를 줄이기 위해
+             * 자유방 참가자 동기화 부분만 조건 블록으로 감쌉니다.
+             */
+            if (ROOM_TYPE_PUBLIC.equals(room.getRoomType())) {
+                DocumentReference memberReference = roomReference
+                        .collection(COLLECTION_MEMBERS)
+                        .document(uid);
 
-            DocumentReference memberReference = roomReference
-                    .collection(COLLECTION_MEMBERS)
-                    .document(uid);
+                if ("BUSINESS".equals(normalizedRole)
+                        && joinedRoomIds.contains(room.getRoomId())) {
 
-            if ("BUSINESS".equals(normalizedRole)
-                    && joinedRoomIds.contains(room.getRoomId())) {
-
-                writes.add(memberReference.set(
-                        createMemberData(
-                                memberNo,
-                                businessNo,
-                                normalizedRole,
-                                displayName),
-                        SetOptions.merge()));
-            } else {
-                writes.add(memberReference.delete());
+                    writes.add(memberReference.set(
+                            createMemberData(
+                                    memberNo,
+                                    businessNo,
+                                    normalizedRole,
+                                    displayName),
+                            SetOptions.merge()));
+                } else {
+                    writes.add(memberReference.delete());
+                }
             }
         }
 
@@ -237,7 +241,7 @@ public class FirebaseChatService {
         Firestore firestore = requireFirestore();
         Map<String, Object> data = new HashMap<>();
         data.put("status", STATUS_INACTIVE);
-        data.put("updatedAt", FieldValue.serverTimestamp());
+        data.put(FIELD_UPDATED_AT, FieldValue.serverTimestamp());
 
         waitForWrite(getRoomReference(firestore, roomId)
                 .set(data, SetOptions.merge()));
@@ -305,7 +309,7 @@ public class FirebaseChatService {
         data.put("roomType", valueOrEmpty(room.getRoomType()));
         data.put("status", status);
         data.put("maxMember", room.getMaxMember());
-        data.put("updatedAt", FieldValue.serverTimestamp());
+        data.put(FIELD_UPDATED_AT, FieldValue.serverTimestamp());
 
         return data;
     }
@@ -322,7 +326,7 @@ public class FirebaseChatService {
         data.put("role", role);
         data.put("displayName", normalizeDisplayName(displayName));
         data.put("active", true);
-        data.put("updatedAt", FieldValue.serverTimestamp());
+        data.put(FIELD_UPDATED_AT, FieldValue.serverTimestamp());
 
         return data;
     }
