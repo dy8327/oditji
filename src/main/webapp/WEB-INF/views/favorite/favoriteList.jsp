@@ -28,6 +28,8 @@
 
     <script defer
             src="${pageContext.request.contextPath}/js/favorite.js"></script>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
+    <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
 </head>
 
 <body>
@@ -50,7 +52,7 @@
     <section class="favorite-tab">
 
         <button type="button"
-                class="tab-btn active"
+                class="tab-btn ${activeTab eq 'content' ? 'active' : ''}"
                 data-tab="content"
                 data-count-target="contentTabCount">
             <span>콘텐츠</span>
@@ -58,7 +60,7 @@
         </button>
 
         <button type="button"
-                class="tab-btn"
+                class="tab-btn ${activeTab eq 'goods' ? 'active' : ''}"
                 data-tab="goods"
                 data-count-target="goodsTabCount">
             <span>상품</span>
@@ -68,7 +70,7 @@
     </section>
 
     <!-- CONTENT TAB -->
-    <section class="tab-content active" id="content-tab">
+    <section class="tab-content ${activeTab eq 'content' ? 'active' : ''}" id="content-tab">
 
         <c:if test="${empty contentFavoriteList}">
             <div class="empty-state">찜한 콘텐츠가 없습니다.</div>
@@ -216,10 +218,21 @@
 
         </div>
 
+        <c:if test="${contentCount > 0}">
+            <nav class="oditji-pagination"
+                 data-pagination
+                 data-current-page="${contentPageVO.currentPage}"
+                 data-total-page="${contentPageVO.totalPage}"
+                 data-page-param="contentPage"
+                 data-fixed-param-name="tab"
+                 data-fixed-param-value="content"
+                 aria-label="찜한 콘텐츠 페이지"></nav>
+        </c:if>
+
     </section>
 
     <!-- GOODS TAB -->
-    <section class="tab-content" id="goods-tab">
+    <section class="tab-content ${activeTab eq 'goods' ? 'active' : ''}" id="goods-tab">
 
         <c:if test="${empty goodsFavoriteList}">
             <div class="empty-state">찜한 상품이 없습니다.</div>
@@ -333,6 +346,17 @@
             </c:forEach>
 
         </div>
+
+        <c:if test="${goodsCount > 0}">
+            <nav class="oditji-pagination"
+                 data-pagination
+                 data-current-page="${goodsPageVO.currentPage}"
+                 data-total-page="${goodsPageVO.totalPage}"
+                 data-page-param="goodsPage"
+                 data-fixed-param-name="tab"
+                 data-fixed-param-value="goods"
+                 aria-label="찜한 상품 페이지"></nav>
+        </c:if>
 
     </section>
 
