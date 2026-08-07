@@ -142,37 +142,232 @@
 
                 </section>
 
-                <!-- 최근 현황 -->
-                <section class="business-content">
+                <!-- =====================================================
+                    [사업자 대시보드 최근 현황 디자인 수정]
+                    최근 주문 / 최근 리뷰 영역
+                ====================================================== -->
+                <section class="business-content dashboard-recent-section">
 
-                   <div class="panel">
-                        <h3>최근 주문</h3>
-                        <ul>
-                          <%--  <c:forEach var="order" items="${businessMain.recentOrders}">
-                                <li>
-                                    <span><c:out value="${order.productName}"/></span>
-                                    <strong><c:out value="${order.status}"/></strong>
-                                </li>
+                    <!-- =========================
+                        최근 주문
+                    ========================== -->
+                    <div class="panel dashboard-modern-panel">
+
+                        <div class="dashboard-panel-header">
+                            <div class="dashboard-panel-title">
+                                <span class="dashboard-title-icon order-icon">
+                                    ♧
+                                </span>
+                                <h3>최근 주문</h3>
+                            </div>
+
+                            <a href="${pageContext.request.contextPath}/business/order/list"
+                            class="dashboard-more-link"
+                            aria-label="주문 목록으로 이동">
+                                ›
+                            </a>
+                        </div>
+
+                        <div class="dashboard-order-list">
+
+                            <c:forEach var="order"
+                                    items="${businessMain.recentOrders}">
+
+                                <div class="dashboard-order-item">
+
+                                    <!-- 상품 대표 이미지 -->
+                                    <div class="dashboard-order-thumb">
+
+                                        <c:choose>
+
+                                            <c:when test="${not empty order.mainImage}">
+                                                <img
+                                                    src="${pageContext.request.contextPath}${order.mainImage}"
+                                                    alt="<c:out value='${order.productName}'/>">
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                <span>상품</span>
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                    </div>
+
+                                    <!-- 상품명 -->
+                                    <div class="dashboard-order-info">
+                                        <strong class="dashboard-order-name">
+                                            <c:out value="${order.productName}"/>
+                                        </strong>
+                                    </div>
+
+                                    <!-- 수량 -->
+                                    <div class="dashboard-order-quantity">
+                                        <c:out value="${order.quantity}"/>개
+                                    </div>
+
+                                    <!-- 주문 상태 -->
+                                    <div class="dashboard-order-status">
+
+                                        <c:choose>
+
+                                            <%-- ==============================
+                                                주문완료로 묶어서 표시
+                                                ============================== --%>
+                                            <c:when test="${order.status eq 'PAID'
+                                                        or order.status eq 'ORDERED'
+                                                        or order.status eq 'DELIVERED'
+                                                        or order.status eq 'DELIVERY_COMPLETED'
+                                                        or order.status eq 'COMPLETED'
+                                                        or order.status eq '결제완료'
+                                                        or order.status eq '배송완료'
+                                                        or order.status eq '주문완료'}">
+
+                                                <span class="dashboard-status-badge dashboard-order-complete">
+                                                    <span class="dashboard-status-icon">
+                                                        ✓
+                                                    </span>
+                                                    <span class="dashboard-status-text">
+                                                        주문완료
+                                                    </span>
+                                                </span>
+
+                                            </c:when>
+
+
+                                            <%-- ==============================
+                                                주문취소로 묶어서 표시
+                                                ============================== --%>
+                                            <c:when test="${order.status eq 'CANCELED'
+                                                        or order.status eq 'PARTIAL_CANCELED'
+                                                        or order.status eq 'REFUND_COMPLETED'
+                                                        or order.status eq 'DELIVERY_CANCELED'
+                                                        or order.status eq '결제취소'
+                                                        or order.status eq '환불완료'
+                                                        or order.status eq '배송취소'
+                                                        or order.status eq '주문취소'}">
+
+                                                <span class="dashboard-status-badge dashboard-order-cancel">
+                                                    <span class="dashboard-status-icon">
+                                                        ×
+                                                    </span>
+                                                    <span class="dashboard-status-text">
+                                                        주문취소
+                                                    </span>
+                                                </span>
+
+                                            </c:when>
+
+
+                                            <%-- ==============================
+                                                그 외 상태는 일단 주문완료 스타일로 fallback
+                                                필요하면 raw status로 보여줘도 됨
+                                                ============================== --%>
+                                            <c:otherwise>
+
+                                                <span class="dashboard-status-badge status-order-complete">
+                                                    <span class="status-icon-pill">
+                                                        <span class="status-icon">✓</span>
+                                                    </span>
+                                                    <span class="status-text">주문완료</span>
+                                                </span>
+
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                    </div>
+
+                                </div>
+
                             </c:forEach>
-                            <c:if test="${empty businessMain.recentOrders}">--%>
-                                <li>최근 주문 내역 없음</li>
-                          <%--  </c:if> --%>
-                        </ul>
+
+                            <!-- 최근 주문 없음 -->
+                            <c:if test="${empty businessMain.recentOrders}">
+                                <div class="dashboard-empty">
+                                    최근 주문 내역이 없습니다.
+                                </div>
+                            </c:if>
+
+                        </div>
+
                     </div>
 
-                    <div class="panel">
-                        <h3>최근 리뷰</h3>
-                        <ul>
-                          <%--  <c:forEach var="review" items="${businessMain.recentReviews}">
-                                <li>
-                                    <span><c:out value="${review.content}"/></span>
-                                    <strong><c:out value="${review.rating}"/>점</strong>
-                                </li>
+
+                    <!-- =========================
+                        최근 리뷰
+                    ========================== -->
+                    <div class="panel dashboard-modern-panel">
+
+                        <div class="dashboard-panel-header">
+
+                            <div class="dashboard-panel-title">
+                                <span class="dashboard-title-icon review-icon">
+                                    ☆
+                                </span>
+                                <h3>최근 리뷰</h3>
+                            </div>
+
+                            <a href="${pageContext.request.contextPath}/business/review/list"
+                            class="dashboard-more-link"
+                            aria-label="리뷰 목록으로 이동">
+                                ›
+                            </a>
+
+                        </div>
+
+                        <div class="dashboard-review-list">
+
+                            <c:forEach var="review"
+                                    items="${businessMain.recentReviews}">
+
+                                <div class="dashboard-review-item">
+
+                                    <!-- 평점 숫자 -->
+                                    <div class="dashboard-review-score">
+                                        <c:out value="${review.rating}"/>점
+                                    </div>
+
+                                    <!-- 리뷰 내용 -->
+                                    <div class="dashboard-review-content">
+
+                                        <!-- 별점 -->
+                                        <div class="dashboard-review-stars"
+                                            aria-label="${review.rating}점">
+
+                                            <c:forEach begin="1"
+                                                    end="5"
+                                                    var="star">
+
+                                                <span class="${review.rating >= star
+                                                                ? 'star-active'
+                                                                : 'star-empty'}">
+                                                    ★
+                                                </span>
+
+                                            </c:forEach>
+
+                                        </div>
+
+                                        <p class="dashboard-review-text">
+                                            <c:out value="${review.content}"/>
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
                             </c:forEach>
-                            <c:if test="${empty businessMain.recentReviews}"> --%>
-                                <li>리뷰 없음</li>
-                            <%--</c:if> --%>
-                        </ul>
+
+                            <!-- 최근 리뷰 없음 -->
+                            <c:if test="${empty businessMain.recentReviews}">
+                                <div class="dashboard-empty">
+                                    최근 리뷰가 없습니다.
+                                </div>
+                            </c:if>
+
+                        </div>
+
                     </div>
 
                 </section>
@@ -180,18 +375,176 @@
                 <!-- 분석 -->
                 <section class="analysis-section">
 
-                    <div class="panel">
-                        <h3>상품 분석</h3>
-                        <p>
-                            총 조회수
-                            <strong>${businessMain.clickCount}</strong>
-                            회
-                        </p>
-                        <p>
-                            평균 리뷰 점수
-                            <%-- <strong>${businessMain.averageRating}</strong> --%>
-                            점
-                        </p>
+                    <!-- =====================================================
+                        [사업자 대시보드 상품 분석 디자인 수정]
+                        기존 clickCount / averageRating 값을 그대로 사용
+                    ====================================================== -->
+                    <div class="panel dashboard-modern-panel dashboard-analysis-panel">
+
+                        <div class="dashboard-panel-header">
+
+                            <div class="dashboard-panel-title">
+                                <span class="dashboard-title-icon analysis-icon">
+                                    ▥
+                                </span>
+                                <h3>상품 분석</h3>
+                            </div>
+
+                        </div>
+
+
+                        <!-- 상단 분석 카드 -->
+                        <div class="dashboard-analysis-summary">
+
+                            <!-- 총 조회수 -->
+                            <div class="analysis-stat-card views-card">
+
+                                <div class="analysis-stat-content">
+
+                                    <span class="analysis-stat-label">
+                                        총 조회수
+                                    </span>
+
+                                    <strong class="analysis-stat-value">
+                                        ${businessMain.clickCount}<small>회</small>
+                                    </strong>
+
+                                    <span class="analysis-stat-caption">
+                                        등록 상품 누적 조회수
+                                    </span>
+
+                                </div>
+
+
+                                <!-- 미니 그래프 장식 -->
+                                <div class="analysis-mini-chart"
+                                    aria-hidden="true">
+
+                                    <span style="height: 36%;"></span>
+                                    <span style="height: 58%;"></span>
+                                    <span style="height: 43%;"></span>
+                                    <span style="height: 72%;"></span>
+                                    <span style="height: 54%;"></span>
+                                    <span style="height: 86%;"></span>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 평균 리뷰 점수 -->
+                            <div class="analysis-stat-card rating-card">
+
+                                <span class="analysis-stat-label">
+                                    평균 리뷰 점수
+                                </span>
+
+                                <div class="analysis-rating-row">
+
+                                    <strong class="analysis-stat-value">
+                                        ${businessMain.averageRating}<small>점</small>
+                                    </strong>
+
+                                    <!-- 평균 별점 -->
+                                    <div class="analysis-stars"
+                                        aria-label="평균 리뷰 점수 ${businessMain.averageRating}점">
+
+                                        <c:forEach begin="1"
+                                                end="5"
+                                                var="star">
+
+                                            <span class="${businessMain.averageRating >= star
+                                                            ? 'star-active'
+                                                            : 'star-empty'}">
+                                                ★
+                                            </span>
+
+                                        </c:forEach>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- 5점 만점 진행 막대 -->
+                                <div class="analysis-rating-progress">
+
+                                    <div
+                                        class="analysis-rating-progress-bar"
+                                        style="width: ${businessMain.averageRating * 20}%;">
+                                    </div>
+
+                                </div>
+
+                                <span class="analysis-stat-caption">
+                                    전체 상품 리뷰 기준
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- 하단 분석 요약 -->
+                        <div class="dashboard-analysis-detail">
+
+                            <!-- 조회수 원형 지표 -->
+                            <div class="analysis-circle-area">
+
+                                <div class="analysis-circle">
+
+                                    <div class="analysis-circle-inner">
+
+                                        <strong>
+                                            ${businessMain.clickCount}
+                                        </strong>
+
+                                        <span>
+                                            총 조회수
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 간단한 분석 정보 -->
+                            <div class="analysis-summary-box">
+
+                                <h4>분석 요약</h4>
+
+                                <div class="analysis-summary-item">
+                                    <span class="summary-check">✓</span>
+
+                                    <p>
+                                        현재 등록 상품의 누적 조회수는
+                                        <strong>${businessMain.clickCount}회</strong>입니다.
+                                    </p>
+                                </div>
+
+                                <div class="analysis-summary-item">
+                                    <span class="summary-check">✓</span>
+
+                                    <p>
+                                        평균 리뷰 점수는
+                                        <strong>${businessMain.averageRating}점</strong>입니다.
+                                    </p>
+                                </div>
+
+                                <div class="analysis-summary-item">
+                                    <span class="summary-check">✓</span>
+
+                                    <p>
+                                        인기 상품 순위는 조회수를 기준으로 집계됩니다.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
                     <div class="panel">
