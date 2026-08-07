@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { db, ensureFirebaseChatAuth } from "./firebase-config.js?v=2";
 
 import {
     collection,
@@ -33,6 +33,11 @@ export async function sendMessage(
         return false;
     }
 
+    if (message.trim().length > 2000) {
+        await showAlert("메시지는 2,000자 이내로 입력해주세요.", "warning");
+        return false;
+    }
+
     const noticeRoom = roomType === "NOTICE";
 
     if (noticeRoom && !isAdmin) {
@@ -41,6 +46,8 @@ export async function sendMessage(
     }
 
     try {
+
+        await ensureFirebaseChatAuth();
 
         await addDoc(
             collection(db, "chatRooms", roomId, "messages"),
@@ -85,7 +92,14 @@ export async function updateMessage(roomId, messageId, newMessage) {
         return false;
     }
 
+    if (newMessage.trim().length > 2000) {
+        await showAlert("메시지는 2,000자 이내로 입력해주세요.", "warning");
+        return false;
+    }
+
     try {
+
+        await ensureFirebaseChatAuth();
 
         await updateDoc(
             doc(db, "chatRooms", roomId, "messages", messageId),
@@ -118,6 +132,8 @@ export async function deleteMessage(roomId, messageId) {
 
     try {
 
+        await ensureFirebaseChatAuth();
+
         await deleteDoc(
             doc(db, "chatRooms", roomId, "messages", messageId)
         );
@@ -133,59 +149,56 @@ export async function deleteMessage(roomId, messageId) {
 }
 
 /**
- * 시스템 안내 메시지를 저장합니다.
- */
-export async function sendSystemMessage(roomId, message) {
-
-    try {
-
-        await addDoc(
-            collection(db, "chatRooms", roomId, "messages"),
-            {
-                senderMemberNo: 0,
-                senderBusinessNo: 0,
-                senderName: "SYSTEM",
-                senderRole: "SYSTEM",
-                message: message,
-                sendTime: serverTimestamp(),
-                type: "SYSTEM"
-            }
-        );
-
-    } catch (error) {
-        console.error("시스템 메시지 전송 실패:", error);
-    }
-}
-
-/**
  * 방의 전체 메시지를 시간순으로 실시간 수신합니다.
  */
 export function listenMessages(roomId, callback) {
 
-    const messageQuery = query(
-        collection(db, "chatRooms", roomId, "messages"),
-        orderBy("sendTime", "asc")
-    );
+    let unsubscribe = null;
+    let cancelled = false;
 
-    return onSnapshot(
-        messageQuery,
-        snapshot => {
+    ensureFirebaseChatAuth()
+        .then(function() {
 
-            const messageList = [];
+            if (cancelled) {
+                return;
+            }
 
-            snapshot.forEach(documentSnapshot => {
-                messageList.push({
-                    id: documentSnapshot.id,
-                    ...documentSnapshot.data()
-                });
-            });
+            const messageQuery = query(
+                collection(db, "chatRooms", roomId, "messages"),
+                orderBy("sendTime", "asc")
+            );
 
-            callback(messageList);
-        },
-        error => {
-            console.error("메시지 실시간 조회 실패:", error);
+            unsubscribe = onSnapshot(
+                messageQuery,
+                snapshot => {
+
+                    const messageList = [];
+
+                    snapshot.forEach(documentSnapshot => {
+                        messageList.push({
+                            id: documentSnapshot.id,
+                            ...documentSnapshot.data()
+                        });
+                    });
+
+                    callback(messageList);
+                },
+                error => {
+                    console.error("메시지 실시간 조회 실패:", error);
+                }
+            );
+        })
+        .catch(function(error) {
+            console.error("Firebase 채팅 인증 실패:", error);
+        });
+
+    return function() {
+        cancelled = true;
+
+        if (typeof unsubscribe === "function") {
+            unsubscribe();
         }
-    );
+    };
 }
 
 /**

@@ -136,6 +136,7 @@
                 </label>
 
                 <textarea id="messageInput"
+                          maxlength="2000"
                           placeholder="${isNoticeRoom ? '공지 내용을 입력하세요.' : '메시지를 입력하세요.'}"></textarea>
 
                 <button type="button"
@@ -160,7 +161,7 @@
 </div>
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js?v=4"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=5"></script>
 
 </body>
 </html>

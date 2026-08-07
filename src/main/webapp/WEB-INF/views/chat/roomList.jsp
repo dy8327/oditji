@@ -78,7 +78,8 @@
                                 <c:set var="noticeCount" value="${noticeCount + 1}" />
 
                                 <div class="room-card notice-card"
-                                     data-room-id="${room.roomId}">
+                                     data-room-id="${room.roomId}"
+                                     data-firestore-readable="true">
 
                                     <div class="room-top">
                                         <div>
@@ -158,7 +159,8 @@
                                     <c:set var="publicCount" value="${publicCount + 1}" />
 
                                     <div class="room-card public-card"
-                                         data-room-id="${room.roomId}">
+                                         data-room-id="${room.roomId}"
+                                         data-firestore-readable="${room.joined}">
 
                                         <div class="room-top">
                                             <div>
@@ -173,7 +175,10 @@
                                                         class="room-action-btn public-enter-btn"
                                                         data-room-id="${room.roomId}"
                                                         data-room-type="PUBLIC">
-                                                    참가/입장
+                                                    <c:choose>
+                                                        <c:when test="${room.joined}">입장</c:when>
+                                                        <c:otherwise>참가/입장</c:otherwise>
+                                                    </c:choose>
                                                 </button>
                                             </div>
                                         </div>
@@ -199,7 +204,14 @@
                                         <div class="last-message-box">
                                             <div class="last-message"
                                                  id="lastMessage-${room.roomId}">
-                                                마지막 메시지가 없습니다.
+                                                <c:choose>
+                                                    <c:when test="${room.joined}">
+                                                        마지막 메시지가 없습니다.
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        참가 후 최근 메시지를 확인할 수 있습니다.
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                             <div class="last-time"
                                                  id="lastTime-${room.roomId}"></div>
@@ -271,7 +283,7 @@
        value="${pageContext.request.contextPath}">
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/roomList.js?v=3"></script>
+        src="${pageContext.request.contextPath}/js/roomList.js?v=4"></script>
 
 </body>
 </html>

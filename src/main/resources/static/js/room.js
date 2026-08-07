@@ -5,7 +5,7 @@ import {
     listenMessages,
     formatTime,
     getTimestampMillis
-} from "./chat.js";
+} from "./chat.js?v=5";
 
 /**
  * 채팅방 상세 화면의 서버 전달값과 DOM 요소를 초기화합니다.

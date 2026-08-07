@@ -36,6 +36,9 @@ public class ChatRoomVO {
     private int maxMember;
 
     private String isDefault;
+
+    // 현재 로그인 사업자의 자유방 참가 여부
+    private boolean joined;
     
 
     public String getRoomId() {
@@ -140,6 +143,14 @@ public class ChatRoomVO {
 
     public void setIsDefault(String isDefault) {
         this.isDefault = isDefault;
+    }
+
+    public boolean isJoined() {
+        return joined;
+    }
+
+    public void setJoined(boolean joined) {
+        this.joined = joined;
     }
 
     @Override

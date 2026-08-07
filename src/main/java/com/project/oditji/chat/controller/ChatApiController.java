@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.service.FirebaseChatService;
 import com.project.oditji.chat.support.ChatSessionSupport;
 import com.project.oditji.chat.vo.ChatNotificationContextVO;
 import com.project.oditji.chat.vo.ChatNotificationRoomVO;
@@ -20,7 +22,9 @@ import com.project.oditji.chat.vo.ChatParticipantReadVO;
 import com.project.oditji.chat.vo.ChatReadStateVO;
 import com.project.oditji.chat.vo.ChatResponseVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
+import com.project.oditji.chat.vo.FirebaseChatTokenVO;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
@@ -34,9 +38,20 @@ public class ChatApiController {
     private static final String RESPONSE_WILL_DELETE_ROOM = "willDeleteRoom";
 
     private final ChatService chatService;
+    private final FirebaseChatService firebaseChatService;
 
-    public ChatApiController(ChatService chatService) {
+    @Autowired
+    public ChatApiController(
+            ChatService chatService,
+            FirebaseChatService firebaseChatService) {
+
         this.chatService = chatService;
+        this.firebaseChatService = firebaseChatService;
+    }
+
+    /* 기존 단위 테스트의 직접 생성 방식을 유지합니다. */
+    ChatApiController(ChatService chatService) {
+        this(chatService, null);
     }
 
     /**
@@ -128,6 +143,92 @@ public class ChatApiController {
                 notificationBusinessNo,
                 role,
                 roomList);
+    }
+
+    /**
+     * ODITJI 세션 사용자를 Firebase Authentication에 로그인시키기 위한
+     * Custom Token을 발급합니다.
+     *
+     * 토큰 발급 전에 활성 채팅방 메타데이터와 현재 사용자의 자유방 참가 상태를
+     * Firestore에 동기화하므로 기존 메시지만 존재하던 방도 운영 규칙으로 전환됩니다.
+     */
+    @GetMapping("/firebase/token")
+    public FirebaseChatTokenVO getFirebaseToken(
+            HttpSession session,
+            HttpServletResponse response) {
+
+        response.setHeader(
+                "Cache-Control",
+                "no-store, no-cache, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return new FirebaseChatTokenVO(
+                    false,
+                    isFirebaseChatEnabled(),
+                    null,
+                    null,
+                    MESSAGE_LOGIN_INFO_NOT_FOUND);
+        }
+
+        if (!isFirebaseChatEnabled()) {
+            return new FirebaseChatTokenVO(
+                    false,
+                    false,
+                    null,
+                    null,
+                    "Firebase 채팅 인증이 비활성화되어 있습니다.");
+        }
+
+        Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+        Integer businessNo = ChatSessionSupport.getChatBusinessNo(session);
+        String role = ChatSessionSupport.getSessionRole(session);
+        String displayName = ChatSessionSupport.getChatDisplayName(session);
+        boolean admin = ChatSessionSupport.isAdmin(session);
+
+        if (memberNo == null || businessNo == null || role == null) {
+            return new FirebaseChatTokenVO(
+                    false,
+                    true,
+                    null,
+                    null,
+                    MESSAGE_LOGIN_INFO_NOT_FOUND);
+        }
+
+        try {
+            List<ChatRoomVO> roomList = chatService.getChatRoomList();
+            List<ChatRoomVO> joinedRoomList = admin
+                    ? List.of()
+                    : chatService.getMyChatRoomList(businessNo);
+
+            firebaseChatService.synchronizeCurrentUser(
+                    roomList,
+                    joinedRoomList,
+                    memberNo,
+                    businessNo,
+                    role,
+                    displayName);
+
+            String token = firebaseChatService.createCustomToken(
+                    memberNo,
+                    businessNo,
+                    role,
+                    displayName);
+
+            return new FirebaseChatTokenVO(
+                    true,
+                    true,
+                    token,
+                    firebaseChatService.createUid(memberNo),
+                    "Firebase 채팅 인증 토큰을 발급했습니다.");
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            return new FirebaseChatTokenVO(
+                    false,
+                    true,
+                    null,
+                    null,
+                    "Firebase 채팅 인증 준비에 실패했습니다.");
+        }
     }
 
     /**
@@ -250,6 +351,28 @@ public class ChatApiController {
 
         Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         int result = chatService.joinChatRoom(roomId, businessNo);
+
+        if ((result == ChatResult.SUCCESS
+                || result == ChatResult.ALREADY_JOINED)
+                && isFirebaseChatEnabled()) {
+
+            Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+
+            try {
+                firebaseChatService.synchronizeRoom(room);
+                firebaseChatService.addRoomMember(
+                        roomId,
+                        memberNo,
+                        businessNo,
+                        ChatSessionSupport.getSessionRole(session),
+                        ChatSessionSupport.getChatDisplayName(session));
+            } catch (IllegalStateException exception) {
+                return new ChatResponseVO(
+                        false,
+                        ChatResult.FAIL,
+                        "채팅방 권한 동기화에 실패했습니다. 다시 시도해주세요.");
+            }
+        }
 
         return switch (result) {
             case ChatResult.SUCCESS ->
@@ -374,6 +497,23 @@ public class ChatApiController {
         boolean roomWillBeDeleted =
                 chatService.willRoomBeEmptyAfterLeave(roomId, businessNo);
 
+        Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+
+        if (isFirebaseChatEnabled()) {
+            try {
+                if (roomWillBeDeleted) {
+                    firebaseChatService.deactivateRoom(roomId);
+                } else {
+                    firebaseChatService.removeRoomMember(roomId, memberNo);
+                }
+            } catch (IllegalStateException exception) {
+                return new ChatResponseVO(
+                        false,
+                        ChatResult.FAIL,
+                        "채팅방 권한 해제에 실패했습니다. 다시 시도해주세요.");
+            }
+        }
+
         boolean result = chatService.leaveChatRoom(roomId, businessNo);
 
         if (result) {
@@ -389,6 +529,11 @@ public class ChatApiController {
                 false,
                 ChatResult.FAIL,
                 "채팅방 참여 정보를 찾을 수 없습니다.");
+    }
+
+    private boolean isFirebaseChatEnabled() {
+        return firebaseChatService != null
+                && firebaseChatService.isEnabled();
     }
 
     /**
