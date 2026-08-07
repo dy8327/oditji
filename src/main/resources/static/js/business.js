@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-
   /*
    * [신규] 공용 모달 - openModal / closeModal
    *
@@ -15,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
    *        <button class="modal-close" onclick="closeModal('xxxModal')">
    */
   window.openModal = function (id) {
-
     const modal = document.getElementById(id);
 
     if (!modal) {
@@ -26,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   window.closeModal = function (id) {
-
     const modal = document.getElementById(id);
 
     if (!modal) {
@@ -210,6 +207,9 @@ document.addEventListener("DOMContentLoaded", function () {
    */
   initializeProductRowAccessibility();
 
+  // [상품 세부 이미지 수정] 수정 모달의 + 버튼 초기화
+  initializeUpdateDetailImageButton();
+
   /*
    * 등록/수정 처리 결과 알림
    *
@@ -335,7 +335,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * 대입합니다(id/순번처럼 안전한 값만 템플릿 문자열에 사용).
    */
   function createProductRow(productNo, productName, discountRate, price) {
-
     /*
      * 현재 순번을 이번 행에 사용한 다음,
      * 다음 추가 행을 위해 순번을 증가시킵니다.
@@ -353,10 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const productRowNumber = currentRowSequence + 1;
 
-    const safeDiscountRate =
-      (discountRate === null || discountRate === undefined || discountRate === "")
-        ? 0
-        : discountRate;
+    const safeDiscountRate = discountRate === null || discountRate === undefined || discountRate === "" ? 0 : discountRate;
 
     const productItem = document.createElement("div");
 
@@ -447,103 +443,73 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 연결 상품 버튼 상태 갱신
   function refreshProductButtons() {
+    if (!productList) {
+      return;
+    }
 
-      if (!productList) {
-          return;
+    const items = productList.querySelectorAll(".event-product-item");
+
+    items.forEach(function (item, index) {
+      const button = item.querySelector(".addProductButton, .removeProductButton");
+
+      if (!button) {
+        return;
       }
 
-      const items = productList.querySelectorAll(".event-product-item");
-
-      items.forEach(function(item, index) {
-
-          const button = item.querySelector(".addProductButton, .removeProductButton");
-
-          if (!button) {
-              return;
-          }
-
-          // 첫 번째 상품은 항상 추가 버튼
-          if (index === 0) {
-
-              button.className = "btn btn-primary addProductButton";
-              button.textContent = "+";
-              button.setAttribute("aria-label", "연결 상품 추가");
-
-          } else {
-
-              button.className = "btn btn-dark removeProductButton";
-              button.textContent = "-";
-              button.setAttribute("aria-label", "연결 상품 삭제");
-
-          }
-
-      });
-
+      // 첫 번째 상품은 항상 추가 버튼
+      if (index === 0) {
+        button.className = "btn btn-primary addProductButton";
+        button.textContent = "+";
+        button.setAttribute("aria-label", "연결 상품 추가");
+      } else {
+        button.className = "btn btn-dark removeProductButton";
+        button.textContent = "-";
+        button.setAttribute("aria-label", "연결 상품 삭제");
+      }
+    });
   }
-
 
   // 연결 상품 행 추가
   function addProductRow() {
+    if (!productList) {
+      return;
+    }
 
-      if (!productList) {
-          return;
-      }
+    const newItem = createProductRow(null, "", 0, null);
 
+    productList.appendChild(newItem);
 
-      const newItem = createProductRow(null, "", 0, null);
+    refreshProductButtons();
 
-
-      productList.appendChild(newItem);
-
-
-      refreshProductButtons();
-
-      linkProductSectionLabel();
-
+    linkProductSectionLabel();
   }
-
 
   // 연결 상품 행 삭제
   function removeProductRow(button) {
+    const item = button.closest(".event-product-item");
 
-      const item = button.closest(".event-product-item");
+    if (!item) {
+      return;
+    }
 
-      if (!item) {
-          return;
-      }
+    item.remove();
 
-
-      item.remove();
-
-
-      refreshProductButtons();
-
+    refreshProductButtons();
   }
-
 
   // 상품 추가/삭제 이벤트
   if (productList) {
+    productList.addEventListener("click", function (e) {
+      // + 버튼 클릭
+      if (e.target.classList.contains("addProductButton")) {
+        addProductRow();
+      }
 
-      productList.addEventListener("click", function(e) {
-
-
-          // + 버튼 클릭
-          if (e.target.classList.contains("addProductButton")) {
-
-              addProductRow();
-
-          }
-
-
-          // - 버튼 클릭
-          if (e.target.classList.contains("removeProductButton")) {
-
-              removeProductRow(e.target);
-
-          }
-
-      });
-
+      // - 버튼 클릭
+      if (e.target.classList.contains("removeProductButton")) {
+        removeProductRow(e.target);
+      }
+    });
   }
 
   /*
@@ -576,21 +542,18 @@ document.addEventListener("DOMContentLoaded", function () {
    * 보였다. 동일한 목록으로 통일한다.
    */
   function productOptionSizeChoices(productTypeValue) {
-    return productTypeValue === "SHOES"
-      ? ["220", "225", "230", "235", "240", "245", "250", "255", "260", "265", "270", "275", "280", "285", "290"]
-      : ["XS", "S", "M", "L", "XL", "2XL", "3XL", "FREE"];
+    return productTypeValue === "SHOES" ? ["220", "225", "230", "235", "240", "245", "250", "255", "260", "265", "270", "275", "280", "285", "290"] : ["XS", "S", "M", "L", "XL", "2XL", "3XL", "FREE"];
   }
 
   function buildProductOptionSizeChoicesHtml(productTypeValue) {
     return productOptionSizeChoices(productTypeValue)
       .map(function (value) {
-        return "<option value=\"" + value + "\">" + value + "</option>";
+        return '<option value="' + value + '">' + value + "</option>";
       })
       .join("");
   }
 
   function createProductOptionRow(colorName, sizeName, stock) {
-
     const row = document.createElement("div");
 
     /*
@@ -637,7 +600,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (sizeInput) {
-
       sizeInput.value = sizeName || "";
 
       /*
@@ -647,7 +609,6 @@ document.addEventListener("DOMContentLoaded", function () {
        * 값이면 옵션을 하나 추가해 데이터가 유실되지 않게 한다.
        */
       if (sizeName && sizeInput.value !== sizeName) {
-
         const extraOption = document.createElement("option");
 
         extraOption.value = sizeName;
@@ -659,7 +620,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (stockField) {
-      stockField.value = (stock === null || stock === undefined || stock === "") ? "" : stock;
+      stockField.value = stock === null || stock === undefined || stock === "" ? "" : stock;
     }
 
     return row;
@@ -667,7 +628,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* 옵션 행들의 input name(optionList[N].xxx)과 aria-label을 0부터 다시 매긴다. */
   function reindexProductOptionRows() {
-
     if (!productOptionRows) {
       return;
     }
@@ -675,7 +635,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const rows = productOptionRows.querySelectorAll(".product-option-row");
 
     rows.forEach(function (row, index) {
-
       const rowNumber = index + 1;
 
       const colorInput = row.querySelector(".optionColorName");
@@ -705,24 +664,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function refreshProductOptionRemoveButtons() {
+    if (!productOptionRows) {
+      return;
+    }
 
-      if (!productOptionRows) {
-          return;
+    const rows = productOptionRows.querySelectorAll(".product-option-row");
+
+    rows.forEach(function (row, index) {
+      const removeButton = row.querySelector(".option-remove-btn");
+
+      if (!removeButton) {
+        return;
       }
 
-      const rows = productOptionRows.querySelectorAll(".product-option-row");
-
-      rows.forEach(function (row, index) {
-
-          const removeButton = row.querySelector(".option-remove-btn");
-
-          if (!removeButton) {
-              return;
-          }
-
-          removeButton.style.display = index === 0 ? "none" : "inline-flex";
-
-      });
+      removeButton.style.display = index === 0 ? "none" : "inline-flex";
+    });
   }
 
   /*
@@ -731,7 +687,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * 기존에 골라둔 값이 새 목록에도 있으면 그대로 유지한다.
    */
   function refreshProductOptionSizeChoices() {
-
     if (!productOptionRows || !productTypeSelect) {
       return;
     }
@@ -739,15 +694,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const sizeChoicesHtml = buildProductOptionSizeChoicesHtml(productTypeSelect.value);
 
     productOptionRows.querySelectorAll(".optionSizeName").forEach(function (select) {
-
       const oldValue = select.value;
 
-      select.innerHTML = "<option value=\"\">사이즈 선택</option>" + sizeChoicesHtml;
+      select.innerHTML = '<option value="">사이즈 선택</option>' + sizeChoicesHtml;
 
       select.value = oldValue;
 
       if (oldValue && select.value !== oldValue) {
-
         const extraOption = document.createElement("option");
 
         extraOption.value = oldValue;
@@ -761,7 +714,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* 옵션 모드일 때 #stock 표시값을 옵션별 재고의 합으로 다시 계산한다. */
   function refreshProductOptionStockTotal() {
-
     if (!stockInput || !productOptionRows || !productTypeSelect) {
       return;
     }
@@ -775,7 +727,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let total = 0;
 
     stockFields.forEach(function (field) {
-
       const value = Number(field.value);
 
       if (Number.isFinite(value) && value > 0) {
@@ -794,7 +745,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * 수정 모달이 연결 상품을 채우는 방식과 동일하다.
    */
   function fillProductOptionRows(productNo) {
-
     if (!productOptionRows) {
       return;
     }
@@ -803,22 +753,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const optionTemplate = document.getElementById("productOptionData_" + productNo);
 
-    const existingOptionRows = optionTemplate
-      ? optionTemplate.content.querySelectorAll(".product-option-data")
-      : [];
+    const existingOptionRows = optionTemplate ? optionTemplate.content.querySelectorAll(".product-option-data") : [];
 
     if (existingOptionRows.length === 0) {
-
       productOptionRows.appendChild(createProductOptionRow(null, "", null));
-
     } else {
-
       existingOptionRows.forEach(function (optionData) {
-
-        productOptionRows.appendChild(createProductOptionRow(
-          optionData.dataset.colorName,
-          optionData.dataset.sizeName,
-          optionData.dataset.stock));
+        productOptionRows.appendChild(createProductOptionRow(optionData.dataset.colorName, optionData.dataset.sizeName, optionData.dataset.stock));
       });
     }
 
@@ -832,7 +773,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * 행 하나 대신 그 상품의 기존 옵션으로 채운다.
    */
   function updateProductOptionSectionVisibility(productNoForPrefill) {
-
     if (!productOptionSection || !productTypeSelect || !productOptionRows) {
       return;
     }
@@ -850,18 +790,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (needsOption) {
-
       if (productNoForPrefill) {
-
         fillProductOptionRows(productNoForPrefill);
-
       } else if (!productOptionRows.querySelector(".product-option-row")) {
-
         productOptionRows.appendChild(createProductOptionRow(null, "", null));
         reindexProductOptionRows();
-
       } else {
-
         /*
          * 이미 옵션 행이 있는 상태에서 상품 종류(의상<->신발)만 바뀐
          * 경우 - 새 행을 만들지 않고 기존 행들의 사이즈 드롭다운
@@ -871,15 +805,12 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       refreshProductOptionStockTotal();
-
     } else {
-
       productOptionRows.innerHTML = "";
     }
   }
 
   if (productTypeSelect) {
-
     productTypeSelect.addEventListener("change", updateProductOptionSectionVisibility);
 
     /* 상품 수정 모달을 열 때 openProductUpdateModal이 값을 채운 뒤에도 호출하지만, 페이지 최초 진입 시 상태도 맞춰둔다. */
@@ -887,9 +818,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (addProductOptionBtn) {
-
     addProductOptionBtn.addEventListener("click", function () {
-
       if (!productOptionRows) {
         return;
       }
@@ -903,10 +832,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (productOptionRows) {
-
     /* 옵션 행 삭제(이벤트 위임) */
     productOptionRows.addEventListener("click", function (e) {
-
       if (!e.target.classList.contains("option-remove-btn")) {
         return;
       }
@@ -931,7 +858,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* 옵션 재고 입력이 바뀔 때마다 #stock 합계를 다시 계산한다(이벤트 위임). */
     productOptionRows.addEventListener("input", function (e) {
-
       if (!e.target.classList.contains("optionStock")) {
         return;
       }
@@ -1180,15 +1106,12 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   window.chooseContent = function (button) {
-
     const mode = button.dataset.mode;
     const title = button.dataset.title;
 
-    if (!window.opener
-            || window.opener.closed) {
-
-        showAlert("상품 등록 또는 수정 화면을 찾을 수 없습니다.", "warning");
-        return;
+    if (!window.opener || window.opener.closed) {
+      showAlert("상품 등록 또는 수정 화면을 찾을 수 없습니다.", "warning");
+      return;
     }
 
     /*
@@ -1196,42 +1119,29 @@ document.addEventListener("DOMContentLoaded", function () {
      * 이 단계에서는 CONTENT 테이블에 저장하지 않습니다.
      */
     if (mode === "register") {
+      const tmdbId = Number(button.dataset.tmdbId);
+      const contentType = button.dataset.contentType;
 
-        const tmdbId = Number(button.dataset.tmdbId);
-        const contentType = button.dataset.contentType;
-
-        if (!Number.isFinite(tmdbId)
-                || tmdbId <= 0
-                || !contentType) {
-
-            showAlert("올바른 콘텐츠 정보가 아닙니다.", "warning");
-            return;
-        }
-
-        window.opener.selectCachedContent(
-            tmdbId,
-            contentType,
-            title
-        );
-
-        window.close();
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0 || !contentType) {
+        showAlert("올바른 콘텐츠 정보가 아닙니다.", "warning");
         return;
+      }
+
+      window.opener.selectCachedContent(tmdbId, contentType, title);
+
+      window.close();
+      return;
     }
 
     /* 상품 수정 화면은 기존 CONTENT_NO 방식을 유지합니다. */
     const contentNo = Number(button.dataset.contentNo);
 
-    if (!Number.isFinite(contentNo)
-            || contentNo <= 0) {
-
-        showAlert("올바른 콘텐츠 번호가 아닙니다.", "warning");
-        return;
+    if (!Number.isFinite(contentNo) || contentNo <= 0) {
+      showAlert("올바른 콘텐츠 번호가 아닙니다.", "warning");
+      return;
     }
 
-    window.opener.selectContent(
-        contentNo,
-        title
-    );
+    window.opener.selectContent(contentNo, title);
 
     window.close();
   };
@@ -1252,12 +1162,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* 콘텐츠 검색 팝업 */
   window.openContentSearch = function () {
-
-    window.open(
-      contextPath + "/business/content/search",
-      "contentSearchPopup",
-      "width=900,height=720,scrollbars=yes,resizable=yes"
-    );
+    window.open(contextPath + "/business/content/search", "contentSearchPopup", "width=900,height=720,scrollbars=yes,resizable=yes");
   };
 
   /*
@@ -1266,7 +1171,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * window.opener.selectContent(contentNo, title)을 호출한다.
    */
   window.selectContent = function (contentNo, title) {
-
     const convertedContentNo = Number(contentNo);
 
     if (!Number.isFinite(convertedContentNo) || convertedContentNo <= 0) {
@@ -1283,7 +1187,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* 배우 선택 영역을 "콘텐츠를 먼저 선택하세요" 상태로 되돌린다. */
   function resetActorSelect() {
-
     const actorSelect = document.getElementById("actorNo");
     const actorLoadMessage = document.getElementById("actorLoadMessage");
 
@@ -1291,14 +1194,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    actorSelect.innerHTML = "<option value=\"\">콘텐츠를 먼저 선택해주세요.</option>";
+    actorSelect.innerHTML = '<option value="">콘텐츠를 먼저 선택해주세요.</option>';
     actorSelect.disabled = true;
     actorLoadMessage.textContent = "콘텐츠를 선택하면 해당 작품에 연결된 배우가 표시됩니다.";
   }
 
   /* 배우 목록을 select 옵션으로 렌더링하고, 필요하면 기존 선택값을 복원한다. */
   function renderActorList(actorList, actorNoToRestore) {
-
     const actorSelect = document.getElementById("actorNo");
     const actorLoadMessage = document.getElementById("actorLoadMessage");
 
@@ -1311,7 +1213,6 @@ document.addEventListener("DOMContentLoaded", function () {
     actorSelect.appendChild(emptyOption);
 
     if (!Array.isArray(actorList) || actorList.length === 0) {
-
       const noActorOption = document.createElement("option");
       noActorOption.value = "";
       noActorOption.textContent = "해당 콘텐츠에 연결된 배우가 없습니다.";
@@ -1323,7 +1224,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     actorList.forEach(function (actor) {
-
       const option = document.createElement("option");
 
       /* 서버에 전송되는 값은 ACTOR_NO */
@@ -1351,7 +1251,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* 선택한 콘텐츠(contentNo)에 연결된 배우를 조회한다. */
   async function loadActorsByContent(contentNo, actorNoToRestore) {
-
     const actorSelect = document.getElementById("actorNo");
     const actorLoadMessage = document.getElementById("actorLoadMessage");
 
@@ -1363,20 +1262,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     actorSelect.disabled = true;
-    actorSelect.innerHTML = "<option value=\"\">배우 목록을 불러오는 중입니다.</option>";
+    actorSelect.innerHTML = '<option value="">배우 목록을 불러오는 중입니다.</option>';
     actorLoadMessage.textContent = "선택한 콘텐츠의 배우를 조회하고 있습니다.";
 
     try {
-
-      const requestUrl =
-        contextPath
-        + "/business/api/actor/list"
-        + "?contentNo="
-        + encodeURIComponent(convertedContentNo);
+      const requestUrl = contextPath + "/business/api/actor/list" + "?contentNo=" + encodeURIComponent(convertedContentNo);
 
       const response = await fetch(requestUrl, {
         method: "GET",
-        headers: { "Accept": "application/json" }
+        headers: { Accept: "application/json" },
       });
 
       if (!response.ok) {
@@ -1386,37 +1280,73 @@ document.addEventListener("DOMContentLoaded", function () {
       const actorList = await response.json();
 
       renderActorList(actorList, actorNoToRestore);
-
     } catch (error) {
-
       console.error("콘텐츠별 배우 조회 오류:", error);
 
-      actorSelect.innerHTML = "<option value=\"\">배우 목록 조회 실패</option>";
+      actorSelect.innerHTML = '<option value="">배우 목록 조회 실패</option>';
       actorSelect.disabled = true;
       actorLoadMessage.textContent = "배우 정보를 불러오지 못했습니다.";
     }
   }
 
-  /* 이미지 파일명 출력 */
-  window.updateFileName = function (input) {
+  /*
+   * =========================================================
+   * [상품 수정 이미지]
+   * 이미지 전체 경로에서 실제 파일명만 추출합니다.
+   *
+   * 예:
+   * /uploads/product/435e53b0bed0412f913e3c2e8c061192.jpg
+   * → 435e53b0bed0412f913e3c2e8c061192.jpg
+   * =========================================================
+   */
+  function extractImageFileName(imagePath) {
+    if (!imagePath) {
+      return "";
+    }
 
+    const normalizedPath = String(imagePath).replace(/\\/g, "/");
+    const pathParts = normalizedPath.split("/");
+
+    return pathParts[pathParts.length - 1] || "";
+  }
+
+  /*
+   * =========================================================
+   * [상품 기본 이미지 파일명 표시]
+   *
+   * 새 기본 이미지를 선택하면 선택한 파일명을 표시합니다.
+   * 파일 선택을 취소하면 hidden input에 보관된 현재 기본 이미지 경로에서
+   * 파일명만 추출하여 다시 표시합니다.
+   * =========================================================
+   */
+  window.updateFileName = function (input) {
     const fileNameElement = document.getElementById("selectedFileName");
 
-    if (input.files && input.files.length > 0) {
-
-      fileNameElement.textContent = input.files[0].name;
-
-    } else {
-
-      const existingImagePath = document.getElementById("existingImagePath").value;
-
-      fileNameElement.textContent = existingImagePath ? existingImagePath : "선택된 파일 없음";
+    if (!fileNameElement) {
+      return;
     }
+
+    if (input && input.files && input.files.length > 0) {
+      const selectedFileName = input.files[0].name;
+
+      fileNameElement.textContent = selectedFileName;
+      fileNameElement.title = selectedFileName;
+      return;
+    }
+
+    const existingImagePathElement = document.getElementById("existingImagePath");
+
+    const existingImagePath = existingImagePathElement ? existingImagePathElement.value : "";
+
+    const existingImageFileName = extractImageFileName(existingImagePath);
+
+    fileNameElement.textContent = existingImageFileName || "등록된 기본 이미지 없음";
+
+    fileNameElement.title = existingImageFileName;
   };
 
   /* 상품 수정 폼 검증 */
   window.validateProductForm = function (event) {
-
     const productName = document.getElementById("productName").value.trim();
     const productType = document.getElementById("productType").value;
     const price = Number(document.getElementById("price").value);
@@ -1460,7 +1390,6 @@ document.addEventListener("DOMContentLoaded", function () {
      * 검증과 동일한 규칙을 화면에서 먼저 확인해 왕복 없이 알려준다.
      */
     if (productTypeRequiresOption(productType)) {
-
       const optionValidationMessage = validateProductOptionRows();
 
       if (optionValidationMessage) {
@@ -1475,12 +1404,260 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   /*
+   * =========================================================
+   * [상품 수정 세부 이미지]
+   * 세부 이미지 입력창 최대 개수입니다.
+   * =========================================================
+   */
+  const MAX_UPDATE_DETAIL_IMAGE_COUNT = 10;
+
+  /*
+   * 세부 이미지 파일 입력 한 줄에 고유한 id를 만들기 위한 순번입니다.
+   * 삭제된 행의 id를 다시 사용하지 않아 label의 for 연결이 겹치지 않게 합니다.
+   */
+  let updateDetailImageSequence = 0;
+
+  /*
+   * 세부 이미지 입력창의 파일명을 화면에 표시합니다.
+   */
+  function updateDetailImageFileName(input) {
+    if (!input) {
+      return;
+    }
+
+    const row = input.closest(".detail-image-input-row");
+
+    if (!row) {
+      return;
+    }
+
+    const fileNameElement = row.querySelector(".update-detail-file-name");
+
+    if (!fileNameElement) {
+      return;
+    }
+
+    if (input.files && input.files.length > 0) {
+      const selectedFileName = input.files[0].name;
+
+      fileNameElement.textContent = selectedFileName;
+      fileNameElement.title = selectedFileName;
+    } else {
+      fileNameElement.textContent = "선택된 파일 없음";
+      fileNameElement.title = "";
+    }
+  }
+
+  /*
+   * 세부 이미지 파일 입력 한 줄을 생성합니다.
+   *
+   * productList.jsp에서 사용하는 사용자 정의 파일 선택 버튼 구조에 맞춰
+   * 브라우저 기본 "선택된 파일 없음" 문구가 잘리지 않도록 구성합니다.
+   */
+  function createUpdateDetailImageRow() {
+    const inputId = "updateDetailImage" + updateDetailImageSequence;
+
+    updateDetailImageSequence++;
+
+    const row = document.createElement("div");
+    row.className = "detail-image-input-row";
+
+    row.innerHTML = `
+      <div class="custom-file-row update-detail-file-row">
+
+        <label for="${inputId}"
+               class="custom-file-button">
+          파일 선택
+        </label>
+
+        <input type="file"
+               id="${inputId}"
+               name="detailImages"
+               class="custom-file-input update-detail-image-input"
+               accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+
+        <span class="update-detail-file-name custom-file-name"
+              title="">
+          선택된 파일 없음
+        </span>
+
+      </div>
+
+      <button type="button"
+              class="detail-image-remove-btn"
+              aria-label="세부 이미지 입력 삭제">
+        삭제
+      </button>
+    `;
+
+    const fileInput = row.querySelector(".update-detail-image-input");
+    const removeButton = row.querySelector(".detail-image-remove-btn");
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function () {
+        updateDetailImageFileName(this);
+      });
+    }
+
+    if (removeButton) {
+      removeButton.addEventListener("click", function () {
+        row.remove();
+        ensureUpdateDetailImageRow();
+      });
+    }
+
+    return row;
+  }
+
+  /*
+   * 세부 이미지 입력창이 모두 삭제된 경우에도
+   * 최소 한 개의 입력창은 유지합니다.
+   */
+  function ensureUpdateDetailImageRow() {
+    const container = document.getElementById("updateDetailImageContainer");
+
+    if (!container) {
+      return;
+    }
+
+    const inputCount = container.querySelectorAll(".update-detail-image-input").length;
+
+    if (inputCount === 0) {
+      container.appendChild(createUpdateDetailImageRow());
+    }
+  }
+
+  /*
+   * 상품 수정 모달을 새로 열 때 이전 상품에서 선택한
+   * 세부 이미지 파일 입력값이 남지 않도록 초기화합니다.
+   */
+  function resetUpdateDetailImageRows() {
+    const container = document.getElementById("updateDetailImageContainer");
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = "";
+    updateDetailImageSequence = 0;
+    container.appendChild(createUpdateDetailImageRow());
+  }
+
+  /*
+   * 현재 등록된 세부 이미지 경로 목록을 파일명으로 변환하여 표시합니다.
+   *
+   * productList.jsp의 수정 버튼 data-detail-images에는
+   * JSON 배열 문자열이 전달되어야 합니다.
+   *
+   * 예:
+   * data-detail-images='["/uploads/product/detail1.jpg",
+   *                      "/uploads/product/detail2.jpg"]'
+   */
+  function renderExistingDetailImageNames(detailImagePaths) {
+    const listElement = document.getElementById("existingDetailImageList");
+
+    if (!listElement) {
+      return;
+    }
+
+    listElement.innerHTML = "";
+
+    if (!Array.isArray(detailImagePaths) || detailImagePaths.length === 0) {
+      const emptyElement = document.createElement("span");
+
+      emptyElement.className = "existing-detail-image-empty";
+      emptyElement.textContent = "등록된 세부 이미지 없음";
+
+      listElement.appendChild(emptyElement);
+      return;
+    }
+
+    detailImagePaths.forEach(function (imagePath) {
+      const imageFileName = extractImageFileName(imagePath);
+
+      if (!imageFileName) {
+        return;
+      }
+
+      const fileNameElement = document.createElement("span");
+
+      fileNameElement.className = "existing-detail-image-name";
+      fileNameElement.textContent = imageFileName;
+      fileNameElement.title = imageFileName;
+
+      listElement.appendChild(fileNameElement);
+    });
+
+    if (listElement.children.length === 0) {
+      const emptyElement = document.createElement("span");
+
+      emptyElement.className = "existing-detail-image-empty";
+      emptyElement.textContent = "등록된 세부 이미지 없음";
+
+      listElement.appendChild(emptyElement);
+    }
+  }
+
+  /*
+   * 수정 버튼의 data-detail-images 값을 안전하게 JSON 배열로 변환합니다.
+   * 값이 없거나 올바른 JSON이 아니면 빈 배열로 처리합니다.
+   */
+  function parseDetailImagePaths(detailImagesJson) {
+    if (!detailImagesJson) {
+      return [];
+    }
+
+    try {
+      const parsedValue = JSON.parse(detailImagesJson);
+
+      return Array.isArray(parsedValue) ? parsedValue : [];
+    } catch (error) {
+      console.error("기존 세부 이미지 정보 변환 실패:", error);
+      return [];
+    }
+  }
+
+  /*
+   * 수정 모달의 세부 이미지 + 버튼을 초기화합니다.
+   */
+  function initializeUpdateDetailImageButton() {
+    const addButton = document.getElementById("addUpdateDetailImageBtn");
+    const container = document.getElementById("updateDetailImageContainer");
+
+    if (!addButton || !container) {
+      return;
+    }
+
+    addButton.addEventListener("click", function () {
+      const currentCount = container.querySelectorAll(".update-detail-image-input").length;
+
+      if (currentCount >= MAX_UPDATE_DETAIL_IMAGE_COUNT) {
+        showAlert("상품 세부 이미지는 최대 10장까지 등록할 수 있습니다.", "warning");
+        return;
+      }
+
+      container.appendChild(createUpdateDetailImageRow());
+    });
+
+    /*
+     * JSP에 처음부터 출력된 첫 번째 세부 이미지 입력창에도
+     * 파일명 표시 이벤트를 연결합니다.
+     */
+    const firstDetailInput = container.querySelector(".update-detail-image-input");
+
+    if (firstDetailInput) {
+      firstDetailInput.addEventListener("change", function () {
+        updateDetailImageFileName(this);
+      });
+    }
+  }
+
+  /*
    * [상품 옵션 기능 추가]
    * 옵션 행들을 검사해 문제가 있으면 사용자에게 보여줄 안내 문구를,
    * 문제가 없으면 null을 반환한다.
    */
   function validateProductOptionRows() {
-
     if (!productOptionRows) {
       return null;
     }
@@ -1494,7 +1671,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const duplicateCheck = new Set();
 
     for (const row of rows) {
-
       const colorName = (row.querySelector(".optionColorName") || {}).value || "";
       const sizeName = (row.querySelector(".optionSizeName") || {}).value || "";
       const stockValue = Number((row.querySelector(".optionStock") || {}).value);
@@ -1520,7 +1696,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * 공용 수정 모달의 폼 필드를 채우고 모달을 연다.
    */
   window.openProductUpdateModal = function (button) {
-
     document.getElementById("updateProductNo").value = button.dataset.productNo || "";
     document.getElementById("productName").value = button.dataset.productName || "";
     document.getElementById("productType").value = button.dataset.productType || "";
@@ -1530,7 +1705,18 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("contentNo").value = button.dataset.contentNo || "";
     document.getElementById("contentTitle").value = button.dataset.contentTitle || "";
     document.getElementById("description").value = button.dataset.description || "";
-    document.getElementById("existingImagePath").value = button.dataset.imagePath || "";
+
+    /*
+     * [상품 수정 기본 이미지]
+     * 현재 등록된 기본 이미지 전체 경로는 hidden input에 저장하고,
+     * 화면에는 전체 경로가 아닌 실제 파일명만 표시합니다.
+     */
+    const existingImagePathElement = document.getElementById("existingImagePath");
+    const productImageInput = document.getElementById("productImage");
+
+    if (existingImagePathElement) {
+      existingImagePathElement.value = button.dataset.imagePath || "";
+    }
 
     /*
      * [상품 옵션 기능 추가] 등록 화면과 동일하게 상품 종류에 맞춰
@@ -1538,12 +1724,26 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     updateProductOptionSectionVisibility(button.dataset.productNo);
 
-    /* 새 모달을 열 때마다 이전에 선택했던 이미지 파일 입력값은 비운다. */
-    const productImageInput = document.getElementById("productImage");
+    /*
+     * 새 모달을 열 때마다 이전에 선택했던 기본 이미지 파일 입력값은 비우고,
+     * 현재 등록된 기본 이미지 파일명을 다시 표시합니다.
+     */
     if (productImageInput) {
       productImageInput.value = "";
     }
+
     updateFileName(productImageInput);
+
+    /*
+     * [상품 수정 세부 이미지]
+     * 수정 버튼의 data-detail-images JSON 배열을 읽어 현재 등록된
+     * 세부 이미지 파일명을 표시합니다. 값이 없으면 "등록된 세부 이미지 없음"을
+     * 표시하고, 새로 선택할 파일 입력 영역은 한 줄로 초기화합니다.
+     */
+    const existingDetailImagePaths = parseDetailImagePaths(button.dataset.detailImages || "");
+
+    renderExistingDetailImageNames(existingDetailImagePaths);
+    resetUpdateDetailImageRows();
 
     const contentNo = button.dataset.contentNo;
 
@@ -1571,7 +1771,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * =========================================================
    */
   window.openEventUpdateModal = function (button) {
-
     document.getElementById("updateEventNo").value = button.dataset.eventNo || "";
     document.getElementById("eventTitle").value = button.dataset.title || "";
     document.getElementById("description").value = button.dataset.description || "";
@@ -1600,9 +1799,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const eventImageFileNameField = document.getElementById("eventImageFileName");
 
     if (eventImageFileNameField) {
-      eventImageFileNameField.textContent = button.dataset.bannerImage
-        ? "기존 이미지 유지"
-        : "선택된 파일 없음";
+      eventImageFileNameField.textContent = button.dataset.bannerImage ? "기존 이미지 유지" : "선택된 파일 없음";
     }
 
     /*
@@ -1611,29 +1808,17 @@ document.addEventListener("DOMContentLoaded", function () {
      * 방어적으로) 등록 화면과 동일하게 빈 행 하나를 보여준다.
      */
     if (productList) {
-
       productList.innerHTML = "";
 
-      const eventProductTemplate = document.getElementById(
-        "eventProductData_" + button.dataset.eventNo);
+      const eventProductTemplate = document.getElementById("eventProductData_" + button.dataset.eventNo);
 
-      const connectedProductRows = eventProductTemplate
-        ? eventProductTemplate.content.querySelectorAll(".event-product-data")
-        : [];
+      const connectedProductRows = eventProductTemplate ? eventProductTemplate.content.querySelectorAll(".event-product-data") : [];
 
       if (connectedProductRows.length === 0) {
-
         productList.appendChild(createProductRow(null, "", 0, null));
-
       } else {
-
         connectedProductRows.forEach(function (connectedProduct) {
-
-          productList.appendChild(createProductRow(
-            connectedProduct.dataset.productNo,
-            connectedProduct.dataset.productName,
-            connectedProduct.dataset.discountRate,
-            connectedProduct.dataset.price));
+          productList.appendChild(createProductRow(connectedProduct.dataset.productNo, connectedProduct.dataset.productName, connectedProduct.dataset.discountRate, connectedProduct.dataset.price));
         });
       }
 

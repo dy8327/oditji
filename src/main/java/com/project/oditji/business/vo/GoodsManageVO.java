@@ -43,12 +43,17 @@ public class GoodsManageVO {
     private String imagePath;
     private String isMain;
 
+    /*
+     * [상품 세부 이미지 수정]
+     * 상품에 등록된 세부 이미지 경로 목록입니다.
+     */
+    private List<String> detailImagePathList = new ArrayList<String>();
+
     // 인기 상품 조회용
     private int clickCount;
 
     // [상품 옵션 기능 추가] 의상/신발의 색상-사이즈별 재고 목록
     private List<ProductOptionVO> optionList = new ArrayList<ProductOptionVO>();
-
 
     public long getProductNo() {
         return productNo;
@@ -232,6 +237,66 @@ public class GoodsManageVO {
 
     public void setOptionList(List<ProductOptionVO> optionList) {
         this.optionList = optionList == null ? new ArrayList<ProductOptionVO>() : optionList;
+    }
+
+    public List<String> getDetailImagePathList() {
+        return detailImagePathList;
+    }
+
+    public void setDetailImagePathList(
+            List<String> detailImagePathList) {
+
+        this.detailImagePathList = detailImagePathList == null
+                ? new ArrayList<String>()
+                : detailImagePathList;
+    }
+
+    /*
+     * =========================================================
+     * [상품 세부 이미지 수정]
+     *
+     * productList.jsp의 data-detail-images 속성에 넣을 JSON 배열 문자열입니다.
+     *
+     * 현재 프로젝트의 상품 이미지 경로는 서버에서 생성한 UUID 파일명으로
+     * 구성되므로 별도의 Jackson ObjectMapper를 추가하지 않고 현재 VO에서
+     * 안전하게 JSON 문자열로 변환합니다.
+     * =========================================================
+     */
+    public String getDetailImagesJson() {
+
+        if (detailImagePathList == null
+                || detailImagePathList.isEmpty()) {
+
+            return "[]";
+        }
+
+        StringBuilder jsonBuilder = new StringBuilder("[");
+
+        for (int i = 0; i < detailImagePathList.size(); i++) {
+
+            if (i > 0) {
+                jsonBuilder.append(",");
+            }
+
+            String imagePath = detailImagePathList.get(i);
+
+            String escapedImagePath = imagePath == null
+                    ? ""
+                    : imagePath
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            .replace("\r", "\\r")
+                            .replace("\n", "\\n");
+
+            jsonBuilder
+                    .append("\"")
+                    .append(escapedImagePath)
+                    .append("\"");
+        }
+
+        jsonBuilder.append("]");
+
+        return jsonBuilder.toString();
     }
 
     @Override

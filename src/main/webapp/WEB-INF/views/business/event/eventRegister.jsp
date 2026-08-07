@@ -186,26 +186,36 @@
                 <!-- 이벤트 이미지 -->
                 <div class="form-group">
 
-                    <label class="form-label"
-                           for="eventImage">
+                    <label class="form-label">
                         이벤트 이미지
                     </label>
 
-                    <div class="file-box">
+                    <div class="file-box event-image-file-box">
+
+                        <%-- =====================================================
+                            [이벤트 이미지 파일 선택 영역 수정]
+                            실제 file input은 숨기고 지정된 버튼 영역을
+                            클릭했을 때만 파일 선택창이 열리도록 수정합니다.
+                        ===================================================== --%>
+                        <label for="eventImage"
+                            class="event-image-select-button">
+                            파일 선택
+                        </label>
 
                         <input type="file"
-                               id="eventImage"
-                               name="eventImage"
-                               accept=".jpg,.jpeg,.png,.gif,.webp">
+                            id="eventImage"
+                            name="eventImage"
+                            class="event-image-hidden-input"
+                            accept=".jpg,.jpeg,.png,.gif,.webp">
 
-                        <span id="eventImageFileName">
+                        <span id="eventImageFileName"
+                            class="event-image-file-name">
                             선택된 파일 없음
                         </span>
 
                     </div>
 
                 </div>
-
                 <!-- 버튼 -->
                 <div class="submit-stack">
 

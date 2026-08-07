@@ -320,6 +320,7 @@ const contextPath =
                                                 data-actor-no="${product.actorNo}"
                                                 data-description="${fn:escapeXml(product.description)}"
                                                 data-image-path="${fn:escapeXml(product.imagePath)}"
+                                                data-detail-images="${fn:escapeXml(product.detailImagesJson)}"
                                                 onclick="openProductUpdateModal(this)">
                                             수정 요청
                                         </button>
@@ -496,11 +497,6 @@ const contextPath =
                            name="productNo"
                            value="">
 
-                    <input type="hidden"
-                           id="existingImagePath"
-                           name="imagePath"
-                           value="">
-
                     <div class="form-group">
 
                         <label class="form-label" for="productName">상품명</label>
@@ -652,23 +648,167 @@ const contextPath =
 
                     </div>
 
+                    <%-- =====================================================
+                        [상품 수정 이미지]
+
+                        1. 기본 이미지
+                        - 현재 등록된 기본 이미지 파일명을 표시합니다.
+                        - 새 이미지를 선택하면 선택한 파일명으로 변경됩니다.
+
+                        2. 세부 이미지
+                        - 현재 등록된 세부 이미지 파일명 목록을 표시합니다.
+                        - 새 세부 이미지를 선택하면 기존 세부 이미지를 교체합니다.
+
+                        3. 브라우저 기본 file input은 숨기고 사용자 정의 버튼을 사용하여
+                        "선택된 파일 없음" 문구가 잘리는 문제를 방지합니다.
+                    ===================================================== --%>
+
                     <div class="form-group">
 
-                        <label class="form-label" for="productImage">상품 이미지</label>
+                        <label class="form-label" for="productImage">
+                            상품 기본 이미지
+                        </label>
 
-                        <div class="file-box">
+                        <%--
+                            현재 등록된 기본 이미지 전체 경로를 저장합니다.
 
+                            화면에는 전체 경로가 아니라 JavaScript에서 추출한
+                            파일명만 표시합니다.
+                        --%>
+                        <input type="hidden"
+                            id="existingImagePath"
+                            name="imagePath"
+                            value="">
+
+                        <div class="custom-file-row">
+
+                            <label for="productImage"
+                                class="custom-file-button">
+                                파일 선택
+                            </label>
+
+                            <%--
+                                실제 파일 입력창은 CSS에서 숨깁니다.
+                            --%>
                             <input type="file"
-                                   id="productImage"
-                                   name="productImage"
-                                   accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
-                                   onchange="updateFileName(this);">
+                                id="productImage"
+                                name="productImage"
+                                class="custom-file-input"
+                                accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                                onchange="updateFileName(this);">
 
-                            <span id="selectedFileName">선택된 파일 없음</span>
+                            <%--
+                                수정 모달을 열 때 JavaScript에서 현재 등록된
+                                기본 이미지 파일명으로 변경합니다.
+                            --%>
+                            <span id="selectedFileName"
+                                class="custom-file-name"
+                                title="">
+                                등록된 기본 이미지 없음
+                            </span>
 
                         </div>
 
-                        <p class="form-help">새 이미지를 선택하지 않으면 기존 이미지가 그대로 유지됩니다.</p>
+                        <p class="form-help">
+                            새 이미지를 선택하지 않으면 현재 등록된 기본 이미지가 그대로 유지됩니다.
+                        </p>
+
+                    </div>
+
+
+                    <%-- =====================================================
+                        상품 세부 이미지 수정 영역
+                    ===================================================== --%>
+                    <div class="form-group">
+
+                        <div class="detail-image-label-row">
+
+                            <label class="form-label">
+                                세부 이미지 변경
+                                <span class="optional-text">(선택)</span>
+                            </label>
+
+                            <%--
+                                세부 이미지 입력창 추가 버튼
+                            --%>
+                            <button type="button"
+                                    id="addUpdateDetailImageBtn"
+                                    class="detail-image-add-btn"
+                                    aria-label="세부 이미지 입력 추가">
+                                +
+                            </button>
+
+                        </div>
+
+                        <%-- =================================================
+                            현재 등록된 세부 이미지 파일명 표시 영역
+
+                            수정 모달을 열 때 JavaScript에서 기존 세부 이미지 경로를
+                            전달받아 파일명 목록을 이 영역에 출력합니다.
+
+                            기존 세부 이미지가 없으면
+                            "등록된 세부 이미지 없음"을 표시합니다.
+                        ================================================= --%>
+                        <div class="existing-detail-image-area">
+
+                            <div class="existing-detail-image-title">
+                                현재 등록된 세부 이미지
+                            </div>
+
+                            <div id="existingDetailImageList"
+                                class="existing-detail-image-list">
+
+                                <span class="existing-detail-image-empty">
+                                    등록된 세부 이미지 없음
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <%-- =================================================
+                            새 세부 이미지 파일 입력 영역
+
+                            하나 이상의 파일을 선택하면 기존 세부 이미지를 삭제하고
+                            새로 선택한 이미지들로 교체합니다.
+                        ================================================= --%>
+                        <div id="updateDetailImageContainer"
+                            class="detail-image-input-list">
+
+                            <div class="detail-image-input-row">
+
+                                <div class="custom-file-row update-detail-file-row">
+
+                                    <%--
+                                        label과 input을 연결하기 위해 첫 번째 입력창에는
+                                        고유 ID를 지정합니다.
+                                    --%>
+                                    <label for="updateDetailImage0"
+                                        class="custom-file-button">
+                                        파일 선택
+                                    </label>
+
+                                    <input type="file"
+                                        id="updateDetailImage0"
+                                        name="detailImages"
+                                        class="custom-file-input update-detail-image-input"
+                                        accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+
+                                    <span class="update-detail-file-name custom-file-name"
+                                        title="">
+                                        선택된 파일 없음
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <p class="form-help">
+                            새 세부 이미지를 하나 이상 선택하면 기존 세부 이미지는 선택한 이미지들로 교체됩니다.
+                            선택하지 않으면 현재 등록된 세부 이미지가 그대로 유지됩니다.
+                        </p>
 
                     </div>
 
