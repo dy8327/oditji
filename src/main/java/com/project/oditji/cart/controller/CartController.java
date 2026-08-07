@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.project.oditji.cart.service.CartService;
 import com.project.oditji.common.util.ApiResponseUtil;
 import com.project.oditji.common.util.LoginMemberUtil;
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.cart.vo.CartItemVO;
 import com.project.oditji.cart.vo.CartRequestVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -42,7 +45,10 @@ public class CartController {
 
     // 장바구니 목록 화면
     @GetMapping
-    public String cart(HttpSession session, Model model) {
+    public String cart(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            HttpSession session,
+            Model model) {
 
         MemberVO loginMember = LoginMemberUtil.getLoginMember(session);
 
@@ -60,7 +66,12 @@ public class CartController {
             }
         }
 
-        model.addAttribute("cartItemList", cartItemList);
+        PageVO pageVO = PaginationUtil.createPage(page, 5, cartItemList.size());
+
+        // [추가] 장바구니 합계는 전체 상품 기준으로 유지하고, 화면 목록만 페이지별로 표시합니다.
+        model.addAttribute("cartItemList", PaginationUtil.slice(cartItemList, pageVO));
+        model.addAttribute("cartTotalCount", cartItemList.size());
+        model.addAttribute("pageVO", pageVO);
         model.addAttribute("totalPrice", totalPrice);
 
         return "cart/cart";
@@ -153,6 +164,7 @@ public class CartController {
                 "장바구니 상품 삭제 중 오류 - cartItemNo: "
                         + requestVO.getCartItemNo());
     }
+
     // 선택한 장바구니 상품 삭제
     @PostMapping("/delete-selected")
     @ResponseBody
@@ -172,6 +184,7 @@ public class CartController {
                 "선택 상품 삭제 중 오류가 발생했습니다.",
                 "선택한 장바구니 상품 삭제 중 오류");
     }
+
     // 헤더나 다른 화면에서 사용할 장바구니 개수
     @GetMapping("/count")
     @ResponseBody
@@ -191,7 +204,6 @@ public class CartController {
 
         return response;
     }
-
 
     private Map<String, Object> executeDelete(
             MemberVO loginMember,
