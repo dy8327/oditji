@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.oditji.business.dao.BusinessDAO;
@@ -1378,7 +1380,9 @@ public class BusinessServiceImpl
         public void updateProduct(
                         GoodsManageVO goodsManageVO,
                         MultipartFile productImage,
-                        MultipartFile[] detailImages) {
+                        MultipartFile[] detailImages,
+                        boolean deleteMainImage,
+                        String[] deletedDetailImagePaths) {
 
                 if (goodsManageVO == null) {
 
@@ -1408,6 +1412,35 @@ public class BusinessServiceImpl
 
                         throw new IllegalStateException(
                                         "삭제 요청 중인 상품은 수정할 수 없습니다.");
+                }
+
+                /*
+                 * [상품 이미지 개별 삭제 추가]
+                 * 클라이언트가 보낸 경로를 그대로 신뢰하지 않고, DB에 실제 등록된
+                 * 현재 상품의 세부 이미지 경로와 대조한 값만 삭제 대상으로 사용합니다.
+                 */
+                List<String> existingDetailImagePaths = businessDAO.selectProductDetailImagePathList(
+                                goodsManageVO.getProductNo());
+
+                Set<String> requestedDeletedDetailImagePathSet = new HashSet<String>();
+
+                if (deletedDetailImagePaths != null) {
+                        for (String deletedDetailImagePath : deletedDetailImagePaths) {
+                                if (deletedDetailImagePath != null
+                                                && existingDetailImagePaths.contains(deletedDetailImagePath)) {
+                                        requestedDeletedDetailImagePathSet.add(deletedDetailImagePath);
+                                }
+                        }
+                }
+
+                int selectedNewDetailImageCount = countSelectedDetailImages(detailImages);
+                int remainingDetailImageCount = existingDetailImagePaths.size()
+                                - requestedDeletedDetailImagePathSet.size()
+                                + selectedNewDetailImageCount;
+
+                if (remainingDetailImageCount > 10) {
+                        throw new IllegalArgumentException(
+                                        "상품 세부 이미지는 삭제 후 새로 추가한 이미지를 포함해 최대 10장까지 등록할 수 있습니다.");
                 }
 
                 validateProduct(
@@ -1440,6 +1473,9 @@ public class BusinessServiceImpl
                  */
                 List<Path> savedPhysicalPathList = new ArrayList<Path>();
 
+                /* DB 작업이 모두 성공한 뒤 실제 기존 파일을 삭제하기 위한 목록입니다. */
+                List<Path> oldPhysicalPathListToDelete = new ArrayList<Path>();
+
                 try {
 
                         int updateResult = businessDAO.updateProduct(
@@ -1459,7 +1495,9 @@ public class BusinessServiceImpl
                                         goodsManageVO);
 
                         /*
-                         * 새 이미지가 선택된 경우에만 이미지 정보를 변경한다.
+                         * [상품 기본 이미지 개별 삭제 추가]
+                         * 새 기본 이미지가 선택되면 기존 대표 이미지 경로를 교체하고,
+                         * 선택하지 않은 상태에서 X 삭제 예약이 있으면 대표 이미지 행을 삭제합니다.
                          */
                         if (productImage != null
                                         && !productImage.isEmpty()) {
@@ -1482,10 +1520,6 @@ public class BusinessServiceImpl
                                 int imageUpdateResult = businessDAO.updateProductMainImage(
                                                 goodsManageVO);
 
-                                /*
-                                 * 기존 대표 이미지가 없는 상품이면
-                                 * 새로운 대표 이미지 행을 등록한다.
-                                 */
                                 if (imageUpdateResult == 0) {
 
                                         int imageInsertResult = businessDAO.insertProductImage(
@@ -1497,19 +1531,51 @@ public class BusinessServiceImpl
                                                                 "상품 대표 이미지 수정에 실패했습니다.");
                                         }
                                 }
+
+                                Path oldMainImagePhysicalPath = resolveProductImagePhysicalPath(
+                                                existingProduct.getImagePath());
+
+                                if (oldMainImagePhysicalPath != null) {
+                                        oldPhysicalPathListToDelete.add(oldMainImagePhysicalPath);
+                                }
+
+                        } else if (deleteMainImage) {
+
+                                businessDAO.deleteProductMainImageByProductNo(
+                                                goodsManageVO.getProductNo());
+
+                                Path oldMainImagePhysicalPath = resolveProductImagePhysicalPath(
+                                                existingProduct.getImagePath());
+
+                                if (oldMainImagePhysicalPath != null) {
+                                        oldPhysicalPathListToDelete.add(oldMainImagePhysicalPath);
+                                }
                         }
 
                         /*
-                         * [상품 세부 이미지 수정 추가]
-                         * 새 세부 이미지가 하나 이상 선택된 경우에만 기존 세부 이미지를
-                         * 삭제하고 새 이미지로 교체합니다. 선택된 파일이 없으면 기존 이미지를 유지합니다.
+                         * [상품 세부 이미지 개별 삭제 추가]
+                         * X를 누른 기존 이미지만 DB에서 삭제하고, 새로 선택한 이미지는
+                         * 남아 있는 기존 이미지 뒤에 추가합니다. 더 이상 전체 교체하지 않습니다.
                          */
+                        for (String deletedDetailImagePath : requestedDeletedDetailImagePathSet) {
+
+                                int deletedImageCount = businessDAO.deleteProductDetailImageByPath(
+                                                goodsManageVO.getProductNo(),
+                                                deletedDetailImagePath);
+
+                                if (deletedImageCount == 1) {
+                                        Path deletedPhysicalPath = resolveProductImagePhysicalPath(
+                                                        deletedDetailImagePath);
+
+                                        if (deletedPhysicalPath != null) {
+                                                oldPhysicalPathListToDelete.add(deletedPhysicalPath);
+                                        }
+                                }
+                        }
+
                         if (hasSelectedDetailImage(detailImages)) {
 
                                 validateDetailImages(detailImages);
-
-                                businessDAO.deleteProductDetailImagesByProductNo(
-                                                goodsManageVO.getProductNo());
 
                                 saveDetailProductImages(
                                                 goodsManageVO.getProductNo(),
@@ -1531,6 +1597,14 @@ public class BusinessServiceImpl
 
                         throw e;
                 }
+
+                /*
+                 * DB 트랜잭션이 실제 커밋된 뒤에만 기존 파일을 삭제합니다.
+                 * 이후 알림 저장 등에서 예외가 발생해 롤백될 때 원본 파일이 먼저
+                 * 사라지는 문제를 막습니다.
+                 */
+                registerProductImageFilesForDeletionAfterCommit(
+                                oldPhysicalPathListToDelete);
 
                 notificationService.createForAdmins(
                                 "PRODUCT_REQUEST",
@@ -2767,6 +2841,93 @@ public class BusinessServiceImpl
          * 상품 등록 또는 수정 실패 시 저장된 이미지 삭제
          * =========================================================
          */
+        /*
+         * [상품 이미지 개별 삭제 추가]
+         * 기존 이미지 파일은 DB 변경이 커밋된 뒤에만 삭제합니다.
+         */
+        private void registerProductImageFilesForDeletionAfterCommit(
+                        List<Path> physicalPathList) {
+
+                if (physicalPathList == null || physicalPathList.isEmpty()) {
+                        return;
+                }
+
+                List<Path> deletionTargetList = new ArrayList<Path>(physicalPathList);
+
+                if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+                        for (Path deletionTarget : deletionTargetList) {
+                                deleteSavedFileQuietly(deletionTarget);
+                        }
+                        return;
+                }
+
+                TransactionSynchronizationManager.registerSynchronization(
+                                new TransactionSynchronization() {
+                                        @Override
+                                        public void afterCommit() {
+                                                for (Path deletionTarget : deletionTargetList) {
+                                                        deleteSavedFileQuietly(deletionTarget);
+                                                }
+                                        }
+                                });
+        }
+
+        /*
+         * [상품 이미지 개별 삭제 추가]
+         * 실제 선택된 새 세부 이미지 수를 계산합니다.
+         */
+        private int countSelectedDetailImages(
+                        MultipartFile[] detailImages) {
+
+                if (detailImages == null) {
+                        return 0;
+                }
+
+                int selectedCount = 0;
+
+                for (MultipartFile detailImage : detailImages) {
+                        if (detailImage != null && !detailImage.isEmpty()) {
+                                selectedCount++;
+                        }
+                }
+
+                return selectedCount;
+        }
+
+        /*
+         * [상품 이미지 개별 삭제 추가]
+         * /uploads/product/파일명 형태의 웹 경로를 실제 상품 업로드 경로로 변환합니다.
+         * 경로 순회 문자열이나 상품 업로드 폴더 밖의 경로는 삭제하지 않습니다.
+         */
+        private Path resolveProductImagePhysicalPath(
+                        String imageWebPath) {
+
+                if (imageWebPath == null || imageWebPath.isBlank()) {
+                        return null;
+                }
+
+                String normalizedWebPath = imageWebPath.replace('\\', '/');
+                String productWebPrefix = "/uploads/product/";
+
+                if (!normalizedWebPath.startsWith(productWebPrefix)) {
+                        return null;
+                }
+
+                String fileName = normalizedWebPath.substring(productWebPrefix.length());
+
+                if (fileName.isBlank() || fileName.contains("/")) {
+                        return null;
+                }
+
+                Path physicalPath = productUploadDirectory.resolve(fileName).normalize();
+
+                if (!physicalPath.startsWith(productUploadDirectory)) {
+                        return null;
+                }
+
+                return physicalPath;
+        }
+
         private void deleteSavedFileQuietly(
                         Path savedPhysicalPath) {
 
