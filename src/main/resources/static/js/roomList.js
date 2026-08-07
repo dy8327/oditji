@@ -1,4 +1,7 @@
-import { db } from "./firebase-config.js";
+import {
+    db,
+    ensureFirebaseChatAuth
+} from "./firebase-config.js?v=2";
 
 import {
     collection,
@@ -266,6 +269,8 @@ document.addEventListener("DOMContentLoaded", function() {
      * 카드 전체를 클릭해도 입장/참가 버튼과 같은 동작을 하도록 합니다.
      * (버튼 클릭은 위에서 stopPropagation 하므로 중복 호출되지 않습니다.)
      */
+    const readableRoomCards = [];
+
     roomCards.forEach(function(card) {
 
         card.addEventListener("click", function() {
@@ -277,8 +282,22 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        listenLastMessage(card.dataset.roomId);
+        if (card.dataset.firestoreReadable === "true") {
+            readableRoomCards.push(card);
+        }
     });
+
+    if (readableRoomCards.length > 0) {
+        ensureFirebaseChatAuth(contextPath)
+            .then(function() {
+                readableRoomCards.forEach(function(card) {
+                    listenLastMessage(card.dataset.roomId);
+                });
+            })
+            .catch(function(error) {
+                console.error("채팅방 최근 메시지 인증 실패:", error);
+            });
+    }
 
     /*
      * room.jsp(embed) 에서 "목록으로"를 눌렀을 때 중앙 패널을 초기화합니다.

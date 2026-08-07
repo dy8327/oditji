@@ -186,7 +186,8 @@
                 <!-- 이벤트 이미지 -->
                 <div class="form-group">
 
-                    <label class="form-label">
+                    <%-- [SonarQube 접근성] 제목 라벨을 실제 파일 입력과 연결합니다. --%>
+                    <label for="eventImage" class="form-label">
                         이벤트 이미지
                     </label>
 

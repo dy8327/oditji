@@ -379,9 +379,10 @@ const savedTmdbActorId =
                 <div class="form-group">
 
                     <div class="detail-image-label-row">
-                        <span class="form-label detail-image-label">
+                        <%-- [SonarQube 접근성] 첫 번째 파일 입력에 id를 부여하고 라벨과 연결합니다. --%>
+                        <label for="detailImage0" class="form-label detail-image-label">
                             세부 이미지 등록 (선택)
-                        </span>
+                        </label>
 
                         <%-- [추가] + 버튼을 누르면 독립된 파일 입력창을 한 줄씩 추가한다. --%>
                         <button type="button"
@@ -396,6 +397,7 @@ const savedTmdbActorId =
 
                         <div class="detail-image-row">
                             <input type="file"
+                                   id="detailImage0"
                                    class="detail-image-input"
                                    name="detailImages"
                                    accept=".jpg,.jpeg,.png,.gif,.webp,image/*">

@@ -20,8 +20,9 @@
 
 <main id="mainContent" class="main">
     <section class="event-section">
-        <div class="event-list-heading">
+        <div class="event-list-heading event-list-heading--${period}">
             <div>
+                <p class="event-eyebrow">ODITJI EVENT</p>
                 <h1 class="section-title">${periodTitle}</h1>
                 <p class="section-description">${periodDescription}</p>
                 <p class="event-count">

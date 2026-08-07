@@ -666,15 +666,15 @@
             <div class="refund-search-field refund-date-field">
                 <label for="historyStartDate">조회 기간</label>
 
-                <div class="refund-quick-range"
-                     role="group"
-                     aria-label="조회 기간 빠른 선택">
+                <%-- [SonarQube 접근성] role="group" 대신 의미가 명확한 fieldset을 사용합니다. --%>
+                <fieldset class="refund-quick-range"
+                          aria-label="조회 기간 빠른 선택">
                     <button type="button" class="refund-quick-btn" data-range="all">전체</button>
                     <button type="button" class="refund-quick-btn" data-range="7">1주일</button>
                     <button type="button" class="refund-quick-btn" data-range="30">1개월</button>
                     <button type="button" class="refund-quick-btn" data-range="90">3개월</button>
                     <button type="button" class="refund-quick-btn" data-range="180">6개월</button>
-                </div>
+                </fieldset>
 
                 <div class="refund-date-range">
                     <input id="historyStartDate" type="date" name="startDate" value="${param.startDate}">

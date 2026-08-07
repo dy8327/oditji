@@ -8,6 +8,9 @@
   --event-border: rgba(255, 255, 255, 0.08);
   --event-text-dim: #999;
   --event-accent: #e50914;
+
+  --event-glass-bg: rgba(255, 255, 255, 0.045);
+  --event-glass-border: rgba(255, 255, 255, 0.1);
 }
 
 /* =========================
@@ -31,6 +34,45 @@
   padding-bottom: 28px;
 
   border-bottom: 1px solid var(--event-border);
+}
+
+/*
+  카드/히어로와 동일한 기준(진행 중 = 레드, 예정 = 블루, 종료 = 그레이)으로
+  상단 "ODITJI EVENT" 아이브로우 색상도 맞춘다.
+*/
+.event-list-heading--ongoing {
+  --event-period-color: #e50914;
+}
+
+.event-list-heading--upcoming {
+  --event-period-color: #3b82f6;
+}
+
+.event-list-heading--ended {
+  --event-period-color: #8a8a8a;
+}
+
+.event-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 12px;
+
+  color: var(--event-period-color, var(--event-accent));
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.event-eyebrow::before {
+  content: "";
+
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+
+  background: var(--event-period-color, var(--event-accent));
 }
 
 .section-title {
@@ -224,6 +266,65 @@
   font-weight: 700;
 }
 
+.event-dday-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+
+  padding: 6px 12px;
+
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.event-dday-badge:empty {
+  display: none;
+}
+
+.event-dday-badge.is-urgent {
+  background: var(--event-accent);
+  border-color: rgba(255, 255, 255, 0.3);
+  animation: event-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes event-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(229, 9, 20, 0); }
+}
+
+.event-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+
+  height: 4px;
+
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.event-progress::after {
+  content: "";
+  display: block;
+
+  height: 100%;
+  width: var(--event-progress, 0%);
+
+  background: linear-gradient(90deg, var(--event-period-color, var(--event-accent)), #fff2);
+  background: var(--event-period-color, var(--event-accent));
+
+  transition: width 0.6s ease;
+}
+
 .event-info {
   padding: 20px 22px 24px;
 }
@@ -278,6 +379,341 @@
 .event-card:hover .event-card-cta {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* =========================
+   EVENT SPOTLIGHT (리스트 상단 대표 배너)
+========================= */
+
+.event-spotlight {
+  position: relative;
+
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+
+  margin-bottom: 40px;
+
+  border: 1px solid var(--event-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+/*
+  [수정] 스포트라이트가 "진행 중 1개 + 예정 1개"를 담는 자동 슬라이더로
+  바뀌면서, period 색상 변수는 섹션 전체가 아니라 슬라이드별로 갖는다.
+  메인화면(index.jsp)의 .hero-slides / .hero-slide 크로스페이드 패턴과
+  동일한 구조: 슬라이드들을 담는 래퍼가 실제 비율/높이를 갖고, 각
+  슬라이드는 그 안에서 position:absolute로 겹쳐진 채 opacity로 전환된다.
+*/
+.event-spotlight-slides {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  background: #151515;
+}
+
+.event-spotlight-slide {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.event-spotlight-slide.is-active {
+  z-index: 1;
+  opacity: 1;
+}
+
+.event-spotlight-slide:not(.is-active) {
+  pointer-events: none;
+}
+
+.event-spotlight-slide--ongoing {
+  --event-period-color: #e50914;
+}
+
+.event-spotlight-slide--upcoming {
+  --event-period-color: #3b82f6;
+}
+
+.event-spotlight-link {
+  position: relative;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  text-decoration: none;
+  color: #fff;
+}
+
+.event-spotlight-media {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #151515;
+  overflow: hidden;
+}
+
+.event-spotlight-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  transition: transform 0.6s ease;
+}
+
+.event-spotlight-link:hover .event-spotlight-media img {
+  transform: scale(1.035);
+}
+
+.no-img--spotlight {
+  width: 100%;
+  height: 100%;
+}
+
+.event-spotlight-scrim {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.55) 42%, rgba(0, 0, 0, 0.1) 75%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 55%);
+}
+
+.event-spotlight-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 40px 44px;
+  max-width: 720px;
+}
+
+.event-spotlight-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 14px;
+  margin-bottom: 16px;
+
+  background: var(--event-period-color, var(--event-accent));
+  background: color-mix(in srgb, var(--event-period-color, var(--event-accent)) 80%, transparent);
+  border-radius: 999px;
+
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.event-spotlight-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+
+  animation: event-pulse-dot 1.4s ease-in-out infinite;
+}
+
+@keyframes event-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.event-spotlight-title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+
+  margin-bottom: 10px;
+
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-spotlight-date {
+  color: #d8d8d8;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.event-spotlight-desc {
+  color: #c9c9c9;
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin-bottom: 22px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-spotlight-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.event-spotlight-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 13px 24px;
+
+  background: #fff;
+  border-radius: 999px;
+
+  color: #111;
+  font-size: 14px;
+  font-weight: 800;
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.event-spotlight-link:hover .event-spotlight-cta {
+  transform: translateX(2px);
+  box-shadow: 0 10px 26px rgba(255, 255, 255, 0.18);
+}
+
+/* =========================
+   EVENT SPOTLIGHT NAV / DOTS
+   (슬라이드가 2개 이상일 때만 렌더링됨)
+========================= */
+
+.event-spotlight-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+
+  background: rgba(10, 10, 10, 0.45);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+
+  transform: translateY(-50%);
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.event-spotlight-nav:hover {
+  background: rgba(10, 10, 10, 0.75);
+}
+
+.event-spotlight-nav-prev {
+  left: 16px;
+}
+
+.event-spotlight-nav-next {
+  right: 16px;
+}
+
+.event-spotlight-dots {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  z-index: 4;
+
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.event-spotlight-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+
+  transition: background-color 0.2s ease, width 0.2s ease;
+}
+
+.event-spotlight-dot.is-active {
+  width: 22px;
+  background: #fff;
+}
+
+.event-spotlight-nav:focus-visible,
+.event-spotlight-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* =========================
+   COUNTDOWN (스포트라이트 · 상세 히어로 공용)
+========================= */
+
+.event-countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.event-countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 54px;
+  padding: 8px 4px 7px;
+
+  background: var(--event-glass-bg);
+  border: 1px solid var(--event-glass-border);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+.event-countdown-unit strong {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.event-countdown-unit em {
+  margin-top: 3px;
+
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--event-text-dim);
+}
+
+.event-countdown-ended {
+  padding: 9px 16px;
+
+  background: var(--event-glass-bg);
+  border: 1px solid var(--event-glass-border);
+  border-radius: 999px;
+
+  color: #ddd;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* =========================
@@ -371,9 +807,11 @@
 }
 
 .event-hero-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 
-  padding: 6px 14px;
+  padding: 6px 8px 6px 14px;
   margin-bottom: 16px;
 
   background: linear-gradient(135deg, var(--event-period-color, #e50914), var(--event-period-color, #b0060f));
@@ -383,6 +821,20 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.event-hero-dday {
+  padding: 3px 10px;
+
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.event-hero-dday:empty {
+  display: none;
 }
 
 .event-hero-title {
@@ -401,6 +853,7 @@
   gap: 8px;
 
   padding: 8px 16px;
+  margin-bottom: 20px;
 
   background: rgba(28, 28, 28, 0.65);
   backdrop-filter: blur(8px);
@@ -411,39 +864,237 @@
   font-size: 14px;
 }
 
+.event-countdown--hero {
+  /* 부모 .event-countdown-progress-wrap 안에서 실제 박스 4개
+     콘텐츠 폭만큼만 차지하도록 한다(전체 폭으로 늘어나지 않게).
+     JS가 이 요소의 실제 렌더 폭을 읽어 진행률 바 폭에 그대로
+     맞추기 때문에, 여기서 폭이 부풀려지면 진행률 바도 같이
+     부풀려진다. */
+  width: fit-content;
+  margin-bottom: 18px;
+}
+
+.event-progress--hero {
+  position: relative;
+  inset: auto;
+  display: block;
+
+  /* 실제 폭은 JS가 카운트다운 박스 줄(.event-countdown--hero)의
+     렌더 폭을 측정해 인라인 width(px)로 정확히 맞춰준다. 여기서는
+     max-width로 그 값을 다시 잘라내지 않도록 상한을 두지 않는다. */
+  width: 100%;
+  height: 5px;
+
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.event-progress--hero::after {
+  border-radius: 999px;
+}
+
+/* =========================
+   EVENT HERO PRODUCTS JUMP (히어로 배너 우측 하단 빠른이동 버튼)
+========================= */
+
+.event-hero-products-jump {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 16px 12px 12px;
+  border-radius: 999px;
+
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+
+  color: #fff;
+  text-decoration: none;
+
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-hero-products-jump:hover {
+  background: rgba(32, 32, 32, 0.75);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+}
+
+.event-hero-products-jump-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, var(--event-period-color, #e50914), var(--event-period-color, #b0060f));
+  color: #fff;
+}
+
+.event-hero-products-jump-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.event-hero-products-jump-count {
+  padding: 2px 8px;
+
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.event-hero-products-jump-arrow {
+  color: rgba(255, 255, 255, 0.75);
+  transition: transform 0.2s ease;
+}
+
+.event-hero-products-jump:hover .event-hero-products-jump-arrow {
+  transform: translateX(3px);
+  color: #fff;
+}
+
+/*
+  히어로/상품 섹션과 동일한 기준(진행 중 = 레드, 예정 = 블루, 종료 = 그레이)으로
+  안내 섹션의 아이콘·배지 색상을 맞춘다.
+*/
+.event-description-section--ongoing {
+  --event-period-color: #e50914;
+  --event-period-border: rgba(229, 9, 20, 0.35);
+  --event-period-shadow: rgba(229, 9, 20, 0.35);
+}
+
+.event-description-section--upcoming {
+  --event-period-color: #3b82f6;
+  --event-period-border: rgba(59, 130, 246, 0.4);
+  --event-period-shadow: rgba(59, 130, 246, 0.35);
+}
+
+.event-description-section--ended {
+  --event-period-color: #8a8a8a;
+  --event-period-border: rgba(138, 138, 138, 0.4);
+  --event-period-shadow: rgba(138, 138, 138, 0.3);
+}
+
 .event-description-section {
   background: var(--event-bg-card);
   border: 1px solid var(--event-border);
   border-radius: 16px;
 
-  padding: 28px 32px;
+  padding: 28px 32px 32px;
   margin-bottom: 48px;
 }
 
-.event-description-section h2 {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 14px;
-
+.event-description-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
+
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid var(--event-border);
 }
 
-.event-description-section h2::before {
-  content: "";
+.event-description-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 
-  width: 4px;
-  height: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, var(--event-period-color, var(--event-accent)), var(--event-period-color, var(--event-accent)));
+  box-shadow: 0 8px 20px var(--event-period-shadow, rgba(229, 9, 20, 0.35));
+
+  color: #fff;
+}
+
+.event-description-heading-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-description-heading-text h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.event-description-heading-text p {
+  margin-top: 3px;
+
+  color: var(--event-text-dim);
+  font-size: 13.5px;
+}
+
+.event-description-badge {
+  flex-shrink: 0;
+
+  padding: 7px 16px;
   border-radius: 999px;
 
-  background: var(--event-accent);
+  background: color-mix(in srgb, var(--event-period-color, var(--event-accent)) 16%, transparent);
+  border: 1px solid var(--event-period-border, rgba(229, 9, 20, 0.35));
+
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.event-description-body {
+  position: relative;
+
+  padding: 22px 26px;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--event-border);
+}
+
+.event-description-body::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  width: 3px;
+  border-radius: 999px;
+
+  background: linear-gradient(to bottom, var(--event-period-color, var(--event-accent)), transparent);
 }
 
 .event-description-text {
+  max-width: 760px;
+
   color: #ddd;
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 1.8;
 
   white-space: pre-line;
   word-break: break-word;
@@ -453,29 +1104,101 @@
    EVENT PRODUCT
 ========================= */
 
-.product-section h2 {
+/*
+  리스트/스포트라이트/히어로와 동일한 기준(진행 중 = 레드, 예정 = 블루,
+  종료 = 그레이)으로 상품 카드에 마우스를 올렸을 때의 강조색을 맞춘다.
+*/
+.product-section--ongoing {
+  --event-period-color: #e50914;
+  --event-period-border: rgba(229, 9, 20, 0.35);
+  --event-period-shadow: rgba(229, 9, 20, 0.35);
+}
+
+.product-section--upcoming {
+  --event-period-color: #3b82f6;
+  --event-period-border: rgba(59, 130, 246, 0.4);
+  --event-period-shadow: rgba(59, 130, 246, 0.35);
+}
+
+.product-section--ended {
+  --event-period-color: #8a8a8a;
+  --event-period-border: rgba(138, 138, 138, 0.4);
+  --event-period-shadow: rgba(138, 138, 138, 0.3);
+}
+
+.product-section {
+  background: var(--event-bg-card);
+  border: 1px solid var(--event-border);
+  border-radius: 16px;
+
+  padding: 28px 32px 32px;
+}
+
+.product-section-heading {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 14px;
 
-  font-size: 24px;
-  font-weight: 800;
-
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
 
   border-bottom: 1px solid var(--event-border);
 }
 
-.product-count {
+.product-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, var(--event-period-color, #e50914), var(--event-period-color, #b0060f));
+  box-shadow: 0 8px 20px var(--event-period-shadow, rgba(229, 9, 20, 0.35));
+
+  color: #fff;
+}
+
+.product-section-heading-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-section-heading-text h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.product-section-heading-text p {
+  margin-top: 3px;
+
   color: var(--event-text-dim);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13.5px;
+}
+
+.product-count {
+  flex-shrink: 0;
+
+  padding: 7px 16px;
+  border-radius: 999px;
+
+  background: color-mix(in srgb, var(--event-period-color, #e50914) 16%, transparent);
+  border: 1px solid var(--event-period-border, rgba(229, 9, 20, 0.35));
+
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* 상품이 몇 개 없을 때 카드가 화면 폭만큼 과하게 늘어나 보이지
+     않도록, 1fr 대신 고정 상한(240px)을 둔다. 카드 크기가 상품
+     개수와 무관하게 항상 일정하게 유지된다. */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
   gap: 22px;
 }
 
@@ -484,6 +1207,8 @@
   border: 1px solid var(--event-border);
   border-radius: 14px;
   overflow: hidden;
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 
   text-decoration: none;
   color: #fff;
@@ -496,8 +1221,15 @@
 
 .product-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(229, 9, 20, 0.35);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  border-color: var(--event-period-border, rgba(229, 9, 20, 0.35));
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--event-period-shadow, transparent) inset;
+}
+
+.product-card:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 .product-image {
@@ -505,6 +1237,8 @@
 
   width: 100%;
   aspect-ratio: 3 / 4;
+
+  overflow: hidden;
 }
 
 .product-image img {
@@ -512,6 +1246,46 @@
   height: 100%;
 
   object-fit: cover;
+
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.06);
+}
+
+.product-card-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 16px;
+
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 55%);
+
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.product-card:hover .product-card-overlay {
+  opacity: 1;
+}
+
+.product-card-overlay-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 8px 16px;
+
+  background: #fff;
+  border-radius: 999px;
+
+  color: #111;
+  font-size: 12.5px;
+  font-weight: 800;
 }
 
 .product-discount-badge {
@@ -523,6 +1297,7 @@
 
   background: var(--event-accent);
   border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(229, 9, 20, 0.45);
 
   color: #fff;
   font-size: 12px;
@@ -542,6 +1317,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  transition: color 0.2s ease;
+}
+
+.product-card:hover .product-info h3 {
+  color: var(--event-period-color, var(--event-accent));
 }
 
 .product-info p {
@@ -563,8 +1344,8 @@
   gap: 8px;
 
   color: #fff !important;
-  font-size: 16px !important;
-  font-weight: 700;
+  font-size: 17px !important;
+  font-weight: 800;
 }
 
 .discount-rate {
@@ -574,10 +1355,38 @@
 }
 
 /* =========================
+   SECTION REVEAL (상세 페이지 섹션 등장 효과)
+========================= */
+
+.will-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.will-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .will-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =========================
    EMPTY
 ========================= */
 
 .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
   color: var(--event-text-dim);
 
   padding: 70px 20px;
@@ -588,6 +1397,10 @@
   border-radius: 14px;
 
   font-size: 15px;
+}
+
+.empty svg {
+  opacity: 0.5;
 }
 
 /* =========================
@@ -605,12 +1418,115 @@
     font-size: 24px;
   }
 
-  .product-section h2 {
-    font-size: 20px;
+  .product-section-heading {
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+  }
+
+  .product-section-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .product-section-heading-text h2 {
+    font-size: 19px;
+  }
+
+  .product-section-heading-text p {
+    display: none;
+  }
+
+  .product-count {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .product-section {
+    padding: 22px 20px;
   }
 
   .event-description-section {
     padding: 22px 20px;
+  }
+
+  .event-description-heading {
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+  }
+
+  .event-description-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .event-description-heading-text h2 {
+    font-size: 19px;
+  }
+
+  .event-description-heading-text p {
+    display: none;
+  }
+
+  .event-description-badge {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .event-description-body {
+    padding: 18px 18px 18px 20px;
+  }
+
+  .event-spotlight-slides {
+    aspect-ratio: 4 / 5;
+  }
+
+  .event-spotlight-content {
+    padding: 26px 22px;
+    max-width: 100%;
+  }
+
+  .event-spotlight-title {
+    font-size: 24px;
+  }
+
+  .event-spotlight-desc {
+    display: none;
+  }
+
+  .event-countdown-unit {
+    min-width: 46px;
+    padding: 6px 3px 5px;
+  }
+
+  .event-countdown-unit strong {
+    font-size: 16px;
+  }
+
+  .event-hero-products-jump {
+    right: 18px;
+    bottom: 18px;
+    padding: 9px 14px 9px 9px;
+    gap: 8px;
+  }
+
+  .event-hero-products-jump-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* 진행률 바(및 제목 등 하단 콘텐츠)가 우측 하단에 떠 있는 상품
+     빠른이동 버튼과 겹치지 않도록, 콘텐츠 영역 오른쪽에 버튼 폭만큼
+     여백을 확보한다. */
+  .event-hero-content {
+    padding-right: 132px;
+  }
+
+  .event-progress--hero {
+    max-width: 100%;
   }
 }
 
@@ -620,18 +1536,64 @@
     align-items: flex-start;
   }
 
+  .event-hero {
+    min-height: 0;
+  }
+
   .event-hero,
   .event-hero-image {
-    height: 260px;
-    min-height: 260px;
+    height: 340px;
+    min-height: 340px;
   }
 
   .event-hero-content {
-    padding: 24px 20px;
+    padding: 24px 84px 24px 20px;
   }
 
   .event-hero-title {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .event-hero-products-jump {
+    right: 14px;
+    bottom: 14px;
+    padding: 8px 12px 8px 8px;
+    gap: 6px;
+  }
+
+  .event-hero-products-jump-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .event-hero-products-jump-text {
+    font-size: 0;
+    gap: 0;
+  }
+
+  .event-hero-products-jump-count {
+    font-size: 11px;
+  }
+
+  .event-hero .event-period {
+    margin-bottom: 14px;
+  }
+
+  .event-countdown--hero {
+    margin-bottom: 14px;
+  }
+
+  .event-countdown-unit {
+    min-width: 42px;
+    padding: 6px 2px 5px;
+  }
+
+  .event-countdown-unit strong {
+    font-size: 15px;
+  }
+
+  .event-countdown-unit em {
+    font-size: 9px;
   }
 
   .event-description-section {
@@ -684,6 +1646,13 @@
     left: 8px;
     padding: 4px 10px;
     font-size: 10px;
+  }
+
+  .event-dday-badge {
+    top: 8px;
+    right: 8px;
+    padding: 4px 9px;
+    font-size: 9px;
   }
 
   .event-card-desc {
@@ -783,5 +1752,65 @@
     min-height: 40px;
     padding: 0 15px;
     font-size: 13px;
+  }
+}
+
+/* =========================
+   EVENT SPOTLIGHT: 모바일 가로 스크롤
+   메인화면 히어로와 동일하게, 좁은 화면에서는 opacity 크로스페이드
+   대신 스와이프로 직접 넘겨보는 가로 스크롤 목록으로 전환한다.
+   화살표/점 내비게이션은 스와이프와 중복되므로 숨기고, JS 자동재생도
+   이 구간에서는 동작하지 않는다(event.js의 isSpotlightMobileViewport 참고).
+========================= */
+@media (max-width: 767px) {
+
+  .event-spotlight-slides {
+    position: relative;
+
+    display: flex;
+    aspect-ratio: auto;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .event-spotlight-slides::-webkit-scrollbar {
+    display: none;
+  }
+
+  .event-spotlight-slide {
+    position: relative;
+    inset: auto;
+
+    flex: 0 0 100%;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+
+    opacity: 1;
+    scroll-snap-align: start;
+    transition: none;
+  }
+
+  .event-spotlight-slide:not(.is-active) {
+    pointer-events: auto;
+  }
+
+  /* 화살표는 스와이프와 중복이라 계속 숨기지만, 인디케이터(점)는
+     지금 몇 번째 슬라이드인지, 총 몇 장인지 보여주는 역할을 하므로
+     모바일에서도 노출한다(자동 재생도 이 구간부터 함께 켠다). */
+  .event-spotlight-nav {
+    display: none;
+  }
+
+  /* 메인화면(index.jsp) 히어로와 동일하게, 모바일에서는 하단이 다른
+     UI(퀵내비/CTA 등)와 겹칠 수 있어 점 인디케이터를 좌측 상단으로
+     옮긴다(hero-dots의 900px/600px 구간 동작과 동일한 패턴). */
+  .event-spotlight-dots {
+    top: 16px;
+    left: 16px;
+    bottom: auto;
+    transform: none;
   }
 }

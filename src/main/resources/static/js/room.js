@@ -4,8 +4,9 @@ import {
     deleteMessage,
     listenMessages,
     formatTime,
+    formatDate,
     getTimestampMillis
-} from "./chat.js";
+} from "./chat.js?v=5";
 
 /**
  * 채팅방 상세 화면의 서버 전달값과 DOM 요소를 초기화합니다.
@@ -460,6 +461,20 @@ document.addEventListener("DOMContentLoaded", function() {
         const minute = String(date.getMinutes()).padStart(2, "0");
 
         return `${year}-${month}-${day} ${hour}:${minute}`;
+    }
+
+    /**
+     * 날짜 구분선을 표시할 때 사용할 연월일 비교값을 만듭니다.
+     * 같은 날짜의 메시지에는 구분선을 한 번만 표시합니다.
+     *
+     * @param {Object} timestamp Firestore Timestamp
+     * @returns {string|null} yyyy-MM-dd 형태의 비교값
+     */
+    function getDateKey(timestamp) {
+
+        const minuteKey = getMinuteKey(timestamp);
+
+        return minuteKey ? minuteKey.substring(0, 10) : null;
     }
 
     /**
@@ -1004,7 +1019,21 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
+        let lastRenderedDateKey = null;
+
         messageList.forEach(function(message, index) {
+
+            const currentDateKey = getDateKey(message.sendTime);
+
+            if (currentDateKey
+                    && currentDateKey !== lastRenderedDateKey) {
+
+                const dateDivider = document.createElement("div");
+                dateDivider.className = "date-divider";
+                dateDivider.textContent = formatDate(message.sendTime);
+                messageArea.appendChild(dateDivider);
+                lastRenderedDateKey = currentDateKey;
+            }
 
             if (message.type === "SYSTEM") {
                 const systemDiv = document.createElement("div");

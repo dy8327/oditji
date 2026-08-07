@@ -1307,7 +1307,14 @@
   position: fixed;
   inset: 0;
 
+  /*
+   * [수정] 모달 하단이 화면 밖으로 잘리는 현상 수정
+   * <dialog>는 기본적으로 height: fit-content라서, height를 명시하지
+   * 않으면 오버레이가 모달 내용물 높이만큼만 생겨 하단이 잘려 보인다.
+   * width처럼 height도 100%로 고정해 항상 뷰포트 전체를 덮게 한다.
+   */
   width: auto;
+  height: 100%;
   max-width: none;
   margin: 0;
   border: 0;

@@ -1,4 +1,7 @@
-import { db } from "./firebase-config.js";
+import {
+    db,
+    ensureFirebaseChatAuth
+} from "./firebase-config.js?v=2";
 
 import {
     collection,
@@ -757,6 +760,8 @@ function initializeHeaderNotification() {
 
         try {
 
+            await ensureFirebaseChatAuth(contextPath);
+
             const response = await fetch(
                 contextPath + "/chat/api/notifications/context",
                 {
@@ -779,6 +784,16 @@ function initializeHeaderNotification() {
 
         } catch (error) {
             console.error("헤더 채팅 알림 초기화 실패:", error);
+
+            roomSubscriptions.forEach(function(subscription) {
+                if (typeof subscription.unsubscribe === "function") {
+                    subscription.unsubscribe();
+                }
+            });
+
+            roomSubscriptions.clear();
+            chatContext = null;
+            updateChatSource();
         }
     }
 

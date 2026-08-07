@@ -1494,49 +1494,28 @@ public class BusinessServiceImpl
                         replaceProductOptions(
                                         goodsManageVO);
 
-                        /*
+                          /*
                          * [상품 기본 이미지 개별 삭제 추가]
                          * 새 기본 이미지가 선택되면 기존 대표 이미지 경로를 교체하고,
                          * 선택하지 않은 상태에서 X 삭제 예약이 있으면 대표 이미지 행을 삭제합니다.
+                         *
+                         * [SonarQube 인지 복잡도 개선]
+                         * 대표 이미지 교체 로직은 별도 메서드로 분리해
+                         * updateProduct의 책임과 중첩 분기를 줄입니다.
                          */
-                        if (productImage != null
-                                        && !productImage.isEmpty()) {
+                        if (productImage != null && !productImage.isEmpty()) {
 
-                                validateProductImage(
-                                                productImage);
-
-                                SavedFileInfo savedFileInfo = saveProductImage(
-                                                productImage);
-
-                                savedPhysicalPathList.add(
-                                                savedFileInfo.physicalPath());
-
-                                goodsManageVO.setImagePath(
-                                                savedFileInfo.webPath());
-
-                                goodsManageVO.setIsMain(
-                                                "Y");
-
-                                int imageUpdateResult = businessDAO.updateProductMainImage(
-                                                goodsManageVO);
-
-                                if (imageUpdateResult == 0) {
-
-                                        int imageInsertResult = businessDAO.insertProductImage(
-                                                        goodsManageVO);
-
-                                        if (imageInsertResult != 1) {
-
-                                                throw new IllegalStateException(
-                                                                "상품 대표 이미지 수정에 실패했습니다.");
-                                        }
-                                }
+                                updateMainProductImageIfSelected(
+                                                goodsManageVO,
+                                                productImage,
+                                                savedPhysicalPathList);
 
                                 Path oldMainImagePhysicalPath = resolveProductImagePhysicalPath(
                                                 existingProduct.getImagePath());
 
                                 if (oldMainImagePhysicalPath != null) {
-                                        oldPhysicalPathListToDelete.add(oldMainImagePhysicalPath);
+                                        oldPhysicalPathListToDelete.add(
+                                                        oldMainImagePhysicalPath);
                                 }
 
                         } else if (deleteMainImage) {
@@ -1548,7 +1527,8 @@ public class BusinessServiceImpl
                                                 existingProduct.getImagePath());
 
                                 if (oldMainImagePhysicalPath != null) {
-                                        oldPhysicalPathListToDelete.add(oldMainImagePhysicalPath);
+                                        oldPhysicalPathListToDelete.add(
+                                                        oldMainImagePhysicalPath);
                                 }
                         }
 
@@ -1614,6 +1594,55 @@ public class BusinessServiceImpl
                                 "/admin/product/list?tab=waiting",
                                 REFERENCE_TYPE_PRODUCT,
                                 goodsManageVO.getProductNo());
+        }
+
+        /*
+         * [SonarQube 인지 복잡도 개선]
+         * 상품 수정 중 대표 이미지 교체 처리만 분리한다.
+         */
+        private void updateMainProductImageIfSelected(
+                        GoodsManageVO goodsManageVO,
+                        MultipartFile productImage,
+                        List<Path> savedPhysicalPathList) {
+
+                if (productImage == null
+                                || productImage.isEmpty()) {
+                        return;
+                }
+
+                validateProductImage(
+                                productImage);
+
+                SavedFileInfo savedFileInfo = saveProductImage(
+                                productImage);
+
+                savedPhysicalPathList.add(
+                                savedFileInfo.physicalPath());
+
+                goodsManageVO.setImagePath(
+                                savedFileInfo.webPath());
+
+                goodsManageVO.setIsMain(
+                                "Y");
+
+                int imageUpdateResult = businessDAO.updateProductMainImage(
+                                goodsManageVO);
+
+                /*
+                 * 기존 대표 이미지가 없는 상품이면
+                 * 새로운 대표 이미지 행을 등록한다.
+                 */
+                if (imageUpdateResult == 0) {
+
+                        int imageInsertResult = businessDAO.insertProductImage(
+                                        goodsManageVO);
+
+                        if (imageInsertResult != 1) {
+
+                                throw new IllegalStateException(
+                                                "상품 대표 이미지 수정에 실패했습니다.");
+                        }
+                }
         }
 
         /*
