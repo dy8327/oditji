@@ -93,6 +93,18 @@ class SearchContentPageCacheServiceTest {
     }
 
     @Test
+    void mainNewShouldSortByReleaseDateDescendingAndNormalizeLimit() {
+        List<SearchResultVO> result = service.getMainNewContent(3);
+
+        assertEquals(3, result.size());
+        assertEquals("미래 공개", result.get(0).getTitle());
+        assertEquals("오늘 공개", result.get(1).getTitle());
+        assertEquals("신규 드라마", result.get(2).getTitle());
+        assertTrue(service.getMainNewContent(0).isEmpty());
+        assertEquals(7, service.getMainNewContent(100).size());
+    }
+
+    @Test
     void contentPageShouldSearchTitleDirectorAndCast() {
         SearchResultPageVO titlePage = service.getContentPage(
                 "인기",
