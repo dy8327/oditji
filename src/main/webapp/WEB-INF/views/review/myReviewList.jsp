@@ -24,6 +24,8 @@
         src="${pageContext.request.contextPath}/js/review.js">
 </script>
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
+    <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
 </head>
 
 <body>
@@ -66,38 +68,39 @@
 
 			<c:choose>
 
-				<c:when test="${not empty reviewList}">
+				<c:when test="${allReviewCount > 0}">
 
 					<div class="mypage-review-tabs">
 
-						<button type="button"
-								class="review-tab active"
-								data-type="ALL">
-							전체 (<span id="allCount">0</span>)
-						</button>
+						<a class="review-tab ${reviewType eq 'ALL' ? 'active' : ''}"
+						   href="${pageContext.request.contextPath}/review/myReviewList?type=ALL&page=1">
+							전체 (${allReviewCount})
+						</a>
 
-						<button type="button"
-								class="review-tab"
-								data-type="CONTENT">
-							콘텐츠 리뷰 (<span id="contentCount">0</span>)
-						</button>
+						<a class="review-tab ${reviewType eq 'CONTENT' ? 'active' : ''}"
+						   href="${pageContext.request.contextPath}/review/myReviewList?type=CONTENT&page=1">
+							콘텐츠 리뷰 (${contentReviewCount})
+						</a>
 
-						<button type="button"
-								class="review-tab"
-								data-type="PRODUCT">
-							상품 리뷰 (<span id="productCount">0</span>)
-						</button>
+						<a class="review-tab ${reviewType eq 'PRODUCT' ? 'active' : ''}"
+						   href="${pageContext.request.contextPath}/review/myReviewList?type=PRODUCT&page=1">
+							상품 리뷰 (${productReviewCount})
+						</a>
 
 					</div>
 
-					<div class="mypage-review-filter-empty" style="display:none;">
+					<div class="mypage-review-filter-empty" style="${empty reviewList ? 'display:block;' : 'display:none;'}">
 
 						<div class="mypage-empty-icon">
 							📝
 						</div>
 
 						<h3 class="mypage-filter-empty-title">
-							선택한 유형의 리뷰가 없습니다.
+							<c:choose>
+								<c:when test="${reviewType eq 'CONTENT'}">아직 작성한 콘텐츠 리뷰가 없습니다.</c:when>
+								<c:when test="${reviewType eq 'PRODUCT'}">아직 작성한 상품 리뷰가 없습니다.</c:when>
+								<c:otherwise>작성한 리뷰가 없습니다.</c:otherwise>
+							</c:choose>
 						</h3>
 
 						<p class="mypage-filter-empty-message">
@@ -233,6 +236,13 @@
 						</c:forEach>
 
 					</div>
+
+					<nav class="oditji-pagination"
+						 data-pagination
+						 data-current-page="${pageVO.currentPage}"
+						 data-total-page="${pageVO.totalPage}"
+						 data-page-param="page"
+						 aria-label="내 리뷰 페이지"></nav>
 
 				</c:when>
 
