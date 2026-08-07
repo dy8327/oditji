@@ -259,7 +259,10 @@
 }
 
 .content-age-rating-badge.is-unknown {
+  width: 32px;
+  border-radius: 999px;
   background: #555c66;
+  font-size: 8.5px;
 }
 
 /* 조회수 - 연령등급 뱃지 옆에 가볍게 텍스트로 붙는 형태.

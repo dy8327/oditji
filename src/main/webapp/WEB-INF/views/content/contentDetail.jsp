@@ -116,58 +116,15 @@
 
         <div class="info-box">
 
-            <%--
-                연령등급 뱃지 (콘텐츠 목록 카드의 .content-age-rating-badge와
-                동일한 컴포넌트/클래스를 재사용해 등급 표기를 통일한다.
-                recommendCard.jsp의 뱃지 분기 로직과 동일)
-            --%>
-            <c:set var="ageBadgeLabel" value="?"/>
-            <c:set var="ageBadgeClass" value="unknown"/>
-            <c:set var="ageBadgeTitle" value="등급 정보 없음"/>
-
-            <c:choose>
-                <c:when test="${content.ageRating eq '전체 관람가'}">
-                    <c:set var="ageBadgeLabel" value="ALL"/>
-                    <c:set var="ageBadgeClass" value="all"/>
-                    <c:set var="ageBadgeTitle" value="전체 관람가"/>
-                </c:when>
-
-                <c:when test="${content.ageRating eq '7세 이상 관람가'}">
-                    <c:set var="ageBadgeLabel" value="7"/>
-                    <c:set var="ageBadgeClass" value="age7"/>
-                    <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
-                </c:when>
-
-                <c:when test="${content.ageRating eq '12세 이상 관람가'}">
-                    <c:set var="ageBadgeLabel" value="12"/>
-                    <c:set var="ageBadgeClass" value="age12"/>
-                    <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
-                </c:when>
-
-                <c:when test="${content.ageRating eq '15세 이상 관람가'}">
-                    <c:set var="ageBadgeLabel" value="15"/>
-                    <c:set var="ageBadgeClass" value="age15"/>
-                    <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
-                </c:when>
-
-                <c:when test="${content.ageRating eq '청소년 관람불가'}">
-                    <c:set var="ageBadgeLabel" value="19"/>
-                    <c:set var="ageBadgeClass" value="adult"/>
-                    <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
-                </c:when>
-            </c:choose>
-
             <div class="title-row">
 
                 <h1 class="title">
                     ${content.title}
                 </h1>
 
-                <span class="content-age-rating-badge is-${ageBadgeClass}"
-                      title="${ageBadgeTitle}"
-                      aria-label="${ageBadgeTitle}">
-                    ${ageBadgeLabel}
-                </span>
+                <common:ageRatingBadge ageRating="${content.ageRating}"
+                                       outerClass="content-age-rating-badge"
+                                       mode="flat" />
 
                 <%--
                     [수정] 조회수 뱃지를 평점 영역(score-box)에서
@@ -338,7 +295,7 @@
                                class="ott-platform-item"
                                target="_blank"
                                rel="noopener noreferrer"
-                               aria-label="${ott.platformName}에서 ${content.title} 검색">
+                               aria-label="<common:platformDisplayName platformName='${ott.platformName}'/>에서 ${content.title} 검색">
 
                                 <span class="ott-platform-logo-wrap">
 
@@ -365,7 +322,7 @@
                                 </span>
 
                                 <span class="ott-platform-name">
-                                    ${ott.platformName}
+                                    <common:platformDisplayName platformName="${ott.platformName}"/>
                                 </span>
 
                                 <span class="ott-platform-link-icon"

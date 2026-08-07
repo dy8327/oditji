@@ -166,6 +166,35 @@ public class SearchContentPageCacheService {
     }
 
     /**
+     * 신규 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
+     *
+     * 오늘의 콘텐츠(getMainTodayContent)와 달리 최근 기간으로
+     * 필터링하지 않고, 공개일(releaseDate) 내림차순으로 전체를
+     * 정렬한 뒤 상위 limit개만 사용합니다. 공개일이 같으면
+     * 인기도, 평점 순으로 보조 정렬합니다.
+     */
+    public List<SearchResultVO> getMainNewContent(
+            int limit) {
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        allContentList.sort(
+                createLatestComparator()
+        );
+
+        return limitList(
+                allContentList,
+                limit
+        );
+    }
+
+    /**
      * 추천 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
      *
      * 선택 OTT가 있으면 해당 OTT 콘텐츠만 사용하고,

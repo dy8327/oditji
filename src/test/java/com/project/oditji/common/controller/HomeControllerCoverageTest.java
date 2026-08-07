@@ -47,9 +47,11 @@ class HomeControllerCoverageTest {
     void guestShouldLoadGeneralRecommendationsWithoutMemberPlatformLookup() {
         List<SearchResultVO> popular = List.of(new SearchResultVO());
         List<SearchResultVO> today = List.of(new SearchResultVO());
+        List<SearchResultVO> newContent = List.of(new SearchResultVO());
         List<SearchResultVO> recommended = List.of(new SearchResultVO());
-        when(searchContentPageCacheService.getMainPopularContent(10)).thenReturn(popular);
+        when(searchContentPageCacheService.getMainPopularContent(30)).thenReturn(popular);
         when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(today);
+        when(searchContentPageCacheService.getMainNewContent(20)).thenReturn(newContent);
         when(searchContentPageCacheService.getMainRecommendedContent(List.of(), 20))
                 .thenReturn(recommended);
 
@@ -58,7 +60,9 @@ class HomeControllerCoverageTest {
 
         assertEquals("index", view);
         assertEquals(popular, model.get("popularContentList"));
+        assertEquals(List.of(), model.get("popularSectionContentList"));
         assertEquals(today, model.get("todayContentList"));
+        assertEquals(newContent, model.get("newContentList"));
         assertEquals(recommended, model.get("recommendedContentList"));
         assertEquals(List.of(), model.get("selectedPlatformList"));
         assertFalse((Boolean) model.get("personalizedRecommendation"));
@@ -81,8 +85,9 @@ class HomeControllerCoverageTest {
                 platform("Netflix"),
                 tving);
         when(memberPlatformService.findMemberPlatformList(7L)).thenReturn(selected);
-        when(searchContentPageCacheService.getMainPopularContent(10)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainPopularContent(30)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainNewContent(20)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainRecommendedContent(
                 List.of("Netflix", "TVING"),
                 20))
@@ -106,8 +111,9 @@ class HomeControllerCoverageTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("loginMember", member);
         when(memberPlatformService.findMemberPlatformList(8L)).thenReturn(null);
-        when(searchContentPageCacheService.getMainPopularContent(10)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainPopularContent(30)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainNewContent(20)).thenReturn(List.of());
         when(searchContentPageCacheService.getMainRecommendedContent(List.of(), 20))
                 .thenReturn(List.of());
 

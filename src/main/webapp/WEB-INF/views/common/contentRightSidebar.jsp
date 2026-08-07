@@ -3,7 +3,7 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
 
 <!--
     기존 우측 세로 캐러셀을 본문 하단의 가로형 추천 섹션으로 변경했습니다.
@@ -49,72 +49,8 @@
                            begin="0"
                            end="4">
 
-                    <c:url var="recommendDetailUrl"
-                           value="/content/prepare">
-                        <c:param name="tmdbId"
-                                 value="${recommend.tmdbId}"/>
-                        <c:param name="contentType"
-                                 value="${recommend.contentType}"/>
-                    </c:url>
-
-                    <article class="content-recommend-card">
-
-                        <a href="${recommendDetailUrl}"
-                           class="content-recommend-link">
-
-                            <div class="content-recommend-poster">
-
-                                <c:choose>
-                                    <c:when test="${not empty recommend.posterPath}">
-                                        <img src="https://image.tmdb.org/t/p/w342${recommend.posterPath}"
-                                             alt="<c:out value='${recommend.title}'/>"
-                                             loading="lazy">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="content-recommend-no-image">
-                                            NO IMAGE
-                                        </div>
-                                    </c:otherwise>
-                                </c:choose>
-
-                                <span class="content-recommend-type">
-                                    <c:choose>
-                                        <c:when test="${recommend.contentType eq 'MOVIE'}">
-                                            영화
-                                        </c:when>
-                                        <c:otherwise>
-                                            시리즈
-                                        </c:otherwise>
-                                    </c:choose>
-                                </span>
-
-                                <c:if test="${not empty recommend.tmdbScore}">
-                                    <span class="content-recommend-score">
-                                        <span aria-hidden="true">★</span>
-                                        <fmt:formatNumber value="${recommend.tmdbScore}"
-                                                          pattern="0.0"/>
-                                    </span>
-                                </c:if>
-
-                            </div>
-
-                            <div class="content-recommend-info">
-
-                                <strong>
-                                    <c:out value="${recommend.title}"/>
-                                </strong>
-
-                                <c:if test="${not empty recommend.genreText}">
-                                    <span>
-                                        <c:out value="${recommend.genreText}"/>
-                                    </span>
-                                </c:if>
-
-                            </div>
-
-                        </a>
-
-                    </article>
+                    <oditji:contentCard content="${recommend}"
+                                        variant="sidebar" />
 
                 </c:forEach>
 

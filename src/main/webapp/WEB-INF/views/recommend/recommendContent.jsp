@@ -3,6 +3,8 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="recommend" tagdir="/WEB-INF/tags/recommend" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -143,7 +145,7 @@
                                 </div>
 
                                 <div class="ott-recommendation-platform-info">
-                                    <h4>${platform.platformName}</h4>
+                                    <h4><common:platformDisplayName platformName="${platform.platformName}"/></h4>
 
                                     <p class="ott-recommendation-platform-caption">
                                         회원님의 최근 관심 흐름과 잘 맞는 OTT예요.
@@ -259,7 +261,7 @@
                             </c:if>
 
                             <span>
-                                ${platform.platformName}
+                                <common:platformDisplayName platformName="${platform.platformName}"/>
                             </span>
 
                         </div>
@@ -364,7 +366,7 @@
                         <c:forEach var="content"
                                    items="${popularContentList}">
 
-                            <%@ include file="/WEB-INF/views/recommend/recommendCard.jsp" %>
+                            <recommend:recommendCard content="${content}" />
 
                         </c:forEach>
 
@@ -448,7 +450,7 @@
                         <c:forEach var="content"
                                    items="${highRatedContentList}">
 
-                            <%@ include file="/WEB-INF/views/recommend/recommendCard.jsp" %>
+                            <recommend:recommendCard content="${content}" />
 
                         </c:forEach>
 
@@ -533,19 +535,13 @@
                             신작 영역에서만 TV 카드 날짜를 최근 회차 공개일로 표시합니다.
                             다른 추천 영역은 기존 최초 공개일 표시를 그대로 유지합니다.
                         --%>
-                        <c:set var="showRecentEpisodeDate"
-                               value="true"
-                               scope="page"/>
-
                         <c:forEach var="content"
                                    items="${newContentList}">
 
-                            <%@ include file="/WEB-INF/views/recommend/recommendCard.jsp" %>
+                            <recommend:recommendCard content="${content}"
+                                                      showRecentEpisodeDate="true" />
 
                         </c:forEach>
-
-                        <c:remove var="showRecentEpisodeDate"
-                                  scope="page"/>
 
                     </c:when>
 
@@ -600,11 +596,11 @@
                         <div>
 
                             <h2>
-                                ${platformSection.platformName}에서 볼 수 있는 추천
+                                <common:platformDisplayName platformName="${platformSection.platformName}"/>에서 볼 수 있는 추천
                             </h2>
 
                             <p>
-                                ${platformSection.platformName}에서 지금 인기 있는 작품이에요.
+                                <common:platformDisplayName platformName="${platformSection.platformName}"/>에서 지금 인기 있는 작품이에요.
                             </p>
 
                         </div>
@@ -619,7 +615,7 @@
                             class="recommend-slider-btn"
                             data-slider-direction="left"
                             data-slider-target="platformRecommendTrack${sectionStatus.index}"
-                            aria-label="${platformSection.platformName} 추천 이전 목록">
+                            aria-label="<common:platformDisplayName platformName='${platformSection.platformName}'/> 추천 이전 목록">
                         ‹
                     </button>
 
@@ -629,7 +625,7 @@
                         <c:forEach var="content"
                                    items="${platformSection.contentList}">
 
-                            <%@ include file="/WEB-INF/views/recommend/recommendCard.jsp" %>
+                            <recommend:recommendCard content="${content}" />
 
                         </c:forEach>
 
@@ -639,7 +635,7 @@
                             class="recommend-slider-btn"
                             data-slider-direction="right"
                             data-slider-target="platformRecommendTrack${sectionStatus.index}"
-                            aria-label="${platformSection.platformName} 추천 다음 목록">
+                            aria-label="<common:platformDisplayName platformName='${platformSection.platformName}'/> 추천 다음 목록">
                         ›
                     </button>
 
