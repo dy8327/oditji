@@ -103,7 +103,10 @@ a {
 }
 
 .content-age-rating-badge.is-unknown {
+    width: 28px;
+    border-radius: 999px;
     background: #555c66;
+    font-size: 7px;
 }
 
 .selected-platform-section {

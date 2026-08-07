@@ -158,15 +158,7 @@
                                              src="${ott.logoImage}"
                                              alt="${ott.platformName}">
                                         <span>
-                                            <c:choose>
-                                                <c:when test="${ott.platformName eq 'Netflix'}">넷플릭스</c:when>
-                                                <c:when test="${ott.platformName eq 'Disney Plus' or ott.platformName eq 'Disney+'}">디즈니+</c:when>
-                                                <c:when test="${ott.platformName eq 'Tving' or ott.platformName eq 'TVING'}">티빙</c:when>
-                                                <c:when test="${ott.platformName eq 'Wavve' or ott.platformName eq 'wavve'}">웨이브</c:when>
-                                                <c:when test="${ott.platformName eq 'Watcha'}">왓챠</c:when>
-                                                <c:when test="${ott.platformName eq 'Coupangplay' or ott.platformName eq 'Coupang Play'}">쿠팡플레이</c:when>
-                                                <c:otherwise>${ott.platformName}</c:otherwise>
-                                            </c:choose>
+                                            <commonTag:platformDisplayName platformName="${ott.platformName}"/>
                                         </span>
                                     </a>
                                 </c:forEach>

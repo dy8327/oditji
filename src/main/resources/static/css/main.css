@@ -68,7 +68,10 @@ a {
 }
 
 .content-age-rating-badge.is-unknown {
+    width: 28px;
+    border-radius: 999px;
     background: #555c66;
+    font-size: 7px;
 }
 
 /* =========================================================
@@ -639,6 +642,14 @@ a {
 
 .section-eyebrow--today {
     color: #2dd4bf;
+}
+
+.section-eyebrow--popular {
+    color: #ff8a3d;
+}
+
+.section-eyebrow--new {
+    color: #5ea3ff;
 }
 
 .section-eyebrow--recommend {

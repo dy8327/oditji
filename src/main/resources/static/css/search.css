@@ -244,7 +244,8 @@
   font-size: 8px;
 }
 
-.filter-option .age-rating-badge.is-all {
+.filter-option .age-rating-badge.is-all,
+.filter-option .age-rating-badge.is-unknown {
   width: 25px;
   font-size: 6.5px;
 }
@@ -543,7 +544,8 @@
   font-size: 8px;
 }
 
-.active-filter-chip .age-rating-badge.is-all {
+.active-filter-chip .age-rating-badge.is-all,
+.active-filter-chip .age-rating-badge.is-unknown {
   width: 24px;
   font-size: 6.5px;
 }

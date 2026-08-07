@@ -46,7 +46,6 @@
 
                     <div class="header-submenu" role="menu">
                         <div class="header-submenu-heading">콘텐츠 탐색</div>
-                        <a href="${pageContext.request.contextPath}/content/list?type=all" role="menuitem">영화·시리즈</a>
                         <a href="${pageContext.request.contextPath}/content/list?type=popular" role="menuitem">인기</a>
                         <a href="${pageContext.request.contextPath}/content/list?type=new" role="menuitem">신규</a>
                         <a href="${pageContext.request.contextPath}/ranking" role="menuitem">랭킹</a>

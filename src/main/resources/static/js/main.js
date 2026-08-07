@@ -233,7 +233,9 @@ function moveSlider(type, dir) {
     const idMap = {
         today: 'todaySlider',
         rec: 'recSlider',
-        rank: 'rankSlider'
+        rank: 'rankSlider',
+        popular: 'popularSlider',
+        new: 'newSlider'
     };
 
     const targetId = idMap[type] || 'recSlider';
@@ -257,9 +259,32 @@ function scrollTrack(track, direction) {
     const visibleCount = Math.max(1, Math.floor(track.clientWidth / (cardWidth + gap)));
     const step = (cardWidth + gap) * visibleCount;
 
+    /* 오른쪽 끝(또는 왼쪽 끝)에 이미 도달한 상태에서 같은 방향으로 한 번 더
+       누르면, 더 이상 움직이지 못하고 멈춰 있는 대신 반대쪽 끝으로
+       순환 이동한다. (오른쪽 끝 → 다음 → 처음으로, 왼쪽 끝 → 이전 → 마지막으로) */
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+    const edgeTolerance = 1;
+
+    const isAtEnd = maxScrollLeft <= edgeTolerance
+        || track.scrollLeft >= maxScrollLeft - edgeTolerance;
+
+    const isAtStart = track.scrollLeft <= edgeTolerance;
+
+    const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+
+    if (direction > 0 && isAtEnd) {
+        track.scrollTo({ left: 0, behavior: behavior });
+        return;
+    }
+
+    if (direction < 0 && isAtStart) {
+        track.scrollTo({ left: maxScrollLeft, behavior: behavior });
+        return;
+    }
+
     track.scrollBy({
         left: direction * step,
-        behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+        behavior: behavior
     });
 
 }

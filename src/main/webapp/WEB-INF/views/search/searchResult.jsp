@@ -5,6 +5,8 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
+<%@ taglib prefix="oditjiGoods" tagdir="/WEB-INF/tags/goods" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -373,9 +375,16 @@
                         </c:when>
 
                         <c:otherwise>
-                            <c:set var="searchContentItems" value="${allContentResults}" scope="request"/>
-                            <jsp:include page="/WEB-INF/views/search/fragments/contentCardGrid.jsp"/>
-                            <c:remove var="searchContentItems" scope="request"/>
+                            <div class="content-list-card-grid">
+                                <c:forEach var="content" items="${allContentResults}">
+
+                                    <oditji:contentCard content="${content}"
+                                                        variant="grid"
+                                                        releaseDateFormat="full"
+                                                        scorePositiveOnly="true" />
+
+                                </c:forEach>
+                            </div>
                         </c:otherwise>
                     </c:choose>
                 </section>
@@ -407,9 +416,11 @@
                             </section>
                         </c:when>
                         <c:otherwise>
-                            <c:set var="searchGoodsItems" value="${allGoodsResults}" scope="request"/>
-                            <jsp:include page="/WEB-INF/views/search/fragments/goodsCardList.jsp"/>
-                            <c:remove var="searchGoodsItems" scope="request"/>
+                            <section class="card-list">
+                                <c:forEach var="goods" items="${allGoodsResults}">
+                                    <oditjiGoods:goodsCard goods="${goods}" />
+                                </c:forEach>
+                            </section>
                         </c:otherwise>
                     </c:choose>
                 </section>
@@ -441,9 +452,16 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <c:set var="searchContentItems" value="${contentResults}" scope="request"/>
-                        <jsp:include page="/WEB-INF/views/search/fragments/contentCardGrid.jsp"/>
-                        <c:remove var="searchContentItems" scope="request"/>
+                        <div class="content-list-card-grid">
+                            <c:forEach var="content" items="${contentResults}">
+
+                                <oditji:contentCard content="${content}"
+                                                    variant="grid"
+                                                    releaseDateFormat="full"
+                                                    scorePositiveOnly="true" />
+
+                            </c:forEach>
+                        </div>
                     </c:otherwise>
                 </c:choose>
 
@@ -543,9 +561,11 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <c:set var="searchGoodsItems" value="${goodsResults}" scope="request"/>
-                        <jsp:include page="/WEB-INF/views/search/fragments/goodsCardList.jsp"/>
-                        <c:remove var="searchGoodsItems" scope="request"/>
+                        <section class="card-list">
+                            <c:forEach var="goods" items="${goodsResults}">
+                                <oditjiGoods:goodsCard goods="${goods}" />
+                            </c:forEach>
+                        </section>
                     </c:otherwise>
                 </c:choose>
 

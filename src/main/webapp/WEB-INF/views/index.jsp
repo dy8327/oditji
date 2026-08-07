@@ -5,6 +5,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -52,7 +53,7 @@
     <section class="hero"
              id="mainHero"
              aria-roledescription="carousel"
-             aria-label="오디지 추천 배너">
+             aria-label="오딧지 추천 배너">
 
         <div class="hero-slides" id="heroSlides">
 
@@ -92,38 +93,6 @@
                                end="4"
                                varStatus="heroStatus">
 
-                        <c:set var="heroAgeLabel" value="?"/>
-                        <c:set var="heroAgeClass" value="unknown"/>
-                        <c:set var="heroAgeTitle" value="등급 정보 없음"/>
-
-                        <c:choose>
-                            <c:when test="${content.ageRating eq '전체 관람가'}">
-                                <c:set var="heroAgeLabel" value="ALL"/>
-                                <c:set var="heroAgeClass" value="all"/>
-                                <c:set var="heroAgeTitle" value="전체 관람가"/>
-                            </c:when>
-                            <c:when test="${content.ageRating eq '7세 이상 관람가'}">
-                                <c:set var="heroAgeLabel" value="7"/>
-                                <c:set var="heroAgeClass" value="age7"/>
-                                <c:set var="heroAgeTitle" value="7세 이상 관람가"/>
-                            </c:when>
-                            <c:when test="${content.ageRating eq '12세 이상 관람가'}">
-                                <c:set var="heroAgeLabel" value="12"/>
-                                <c:set var="heroAgeClass" value="age12"/>
-                                <c:set var="heroAgeTitle" value="12세 이상 관람가"/>
-                            </c:when>
-                            <c:when test="${content.ageRating eq '15세 이상 관람가'}">
-                                <c:set var="heroAgeLabel" value="15"/>
-                                <c:set var="heroAgeClass" value="age15"/>
-                                <c:set var="heroAgeTitle" value="15세 이상 관람가"/>
-                            </c:when>
-                            <c:when test="${content.ageRating eq '청소년 관람불가'}">
-                                <c:set var="heroAgeLabel" value="19"/>
-                                <c:set var="heroAgeClass" value="adult"/>
-                                <c:set var="heroAgeTitle" value="청소년 관람불가"/>
-                            </c:when>
-                        </c:choose>
-
                         <article class="hero-slide"
                                  data-slide-index="${heroStatus.index + 1}"
                                  aria-hidden="true">
@@ -154,7 +123,7 @@
                             <div class="hero-slide-body">
 
                                 <span class="hero-eyebrow">
-                                    오디지 PICK · <c:out value="${heroEyebrow}"/>
+                                    오딧지 PICK · <c:out value="${heroEyebrow}"/>
                                 </span>
 
                                 <h1 class="hero-slide-title">
@@ -163,10 +132,10 @@
 
                                 <div class="hero-slide-meta">
 
-                                    <span class="content-age-rating-badge is-${heroAgeClass}"
-                                          title="<c:out value='${heroAgeTitle}'/>">
-                                        ${heroAgeLabel}
-                                    </span>
+                                    <common:ageRatingBadge ageRating="${content.ageRating}"
+                                                           outerClass="content-age-rating-badge"
+                                                           mode="flat"
+                                                           showAriaLabel="false" />
 
                                     <span class="hero-meta-chip">
                                         ${content.contentType eq 'MOVIE' ? '영화' : '시리즈'}
@@ -276,7 +245,7 @@
                         class="hero-dot is-active"
                         role="tab"
                         aria-selected="true"
-                        aria-label="오디지 소개 배너로 이동"
+                        aria-label="오딧지 소개 배너로 이동"
                         onclick="goHero(0)"></button>
 
                 <c:forEach var="content"
@@ -313,7 +282,7 @@
                 </h2>
 
                 <p class="section-description">
-                    지금 오디지에서 가장 많이 찾는 콘텐츠
+                    지금 오딧지에서 가장 많이 찾는 콘텐츠
                 </p>
 
             </div>
@@ -378,6 +347,152 @@
                     type="button"
                     aria-label="실시간 인기 콘텐츠 다음 목록"
                     onclick="moveSlider('rank','right')">
+                ›
+            </button>
+
+        </div>
+
+    </section>
+
+    <%-- 신규 콘텐츠: 최근 등록/공개된 콘텐츠를 별도로 노출 --%>
+    <section class="slider-section" id="newSection">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2 class="section-title">
+                    <span class="section-eyebrow section-eyebrow--new">NEW</span>
+                    신규 콘텐츠
+                </h2>
+
+                <p class="section-description">
+                    오딧지에 새로 올라온 콘텐츠
+                </p>
+
+            </div>
+
+            <a href="${pageContext.request.contextPath}/content/list?type=new"
+               class="section-more">
+                더보기 <span aria-hidden="true">›</span>
+            </a>
+
+        </div>
+
+        <div class="slider">
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="신규 콘텐츠 이전 목록"
+                    onclick="moveSlider('new','left')">
+                ‹
+            </button>
+
+            <div class="track"
+                 id="newSlider">
+
+                <c:choose>
+
+                    <c:when test="${not empty newContentList}">
+
+                        <c:forEach var="content"
+                                   items="${newContentList}">
+
+                            <oditji:contentCard content="${content}" variant="main" />
+
+                        </c:forEach>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <div class="slider-empty">
+                            신규 콘텐츠가 없습니다.
+                        </div>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="신규 콘텐츠 다음 목록"
+                    onclick="moveSlider('new','right')">
+                ›
+            </button>
+
+        </div>
+
+    </section>
+
+    <%-- 인기 콘텐츠: 실시간 랭킹과 별개로, 꾸준히 인기 있는 콘텐츠를 일반 카드 형태로 노출 --%>
+    <section class="slider-section" id="popularSection">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2 class="section-title">
+                    <span class="section-eyebrow section-eyebrow--popular">POPULAR</span>
+                    인기 콘텐츠
+                </h2>
+
+                <p class="section-description">
+                    오딧지 이용자들이 꾸준히 찾는 인기 콘텐츠
+                </p>
+
+            </div>
+
+            <a href="${pageContext.request.contextPath}/content/list?type=popular"
+               class="section-more">
+                더보기 <span aria-hidden="true">›</span>
+            </a>
+
+        </div>
+
+        <div class="slider">
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="인기 콘텐츠 이전 목록"
+                    onclick="moveSlider('popular','left')">
+                ‹
+            </button>
+
+            <div class="track"
+                 id="popularSlider">
+
+                <c:choose>
+
+                    <c:when test="${not empty popularSectionContentList}">
+
+                        <c:forEach var="content"
+                                   items="${popularSectionContentList}">
+
+                            <oditji:contentCard content="${content}" variant="main" />
+
+                        </c:forEach>
+
+                    </c:when>
+
+                    <c:otherwise>
+
+                        <div class="slider-empty">
+                            인기 콘텐츠를 불러오지 못했습니다.
+                        </div>
+
+                    </c:otherwise>
+
+                </c:choose>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="인기 콘텐츠 다음 목록"
+                    onclick="moveSlider('popular','right')">
                 ›
             </button>
 

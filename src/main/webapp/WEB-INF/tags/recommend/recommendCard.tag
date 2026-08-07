@@ -1,56 +1,29 @@
-<%@ page language="java"
-         contentType="text/html; charset=UTF-8"
-         pageEncoding="UTF-8" %>
+<%@ tag language="java"
+         pageEncoding="UTF-8"
+         body-content="empty" %>
+
+<%@ attribute name="content"
+              required="true"
+              type="java.lang.Object" %>
+<%@ attribute name="showRecentEpisodeDate"
+              required="false"
+              type="java.lang.Boolean" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <%--
-    추천 콘텐츠 카드 공통 JSP
+    추천 콘텐츠 카드 공통 태그.
 
-    중요:
-    - 이 파일은 recommendContent.jsp에서 정적 include로 포함됩니다.
-    - 연령등급 비교에 한글 문자열을 직접 사용하므로
-      이 JSP 조각 자체에도 UTF-8 pageEncoding을 명시합니다.
+    - recommendContent.jsp의 4개 추천 섹션(인기/오늘의 추천/최근 방영/맞춤 추천)이
+      공유한다. 기존에는 정적 include(recommendCard.jsp)였던 것을 태그로 전환했다.
+    - showRecentEpisodeDate: true면 TV + lastAirDate가 있을 때 "최근 회차"를
+      우선 표시한다(최근 방영 섹션 전용, 기본값 false).
     - content.ageRating 원본 값은 data-age-rating에 남겨
-      개발자 도구에서 실제 전달값을 확인할 수 있습니다.
+      개발자 도구에서 실제 전달값을 확인할 수 있다(common:ageRatingBadge 내부 처리).
 --%>
-
-<c:set var="ageBadgeLabel" value="?"/>
-<c:set var="ageBadgeClass" value="unknown"/>
-<c:set var="ageBadgeTitle" value="등급 정보 없음"/>
-
-<c:choose>
-    <c:when test="${content.ageRating eq '전체 관람가'}">
-        <c:set var="ageBadgeLabel" value="ALL"/>
-        <c:set var="ageBadgeClass" value="all"/>
-        <c:set var="ageBadgeTitle" value="전체 관람가"/>
-    </c:when>
-
-    <c:when test="${content.ageRating eq '7세 이상 관람가'}">
-        <c:set var="ageBadgeLabel" value="7"/>
-        <c:set var="ageBadgeClass" value="age7"/>
-        <c:set var="ageBadgeTitle" value="7세 이상 관람가"/>
-    </c:when>
-
-    <c:when test="${content.ageRating eq '12세 이상 관람가'}">
-        <c:set var="ageBadgeLabel" value="12"/>
-        <c:set var="ageBadgeClass" value="age12"/>
-        <c:set var="ageBadgeTitle" value="12세 이상 관람가"/>
-    </c:when>
-
-    <c:when test="${content.ageRating eq '15세 이상 관람가'}">
-        <c:set var="ageBadgeLabel" value="15"/>
-        <c:set var="ageBadgeClass" value="age15"/>
-        <c:set var="ageBadgeTitle" value="15세 이상 관람가"/>
-    </c:when>
-
-    <c:when test="${content.ageRating eq '청소년 관람불가'}">
-        <c:set var="ageBadgeLabel" value="19"/>
-        <c:set var="ageBadgeClass" value="adult"/>
-        <c:set var="ageBadgeTitle" value="청소년 관람불가"/>
-    </c:when>
-</c:choose>
+<c:set var="resolvedShowRecentEpisodeDate" value="${empty showRecentEpisodeDate ? false : showRecentEpisodeDate}" />
 
 <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
    class="recommend-card">
@@ -89,16 +62,9 @@
 
         </span>
 
-        <span class="recommend-card-age-rating"
-              title="${ageBadgeTitle}"
-              data-age-rating="${fn:escapeXml(content.ageRating)}">
-
-            <span class="content-age-rating-badge is-${ageBadgeClass}"
-                  aria-label="${ageBadgeTitle}">
-                ${ageBadgeLabel}
-            </span>
-
-        </span>
+        <common:ageRatingBadge ageRating="${content.ageRating}"
+                               outerClass="recommend-card-age-rating"
+                               includeDataAgeRating="true" />
 
     </div>
 
@@ -114,7 +80,7 @@
 
                 <c:choose>
 
-                    <c:when test="${showRecentEpisodeDate
+                    <c:when test="${resolvedShowRecentEpisodeDate
                                   and content.contentType eq 'TV'
                                   and not empty content.lastAirDate}">
                         &#52572;&#44540; &#54924;&#52264; <br>

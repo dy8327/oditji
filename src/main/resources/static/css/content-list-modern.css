@@ -379,7 +379,11 @@
 }
 
 .age-rating-badge.is-unknown {
+    width: 27px;
+    border-radius: 999px;
     background: #555c66;
+    font-size: 7px;
+    letter-spacing: 0;
 }
 
 .content-list-poster-age-rating {
@@ -398,7 +402,8 @@
     font-size: 8.5px;
 }
 
-.content-list-poster-age-rating .age-rating-badge.is-all {
+.content-list-poster-age-rating .age-rating-badge.is-all,
+.content-list-poster-age-rating .age-rating-badge.is-unknown {
     width: 28px;
     font-size: 7px;
 }
@@ -733,7 +738,9 @@
 }
 
 .content-filter-option .age-rating-badge.is-all,
-.content-selected-filter-chip .age-rating-badge.is-all {
+.content-selected-filter-chip .age-rating-badge.is-all,
+.content-filter-option .age-rating-badge.is-unknown,
+.content-selected-filter-chip .age-rating-badge.is-unknown {
     width: 24px;
     font-size: 6.5px;
 }
@@ -962,6 +969,48 @@
 
 .content-recommend-type {
     left: 9px;
+}
+
+.content-recommend-type.is-movie {
+    background: rgba(73, 78, 88, 0.88);
+}
+
+.content-recommend-type.is-drama {
+    background: rgba(89, 65, 135, 0.88);
+}
+
+.content-recommend-type.is-animation {
+    background: rgba(37, 102, 112, 0.9);
+}
+
+.content-recommend-type.is-variety {
+    background: rgba(133, 82, 39, 0.9);
+}
+
+.content-recommend-type.is-documentary {
+    background: rgba(45, 74, 118, 0.9);
+}
+
+.content-recommend-age-rating {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-recommend-age-rating .age-rating-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 8px;
+}
+
+.content-recommend-age-rating .age-rating-badge.is-all,
+.content-recommend-age-rating .age-rating-badge.is-unknown {
+    width: 26px;
+    font-size: 6.5px;
 }
 
 .content-recommend-score {
