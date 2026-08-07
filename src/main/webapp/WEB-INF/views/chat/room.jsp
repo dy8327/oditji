@@ -20,7 +20,7 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room.css?v=3">
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=4">
 
 <%-- embed 모드에서 header.jsp(내비게이션 바)는 생략하더라도
      CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는
@@ -161,7 +161,7 @@
 </div>
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js?v=5"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=6"></script>
 
 </body>
 </html>
