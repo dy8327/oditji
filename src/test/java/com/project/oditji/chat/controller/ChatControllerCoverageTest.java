@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,7 +97,7 @@ class ChatControllerCoverageTest {
         ExtendedModelMap myModel = new ExtendedModelMap();
         assertEquals("chat/roomList", controller.myRoomList(session, myModel));
         assertSame(myRooms, myModel.get("roomList"));
-        verify(chatService).getMyChatRoomList(7);
+        verify(chatService, times(2)).getMyChatRoomList(7);
     }
 
     @Test
