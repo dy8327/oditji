@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.project.oditji.content.service.ContentService;
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
@@ -41,8 +43,7 @@ public class FavoriteController {
     private static final Logger log = LoggerFactory.getLogger(FavoriteController.class);
 
     private static final String RESPONSE_ACTIVE = "active";
-    private static final String ADULT_FAVORITE_RESTRICTION_MESSAGE =
-            "성인인증이 필요한 콘텐츠입니다. 성인인증 후 찜해 주세요.";
+    private static final String ADULT_FAVORITE_RESTRICTION_MESSAGE = "성인인증이 필요한 콘텐츠입니다. 성인인증 후 찜해 주세요.";
 
     public FavoriteController(FavoriteService favoriteService, ContentService contentService,
             WishService wishService, VerifyService verifyService) {
@@ -54,7 +55,12 @@ public class FavoriteController {
     }
 
     @GetMapping("/list")
-    public String favoriteList(HttpSession session, Model model) {
+    public String favoriteList(
+            @RequestParam(name = "contentPage", defaultValue = "1") int contentPage,
+            @RequestParam(name = "goodsPage", defaultValue = "1") int goodsPage,
+            @RequestParam(name = "tab", defaultValue = "content") String tab,
+            HttpSession session,
+            Model model) {
 
         MemberVO loginMember = getLoginMember(session);
         if (loginMember == null) {
@@ -62,13 +68,20 @@ public class FavoriteController {
         }
 
         List<ContentVO> contentFavoriteList = favoriteService.selectFavoriteList(loginMember.getMemberNo());
-        List<GoodsVO> goodsFavoriteList =wishService.selectWishList(loginMember.getMemberNo());
+        List<GoodsVO> goodsFavoriteList = wishService.selectWishList(loginMember.getMemberNo());
 
-        model.addAttribute("contentFavoriteList", contentFavoriteList);
+        PageVO contentPageVO = PaginationUtil.createPage(contentPage, 10, contentFavoriteList.size());
+        PageVO goodsPageVO = PaginationUtil.createPage(goodsPage, 8, goodsFavoriteList.size());
+
+        // [추가] 콘텐츠 찜과 상품 찜은 각 탭의 페이지 위치를 독립적으로 유지합니다.
+        model.addAttribute("contentFavoriteList", PaginationUtil.slice(contentFavoriteList, contentPageVO));
+        model.addAttribute("contentPageVO", contentPageVO);
         model.addAttribute("contentCount", contentFavoriteList.size());
-        model.addAttribute("goodsFavoriteList", goodsFavoriteList);
+        model.addAttribute("goodsFavoriteList", PaginationUtil.slice(goodsFavoriteList, goodsPageVO));
+        model.addAttribute("goodsPageVO", goodsPageVO);
         model.addAttribute("goodsCount", goodsFavoriteList.size());
         model.addAttribute("totalFavoriteCount", contentFavoriteList.size() + goodsFavoriteList.size());
+        model.addAttribute("activeTab", "goods".equalsIgnoreCase(tab) ? "goods" : "content");
 
         return "favorite/favoriteList";
     }
@@ -112,19 +125,20 @@ public class FavoriteController {
                     .body(createErrorResult(e.getMessage()));
 
         } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("콘텐츠 찜 처리 중 오류 - contentNo: {}", favoriteVO.getContentNo(), e);
-                }
+            if (log.isErrorEnabled()) {
+                log.error("콘텐츠 찜 처리 중 오류 - contentNo: {}", favoriteVO.getContentNo(), e);
+            }
 
-                return ResponseEntity
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(createErrorResult("찜 처리 중 오류가 발생했습니다."));
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResult("찜 처리 중 오류가 발생했습니다."));
         }
     }
 
     @PostMapping("/toggle-by-tmdb")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> toggleFavoriteByTmdb(@RequestBody FavoriteVO requestVO, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> toggleFavoriteByTmdb(@RequestBody FavoriteVO requestVO,
+            HttpSession session) {
 
         MemberVO loginMember = getLoginMember(session);
 
@@ -162,34 +176,34 @@ public class FavoriteController {
             return ResponseEntity.ok(result);
 
         } catch (AdultFavoriteRestrictedException e) {
-                return ResponseEntity
-                        .status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResult(e.getMessage()));
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(createErrorResult(e.getMessage()));
 
         } catch (IllegalArgumentException e) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(createErrorResult(e.getMessage()));
+            return ResponseEntity
+                    .badRequest()
+                    .body(createErrorResult(e.getMessage()));
 
-                } catch (IllegalStateException e) {
-                if (log.isErrorEnabled()) {
-                        log.error("TMDB 콘텐츠 저장 후 찜 처리 실패 - tmdbId: {}, contentType: {}",
-                                requestVO.getTmdbId(), requestVO.getContentType(), e);
-                }
+        } catch (IllegalStateException e) {
+            if (log.isErrorEnabled()) {
+                log.error("TMDB 콘텐츠 저장 후 찜 처리 실패 - tmdbId: {}, contentType: {}",
+                        requestVO.getTmdbId(), requestVO.getContentType(), e);
+            }
 
-                return ResponseEntity
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
 
-                } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                        log.error("TMDB 콘텐츠 찜 처리 중 오류 - tmdbId: {}, contentType: {}",
-                                requestVO.getTmdbId(), requestVO.getContentType(), e);
-                }
+        } catch (Exception e) {
+            if (log.isErrorEnabled()) {
+                log.error("TMDB 콘텐츠 찜 처리 중 오류 - tmdbId: {}, contentType: {}",
+                        requestVO.getTmdbId(), requestVO.getContentType(), e);
+            }
 
-                return ResponseEntity
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResult("콘텐츠 저장 및 찜 처리 중 오류가 발생했습니다."));
         }
     }
 
