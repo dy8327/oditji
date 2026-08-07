@@ -37,6 +37,7 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.review.vo.ProductReviewVO;
 import com.project.oditji.notification.service.NotificationService;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.search.service.SearchContentStore;
@@ -162,6 +163,18 @@ public class BusinessServiceImpl
                 int waitingProductCount = businessDAO.selectWaitingProductCountByBusinessNo(businessNo);
 
                 /*
+                 * =========================================================
+                 * [사업자 대시보드 최근 현황 조회 추가]
+                 * 최근 주문 / 최근 리뷰 / 평균 상품 리뷰 점수를 조회한다.
+                 * =========================================================
+                 */
+                List<OrderItemVO> recentOrders = businessDAO.selectRecentOrdersByBusinessNo(businessNo);
+
+                List<ProductReviewVO> recentReviews = businessDAO.selectRecentReviewsByBusinessNo(businessNo);
+
+                double averageRating = businessDAO.selectAverageRatingByBusinessNo(businessNo);
+
+                /*
                  * [구매전환율 계산]
                  *
                  * todayOrderCount에는 정상 판매 상태의 수량만 포함되므로
@@ -182,6 +195,17 @@ public class BusinessServiceImpl
                 dashboard.setWaitingSettlement(waitingSettlement);
                 dashboard.setWaitingProductCount(waitingProductCount);
                 dashboard.setPopularProducts(getPopularProducts(businessNo));
+
+                /*
+                 * =========================================================
+                 * [사업자 대시보드 최근 현황 설정 추가]
+                 * =========================================================
+                 */
+                dashboard.setRecentOrders(recentOrders == null ? Collections.emptyList() : recentOrders);
+
+                dashboard.setRecentReviews(recentReviews == null ? Collections.emptyList() : recentReviews);
+
+                dashboard.setAverageRating(averageRating);
 
                 return dashboard;
         }
@@ -1494,7 +1518,7 @@ public class BusinessServiceImpl
                         replaceProductOptions(
                                         goodsManageVO);
 
-                          /*
+                        /*
                          * [상품 기본 이미지 개별 삭제 추가]
                          * 새 기본 이미지가 선택되면 기존 대표 이미지 경로를 교체하고,
                          * 선택하지 않은 상태에서 X 삭제 예약이 있으면 대표 이미지 행을 삭제합니다.
