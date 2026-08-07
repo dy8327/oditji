@@ -648,6 +648,32 @@
     </update>
 
     <!-- =====================================================
+         [상품 이미지 개별 삭제 추가]
+         현재 상품의 대표 이미지 한 건 삭제
+    ====================================================== -->
+    <delete id="deleteProductMainImageByProductNo"
+            parameterType="long">
+
+        DELETE FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+          AND IS_MAIN = 'Y'
+
+    </delete>
+
+    <!-- =====================================================
+         [상품 이미지 개별 삭제 추가]
+         현재 상품에 실제로 연결된 특정 세부 이미지만 삭제
+    ====================================================== -->
+    <delete id="deleteProductDetailImageByPath">
+
+        DELETE FROM PRODUCT_IMAGE
+        WHERE PRODUCT_NO = #{productNo}
+          AND IMAGE_PATH = #{imagePath}
+          AND IS_MAIN = 'N'
+
+    </delete>
+
+    <!-- =====================================================
      상품 기존 세부 이미지 삭제
      대표 이미지는 유지하고 IS_MAIN='N'인 이미지들만 삭제합니다.
     ====================================================== -->
