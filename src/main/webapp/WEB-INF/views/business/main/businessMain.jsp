@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -84,9 +85,11 @@
 
                         </a>
 
-                        <!-- 클릭수 -->
-                        <a href="${pageContext.request.contextPath}/business/goodsManage"
-                        class="dashboard-card">
+                        <!-- =====================================================
+                            [수정] 상품 조회수
+                            단순 현황 표시 카드이므로 페이지 이동 링크 제거
+                        ===================================================== -->
+                        <div class="dashboard-card">
 
                             <span>상품 조회수</span>
 
@@ -94,19 +97,22 @@
                                 ${businessMain.clickCount}회
                             </strong>
 
-                        </a>
+                        </div>
 
-                        <!-- 구매율 -->
-                        <a href="${pageContext.request.contextPath}/business/goodsManage"
-                        class="dashboard-card">
+                        <!-- =====================================================
+                            [수정] 상품 구매율
+                            단순 현황 표시 카드이므로 페이지 이동 링크 제거
+                            구매율은 소수점 첫째 자리까지만 표시
+                        ===================================================== -->
+                        <div class="dashboard-card">
 
                             <span>상품 구매율</span>
 
                             <strong>
-                                ${businessMain.purchaseRate}%
+                                <fmt:formatNumber value="${businessMain.purchaseRate}" pattern="0.0"/>%
                             </strong>
 
-                        </a>
+                        </div>
 
                         <!-- 정산 -->
                         <a href="${pageContext.request.contextPath}/business/settlement/main"
