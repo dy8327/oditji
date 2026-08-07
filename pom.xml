@@ -41,6 +41,9 @@
 
         <!-- 테스트 커버리지 측정용 JaCoCo 안정 버전 -->
         <jacoco.version>0.8.15</jacoco.version>
+
+        <!-- Firebase Custom Token과 Firestore 서버 동기화에 사용합니다. -->
+        <firebase-admin.version>9.10.0</firebase-admin.version>
     </properties>
 
     <dependencies>
@@ -176,6 +179,16 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>1.9.22</version>
+        </dependency>
+
+        <!--
+            ODITJI 세션 로그인 사용자를 Firebase Authentication의
+            Custom Token으로 연결하고 Firestore 권한 문서를 서버에서 관리합니다.
+        -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>${firebase-admin.version}</version>
         </dependency>
 
     </dependencies>

@@ -1,7 +1,10 @@
 package com.project.oditji.chat.controller;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.service.FirebaseChatService;
 import com.project.oditji.chat.support.ChatSessionSupport;
 import com.project.oditji.chat.vo.ChatRoomVO;
 
@@ -26,9 +30,20 @@ public class ChatController {
     private static final String REDIRECT_CHAT_LIST = "redirect:/chat/list";
 
     private final ChatService chatService;
+    private final FirebaseChatService firebaseChatService;
 
-    public ChatController(ChatService chatService) {
+    @Autowired
+    public ChatController(
+            ChatService chatService,
+            FirebaseChatService firebaseChatService) {
+
         this.chatService = chatService;
+        this.firebaseChatService = firebaseChatService;
+    }
+
+    /* 기존 단위 테스트의 직접 생성 방식을 유지합니다. */
+    ChatController(ChatService chatService) {
+        this(chatService, null);
     }
 
     /**
@@ -49,6 +64,11 @@ public class ChatController {
 
         if (admin) {
             roomList = ChatSessionSupport.filterNoticeRooms(roomList);
+        } else {
+            Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
+            markJoinedRooms(
+                    roomList,
+                    chatService.getMyChatRoomList(businessNo));
         }
 
         ChatSessionSupport.addLoginChatAttributes(session, model);
@@ -76,6 +96,8 @@ public class ChatController {
         Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         List<ChatRoomVO> roomList =
                 chatService.getMyChatRoomList(businessNo);
+
+        markJoinedRooms(roomList, roomList);
 
         ChatSessionSupport.addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
@@ -190,6 +212,29 @@ public class ChatController {
             return REDIRECT_CHAT_LIST;
         }
 
+        if (isFirebaseChatEnabled()) {
+            try {
+                firebaseChatService.synchronizeRoom(chatRoom);
+
+                if (!admin) {
+                    Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+
+                    firebaseChatService.addRoomMember(
+                            roomId,
+                            memberNo,
+                            chatBusinessNo,
+                            ChatSessionSupport.getSessionRole(session),
+                            ChatSessionSupport.getChatDisplayName(session));
+                }
+            } catch (IllegalStateException exception) {
+                /*
+                 * Oracle에는 방이 생성되었으므로 목록으로 이동합니다.
+                 * 다음 Firebase 토큰 발급 시 활성 방과 참가 정보가 다시 동기화됩니다.
+                 */
+                return REDIRECT_CHAT_LIST;
+            }
+        }
+
         return "redirect:/chat/room/" + roomId;
     }
 
@@ -228,6 +273,10 @@ public class ChatController {
             return REDIRECT_CHAT_LIST;
         }
 
+        if (isFirebaseChatEnabled()) {
+            firebaseChatService.deactivateRoom(roomId);
+        }
+
         boolean result = chatService.deleteChatRoom(roomId);
 
         if (!result) {
@@ -235,6 +284,40 @@ public class ChatController {
         }
 
         return REDIRECT_CHAT_LIST;
+    }
+
+    private boolean isFirebaseChatEnabled() {
+        return firebaseChatService != null
+                && firebaseChatService.isEnabled();
+    }
+
+    /**
+     * 자유방 목록에 현재 로그인 사업자의 참가 여부를 표시합니다.
+     * 참가하지 않은 자유방은 Firestore 보안 규칙상 최근 메시지도 조회하지 않습니다.
+     */
+    private void markJoinedRooms(
+            List<ChatRoomVO> roomList,
+            List<ChatRoomVO> joinedRoomList) {
+
+        Set<String> joinedRoomIds = new HashSet<>();
+
+        if (joinedRoomList != null) {
+            for (ChatRoomVO joinedRoom : joinedRoomList) {
+                if (joinedRoom != null && joinedRoom.getRoomId() != null) {
+                    joinedRoomIds.add(joinedRoom.getRoomId());
+                }
+            }
+        }
+
+        if (roomList == null) {
+            return;
+        }
+
+        for (ChatRoomVO room : roomList) {
+            if (room != null) {
+                room.setJoined(joinedRoomIds.contains(room.getRoomId()));
+            }
+        }
     }
 
     @GetMapping("/test")

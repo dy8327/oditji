@@ -337,5 +337,5 @@
 
 <c:if test="${not empty sessionScope.loginMember}">
     <script type="module"
-            src="${pageContext.request.contextPath}/js/header-notification.js?v=5"></script>
+            src="${pageContext.request.contextPath}/js/header-notification.js?v=6"></script>
 </c:if>
