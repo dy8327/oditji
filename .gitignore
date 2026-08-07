@@ -39,6 +39,11 @@ build/
 /cache/
 /uploads/
 
+# Firebase 서비스 계정 개인키는 저장소에 올리지 않습니다.
+firebase-service-account*.json
+**/firebase-service-account*.json
+*-firebase-adminsdk-*.json
+**/*-firebase-adminsdk-*.json
 .env
 .env.*
 *.pem
@@ -46,5 +51,4 @@ build/
 *.p12
 *.jks
 serviceAccountKey.json
-firebase-adminsdk*.json
 application-local.properties

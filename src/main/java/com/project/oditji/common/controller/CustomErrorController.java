@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.RequestDispatcher;
@@ -30,16 +31,28 @@ public class CustomErrorController implements ErrorController {
     private static final Logger log = LoggerFactory.getLogger(CustomErrorController.class);
     private static final String VIEW_ERROR_COMMON = "error/common";
 
-    @RequestMapping("${spring.web.error.path:${error.path:/error}}")
+    @RequestMapping(
+            path = "/error",
+            method = {
+                    RequestMethod.GET,
+                    RequestMethod.HEAD,
+                    RequestMethod.POST,
+                    RequestMethod.PUT,
+                    RequestMethod.PATCH,
+                    RequestMethod.DELETE,
+                    RequestMethod.OPTIONS
+            })
     public Object handleError(HttpServletRequest request) {
         HttpStatus status = resolveStatus(request);
         String message = resolveMessage(status);
         String originalUri = resolveOriginalUri(request);
 
         if (status.is5xxServerError()) {
-            Object error = request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-            Throwable exception = error instanceof Throwable throwable ? throwable : null;
-            log.error("서버 오류 응답 - status={}, uri={}", status.value(), originalUri, exception);
+            if (log.isErrorEnabled()) {
+                Object error = request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+                Throwable exception = error instanceof Throwable throwable ? throwable : null;
+                log.error("서버 오류 응답 - status={}, uri={}", status.value(), originalUri, exception);
+            }
         } else if (log.isWarnEnabled()) {
             log.warn("요청 오류 응답 - status={}, uri={}", status.value(), originalUri);
         }
