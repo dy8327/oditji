@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.MyReviewVO;
@@ -35,7 +37,11 @@ public class ReviewController {
      * 마이페이지 내가 작성한 리뷰 목록
      */
     @GetMapping("/myReviewList")
-    public String myReviewList(HttpSession session, Model model) {
+    public String myReviewList(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "type", defaultValue = "ALL") String type,
+            HttpSession session,
+            Model model) {
 
         MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
@@ -43,9 +49,26 @@ public class ReviewController {
             return REDIRECT_MEMBER_LOGIN;
         }
 
-        List<MyReviewVO> reviewList = reviewService.getMyReviewList(loginMember.getMemberNo());
+        List<MyReviewVO> allReviewList = reviewService.getMyReviewList(loginMember.getMemberNo());
+        String normalizedType = "CONTENT".equalsIgnoreCase(type) || "PRODUCT".equalsIgnoreCase(type)
+                ? type.toUpperCase()
+                : "ALL";
 
-        model.addAttribute("reviewList", reviewList);
+        List<MyReviewVO> filteredReviewList = allReviewList.stream()
+                .filter(review -> "ALL".equals(normalizedType)
+                        || normalizedType.equalsIgnoreCase(review.getReviewType()))
+                .toList();
+        PageVO pageVO = PaginationUtil.createPage(page, 5, filteredReviewList.size());
+
+        // [추가] 선택한 리뷰 탭 안에서 페이지 번호가 유지되도록 서버에서 목록을 나눕니다.
+        model.addAttribute("reviewList", PaginationUtil.slice(filteredReviewList, pageVO));
+        model.addAttribute("pageVO", pageVO);
+        model.addAttribute("reviewType", normalizedType);
+        model.addAttribute("allReviewCount", allReviewList.size());
+        model.addAttribute("contentReviewCount", allReviewList.stream()
+                .filter(review -> "CONTENT".equalsIgnoreCase(review.getReviewType())).count());
+        model.addAttribute("productReviewCount", allReviewList.stream()
+                .filter(review -> "PRODUCT".equalsIgnoreCase(review.getReviewType())).count());
 
         return "review/myReviewList";
     }
