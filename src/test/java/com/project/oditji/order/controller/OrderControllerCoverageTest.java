@@ -2,7 +2,7 @@ package com.project.oditji.order.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -304,7 +304,7 @@ class OrderControllerCoverageTest {
     }
 
     @Test
-    void orderListShouldUseTodayAndOrderTabWhenValuesAreMissing() {
+    void orderListShouldLeaveHistoryPeriodEmptyAndUseOrderTabWhenValuesAreMissing() {
         login(9L);
         when(orderService.getOrderCount(9L)).thenReturn(0);
         when(orderService.getOrderList(9L, 1, 3)).thenReturn(List.of());
@@ -312,7 +312,7 @@ class OrderControllerCoverageTest {
                 org.mockito.ArgumentMatchers.eq(9L),
                 org.mockito.ArgumentMatchers.eq("ALL"),
                 org.mockito.ArgumentMatchers.eq("ALL"),
-                org.mockito.ArgumentMatchers.any(LocalDate.class),
+                org.mockito.ArgumentMatchers.isNull(),
                 org.mockito.ArgumentMatchers.isNull()))
                 .thenReturn(List.of());
         ExtendedModelMap model = new ExtendedModelMap();
@@ -320,7 +320,8 @@ class OrderControllerCoverageTest {
         controller.orderList(-5, "ALL", "ALL", null, null, "unknown", session, model);
 
         assertEquals("order", model.get("activeTab"));
-        assertNotNull(model.get("historyStartDate"));
+        assertNull(model.get("historyStartDate"));
+        assertNull(model.get("historyEndDate"));
         PageVO page = (PageVO) model.get("pageVO");
         assertEquals(1, page.getCurrentPage());
         assertEquals(1, page.getTotalPage());

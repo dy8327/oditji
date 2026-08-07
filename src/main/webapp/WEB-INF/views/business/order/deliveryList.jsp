@@ -91,14 +91,18 @@
                                     </c:choose>
                                 </div>
 
-                                <div class="delivery-info-grid">
-                                    <div><span>상품명</span><strong><c:out value="${delivery.productName}"/></strong></div>
-                                    <div><span>수량</span><strong><c:out value="${delivery.quantity}"/>개</strong></div>
-                                    <div><span>판매금액</span><strong><fmt:formatNumber value="${delivery.itemTotalPrice}" pattern="#,###"/>원</strong></div>
-                                    <div><span>주문일</span><strong>${dt:format(delivery.orderCreatedAt, 'yyyy-MM-dd HH:mm')}</strong></div>
-                                    <div><span>수령인</span><strong><c:out value="${delivery.receiverName}"/></strong></div>
-                                    <div><span>연락처</span><strong><c:out value="${delivery.receiverPhone}"/></strong></div>
-                                    <div class="delivery-address"><span>배송지</span><strong><c:out value="${delivery.address}"/></strong></div>
+                                <div class="delivery-info-rows">
+                                    <div class="delivery-info-row">
+                                        <div><span>상품명</span><strong><c:out value="${delivery.productName}"/></strong></div>
+                                        <div><span>수량</span><strong><c:out value="${delivery.quantity}"/>개</strong></div>
+                                        <div><span>결제금액</span><strong><fmt:formatNumber value="${delivery.itemTotalPrice}" pattern="#,###"/>원</strong></div>
+                                        <div><span>주문일</span><strong>${dt:format(delivery.orderCreatedAt, 'yyyy-MM-dd HH:mm')}</strong></div>
+                                    </div>
+                                    <div class="delivery-info-row">
+                                        <div><span>수령인</span><strong><c:out value="${delivery.receiverName}"/></strong></div>
+                                        <div><span>연락처</span><strong><c:out value="${delivery.receiverPhone}"/></strong></div>
+                                        <div class="delivery-address"><span>배송지</span><strong><c:out value="${delivery.address}"/></strong></div>
+                                    </div>
                                 </div>
 
                                 <!-- 운송장 및 배송 상태 변경 폼 -->

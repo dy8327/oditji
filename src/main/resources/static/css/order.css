@@ -1365,11 +1365,12 @@
   align-items: stretch;
   justify-content: center;
   width: 118px;
-  gap: 8px;
+  gap: 9px;
 }
 
 .order-item-actions .review-btn,
-.order-item-actions .item-cancel-btn {
+.order-item-actions .item-cancel-btn,
+.order-item-actions .delivery-detail-btn {
   width: 100%;
   min-width: 0;
   margin: 0;
@@ -1495,15 +1496,29 @@
     flex-direction: column;
   }
 
+  /* [수정] 배송조회/리뷰 버튼 영역이 데스크톱용 고정 폭(118px)을
+     그대로 물려받아 모바일에서 두 버튼이 매우 좁은 폭에 욱여넣어져
+     글자가 세로로 깨져 보이던 문제를 해결한다. flex 대신 grid로
+     바꿔 버튼 개수(1개 또는 2개)에 관계없이 항상 카드 폭 전체를
+     균등하게 나눠 갖도록 한다. */
   .order-item-actions {
-    flex-direction: row;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     width: 100%;
   }
 
   .order-item-actions .review-btn,
   .order-item-actions .item-cancel-btn,
-  .order-item-actions .item-cancel-state {
-    flex: 1;
+  .order-item-actions .item-cancel-state,
+  .order-item-actions .delivery-detail-btn {
+    width: 100%;
+    min-width: 0;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .order-card-footer {
@@ -1763,10 +1778,19 @@
 }
 
 /* =====================================================
-   [배송조회 모달 추가]
+   [배송조회 모달]
    orderList.jsp - 주문 목록의 "배송조회" 버튼을 누르면
    화면 전환 없이 모달로 배송 정보를 보여주기 위한 UI.
-   orderCancelModal(payment-cancel-modal)과 톤을 맞췄다.
+
+   [리팩터링]
+   기존에는 이 모달 하나에 대한 스타일이 파일 여러 군데
+   (구 버전의 "진행바+트럭" 디자인, 그 위에 덧붙여진 두 번의
+   "#deliveryDetailModal" 보완 패치)로 흩어져 있었고, 서로 다른
+   시점에 만들어진 트럭 아이콘 규칙들이 충돌하면서 아이콘이
+   깨져 보이고, 헤더(z-index: 9999)보다 모달(z-index: 1000)이
+   낮아 모달 상단(제목/닫기 버튼)이 헤더에 가려 화면을 침범하는
+   것처럼 보이는 문제가 있었다. 모든 규칙을 이 한 곳으로 모으고
+   중복/충돌하던 부분을 정리했다.
 ====================================================== */
 
 .delivery-detail-modal {
@@ -1774,8 +1798,17 @@
 
   position: fixed;
   inset: 0;
-  z-index: 1000;
-  width: auto;
+  /* 헤더(.header)가 z-index: 9999 이므로 모달이 그 뒤로 가려지지
+     않도록 항상 더 높은 값을 사용한다. */
+  z-index: 10000;
+  /* [수정] <dialog>는 브라우저 기본 스타일로 width/height가
+     fit-content로 지정되어 있다. width만 auto로 덮어쓰고 height를
+     그대로 두면, 오버레이 높이가 뷰포트가 아니라 모달 내용물
+     높이만큼만 생겨서(= 모달 박스 바로 아래부터 오버레이가 사라져)
+     하단이 잘린 것처럼 보인다. width/height 모두 명시적으로
+     100%를 줘서 항상 뷰포트 전체를 덮도록 고정한다. */
+  width: 100%;
+  height: 100%;
   max-width: none;
   margin: 0;
   border: 0;
@@ -1784,9 +1817,10 @@
   align-items: center;
   justify-content: center;
 
-  padding: 20px;
+  padding: 24px 16px;
 
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(8, 8, 9, 0.72);
+  backdrop-filter: blur(3px);
 }
 
 .delivery-detail-modal.open {
@@ -1796,17 +1830,35 @@
 .delivery-detail-modal-content {
   box-sizing: border-box;
   width: 100%;
-  max-width: 480px;
-  max-height: 85vh;
+  max-width: 440px;
+  /* 뷰포트가 아무리 작아도 모달이 화면 밖으로 넘치지 않도록
+     상하 여백을 감안한 높이로 제한하고, 넘치는 내용은 모달
+     내부에서만 스크롤되게 한다. */
+  max-height: min(85vh, 720px);
 
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
 
-  padding: 24px;
+  padding: 26px 24px 24px;
 
   border: 1px solid var(--oditji-border);
-  border-radius: var(--oditji-radius-lg);
+  border-radius: 18px;
   background: var(--oditji-surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  animation: oditji-modal-pop 0.22s var(--oditji-ease);
+}
+
+@keyframes oditji-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .delivery-detail-modal-header {
@@ -1814,21 +1866,37 @@
   align-items: center;
   justify-content: space-between;
 
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+
+  border-bottom: 1px solid var(--oditji-border);
 }
 
 .delivery-detail-modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   color: var(--oditji-text);
   font-family: var(--font-body);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
 }
 
+.delivery-detail-modal-header h2::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 .delivery-detail-modal-close {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
 
   border: none;
+  border-radius: 999px;
   background: transparent;
 
   color: var(--oditji-text-muted);
@@ -1837,10 +1905,13 @@
 
   cursor: pointer;
 
-  transition: color 0.2s var(--oditji-ease);
+  transition:
+    background 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
 }
 
 .delivery-detail-modal-close:hover {
+  background: var(--oditji-surface-raised);
   color: var(--oditji-text);
 }
 
@@ -1848,75 +1919,24 @@
   margin: 0;
 }
 
-/* 배송 진행 상태 - 트럭 아이콘이 진행률에 따라 이동하는 바 형태 */
+/* -----------------------------------------------------
+   배송 진행 단계 (주문 확인중 → 배송 준비 중 → 배송 중 → 배송 완료)
+   원형 인디케이터 + 연결선으로 구성된 스텝퍼 형태이며, 각 원마다
+   해당 단계를 나타내는 아이콘 하나만 사용한다(완료/진행중일 때는
+   흰 아이콘 + 색이 있는 원, 아직 오지 않은 단계는 회색 아이콘).
+------------------------------------------------------ */
 .delivery-progress {
+  --oditji-info: #4dabf7;
+  --oditji-info-soft: rgba(77, 171, 247, 0.18);
+
   box-sizing: border-box;
   width: 100%;
-  margin-bottom: 24px;
-  padding: 20px 16px 16px;
+  margin-bottom: 18px;
+  padding: 22px 16px 18px;
 
   border: 1px solid var(--oditji-border);
   border-radius: var(--oditji-radius-lg);
-  background: var(--oditji-surface);
-}
-
-.delivery-progress-bar {
-  position: relative;
-
-  height: 6px;
-  margin: 18px 4px 22px;
-
-  border-radius: 999px;
-  background: var(--oditji-border);
-}
-
-.delivery-progress-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-
-  width: 4%;
-
-  border-radius: 999px;
-  background: var(--oditji-accent);
-
-  transition: width 0.3s var(--oditji-ease);
-}
-
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-fill {
-  width: 50%;
-}
-
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-fill {
-  width: 100%;
-}
-
-.delivery-progress-truck {
-  position: absolute;
-  top: 50%;
-  left: 0%;
-
-  transform: translate(0, -50%);
-
-  font-size: 20px;
-  line-height: 1;
-
-  transition:
-    left 0.3s var(--oditji-ease),
-    transform 0.3s var(--oditji-ease);
-}
-
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-truck {
-  left: 50%;
-
-  transform: translate(-50%, -50%);
-}
-
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-truck {
-  left: 100%;
-
-  transform: translate(-100%, -50%);
+  background: var(--oditji-surface-raised);
 }
 
 .delivery-progress-labels {
@@ -1924,62 +1944,180 @@
 }
 
 .delivery-progress-label {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 2px;
 
   color: var(--oditji-text-faint);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 600;
   text-align: center;
+  line-height: 1.4;
 }
 
-.delivery-progress-label:first-child {
-  text-align: left;
+/* 원형 아이콘 (기본값 = 아직 오지 않은 단계, 회색) */
+.delivery-progress-label::before {
+  content: "";
+  z-index: 2;
+  flex: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 999px;
+  border: 2px solid var(--oditji-border);
+  background-color: var(--oditji-surface);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+
+  transition:
+    background-color 0.25s var(--oditji-ease),
+    border-color 0.25s var(--oditji-ease);
 }
 
-.delivery-progress-label:last-child {
-  text-align: right;
+/* 원과 원 사이 연결선: 각 칸(flex:1)의 중심에서 다음 칸 중심까지
+   그려서 라벨 글자 길이가 달라도 항상 원끼리 정확히 이어진다 */
+.delivery-progress-label::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 11px;
+  left: 50%;
+
+  width: 100%;
+  height: 2px;
+
+  background: var(--oditji-border);
+  transform: translateY(-50%);
 }
 
-.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress-label:last-child::after {
+  display: none;
+}
+
+/* 단계별 기본 아이콘 (회색: 주문서 / 박스 / 트럭 / 집) */
+.delivery-progress-label[data-step="CONFIRMED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8h12l-1 12H7L6 8z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="PREPARING"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="SHIPPING"]::before {
+  background-size: 15px 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='7' cy='17' r='2'/%3E%3Ccircle cx='17' cy='17' r='2'/%3E%3Cpath d='M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5'/%3E%3Cline x1='3' y1='9' x2='7' y2='9'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="DELIVERED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E");
+}
+
+/* 지나온 단계(완료) = 초록 원 + 흰 아이콘 */
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"],
 .delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"],
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"],
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-label {
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"] {
   color: var(--oditji-text);
+}
+
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"]::before {
+  border-color: var(--oditji-accent);
+  background-color: var(--oditji-accent);
+}
+
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::after {
+  background: var(--oditji-accent);
+}
+
+/* 지금 진행 중인 단계(배송완료 전) = 파란 원 + 흰 아이콘 + 펄스 */
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"] {
+  color: var(--oditji-info);
   font-weight: 700;
 }
 
-/* 상품 사진을 위쪽에 크게, 상품명/수량/가격은 그 아래
-   order-info-row 형식으로 명확하게 보여준다. */
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"]::before {
+  border-color: var(--oditji-info);
+  background-color: var(--oditji-info);
+  box-shadow: 0 0 0 4px var(--oditji-info-soft);
+  animation: oditji-step-pulse 1.6s ease-out infinite;
+}
+
+/* 완료/진행중 단계는 단계별 아이콘을 흰색으로 다시 그린다 */
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8h12l-1 12H7L6 8z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"]::before {
+  background-size: 15px 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='7' cy='17' r='2'/%3E%3Ccircle cx='17' cy='17' r='2'/%3E%3Cpath d='M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5'/%3E%3Cline x1='3' y1='9' x2='7' y2='9'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E");
+}
+
+@keyframes oditji-step-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--oditji-info-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(77, 171, 247, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(77, 171, 247, 0);
+  }
+}
+
+/* -----------------------------------------------------
+   상품 정보 카드 (모달에서는 상품 이미지를 표시하지 않는다)
+------------------------------------------------------ */
 .delivery-product {
-  margin-bottom: 20px;
-}
-
-.delivery-product-image {
-  width: 100%;
-  height: 220px;
   margin-bottom: 14px;
-
-  border-radius: var(--oditji-radius-lg);
-  overflow: hidden;
-
-  background: var(--oditji-surface-raised);
-}
-
-.delivery-product-image img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-}
-
-.delivery-product-image .no-image {
-  border-radius: 0;
 }
 
 .delivery-product-info {
-  padding: 4px 16px;
+  padding: 16px 18px;
 
   border: 1px solid var(--oditji-border);
   border-radius: var(--oditji-radius-lg);
@@ -1993,10 +2131,10 @@
 
 .delivery-detail-modal-footer-close {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
 
   border: 1px solid var(--oditji-border);
-  border-radius: var(--oditji-radius-sm);
+  border-radius: var(--oditji-radius-lg);
   background: transparent;
 
   color: var(--oditji-text-muted);
@@ -2014,6 +2152,131 @@
 .delivery-detail-modal-footer-close:hover {
   border-color: var(--oditji-accent);
   color: var(--oditji-accent);
+}
+
+/* -----------------------------------------------------
+   배송 정보 영역 (order-info-row 등은 주문 카드에서도 재사용되는
+   공통 클래스이므로, 모달 전용 보정은 #deliveryDetailModal로 한정)
+------------------------------------------------------ */
+#deliveryDetailModal .ticket-divider {
+  display: none;
+}
+
+#deliveryDetailModal .order-info-section {
+  margin-top: 0;
+  padding: 18px;
+
+  border-top: none;
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface-raised);
+}
+
+#deliveryDetailModal .order-info-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 12px;
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+#deliveryDetailModal .order-info-title::before {
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+#deliveryDetailModal .order-info-row {
+  padding: 11px 0;
+}
+
+#deliveryDetailModal .order-info-label {
+  font-size: 13px;
+}
+
+#deliveryDetailModal .order-info-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#deliveryDetailModal .tracking-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#deliveryDetailModal .tracking-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface);
+
+  color: transparent;
+  font-size: 0;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    background 0.2s var(--oditji-ease);
+}
+
+#deliveryDetailModal .tracking-copy-btn::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+#deliveryDetailModal .tracking-copy-btn:hover {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+}
+
+#deliveryDetailModal .delivery-empty-note {
+  color: var(--oditji-text-faint);
+  font-weight: 500;
+}
+
+/* -----------------------------------------------------
+   모바일
+------------------------------------------------------ */
+@media (max-width: 480px) {
+  .delivery-detail-modal-content {
+    padding: 22px 18px 20px;
+    border-radius: 16px;
+  }
+
+  .delivery-progress {
+    padding: 18px 12px 14px;
+  }
+
+  .delivery-progress-label {
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .delivery-progress-label::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  #deliveryDetailModal .order-info-section,
+  #deliveryDetailModal .delivery-product-info {
+    padding: 14px;
+  }
 }
 
 /* 배송조회 버튼을 상품 부분 취소 버튼과 동일한 톤으로
@@ -2499,21 +2762,6 @@
   background: #eaf0ff;
   color: #37558e;
 }
-.delivery-product-without-image .delivery-product-info {
-  width: 100%;
-}
-.delivery-progress[data-status="CONFIRMED"] .delivery-progress-fill {
-  width: 0%;
-}
-.delivery-progress[data-status="PREPARING"] .delivery-progress-fill {
-  width: 33.333%;
-}
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-fill {
-  width: 66.666%;
-}
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-fill {
-  width: 100%;
-}
 @media (max-width: 760px) {
   .refund-search-form,
   .refund-date-range {
@@ -2524,33 +2772,6 @@
   .refund-search-actions {
     width: 100%;
   }
-}
-
-/* [수정] 4단계 배송 진행 위치 및 활성 라벨 */
-.delivery-progress[data-status="CONFIRMED"] .delivery-progress-truck {
-  left: 0%;
-}
-.delivery-progress[data-status="PREPARING"] .delivery-progress-truck {
-  left: 33.333%;
-  transform: translate(-50%, -50%);
-}
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-truck {
-  left: 66.666%;
-  transform: translate(-50%, -50%);
-}
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-truck {
-  left: 100%;
-  transform: translate(-100%, -50%);
-}
-.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"],
-.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"],
-.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"],
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"],
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"],
-.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"],
-.delivery-progress[data-status="DELIVERED"] .delivery-progress-label {
-  color: var(--oditji-text);
-  font-weight: 700;
 }
 
 /* =========================================================
@@ -2663,12 +2884,12 @@
   color: #a8a9af;
 }
 
-/* [수정] 배송조회·리뷰 버튼을 카드 톤에 맞게 정리한다. */
-.order-list-container .order-item-actions {
-  width: 118px;
-  gap: 9px;
-}
-
+/* [수정] 배송조회·리뷰 버튼을 카드 톤에 맞게 정리한다.
+   (너비/간격은 .order-item-actions 기본 규칙과 모바일
+   미디어쿼리에서 일괄 관리하므로 여기서는 지정하지 않는다 -
+   이전에는 이 선택자의 우선순위가 더 높아 모바일 미디어쿼리의
+   width:100%를 항상 덮어써 버튼 영역이 좁게 고정되는 문제가
+   있었다.) */
 .order-list-container .order-item-actions button,
 .order-list-container .order-item-actions a {
   min-height: 38px;
@@ -2847,6 +3068,46 @@
 .order-list-container .refund-search-field input:focus {
   border-color: var(--oditji-accent);
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+/* =========================================================
+   [추가] 취소/환불 내역 조회 기간 빠른 선택 버튼
+   실제 쇼핑몰 주문내역 화면처럼 기간 프리셋을 눌러 즉시
+   조회할 수 있게 한다. 기존 날짜 입력창 스타일은 유지한다.
+========================================================= */
+.order-list-container .refund-quick-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+
+.order-list-container .refund-quick-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #3a3a41;
+  border-radius: 999px;
+  background: #151517;
+  color: #c9cad0;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    background-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease);
+}
+
+.order-list-container .refund-quick-btn:hover {
+  border-color: #606169;
+  color: #fff;
+}
+
+.order-list-container .refund-quick-btn.active {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+  color: var(--oditji-accent);
 }
 
 .order-list-container .refund-date-range {

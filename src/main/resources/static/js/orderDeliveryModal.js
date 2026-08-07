@@ -55,14 +55,31 @@ document.addEventListener("DOMContentLoaded", function () {
   /*
    * =========================================================
    * 모달 열기 / 닫기
+   *
+   * [수정] body에 overflow:hidden만 주는 방식은 일부 환경(모바일
+   * 사파리의 바운스 스크롤, 페이지 전체를 스크롤하며 캡처하는
+   * 도구 등)에서 배경이 실제로는 움직여 버려, 모달의 position:fixed
+   * 오버레이가 "그 순간의 뷰포트"만 덮고 스크롤된 아래쪽 내용은
+   * 오버레이 없이 그대로 보이는 문제가 있었다. body 자체를
+   * position:fixed로 고정해 배경이 물리적으로 스크롤될 수 없도록
+   * 막는다.
    * =========================================================
    */
+
+  let lockedScrollY = 0;
 
   function openModal() {
     modal.classList.add("open");
 
     modal.setAttribute("aria-hidden", "false");
 
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = -lockedScrollY + "px";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
   }
 
@@ -71,7 +88,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     modal.setAttribute("aria-hidden", "true");
 
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
     document.body.style.overflow = "";
+
+    window.scrollTo(0, lockedScrollY);
   }
 
   if (closeButton) {
