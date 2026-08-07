@@ -238,8 +238,7 @@
         WHERE OI.ORDER_ITEM_NO = #{orderItemNo}
           AND OI.PRODUCT_NO = #{productNo}
           AND O.MEMBER_NO = #{memberNo}
-          AND O.ORDER_STATUS = 'PAID'
-          AND OI.STATUS = 'PAID'
+          AND OI.STATUS = 'DELIVERED'
 
           AND EXISTS (
                 SELECT 1
