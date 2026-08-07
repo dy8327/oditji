@@ -7,6 +7,7 @@
 }
 
 .review-tab {
+  text-decoration: none;
   min-height: 42px;
   padding: 0 18px;
   border: 1px solid rgba(255, 255, 255, 0.12);
