@@ -667,10 +667,23 @@
         <h1>취소/환불 내역</h1>
 
         <%-- =========================================================
-             [추가] 취소/환불 유형·처리상태·기간 서버 조회 조건
+             [수정] 취소/환불 유형·처리상태·기간 서버 조회 조건
              달력 입력값은 GET 파라미터로 Controller/Mapper까지 전달된다.
+
+             [수정] 조회 기간 기본값 개선
+             기존에는 시작일 입력칸에 항상 "오늘 날짜"가 채워져 있어,
+             사용자가 아무 것도 고르지 않고 조회를 눌러도 오늘 하루치
+             데이터만 조회되는 것처럼 보이는 문제가 있었다. 이제는
+             사용자가 실제로 조회에 사용한 값(param.startDate/endDate)만
+             그대로 되돌려 보여주므로, 처음 들어왔을 때나 "초기화" 후에는
+             두 칸 모두 비어 있고 이는 곧 "전체 기간 조회"를 의미한다.
+
+             대신 실제 쇼핑몰 주문내역 화면처럼 1주일/1개월/3개월/6개월
+             빠른 선택 버튼을 눌러 기간을 즉시 채우고 바로 조회할 수
+             있게 했다(동작은 orderTabs.js 참고).
         ========================================================== --%>
         <form class="refund-search-form"
+              id="refundSearchForm"
               action="${pageContext.request.contextPath}/order/list"
               method="get">
             <input type="hidden" name="tab" value="history">
@@ -696,10 +709,21 @@
 
             <div class="refund-search-field refund-date-field">
                 <label for="historyStartDate">조회 기간</label>
+
+                <div class="refund-quick-range"
+                     role="group"
+                     aria-label="조회 기간 빠른 선택">
+                    <button type="button" class="refund-quick-btn" data-range="all">전체</button>
+                    <button type="button" class="refund-quick-btn" data-range="7">1주일</button>
+                    <button type="button" class="refund-quick-btn" data-range="30">1개월</button>
+                    <button type="button" class="refund-quick-btn" data-range="90">3개월</button>
+                    <button type="button" class="refund-quick-btn" data-range="180">6개월</button>
+                </div>
+
                 <div class="refund-date-range">
-                    <input id="historyStartDate" type="date" name="startDate" value="${historyStartDate}">
+                    <input id="historyStartDate" type="date" name="startDate" value="${param.startDate}">
                     <span>부터</span>
-                    <input id="historyEndDate" type="date" name="endDate" value="${historyEndDate}" aria-label="조회 종료일">
+                    <input id="historyEndDate" type="date" name="endDate" value="${param.endDate}" aria-label="조회 종료일">
                     <span>까지</span>
                 </div>
             </div>
@@ -773,7 +797,6 @@
     --%>
     <dialog id="deliveryDetailModal"
             class="delivery-detail-modal"
-            open
             aria-hidden="true"
             aria-modal="true"
             aria-labelledby="deliveryDetailModalTitle">
@@ -815,11 +838,6 @@
                 <div id="deliveryProgress"
                      class="delivery-progress"
                      data-status="CONFIRMED">
-
-                    <div class="delivery-progress-bar">
-                        <div class="delivery-progress-fill"></div>
-                        <div class="delivery-progress-truck" aria-hidden="true">🚚</div>
-                    </div>
 
                     <div class="delivery-progress-labels">
 

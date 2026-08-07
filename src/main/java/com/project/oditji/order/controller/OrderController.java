@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.project.oditji.common.util.ApiResponseUtil;
-import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.refund.service.OrderCancelRefundService;
 import com.project.oditji.common.vo.PageVO;
@@ -384,17 +383,21 @@ public class OrderController {
 
                 /*
                  * =========================================================
-                 * [추가] 취소/환불 내역 조회 시작일 기본값
+                 * [수정] 취소/환불 내역 조회 기간 기본값 제거
                  *
-                 * 최초 진입 또는 초기화로 시작일이 전달되지 않은 경우
-                 * 현재 날짜를 기본 조회 시작일로 설정한다.
-                 * 사용자가 달력에서 다른 날짜를 선택한 경우에는
-                 * 전달받은 날짜를 그대로 사용한다.
+                 * 기존에는 시작일이 전달되지 않으면(=최초 진입, 초기화 후)
+                 * 무조건 오늘 날짜를 시작일로 채워 넣었다. 그 결과 종료일은
+                 * 비어 있는 채로 "오늘 이후" 조건만 걸려, 사용자가 조회 버튼을
+                 * 눌러도 오늘 등록된 내역이 없으면 항상 결과가 없는 것처럼
+                 * 보이는 문제가 있었다.
+                 *
+                 * 실제 쇼핑몰 주문내역 화면처럼 시작일/종료일을 아무 것도
+                 * 선택하지 않으면 "전체 기간"을 조회하도록, startDate/endDate가
+                 * 없을 때는 null을 그대로 서비스 계층에 전달한다. 특정 기간만
+                 * 보고 싶다면 화면의 기간 빠른 선택 버튼이나 달력에서 직접
+                 * 선택한 값만 조건으로 사용된다.
                  * =========================================================
                  */
-                if (startDate == null) {
-                        startDate = LocalDate.now(DateTimeUtil.KOREA_ZONE);
-                }
 
                 final int pageSize = 3;
                 final int pageBlockSize = 5;
