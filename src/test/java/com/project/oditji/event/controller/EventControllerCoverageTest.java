@@ -38,7 +38,7 @@ class EventControllerCoverageTest {
         when(eventService.getEventList("upcoming")).thenReturn(events);
         ExtendedModelMap model = new ExtendedModelMap();
 
-        String view = controller.eventList(" UPCOMING ", model);
+        String view = controller.eventList(" UPCOMING ", 1, model);
 
         assertEquals("event/eventList", view);
         assertEquals(events, model.get("eventList"));
@@ -54,7 +54,7 @@ class EventControllerCoverageTest {
         when(eventService.getEventList("ended")).thenReturn(List.of());
         ExtendedModelMap model = new ExtendedModelMap();
 
-        controller.eventList("ended", model);
+        controller.eventList("ended", 1, model);
 
         assertEquals("ended", model.get("period"));
         assertEquals("종료된 할인 이벤트", model.get("periodTitle"));
@@ -69,8 +69,8 @@ class EventControllerCoverageTest {
         ExtendedModelMap nullModel = new ExtendedModelMap();
         ExtendedModelMap invalidModel = new ExtendedModelMap();
 
-        controller.eventList(null, nullModel);
-        controller.eventList("unknown", invalidModel);
+        controller.eventList(null, 1, nullModel);
+        controller.eventList("unknown", 1, invalidModel);
 
         assertEquals("ongoing", nullModel.get("period"));
         assertEquals("진행 중인 할인 이벤트", nullModel.get("periodTitle"));
