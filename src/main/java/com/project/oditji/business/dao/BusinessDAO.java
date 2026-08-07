@@ -17,6 +17,7 @@ import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
 import com.project.oditji.common.vo.SettlementRequestVO;
+import com.project.oditji.review.vo.ProductReviewVO;
 
 @Mapper
 public interface BusinessDAO {
@@ -257,6 +258,33 @@ public interface BusinessDAO {
         // 마이페이지 대시보드 - 인기 상품 목록 (클릭수 내림차순)
         List<GoodsManageVO> selectPopularProductsByBusinessNo(@Param("businessNo") long businessNo,
                         @Param("limit") int limit);
+
+        /*
+         * =========================================================
+         * [사업자 대시보드 최근 주문]
+         * 해당 사업자의 가장 최근 주문 상품 5건 조회
+         * =========================================================
+         */
+        List<OrderItemVO> selectRecentOrdersByBusinessNo(
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * [사업자 대시보드 최근 리뷰]
+         * 해당 사업자의 상품에 작성된 최근 리뷰 5건 조회
+         * =========================================================
+         */
+        List<ProductReviewVO> selectRecentReviewsByBusinessNo(
+                        @Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * [사업자 대시보드 평균 리뷰 점수]
+         * 해당 사업자가 판매하는 상품에 작성된 상품 리뷰 평균
+         * =========================================================
+         */
+        double selectAverageRatingByBusinessNo(
+                        @Param("businessNo") long businessNo);
 
         // [페이징 리팩터링] 사업자 주문 현황 - 주문 목록 조회 (offset/pageSize로 페이지 단위 조회)
         List<OrderVO> selectBusinessOrderList(@Param("businessNo") long businessNo,
