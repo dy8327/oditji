@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
 <%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
@@ -65,6 +66,92 @@
                 <div class="hero-slide-bg hero-slide-bg-empty" aria-hidden="true"></div>
                 <div class="hero-slide-scrim" aria-hidden="true"></div>
 
+                <%-- 오른쪽 여백을 채우는 신뢰 지표 카드.
+                     인기 콘텐츠 포스터는 아래 "실시간 인기 콘텐츠"
+                     섹션과 정보가 겹쳐 반복감을 주고, 매번 노출되는
+                     작품이 바뀌어 톤이 들쭉날쭉해질 수 있어 배제했다.
+                     "N개 OTT"라는 텍스트 대신 실제 지원 플랫폼
+                     로고를 그대로 보여줘서 어떤 서비스를 통합
+                     검색하는지 한눈에 알 수 있게 하고, 그 옆에
+                     등록된 콘텐츠 수를 함께 노출한다. --%>
+                <c:if test="${not empty featuredPlatformList or not empty roundedContentCount}">
+
+                    <div class="hero-intro-panel" aria-hidden="true">
+
+                        <c:if test="${not empty featuredPlatformList}">
+
+                            <div class="hero-intro-platforms">
+
+                                <span class="hero-intro-platforms-label">
+                                    지원 OTT
+                                </span>
+
+                                <div class="hero-intro-platform-logos">
+
+                                    <c:forEach var="platform"
+                                               items="${featuredPlatformList}">
+
+                                        <c:if test="${not empty platform.logoImage}">
+
+                                            <c:choose>
+
+                                                <%-- [추가] 사이트 URL이 있으면 로고를 눌러 해당 OTT로 바로
+                                                     이동할 수 있게 링크로 감싼다. 새 탭으로 열어 오딧지
+                                                     페이지 흐름은 유지한다. --%>
+                                                <c:when test="${not empty platform.siteUrl}">
+                                                    <a class="hero-intro-platform-logo"
+                                                       href="${platform.siteUrl}"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       aria-label="<c:out value='${platform.platformName}'/> 사이트로 이동">
+                                                        <img src="${platform.logoImage}"
+                                                             alt="<c:out value='${platform.platformName}'/>"
+                                                             loading="lazy">
+                                                    </a>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    <span class="hero-intro-platform-logo">
+                                                        <img src="${platform.logoImage}"
+                                                             alt="<c:out value='${platform.platformName}'/>"
+                                                             loading="lazy">
+                                                    </span>
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </c:if>
+
+                                    </c:forEach>
+
+                                </div>
+
+                            </div>
+
+                        </c:if>
+
+                        <c:if test="${not empty featuredPlatformList and not empty roundedContentCount}">
+                            <div class="hero-intro-divider" aria-hidden="true"></div>
+                        </c:if>
+
+                        <c:if test="${not empty roundedContentCount}">
+
+                            <div class="hero-intro-stat">
+                                <span class="hero-intro-stat-value">
+                                    <fmt:formatNumber value="${roundedContentCount}"
+                                                      pattern="#,##0"/>+
+                                </span>
+                                <span class="hero-intro-stat-label">
+                                    등록된 콘텐츠
+                                </span>
+                            </div>
+
+                        </c:if>
+
+                    </div>
+
+                </c:if>
+
                 <div class="hero-slide-body">
 
                     <span class="hero-eyebrow">
@@ -80,6 +167,15 @@
                         영화, 드라마, 예능, 그리고 관련 굿즈까지<br>
                         OTT 정보를 한 번에 확인하세요.
                     </p>
+
+                    <div class="hero-slide-actions">
+
+                        <a class="hero-btn hero-btn-primary"
+                           href="${pageContext.request.contextPath}/content/list">
+                            <span aria-hidden="true">▶</span> 콘텐츠 둘러보기
+                        </a>
+
+                    </div>
 
                 </div>
 
@@ -169,7 +265,7 @@
                                     </a>
 
                                     <a class="hero-btn hero-btn-ghost"
-                                       href="#todaySection">
+                                       href="${pageContext.request.contextPath}/content/list">
                                         더 많은 콘텐츠
                                     </a>
 
