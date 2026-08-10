@@ -33,6 +33,7 @@ public class ChatApiController {
 
     private static final String MESSAGE_LOGIN_INFO_NOT_FOUND = "로그인한 관리자 또는 사업자 정보를 확인할 수 없습니다.";
     private static final String MESSAGE_ROOM_NOT_FOUND = "존재하지 않는 채팅방입니다.";
+    private static final String MESSAGE_ROOM_MEMBER_NOT_FOUND = "채팅방 참여 정보를 찾을 수 없습니다.";
     private static final String RESPONSE_SUCCESS = "success";
     private static final String RESPONSE_MESSAGE = "message";
     private static final String RESPONSE_WILL_DELETE_ROOM = "willDeleteRoom";
@@ -442,7 +443,7 @@ public class ChatApiController {
 
         if (!chatService.isChatRoomMember(roomId, businessNo)) {
             response.put(RESPONSE_SUCCESS, false);
-            response.put(RESPONSE_MESSAGE, "채팅방 참여 정보를 찾을 수 없습니다.");
+            response.put(RESPONSE_MESSAGE, MESSAGE_ROOM_MEMBER_NOT_FOUND);
             response.put(RESPONSE_WILL_DELETE_ROOM, false);
             return response;
         }
@@ -505,7 +506,7 @@ public class ChatApiController {
             return new ChatResponseVO(
                     false,
                     ChatResult.FAIL,
-                    "채팅방 참여 정보를 찾을 수 없습니다.");
+                    MESSAGE_ROOM_MEMBER_NOT_FOUND);
         }
 
         boolean roomWillBeDeleted =
@@ -547,7 +548,7 @@ public class ChatApiController {
         return new ChatResponseVO(
                 false,
                 ChatResult.FAIL,
-                "채팅방 참여 정보를 찾을 수 없습니다.");
+                MESSAGE_ROOM_MEMBER_NOT_FOUND);
     }
 
     private boolean isFirebaseChatEnabled() {
