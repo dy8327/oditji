@@ -3,6 +3,7 @@ package com.project.oditji.search.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -45,8 +46,8 @@ class SearchContentPageCacheServiceTest {
                 tmdbDAO);
 
         contents = createContents();
-        when(searchContentStore.getAll()).thenReturn(contents);
-        when(tmdbDAO.selectActivePlatformList())
+        lenient().when(searchContentStore.getAll()).thenReturn(contents);
+        lenient().when(tmdbDAO.selectActivePlatformList())
                 .thenReturn(createPlatforms());
     }
 
@@ -90,6 +91,38 @@ class SearchContentPageCacheServiceTest {
         assertEquals(7, service.getMainRecommendedContent(
                 List.of("알 수 없는 OTT"),
                 10).size());
+    }
+
+    @Test
+    void featuredPlatformListShouldReturnAllSupportedPlatformsInFixedOrder() {
+        List<OttPlatformVO> result = service.getFeaturedPlatformList();
+
+        assertEquals(6, result.size());
+        assertEquals("Netflix", result.get(0).getPlatformName());
+        assertEquals("TVING", result.get(1).getPlatformName());
+        assertEquals("wavve", result.get(2).getPlatformName());
+        assertEquals("Disney Plus", result.get(3).getPlatformName());
+        assertEquals("Watcha", result.get(4).getPlatformName());
+        assertEquals("Coupangplay", result.get(5).getPlatformName());
+    }
+
+    @Test
+    void featuredPlatformListShouldOmitPlatformsNotCurrentlyActive() {
+        when(tmdbDAO.selectActivePlatformList())
+                .thenReturn(List.of(platform(1, "Netflix"), platform(5, "Watcha")));
+
+        List<OttPlatformVO> result = service.getFeaturedPlatformList();
+
+        assertEquals(2, result.size());
+        assertEquals("Netflix", result.get(0).getPlatformName());
+        assertEquals("Watcha", result.get(1).getPlatformName());
+    }
+
+    @Test
+    void totalContentCountShouldReturnStoreSizeAsIs() {
+        when(searchContentStore.size()).thenReturn(12345);
+
+        assertEquals(12345, service.getTotalContentCount());
     }
 
     @Test

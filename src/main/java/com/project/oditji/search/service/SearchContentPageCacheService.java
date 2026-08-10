@@ -67,6 +67,15 @@ public class SearchContentPageCacheService {
             "283", PLATFORM_COUPANG
     );
 
+    private static final List<String> SUPPORTED_PLATFORM_ORDER = List.of(
+            PLATFORM_NETFLIX,
+            PLATFORM_TVING,
+            PLATFORM_WAVVE,
+            PLATFORM_DISNEY,
+            PLATFORM_WATCHA,
+            PLATFORM_COUPANG
+    );
+
     private static final Set<String> SUPPORTED_PLATFORM_KEYS = Set.of(
             PLATFORM_NETFLIX,
             PLATFORM_TVING,
@@ -88,6 +97,47 @@ public class SearchContentPageCacheService {
 
         this.tmdbDAO =
                 tmdbDAO;
+    }
+
+    /**
+     * 메인 배너 소개 슬라이드에 로고로 노출할 지원 OTT 목록입니다.
+     *
+     * TMDB 활성 플랫폼 목록 중 ODITJI가 실제로 지원하는
+     * 플랫폼(SUPPORTED_PLATFORM_KEYS)만 골라, 항상 같은 순서
+     * (넷플릭스 → 티빙 → 웨이브 → 디즈니+ → 왓챠 → 쿠팡플레이)로
+     * 반환합니다. 활성 목록에 없는 플랫폼은 자연히 빠집니다.
+     */
+    public List<OttPlatformVO> getFeaturedPlatformList() {
+
+        Map<String, OttPlatformVO> platformMap =
+                createPlatformMap(
+                        tmdbDAO.selectActivePlatformList()
+                );
+
+        List<OttPlatformVO> result =
+                new ArrayList<OttPlatformVO>();
+
+        for (String platformKey : SUPPORTED_PLATFORM_ORDER) {
+
+            OttPlatformVO platform =
+                    platformMap.get(platformKey);
+
+            if (platform != null) {
+                result.add(platform);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 메인 배너 소개 슬라이드에 노출할 전체 콘텐츠 수입니다.
+     *
+     * JSONL 공용 저장소에 실제로 적재된 건수를 그대로 반환합니다.
+     * 화면에서는 이 값을 보기 좋게 반올림해서 "N,000+" 형태로 표시합니다.
+     */
+    public int getTotalContentCount() {
+        return searchContentStore.size();
     }
 
     /**

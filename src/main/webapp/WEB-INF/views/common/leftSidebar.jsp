@@ -3,6 +3,7 @@
          pageEncoding="UTF-8" %>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <%--
     검색 결과 왼쪽 필터
@@ -515,7 +516,10 @@
                        data-filter-group="ageRating"
                        <c:if test="${allAgeChecked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-all" aria-hidden="true">ALL</span>
+                    <common:ageRatingBadge ageRating="전체 관람가"
+                                           outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>전체 관람가</span>
                 </span>
             </label>
@@ -528,7 +532,10 @@
                        data-filter-group="ageRating"
                        <c:if test="${age7Checked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-age7" aria-hidden="true">7</span>
+                    <common:ageRatingBadge ageRating="7세 이상 관람가"
+                                           outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>7세 이상</span>
                 </span>
             </label>
@@ -541,7 +548,10 @@
                        data-filter-group="ageRating"
                        <c:if test="${age12Checked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-age12" aria-hidden="true">12</span>
+                    <common:ageRatingBadge ageRating="12세 이상 관람가"
+                                           outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>12세 이상</span>
                 </span>
             </label>
@@ -554,7 +564,10 @@
                        data-filter-group="ageRating"
                        <c:if test="${age15Checked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-age15" aria-hidden="true">15</span>
+                    <common:ageRatingBadge ageRating="15세 이상 관람가"
+                                           outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>15세 이상</span>
                 </span>
             </label>
@@ -567,7 +580,10 @@
                        data-filter-group="ageRating"
                        <c:if test="${adultAgeChecked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-adult" aria-hidden="true">19</span>
+                    <common:ageRatingBadge ageRating="청소년 관람불가"
+                                           outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>청소년 관람불가</span>
                 </span>
             </label>
@@ -580,7 +596,9 @@
                        data-filter-group="ageRating"
                        <c:if test="${unknownAgeChecked}">checked</c:if>/>
                 <span class="age-rating-option-label">
-                    <span class="age-rating-badge is-unknown" aria-hidden="true">?</span>
+                    <common:ageRatingBadge outerClass="age-rating-badge"
+                                           mode="flat"
+                                           showAriaLabel="false" />
                     <span>등급 정보 없음</span>
                 </span>
             </label>

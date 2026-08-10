@@ -189,7 +189,8 @@ public class ContentController {
 
                 model.addAttribute(
                                 "pageTitle",
-                                makePageTitle(normalizedType));
+                                makePageTitle(
+                                                normalizedType));
 
                 model.addAttribute(
                                 "ottLogoMap",
@@ -553,6 +554,21 @@ public class ContentController {
                                 : values;
         }
 
+        /**
+         * 목록 상단 제목을 만듭니다.
+         *
+         * [리팩터링] 기존에는 "콘텐츠 종류"나 "장르"를 선택하면 그 이름들을
+         * 이어 붙여 제목으로 보여주다가, 선택한 조건이 4개를 넘으면 다시
+         * 기본값("영화·시리즈")으로 돌아가 버려서 사용자 입장에서는 필터를
+         * 하나 더 눌렀을 뿐인데 제목이 갑자기 사라지는 것처럼 보였다.
+         *
+         * 넷플릭스/웨이브/티빙 등 실제 OTT 사이트의 찾아보기(탐색) 화면은
+         * 필터를 아무리 많이 걸어도 상단 제목은 탭 이름으로 고정해 두고,
+         * 실제로 어떤 조건이 선택됐는지는 그 아래 "선택된 조건" 칩으로만
+         * 보여준다. 이 화면의 선택 필터 칩 영역(contentList.jsp의
+         * content-selected-filter-list)이 이미 그 역할을 하고 있으므로,
+         * 제목은 탭 이름에만 대응하는 고정값으로 단순화한다.
+         */
         private String makePageTitle(
                         String type) {
 
@@ -564,7 +580,7 @@ public class ContentController {
                         return "신규 콘텐츠";
                 }
 
-                return "영화·시리즈";
+                return "전체 콘텐츠";
         }
 
         /**

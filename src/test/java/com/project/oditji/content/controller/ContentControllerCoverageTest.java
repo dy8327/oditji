@@ -103,7 +103,7 @@ class ContentControllerCoverageTest {
         assertEquals("content/contentList", view);
         assertEquals("all", model.get("type"));
         assertEquals("popular", model.get("sort"));
-        assertEquals("영화·시리즈", model.get("pageTitle"));
+        assertEquals("전체 콘텐츠", model.get("pageTitle"));
         assertEquals(1, model.get("page"));
         assertEquals(3, model.get("totalPage"));
         assertEquals(21, model.get("totalCount"));
@@ -144,6 +144,60 @@ class ContentControllerCoverageTest {
         assertEquals("new", model.get("type"));
         assertEquals("latest", model.get("sort"));
         assertEquals("신규 콘텐츠", model.get("pageTitle"));
+    }
+
+    @Test
+    void listShouldKeepFixedTitleWhenFewFiltersSelected() {
+        ContentListPageVO pageVO = page(1, 1, 5);
+        List<String> categories = List.of("MOVIE", "DRAMA");
+        List<String> genres = List.of("ROMANCE");
+        when(contentService.getContentListByType(
+                eq("all"), eq("popular"), eq(1),
+                eq(categories), eq(genres), anyList(), anyList()))
+                .thenReturn(pageVO);
+        when(contentService.getContentRecommendedList(
+                eq(categories), eq(genres), anyList(), anyList()))
+                .thenReturn(List.of());
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        controller.list(
+                "all",
+                null,
+                1,
+                categories,
+                genres,
+                null,
+                null,
+                model);
+
+        assertEquals("전체 콘텐츠", model.get("pageTitle"));
+    }
+
+    @Test
+    void listShouldKeepFixedTitleWhenManyFiltersSelected() {
+        ContentListPageVO pageVO = page(1, 1, 5);
+        List<String> categories = List.of("MOVIE", "DRAMA", "ANIMATION");
+        List<String> genres = List.of("ROMANCE", "CRIME");
+        when(contentService.getContentListByType(
+                eq("all"), eq("popular"), eq(1),
+                eq(categories), eq(genres), anyList(), anyList()))
+                .thenReturn(pageVO);
+        when(contentService.getContentRecommendedList(
+                eq(categories), eq(genres), anyList(), anyList()))
+                .thenReturn(List.of());
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        controller.list(
+                "all",
+                null,
+                1,
+                categories,
+                genres,
+                null,
+                null,
+                model);
+
+        assertEquals("전체 콘텐츠", model.get("pageTitle"));
     }
 
     @Test

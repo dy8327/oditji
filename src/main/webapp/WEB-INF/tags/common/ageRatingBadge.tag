@@ -37,7 +37,14 @@
     mode: "nested"(기본, 기존 동작 그대로 - 바깥 span + 안쪽 span 2단 구조,
           contentCard.tag/rankingCard.tag/recommendCard.jsp가 사용) /
           "flat"(span 하나에 outerClass와 is-등급 클래스를 합쳐서 렌더링,
-          contentDetail.jsp/index.jsp의 뱃지가 사용). flat일 때 innerClass는 무시된다.
+          contentDetail.jsp/index.jsp의 뱃지가 사용) /
+          "chip"(선택된 필터를 보여주는 필터 칩 버튼 안에서 쓰는 순수 장식용 배지.
+          span 하나에 outerClass와 is-등급 클래스만 합치고 aria-hidden="true"를 붙인다.
+          제목/설명(title, aria-label)은 넣지 않는다 - 배지 바로 옆에 같은 내용을
+          텍스트로 이미 노출하는 칩 버튼 안에서만 쓰는 걸 전제로 하기 때문이다.
+          (searchResult.jsp, contentList.jsp의 "선택된 필터" 칩이 사용)
+          chip일 때 innerClass/showAriaLabel/includeDataAgeRating은 무시된다.
+          flat일 때 innerClass는 무시된다.
     showAriaLabel: 기본 true. false로 주면 aria-label 속성을 생략한다
           (index.jsp 히어로 뱃지는 aria-label 없이 title만 쓴다).
     includeDataAgeRating: 기본 false. true면 nested 모드의 바깥 span에
@@ -88,6 +95,12 @@
 </c:choose>
 
 <c:choose>
+    <c:when test="${resolvedMode eq 'chip'}">
+        <span class="${outerClass} is-${badgeClass}"
+              aria-hidden="true">
+            ${badgeLabel}
+        </span>
+    </c:when>
     <c:when test="${resolvedMode eq 'flat'}">
         <c:choose>
             <c:when test="${resolvedShowAriaLabel}">

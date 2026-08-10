@@ -13,6 +13,7 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -115,6 +116,29 @@ public class HomeController {
                                 MAIN_SLIDER_LIMIT
                         );
 
+        /*
+         * 브랜드 소개 슬라이드(오른쪽 여백)에 노출할 신뢰 지표.
+         *
+         * 지원 OTT는 텍스트 개수 대신 실제 로고를 그대로 노출해
+         * 어떤 플랫폼을 통합 검색하는지 한눈에 보여준다.
+         *
+         * 콘텐츠 수는 실제 값을 그대로 노출하면 갱신될 때마다
+         * 문구가 자잘하게 흔들려 보이므로, 100 단위로 내림한 뒤
+         * "N,000+" 형태로 표시한다.
+         */
+        List<OttPlatformVO> featuredPlatformList =
+                searchContentPageCacheService
+                        .getFeaturedPlatformList();
+
+        int rawContentCount =
+                searchContentPageCacheService
+                        .getTotalContentCount();
+
+        int roundedContentCount =
+                rawContentCount >= 100
+                        ? (rawContentCount / 100) * 100
+                        : rawContentCount;
+
         MemberVO loginMember =
                 (MemberVO) session.getAttribute(
                         "loginMember"
@@ -172,6 +196,16 @@ public class HomeController {
         model.addAttribute(
                 "newContentList",
                 newContentList
+        );
+
+        model.addAttribute(
+                "featuredPlatformList",
+                featuredPlatformList
+        );
+
+        model.addAttribute(
+                "roundedContentCount",
+                roundedContentCount
         );
 
         model.addAttribute(

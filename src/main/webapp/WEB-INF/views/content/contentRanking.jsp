@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -17,6 +18,14 @@
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/oditji.css">
+<%--
+    [리팩터링] 연령등급 배지(.age-rating-badge)의 원형/색상 스타일은
+    content-list-modern.css에 공용으로 정의돼 있다. 랭킹 카드에서도
+    common:ageRatingBadge 태그로 같은 배지를 재사용하기 위해 이 CSS를 같이 불러온다.
+    (랭킹 페이지 전용 클래스는 여전히 oditji.css에 둔다)
+--%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/content-list-modern.css">
 </head>
 
 <body>
@@ -53,7 +62,7 @@
                 </c:if>
 
                 <span>
-                    <c:out value="${panel.tabLabel}" />
+                    <common:platformDisplayName platformName="${panel.tabLabel}" />
                 </span>
 
             </button>
@@ -71,6 +80,7 @@
             <div class="ranking-panel-header">
                 <div>
                     <h2 class="ranking-panel-title">
+                        <span class="section-eyebrow section-eyebrow--rank">LIVE</span>
                         <c:out value="${panel.title}" />
                     </h2>
 

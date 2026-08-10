@@ -33,16 +33,24 @@ public class RankingController {
     private static final int TAB_ID_INDEX = 0;
     private static final int DISPLAY_NAME_INDEX = 1;
     private static final int PLATFORM_KEY_INDEX = 2;
+    private static final int KOREAN_NAME_INDEX = 3;
 
     private static final String WAVVE = "wavve";
 
+    /*
+     * [버그수정] 세 번째 값(DISPLAY_NAME_INDEX)은 탭 버튼 라벨용 영문 브랜드명이고,
+     * common:platformDisplayName.tag가 JSP에서 이 값을 한글로 변환해 탭에 노출한다.
+     * 하지만 패널 제목/설명/빈 목록 문구는 이 영문 값을 그대로 문자열에 이어 붙이고
+     * 있었고, JSP 태그를 거치지 않아 "wavve 인기 콘텐츠"처럼 한글화가 안 되던 문제가
+     * 있었다. 네 번째 값(KOREAN_NAME_INDEX)을 추가해 그 문구들에는 이 한글명을 쓴다.
+     */
     private static final String[][] PLATFORM_DEFINITIONS = {
-        {"netflix", "Netflix", "Netflix"},
-        {"tving", "TVING", "TVING"},
-        {WAVVE, WAVVE, WAVVE},
-        {"disney", "Disney+", "Disney Plus"},
-        {"watcha", "Watcha", "Watcha"},
-        {"coupang", "Coupang Play", "Coupangplay"}
+        {"netflix", "Netflix", "Netflix", "넷플릭스"},
+        {"tving", "TVING", "TVING", "티빙"},
+        {WAVVE, WAVVE, WAVVE, "웨이브"},
+        {"disney", "Disney+", "Disney Plus", "디즈니+"},
+        {"watcha", "Watcha", "Watcha", "왓챠"},
+        {"coupang", "Coupang Play", "Coupangplay", "쿠팡플레이"}
     };
 
     private final RankingService rankingService;
@@ -201,6 +209,7 @@ public class RankingController {
                             platformDefinition[TAB_ID_INDEX],
                             platformDefinition[DISPLAY_NAME_INDEX],
                             platformDefinition[PLATFORM_KEY_INDEX],
+                            platformDefinition[KOREAN_NAME_INDEX],
                             platformRankings,
                             platformLogoMap
                     )
@@ -243,6 +252,7 @@ public class RankingController {
             String tabId,
             String displayName,
             String platformKey,
+            String koreanName,
             Map<String, List<SearchResultVO>> platformRankings,
             Map<String, String> platformLogoMap) {
 
@@ -257,10 +267,10 @@ public class RankingController {
                         tabId,
                         displayName,
                         platformLogoMap.get(platformKey),
-                        displayName + " 인기 콘텐츠",
-                        "한국 " + displayName
+                        koreanName + " 인기 콘텐츠",
+                        "한국 " + koreanName
                                 + " 정액제 제공 콘텐츠 기준입니다.",
-                        displayName
+                        koreanName
                                 + " 인기 랭킹을 불러오지 못했습니다.",
                         false
                 );

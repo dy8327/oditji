@@ -7,6 +7,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
 <%@ taglib prefix="oditjiGoods" tagdir="/WEB-INF/tags/goods" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -216,41 +217,14 @@
                         </c:forEach>
 
                         <c:forEach var="ageRating" items="${ageRatings}">
-                            <c:set var="filterAgeBadgeLabel" value="?"/>
-                            <c:set var="filterAgeBadgeClass" value="unknown"/>
-
-                            <c:choose>
-                                <c:when test="${ageRating eq '전체 관람가'}">
-                                    <c:set var="filterAgeBadgeLabel" value="ALL"/>
-                                    <c:set var="filterAgeBadgeClass" value="all"/>
-                                </c:when>
-                                <c:when test="${ageRating eq '7세 이상 관람가'}">
-                                    <c:set var="filterAgeBadgeLabel" value="7"/>
-                                    <c:set var="filterAgeBadgeClass" value="age7"/>
-                                </c:when>
-                                <c:when test="${ageRating eq '12세 이상 관람가'}">
-                                    <c:set var="filterAgeBadgeLabel" value="12"/>
-                                    <c:set var="filterAgeBadgeClass" value="age12"/>
-                                </c:when>
-                                <c:when test="${ageRating eq '15세 이상 관람가'}">
-                                    <c:set var="filterAgeBadgeLabel" value="15"/>
-                                    <c:set var="filterAgeBadgeClass" value="age15"/>
-                                </c:when>
-                                <c:when test="${ageRating eq '청소년 관람불가'}">
-                                    <c:set var="filterAgeBadgeLabel" value="19"/>
-                                    <c:set var="filterAgeBadgeClass" value="adult"/>
-                                </c:when>
-                            </c:choose>
-
                             <button type="button"
                                     class="active-filter-chip"
                                     data-filter-chip
                                     data-filter-name="ageRatings"
                                     data-filter-value="${ageRating}">
-                                <span class="age-rating-badge is-${filterAgeBadgeClass}"
-                                      aria-hidden="true">
-                                    <c:out value="${filterAgeBadgeLabel}"/>
-                                </span>
+                                <common:ageRatingBadge ageRating="${ageRating}"
+                                                       outerClass="age-rating-badge"
+                                                       mode="chip" />
                                 <c:out value="${ageRating}"/>
                                 <span aria-hidden="true">×</span>
                             </button>

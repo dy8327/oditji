@@ -23,6 +23,7 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 /** 메인 화면의 게스트·회원별 추천 OTT 처리와 모델 구성을 검증합니다. */
 @ExtendWith(MockitoExtension.class)
@@ -49,11 +50,14 @@ class HomeControllerCoverageTest {
         List<SearchResultVO> today = List.of(new SearchResultVO());
         List<SearchResultVO> newContent = List.of(new SearchResultVO());
         List<SearchResultVO> recommended = List.of(new SearchResultVO());
+        List<OttPlatformVO> featuredPlatforms = List.of(new OttPlatformVO());
         when(searchContentPageCacheService.getMainPopularContent(30)).thenReturn(popular);
         when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(today);
         when(searchContentPageCacheService.getMainNewContent(20)).thenReturn(newContent);
         when(searchContentPageCacheService.getMainRecommendedContent(List.of(), 20))
                 .thenReturn(recommended);
+        when(searchContentPageCacheService.getFeaturedPlatformList()).thenReturn(featuredPlatforms);
+        when(searchContentPageCacheService.getTotalContentCount()).thenReturn(12345);
 
         ExtendedModelMap model = new ExtendedModelMap();
         String view = controller.home(model, new MockHttpSession());
@@ -66,6 +70,8 @@ class HomeControllerCoverageTest {
         assertEquals(recommended, model.get("recommendedContentList"));
         assertEquals(List.of(), model.get("selectedPlatformList"));
         assertFalse((Boolean) model.get("personalizedRecommendation"));
+        assertEquals(featuredPlatforms, model.get("featuredPlatformList"));
+        assertEquals(12300, model.get("roundedContentCount"));
     }
 
     @Test
@@ -122,6 +128,22 @@ class HomeControllerCoverageTest {
 
         assertNull(model.get("selectedPlatformList"));
         assertFalse((Boolean) model.get("personalizedRecommendation"));
+    }
+
+    @Test
+    void contentCountUnderOneHundredShouldNotRoundDownToZero() {
+        when(searchContentPageCacheService.getMainPopularContent(30)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainTodayContent(20)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainNewContent(20)).thenReturn(List.of());
+        when(searchContentPageCacheService.getMainRecommendedContent(List.of(), 20))
+                .thenReturn(List.of());
+        when(searchContentPageCacheService.getFeaturedPlatformList()).thenReturn(List.of());
+        when(searchContentPageCacheService.getTotalContentCount()).thenReturn(42);
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        controller.home(model, new MockHttpSession());
+
+        assertEquals(42, model.get("roundedContentCount"));
     }
 
     private PlatformVO platform(String name) {
