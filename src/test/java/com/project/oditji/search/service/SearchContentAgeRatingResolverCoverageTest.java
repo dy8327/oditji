@@ -217,7 +217,7 @@ class SearchContentAgeRatingResolverCoverageTest {
                 "findMovieReleaseDates",
                 countries,
                 "JP");
-        assertEquals(1, found.length());
+        assertEquals(2, found.length());
 
         JSONArray missing = ReflectionTestUtils.invokeMethod(
                 resolver,

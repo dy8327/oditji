@@ -2,6 +2,7 @@ package com.project.oditji.recommend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +10,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.recommend.dao.RecommendDAO;
@@ -25,7 +25,7 @@ class RecommendServiceImplRemainingCoverageTest {
     @BeforeEach
     void setUp() {
         service = new RecommendServiceImpl(
-                Mockito.mock(RecommendDAO.class));
+                mock(RecommendDAO.class));
     }
 
     @Test

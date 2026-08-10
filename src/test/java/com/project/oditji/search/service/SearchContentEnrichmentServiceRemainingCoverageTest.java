@@ -3,6 +3,7 @@ package com.project.oditji.search.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -13,7 +14,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.search.vo.CachedContentVO;
@@ -28,9 +28,9 @@ class SearchContentEnrichmentServiceRemainingCoverageTest {
     @BeforeEach
     void setUp() {
         service = new SearchContentEnrichmentService(
-                Mockito.mock(TmdbApiClient.class),
-                Mockito.mock(SearchContentManualOverrideService.class),
-                Mockito.mock(SearchContentAgeRatingResolver.class));
+                mock(TmdbApiClient.class),
+                mock(SearchContentManualOverrideService.class),
+                mock(SearchContentAgeRatingResolver.class));
     }
 
     @Test
@@ -55,7 +55,7 @@ class SearchContentEnrichmentServiceRemainingCoverageTest {
     @Test
     void emptyBatchShouldCoverWorkerNormalizationAtBothBounds() {
         TmdbProviderRegistry registry =
-                Mockito.mock(TmdbProviderRegistry.class);
+                mock(TmdbProviderRegistry.class);
 
         ReflectionTestUtils.setField(service, "workerCount", 0);
         assertTrue(service.enrichBatch(

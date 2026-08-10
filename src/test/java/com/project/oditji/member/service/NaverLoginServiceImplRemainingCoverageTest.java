@@ -1,5 +1,6 @@
 package com.project.oditji.member.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -171,15 +172,17 @@ class NaverLoginServiceImplRemainingCoverageTest {
                 new MemberSocialJoinVO();
         unknown.setStatus(null);
 
-        ReflectionTestUtils.invokeMethod(
-                service,
-                "validateMemberStatus",
-                active);
+        assertDoesNotThrow(
+                () -> ReflectionTestUtils.invokeMethod(
+                        service,
+                        "validateMemberStatus",
+                        active));
 
-        ReflectionTestUtils.invokeMethod(
-                service,
-                "validateMemberStatus",
-                unknown);
+        assertDoesNotThrow(
+                () -> ReflectionTestUtils.invokeMethod(
+                        service,
+                        "validateMemberStatus",
+                        unknown));
     }
 
     @Test
