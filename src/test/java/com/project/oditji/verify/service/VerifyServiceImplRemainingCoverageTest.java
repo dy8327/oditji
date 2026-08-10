@@ -3,7 +3,6 @@ package com.project.oditji.verify.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.Clock;
@@ -191,10 +190,11 @@ class VerifyServiceImplRemainingCoverageTest {
                         "isAdult",
                         "2007-08-11");
 
-        assertTrue(
-                Boolean.TRUE.equals(adult));
-        assertTrue(
-                Boolean.FALSE.equals(
-                        tooYoung));
+        assertEquals(
+                Boolean.TRUE,
+                adult);
+        assertEquals(
+                Boolean.FALSE,
+                tooYoung);
     }
 }

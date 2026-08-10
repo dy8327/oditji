@@ -1,9 +1,8 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -89,10 +88,12 @@ class SearchContentDiscoverServiceRemainingCoverageTest {
                         "MOVIE",
                         2);
 
-        assertFalse(
-                Boolean.TRUE.equals(nullItems));
-        assertFalse(
-                Boolean.TRUE.equals(emptyItems));
+        assertNotEquals(
+                Boolean.TRUE,
+                nullItems);
+        assertNotEquals(
+                Boolean.TRUE,
+                emptyItems);
 
         JSONArray items =
                 new JSONArray()
@@ -119,8 +120,9 @@ class SearchContentDiscoverServiceRemainingCoverageTest {
                         "MOVIE",
                         2);
 
-        assertTrue(
-                Boolean.TRUE.equals(appended));
+        assertEquals(
+                Boolean.TRUE,
+                appended);
         assertEquals(2, result.size());
     }
 
@@ -137,8 +139,9 @@ class SearchContentDiscoverServiceRemainingCoverageTest {
                         "shouldExcludeContent",
                         adult);
 
-        assertTrue(
-                Boolean.TRUE.equals(adultExcluded));
+        assertEquals(
+                Boolean.TRUE,
+                adultExcluded);
 
         verify(
                 contentPolicyService,
@@ -170,8 +173,9 @@ class SearchContentDiscoverServiceRemainingCoverageTest {
                         "shouldExcludeContent",
                         fallback);
 
-        assertFalse(
-                Boolean.TRUE.equals(normalExcluded));
+        assertNotEquals(
+                Boolean.TRUE,
+                normalExcluded);
     }
 
     @Test

@@ -73,11 +73,14 @@ class OrderServiceImplAdditionalRemainingCoverageTest {
                 List.of(1L)))
                 .thenReturn(null);
 
+        List<Long> cartItemNoList =
+                List.of(1L);
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.prepareCheckoutFromCart(
                         1L,
-                        List.of(1L)));
+                        cartItemNoList));
     }
 
     @Test
@@ -114,14 +117,21 @@ class OrderServiceImplAdditionalRemainingCoverageTest {
         when(orderDAO.insertOrderItem(any(OrderItemVO.class)))
                 .thenReturn(0);
 
+        List<OrderSheetItemVO> itemList =
+                List.of(item);
+        List<Long> orderItemNoList =
+                new ArrayList<Long>();
+        List<Long> usedCartItemNoList =
+                new ArrayList<Long>();
+
         assertThrows(
                 IllegalStateException.class,
                 () -> invokePrivate(
                         "saveOrderItems",
                         10L,
-                        List.of(item),
-                        new ArrayList<Long>(),
-                        new ArrayList<Long>()));
+                        itemList,
+                        orderItemNoList,
+                        usedCartItemNoList));
     }
 
     @Test
@@ -181,11 +191,14 @@ class OrderServiceImplAdditionalRemainingCoverageTest {
         when(orderDAO.insertWaitingSettlement(100L))
                 .thenReturn(0);
 
+        List<Long> orderItemNoList =
+                List.of(100L);
+
         assertThrows(
                 IllegalStateException.class,
                 () -> invokePrivate(
                         "createWaitingSettlements",
-                        List.of(100L)));
+                        orderItemNoList));
     }
 
     @Test
