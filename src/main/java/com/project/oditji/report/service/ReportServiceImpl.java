@@ -90,6 +90,11 @@ public class ReportServiceImpl implements ReportService {
                 normalizedType,
                 contentReviewNo,
                 productReviewNo);
+        
+        createAdminReportNotification(
+                normalizedType,
+                contentReviewNo,
+                productReviewNo);
     }
 
     /**
@@ -117,6 +122,32 @@ public class ReportServiceImpl implements ReportService {
                         ? "콘텐츠 리뷰 신고가 접수되었습니다. 검토 후 결과를 안내해 드리겠습니다."
                         : "상품 리뷰 신고가 접수되었습니다. 검토 후 결과를 안내해 드리겠습니다.",
                 null,
+                contentReport ? "CONTENT_REVIEW" : "PRODUCT_REVIEW",
+                reviewNo);
+    }
+
+    private void createAdminReportNotification(
+        String reviewType,
+        Integer contentReviewNo,
+        Integer productReviewNo) {
+
+        boolean contentReport = CONTENT_REVIEW_TYPE.equals(reviewType);
+
+        Long reviewNo = contentReport
+                ? Long.valueOf(contentReviewNo)
+                : Long.valueOf(productReviewNo);
+
+        notificationService.createForAdmins(
+                contentReport
+                        ? "CONTENT_REVIEW_REPORT_RECEIVED_ADMIN"
+                        : "PRODUCT_REVIEW_REPORT_RECEIVED_ADMIN",
+                "새 리뷰 신고",
+                contentReport
+                        ? "콘텐츠 리뷰 신고가 접수되었습니다."
+                        : "상품 리뷰 신고가 접수되었습니다.",
+                contentReport
+                        ? "/admin/review/list?tab=reported"
+                        : "/admin/productReview/list?tab=reported",
                 contentReport ? "CONTENT_REVIEW" : "PRODUCT_REVIEW",
                 reviewNo);
     }
