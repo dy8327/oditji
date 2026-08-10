@@ -104,9 +104,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl, jdbcType=VARCHAR}
-            #{notification.referenceType, jdbcType=VARCHAR}
-            #{notification.referenceNo, jdbcType=NUMERIC}
+            #{notification.linkUrl, jdbcType=VARCHAR},
+            #{notification.referenceType, jdbcType=VARCHAR},
+            #{notification.referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         FROM BUSINESS B
@@ -135,9 +135,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl, jdbcType=VARCHAR}
-            #{notification.referenceType, jdbcType=VARCHAR}
-            #{notification.referenceNo, jdbcType=NUMERIC}
+            #{notification.linkUrl, jdbcType=VARCHAR},
+            #{notification.referenceType, jdbcType=VARCHAR},
+            #{notification.referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         FROM (
@@ -171,9 +171,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl, jdbcType=VARCHAR}
-            #{notification.referenceType, jdbcType=VARCHAR}
-            #{notification.referenceNo, jdbcType=NUMERIC}
+            #{notification.linkUrl, jdbcType=VARCHAR},
+            #{notification.referenceType, jdbcType=VARCHAR},
+            #{notification.referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         FROM (
@@ -293,9 +293,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           AND N.IS_READ = 'N'
     </select>
 
-    <!-- =====================================================
+        <!-- =====================================================
          [재입고 알림 추가]
-         WAITING 상태의 신청 회원에게 재입고 알림을 일괄 저장합니다.
+         OPTION_NO가 NULL인 상품 전체 재입고 신청 회원에게만
+         재입고 알림을 일괄 저장합니다.
     ====================================================== -->
     <insert id="insertRestockMemberNotifications">
         INSERT INTO NOTIFICATION (
@@ -316,9 +317,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl},
-            #{notification.referenceType},
-            #{notification.referenceNo},
+            #{notification.linkUrl, jdbcType=VARCHAR},
+            #{notification.referenceType, jdbcType=VARCHAR},
+            #{notification.referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         FROM (
@@ -327,17 +328,81 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             JOIN MEMBER M
               ON M.MEMBER_NO = RR.MEMBER_NO
             WHERE RR.PRODUCT_NO = #{productNo}
+              AND RR.OPTION_NO IS NULL
               AND RR.STATUS = 'WAITING'
               AND M.STATUS = 'ACTIVE'
         ) TARGET_MEMBER
     </insert>
 
-    <!-- [재입고 알림 추가] 알림 발송이 끝난 신청 건을 완료 상태로 변경합니다. -->
+
+    <!-- =====================================================
+         [재입고 알림 추가]
+         상품 전체 재입고 알림 발송이 끝난 신청 건을
+         NOTIFIED 상태로 변경합니다.
+    ====================================================== -->
     <update id="updateRestockRequestsNotified">
         UPDATE PRODUCT_RESTOCK_REQUEST
         SET STATUS = 'NOTIFIED',
             NOTIFIED_AT = SYSDATE
         WHERE PRODUCT_NO = #{productNo}
+          AND OPTION_NO IS NULL
+          AND STATUS = 'WAITING'
+    </update>
+
+
+    <!-- =====================================================
+         [옵션별 재입고 알림 추가]
+         특정 상품 옵션을 WAITING 상태로 신청한 회원에게만
+         재입고 알림을 일괄 저장합니다.
+    ====================================================== -->
+    <insert id="insertOptionRestockMemberNotifications">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            TARGET_MEMBER.MEMBER_NO,
+            #{notification.notificationType},
+            #{notification.title},
+            #{notification.message},
+            #{notification.linkUrl, jdbcType=VARCHAR},
+            #{notification.referenceType, jdbcType=VARCHAR},
+            #{notification.referenceNo, jdbcType=NUMERIC},
+            'N',
+            SYSDATE
+        FROM (
+            SELECT DISTINCT RR.MEMBER_NO
+            FROM PRODUCT_RESTOCK_REQUEST RR
+            JOIN MEMBER M
+              ON M.MEMBER_NO = RR.MEMBER_NO
+            WHERE RR.PRODUCT_NO = #{productNo}
+              AND RR.OPTION_NO = #{optionNo}
+              AND RR.STATUS = 'WAITING'
+              AND M.STATUS = 'ACTIVE'
+        ) TARGET_MEMBER
+    </insert>
+
+
+    <!-- =====================================================
+         [옵션별 재입고 알림 추가]
+         알림 발송이 완료된 해당 상품 옵션의 신청 건만
+         NOTIFIED 상태로 변경합니다.
+    ====================================================== -->
+    <update id="updateOptionRestockRequestsNotified">
+        UPDATE PRODUCT_RESTOCK_REQUEST
+        SET STATUS = 'NOTIFIED',
+            NOTIFIED_AT = SYSDATE
+        WHERE PRODUCT_NO = #{productNo}
+          AND OPTION_NO = #{optionNo}
           AND STATUS = 'WAITING'
     </update>
 
