@@ -302,8 +302,9 @@ class ChatApiControllerCoverageTest {
         loginBusiness(71L, 17);
         ChatRoomVO free = room("free", "PUBLIC");
         when(chatService.getChatRoom("free")).thenReturn(free);
-        when(chatService.willRoomBeEmptyAfterLeave("free", 17)).thenReturn(true, false, false);
-        when(chatService.leaveChatRoom("free", 17)).thenReturn(true, true, false);
+        when(chatService.isChatRoomMember("free", 17)).thenReturn(true, true, false);
+        when(chatService.willRoomBeEmptyAfterLeave("free", 17)).thenReturn(true, false);
+        when(chatService.leaveChatRoom("free", 17)).thenReturn(true, true);
 
         assertEquals(
                 "채팅방에서 나갔으며, 참여자가 없어 채팅방이 삭제되었습니다.",

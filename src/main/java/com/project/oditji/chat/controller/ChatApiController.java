@@ -357,6 +357,7 @@ public class ChatApiController {
                 && isFirebaseChatEnabled()) {
 
             Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+            String displayName = ChatSessionSupport.getChatDisplayName(session);
 
             try {
                 firebaseChatService.synchronizeRoom(room);
@@ -365,7 +366,13 @@ public class ChatApiController {
                         memberNo,
                         businessNo,
                         ChatSessionSupport.getSessionRole(session),
-                        ChatSessionSupport.getChatDisplayName(session));
+                        displayName);
+
+                if (result == ChatResult.SUCCESS) {
+                    firebaseChatService.addSystemMessage(
+                            roomId,
+                            displayName + "님이 참가하였습니다.");
+                }
             } catch (IllegalStateException exception) {
                 return new ChatResponseVO(
                         false,
@@ -494,13 +501,25 @@ public class ChatApiController {
                     "공지방에서는 나가기 기능을 사용할 수 없습니다.");
         }
 
+        if (!chatService.isChatRoomMember(roomId, businessNo)) {
+            return new ChatResponseVO(
+                    false,
+                    ChatResult.FAIL,
+                    "채팅방 참여 정보를 찾을 수 없습니다.");
+        }
+
         boolean roomWillBeDeleted =
                 chatService.willRoomBeEmptyAfterLeave(roomId, businessNo);
 
         Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+        String displayName = ChatSessionSupport.getChatDisplayName(session);
 
         if (isFirebaseChatEnabled()) {
             try {
+                firebaseChatService.addSystemMessage(
+                        roomId,
+                        displayName + "님이 나갔습니다.");
+
                 if (roomWillBeDeleted) {
                     firebaseChatService.deactivateRoom(roomId);
                 } else {
