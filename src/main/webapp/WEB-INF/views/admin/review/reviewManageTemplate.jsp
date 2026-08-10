@@ -192,7 +192,7 @@
                     </c:choose>
 
                 </div>
-
+            </form>
                 <table class="data-table">
 
                     <thead>
@@ -237,6 +237,7 @@
                                                    class="review-check"
                                                    name="reviewNos"
                                                    value="${review.reviewNo}"
+                                                   form="reviewBulkForm"
                                                    aria-label="${review.reviewNo}번 리뷰 선택"
                                                    onchange="updateSelectedReviewCount()">
                                         </td>
@@ -368,8 +369,6 @@
                     </tbody>
 
                 </table>
-
-            </form>
 
             <div class="pagination">
 
