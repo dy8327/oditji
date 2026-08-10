@@ -235,7 +235,16 @@ class BusinessServiceImplMutationCoverageTest {
 
                 assertEquals("WAITING", input.getStatus());
                 assertNull(input.getActorNo());
-                verify(businessDAO).deleteProductOptionsByProductNo(700L);
+                /*
+                 * [옵션 수정 로직 변경 반영]
+                 * 기존에는 상품 수정 시 옵션을 전체 삭제했지만, 현재 서비스는
+                 * 기존 OPTION_NO를 유지하기 위해 옵션 목록을 조회한 뒤
+                 * 필요한 옵션만 수정/추가/개별 삭제합니다.
+                 * ETC 상품이며 기존 옵션이 없는 현재 테스트에서는 전체 삭제가 아니라
+                 * 기존 옵션 조회만 수행되는 것이 정상 동작입니다.
+                 */
+                verify(businessDAO).selectProductOptionsByProductNo(700L);
+                verify(businessDAO, never()).deleteProductOptionsByProductNo(700L);
                 verify(businessDAO, never()).updateProductMainImage(any(GoodsManageVO.class));
                 verify(notificationService).createForAdmins(
                                 "PRODUCT_REQUEST",
