@@ -7,9 +7,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | 실시간 채팅</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/business.css">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

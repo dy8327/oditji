@@ -8,7 +8,6 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
     <c:choose>
         <c:when test="${isAdmin}">관리자 공지 채팅방</c:when>
@@ -19,6 +18,7 @@
       href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-room-list.css?v=3">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 <body class="chat-dashboard-page chat-room-list-page">
 

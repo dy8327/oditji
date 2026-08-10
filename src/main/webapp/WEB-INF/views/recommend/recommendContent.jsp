@@ -11,8 +11,6 @@
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
 
 <title>추천 콘텐츠 | ODITJI</title>
 
@@ -21,6 +19,7 @@
 
 <script defer
         src="${pageContext.request.contextPath}/js/recommend-content.js"></script>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

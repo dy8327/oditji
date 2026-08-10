@@ -15,7 +15,6 @@
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | 콘텐츠 상세</title>
 
 <link rel="stylesheet"
@@ -38,6 +37,7 @@
 
 <%-- [수정] 콘텐츠 리뷰 중복 안내, 인라인 수정, 삭제 확인 기능 --%>
 <%--<script defer src="${pageContext.request.contextPath}/js/content-review.js"></script>--%>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

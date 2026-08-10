@@ -11,8 +11,6 @@
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
 
 <title>인기 랭킹 | ODITJI</title>
 
@@ -26,6 +24,7 @@
 --%>
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/content-list-modern.css">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

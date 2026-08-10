@@ -13,7 +13,6 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ODITJI - 마이페이지</title>
 
@@ -27,6 +26,7 @@
         src="${pageContext.request.contextPath}/js/mypage.js">
 </script>
 
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 

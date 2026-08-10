@@ -17,7 +17,6 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ODITJI | 상품</title>
 
@@ -43,6 +42,7 @@
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
     <script defer src="${pageContext.request.contextPath}/js/pagination.js?v=1"></script>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">

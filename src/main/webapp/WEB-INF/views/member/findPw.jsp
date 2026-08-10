@@ -5,10 +5,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI - 비밀번호 찾기</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/member.css">
 <script defer src="${pageContext.request.contextPath}/js/member.js"></script>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body data-context-path="${pageContext.request.contextPath}">

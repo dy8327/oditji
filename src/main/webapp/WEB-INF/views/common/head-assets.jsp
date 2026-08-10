@@ -7,7 +7,11 @@
     embed=1 모드에서 생략하는 페이지도, CSRF 토큰과 common.js(CSRF 자동 첨부,
     showAlert 등)는 반드시 로드해야 하므로 이 조각만 따로 include할 수 있게 만듭니다.
 
-    header.jsp 자신도 이 조각을 include해서 중복 정의를 피합니다.
+    웹표준(meta/link/script는 <head> 안에만 위치)을 지키기 위해, 이 조각은
+    반드시 각 JSP의 <head> 안에서 include해야 합니다. header.jsp는 <body> 안에서
+    include되므로 header.jsp 자신은 더 이상 이 조각을 include하지 않습니다.
+    header.jsp를 사용하는 모든 JSP는 자신의 <head>에서 먼저 이 조각을
+    include해야 공통 CSS/JS와 CSRF meta, viewport가 정상적으로 로드됩니다.
 --%>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
