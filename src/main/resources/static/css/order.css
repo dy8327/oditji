@@ -1888,7 +1888,8 @@
   display: inline-block;
   width: 18px;
   height: 18px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 .delivery-detail-modal-close {
@@ -2189,7 +2190,8 @@
   display: inline-block;
   width: 15px;
   height: 15px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E") center / contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 #deliveryDetailModal .order-info-row {
@@ -2237,7 +2239,8 @@
   content: "";
   width: 13px;
   height: 13px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E") center / contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 #deliveryDetailModal .tracking-copy-btn:hover {
@@ -3187,6 +3190,9 @@
   border-bottom-color: #36363c;
   color: #aeb0b7;
   font-size: 13px;
+
+  /* [추가] 취소/환불 내역 테이블 헤더 가운데 정렬 */
+  text-align: center;
 }
 
 .order-list-container .refund-table tbody td {
@@ -3194,6 +3200,10 @@
   border-bottom-color: #303036;
   color: #ececef;
   line-height: 1.5;
+
+  /* [추가] 각 컬럼 값도 헤더와 동일하게 가운데 정렬 */
+  text-align: center;
+  vertical-align: middle;
 }
 
 .order-list-container .refund-table tbody tr {
@@ -3204,30 +3214,54 @@
   background: #202024;
 }
 
-/* [수정] 각 열 너비를 실제 정보량에 맞춘다. */
+/* =========================================================
+   [수정] 취소/환불 내역 각 열 너비
+   신청일시/처리일시에 시:분:초가 추가되어 충분한 너비를 확보한다.
+========================================================= */
+
 .order-list-container .refund-table th:nth-child(1),
 .order-list-container .refund-table td:nth-child(1) {
-  width: 96px;
+  width: 90px;
 }
+
 .order-list-container .refund-table th:nth-child(2),
 .order-list-container .refund-table td:nth-child(2) {
-  width: 110px;
+  width: 100px;
 }
+
+/* 상품명은 남는 공간 사용 */
+
+/* 신청일시 */
 .order-list-container .refund-table th:nth-child(4),
 .order-list-container .refund-table td:nth-child(4) {
-  width: 140px;
+  width: 175px;
+  white-space: nowrap;
 }
+
+/* [추가] 처리일시 */
 .order-list-container .refund-table th:nth-child(5),
 .order-list-container .refund-table td:nth-child(5) {
-  width: 130px;
+  width: 175px;
+  white-space: nowrap;
 }
+
+/* 금액 */
 .order-list-container .refund-table th:nth-child(6),
 .order-list-container .refund-table td:nth-child(6) {
-  width: 130px;
+  width: 125px;
+  white-space: nowrap;
 }
+
+/* 처리 상태 */
 .order-list-container .refund-table th:nth-child(7),
 .order-list-container .refund-table td:nth-child(7) {
-  width: 150px;
+  width: 125px;
+}
+
+/* 반려 사유 */
+.order-list-container .refund-table th:nth-child(8),
+.order-list-container .refund-table td:nth-child(8) {
+  width: 140px;
 }
 
 .order-list-container .refund-type-badge,
@@ -3346,7 +3380,9 @@
   .order-list-container .refund-table th:nth-child(6),
   .order-list-container .refund-table td:nth-child(6),
   .order-list-container .refund-table th:nth-child(7),
-  .order-list-container .refund-table td:nth-child(7) {
+  .order-list-container .refund-table td:nth-child(7),
+  .order-list-container .refund-table th:nth-child(8),
+  .order-list-container .refund-table td:nth-child(8) {
     width: 100%;
   }
 
