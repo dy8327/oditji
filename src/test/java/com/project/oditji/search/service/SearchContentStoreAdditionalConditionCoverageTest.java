@@ -1,9 +1,9 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +66,7 @@ class SearchContentStoreAdditionalConditionCoverageTest {
 
         assertEquals(1, store.size());
         assertSame(allowed, store.getAll().get(0));
-        assertTrue(store.getLastUpdatedAt() != null);
+        assertNotNull(store.getLastUpdatedAt());
     }
 
     @Test

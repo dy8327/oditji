@@ -1,9 +1,9 @@
 package com.project.oditji.business.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.nio.file.Path;
@@ -25,12 +25,11 @@ import com.project.oditji.tmdb.service.TmdbService;
  */
 class BusinessServiceImplHelperConditionCoverageTest {
 
-    private SearchContentStore searchContentStore;
     private BusinessServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        searchContentStore =
+        SearchContentStore searchContentStore =
                 mock(SearchContentStore.class);
 
         service = new BusinessServiceImpl(
@@ -199,29 +198,29 @@ class BusinessServiceImplHelperConditionCoverageTest {
         content.setOriginalTitle("Original");
         content.setSearchText("Actor Name");
 
-        assertTrue(
-                Boolean.TRUE.equals(
-                        ReflectionTestUtils.invokeMethod(
-                                service,
-                                "matchesCachedContent",
-                                content,
-                                "movie")));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(
+                        service,
+                        "matchesCachedContent",
+                        content,
+                        "movie"));
 
-        assertTrue(
-                Boolean.TRUE.equals(
-                        ReflectionTestUtils.invokeMethod(
-                                service,
-                                "matchesCachedContent",
-                                content,
-                                "original")));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(
+                        service,
+                        "matchesCachedContent",
+                        content,
+                        "original"));
 
-        assertTrue(
-                Boolean.TRUE.equals(
-                        ReflectionTestUtils.invokeMethod(
-                                service,
-                                "matchesCachedContent",
-                                content,
-                                "actor")));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(
+                        service,
+                        "matchesCachedContent",
+                        content,
+                        "actor"));
 
         content.setTitle(null);
         content.setOriginalTitle(null);
@@ -304,11 +303,11 @@ class BusinessServiceImplHelperConditionCoverageTest {
                 resolvePath(
                         "/uploads/product/a.png");
 
-        assertTrue(valid != null);
-        assertTrue(
+        assertNotNull(valid);
+        assertEquals(
+                "a.png",
                 valid.getFileName()
-                        .toString()
-                        .equals("a.png"));
+                        .toString());
     }
 
     private Path resolvePath(String value) {
