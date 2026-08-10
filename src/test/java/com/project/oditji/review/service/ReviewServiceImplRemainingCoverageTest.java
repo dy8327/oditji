@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -169,7 +170,7 @@ class ReviewServiceImplRemainingCoverageTest {
 
         ArgumentCaptor<ReviewVO> captor =
                 ArgumentCaptor.forClass(ReviewVO.class);
-        verify(reviewDAO, org.mockito.Mockito.times(2))
+        verify(reviewDAO, times(2))
                 .insertContentReview(captor.capture());
 
         assertEquals("N", captor.getAllValues().get(0).getSpoilerYn());
