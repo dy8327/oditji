@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,8 +26,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.project.oditji.chat.common.ChatResult;
 import com.project.oditji.chat.service.ChatService;
 import com.project.oditji.chat.service.FirebaseChatService;
+import com.project.oditji.chat.vo.ChatResponseVO;
 import com.project.oditji.chat.vo.ChatRoomVO;
 import com.project.oditji.chat.vo.FirebaseChatTokenVO;
 import com.project.oditji.member.vo.MemberVO;
@@ -125,6 +128,50 @@ class ChatApiControllerFirebaseCoverageTest {
         verify(chatService, never()).getMyChatRoomList(anyInt());
         verify(firebaseChatService).synchronizeCurrentUser(
                 List.of(notice), List.of(), 1L, 1, "ADMIN", "ODITJI 관리자");
+    }
+
+    @Test
+    void joinRoomShouldWriteSystemMessageOnlyForNewParticipant() {
+        loginBusiness(23L, 11);
+        ChatRoomVO room = room("free", "PUBLIC");
+        when(firebaseChatService.isEnabled()).thenReturn(true);
+        when(chatService.getChatRoom("free")).thenReturn(room);
+        when(chatService.joinChatRoom("free", 11)).thenReturn(
+                ChatResult.SUCCESS,
+                ChatResult.ALREADY_JOINED);
+
+        ChatResponseVO joined = controller.joinRoom("free", session);
+        ChatResponseVO alreadyJoined = controller.joinRoom("free", session);
+
+        assertTrue(joined.isSuccess());
+        assertTrue(alreadyJoined.isSuccess());
+        verify(firebaseChatService, times(2)).synchronizeRoom(room);
+        verify(firebaseChatService, times(2)).addRoomMember(
+                "free", 23L, 11, ROLE_BUSINESS, BUSINESS_NAME);
+        verify(firebaseChatService).addSystemMessage(
+                "free",
+                BUSINESS_NAME + "님이 참가하였습니다.");
+    }
+
+    @Test
+    void leaveRoomShouldWriteSystemMessageAndRemoveMember() {
+        loginBusiness(24L, 12);
+        ChatRoomVO room = room("free", "PUBLIC");
+        when(firebaseChatService.isEnabled()).thenReturn(true);
+        when(chatService.getChatRoom("free")).thenReturn(room);
+        when(chatService.isChatRoomMember("free", 12)).thenReturn(true);
+        when(chatService.willRoomBeEmptyAfterLeave("free", 12)).thenReturn(false);
+        when(chatService.leaveChatRoom("free", 12)).thenReturn(true);
+
+        ChatResponseVO result = controller.leaveRoom("free", session);
+
+        assertTrue(result.isSuccess());
+        assertEquals("채팅방에서 나갔습니다.", result.getMessage());
+        verify(firebaseChatService).addSystemMessage(
+                "free",
+                BUSINESS_NAME + "님이 나갔습니다.");
+        verify(firebaseChatService).removeRoomMember("free", 24L);
+        verify(firebaseChatService, never()).deactivateRoom("free");
     }
 
     @Test

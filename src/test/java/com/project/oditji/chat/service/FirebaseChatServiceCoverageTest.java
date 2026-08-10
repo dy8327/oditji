@@ -74,6 +74,12 @@ class FirebaseChatServiceCoverageTest {
     private DocumentReference memberReference;
 
     @Mock
+    private CollectionReference messageCollection;
+
+    @Mock
+    private DocumentReference messageReference;
+
+    @Mock
     private WriteResult writeResult;
 
     @AfterEach
@@ -361,6 +367,41 @@ class FirebaseChatServiceCoverageTest {
     }
 
     @Test
+    void addSystemMessageShouldWriteTrimmedSystemMessage() {
+        FirebaseChatService service = service(true);
+        stubFirestoreHierarchy();
+        when(messageReference.set(anyMap()))
+                .thenReturn(ApiFutures.immediateFuture(writeResult));
+
+        service.addSystemMessage(
+                " ROOM_7 ",
+                "  사업자님이 참가하였습니다.  ");
+
+        verify(roomCollection).document("ROOM_7");
+        verify(messageCollection).document();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> dataCaptor =
+                ArgumentCaptor.forClass(Map.class);
+        verify(messageReference).set(dataCaptor.capture());
+
+        Map<String, Object> data = dataCaptor.getValue();
+        assertEquals("사업자님이 참가하였습니다.", data.get("message"));
+        assertEquals("SYSTEM", data.get("type"));
+        assertEquals(Boolean.FALSE, data.get("edited"));
+        assertNotNull(data.get("sendTime"));
+    }
+
+    @Test
+    void addSystemMessageShouldIgnoreBlankMessage() {
+        FirebaseChatService service = service(true);
+
+        service.addSystemMessage("ROOM_7", "   ");
+
+        verifyNoInteractions(firestoreProvider);
+    }
+
+    @Test
     void deactivateRoomShouldIgnoreBlankIdAndWriteInactiveStatus() {
         FirebaseChatService service = service(true);
 
@@ -510,6 +551,12 @@ class FirebaseChatServiceCoverageTest {
         org.mockito.Mockito.lenient()
                 .when(memberCollection.document(anyString()))
                 .thenReturn(memberReference);
+        org.mockito.Mockito.lenient()
+                .when(roomReference.collection("messages"))
+                .thenReturn(messageCollection);
+        org.mockito.Mockito.lenient()
+                .when(messageCollection.document())
+                .thenReturn(messageReference);
     }
 
     private ChatRoomVO room(

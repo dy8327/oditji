@@ -35,6 +35,7 @@ public class FirebaseChatService {
 
     private static final String COLLECTION_CHAT_ROOMS = "chatRooms";
     private static final String COLLECTION_MEMBERS = "members";
+    private static final String COLLECTION_MESSAGES = "messages";
     private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_INACTIVE = "INACTIVE";
@@ -212,6 +213,31 @@ public class FirebaseChatService {
                         normalizeRole(role),
                         displayName),
                 SetOptions.merge()));
+    }
+
+    /**
+     * 채팅방 참가/나가기 안내를 SYSTEM 메시지로 저장합니다.
+     */
+    public void addSystemMessage(String roomId, String message) {
+
+        if (isBlank(message)) {
+            return;
+        }
+
+        Firestore firestore = requireFirestore();
+        DocumentReference messageReference = getRoomReference(
+                firestore,
+                roomId)
+                .collection(COLLECTION_MESSAGES)
+                .document();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("message", message.trim());
+        data.put("sendTime", FieldValue.serverTimestamp());
+        data.put("type", "SYSTEM");
+        data.put("edited", false);
+
+        waitForWrite(messageReference.set(data));
     }
 
     /**
