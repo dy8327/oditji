@@ -1,5 +1,6 @@
 package com.project.oditji.common.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,13 +31,21 @@ class MainContentPlatformServiceCoverageTest {
 
     @Test
     void attachShouldIgnoreNullAndEmptyContentLists() {
-        service.attachPlatformLogos(
-                null,
-                List.of("Netflix"));
+        List<String> selectedPlatforms =
+                List.of("Netflix");
 
-        service.attachPlatformLogos(
-                List.of(),
-                List.of("Netflix"));
+        assertDoesNotThrow(
+                () -> service.attachPlatformLogos(
+                        null,
+                        selectedPlatforms));
+
+        List<SearchResultVO> emptyContentList =
+                List.of();
+
+        assertDoesNotThrow(
+                () -> service.attachPlatformLogos(
+                        emptyContentList,
+                        selectedPlatforms));
     }
 
     @Test
