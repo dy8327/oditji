@@ -893,6 +893,51 @@
   background: var(--adm-surface-3);
 }
 
+/*
+ * [추가] discountManage.jsp(OTT 할인 등록/수정 모달)처럼 한 줄짜리 입력값
+ * (제목, URL 등)이나 select가 필요한 폼에서, .form-textarea와 같은 톤의
+ * 입력창이 없었다. 기존 .form-textarea와 배경/테두리/포커스 스타일을
+ * 그대로 맞추되 한 줄 높이로 쓰는 공용 클래스를 추가한다.
+ */
+.form-input,
+.form-select {
+  width: 100%;
+
+  padding: 14px 16px;
+
+  background: var(--adm-surface-2);
+
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 14px;
+  font-family: inherit;
+
+  transition: var(--adm-transition);
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+}
+
+/* 시작일/종료일처럼 한 form-group 안에 입력 2개를 나란히 두는 레이아웃 */
+.form-row {
+  display: flex;
+  gap: 14px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
 .radio-group {
   display: flex;
   gap: 18px;
@@ -1625,6 +1670,17 @@
 /* 상세보기 트리거 버튼은 데스크톱에서는 필요 없다 (기존 관리 버튼을 그대로 쓴다) */
 .data-table .row-detail-trigger {
   display: none;
+}
+
+/*
+ * [수정] discountManage.jsp 전용 예외.
+ * 다른 화면의 row-detail-trigger는 "상세보기"만 담당하고 실제 관리 버튼은
+ * 데스크톱에서 별도로 노출되지만, OTT 할인 관리의 "수정" 버튼은 그 자체가
+ * 유일한 수정 진입점이라 데스크톱에서도 항상 보여야 한다. 위 규칙보다
+ * 선택자 특이도를 높여 덮어쓴다.
+ */
+.data-table td .item-actions .discount-edit-trigger {
+  display: inline-flex;
 }
 
 /*

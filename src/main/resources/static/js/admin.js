@@ -76,6 +76,98 @@ function openRowDetailModal(modalId, triggerButton) {
 }
 
 /* =========================================================
+ * discountManage.jsp(OTT 할인 관리) - 등록/수정 공용 모달
+ *
+ * 승인 대기열이 없는 단순 CRUD라, 하나의 모달(#discountFormModal)을
+ * "등록"과 "수정" 두 모드로 재사용한다.
+ * - 수정: openRowDetailModal과 동일하게 클릭한 행의 data-* 값을 그대로
+ *   폼에 채운다.
+ * - 등록: 폼을 비운 뒤(form.reset()) form action만 등록용으로 바꾼다.
+ * 폼 자체의 data-register-url/data-update-url 속성에 두 액션의 URL을
+ * 미리 담아두고, 모드에 따라 form.action만 바꿔치기한다.
+ * ========================================================= */
+function openDiscountRegisterModal() {
+
+    var modal = document.getElementById('discountFormModal');
+    var form = document.getElementById('discountForm');
+
+    if (!modal || !form) {
+        return;
+    }
+
+    form.reset();
+    form.action = form.dataset.registerUrl;
+
+    var titleEl = document.getElementById('discountFormTitle');
+    if (titleEl) {
+        titleEl.textContent = 'OTT 할인 등록';
+    }
+
+    /* 신규 등록에는 대상 discountId가 없으므로 모바일 활성화/비활성화 영역을 숨긴다.
+       (openDiscountEditModal이 다시 열릴 때 openRowDetailModal이 알아서 보여준다) */
+    var statusActions = document.getElementById('discountStatusActions');
+    if (statusActions) {
+        statusActions.style.display = 'none';
+    }
+
+    modal.classList.add('open');
+}
+
+function openDiscountEditModal(triggerButton) {
+
+    var modal = document.getElementById('discountFormModal');
+    var form = document.getElementById('discountForm');
+
+    if (!modal || !form || !triggerButton) {
+        return;
+    }
+
+    var statusActions = document.getElementById('discountStatusActions');
+    if (statusActions) {
+        statusActions.style.display = '';
+    }
+
+    openRowDetailModal('discountFormModal', triggerButton);
+
+    form.action = form.dataset.updateUrl;
+
+    var titleEl = document.getElementById('discountFormTitle');
+    if (titleEl) {
+        titleEl.textContent = 'OTT 할인 수정';
+    }
+}
+
+/*
+ * discountManage.jsp - 등록/수정 폼 제출 전 정가/할인가 유효성 검증
+ * (기존 discountManage.jsp 하단 인라인 <script>에 있던 코드를 이전함)
+ */
+function validateDiscountForm() {
+
+    var regPriceInput = document.getElementById('discountRegularPrice');
+    var discPriceInput = document.getElementById('discountDiscountPrice');
+
+    var regPrice = regPriceInput.value ? parseInt(regPriceInput.value, 10) : null;
+    var discPrice = discPriceInput.value ? parseInt(discPriceInput.value, 10) : null;
+
+    if (discPrice !== null && !isNaN(discPrice)) {
+
+        if (regPrice === null || isNaN(regPrice)) {
+            alert('할인가를 입력하려면 정가를 먼저 입력해야 합니다.');
+            regPriceInput.focus();
+            return false;
+        }
+
+        if (discPrice >= regPrice) {
+            alert('할인가는 정가보다 작아야 합니다.');
+            discPriceInput.focus();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/* =========================================================
  * 모바일 회원 아이디 말줄임 / 클릭 시 전체보기 모달
  * memberManage.jsp(아이디) / monitoring.jsp(회원)가 공유하는 범용 컴포넌트.
  * 768px 이하에서만 말줄임(...)이 걸리므로(admin.css .member-id-text),

@@ -1,0 +1,824 @@
+/* =========================================================
+   ODITJI OTT 할인 혜택 페이지
+   - 사이트 공통 토큰(--color-*, --radius, --transition)을 기반으로
+     하되, 프로모션 성격의 페이지라 시네마틱한 톤(카드 배경/포인트 컬러)은
+     별도 지역 토큰으로 유지한다.
+========================================================= */
+
+/* =========================
+   TOKENS
+========================= */
+
+.ott-discount-section {
+  --ott-bg-card: #1c1c30;
+  --ott-bg-card-hover: #22223a;
+  --ott-bg-card-border: #2f2f48;
+  --ott-bg-hero-start: #23233c;
+  --ott-bg-hero-end: #121220;
+
+  --ott-text-dim: #a9acc0;
+  --ott-text-company: #8b8ea3;
+
+  --ott-accent: #ff4d5e;
+  --ott-accent-hover: #ff6b79;
+  --ott-accent-summary: #35e0a1;
+  --ott-badge-bg: linear-gradient(135deg, #ffb648, #ff8a00);
+  --ott-badge-text: #1a1206;
+
+  --ott-radius: var(--radius, 14px);
+  --ott-radius-sm: 8px;
+  --ott-transition: var(--transition, 0.25s ease);
+
+  --ott-shadow-card: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --ott-shadow-card-hover: 0 14px 32px rgba(0, 0, 0, 0.38);
+  --ott-shadow-hero: 0 20px 48px rgba(15, 15, 26, 0.55);
+
+  width: 100%;
+  max-width: 1280px;
+  margin: 60px auto 96px;
+  padding: 0 24px;
+}
+
+/* 포커스 접근성: 마우스 클릭이 아닌 키보드 포커스에서만 명확한 아웃라인 표시 */
+.ott-discount-section :is(button, a, input, select):focus-visible {
+  outline: 2px solid var(--color-point, #5ea3ff);
+  outline-offset: 2px;
+  border-radius: var(--ott-radius-sm);
+}
+
+/* =========================
+   HERO
+========================= */
+
+.ott-discount-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--ott-bg-hero-start) 0%, var(--ott-bg-hero-end) 100%);
+  padding: 56px 32px;
+  text-align: center;
+  border-radius: 20px;
+  margin-bottom: 36px;
+  color: #fff;
+  box-shadow: var(--ott-shadow-hero);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 배경에 은은한 스포트라이트 느낌의 원형 그라디언트 두 개를 겹쳐
+   OTT/엔터테인먼트 감성의 시네마틱한 무드를 준다 (순수 장식, 클릭 불가) */
+.ott-discount-hero::before,
+.ott-discount-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ott-discount-hero::before {
+  width: 320px;
+  height: 320px;
+  top: -160px;
+  left: -80px;
+  background: radial-gradient(circle, var(--ott-accent) 0%, transparent 70%);
+}
+
+.ott-discount-hero::after {
+  width: 360px;
+  height: 360px;
+  bottom: -200px;
+  right: -100px;
+  background: radial-gradient(circle, var(--ott-accent-summary) 0%, transparent 70%);
+}
+
+.ott-discount-hero__eyebrow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(53, 224, 161, 0.12);
+  border: 1px solid rgba(53, 224, 161, 0.35);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ott-accent-summary);
+}
+
+.ott-discount-hero__eyebrow::before {
+  content: "✦";
+  font-size: 0.75em;
+}
+
+.ott-discount-hero__title {
+  position: relative;
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 1.15rem + 1.8vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.ott-discount-hero__desc {
+  position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+  color: var(--ott-text-dim);
+  font-size: clamp(0.9rem, 0.85rem + 0.3vw, 1rem);
+  line-height: 1.6;
+}
+
+.ott-discount-hero__desc strong {
+  color: #fff;
+}
+
+/* =========================
+   FILTERS
+========================= */
+
+.ott-filter-section {
+  position: sticky;
+  top: calc(var(--header-height, 80px) + 12px);
+  z-index: 5;
+  margin-bottom: 28px;
+  padding: 16px 18px;
+  border-radius: var(--ott-radius);
+  background: rgba(24, 24, 38, 0.72);
+  border: 1px solid var(--ott-bg-card-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ott-filter-label {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ott-text-company);
+  letter-spacing: 0.03em;
+}
+
+.ott-filter-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.ott-filter-group:last-child {
+  margin-bottom: 0;
+}
+
+.ott-filter-btn {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--ott-bg-card-border);
+  background: #181826;
+  color: #c0c0d0;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background-color var(--ott-transition), border-color var(--ott-transition),
+    color var(--ott-transition), transform var(--ott-transition);
+}
+
+.ott-filter-btn:hover {
+  border-color: var(--ott-accent);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.ott-filter-btn:active {
+  transform: translateY(0);
+}
+
+.ott-filter-btn.active {
+  background: var(--ott-accent);
+  color: #fff;
+  border-color: var(--ott-accent);
+  box-shadow: 0 4px 14px rgba(255, 77, 94, 0.35);
+}
+
+.ott-filter-group--chip {
+  padding-top: 12px;
+  border-top: 1px dashed var(--ott-bg-card-border);
+}
+
+.ott-filter-btn--chip {
+  border-radius: var(--ott-radius-sm);
+  font-size: 0.84rem;
+  padding: 7px 15px;
+}
+
+.ott-filter-btn--chip.active {
+  background: var(--ott-accent-summary);
+  border-color: var(--ott-accent-summary);
+  color: #0f1a16;
+  box-shadow: 0 4px 14px rgba(53, 224, 161, 0.3);
+}
+
+/* =========================
+   CARD GRID
+========================= */
+
+.ott-discount-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.ott-discount-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--ott-bg-card);
+  border: 1px solid var(--ott-bg-card-border);
+  border-radius: var(--ott-radius);
+  padding: 22px;
+  color: #fff;
+  box-shadow: var(--ott-shadow-card);
+  transition: transform var(--ott-transition), box-shadow var(--ott-transition),
+    border-color var(--ott-transition), background-color var(--ott-transition);
+}
+
+.ott-discount-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ott-shadow-card-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: var(--ott-bg-card-hover);
+}
+
+.ott-discount-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ott-platform-tag {
+  padding: 4px 10px;
+  border-radius: var(--ott-radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.ott-platform-tag--NETFLIX { background: #e50914; }
+.ott-platform-tag--TVING   { background: #ff153c; }
+.ott-platform-tag--WAVVE   { background: #1b53f4; }
+.ott-platform-tag--DISNEY  { background: #113ccf; }
+.ott-platform-tag--WATCHA  { background: #ff2f6e; }
+.ott-platform-tag--COUPANG { background: #00a0e9; }
+
+/* [수정] BEST 등 강조 뱃지를 카드 우측 상단에 붙는 리본 형태로 재배치해
+   플랫폼 태그와 겹치지 않으면서 시선을 더 잘 끌게 한다. */
+.ott-badge {
+  position: absolute;
+  top: 14px;
+  right: -1px;
+  background: var(--ott-badge-bg);
+  color: var(--ott-badge-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 12px 4px 10px;
+  border-radius: 999px 0 0 999px;
+  box-shadow: 0 3px 10px rgba(255, 138, 0, 0.35);
+}
+
+.ott-discount-card__title {
+  margin: 0 0 6px;
+  padding-right: 56px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ott-discount-card__summary {
+  color: var(--ott-accent-summary);
+  font-weight: 600;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.ott-discount-card__desc {
+  color: var(--ott-text-dim);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.ott-discount-card__bottom {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ott-discount-card__company {
+  color: var(--ott-text-company);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ott-discount-card__date {
+  color: var(--ott-text-company);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ott-discount-card__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border-radius: var(--ott-radius-sm);
+  background: var(--ott-accent);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background-color var(--ott-transition), transform var(--ott-transition);
+}
+
+.ott-discount-card__link:hover {
+  background: var(--ott-accent-hover);
+  transform: translateY(-1px);
+}
+
+.ott-discount-empty,
+.ott-discount-loading,
+.ott-discount-error {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 64px 20px;
+  border-radius: var(--ott-radius);
+  border: 1px dashed var(--ott-bg-card-border);
+  color: var(--ott-text-company);
+}
+
+.ott-discount-empty::before,
+.ott-discount-loading::before,
+.ott-discount-error::before {
+  font-size: 1.8rem;
+}
+
+.ott-discount-empty::before { content: "🔍"; }
+.ott-discount-loading::before {
+  content: "⏳";
+  animation: ott-spin 1.4s linear infinite;
+}
+.ott-discount-error::before { content: "⚠️"; }
+
+@keyframes ott-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 카드 그리드와 페이지네이션 사이 간격 (공용 pagination-common.css는 그대로 두고
+   이 페이지 범위에서만 여백을 보정한다) */
+.ott-discount-section .oditji-pagination {
+  margin-top: 36px;
+}
+
+/* =========================
+   PRICE ROW
+========================= */
+
+.ott-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 2px 0 12px;
+}
+
+.ott-price-regular {
+  text-decoration: line-through;
+  color: var(--ott-text-company);
+  font-size: 0.85rem;
+}
+
+.ott-price-arrow {
+  color: var(--ott-text-dim);
+  font-size: 0.8rem;
+}
+
+.ott-price-discount {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.ott-discount-rate {
+  background: var(--ott-accent);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--ott-radius-sm);
+}
+
+/* =========================
+   CARD ACTIONS
+========================= */
+
+.ott-discount-card__actions {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ott-bg-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ott-discount-card__calc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--ott-radius-sm);
+  border: 1px solid var(--ott-accent-summary);
+  background: transparent;
+  color: var(--ott-accent-summary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--ott-transition), color var(--ott-transition), transform var(--ott-transition);
+}
+
+.ott-discount-card__calc-btn::before {
+  content: "🧮";
+  font-size: 0.95em;
+}
+
+.ott-discount-card__calc-btn:hover {
+  background: var(--ott-accent-summary);
+  color: #0f1a16;
+  transform: translateY(-1px);
+}
+
+/* =========================
+   CALCULATOR MODAL
+========================= */
+
+.ott-calc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+}
+
+.ott-calc-modal.is-open {
+  display: block;
+}
+
+.ott-calc-modal__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 18, 0.72);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: ott-fade-in var(--ott-transition);
+}
+
+.ott-calc-modal__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 10vh auto 0;
+  background: var(--ott-bg-card);
+  border: 1px solid var(--ott-bg-card-border);
+  border-radius: 18px;
+  padding: 30px 26px;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  animation: ott-modal-in 0.25s ease;
+}
+
+@keyframes ott-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ott-modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ott-calc-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background-color var(--ott-transition);
+}
+
+.ott-calc-modal__close:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ott-calc-modal__title {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  padding-right: 28px;
+}
+
+.ott-calc-modal__subtitle {
+  margin: 0 0 20px;
+  color: var(--ott-text-dim);
+  font-size: 0.9rem;
+}
+
+.ott-calc-modal__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ott-calc-modal__field label {
+  font-size: 0.9rem;
+  color: var(--ott-text-dim);
+  font-weight: 500;
+}
+
+.ott-calc-modal__field select,
+.ott-calc-modal__field input[type="number"] {
+  width: 140px;
+  padding: 8px 12px;
+  border-radius: var(--ott-radius-sm);
+  border: 1px solid var(--ott-bg-card-border);
+  background: #181826;
+  color: #fff;
+  text-align: right;
+  font-size: 0.95rem;
+  transition: border-color var(--ott-transition);
+}
+
+.ott-calc-modal__field select:focus,
+.ott-calc-modal__field input[type="number"]:focus {
+  border-color: var(--color-point, #5ea3ff);
+  outline: none;
+}
+
+.ott-calc-modal__field input[type="number"]::-webkit-outer-spin-button,
+.ott-calc-modal__field input[type="number"]::-webkit-inner-spin-button {
+  margin-left: 4px;
+}
+
+.ott-calc-modal__result-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  color: var(--ott-text-dim);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ott-calc-modal__result-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ott-accent-summary);
+  box-shadow: 0 0 0 3px rgba(53, 224, 161, 0.2);
+}
+
+.ott-calc-result__divider {
+  height: 1px;
+  margin: 10px 0;
+  background: var(--ott-bg-card-border);
+}
+
+.ott-calc-modal__result {
+  background: #14141f;
+  border: 1px solid var(--ott-bg-card-border);
+  border-radius: var(--ott-radius-sm);
+  padding: 16px;
+  font-size: 0.9rem;
+}
+
+.ott-calc-modal__placeholder {
+  margin: 0;
+  color: var(--ott-text-company);
+  text-align: center;
+}
+
+.ott-calc-result__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.ott-calc-result__row + .ott-calc-result__row {
+  border-top: 1px dashed var(--ott-bg-card-border);
+}
+
+.ott-calc-result__label {
+  color: var(--ott-text-dim);
+}
+
+.ott-calc-result__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ott-calc-result__value--highlight {
+  color: var(--ott-accent-summary);
+  font-size: 1.1rem;
+}
+
+/* =========================
+   RESPONSIVE — TABLET (~1024px 이하)
+========================= */
+
+@media (max-width: 1024px) {
+  .ott-discount-section {
+    margin: 44px auto 72px;
+  }
+
+  .ott-discount-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .ott-filter-section {
+    top: calc(var(--header-height, 80px) + 8px);
+  }
+}
+
+/* =========================
+   RESPONSIVE — MOBILE (~768px 이하)
+========================= */
+
+@media (max-width: 768px) {
+
+  .ott-discount-section {
+    margin: 28px auto 56px;
+    padding: 0 16px;
+  }
+
+  .ott-discount-hero {
+    padding: 32px 20px;
+    border-radius: 16px;
+    margin-bottom: 22px;
+  }
+
+  .ott-discount-hero__eyebrow {
+    font-size: 0.72rem;
+    padding: 4px 12px;
+  }
+
+  /* 헤더가 sticky이므로 필터 바를 같이 고정하면 두 겹으로 화면을 잡아먹는다.
+     모바일에서는 일반 흐름으로 되돌리고, 필터 칩은 가로 스크롤로 대체한다. */
+  .ott-filter-section {
+    position: static;
+    padding: 14px;
+    margin-bottom: 22px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .ott-filter-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -14px 14px;
+    padding: 2px 14px 6px;
+  }
+
+  .ott-filter-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ott-filter-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .ott-discount-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ott-discount-card {
+    padding: 18px;
+  }
+
+  .ott-discount-card:hover {
+    transform: none;
+  }
+
+  .ott-discount-card__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .ott-discount-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ott-discount-card__calc-btn,
+  .ott-discount-card__link {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ott-calc-modal__panel {
+    width: calc(100% - 32px);
+    max-width: 420px;
+    margin: 8vh auto 0;
+    padding: 24px 20px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ott-calc-modal__field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .ott-calc-modal__field select,
+  .ott-calc-modal__field input[type="number"] {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* =========================
+   RESPONSIVE — SMALL MOBILE (~480px 이하)
+========================= */
+
+@media (max-width: 480px) {
+
+  .ott-discount-section {
+    padding: 0 12px;
+  }
+
+  .ott-discount-hero {
+    padding: 26px 16px;
+  }
+
+  .ott-discount-hero__title {
+    line-height: 1.3;
+  }
+
+  .ott-discount-card__title {
+    padding-right: 48px;
+  }
+
+  .ott-badge {
+    font-size: 0.68rem;
+    padding: 3px 10px 3px 8px;
+  }
+}
+
+/* =========================
+   MOTION 선호도 낮춤 대응
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .ott-discount-card,
+  .ott-filter-btn,
+  .ott-discount-card__link,
+  .ott-discount-card__calc-btn,
+  .ott-calc-modal__dim,
+  .ott-calc-modal__panel {
+    transition: none;
+    animation: none;
+  }
+
+  .ott-discount-loading::before {
+    animation: none;
+  }
+}
