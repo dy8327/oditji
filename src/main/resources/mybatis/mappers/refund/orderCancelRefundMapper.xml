@@ -428,6 +428,39 @@
          WHERE PRODUCT_NO = #{productNo}
     </update>
 
+    <!-- =========================================================
+     [상품 옵션 재고 복구 추가]
+
+     취소 승인된 주문상품에 OPTION_NO가 존재하면
+     해당 PRODUCT_OPTION.STOCK도 구매 수량만큼 복구합니다.
+
+     OPTION_NO가 NULL인 일반 상품은 UPDATE 대상이 없습니다.
+    ========================================================== -->
+    <update id="restoreProductOptionStockByOrderItemNo">
+
+        MERGE INTO PRODUCT_OPTION PO
+
+        USING (
+            SELECT
+                OI.OPTION_NO,
+                OI.QUANTITY
+            FROM ORDER_ITEM OI
+            WHERE OI.ORDER_ITEM_NO = #{orderItemNo}
+            AND OI.OPTION_NO IS NOT NULL
+        ) RESTORE_ITEM
+
+        ON (
+            PO.OPTION_NO = RESTORE_ITEM.OPTION_NO
+        )
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                PO.STOCK =
+                    PO.STOCK
+                    + RESTORE_ITEM.QUANTITY
+
+    </update>
+
     <update id="updateOrderStatusByItems">
         UPDATE ORDERS O
            SET O.ORDER_STATUS = (
