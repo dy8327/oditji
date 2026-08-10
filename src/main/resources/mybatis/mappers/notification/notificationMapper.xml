@@ -47,9 +47,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notificationType},
             #{title},
             #{message},
-            #{linkUrl},
-            #{referenceType},
-            #{referenceNo},
+            #{linkUrl, jdbcType=VARCHAR},
+            #{referenceType, jdbcType=VARCHAR},
+            #{referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         )
@@ -75,9 +75,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notificationType},
             #{title},
             #{message},
-            #{linkUrl},
-            #{referenceType},
-            #{referenceNo},
+            #{linkUrl, jdbcType=VARCHAR},
+            #{referenceType, jdbcType=VARCHAR},
+            #{referenceNo, jdbcType=NUMERIC},
             'N',
             SYSDATE
         FROM MEMBER M
@@ -104,9 +104,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl},
-            #{notification.referenceType},
-            #{notification.referenceNo},
+            #{notification.linkUrl, jdbcType=VARCHAR}
+            #{notification.referenceType, jdbcType=VARCHAR}
+            #{notification.referenceNo, jdbcType=NUMERIC}
             'N',
             SYSDATE
         FROM BUSINESS B
@@ -135,9 +135,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl},
-            #{notification.referenceType},
-            #{notification.referenceNo},
+            #{notification.linkUrl, jdbcType=VARCHAR}
+            #{notification.referenceType, jdbcType=VARCHAR}
+            #{notification.referenceNo, jdbcType=NUMERIC}
             'N',
             SYSDATE
         FROM (
@@ -171,9 +171,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{notification.notificationType},
             #{notification.title},
             #{notification.message},
-            #{notification.linkUrl},
-            #{notification.referenceType},
-            #{notification.referenceNo},
+            #{notification.linkUrl, jdbcType=VARCHAR}
+            #{notification.referenceType, jdbcType=VARCHAR}
+            #{notification.referenceNo, jdbcType=NUMERIC}
             'N',
             SYSDATE
         FROM (
