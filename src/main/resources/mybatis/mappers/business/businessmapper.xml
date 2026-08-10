@@ -194,6 +194,41 @@
     </delete>
 
     <!-- =====================================================
+     [옵션별 재입고 알림 추가]
+
+     기존 OPTION_NO를 유지한 상태로
+     색상/사이즈/재고 정보를 수정합니다.
+    ====================================================== -->
+    <update id="updateProductOption"
+            parameterType="com.project.oditji.goods.vo.ProductOptionVO">
+
+        UPDATE PRODUCT_OPTION
+
+        SET COLOR_NAME = #{colorName},
+            SIZE_NAME = #{sizeName},
+            STOCK = #{stock}
+
+        WHERE OPTION_NO = #{optionNo}
+        AND PRODUCT_NO = #{productNo}
+
+    </update>
+
+
+    <!-- =====================================================
+        [옵션별 재입고 알림 추가]
+
+        상품 수정 시 사용자가 실제 삭제한 옵션만
+        OPTION_NO 기준으로 삭제합니다.
+    ====================================================== -->
+    <delete id="deleteProductOptionByOptionNo">
+
+        DELETE FROM PRODUCT_OPTION
+
+        WHERE OPTION_NO = #{optionNo}
+
+    </delete>
+
+    <!-- =====================================================
          상품 대표 이미지 등록
     ====================================================== -->
     <insert id="insertProductImage"

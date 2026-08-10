@@ -98,6 +98,9 @@
                                             <c:when test="${order.orderStatus eq 'DELIVERED'}">
                                                 <span class="status ok">배송 완료</span>
                                             </c:when>
+                                            <c:when test="${order.orderStatus eq 'CANCEL_REQUEST'}">
+                                                <span class="status waiting">취소 요청 중</span>
+                                            </c:when>
                                             <c:when test="${order.orderStatus eq 'CANCELED'}">
                                                 <span class="status">주문 취소</span>
                                             </c:when>

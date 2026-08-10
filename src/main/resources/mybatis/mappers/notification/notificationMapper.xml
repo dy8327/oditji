@@ -260,4 +260,86 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           AND IS_READ = 'N'
     </update>
 
+
+    <!-- =====================================================
+         [재고 부족 알림 추가]
+         상품의 현재 재고와 소유 사업자 정보를 조회합니다.
+    ====================================================== -->
+    <select id="selectProductStockNotificationInfo"
+            resultType="map">
+        SELECT
+            P.PRODUCT_NO,
+            P.PRODUCT_NAME,
+            P.STOCK,
+            P.BUSINESS_NO
+        FROM PRODUCT P
+        WHERE P.PRODUCT_NO = #{productNo}
+    </select>
+
+    <!-- =====================================================
+         [재고 부족 알림 추가]
+         같은 상품의 미읽음 알림이 이미 있으면 중복 생성하지 않습니다.
+    ====================================================== -->
+    <select id="countUnreadBusinessProductNotification"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM NOTIFICATION N
+        JOIN BUSINESS B
+          ON B.MEMBER_NO = N.RECEIVER_MEMBER_NO
+        WHERE B.BUSINESS_NO = #{businessNo}
+          AND N.NOTIFICATION_TYPE = #{notificationType}
+          AND N.REFERENCE_TYPE = 'PRODUCT'
+          AND N.REFERENCE_NO = #{productNo}
+          AND N.IS_READ = 'N'
+    </select>
+
+    <!-- =====================================================
+         [재입고 알림 추가]
+         WAITING 상태의 신청 회원에게 재입고 알림을 일괄 저장합니다.
+    ====================================================== -->
+    <insert id="insertRestockMemberNotifications">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_NO,
+            RECEIVER_MEMBER_NO,
+            NOTIFICATION_TYPE,
+            TITLE,
+            MESSAGE,
+            LINK_URL,
+            REFERENCE_TYPE,
+            REFERENCE_NO,
+            IS_READ,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_NOTIFICATION_NO.NEXTVAL,
+            TARGET_MEMBER.MEMBER_NO,
+            #{notification.notificationType},
+            #{notification.title},
+            #{notification.message},
+            #{notification.linkUrl},
+            #{notification.referenceType},
+            #{notification.referenceNo},
+            'N',
+            SYSDATE
+        FROM (
+            SELECT DISTINCT RR.MEMBER_NO
+            FROM PRODUCT_RESTOCK_REQUEST RR
+            JOIN MEMBER M
+              ON M.MEMBER_NO = RR.MEMBER_NO
+            WHERE RR.PRODUCT_NO = #{productNo}
+              AND RR.STATUS = 'WAITING'
+              AND M.STATUS = 'ACTIVE'
+        ) TARGET_MEMBER
+    </insert>
+
+    <!-- [재입고 알림 추가] 알림 발송이 끝난 신청 건을 완료 상태로 변경합니다. -->
+    <update id="updateRestockRequestsNotified">
+        UPDATE PRODUCT_RESTOCK_REQUEST
+        SET STATUS = 'NOTIFIED',
+            NOTIFIED_AT = SYSDATE
+        WHERE PRODUCT_NO = #{productNo}
+          AND STATUS = 'WAITING'
+    </update>
+
+
 </mapper>

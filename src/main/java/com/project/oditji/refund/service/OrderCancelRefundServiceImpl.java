@@ -369,11 +369,34 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 request.getCancelGroupNo());
 
         for (OrderCancelRefundVO groupItem : groupRequests) {
+
+            /*
+             * =========================================================
+             * [기존 유지]
+             * 전체 취소 대상 각 주문상품의 PRODUCT.STOCK을
+             * 주문 수량만큼 복구합니다.
+             * =========================================================
+             */
             if (orderCancelRefundDAO.restoreProductStock(
                     groupItem.getProductNo(),
                     groupItem.getQuantity()) != 1) {
-                throw new IllegalStateException("상품 재고 복구에 실패했습니다.");
+
+                throw new IllegalStateException(
+                        "상품 재고 복구에 실패했습니다.");
             }
+
+            /*
+             * =========================================================
+             * [상품 옵션 재고 복구 추가]
+             *
+             * 전체 취소 대상 각 ORDER_ITEM을 기준으로
+             * 실제 구매했던 PRODUCT_OPTION.STOCK도 함께 복구합니다.
+             *
+             * OPTION_NO가 NULL인 일반 상품은 Mapper에서
+             * UPDATE 대상이 없으므로 0건이어도 정상입니다.
+             * =========================================================
+             */
+            orderCancelRefundDAO.restoreProductOptionStockByOrderItemNo(groupItem.getOrderItemNo());
         }
 
         int canceledItemCount = orderCancelRefundDAO.cancelOrderItemsByGroup(
@@ -447,6 +470,20 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 request.getQuantity()) != 1) {
             throw new IllegalStateException("상품 재고 복구에 실패했습니다.");
         }
+
+        /*
+         * =========================================================
+         * [상품 옵션 재고 복구 추가]
+         *
+         * 부분 취소된 ORDER_ITEM에 OPTION_NO가 존재하면
+         * 실제 구매했던 색상/사이즈 옵션의 재고도
+         * 주문 수량만큼 함께 복구합니다.
+         *
+         * OPTION_NO가 없는 일반 상품은 Mapper에서
+         * UPDATE 대상이 없으므로 0건이어도 정상입니다.
+         * =========================================================
+         */
+        orderCancelRefundDAO.restoreProductOptionStockByOrderItemNo(request.getOrderItemNo());
 
         if (orderCancelRefundDAO.approveCancelRequest(request.getCancelNo()) != 1) {
             throw new IllegalStateException("부분 취소 요청 승인 처리에 실패했습니다.");

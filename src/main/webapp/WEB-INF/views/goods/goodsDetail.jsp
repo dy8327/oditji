@@ -17,10 +17,11 @@
 
 <title>ODITJI | 상품 상세</title>
 
+<%-- [수정] goods.css 변경 내용이 브라우저 캐시에 막히지 않도록 버전값 추가 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/goods.css">
-  <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/component.css">
+      href="${pageContext.request.contextPath}/css/goods.css?v=20260810-2">
+<link rel="stylesheet"
+    href="${pageContext.request.contextPath}/css/component.css">
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/favorite.css">
@@ -451,17 +452,30 @@
 
             <span class="detail-meta-item">
 
-                <span class="detail-meta-label">
-                    남은 재고
-                </span>
-
-                <strong>
-                    <fmt:formatNumber
-                        value="${goods.stock}"
-                        pattern="#,###"/>개
-                </strong>
-
+            <%-- =====================================================
+                [수정]
+                옵션 상품의 PRODUCT.STOCK은 각 옵션 재고의 합계이므로
+                "남은 재고" 대신 "전체 재고"로 표시합니다.
+                옵션이 없는 일반 상품은 기존처럼 "남은 재고"로 표시합니다.
+            ====================================================== --%>
+            <span class="detail-meta-label">
+                <c:choose>
+                    <c:when test="${not empty productOptionList}">
+                        전체 재고
+                    </c:when>
+                    <c:otherwise>
+                        남은 재고
+                    </c:otherwise>
+                </c:choose>
             </span>
+
+            <strong>
+                <fmt:formatNumber
+                    value="${goods.stock}"
+                    pattern="#,###"/>개
+            </strong>
+
+        </span>
 
         </div>
 
@@ -476,17 +490,126 @@
         </div>
 
         <%-- [상품 옵션 기능 추가] 의상/신발 색상과 사이즈를 선택하고 조합 재고를 확인합니다. --%>
+        <%-- =====================================================
+            [상품 옵션 / 재입고 UI 수정]
+            - 색상/사이즈 선택 영역을 2열 구조로 분리
+            - 선택한 옵션의 실제 재고를 별도 영역에 표시
+            - 선택 옵션이 품절일 경우에만 재입고 알림 영역 표시
+        ====================================================== --%>
         <c:if test="${not empty productOptionList}">
-            <div class="detail-product-options">
-                <label for="detailColor">색상</label>
-                <select id="detailColor" class="detail-option-select"><option value="">색상 선택</option></select>
-                <label for="detailSize">사이즈</label>
-                <select id="detailSize" class="detail-option-select" disabled><option value="">사이즈 선택</option></select>
-                <span id="detailOptionStock" class="detail-option-stock">색상과 사이즈를 선택해주세요.</span>
-            </div>
-            <script type="application/json" id="productOptionData">[<c:forEach var="opt" items="${productOptionList}" varStatus="st">{"optionNo":${opt.optionNo},"color":"${fn:escapeXml(opt.colorName)}","size":"${fn:escapeXml(opt.sizeName)}","stock":${opt.stock}}<c:if test="${not st.last}">,</c:if></c:forEach>]</script>
-        </c:if>
 
+            <div class="detail-product-options">
+
+                <%-- 색상 / 사이즈 선택 영역 --%>
+                <div class="detail-option-grid">
+
+                    <div class="detail-option-field">
+
+                        <label for="detailColor">
+                            색상
+                        </label>
+
+                        <select id="detailColor"
+                                class="detail-option-select">
+
+                            <option value="">
+                                색상 선택
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="detail-option-field">
+
+                        <label for="detailSize">
+                            사이즈
+                        </label>
+
+                        <select id="detailSize"
+                                class="detail-option-select"
+                                disabled>
+
+                            <option value="">
+                                사이즈 선택
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <%-- =====================================================
+                    [수정]
+                    선택한 색상/사이즈 조합의 재고 표시
+                ====================================================== --%>
+                <div class="detail-option-status-row">
+
+                    <span class="detail-option-status-label">
+                        선택 옵션 재고
+                    </span>
+
+                    <strong id="detailOptionStock"
+                            class="detail-option-stock">
+                        색상과 사이즈를 선택해주세요.
+                    </strong>
+
+                </div>
+
+                <%-- =====================================================
+                    [옵션별 재입고 알림]
+                    선택한 PRODUCT_OPTION.STOCK이 0일 때만
+                    JS에서 이 영역을 표시합니다.
+                ====================================================== --%>
+                <div id="optionRestockArea"
+                    class="option-restock-area"
+                    style="display: none;">
+
+                    <div class="option-restock-icon"
+                        aria-hidden="true">
+                        !
+                    </div>
+
+                    <div class="option-restock-info">
+
+                        <strong id="optionRestockTitle"
+                                class="option-restock-title">
+                            선택한 옵션이 품절되었습니다.
+                        </strong>
+
+                        <span class="option-restock-description">
+                            재고가 다시 들어오면 알림으로 알려드릴게요.
+                        </span>
+
+                    </div>
+
+                    <button type="button"
+                            id="optionRestockRequestBtn"
+                            class="btn restock-request-btn"
+                            data-product-no="${goods.productNo}"
+                            data-option-no=""
+                            aria-pressed="false">
+
+                        선택 옵션 재입고 알림 신청
+
+                    </button>
+
+                    <span id="optionRestockRequestMessage"
+                        class="restock-request-message"
+                        aria-live="polite"></span>
+
+                </div>
+
+            </div>
+
+            <%-- =====================================================
+                optionNo / 색상 / 사이즈 / 재고 정보를 JS에 전달
+            ====================================================== --%>
+            <script type="application/json"
+                    id="productOptionData">[<c:forEach var="opt" items="${productOptionList}" varStatus="st">{"optionNo":${opt.optionNo},"color":"${fn:escapeXml(opt.colorName)}","size":"${fn:escapeXml(opt.sizeName)}","stock":${opt.stock}}<c:if test="${not st.last}">,</c:if></c:forEach>]</script>
+
+        </c:if>
         <div class="detail-purchase-option">
 
             <div class="detail-purchase-option-header">
@@ -622,9 +745,35 @@
         </div>
 
         <c:if test="${goods.stock <= 0}">
-            <p class="sold-out-guide">
-                현재 품절된 상품입니다.
-            </p>
+
+            <div class="sold-out-restock-box">
+
+                <p class="sold-out-guide">
+                    현재 품절된 상품입니다.
+                </p>
+
+                <%-- =====================================================
+                    [상품 전체 재입고 알림]
+                    PRODUCT.STOCK이 0일 경우 표시합니다.
+
+                    OPTION_NO가 없는 신청이므로
+                    data-option-no는 빈 값으로 전달합니다.
+                ====================================================== --%>
+                <button type="button"
+                        id="restockRequestBtn"
+                        class="btn restock-request-btn"
+                        data-product-no="${goods.productNo}"
+                        data-option-no=""
+                        aria-pressed="false">
+                    상품 재입고 알림 신청
+                </button>
+
+                <span id="restockRequestMessage"
+                    class="restock-request-message"
+                    aria-live="polite"></span>
+
+            </div>
+
         </c:if>
 
     </div>

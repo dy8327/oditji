@@ -1,6 +1,7 @@
 package com.project.oditji.notification.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final int HEADER_NOTIFICATION_LIMIT = 20;
 
+    private static final int LOW_STOCK_THRESHOLD = 5;
+    private static final String NOTIFICATION_TYPE_LOW_STOCK = "LOW_STOCK";
+    private static final String NOTIFICATION_TYPE_RESTOCKED = "RESTOCKED";
+    private static final String REFERENCE_TYPE_PRODUCT = "PRODUCT";
+
     private final NotificationDAO notificationDAO;
 
     public NotificationServiceImpl(NotificationDAO notificationDAO) {
@@ -32,10 +38,9 @@ public class NotificationServiceImpl implements NotificationService {
         int unreadCount = notificationDAO.selectUnreadNotificationCount(
                 memberNo);
 
-        List<NotificationVO> notificationList =
-                notificationDAO.selectUnreadNotificationList(
-                        memberNo,
-                        HEADER_NOTIFICATION_LIMIT);
+        List<NotificationVO> notificationList = notificationDAO.selectUnreadNotificationList(
+                memberNo,
+                HEADER_NOTIFICATION_LIMIT);
 
         return new NotificationContextVO(
                 unreadCount,
@@ -238,6 +243,100 @@ public class NotificationServiceImpl implements NotificationService {
                         referenceNo));
     }
 
+    @Override
+    @Transactional
+    public void createLowStockNotificationIfNeeded(Long productNo) {
+
+        if (productNo == null || productNo <= 0L) {
+            return;
+        }
+
+        Map<String, Object> productInfo = notificationDAO.selectProductStockNotificationInfo(productNo);
+
+        if (productInfo == null || productInfo.isEmpty()) {
+            return;
+        }
+
+        Long businessNo = toLong(productInfo.get("BUSINESS_NO"));
+        Integer stock = toInteger(productInfo.get("STOCK"));
+        String productName = String.valueOf(productInfo.get("PRODUCT_NAME"));
+
+        if (businessNo == null || stock == null || stock > LOW_STOCK_THRESHOLD) {
+            return;
+        }
+
+        /*
+         * [재고 부족 알림 추가]
+         * 같은 상품에 대한 미읽음 LOW_STOCK 알림이 이미 있으면
+         * 주문마다 동일 알림이 반복 생성되지 않도록 건너뜁니다.
+         */
+        int duplicateCount = notificationDAO.countUnreadBusinessProductNotification(
+                businessNo,
+                NOTIFICATION_TYPE_LOW_STOCK,
+                productNo);
+
+        if (duplicateCount > 0) {
+            return;
+        }
+
+        createForBusiness(
+                businessNo,
+                NOTIFICATION_TYPE_LOW_STOCK,
+                "상품 재고 부족",
+                productName + " 상품의 남은 재고가 " + stock + "개입니다.",
+                "/business/product/list",
+                REFERENCE_TYPE_PRODUCT,
+                productNo);
+    }
+
+    @Override
+    @Transactional
+    public void createRestockNotifications(Long productNo, String productName) {
+
+        if (productNo == null || productNo <= 0L) {
+            return;
+        }
+
+        String normalizedProductName = productName == null || productName.isBlank()
+                ? "신청하신 상품"
+                : productName.trim();
+
+        NotificationVO notification = createNotification(
+                NOTIFICATION_TYPE_RESTOCKED,
+                "상품 재입고 안내",
+                normalizedProductName + " 상품이 재입고되었습니다.",
+                "/goods/goodsDetail/" + productNo,
+                REFERENCE_TYPE_PRODUCT,
+                productNo);
+
+        /*
+         * [재입고 알림 추가]
+         * WAITING 상태의 신청자에게만 알림을 넣은 뒤
+         * 같은 트랜잭션에서 신청 상태를 NOTIFIED로 변경합니다.
+         */
+        int insertedCount = notificationDAO.insertRestockMemberNotifications(
+                productNo,
+                notification);
+
+        if (insertedCount > 0) {
+            notificationDAO.updateRestockRequestsNotified(productNo);
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
+    }
+
+    private Integer toInteger(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return null;
+    }
+
     private void createForMemberInternal(
             Long memberNo,
             String notificationType,
@@ -300,6 +399,67 @@ public class NotificationServiceImpl implements NotificationService {
     private void validateMemberNo(Long memberNo) {
         if (memberNo == null || memberNo <= 0L) {
             throw new IllegalArgumentException("로그인 회원 정보를 확인할 수 없습니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void createOptionRestockNotifications(
+            Long productNo,
+            Long optionNo,
+            String productName,
+            String colorName,
+            String sizeName) {
+
+        if (productNo == null || productNo <= 0L
+                || optionNo == null || optionNo <= 0L) {
+
+            return;
+        }
+
+        String normalizedProductName = productName == null || productName.isBlank()
+                ? "신청하신 상품"
+                : productName.trim();
+
+        String normalizedColorName = colorName == null || colorName.isBlank()
+                ? "-"
+                : colorName.trim();
+
+        String normalizedSizeName = sizeName == null || sizeName.isBlank()
+                ? "-"
+                : sizeName.trim();
+
+        NotificationVO notification = createNotification(
+                NOTIFICATION_TYPE_RESTOCKED,
+                "상품 재입고 안내",
+                normalizedProductName
+                        + "의 "
+                        + normalizedColorName
+                        + " / "
+                        + normalizedSizeName
+                        + " 옵션이 재입고되었습니다.",
+                "/goods/goodsDetail/" + productNo,
+                REFERENCE_TYPE_PRODUCT,
+                productNo);
+
+        /*
+         * [옵션별 재입고 알림 추가]
+         * 해당 OPTION_NO를 WAITING 상태로 신청한 회원에게만
+         * 재입고 알림을 생성합니다.
+         */
+        int insertedCount = notificationDAO.insertOptionRestockMemberNotifications(
+                productNo,
+                optionNo,
+                notification);
+
+        /*
+         * 실제 알림이 생성된 신청만 NOTIFIED로 변경합니다.
+         */
+        if (insertedCount > 0) {
+
+            notificationDAO.updateOptionRestockRequestsNotified(
+                    productNo,
+                    optionNo);
         }
     }
 }

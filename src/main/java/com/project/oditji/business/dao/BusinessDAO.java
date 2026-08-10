@@ -391,4 +391,27 @@ public interface BusinessDAO {
 
         /* 한 주문의 모든 ORDER_ITEM 상태를 기준으로 ORDERS.ORDER_STATUS를 재계산. */
         int updateOrderStatusByOrderItem(@Param("orderNo") long orderNo);
+
+        /*
+         * =========================================================
+         * [옵션별 재입고 알림 추가]
+         *
+         * 기존 상품 옵션의 OPTION_NO를 유지하기 위해
+         * 색상/사이즈/재고 값을 UPDATE합니다.
+         *
+         * 기존 옵션을 삭제 후 재등록하지 않기 때문에
+         * PRODUCT_RESTOCK_REQUEST.OPTION_NO 연결도 유지됩니다.
+         * =========================================================
+         */
+        int updateProductOption(com.project.oditji.goods.vo.ProductOptionVO productOptionVO);
+
+        /*
+         * =========================================================
+         * [옵션별 재입고 알림 추가]
+         *
+         * 상품 수정 화면에서 실제로 제거된 옵션만 개별 삭제합니다.
+         * 기존처럼 상품의 모든 옵션을 한 번에 삭제하지 않습니다.
+         * =========================================================
+         */
+        int deleteProductOptionByOptionNo(@Param("optionNo") long optionNo);
 }

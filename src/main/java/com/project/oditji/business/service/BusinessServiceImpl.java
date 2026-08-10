@@ -1025,17 +1025,241 @@ public class BusinessServiceImpl
         }
 
         /*
-         * [상품 옵션 기능 추가]
-         * 수정 요청 처리 시 사용. 기존 옵션 조합을 전부 지우고, 화면에서
-         * 넘어온 조합으로 다시 채워 넣는다(전체 교체 방식).
+         * =========================================================
+         * [옵션별 재입고 알림 추가]
          *
-         * 상품 종류가 의상/신발이 아닌 다른 종류로 바뀐 경우에는(원래
-         * 의상/신발이었다가 수정하면서 종류를 바꾼 경우 포함) 기존에
-         * 남아있는 옵션 조합이 없도록 항상 먼저 삭제한다.
+         * 기존 방식:
+         * 기존 옵션 전체 DELETE
+         * → 새로운 OPTION_NO로 전부 INSERT
+         *
+         * 변경 방식:
+         * 기존 옵션 조합은 UPDATE
+         * 신규 옵션만 INSERT
+         * 삭제된 옵션만 DELETE
+         *
+         * 이를 통해 기존 OPTION_NO를 유지하여
+         * PRODUCT_RESTOCK_REQUEST의 옵션 재입고 신청 정보가 끊기지 않도록 합니다.
+         * =========================================================
          */
         private void replaceProductOptions(GoodsManageVO goodsManageVO) {
-                businessDAO.deleteProductOptionsByProductNo(goodsManageVO.getProductNo());
-                validateAndInsertProductOptions(goodsManageVO);
+
+                long productNo = goodsManageVO.getProductNo();
+
+                /*
+                 * 수정 전 DB에 저장되어 있던 옵션 목록을 조회합니다.
+                 *
+                 * 재입고 여부를 판단할 때
+                 * 기존 재고와 새 재고를 비교하기 위해 필요합니다.
+                 */
+                List<com.project.oditji.goods.vo.ProductOptionVO> existingOptionList = businessDAO
+                                .selectProductOptionsByProductNo(
+                                                productNo);
+
+                String productType = goodsManageVO.getProductType();
+
+                /*
+                 * =========================================================
+                 * [상품 타입 변경 처리]
+                 *
+                 * 상품 종류가 의상/신발이 아니게 변경된 경우에는
+                 * 기존 옵션이 더 이상 필요하지 않으므로 삭제합니다.
+                 * =========================================================
+                 */
+                if (!PRODUCT_TYPE_CLOTHES.equals(productType)
+                                && !PRODUCT_TYPE_SHOES.equals(productType)) {
+
+                        for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
+
+                                businessDAO.deleteProductOptionByOptionNo(
+                                                existingOption.getOptionNo());
+                        }
+
+                        return;
+                }
+
+                /*
+                 * 의상/신발은 옵션이 반드시 하나 이상 있어야 합니다.
+                 */
+                if (goodsManageVO.getOptionList() == null
+                                || goodsManageVO.getOptionList().isEmpty()) {
+
+                        throw new IllegalArgumentException(
+                                        "의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.");
+                }
+
+                /*
+                 * =========================================================
+                 * [기존 옵션 빠른 조회용 Map]
+                 *
+                 * 색상 + 사이즈 조합을 key로 사용합니다.
+                 *
+                 * 예:
+                 * BLACK|M
+                 * WHITE|L
+                 * =========================================================
+                 */
+                Map<String, com.project.oditji.goods.vo.ProductOptionVO> existingOptionMap = new HashMap<>();
+
+                for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
+
+                        String key = createProductOptionKey(
+                                        existingOption.getColorName(),
+                                        existingOption.getSizeName());
+
+                        existingOptionMap.put(key, existingOption);
+                }
+
+                Set<Long> maintainedOptionNoSet = new HashSet<>();
+
+                Set<String> duplicateCheck = new HashSet<>();
+
+                int totalStock = 0;
+
+                /*
+                 * =========================================================
+                 * 화면에서 전달된 옵션을 순회합니다.
+                 * =========================================================
+                 */
+                for (com.project.oditji.goods.vo.ProductOptionVO newOption : goodsManageVO.getOptionList()) {
+
+                        /*
+                         * 기존 옵션 검증 로직 유지
+                         */
+                        if (newOption == null
+                                        || newOption.getColorName() == null
+                                        || newOption.getColorName().isBlank()
+                                        || newOption.getSizeName() == null
+                                        || newOption.getSizeName().isBlank()
+                                        || newOption.getStock() == null
+                                        || newOption.getStock() < 0) {
+
+                                throw new IllegalArgumentException("모든 옵션의 색상, 사이즈, 재고를 올바르게 입력해주세요.");
+                        }
+
+                        newOption.setColorName(newOption.getColorName().trim());
+
+                        newOption.setSizeName(newOption.getSizeName().trim());
+
+                        newOption.setProductNo(productNo);
+
+                        String optionKey = createProductOptionKey(
+                                        newOption.getColorName(),
+                                        newOption.getSizeName());
+
+                        /*
+                         * 동일 색상/사이즈 중복 검증
+                         */
+                        if (!duplicateCheck.add(optionKey)) {
+
+                                throw new IllegalArgumentException("동일한 색상과 사이즈 조합은 중복 등록할 수 없습니다.");
+                        }
+
+                        totalStock += newOption.getStock();
+
+                        /*
+                         * =========================================================
+                         * 기존에 동일한 색상/사이즈 옵션이 존재하는 경우
+                         * =========================================================
+                         */
+                        com.project.oditji.goods.vo.ProductOptionVO existingOption = existingOptionMap.get(optionKey);
+
+                        if (existingOption != null) {
+
+                                /*
+                                 * 기존 OPTION_NO를 그대로 사용합니다.
+                                 */
+                                newOption.setOptionNo(existingOption.getOptionNo());
+
+                                maintainedOptionNoSet.add(existingOption.getOptionNo());
+
+                                int oldStock = existingOption.getStock() == null ? 0 : existingOption.getStock();
+
+                                int newStock = newOption.getStock();
+
+                                /*
+                                 * OPTION_NO를 유지하면서 재고 등을 수정합니다.
+                                 */
+                                if (businessDAO.updateProductOption(newOption) != 1) {
+                                        throw new IllegalStateException("상품 옵션 수정에 실패했습니다.");
+                                }
+
+                                /*
+                                 * =====================================================
+                                 * [옵션별 재입고 알림]
+                                 *
+                                 * 기존 재고가 0이었고
+                                 * 수정 후 재고가 1개 이상이 된 경우에만
+                                 * 해당 옵션 신청자에게 알림을 발송합니다.
+                                 * =====================================================
+                                 */
+                                if (oldStock <= 0
+                                                && newStock > 0) {
+
+                                        notificationService
+                                                        .createOptionRestockNotifications(
+                                                                        productNo,
+                                                                        existingOption.getOptionNo(),
+                                                                        goodsManageVO.getProductName(),
+                                                                        newOption.getColorName(),
+                                                                        newOption.getSizeName());
+                                }
+
+                                continue;
+                        }
+
+                        /*
+                         * =========================================================
+                         * 기존 DB에 없는 새로운 옵션
+                         * =========================================================
+                         */
+                        newOption.setOptionNo(null);
+
+                        if (businessDAO.insertProductOption(
+                                        newOption) != 1) {
+
+                                throw new IllegalStateException("상품 옵션 저장에 실패했습니다.");
+                        }
+                }
+
+                /*
+                 * =========================================================
+                 * 기존에는 있었지만 수정 화면에서 사라진 옵션만 삭제합니다.
+                 * =========================================================
+                 */
+                for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
+
+                        if (!maintainedOptionNoSet.contains(
+                                        existingOption.getOptionNo())) {
+
+                                businessDAO.deleteProductOptionByOptionNo(
+                                                existingOption.getOptionNo());
+                        }
+                }
+
+                /*
+                 * 옵션 재고 총합을 PRODUCT.STOCK에도 반영합니다.
+                 */
+                goodsManageVO.setStock(totalStock);
+        }
+
+        /*
+         * =========================================================
+         * [옵션별 재입고 알림 추가]
+         *
+         * 색상/사이즈 조합 비교용 key를 생성합니다.
+         * 대소문자 차이 때문에 동일 옵션이 다른 옵션으로 인식되지 않도록
+         * Locale.ROOT 기준으로 대문자로 통일합니다.
+         * =========================================================
+         */
+        private String createProductOptionKey(
+                        String colorName,
+                        String sizeName) {
+
+                String normalizedColor = colorName == null ? "" : colorName.trim().toUpperCase(Locale.ROOT);
+
+                String normalizedSize = sizeName == null ? "" : sizeName.trim().toUpperCase(Locale.ROOT);
+
+                return normalizedColor + "|" + normalizedSize;
         }
 
         /** [상품 옵션 기능 추가] 의상/신발 옵션 검증 및 저장 (등록/수정 공용) */
@@ -1424,6 +1648,20 @@ public class BusinessServiceImpl
 
                 try {
                         updateProductAndOptions(goodsManageVO);
+
+                        /*
+                         * [재입고 알림 추가]
+                         * 수정 전 재고가 0개 이하였고 수정 후 최종 총재고가 1개 이상이면
+                         * 해당 상품의 재입고 알림 신청자에게 공통 알림을 발송합니다.
+                         * 의상/신발은 prepareProductForUpdate에서 옵션 재고 합계가 STOCK에
+                         * 반영된 뒤이므로 옵션 상품도 같은 기준으로 정확하게 판정됩니다.
+                         */
+                        if (existingProduct.getStock() <= 0
+                                        && goodsManageVO.getStock() > 0) {
+                                notificationService.createRestockNotifications(
+                                                goodsManageVO.getProductNo(),
+                                                goodsManageVO.getProductName());
+                        }
 
                         processMainProductImageUpdate(
                                         goodsManageVO,
