@@ -54,6 +54,37 @@
 <c:set var="gridVariant" value="${resolvedVariant eq 'grid'}" />
 <c:set var="sidebarVariant" value="${resolvedVariant eq 'sidebar'}" />
 
+<%--
+    [리팩터링] 콘텐츠 종류(영화/드라마/애니메이션/예능/다큐멘터리) 뱃지 라벨과 색상 클래스는
+    기존에는 grid variant(콘텐츠 리스트/검색결과/찜목록)에서만 계산해서, 메인화면 슬라이더·
+    오늘의 콘텐츠·추천 콘텐츠(main/more/sidebar variant)는 "영화"/"TV" 두 가지 라벨만 쓰고
+    색상 구분도 없는 검정 뱃지를 썼다. 모든 variant가 같은 기준으로 종류를 판별하고 같은
+    색상 뱃지를 쓰도록 이 판별 로직을 variant 분기보다 앞으로 옮겨 공통으로 사용한다.
+--%>
+<c:set var="gridTypeLabel" value="드라마" />
+<c:set var="gridTypeClass" value="drama" />
+
+<c:choose>
+    <c:when test="${fn:contains(content.genreText, '애니메이션')}">
+        <c:set var="gridTypeLabel" value="애니메이션" />
+        <c:set var="gridTypeClass" value="animation" />
+    </c:when>
+    <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">
+        <c:set var="gridTypeLabel" value="다큐멘터리" />
+        <c:set var="gridTypeClass" value="documentary" />
+    </c:when>
+    <c:when test="${content.contentType eq 'TV'
+                  and (fn:contains(content.genreText, '리얼리티')
+                       or fn:contains(content.genreText, '토크'))}">
+        <c:set var="gridTypeLabel" value="예능" />
+        <c:set var="gridTypeClass" value="variety" />
+    </c:when>
+    <c:when test="${content.contentType eq 'MOVIE'}">
+        <c:set var="gridTypeLabel" value="영화" />
+        <c:set var="gridTypeClass" value="movie" />
+    </c:when>
+</c:choose>
+
 <c:choose>
 <c:when test="${gridVariant}">
 
@@ -74,30 +105,6 @@
             <c:param name="contentType" value="${content.contentType}" />
         </c:url>
     </c:if>
-
-    <c:set var="gridTypeLabel" value="드라마" />
-    <c:set var="gridTypeClass" value="drama" />
-
-    <c:choose>
-        <c:when test="${fn:contains(content.genreText, '애니메이션')}">
-            <c:set var="gridTypeLabel" value="애니메이션" />
-            <c:set var="gridTypeClass" value="animation" />
-        </c:when>
-        <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">
-            <c:set var="gridTypeLabel" value="다큐멘터리" />
-            <c:set var="gridTypeClass" value="documentary" />
-        </c:when>
-        <c:when test="${content.contentType eq 'TV'
-                      and (fn:contains(content.genreText, '리얼리티')
-                           or fn:contains(content.genreText, '토크'))}">
-            <c:set var="gridTypeLabel" value="예능" />
-            <c:set var="gridTypeClass" value="variety" />
-        </c:when>
-        <c:when test="${content.contentType eq 'MOVIE'}">
-            <c:set var="gridTypeLabel" value="영화" />
-            <c:set var="gridTypeClass" value="movie" />
-        </c:when>
-    </c:choose>
 
     <article class="content-list-card${resolvedExtraClass}">
 
@@ -408,16 +415,8 @@
             </c:otherwise>
         </c:choose>
 
-        <span class="${typeClass}">
-            <c:choose>
-                <c:when test="${content.contentType eq 'MOVIE'}">
-                    영화
-                </c:when>
-
-                <c:otherwise>
-                    TV
-                </c:otherwise>
-            </c:choose>
+        <span class="${typeClass} is-${gridTypeClass}">
+            <c:out value="${gridTypeLabel}" />
         </span>
 
         <common:ageRatingBadge ageRating="${content.ageRating}"

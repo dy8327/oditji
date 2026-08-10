@@ -25,6 +25,35 @@
 --%>
 <c:set var="resolvedShowRecentEpisodeDate" value="${empty showRecentEpisodeDate ? false : showRecentEpisodeDate}" />
 
+<%--
+    [리팩터링] 콘텐츠 리스트(contentCard.tag grid variant)와 동일한 기준으로
+    콘텐츠 종류를 판별해서 같은 라벨/색상 뱃지를 쓰도록 통일한다.
+    (기존에는 "영화"/"TV" 두 가지로만 표시하고 색상 구분이 없었다.)
+--%>
+<c:set var="recommendTypeLabel" value="드라마" />
+<c:set var="recommendTypeClass" value="drama" />
+
+<c:choose>
+    <c:when test="${fn:contains(content.genreText, '애니메이션')}">
+        <c:set var="recommendTypeLabel" value="애니메이션" />
+        <c:set var="recommendTypeClass" value="animation" />
+    </c:when>
+    <c:when test="${fn:contains(content.genreText, '다큐멘터리')}">
+        <c:set var="recommendTypeLabel" value="다큐멘터리" />
+        <c:set var="recommendTypeClass" value="documentary" />
+    </c:when>
+    <c:when test="${content.contentType eq 'TV'
+                  and (fn:contains(content.genreText, '리얼리티')
+                       or fn:contains(content.genreText, '토크'))}">
+        <c:set var="recommendTypeLabel" value="예능" />
+        <c:set var="recommendTypeClass" value="variety" />
+    </c:when>
+    <c:when test="${content.contentType eq 'MOVIE'}">
+        <c:set var="recommendTypeLabel" value="영화" />
+        <c:set var="recommendTypeClass" value="movie" />
+    </c:when>
+</c:choose>
+
 <a href="${pageContext.request.contextPath}/content/prepare?tmdbId=${content.tmdbId}&contentType=${content.contentType}"
    class="recommend-card">
 
@@ -46,20 +75,8 @@
 
         </c:choose>
 
-        <span class="recommend-card-type">
-
-            <c:choose>
-
-                <c:when test="${content.contentType eq 'MOVIE'}">
-                    &#50689;&#54868;
-                </c:when>
-
-                <c:otherwise>
-                    TV
-                </c:otherwise>
-
-            </c:choose>
-
+        <span class="recommend-card-type is-${recommendTypeClass}">
+            <c:out value="${recommendTypeLabel}" />
         </span>
 
         <common:ageRatingBadge ageRating="${content.ageRating}"
