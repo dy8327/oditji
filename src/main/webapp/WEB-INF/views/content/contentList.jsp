@@ -6,6 +6,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="oditji" tagdir="/WEB-INF/tags/content" %>
+<%@ taglib prefix="common" tagdir="/WEB-INF/tags/common" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -177,48 +178,21 @@
                                 </c:forEach>
 
 
+                                <%--
+                                    관람등급 필터는 카드에서 사용하는 배지와 동일한 색상/숫자를 사용합니다.
+                                    값 자체는 기존 ageRatings 값을 그대로 유지하므로 검색 조건에는 영향이 없습니다.
+                                --%>
                                 <c:forEach var="ageRating"
                                            items="${ageRatings}">
-
-                                    <%--
-                                        관람등급 필터는 카드에서 사용하는 배지와 동일한 색상/숫자를 사용합니다.
-                                        값 자체는 기존 ageRatings 값을 그대로 유지하므로 검색 조건에는 영향이 없습니다.
-                                    --%>
-                                    <c:set var="selectedAgeBadgeLabel" value="?"/>
-                                    <c:set var="selectedAgeBadgeClass" value="unknown"/>
-
-                                    <c:choose>
-                                        <c:when test="${ageRating eq '전체 관람가'}">
-                                            <c:set var="selectedAgeBadgeLabel" value="ALL"/>
-                                            <c:set var="selectedAgeBadgeClass" value="all"/>
-                                        </c:when>
-                                        <c:when test="${ageRating eq '7세 이상 관람가'}">
-                                            <c:set var="selectedAgeBadgeLabel" value="7"/>
-                                            <c:set var="selectedAgeBadgeClass" value="age7"/>
-                                        </c:when>
-                                        <c:when test="${ageRating eq '12세 이상 관람가'}">
-                                            <c:set var="selectedAgeBadgeLabel" value="12"/>
-                                            <c:set var="selectedAgeBadgeClass" value="age12"/>
-                                        </c:when>
-                                        <c:when test="${ageRating eq '15세 이상 관람가'}">
-                                            <c:set var="selectedAgeBadgeLabel" value="15"/>
-                                            <c:set var="selectedAgeBadgeClass" value="age15"/>
-                                        </c:when>
-                                        <c:when test="${ageRating eq '청소년 관람불가'}">
-                                            <c:set var="selectedAgeBadgeLabel" value="19"/>
-                                            <c:set var="selectedAgeBadgeClass" value="adult"/>
-                                        </c:when>
-                                    </c:choose>
 
                                     <button type="button"
                                             class="content-selected-filter-chip"
                                             data-content-filter-chip
                                             data-filter-name="ageRatings"
                                             data-filter-value="${ageRating}">
-                                        <span class="age-rating-badge is-${selectedAgeBadgeClass}"
-                                              aria-hidden="true">
-                                            <c:out value="${selectedAgeBadgeLabel}"/>
-                                        </span>
+                                        <common:ageRatingBadge ageRating="${ageRating}"
+                                                               outerClass="age-rating-badge"
+                                                               mode="chip" />
                                         <span><c:out value="${ageRating}"/></span>
                                         <span aria-hidden="true">×</span>
                                     </button>
