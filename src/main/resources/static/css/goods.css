@@ -1711,364 +1711,299 @@
 
 /* =========================================================
    PRODUCT OPTIONS
+   [수정]
+   기존 4열 grid에 재입고 영역까지 들어가면서
+   글자가 좁은 column에 배치되는 문제를 해결합니다.
+
+   부모는 세로 구조,
+   색상/사이즈만 내부에서 2열 grid를 사용합니다.
 ========================================================= */
 
 .goods-detail-container .detail-product-options {
-  display: grid;
-  grid-template-columns: 70px minmax(0, 1fr) 70px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  width: 100%;
+  box-sizing: border-box;
+
   margin-top: 18px;
   padding: 18px;
+
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 12px;
+
   background: rgba(255, 255, 255, 0.025);
 }
 
-.goods-detail-container .detail-product-options label {
+/* 색상 / 사이즈 2열 */
+.goods-detail-container .detail-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* 각각의 옵션 */
+.goods-detail-container .detail-option-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goods-detail-container .detail-option-field label {
   color: #eeeeee;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.goods-detail-container .detail-product-options .detail-option-select {
-  box-sizing: border-box;
+/* select */
+.goods-detail-container .detail-option-select {
   width: 100%;
   min-width: 0;
-  padding: 11px 32px 11px 12px;
+  height: 44px;
+  box-sizing: border-box;
+
+  padding: 0 38px 0 13px;
+
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
+
   background-color: #111111;
+
   color: #f5f5f5;
+
   font-family: inherit;
   font-size: 13px;
+
   appearance: none;
   -webkit-appearance: none;
+
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c5c8ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 12px center;
   background-size: 16px;
+
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
 }
 
-.goods-detail-container .detail-product-options .detail-option-select:hover {
+.goods-detail-container .detail-option-select:hover:not(:disabled) {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-.goods-detail-container .detail-product-options .detail-option-select:focus {
+.goods-detail-container .detail-option-select:focus {
   outline: none;
   border-color: #2f6fe4;
+  box-shadow: 0 0 0 2px rgba(47, 111, 228, 0.15);
 }
 
-.goods-detail-container .detail-product-options .detail-option-select:disabled {
-  color: #666666;
-  background-color: #1a1a1a;
+.goods-detail-container .detail-option-select:disabled {
+  border-color: rgba(255, 255, 255, 0.07);
+  background-color: #171717;
+  color: #606060;
   cursor: not-allowed;
 }
 
-.goods-detail-container .detail-product-options .detail-option-select option {
+.goods-detail-container .detail-option-select option {
   background-color: #1f1f1f;
   color: #f5f5f5;
 }
 
-.goods-detail-container .detail-product-options .detail-option-stock {
-  grid-column: 2 / 5;
-  color: #9a9a9a;
-  font-size: 14px;
+/* =========================================================
+   선택 옵션 재고
+========================================================= */
+
+.detail-option-status-row {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  box-sizing: border-box;
+
+  padding: 11px 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.detail-option-status-label {
+  flex-shrink: 0;
+
+  color: #8f96a3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.goods-detail-container .detail-option-stock {
+  min-width: 0;
+
+  color: #aeb5c0;
+  font-size: 12px;
+  font-weight: 600;
+
+  text-align: right;
+
+  word-break: keep-all;
+}
+
+/* 재고 있는 옵션 */
+.goods-detail-container .detail-option-stock.is-available {
+  color: #6fcf73;
+}
+
+/* 품절 옵션 */
+.goods-detail-container .detail-option-stock.is-soldout {
+  color: #e57373;
 }
 
 /* =========================================================
-   RESPONSIVE MEDIA QUERIES
+   선택 옵션 품절 / 재입고 알림
 ========================================================= */
 
-@media (max-width: 1400px) {
-  .card-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.option-restock-area {
+  width: 100%;
+  box-sizing: border-box;
+
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  border: 1px solid rgba(229, 115, 115, 0.24);
+  border-radius: 10px;
+
+  background: rgba(229, 115, 115, 0.055);
 }
 
-@media (max-width: 1350px) {
-  .goods-layout {
-    grid-template-columns: 210px minmax(0, 1fr);
-  }
+/* 느낌표 */
+.option-restock-icon {
+  display: flex;
 
-  .goods-right-sidebar {
-    display: none;
-  }
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(229, 115, 115, 0.3);
+  border-radius: 50%;
+
+  background: rgba(229, 115, 115, 0.08);
+
+  color: #e57373;
+
+  font-size: 14px;
+  font-weight: 800;
 }
 
-@media (max-width: 1100px) {
-  .card-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* 안내문 */
+.option-restock-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
 }
 
-@media (max-width: 850px) {
-  .goods-list-container,
-  .goods-detail-container {
-    padding: 28px 24px;
-  }
-
-  .goods-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .goods-left-sidebar,
-  .goods-right-sidebar {
-    position: static;
-    max-height: none;
-    overflow-y: visible;
-  }
-
-  .goods-right-sidebar {
-    display: none;
-  }
-
-  .goods-mobile-filter-toggle {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    background: #1c1c1c;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
-    font-size: 16px;
-    transition: transform 0.2s ease;
-  }
-
-  .goods-left-sidebar.is-open .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
-    transform: rotate(180deg);
-  }
-
-  .goods-mobile-filter-panel {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.25s ease;
-  }
-
-  .goods-left-sidebar.is-open .goods-mobile-filter-panel {
-    max-height: 2000px;
-  }
-
-  .goods-filter-form,
-  .search-filter-form {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .goods-filter-header {
-    grid-column: 1 / -1;
-  }
-
-  .goods-filter-group,
-  .filter-group {
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    border-bottom: 0;
-  }
-
-  .goods-filter-actions,
-  .filter-action-box {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .goods-filter-submit-btn,
-  .goods-filter-reset-btn,
-  .filter-submit-btn,
-  .filter-reset-btn {
-    flex: 1;
-  }
-
-  .goods-detail-card {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 22px;
-  }
-
-  .goods-detail-card .detail-poster {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-
-  .review-section-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .review-section-card .score-box {
-    justify-content: flex-start;
-  }
+.option-restock-title {
+  color: #f3f4f6;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
-@media (max-width: 680px) {
-  .goods-list-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .goods-list-sort-form {
-    justify-content: flex-end;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
+.option-restock-description {
+  color: #8f96a3;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-@media (max-width: 460px) {
-  .goods-list-title-row {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 7px;
-  }
+/* 옵션 재입고 신청 버튼 */
+.option-restock-area .restock-request-btn {
+  flex: 0 0 auto;
+
+  min-width: 170px;
+  min-height: 40px;
+
+  padding: 9px 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  color: #eeeeee;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
-/* 모바일 반응형 UI 통일 (3열 그리드 적용) */
-@media screen and (max-width: 768px) {
-  /* 모바일 카드 그리드 3열 지정 및 간격 최적화 */
-  .card-list {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-  }
-
-  /* 3열 공간에 맞춰 패딩과 요소 크기 조율 */
-  .goods-card,
-  .product-item,
-  .card-item {
-    padding: 6px !important;
-  }
-
-  .card-brand {
-    font-size: 10px !important;
-  }
-
-  .goods-title,
-  .card-title {
-    font-size: 12px !important;
-  }
-
-  .badge-discount,
-  .discount-tag,
-  .discount-badge {
-    font-size: 10px !important;
-    padding: 2px 4px !important;
-  }
-
-  /* 가격 영역 세로 계층형 정렬 */
-  .card-meta,
-  .price-container,
-  .goods-price-wrap {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 2px !important;
-    margin-top: 4px !important;
-  }
-
-  .original-price,
-  .price-before,
-  .price-original {
-    font-size: 10px !important;
-    color: #888888 !important;
-    text-decoration: line-through !important;
-    white-space: nowrap !important;
-  }
-
-  .price-sale-row,
-  .discount-price-row {
-    display: flex !important;
-    align-items: center !important;
-    gap: 3px !important;
-    white-space: nowrap !important;
-  }
-
-  .discount-rate,
-  .rate {
-    color: #ff5c6e !important;
-    font-weight: 800 !important;
-    font-size: 11px !important;
-  }
-
-  .final-price,
-  .sale-price,
-  .price-final {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-    white-space: nowrap !important;
-  }
-
-  .stock-info,
-  .stock-warning {
-    font-size: 9px !important;
-    color: #a0a0a0 !important;
-    margin-top: 2px !important;
-    white-space: nowrap !important;
-  }
-
-  .detail-info .action-box {
-    max-width: none;
-  }
+.option-restock-area .restock-request-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
+.option-restock-area .restock-request-btn.active {
+  border-color: rgba(91, 131, 206, 0.6);
+  background: rgba(61, 99, 170, 0.18);
+}
+
+.option-restock-area .restock-request-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.option-restock-area .restock-request-message {
+  flex: 0 0 100%;
+
+  min-height: 0;
+
+  color: #aeb5c0;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* 모바일 */
 @media (max-width: 600px) {
-  .goods-filter-form,
-  .search-filter-form {
+  .goods-detail-container .detail-option-grid {
     grid-template-columns: 1fr;
   }
 
-  .goods-filter-group,
-  .filter-group {
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .goods-detail-card {
-    padding: 18px;
-    border-radius: 15px;
-  }
-
-  .goods-detail-card .detail-meta {
-    grid-template-columns: 1fr;
-  }
-
-  .goods-detail-card .price-box,
-  .detail-purchase-option-header {
+  .detail-option-status-row {
+    align-items: flex-start;
     flex-direction: column;
-    align-items: flex-start;
+    gap: 5px;
   }
 
-  .price-value,
-  .detail-total-price {
-    align-items: flex-start;
+  .goods-detail-container .detail-option-stock {
+    text-align: left;
   }
 
-  .detail-quantity-control {
+  .option-restock-area {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .option-restock-area .restock-request-btn {
     width: 100%;
-  }
-
-  .review-section-card {
-    padding: 21px 18px 24px;
-    border-radius: 15px;
-  }
-
-  .goods-detail-container .detail-product-options {
-    grid-template-columns: 1fr;
-  }
-
-  .goods-detail-container .detail-product-options .detail-option-stock {
-    grid-column: auto;
   }
 }
 
@@ -2312,5 +2247,263 @@
 
   .detail-gallery-thumb img {
     height: 72px;
+  }
+}
+
+/* =========================================================
+   [재입고 알림 신청 추가]
+   품절 안내와 재입고 알림 버튼은 기존 상품 상세 버튼 디자인을
+   해치지 않도록 action 영역 바로 아래에서 간결하게 표시합니다.
+========================================================= */
+.sold-out-restock-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-top: 14px;
+}
+
+.sold-out-restock-box .sold-out-guide {
+  margin: 0;
+}
+
+.restock-request-btn {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.restock-request-btn:hover,
+.restock-request-btn.active {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.restock-request-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.restock-request-message {
+  width: 100%;
+  font-size: 13px;
+  opacity: 0.78;
+}
+
+/* =========================================================
+   [최종 수정] 옵션별 재입고 UI 강제 정렬
+   기존 옵션 grid / 중복 CSS 충돌 방지
+========================================================= */
+
+.goods-detail-container .detail-product-options {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 색상 / 사이즈 영역 */
+.goods-detail-container .detail-option-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+
+  width: 100% !important;
+}
+
+/* 각 옵션 필드 */
+.goods-detail-container .detail-option-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+
+  min-width: 0 !important;
+}
+
+/* 선택 옵션 재고 */
+.goods-detail-container .detail-option-status-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  width: 100% !important;
+  min-height: 46px !important;
+
+  box-sizing: border-box !important;
+
+  padding: 11px 14px !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+
+  background: rgba(0, 0, 0, 0.16) !important;
+}
+
+.goods-detail-container .detail-option-stock {
+  display: block !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+
+  grid-column: auto !important;
+
+  white-space: normal !important;
+  word-break: keep-all !important;
+
+  text-align: right !important;
+}
+
+/* =========================================================
+   옵션 품절 재입고 영역
+========================================================= */
+
+.goods-detail-container .option-restock-area {
+  /* display 값 자체는 JS에서 none / flex로 변경 */
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+
+  gap: 14px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 74px !important;
+
+  box-sizing: border-box !important;
+
+  margin-top: 0 !important;
+  padding: 14px 16px !important;
+
+  grid-column: auto !important;
+
+  border: 1px solid rgba(229, 115, 115, 0.28) !important;
+  border-radius: 10px !important;
+
+  background: rgba(229, 115, 115, 0.055) !important;
+}
+
+/* 느낌표 */
+.goods-detail-container .option-restock-icon {
+  display: flex !important;
+
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  flex: 0 0 32px !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 1px solid rgba(229, 115, 115, 0.3) !important;
+  border-radius: 50% !important;
+
+  color: #e57373 !important;
+}
+
+/* ★ 여기 중요 - 세로로 글자 깨지는 문제 해결 */
+.goods-detail-container .option-restock-info {
+  display: flex !important;
+  flex: 1 1 300px !important;
+  flex-direction: column !important;
+
+  width: auto !important;
+  min-width: 250px !important;
+  max-width: none !important;
+
+  gap: 4px !important;
+}
+
+/* 품절 제목 */
+.goods-detail-container .option-restock-title {
+  display: block !important;
+
+  width: auto !important;
+  max-width: none !important;
+
+  color: #f3f4f6 !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+
+  writing-mode: horizontal-tb !important;
+
+  /* [추가] 글자 가운데 정렬 */
+  text-align: center !important;
+}
+
+/* 설명 */
+.goods-detail-container .option-restock-description {
+  display: block !important;
+
+  width: auto !important;
+  max-width: none !important;
+
+  color: #8f96a3 !important;
+
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+
+  white-space: normal !important;
+  word-break: keep-all !important;
+
+  writing-mode: horizontal-tb !important;
+
+  /* [추가] 글자 가운데 정렬 */
+  text-align: center !important;
+}
+
+/* 버튼 */
+.goods-detail-container .option-restock-area .restock-request-btn {
+  flex: 0 0 auto !important;
+
+  width: auto !important;
+  min-width: 180px !important;
+  min-height: 40px !important;
+
+  padding: 9px 14px !important;
+
+  white-space: nowrap !important;
+
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* 처리 메시지는 다음 줄 */
+.goods-detail-container .option-restock-area .restock-request-message {
+  flex: 0 0 100% !important;
+
+  width: 100% !important;
+
+  font-size: 11px !important;
+}
+
+/* 모바일 */
+@media (max-width: 600px) {
+  .goods-detail-container .detail-option-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .goods-detail-container .option-restock-area {
+    align-items: flex-start !important;
+  }
+
+  .goods-detail-container .option-restock-info {
+    min-width: calc(100% - 50px) !important;
+  }
+
+  .goods-detail-container .option-restock-area .restock-request-btn {
+    width: 100% !important;
   }
 }
