@@ -7,6 +7,9 @@
 }
 
 .review-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   min-height: 42px;
   padding: 0 18px;
