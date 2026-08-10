@@ -33,6 +33,12 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeCartButton();
   initializeBuyButton();
 
+  /* [옵션별 재입고 알림 추가] 선택 옵션 재입고 신청 버튼을 초기화합니다. */
+  initializeOptionRestockRequestButton();
+
+  /* [재입고 알림 신청 추가] 품절 상품의 재입고 신청 버튼을 초기화합니다. */
+  initializeRestockRequestButton();
+
   /**
    * 콘텐츠 사이드바(contentList.js)와 동일한 방식으로 굿즈 필터를 초기화합니다.
    */
@@ -433,6 +439,286 @@ document.addEventListener("DOMContentLoaded", function () {
     refreshQuantityState();
   }
 
+  /**
+   * [재입고 알림 신청 추가]
+   * 품절 상품 상세 화면에서 현재 신청 여부를 조회하고
+   * 버튼 클릭 시 신청/취소 API를 호출합니다.
+   */
+  function initializeRestockRequestButton() {
+    const button = document.getElementById("restockRequestBtn");
+    const message = document.getElementById("restockRequestMessage");
+
+    if (!button) {
+      return;
+    }
+
+    const productNo = button.dataset.productNo;
+
+    if (!productNo) {
+      return;
+    }
+
+    function updateButton(requested) {
+      button.dataset.requested = requested ? "true" : "false";
+      button.setAttribute("aria-pressed", requested ? "true" : "false");
+      button.textContent = requested ? "상품 재입고 알림 신청 취소" : "상품 재입고 알림 신청";
+      button.classList.toggle("active", requested);
+    }
+
+    function showMessage(text) {
+      if (message) {
+        message.textContent = text || "";
+      }
+    }
+
+    /*
+     * [재입고 알림 신청 상태 조회]
+     * 현재 로그인 사용자가 이 상품의 재입고 알림을 신청했는지 확인합니다.
+     */
+    fetch(contextPath + "/api/restock/" + encodeURIComponent(productNo), {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("재입고 알림 신청 상태를 확인하지 못했습니다.");
+        }
+
+        return response.json();
+      })
+      .then(function (data) {
+        if (data.login) {
+          updateButton(Boolean(data.requested));
+        }
+      })
+      .catch(function () {
+        /*
+         * 상태 조회에 실패하더라도
+         * 상품 상세페이지 자체 사용은 막지 않습니다.
+         */
+      });
+
+    /*
+     * [재입고 알림 신청/취소]
+     * 신청 전이면 POST,
+     * 이미 신청한 상태이면 DELETE 요청을 보냅니다.
+     */
+    button.addEventListener("click", async function () {
+      const requested = button.dataset.requested === "true";
+      const method = requested ? "DELETE" : "POST";
+
+      button.disabled = true;
+      showMessage("");
+
+      try {
+        const response = await fetch(contextPath + "/api/restock/" + encodeURIComponent(productNo), {
+          method: method,
+          headers: createJsonHeaders(),
+        });
+
+        const data = await response.json();
+
+        /*
+         * 로그인하지 않은 사용자가 신청 버튼을 누르면
+         * 로그인 페이지로 이동합니다.
+         */
+        if (response.status === 401) {
+          alert(data.message || "로그인이 필요합니다.");
+          window.location.href = contextPath + "/member/login";
+          return;
+        }
+
+        if (!response.ok || data.success === false) {
+          throw new Error(data.message || "재입고 알림 신청 처리에 실패했습니다.");
+        }
+
+        updateButton(Boolean(data.requested));
+        showMessage(data.message || "처리되었습니다.");
+      } catch (error) {
+        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  /**
+   * =========================================================
+   * [옵션별 재입고 알림 추가]
+   *
+   * 색상/사이즈 옵션 상품에서 선택한 옵션의 재고가 0개일 경우
+   * 해당 PRODUCT_OPTION에 대한 재입고 알림 신청/취소를 처리합니다.
+   *
+   * 상품 전체 재입고 신청과 구분하기 위해 OPTION_NO를
+   * API 요청에 함께 전달합니다.
+   * =========================================================
+   */
+  function initializeOptionRestockRequestButton() {
+    const button = document.getElementById("optionRestockRequestBtn");
+
+    const message = document.getElementById("optionRestockRequestMessage");
+
+    /*
+     * 옵션이 없는 상품 상세페이지에는
+     * 버튼 자체가 존재하지 않으므로 종료합니다.
+     */
+    if (!button) {
+      return;
+    }
+
+    const productNo = button.dataset.productNo;
+
+    if (!productNo) {
+      return;
+    }
+
+    /**
+     * 현재 신청 여부에 따라 버튼 상태를 변경합니다.
+     */
+    function updateButton(requested) {
+      button.dataset.requested = requested ? "true" : "false";
+
+      button.setAttribute("aria-pressed", requested ? "true" : "false");
+
+      button.textContent = requested ? "상품 선택 옵션 재입고 알림 신청 취소" : "상품 선택 옵션 재입고 알림 신청";
+
+      button.classList.toggle("active", requested);
+    }
+
+    /**
+     * 처리 결과 메시지를 표시합니다.
+     */
+    function showMessage(text) {
+      if (message) {
+        message.textContent = text || "";
+      }
+    }
+
+    /**
+     * =========================================================
+     * [옵션 재입고 신청 상태 조회]
+     *
+     * 사용자가 색상/사이즈를 변경할 때마다
+     * 현재 OPTION_NO에 대한 신청 여부를 서버에서 조회합니다.
+     * =========================================================
+     */
+    button.addEventListener("restockOptionChanged", async function () {
+      const optionNo = Number(button.dataset.optionNo);
+
+      /*
+       * 정상적인 옵션 번호가 아니면
+       * 조회하지 않습니다.
+       */
+      if (!Number.isInteger(optionNo) || optionNo <= 0) {
+        updateButton(false);
+        return;
+      }
+
+      showMessage("");
+
+      try {
+        const response = await fetch(contextPath + "/api/restock/" + encodeURIComponent(productNo) + "?optionNo=" + encodeURIComponent(optionNo), {
+          method: "GET",
+
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        /*
+         * 로그인하지 않은 상태에서의 조회 실패는
+         * 상품 상세 화면 사용 자체를 막지 않습니다.
+         */
+        if (!response.ok) {
+          updateButton(false);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.login) {
+          updateButton(Boolean(data.requested));
+        }
+      } catch (error) {
+        /*
+         * 상태 조회 실패가 상품 상세페이지의
+         * 다른 기능에 영향을 주지 않도록 합니다.
+         */
+        updateButton(false);
+      }
+    });
+
+    /**
+     * =========================================================
+     * [옵션 재입고 알림 신청/취소]
+     *
+     * 신청하지 않은 상태 → POST
+     * 이미 신청한 상태 → DELETE
+     *
+     * OPTION_NO를 query parameter로 함께 전달합니다.
+     * =========================================================
+     */
+    button.addEventListener("click", async function () {
+      const optionNo = Number(button.dataset.optionNo);
+
+      if (!Number.isInteger(optionNo) || optionNo <= 0) {
+        showMessage("재입고 알림을 신청할 옵션을 선택해주세요.");
+
+        return;
+      }
+
+      const requested = button.dataset.requested === "true";
+
+      const method = requested ? "DELETE" : "POST";
+
+      button.disabled = true;
+
+      showMessage("");
+
+      try {
+        const response = await fetch(contextPath + "/api/restock/" + encodeURIComponent(productNo) + "?optionNo=" + encodeURIComponent(optionNo), {
+          method: method,
+
+          headers: createJsonHeaders(),
+        });
+
+        const data = await response.json();
+
+        /*
+         * 로그인하지 않은 사용자는
+         * 로그인 페이지로 이동시킵니다.
+         */
+        if (response.status === 401) {
+          alert(data.message || "로그인이 필요합니다.");
+
+          const currentUrl = window.location.pathname + window.location.search;
+
+          window.location.href = contextPath + "/member/login?redirect=" + encodeURIComponent(currentUrl);
+
+          return;
+        }
+
+        if (!response.ok || data.success === false) {
+          throw new Error(data.message || "재입고 알림 신청 처리에 실패했습니다.");
+        }
+
+        /*
+         * 처리 완료 후 서버에서 받은
+         * 현재 신청 상태로 버튼을 갱신합니다.
+         */
+        updateButton(Boolean(data.requested));
+
+        showMessage(data.message || "처리되었습니다.");
+      } catch (error) {
+        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
   function initializeCartButton() {
     document.addEventListener("click", async function (event) {
       const cartButton = event.target.closest(".cart-btn");
@@ -766,6 +1052,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const minusButton = document.getElementById("detailQuantityMinus");
     const plusButton = document.getElementById("detailQuantityPlus");
     const buttons = document.querySelectorAll(".cart-btn,.buy-btn");
+    /* [옵션별 재입고 알림 추가] JSP의 옵션 재입고 버튼을 가져옵니다. */
+    const restockButton = document.getElementById("optionRestockRequestBtn");
+    /*
+     * [옵션별 재입고 알림 UI 추가]
+     * 버튼뿐 아니라 품절 안내 영역 전체의 표시 여부를 관리합니다.
+     */
+    const restockArea = document.getElementById("optionRestockArea");
     const stock = option ? Number(option.stock) : 0;
 
     /* [유지] 수량 제어에 사용하는 재고를 선택 옵션 재고로 변경한다. */
@@ -798,9 +1091,59 @@ document.addEventListener("DOMContentLoaded", function () {
       btn.disabled = stock <= 0;
     });
 
-    /* [유지] 선택한 옵션의 실제 재고를 표시한다. */
+    /*
+     * =========================================================
+     * [옵션별 재입고 알림 UI 수정]
+     * =========================================================
+     */
+    if (restockButton) {
+      if (!option) {
+        if (restockArea) {
+          restockArea.style.display = "none";
+        }
+
+        restockButton.dataset.optionNo = "";
+        restockButton.dataset.requested = "false";
+      } else if (stock <= 0) {
+        if (restockArea) {
+          restockArea.style.display = "flex";
+        }
+
+        restockButton.dataset.optionNo = String(option.optionNo);
+
+        restockButton.dispatchEvent(
+          new CustomEvent("restockOptionChanged", {
+            detail: {
+              optionNo: Number(option.optionNo),
+            },
+          }),
+        );
+      } else {
+        if (restockArea) {
+          restockArea.style.display = "none";
+        }
+
+        restockButton.dataset.optionNo = "";
+        restockButton.dataset.requested = "false";
+      }
+    }
+
+    /*
+     * [수정] 선택 옵션 재고 상태 표시
+     */
     if (stockText) {
-      stockText.textContent = option ? `선택 옵션 재고: ${stock.toLocaleString("ko-KR")}개` : "색상과 사이즈를 선택해주세요.";
+      stockText.classList.remove("is-available", "is-soldout");
+
+      if (!option) {
+        stockText.textContent = "색상과 사이즈를 선택해주세요.";
+      } else if (stock <= 0) {
+        stockText.textContent = "품절";
+        stockText.classList.add("is-soldout");
+      } else {
+        stockText.textContent = stock.toLocaleString("ko-KR") + "개";
+
+        stockText.classList.add("is-available");
+      }
     }
 
     /*
