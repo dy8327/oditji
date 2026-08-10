@@ -697,12 +697,19 @@
             <c:otherwise>
                 <div class="refund-table-wrap">
                     <table class="refund-table">
-                        <thead>
+                       <thead>
                             <tr>
                                 <th>구분</th>
                                 <th>주문번호</th>
                                 <th>상품명</th>
-                                <th>신청일</th>
+                                <th>신청일시</th>
+
+                                <%-- =====================================================
+                                    [추가] 취소/환불 처리 완료 시각 표시
+                                    WAITING 상태에서는 PROCESSED_AT이 NULL이므로 '-' 표시
+                                ====================================================== --%>
+                                <th>처리일시</th>
+
                                 <th>금액</th>
                                 <th>처리 상태</th>
                                 <th>반려 사유</th>
@@ -718,8 +725,32 @@
                                     </td>
                                     <td data-label="주문번호">${history.orderNo}</td>
                                     <td data-label="상품명"><c:out value="${history.productName}"/></td>
-                                    <td data-label="신청일">${dt:format(history.createdAt, 'yyyy.MM.dd')}</td>
-                                    <td data-label="금액">₩ <fmt:formatNumber value="${history.refundAmount}" pattern="#,###"/></td>
+                                    <%-- =====================================================
+                                        [수정] 취소/환불 신청일을 날짜 + 시:분:초까지 표시
+                                    ====================================================== --%>
+                                    <td data-label="신청일시">
+                                        ${dt:format(history.createdAt, 'yyyy.MM.dd HH:mm:ss')}
+                                    </td>
+
+                                    <%-- =====================================================
+                                        [추가] 사업자 승인/반려 처리일시
+                                        승인 대기 상태에서는 PROCESSED_AT이 NULL이므로 '-' 표시
+                                    ====================================================== --%>
+                                    <td data-label="처리일시">
+                                        <c:choose>
+                                            <c:when test="${not empty history.processedAt}">
+                                                ${dt:format(history.processedAt, 'yyyy.MM.dd HH:mm:ss')}
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                -
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+
+                                    <td data-label="금액">
+                                        ₩ <fmt:formatNumber value="${history.refundAmount}" pattern="#,###"/>
+                                    </td>
                                     <td data-label="처리 상태">
                                         <c:choose>
                                             <c:when test="${history.status eq 'APPROVED'}"><span class="refund-badge completed">승인</span></c:when>
