@@ -481,6 +481,14 @@ public class OrderServiceImpl implements OrderService {
                                                         + item.getProductName()
                                                         + "' 상품의 재고가 부족합니다.");
                 }
+
+                /*
+                 * [사업자 재고 부족 알림 추가]
+                 * 결제 확정으로 실제 재고 차감이 성공한 뒤 현재 재고를 다시 조회하여
+                 * 5개 이하이면 상품 소유 사업자에게 LOW_STOCK 알림을 생성합니다.
+                 */
+                notificationService.createLowStockNotificationIfNeeded(
+                                Long.valueOf(item.getProductNo()));
         }
 
         private void addUsedCartItemNo(
