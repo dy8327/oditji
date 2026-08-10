@@ -87,5 +87,17 @@ public interface OrderCancelRefundDAO {
 
         int restoreProductStock(@Param("productNo") Long productNo, @Param("quantity") Integer quantity);
 
+        /*
+         * =========================================================
+         * [상품 옵션 재고 복구 추가]
+         *
+         * 취소/환불이 승인된 ORDER_ITEM의 OPTION_NO를 조회하여
+         * 실제 구매했던 옵션 재고도 주문 수량만큼 복구합니다.
+         *
+         * OPTION_NO가 없는 일반 상품은 수정 대상이 없습니다.
+         * =========================================================
+         */
+        int restoreProductOptionStockByOrderItemNo(@Param("orderItemNo") Long orderItemNo);
+
         int updateOrderStatusByItems(@Param("orderNo") Long orderNo);
 }
