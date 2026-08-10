@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -51,7 +52,7 @@ class SearchContentPageCacheServiceFinalCoverageTest {
                 "not-date"));
 
         assertEquals(
-                LocalDate.of(2026, 8, 10),
+                LocalDate.of(2026, Month.AUGUST, 10),
                 invoke(
                         "parseReleaseDate",
                         " 2026-08-10 "));
