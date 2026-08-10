@@ -18,9 +18,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | ${reviewPageTitle}</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

@@ -19,7 +19,6 @@ pageEncoding="UTF-8"%>
     <head>
 
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <title>
             <c:out value="${event.title}"/>
@@ -33,7 +32,8 @@ pageEncoding="UTF-8"%>
         </script>
         <script defer src="${pageContext.request.contextPath}/js/event.js?v=2"></script>
 
-    </head>
+    <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
+</head>
 
     <body>
 

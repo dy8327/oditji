@@ -7,7 +7,6 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | ${person.personName} 필모그래피</title>
 
 <c:url var="contentCssUrl" value="/css/content.css"/>
@@ -16,6 +15,7 @@
 
 <link rel="stylesheet" href="${componentCssUrl}">
 <link rel="stylesheet" href="${contentCssUrl}">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 <body>
 

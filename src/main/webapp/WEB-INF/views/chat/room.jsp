@@ -15,19 +15,18 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${room.roomName}</title>
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-room.css?v=4">
 
-<%-- embed 모드에서 header.jsp(내비게이션 바)는 생략하더라도
+<%-- head-assets.jsp(CSS/공통 스크립트/CSRF meta/viewport)는 header.jsp가 body 안에서
+     include하는 대신, embed 여부와 무관하게 항상 head 레벨에서 로드합니다.
+     embed 모드에서는 header.jsp(내비게이션 바) 자체를 생략하더라도
      CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는
-     /chat/api/read, /chat/api/leave fetch 요청에 필수이므로 항상 로드합니다. --%>
-<c:if test="${isEmbedded}">
-    <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
-</c:if>
+     /chat/api/read, /chat/api/leave fetch 요청에 필수이므로 항상 필요합니다. --%>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 <body class="chat-page ${isEmbedded ? 'embedded' : ''}">
 

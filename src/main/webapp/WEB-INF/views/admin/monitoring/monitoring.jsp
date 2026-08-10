@@ -9,13 +9,13 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ODITJI | 모니터링</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
         integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
         crossorigin="anonymous"></script>
 <script src="${pageContext.request.contextPath}/js/admin.js"></script>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

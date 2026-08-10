@@ -13,8 +13,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
 
     <title>ODITJI | ${pageTitle}</title>
 
@@ -41,6 +39,7 @@
 
     <script defer
             src="${pageContext.request.contextPath}/js/contentList.js?v=5"></script>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body>

@@ -9,9 +9,14 @@
 <c:set var="headerChatEnabled"
        value="${headerRole eq 'ADMIN' or (headerRole eq 'BUSINESS' and not empty sessionScope.businessNo)}" />
 
-<%-- CSS/공통 스크립트/CSRF meta는 head-assets.jsp로 분리되어 있습니다.
-     (embed 모드 페이지에서 header.jsp 전체를 생략해도 이 조각만은 별도로 include해야 합니다.) --%>
-<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
+<%-- CSS/공통 스크립트/CSRF meta/viewport는 head-assets.jsp로 분리되어 있습니다.
+     웹표준(HTML) 준수를 위해 이 조각은 <head> 안에서만 include해야 하므로,
+     header.jsp(<body> 안에서 include됨)에서는 더 이상 include하지 않습니다.
+     header.jsp를 include하는 모든 JSP는 반드시 자신의 <head> 안에서
+     head-assets.jsp를 먼저 include해야 하며, 그렇지 않으면 공통 CSS/JS와
+     CSRF meta가 로드되지 않아 화면/기능이 깨집니다.
+     (embed 모드 페이지에서 header.jsp 전체를 생략하는 경우도 head-assets.jsp만은
+     반드시 <head>에서 별도로 include해야 합니다.) --%>
 
 <a href="#mainContent" class="skip-link">본문 바로가기</a>
 
@@ -109,6 +114,7 @@
                         <a href="${pageContext.request.contextPath}/event/list?period=ongoing" role="menuitem">진행 중</a>
                         <a href="${pageContext.request.contextPath}/event/list?period=upcoming" role="menuitem">예정</a>
                         <a href="${pageContext.request.contextPath}/event/list?period=ended" role="menuitem">종료</a>
+                        <a href="${pageContext.request.contextPath}/discount/ott" role="menuitem">OTT 할인 정보</a>
                     </div>
                 </li>
             </ul>

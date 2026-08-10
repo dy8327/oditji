@@ -85,6 +85,11 @@
                 이벤트 관리
             </a>
 
+            <a href="${pageContext.request.contextPath}/admin/discount/list"
+               class="${activeMenu == 'discount' ? 'active' : ''}">
+                OTT 할인 관리
+            </a>
+
         </div>
 
         <!--
