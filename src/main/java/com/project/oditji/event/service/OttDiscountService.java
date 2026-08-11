@@ -18,8 +18,11 @@ public interface OttDiscountService {
     /** 할인 정보 단건을 조회합니다. */
     OttDiscountVO getDiscountDetail(Long discountId);
 
-    /** 관리자용: 활성화 여부와 무관하게 조건(플랫폼/카테고리/상태)에 맞는 전체 할인 목록을 조회합니다. */
-    List<OttDiscountVO> getAdminDiscountList(String platform, String category, String status);
+    /** 관리자용: 활성화 여부와 무관하게 조건(플랫폼/카테고리/상태)에 맞는 할인 목록을 페이지 단위로 조회합니다. */
+    List<OttDiscountVO> getAdminDiscountList(String platform, String category, String status, int page, int pageSize);
+
+    /** 관리자용: 조건(플랫폼/카테고리/상태)에 맞는 전체 할인 목록의 전체 건수를 조회합니다(페이징 계산용). */
+    int getAdminDiscountListCount(String platform, String category, String status);
 
     /** 할인 정보를 신규 등록합니다. */
     boolean createDiscount(OttDiscountVO discountVO);

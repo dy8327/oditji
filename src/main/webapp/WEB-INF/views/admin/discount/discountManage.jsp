@@ -259,6 +259,7 @@
                                                         <input type="hidden" name="filterPlatform" value="${currentPlatform}">
                                                         <input type="hidden" name="filterCategory" value="${currentCategory}">
                                                         <input type="hidden" name="filterStatus" value="${currentStatus}">
+                                                        <input type="hidden" name="page" value="${pagination.currentPage}">
                                                         <button type="submit" class="btn btn-danger">
                                                             비활성화
                                                         </button>
@@ -272,6 +273,7 @@
                                                         <input type="hidden" name="filterPlatform" value="${currentPlatform}">
                                                         <input type="hidden" name="filterCategory" value="${currentCategory}">
                                                         <input type="hidden" name="filterStatus" value="${currentStatus}">
+                                                        <input type="hidden" name="page" value="${pagination.currentPage}">
                                                         <button type="submit" class="btn btn-success">
                                                             재활성화
                                                         </button>
@@ -305,6 +307,48 @@
                 </tbody>
 
             </table>
+
+            <%-- 페이징 nav. 다른 관리자 화면(memberManage.jsp 등)과 동일한 마크업/클래스를 그대로 쓰고,
+                 이 화면의 필터(platform/category/status) 3종만 쿼리스트링에 함께 실어 나른다. --%>
+            <div class="pagination">
+
+                <!-- 이전 블록 -->
+                <a href="?platform=${currentPlatform}&category=${currentCategory}&status=${currentStatus}&page=${pagination.startPage - 1}"
+                class="${!pagination.prev ? 'disabled' : ''}">
+                    <<
+                </a>
+
+                <!-- 이전 페이지 -->
+                <a href="?platform=${currentPlatform}&category=${currentCategory}&status=${currentStatus}&page=${pagination.currentPage - 1}"
+                class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <
+                </a>
+
+                <!-- 페이지 번호 -->
+                <c:forEach var="p"
+                        begin="${pagination.startPage}"
+                        end="${pagination.endPage}">
+
+                    <a href="?platform=${currentPlatform}&category=${currentCategory}&status=${currentStatus}&page=${p}"
+                    class="${pagination.currentPage == p ? 'active' : ''}">
+                        ${p}
+                    </a>
+
+                </c:forEach>
+
+                <!-- 다음 페이지 -->
+                <a href="?platform=${currentPlatform}&category=${currentCategory}&status=${currentStatus}&page=${pagination.currentPage + 1}"
+                class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    >
+                </a>
+
+                <!-- 다음 블록 -->
+                <a href="?platform=${currentPlatform}&category=${currentCategory}&status=${currentStatus}&page=${pagination.endPage + 1}"
+                class="${!pagination.next ? 'disabled' : ''}">
+                    >>
+                </a>
+
+            </div>
 
         </section>
     </main>
@@ -343,10 +387,11 @@
             <%-- 수정 모드에서만 채워지는 대상 식별자. 등록 모드에서는 빈 값으로 전송된다. --%>
             <input type="hidden" name="discountId" data-detail-field="discountId">
 
-            <%-- 목록 화면으로 돌아갈 때 방금 보고 있던 필터를 그대로 유지하기 위한 값 --%>
+            <%-- 목록 화면으로 돌아갈 때 방금 보고 있던 필터와 페이지를 그대로 유지하기 위한 값 --%>
             <input type="hidden" name="filterPlatform" value="${currentPlatform}">
             <input type="hidden" name="filterCategory" value="${currentCategory}">
             <input type="hidden" name="filterStatus" value="${currentStatus}">
+            <input type="hidden" name="page" value="${pagination.currentPage}">
 
             <div class="form-group">
                 <label class="form-label" for="discountPlatformCode">OTT 플랫폼</label>
@@ -477,6 +522,7 @@
                 <input type="hidden" name="filterPlatform" value="${currentPlatform}">
                 <input type="hidden" name="filterCategory" value="${currentCategory}">
                 <input type="hidden" name="filterStatus" value="${currentStatus}">
+                <input type="hidden" name="page" value="${pagination.currentPage}">
                 <button type="submit" class="btn btn-danger">
                     비활성화
                 </button>
@@ -489,6 +535,7 @@
                 <input type="hidden" name="filterPlatform" value="${currentPlatform}">
                 <input type="hidden" name="filterCategory" value="${currentCategory}">
                 <input type="hidden" name="filterStatus" value="${currentStatus}">
+                <input type="hidden" name="page" value="${pagination.currentPage}">
                 <button type="submit" class="btn btn-success">
                     재활성화
                 </button>

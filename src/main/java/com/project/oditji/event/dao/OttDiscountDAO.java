@@ -17,15 +17,19 @@ public interface OttDiscountDAO {
     int selectDiscountListCount(@Param("platform") String platform, @Param("category") String category);
 
     /*
-     * [수정] 목록 페이징 도입으로 discountList가 9개씩 잘리면서, 기존에 discountList
+     * [수정] 목록 페이징 도입으로 discountList가 8개씩 잘리면서, 기존에 discountList
      * 전체를 훑어 BEST 뱃지를 찾던 상단 히어로 배너 로직이 2페이지 이후에 있는 BEST
      * 항목을 놓치게 됐다. 페이징과 무관하게 항상 정확한 항목을 보여주도록 DB에서
      * BEST 뱃지 우선 1건만 별도로 조회한다(없으면 최신 항목).
      */
     OttDiscountVO selectHeroDiscount(@Param("platform") String platform, @Param("category") String category);
 
-    // 관리자용 전체 목록 조회 (IS_ACTIVE 필터 없이 조회, status로 활성/비활성 선택 조회 가능)
+    // 관리자용 전체 목록 조회 (IS_ACTIVE 필터 없이 조회, status로 활성/비활성 선택 조회 가능, 페이징 적용)
     List<OttDiscountVO> selectAdminDiscountList(@Param("platform") String platform, @Param("category") String category,
+            @Param("status") String status, @Param("offset") int offset, @Param("pageSize") int pageSize);
+
+    // 관리자용 전체 목록 건수 조회 (페이징 계산용, selectAdminDiscountList와 동일한 조건)
+    int selectAdminDiscountListCount(@Param("platform") String platform, @Param("category") String category,
             @Param("status") String status);
 
     // 단건 상세 조회
