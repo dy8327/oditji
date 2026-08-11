@@ -37,6 +37,14 @@
                             <th>정산금</th>
                             <th>주문 수</th>
                             <th>상태</th>
+                            <%--
+                            =========================================================
+                            [수정] 정산 반려 사유 칼럼 추가
+                            지급 완료 건은 '-'를 표시하고,
+                            반려된 정산 요청은 관리자 반려 사유를 표시한다.
+                            =========================================================
+                            --%>
+                            <th>반려 사유</th>
                             <th>처리일</th>
                         </tr>
                     </thead>
@@ -61,15 +69,84 @@
                                     <td>${item.orderCount}건</td>
                                     <td>
                                         <c:choose>
-                                            <c:when test="${item.status eq 'REQUESTED'}">처리 중</c:when>
-                                            <c:when test="${item.status eq 'DONE'}">지급 완료</c:when>
-                                            <c:when test="${item.status eq 'REJECTED'}">
-                                                반려
-                                                <c:if test="${not empty item.rejectReason}">
-                                                    <br><small>${item.rejectReason}</small>
-                                                </c:if>
+
+                                            <%--
+                                                =========================================================
+                                                [수정] 정산 요청 처리 중 상태
+
+                                                기존 상태 텍스트는 유지하고
+                                                사업자 페이지 공통 대기 상태 스타일을 적용합니다.
+                                                =========================================================
+                                            --%>
+                                            <c:when test="${item.status eq 'REQUESTED'}">
+                                                <span class="status waiting">
+                                                    처리 중
+                                                </span>
                                             </c:when>
-                                            <c:otherwise>${item.status}</c:otherwise>
+
+                                            <%--
+                                                =========================================================
+                                                [수정] 정산 지급 완료 상태
+
+                                                주문 현황의 '배송 완료'와 동일한
+                                                공통 성공 상태 스타일을 적용합니다.
+                                                =========================================================
+                                            --%>
+                                            <c:when test="${item.status eq 'DONE'}">
+                                                <span class="status ok">
+                                                    지급 완료
+                                                </span>
+                                            </c:when>
+
+                                            <%--
+                                                =========================================================
+                                                [수정] 정산 반려 상태
+
+                                                주문 현황의 '주문 취소'와 동일한
+                                                공통 실패 상태 스타일을 적용합니다.
+
+                                                반려 사유가 존재하면 상태 뱃지 아래에
+                                                기존 글자 크기를 유지한 채 표시합니다.
+                                                =========================================================
+                                            --%>
+                                            <c:when test="${item.status eq 'REJECTED'}">
+
+                                                <span class="status reject">
+                                                    반려
+                                                </span>
+
+                                            </c:when>
+
+                                            <%-- 기존 예외 상태 출력 유지 --%>
+                                            <c:otherwise>
+                                                <c:out value="${item.status}" />
+                                            </c:otherwise>
+
+                                        </c:choose>
+                                    </td>
+                                    <%--
+                                        =========================================================
+                                        [수정] 정산 반려 사유
+
+                                        반려(REJECTED)된 정산 요청이고 반려 사유가 존재하면
+                                        관리자에게 입력받은 반려 사유를 표시한다.
+
+                                        지급 완료 또는 반려 사유가 없는 건은
+                                        취소/환불 내역 화면과 동일하게 '-'로 표시한다.
+                                        =========================================================
+                                    --%>
+                                    <td>
+                                        <c:choose>
+
+                                            <c:when test="${item.status eq 'REJECTED'
+                                                            and not empty item.rejectReason}">
+                                                <c:out value="${item.rejectReason}" />
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                -
+                                            </c:otherwise>
+
                                         </c:choose>
                                     </td>
                                     <td>
