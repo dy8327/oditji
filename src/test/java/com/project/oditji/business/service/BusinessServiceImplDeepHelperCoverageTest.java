@@ -257,24 +257,32 @@ class BusinessServiceImplDeepHelperCoverageTest {
 
     @Test
     void eventProductListAndDistinctValidationShouldCoverNullEmptyMismatchAndDuplicateCases() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> invoke("validateEventProductLists", null, List.of()));
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> invoke("validateEventProductLists", List.of(), List.of()));
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> invoke("validateEventProductLists", List.of(1L), null));
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> invoke("validateEventProductLists", List.of(1L), List.of(10, 20)));
-        assertDoesNotThrow(() -> invoke("validateEventProductLists", List.of(1L), List.of(10)));
+        List<Long> emptyProductNos = List.of();
+        List<Integer> emptyDiscountRates = List.of();
+        List<Long> singleProductNo = List.of(1L);
+        List<Integer> singleDiscountRate = List.of(10);
+        List<Integer> mismatchedDiscountRates = List.of(10, 20);
+        List<Long> duplicateProductNos = List.of(1L, 1L);
+        List<Long> distinctProductNos = List.of(1L, 2L);
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> invoke("validateDistinctEventProducts", List.of(1L, 1L)));
-        assertDoesNotThrow(() -> invoke("validateDistinctEventProducts", List.of(1L, 2L)));
+                () -> invoke("validateEventProductLists", null, emptyDiscountRates));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> invoke("validateEventProductLists", emptyProductNos, emptyDiscountRates));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> invoke("validateEventProductLists", singleProductNo, null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> invoke("validateEventProductLists", singleProductNo, mismatchedDiscountRates));
+        assertDoesNotThrow(() -> invoke("validateEventProductLists", singleProductNo, singleDiscountRate));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> invoke("validateDistinctEventProducts", duplicateProductNos));
+        assertDoesNotThrow(() -> invoke("validateDistinctEventProducts", distinctProductNos));
     }
 
     @Test
