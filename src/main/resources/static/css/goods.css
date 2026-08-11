@@ -1175,6 +1175,80 @@
 }
 
 /* =========================================================
+   GOODS LIST MOBILE RESPONSIVE
+   (content-list-modern.css의 모바일 사이드바 접기 패턴과 동일 구조)
+========================================================= */
+
+@media (max-width: 1120px) {
+  .goods-layout {
+    grid-template-columns: 215px minmax(0, 1fr);
+  }
+
+  .goods-right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .goods-page-container {
+    padding: 26px 22px 64px;
+  }
+
+  .goods-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-left-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .goods-result-area {
+    order: 1;
+  }
+
+  .goods-left-sidebar {
+    order: 0;
+  }
+
+  /* 모바일: 필터 사이드바를 접어두고 버튼으로 펼치기 */
+  .goods-mobile-filter-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: #1c1c1c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-toggle .mobile-filter-toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .goods-mobile-filter-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .goods-left-sidebar.is-open .goods-mobile-filter-panel {
+    max-height: 2000px;
+  }
+}
+
+/* =========================================================
    DETAIL CARD & QUANTITY CONTROL
 ========================================================= */
 
