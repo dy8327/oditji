@@ -40,39 +40,47 @@ class BusinessServiceImplMoreConditionCoverageTest {
 
     @Test
     void eventProductListsShouldCoverNullEmptyMismatchedAndValidLists() {
+        // [SonarQube] assertThrows 람다 안에는 실제 검증 대상 호출만 남깁니다.
+        List<Long> emptyProductNoList = List.of();
+        List<Integer> emptyDiscountRateList = List.of();
+        List<Long> singleProductNoList = List.of(1L);
+        List<Long> multipleProductNoList = List.of(1L, 2L);
+        List<Integer> singleDiscountRateList = List.of(10);
+        List<Integer> multipleDiscountRateList = List.of(10, 20);
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invoke(
                         "validateEventProductLists",
                         null,
-                        List.of()));
+                        emptyDiscountRateList));
 
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invoke(
                         "validateEventProductLists",
-                        List.of(),
-                        List.of()));
+                        emptyProductNoList,
+                        emptyDiscountRateList));
 
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invoke(
                         "validateEventProductLists",
-                        List.of(1L),
+                        singleProductNoList,
                         null));
 
         assertThrows(
                 IllegalArgumentException.class,
                 () -> invoke(
                         "validateEventProductLists",
-                        List.of(1L, 2L),
-                        List.of(10)));
+                        multipleProductNoList,
+                        singleDiscountRateList));
 
         assertDoesNotThrow(
                 () -> invoke(
                         "validateEventProductLists",
-                        List.of(1L, 2L),
-                        List.of(10, 20)));
+                        multipleProductNoList,
+                        multipleDiscountRateList));
     }
 
     @Test

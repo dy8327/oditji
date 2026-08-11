@@ -51,6 +51,8 @@ public class SearchContentPageCacheService {
     private static final String SORT_TITLE = "title";
     private static final String SORT_POPULAR = "popular";
 
+    private static final int MAIN_NEW_UPCOMING_DAYS = 3;
+
     private static final String PLATFORM_NETFLIX = "netflix";
     private static final String PLATFORM_TVING = "tving";
     private static final String PLATFORM_WAVVE = "wavve";
@@ -218,9 +220,12 @@ public class SearchContentPageCacheService {
     /**
      * 신규 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
      *
-     * 오늘의 콘텐츠(getMainTodayContent)와 달리 최근 기간으로
-     * 필터링하지 않고, 공개일(releaseDate) 내림차순으로 전체를
-     * 정렬한 뒤 상위 limit개만 사용합니다. 공개일이 같으면
+     * 공개일(releaseDate)이 오늘보다 3일을 초과해 미래인 콘텐츠는
+     * 메인 신규 콘텐츠에서 제외합니다. 오늘 이후 3일 이내 공개작은
+     * 그대로 노출하되 upcoming=true로 표시해 화면에서 "예정작"
+     * 뱃지를 붙일 수 있게 합니다.
+     *
+     * 필터링 후 공개일 내림차순으로 정렬하고, 공개일이 같으면
      * 인기도, 평점 순으로 보조 정렬합니다.
      */
     public List<SearchResultVO> getMainNewContent(
@@ -234,6 +239,10 @@ public class SearchContentPageCacheService {
                         Collections.emptyList()
                 );
 
+        applyUpcomingReleasePolicy(
+                allContentList
+        );
+
         allContentList.sort(
                 createLatestComparator()
         );
@@ -242,6 +251,62 @@ public class SearchContentPageCacheService {
                 allContentList,
                 limit
         );
+    }
+
+    /**
+     * 검색 결과와 신규 콘텐츠에서 공개 예정작 노출 범위를 통일합니다.
+     *
+     * 오늘 이후 3일 이내 콘텐츠는 upcoming=true로 표시하고,
+     * 4일 이후 공개 예정 콘텐츠는 목록에서 제외합니다.
+     * 공개일이 없거나 이미 공개된 콘텐츠는 그대로 유지합니다.
+     */
+    private void applyUpcomingReleasePolicy(
+            List<SearchResultVO> contentList) {
+
+        if (contentList == null
+                || contentList.isEmpty()) {
+
+            return;
+        }
+
+        LocalDate today =
+                LocalDate.now(DateTimeUtil.KOREA_ZONE);
+
+        LocalDate upcomingEndDate =
+                today.plusDays(MAIN_NEW_UPCOMING_DAYS);
+
+        contentList.removeIf(
+                content -> {
+
+                    LocalDate releaseDate =
+                            parseReleaseDate(
+                                    content == null
+                                            ? null
+                                            : content.getReleaseDate()
+                            );
+
+                    return releaseDate != null
+                            && releaseDate.isAfter(upcomingEndDate);
+                }
+        );
+
+        for (SearchResultVO content : contentList) {
+
+            if (content == null) {
+                continue;
+            }
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content.getReleaseDate()
+                    );
+
+            content.setUpcoming(
+                    releaseDate != null
+                            && releaseDate.isAfter(today)
+                            && !releaseDate.isAfter(upcomingEndDate)
+            );
+        }
     }
 
     /**
@@ -420,6 +485,130 @@ public class SearchContentPageCacheService {
         );
     }
 
+
+    /**
+     * "출시 알림 캘린더"에 노출할 콘텐츠를 특정 연·월 기준으로 조회합니다.
+     *
+     * releaseDate(개봉·공개일)가 해당 연·월에 속하는 콘텐츠를
+     * 공개일 오름차순으로 정렬해 반환합니다.
+     */
+    public List<SearchResultVO> getReleaseCalendarContent(
+            int year,
+            int month) {
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        List<SearchResultVO> monthContentList =
+                new ArrayList<SearchResultVO>();
+
+        for (SearchResultVO content : allContentList) {
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content == null
+                                    ? null
+                                    : content.getReleaseDate()
+                    );
+
+            if (releaseDate != null
+                    && releaseDate.getYear() == year
+                    && releaseDate.getMonthValue() == month) {
+
+                monthContentList.add(content);
+            }
+        }
+
+        monthContentList.sort(
+                Comparator.comparing(
+                        content -> parseReleaseDate(
+                                content.getReleaseDate()
+                        )
+                )
+        );
+
+        return monthContentList;
+    }
+
+    /**
+     * 메인 "최근 본 콘텐츠" 슬라이더용 조회입니다.
+     *
+     * CONTENT_VIEW_HISTORY 기준으로 이미 최근 조회순 정렬되어 넘어온
+     * ContentVO 목록을 받아, JSONL 공용 저장소에서 TMDB ID + 콘텐츠 유형이
+     * 일치하는 SearchResultVO로 변환합니다. (관련 콘텐츠 매칭과 동일한 방식)
+     *
+     * JSONL 저장소에서 내려간(더 이상 존재하지 않는) 콘텐츠는
+     * 자연히 결과에서 제외됩니다.
+     */
+    public List<SearchResultVO> getMainRecentlyViewedContent(
+            List<com.project.oditji.content.vo.ContentVO> orderedContentList) {
+
+        if (orderedContentList == null
+                || orderedContentList.isEmpty()) {
+
+            return new ArrayList<SearchResultVO>();
+        }
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        Map<String, SearchResultVO> candidateByTmdbKey =
+                new HashMap<String, SearchResultVO>();
+
+        for (SearchResultVO candidate : allContentList) {
+
+            candidateByTmdbKey.put(
+                    buildTmdbKey(
+                            candidate.getTmdbId(),
+                            candidate.getContentType()
+                    ),
+                    candidate
+            );
+        }
+
+        List<SearchResultVO> result =
+                new ArrayList<SearchResultVO>();
+
+        for (com.project.oditji.content.vo.ContentVO viewedContent
+                : orderedContentList) {
+
+            SearchResultVO matched =
+                    candidateByTmdbKey.get(
+                            buildTmdbKey(
+                                    viewedContent.getTmdbId(),
+                                    viewedContent.getContentType()
+                            )
+                    );
+
+            if (matched != null) {
+                result.add(matched);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * TMDB ID + 콘텐츠 유형으로 콘텐츠를 식별하는 매칭 키를 만듭니다.
+     */
+    private String buildTmdbKey(
+            Long tmdbId,
+            String contentType) {
+
+        return tmdbId
+                + "_"
+                + normalizeRelatedValue(contentType);
+    }
 
     /**
      * 콘텐츠 상세 페이지의 관련 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
@@ -1102,7 +1291,7 @@ public class SearchContentPageCacheService {
      *
      * type은 전체·인기·신규 목록 범위를 결정하고,
      * sort는 인기순·평점순·최신순·가나다순 정렬을 결정합니다.
-     * 신규 탭은 기존 정책대로 최근 30일 공개작만 사용합니다.
+     * 신규 탭은 최근 30일 공개작과 오늘 이후 3일 이내 예정작만 사용합니다.
      */
     public ContentListPageVO getContentListPage(
             String type,
@@ -1139,14 +1328,19 @@ public class SearchContentPageCacheService {
         if ("new".equals(normalizedType)) {
 
             /*
-             * 신규 탭은 오늘보다 미래인 콘텐츠를 제외하고,
-             * 최근 30일 이내 공개된 콘텐츠만 표시합니다.
+             * 신규 탭도 메인과 동일하게 오늘 이후 3일 이내 예정작은
+             * 표시하고, 4일 이후 예정작은 제외합니다.
+             * 과거 콘텐츠는 최근 30일 공개작만 유지합니다.
              */
             LocalDate today =
                     LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
             LocalDate startDate =
                     today.minusDays(30);
+
+            applyUpcomingReleasePolicy(
+                    filteredList
+            );
 
             filteredList.removeIf(
                     content -> {
@@ -1159,8 +1353,7 @@ public class SearchContentPageCacheService {
                                 );
 
                         return releaseDate == null
-                                || releaseDate.isBefore(startDate)
-                                || releaseDate.isAfter(today);
+                                || releaseDate.isBefore(startDate);
                     }
             );
         }
@@ -1485,6 +1678,15 @@ public class SearchContentPageCacheService {
                         providerIds,
                         ageRatings
                 );
+
+        /*
+         * 검색 결과도 메인 신규 콘텐츠와 동일한 공개 예정 기준을 사용합니다.
+         * 3일 이내 예정작은 유지하고 upcoming=true로 표시하며,
+         * 4일 이후 예정작은 검색 결과 건수와 페이징에서 함께 제외합니다.
+         */
+        applyUpcomingReleasePolicy(
+                filtered
+        );
 
         int totalResults =
                 filtered.size();

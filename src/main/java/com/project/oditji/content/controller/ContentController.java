@@ -1,7 +1,10 @@
 package com.project.oditji.content.controller;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriUtils;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.common.util.OttPlatformUtil;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentListPageVO;
@@ -465,6 +469,96 @@ public class ContentController {
                                 false);
 
                 return redirectView;
+        }
+
+        /**
+         * "출시 알림 캘린더"입니다.
+         *
+         * 파라미터로 연·월을 지정하지 않으면 오늘 날짜 기준 이번 달을 보여줍니다.
+         * 화면에서는 날짜별 셀에 그 날 개봉·공개하는 콘텐츠를 표시합니다.
+         */
+        @GetMapping("/release-calendar")
+        public String releaseCalendar(
+                        @RequestParam(required = false) Integer year,
+                        @RequestParam(required = false) Integer month,
+                        Model model) {
+
+                LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+
+                int targetYear = year == null
+                                ? today.getYear()
+                                : year;
+
+                int targetMonth = (month == null || month < 1 || month > 12)
+                                ? today.getMonthValue()
+                                : month;
+
+                YearMonth targetYearMonth = YearMonth.of(
+                                targetYear,
+                                targetMonth);
+
+                List<SearchResultVO> releaseList = contentService.getReleaseCalendarContent(
+                                targetYear,
+                                targetMonth);
+
+                Map<Integer, List<SearchResultVO>> releaseByDay = new LinkedHashMap<>();
+
+                for (SearchResultVO content : releaseList) {
+
+                        LocalDate releaseDate = LocalDate.parse(
+                                        content.getReleaseDate());
+
+                        releaseByDay
+                                        .computeIfAbsent(
+                                                        releaseDate.getDayOfMonth(),
+                                                        key -> new ArrayList<>())
+                                        .add(content);
+                }
+
+                YearMonth prevYearMonth = targetYearMonth.minusMonths(1);
+                YearMonth nextYearMonth = targetYearMonth.plusMonths(1);
+
+                model.addAttribute(
+                                "targetYear",
+                                targetYear);
+
+                model.addAttribute(
+                                "targetMonth",
+                                targetMonth);
+
+                model.addAttribute(
+                                "daysInMonth",
+                                targetYearMonth.lengthOfMonth());
+
+                model.addAttribute(
+                                "firstDayOfWeek",
+                                targetYearMonth.atDay(1).getDayOfWeek().getValue() % 7);
+
+                model.addAttribute(
+                                "releaseByDay",
+                                releaseByDay);
+
+                model.addAttribute(
+                                "isCurrentMonth",
+                                targetYearMonth.equals(YearMonth.from(today)));
+
+                model.addAttribute(
+                                "prevYear",
+                                prevYearMonth.getYear());
+
+                model.addAttribute(
+                                "prevMonth",
+                                prevYearMonth.getMonthValue());
+
+                model.addAttribute(
+                                "nextYear",
+                                nextYearMonth.getYear());
+
+                model.addAttribute(
+                                "nextMonth",
+                                nextYearMonth.getMonthValue());
+
+                return "content/releaseCalendar";
         }
 
         @GetMapping("/person/{tmdbPersonId}")

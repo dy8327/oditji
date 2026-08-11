@@ -632,8 +632,11 @@
 .ott-calc-modal__panel {
   position: relative;
   z-index: 1;
+  width: calc(100% - 32px);
   max-width: 420px;
   margin: 10vh auto 0;
+  /* [병합 해결] 모바일 폭 계산 안정화를 위한 box-sizing과 develop의 강화된 모달 배경을 함께 유지합니다. */
+  box-sizing: border-box;
   background: linear-gradient(165deg, #24243c 0%, #16161f 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;

@@ -56,6 +56,7 @@
                         <a href="${pageContext.request.contextPath}/ranking" role="menuitem">랭킹</a>
                         <a href="${pageContext.request.contextPath}/content/today" role="menuitem">오늘의 콘텐츠</a>
                         <a href="${pageContext.request.contextPath}/recommend" role="menuitem">추천 콘텐츠</a>
+                        <a href="${pageContext.request.contextPath}/content/release-calendar" role="menuitem">출시 캘린더</a>
                     </div>
                 </li>
 
