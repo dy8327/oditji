@@ -30,7 +30,7 @@ class AccessLogInterceptorWarnDisabledCoverageTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod("GET");
         request.setRequestURI("/coverage/access-log");
-        request.setRemoteAddr("127.0.0.1");
+        request.setRemoteAddr("localhost");
 
         Logger logger = (Logger) LoggerFactory.getLogger(AccessLogInterceptor.class);
         Level originalLevel = logger.getLevel();
