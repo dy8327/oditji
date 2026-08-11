@@ -194,9 +194,9 @@ class BusinessControllerAdditionalCoverageTest {
                 detail.setConnectedProducts(List.of());
                 List<GoodsManageVO> products = List.of(new GoodsManageVO());
 
-                when(businessService.getEventListCountByBusinessNo(40L, " 여름 "))
+                when(businessService.getEventListCountByBusinessNo(40L, " 여름 ", null, null, null))
                                 .thenReturn(2);
-                when(businessService.getEventListByBusinessNo(40L, " 여름 ", 1, 10))
+                when(businessService.getEventListByBusinessNo(40L, " 여름 ", null, null, null, 1, 10))
                                 .thenReturn(List.of(approved, waiting));
                 when(businessService.getApprovedEventForBusiness(100L, 40L))
                                 .thenReturn(detail);
@@ -208,6 +208,9 @@ class BusinessControllerAdditionalCoverageTest {
                                 "business/event/eventList",
                                 controller.eventList(
                                                 " 여름 ",
+                                                null,
+                                                null,
+                                                null,
                                                 1,
                                                 session(30L),
                                                 listModel,
