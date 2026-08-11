@@ -145,6 +145,7 @@ jobs:
             "http://127.0.0.1/oditji/member/join"
             "http://127.0.0.1/oditji/search"
             "http://127.0.0.1/oditji/content/list?type=all&page=1"
+            "http://127.0.0.1/oditji/goods/list?type=all"
           )
 
           for pass in 1 2; do
