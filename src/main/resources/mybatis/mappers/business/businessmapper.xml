@@ -1301,12 +1301,7 @@
                 SELECT 1
                 FROM ORDER_ITEM OI
                 WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
-                AND OI.STATUS IN (
-                        'PAID',
-                        'PREPARING',
-                        'SHIPPING',
-                        'DELIVERED'
-                )
+                AND OI.STATUS IN ('DELIVERED')
         )
 
     </select>
@@ -1786,7 +1781,14 @@
                 JOIN ORDERS O
                   ON O.ORDER_NO = OI.ORDER_NO
                 WHERE OI.BUSINESS_NO = #{businessNo}
-                  AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+                  <!--
+                        =========================================================
+                        [정산 예정금 기준 통일]
+                        수수료 관리의 정산 요청 가능 금액과 동일하게
+                        배송 완료(DELIVERED)된 주문상품만 정산 예정금에 포함한다.
+                        =========================================================
+                    -->  
+                  AND OI.STATUS IN ('DELIVERED')
                   AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
                   AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
             ) AS DAILY_SALES,
@@ -1804,7 +1806,7 @@
                     JOIN PRODUCT P
                       ON P.PRODUCT_NO = OI.PRODUCT_NO
                     WHERE OI.BUSINESS_NO = #{businessNo}
-                      AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+                      AND OI.STATUS IN ('DELIVERED')
                       AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
                       AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
                     GROUP BY P.PRODUCT_NO, P.PRODUCT_NAME
@@ -1819,7 +1821,7 @@
                 JOIN ORDERS O
                   ON O.ORDER_NO = OI.ORDER_NO
                 WHERE OI.BUSINESS_NO = #{businessNo}
-                  AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+                  AND OI.STATUS IN ('DELIVERED')
                   AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
                   AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
             ) AS ORDER_COUNT
@@ -1842,7 +1844,7 @@
         JOIN ORDERS O
           ON O.ORDER_NO = OI.ORDER_NO
         WHERE OI.BUSINESS_NO = #{businessNo}
-          AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+          AND OI.STATUS IN ('DELIVERED')
           AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
           AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
         GROUP BY TRUNC(O.CREATED_AT)
@@ -1863,7 +1865,7 @@
             JOIN ORDERS O
               ON O.ORDER_NO = OI.ORDER_NO
             WHERE OI.BUSINESS_NO = #{businessNo}
-              AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED')
+              AND OI.STATUS IN ('DELIVERED')
               AND O.CREATED_AT <![CDATA[ >= ]]> #{startDate, jdbcType=DATE}
               AND O.CREATED_AT <![CDATA[ < ]]> #{endDate, jdbcType=DATE} + 1
             GROUP BY TRUNC(O.CREATED_AT)
