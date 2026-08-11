@@ -17,10 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.event.service.OttDiscountService;
 import com.project.oditji.event.vo.OttDiscountVO;
 
-/** 관리자 OTT 할인 CRUD와 필터 유지 리다이렉트 분기를 검증합니다. */
+/** 관리자 OTT 할인 CRUD와 페이징/필터 유지 리다이렉트 분기를 검증합니다. */
 @ExtendWith(MockitoExtension.class)
 class AdminOttDiscountControllerCoverageTest {
 
@@ -35,13 +36,15 @@ class AdminOttDiscountControllerCoverageTest {
     }
 
     @Test
-    void discountListShouldExposeListAndSelectedFilters() {
+    void discountListShouldExposePagedListAndSelectedFilters() {
         OttDiscountVO discount = new OttDiscountVO();
-        when(ottDiscountService.getAdminDiscountList("NETFLIX", "CARD", "Y"))
+        when(ottDiscountService.getAdminDiscountListCount("NETFLIX", "CARD", "Y"))
+                .thenReturn(21);
+        when(ottDiscountService.getAdminDiscountList("NETFLIX", "CARD", "Y", 3, 10))
                 .thenReturn(List.of(discount));
 
         ExtendedModelMap model = new ExtendedModelMap();
-        String view = controller.discountList("NETFLIX", "CARD", "Y", model);
+        String view = controller.discountList("NETFLIX", "CARD", "Y", 99, model);
 
         assertEquals("admin/discount/discountManage", view);
         assertEquals("discount", model.get("activeMenu"));
@@ -49,10 +52,17 @@ class AdminOttDiscountControllerCoverageTest {
         assertEquals("NETFLIX", model.get("selectedPlatform"));
         assertEquals("CARD", model.get("selectedCategory"));
         assertEquals("Y", model.get("selectedStatus"));
+
+        PageVO pagination = (PageVO) model.get("pagination");
+        assertEquals(3, pagination.getCurrentPage());
+        assertEquals(21, pagination.getTotalCount());
+
+        verify(ottDiscountService).getAdminDiscountListCount("NETFLIX", "CARD", "Y");
+        verify(ottDiscountService).getAdminDiscountList("NETFLIX", "CARD", "Y", 3, 10);
     }
 
     @Test
-    void registerSuccessShouldBuildCompleteVoAndKeepAllFilters() {
+    void registerSuccessShouldBuildCompleteVoAndKeepAllFiltersAndPage() {
         when(ottDiscountService.createDiscount(any(OttDiscountVO.class)))
                 .thenReturn(true);
         RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
@@ -73,10 +83,11 @@ class AdminOttDiscountControllerCoverageTest {
                 "NETFLIX",
                 "CARD",
                 "Y",
+                4,
                 redirect);
 
         assertEquals(
-                "redirect:/admin/discount/list?platform=NETFLIX&category=CARD&status=Y",
+                "redirect:/admin/discount/list?page=4&platform=NETFLIX&category=CARD&status=Y",
                 result);
         assertEquals("할인 정보를 등록했습니다.", redirect.getFlashAttributes().get("message"));
 
@@ -101,7 +112,7 @@ class AdminOttDiscountControllerCoverageTest {
     }
 
     @Test
-    void registerFailureShouldUseFallbackPlatformNameAndSkipNullFilters() {
+    void registerFailureShouldUseFallbackPlatformNameAndKeepDefaultPage() {
         when(ottDiscountService.createDiscount(any(OttDiscountVO.class)))
                 .thenReturn(false);
         RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
@@ -122,9 +133,10 @@ class AdminOttDiscountControllerCoverageTest {
                 null,
                 null,
                 null,
+                1,
                 redirect);
 
-        assertEquals("redirect:/admin/discount/list", result);
+        assertEquals("redirect:/admin/discount/list?page=1", result);
         assertEquals("등록에 실패했습니다.", redirect.getFlashAttributes().get("message"));
 
         ArgumentCaptor<OttDiscountVO> captor = ArgumentCaptor.forClass(OttDiscountVO.class);
@@ -141,9 +153,9 @@ class AdminOttDiscountControllerCoverageTest {
         String result = controller.register(
                 "TVING", "CARD", "제목", 10000, 9000, "요약",
                 null, null, null, null, null, null,
-                " ", "", "   ", redirect);
+                " ", "", "   ", 2, redirect);
 
-        assertEquals("redirect:/admin/discount/list", result);
+        assertEquals("redirect:/admin/discount/list?page=2", result);
         assertEquals(
                 "등록 중 오류가 발생했습니다. 입력값을 확인해 주세요.",
                 redirect.getFlashAttributes().get("message"));
@@ -155,10 +167,10 @@ class AdminOttDiscountControllerCoverageTest {
         when(ottDiscountService.updateDiscount(any(OttDiscountVO.class)))
                 .thenReturn(true);
 
-        String success = callUpdate(successRedirect, "ALL", "CARD", "N");
+        String success = callUpdate(successRedirect, "ALL", "CARD", "N", 3);
 
         assertEquals(
-                "redirect:/admin/discount/list?platform=ALL&category=CARD&status=N",
+                "redirect:/admin/discount/list?page=3&platform=ALL&category=CARD&status=N",
                 success);
         assertEquals("할인 정보를 수정했습니다.", successRedirect.getFlashAttributes().get("message"));
 
@@ -171,59 +183,59 @@ class AdminOttDiscountControllerCoverageTest {
         when(ottDiscountService.updateDiscount(any(OttDiscountVO.class)))
                 .thenReturn(false);
 
-        String failure = callUpdate(failureRedirect, null, " ", null);
+        String failure = callUpdate(failureRedirect, null, " ", null, 1);
 
-        assertEquals("redirect:/admin/discount/list", failure);
+        assertEquals("redirect:/admin/discount/list?page=1", failure);
         assertEquals("수정 대상을 찾을 수 없습니다.", failureRedirect.getFlashAttributes().get("message"));
 
         RedirectAttributesModelMap exceptionRedirect = new RedirectAttributesModelMap();
         when(ottDiscountService.updateDiscount(any(OttDiscountVO.class)))
                 .thenThrow(new IllegalStateException("db"));
 
-        String exception = callUpdate(exceptionRedirect, "", null, " ");
+        String exception = callUpdate(exceptionRedirect, "", null, " ", 5);
 
-        assertEquals("redirect:/admin/discount/list", exception);
+        assertEquals("redirect:/admin/discount/list?page=5", exception);
         assertEquals(
                 "수정 중 오류가 발생했습니다. 입력값을 확인해 주세요.",
                 exceptionRedirect.getFlashAttributes().get("message"));
     }
 
     @Test
-    void deactivateAndActivateShouldCoverBothResultBranches() {
+    void deactivateAndActivateShouldCoverBothResultBranchesAndKeepPage() {
         RedirectAttributesModelMap first = new RedirectAttributesModelMap();
         when(ottDiscountService.deleteDiscount(10L)).thenReturn(true);
 
-        String deactivateSuccess = controller.deactivate(10L, "NETFLIX", "", "Y", first);
+        String deactivateSuccess = controller.deactivate(10L, "NETFLIX", "", "Y", 2, first);
 
         assertEquals(
-                "redirect:/admin/discount/list?platform=NETFLIX&status=Y",
+                "redirect:/admin/discount/list?page=2&platform=NETFLIX&status=Y",
                 deactivateSuccess);
         assertEquals("할인 정보를 비활성화했습니다.", first.getFlashAttributes().get("message"));
 
         RedirectAttributesModelMap second = new RedirectAttributesModelMap();
         when(ottDiscountService.deleteDiscount(11L)).thenReturn(false);
 
-        String deactivateFailure = controller.deactivate(11L, null, null, null, second);
+        String deactivateFailure = controller.deactivate(11L, null, null, null, 1, second);
 
-        assertEquals("redirect:/admin/discount/list", deactivateFailure);
+        assertEquals("redirect:/admin/discount/list?page=1", deactivateFailure);
         assertEquals("비활성화 대상을 찾을 수 없습니다.", second.getFlashAttributes().get("message"));
 
         RedirectAttributesModelMap third = new RedirectAttributesModelMap();
         when(ottDiscountService.activateDiscount(20L)).thenReturn(true);
 
-        String activateSuccess = controller.activate(20L, "", "CARD", "", third);
+        String activateSuccess = controller.activate(20L, "", "CARD", "", 4, third);
 
         assertEquals(
-                "redirect:/admin/discount/list?category=CARD",
+                "redirect:/admin/discount/list?page=4&category=CARD",
                 activateSuccess);
         assertEquals("할인 정보를 다시 활성화했습니다.", third.getFlashAttributes().get("message"));
 
         RedirectAttributesModelMap fourth = new RedirectAttributesModelMap();
         when(ottDiscountService.activateDiscount(21L)).thenReturn(false);
 
-        String activateFailure = controller.activate(21L, null, " ", null, fourth);
+        String activateFailure = controller.activate(21L, null, " ", null, 6, fourth);
 
-        assertEquals("redirect:/admin/discount/list", activateFailure);
+        assertEquals("redirect:/admin/discount/list?page=6", activateFailure);
         assertEquals("재활성화 대상을 찾을 수 없습니다.", fourth.getFlashAttributes().get("message"));
     }
 
@@ -231,7 +243,8 @@ class AdminOttDiscountControllerCoverageTest {
             RedirectAttributesModelMap redirect,
             String filterPlatform,
             String filterCategory,
-            String filterStatus) {
+            String filterStatus,
+            int page) {
 
         return controller.update(
                 7L,
@@ -250,6 +263,7 @@ class AdminOttDiscountControllerCoverageTest {
                 filterPlatform,
                 filterCategory,
                 filterStatus,
+                page,
                 redirect);
     }
 }

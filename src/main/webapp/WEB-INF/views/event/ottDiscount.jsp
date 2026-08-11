@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <title>OTT 할인 혜택 - ODITJI</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/ott-discount.css">
-    <%-- [수정] 9개 단위 페이징 추가: 다른 목록 화면(eventList.jsp 등)과 동일한 공용
+    <%-- [수정] 8개 단위 페이징 추가: 다른 목록 화면(eventList.jsp 등)과 동일한 공용
          페이지네이션 위젯을 재사용한다. ottDiscount.js보다 먼저 로드되어야
          renderPaginationNav()를 AJAX 갱신 시에도 재사용할 수 있다. --%>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/pagination-common.css?v=1">
@@ -30,23 +30,66 @@
          data-selected-category="${selectedCategory}">
 
     <%-- [수정] 상단 이달의 대표 혜택 배너: BEST 뱃지가 붙은 항목, 없으면 최신 항목을 노출.
-         목록이 9개 단위로 페이징되면서 discountList를 직접 훑던 기존 방식은 2페이지
+         목록이 8개 단위로 페이징되면서 discountList를 직접 훑던 기존 방식은 2페이지
          이후에 있는 BEST 항목을 놓치므로, 컨트롤러에서 페이징과 무관하게 별도 조회한
-         heroItem을 그대로 쓴다. --%>
+         heroItem을 그대로 쓴다.
+         [수정] UI/UX 강화: 기존에는 "플랫폼 · 제목 — 요약"을 한 줄 텍스트로만 보여줘
+         그냥 DB에서 꺼낸 항목 하나를 밋밋하게 나열하는 느낌이었다. 태그(+아이콘)/뱃지/
+         가격 비교/CTA 버튼을 갖춘 카드 형태로 바꿔 "이달의 대표 혜택"다운 임팩트를 준다. --%>
     <div class="ott-discount-hero">
         <p class="ott-discount-hero__eyebrow">ODITJI PICK</p>
         <h1 class="ott-discount-hero__title">이달의 OTT 할인 혜택</h1>
-        <c:choose>
-            <c:when test="${not empty heroItem}">
-                <p class="ott-discount-hero__desc">
-                    <strong>${heroItem.platformName}</strong> · ${heroItem.title} —
-                    ${heroItem.discountSummary}
-                </p>
-            </c:when>
-            <c:otherwise>
-                <p class="ott-discount-hero__desc">카드사·통신사·멤버십 혜택을 한 곳에서 비교해 보세요.</p>
-            </c:otherwise>
-        </c:choose>
+        <%-- [수정] 히어로 배너 실시간 갱신: 플랫폼/혜택 종류 탭을 클릭해도 새로고침
+             전까지 첫 진입 값이 그대로 남아있던 문제를 고친다. 동적으로 바뀌는
+             부분만 id="ottDiscountHeroBody"로 감싸, 필터를 바꿀 때 ottDiscount.js가
+             /api/discount 응답의 heroItem으로 이 영역만 다시 그리고 부드럽게
+             페이드 전환한다(전체 페이지 새로고침 불필요). --%>
+        <div class="ott-discount-hero__body" id="ottDiscountHeroBody">
+            <c:choose>
+                <c:when test="${not empty heroItem}">
+                    <div class="ott-discount-hero__card">
+                        <div class="ott-discount-hero__card-top">
+                            <span class="ott-platform-tag ott-platform-tag--lg ott-platform-tag--${heroItem.platformCode}">
+                                <c:set var="heroLogoUrl" value="${ottLogoMap[fn:toLowerCase(heroItem.platformCode)]}"/>
+                                <c:choose>
+                                    <c:when test="${not empty heroLogoUrl}">
+                                        <img class="ott-platform-tag__logo" src="${heroLogoUrl}" alt="" aria-hidden="true">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="ott-platform-tag__icon" aria-hidden="true">${fn:substring(heroItem.platformName, 0, 1)}</span>
+                                    </c:otherwise>
+                                </c:choose>
+                                ${heroItem.platformName}
+                            </span>
+                            <c:if test="${not empty heroItem.badgeText}">
+                                <span class="ott-badge ott-badge--hero">${heroItem.badgeText}</span>
+                            </c:if>
+                        </div>
+
+                        <p class="ott-discount-hero__card-title">${heroItem.title}</p>
+                        <p class="ott-discount-hero__card-summary">${heroItem.discountSummary}</p>
+
+                        <c:if test="${not empty heroItem.regularPrice and not empty heroItem.discountPrice}">
+                            <div class="ott-price-row ott-discount-hero__price-row">
+                                <span class="ott-price-regular"><fmt:formatNumber value="${heroItem.regularPrice}" pattern="#,##0"/>원</span>
+                                <span class="ott-price-arrow">→</span>
+                                <span class="ott-price-discount"><fmt:formatNumber value="${heroItem.discountPrice}" pattern="#,##0"/>원</span>
+                                <c:if test="${not empty heroItem.discountRate}">
+                                    <span class="ott-discount-rate">${heroItem.discountRate}% 할인</span>
+                                </c:if>
+                            </div>
+                        </c:if>
+
+                        <c:if test="${not empty heroItem.targetUrl}">
+                            <a href="${heroItem.targetUrl}" target="_blank" rel="noopener" class="ott-discount-hero__cta">혜택 보러가기</a>
+                        </c:if>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <p class="ott-discount-hero__desc">카드사·통신사·멤버십 혜택을 한 곳에서 비교해 보세요.</p>
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
 
     <%-- OTT 플랫폼 선택 탭 --%>
@@ -82,7 +125,18 @@
                 <c:forEach var="item" items="${discountList}">
                     <div class="ott-discount-card" data-id="${item.discountId}">
                         <div class="ott-discount-card__top">
-                            <span class="ott-platform-tag ott-platform-tag--${item.platformCode}">${item.platformName}</span>
+                            <span class="ott-platform-tag ott-platform-tag--${item.platformCode}">
+                                <c:set var="cardLogoUrl" value="${ottLogoMap[fn:toLowerCase(item.platformCode)]}"/>
+                                <c:choose>
+                                    <c:when test="${not empty cardLogoUrl}">
+                                        <img class="ott-platform-tag__logo" src="${cardLogoUrl}" alt="" aria-hidden="true">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="ott-platform-tag__icon" aria-hidden="true">${fn:substring(item.platformName, 0, 1)}</span>
+                                    </c:otherwise>
+                                </c:choose>
+                                ${item.platformName}
+                            </span>
                             <c:if test="${not empty item.badgeText}">
                                 <span class="ott-badge">${item.badgeText}</span>
                             </c:if>
@@ -141,7 +195,7 @@
         </c:choose>
     </div>
 
-    <%-- [수정] 9개 단위 페이징 내비게이션. totalPage가 1 이하면 pagination.js가
+    <%-- [수정] 8개 단위 페이징 내비게이션. totalPage가 1 이하면 pagination.js가
          자동으로 숨긴다(nav.hidden=true). 필터를 AJAX로 바꾸면 ottDiscount.js가
          data-current-page/data-total-page를 새 결과 기준으로 갱신하고
          renderPaginationNav()를 다시 호출해 같은 위젯을 재사용한다. --%>
@@ -153,6 +207,11 @@
         data-page-param="page"
         aria-label="OTT 할인 정보 페이지 이동">
     </nav>
+
+    <%-- [수정] AJAX로 카드를 다시 그릴 때도 서버 렌더링과 동일한 OTT_PLATFORM 로고 이미지를
+         쓰기 위해 ottLogoMap을 JSON으로 내려준다. 플랫폼 목록 자체는 필터/페이지와 무관하게
+         항상 동일하므로 /api/discount 응답에 매번 실어 보낼 필요 없이 최초 1회만 내려준다. --%>
+    <script type="application/json" id="ottPlatformLogoData">{<c:forEach var="logoEntry" items="${ottLogoMap}" varStatus="logoStatus">"${logoEntry.key}":"${fn:escapeXml(logoEntry.value)}"<c:if test="${not logoStatus.last}">,</c:if></c:forEach>}</script>
 </section>
 </main>
 

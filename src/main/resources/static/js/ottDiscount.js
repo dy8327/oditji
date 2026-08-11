@@ -16,9 +16,28 @@ document.addEventListener("DOMContentLoaded", function () {
     var grid = document.getElementById("discountCardGrid");
     var platformGroup = document.getElementById("platformFilterGroup");
     var categoryGroup = document.getElementById("categoryFilterGroup");
-    /* [수정] 9개 단위 페이징 내비게이션. pagination.js의 renderPaginationNav()를
+    /* [수정] 히어로 배너 실시간 갱신: 필터를 바꿀 때마다 이 영역만 다시 그린다. */
+    var heroBody = document.getElementById("ottDiscountHeroBody");
+    /* [수정] 8개 단위 페이징 내비게이션. pagination.js의 renderPaginationNav()를
        재사용해 AJAX로 목록이 바뀔 때마다 같은 위젯을 다시 그린다. */
     var paginationNav = document.getElementById("ottDiscountPagination");
+
+    /* [수정] AJAX로 다시 그리는 카드도 서버 렌더링과 동일하게 OTT_PLATFORM에 저장된
+       실제 로고 이미지를 쓰도록, ottDiscount.jsp가 내려준 JSON을 파싱해 둔다.
+       (필터를 바꿔도 플랫폼 목록 자체는 바뀌지 않으므로 최초 1회만 읽으면 된다) */
+    var ottLogoMap = parseLogoMap();
+
+    function parseLogoMap() {
+        var script = document.getElementById("ottPlatformLogoData");
+        if (!script) {
+            return {};
+        }
+        try {
+            return JSON.parse(script.textContent) || {};
+        } catch (e) {
+            return {};
+        }
+    }
 
     var state = {
         platform: section.dataset.selectedPlatform || "ALL",
@@ -77,11 +96,22 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(function (body) {
                 renderGrid(body.data || []);
-                /* [수정] 서버가 계산한 현재 페이지/총 페이지 기준으로 페이지네이션을 다시 그린다.
-                   (요청한 page가 총 페이지 수를 넘으면 서버가 마지막 페이지로 보정해 내려준다) */
+                renderHero(body.heroItem);
+                /* [수정 - 버그 픽스] renderPaginationNav()는 pagination.js에서
+                   window.location.href를 기준으로 각 페이지 링크의 href를 만든다.
+                   그런데 이 URL은 updateHistory()가 history.replaceState로 갱신해주는데,
+                   기존 코드는 updatePaginationNav()를 먼저 호출하고 updateHistory()를
+                   나중에 호출했다. 그 결과 페이지네이션 링크는 "직전" 필터 상태의 URL을
+                   기준으로 만들어졌고, 필터를 바꾼 직후에는 항상 한 박자 뒤처진(=이전) 값을
+                   가리켰다. 예) 전체 탭에서 카드사 탭으로 바꾸면 화면엔 카드사 목록이 보이지만
+                   페이지 링크는 여전히 platform/category가 바뀌기 전 URL을 base로 만들어져,
+                   그 링크를 눌러 다음 페이지로 이동하면 엉뚱한(이전) 탭으로 돌아가 버렸다.
+                   (필터를 한 번도 안 바꾼 상태로 페이지만 넘길 때는 URL이 이미 최신이라
+                   문제가 드러나지 않았다 — "전체 탭에서만 페이징이 되는 것처럼" 보인 이유)
+                   순서를 뒤집어 URL을 먼저 최신 상태로 만든 뒤 페이지네이션을 그린다. */
                 state.page = body.currentPage || 1;
-                updatePaginationNav(body.currentPage, body.totalPage);
                 updateHistory();
+                updatePaginationNav(body.currentPage, body.totalPage);
             })
             .catch(function () {
                 grid.innerHTML = '<p class="ott-discount-error">할인 혜택을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>';
@@ -94,6 +124,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         paginationNav.dataset.currentPage = currentPage || 1;
         paginationNav.dataset.totalPage = totalPage || 1;
+        /* [수정] pagination.js가 window.location.href만 보고 링크를 만들면 history
+           갱신 타이밍에 따라 이전 필터 값을 가리킬 수 있다(과거 버그의 원인). 현재 JS
+           상태(state.platform/state.category)를 extra-params로 직접 못박아 두면
+           URL 갱신 시점과 무관하게 항상 정확한 필터로 페이지 링크가 만들어진다. */
+        paginationNav.dataset.extraParams = JSON.stringify({
+            platform: state.platform,
+            category: state.category
+        });
         if (typeof renderPaginationNav === "function") {
             renderPaginationNav(paginationNav);
         }
@@ -117,6 +155,78 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var html = items.map(renderCard).join("");
         grid.innerHTML = html;
+    }
+
+    /* [수정] 히어로 배너 실시간 갱신
+       - JSP의 최초 서버 렌더링(heroItem)과 동일한 마크업을 그대로 JS로 재현한다.
+       - 탭을 누를 때마다 배너가 뚝 끊겨 바뀌면 어색하므로, 잠깐 페이드아웃한 뒤
+         내용을 교체하고 다시 페이드인하는 크로스페이드 전환을 준다
+         (실제 타이밍은 ott-discount.css의 .ott-discount-hero__body.is-fading 참고). */
+    var HERO_FADE_MS = 160;
+
+    function renderHero(item) {
+        if (!heroBody) {
+            return;
+        }
+        heroBody.classList.add("is-fading");
+        window.setTimeout(function () {
+            heroBody.innerHTML = item ? renderHeroCard(item) : renderHeroEmpty();
+            heroBody.classList.remove("is-fading");
+        }, HERO_FADE_MS);
+    }
+
+    function renderHeroCard(item) {
+        var badgeHtml = item.badgeText
+                ? '<span class="ott-badge ott-badge--hero">' + escapeHtml(item.badgeText) + '</span>'
+                : '';
+
+        var priceHtml = '';
+        if (item.regularPrice !== null && item.regularPrice !== undefined &&
+                item.discountPrice !== null && item.discountPrice !== undefined) {
+
+            var rateHtml = '';
+            if (item.discountRate !== null && item.discountRate !== undefined) {
+                rateHtml = '<span class="ott-discount-rate">' + item.discountRate + '% 할인</span>';
+            }
+
+            priceHtml =
+                '<div class="ott-price-row ott-discount-hero__price-row">' +
+                    '<span class="ott-price-regular">' + formatNumber(item.regularPrice) + '원</span>' +
+                    '<span class="ott-price-arrow">→</span>' +
+                    '<span class="ott-price-discount">' + formatNumber(item.discountPrice) + '원</span>' +
+                    rateHtml +
+                '</div>';
+        }
+
+        var ctaHtml = item.targetUrl
+                ? '<a href="' + escapeAttr(item.targetUrl) + '" target="_blank" rel="noopener" class="ott-discount-hero__cta">혜택 보러가기</a>'
+                : '';
+
+        var platformKey = item.platformCode ? String(item.platformCode).toLowerCase() : '';
+        var logoUrl = ottLogoMap[platformKey];
+        var platformIconHtml = logoUrl
+                ? '<img class="ott-platform-tag__logo" src="' + escapeAttr(logoUrl) + '" alt="" aria-hidden="true">'
+                : '<span class="ott-platform-tag__icon" aria-hidden="true">' +
+                    (item.platformName ? escapeHtml(String(item.platformName).charAt(0)) : '') + '</span>';
+
+        return (
+            '<div class="ott-discount-hero__card">' +
+                '<div class="ott-discount-hero__card-top">' +
+                    '<span class="ott-platform-tag ott-platform-tag--lg ott-platform-tag--' + escapeAttr(item.platformCode) + '">' +
+                        platformIconHtml +
+                        escapeHtml(item.platformName) + '</span>' +
+                    badgeHtml +
+                '</div>' +
+                '<p class="ott-discount-hero__card-title">' + escapeHtml(item.title) + '</p>' +
+                '<p class="ott-discount-hero__card-summary">' + escapeHtml(item.discountSummary) + '</p>' +
+                priceHtml +
+                ctaHtml +
+            '</div>'
+        );
+    }
+
+    function renderHeroEmpty() {
+        return '<p class="ott-discount-hero__desc">카드사·통신사·멤버십 혜택을 한 곳에서 비교해 보세요.</p>';
     }
 
     function renderCard(item) {
@@ -150,10 +260,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? '<a href="' + escapeAttr(item.targetUrl) + '" target="_blank" rel="noopener" class="ott-discount-card__link">혜택 자세히 보기</a>'
                 : '';
 
+        var platformKey = item.platformCode ? String(item.platformCode).toLowerCase() : '';
+        var logoUrl = ottLogoMap[platformKey];
+        var platformIconHtml = logoUrl
+                ? '<img class="ott-platform-tag__logo" src="' + escapeAttr(logoUrl) + '" alt="" aria-hidden="true">'
+                : '<span class="ott-platform-tag__icon" aria-hidden="true">' +
+                    (item.platformName ? escapeHtml(String(item.platformName).charAt(0)) : '') + '</span>';
+
         return (
             '<div class="ott-discount-card" data-id="' + item.discountId + '">' +
                 '<div class="ott-discount-card__top">' +
                     '<span class="ott-platform-tag ott-platform-tag--' + escapeAttr(item.platformCode) + '">' +
+                        platformIconHtml +
                         escapeHtml(item.platformName) + '</span>' +
                     badgeHtml +
                 '</div>' +

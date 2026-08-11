@@ -41,7 +41,7 @@ class OttDiscountApiControllerCoverageTest {
         OttDiscountVO second = new OttDiscountVO();
         when(ottDiscountService.getDiscountListCount("NETFLIX", "CARD"))
                 .thenReturn(10);
-        when(ottDiscountService.getDiscountList("NETFLIX", "CARD", 2, 9))
+        when(ottDiscountService.getDiscountList("NETFLIX", "CARD", 2, 8))
                 .thenReturn(List.of(first, second));
 
         ResponseEntity<Map<String, Object>> response =

@@ -36,6 +36,21 @@ function renderPaginationNav(nav) {
       url.searchParams.set(nav.dataset.fixedParamName, nav.dataset.fixedParamValue);
     }
 
+    /* [수정] data-extra-params(JSON)를 설정해두면 window.location.href에 아직 반영되지
+       않은 최신 필터 값도 페이지 링크에 강제로 반영할 수 있다. history.replaceState 타이밍에
+       의존하지 않도록, 필터를 JS 상태로 관리하는 화면(ottDiscount.js 등)에서 사용한다.
+       미설정 시(기존 화면들) 동작은 그대로다. */
+    if (nav.dataset.extraParams) {
+      try {
+        const extraParams = JSON.parse(nav.dataset.extraParams);
+        Object.keys(extraParams).forEach((key) => {
+          url.searchParams.set(key, extraParams[key]);
+        });
+      } catch (e) {
+        /* 잘못된 JSON이면 무시하고 기존 URL 그대로 사용한다 */
+      }
+    }
+
     return url.pathname + url.search + url.hash;
   };
 

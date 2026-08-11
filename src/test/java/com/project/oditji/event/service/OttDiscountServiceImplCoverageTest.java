@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.project.oditji.event.dao.OttDiscountDAO;
 import com.project.oditji.event.vo.OttDiscountVO;
 
-/** OTT 할인 서비스의 정규화, 빈 목록 보정, CRUD 및 유효성 분기를 검증합니다. */
+/** OTT 할인 서비스의 정규화, 페이징, 빈 목록 보정, CRUD 및 유효성 분기를 검증합니다. */
 @ExtendWith(MockitoExtension.class)
 class OttDiscountServiceImplCoverageTest {
 
@@ -85,32 +85,53 @@ class OttDiscountServiceImplCoverageTest {
     }
 
     @Test
-    void adminListShouldCoverNullValidAndInvalidStatusNormalization() {
+    void adminListShouldCoverNormalizationPagingAndNullDaoResult() {
         OttDiscountVO discount = new OttDiscountVO();
-        when(ottDiscountDAO.selectAdminDiscountList("ALL", "ALL", "ALL"))
+
+        when(ottDiscountDAO.selectAdminDiscountList("ALL", "ALL", "ALL", 0, 10))
                 .thenReturn(null);
-        when(ottDiscountDAO.selectAdminDiscountList("NETFLIX", "CARD", "Y"))
+        when(ottDiscountDAO.selectAdminDiscountList("NETFLIX", "CARD", "Y", 10, 10))
                 .thenReturn(List.of(discount));
-        when(ottDiscountDAO.selectAdminDiscountList("TVING", "EVENT", "N"))
+        when(ottDiscountDAO.selectAdminDiscountList("TVING", "EVENT", "N", 0, 10))
                 .thenReturn(List.of(discount));
-        when(ottDiscountDAO.selectAdminDiscountList("WAVVE", "ETC", "ALL"))
+        when(ottDiscountDAO.selectAdminDiscountList("WAVVE", "ETC", "ALL", 0, 10))
                 .thenReturn(List.of(discount));
 
-        assertEquals(List.of(), service.getAdminDiscountList(null, " ", null));
-        assertEquals(List.of(discount), service.getAdminDiscountList(" netflix ", " card ", " y "));
-        assertEquals(List.of(discount), service.getAdminDiscountList("tving", "event", "N"));
-        assertEquals(List.of(discount), service.getAdminDiscountList("wavve", "etc", "inactive"));
+        assertEquals(List.of(), service.getAdminDiscountList(null, " ", null, 1, 10));
+        assertEquals(
+                List.of(discount),
+                service.getAdminDiscountList(" netflix ", " card ", " y ", 2, 10));
+        assertEquals(
+                List.of(discount),
+                service.getAdminDiscountList("tving", "event", "N", 1, 10));
+        assertEquals(
+                List.of(discount),
+                service.getAdminDiscountList("wavve", "etc", "inactive", 1, 10));
+
+        verify(ottDiscountDAO).selectAdminDiscountList("ALL", "ALL", "ALL", 0, 10);
+        verify(ottDiscountDAO).selectAdminDiscountList("NETFLIX", "CARD", "Y", 10, 10);
+        verify(ottDiscountDAO).selectAdminDiscountList("TVING", "EVENT", "N", 0, 10);
+        verify(ottDiscountDAO).selectAdminDiscountList("WAVVE", "ETC", "ALL", 0, 10);
     }
 
     @Test
     void adminListBlankStatusShouldAlsoUseAll() {
         OttDiscountVO discount = new OttDiscountVO();
-        when(ottDiscountDAO.selectAdminDiscountList("DISNEY", "CARD", "ALL"))
+        when(ottDiscountDAO.selectAdminDiscountList("DISNEY", "CARD", "ALL", 0, 8))
                 .thenReturn(List.of(discount));
 
         assertEquals(
                 List.of(discount),
-                service.getAdminDiscountList("DISNEY", "CARD", "   "));
+                service.getAdminDiscountList("DISNEY", "CARD", "   ", 1, 8));
+    }
+
+    @Test
+    void adminCountShouldNormalizeAllFilters() {
+        when(ottDiscountDAO.selectAdminDiscountListCount("ALL", "CARD", "ALL"))
+                .thenReturn(7);
+
+        assertEquals(7, service.getAdminDiscountListCount(null, " card ", "inactive"));
+        verify(ottDiscountDAO).selectAdminDiscountListCount("ALL", "CARD", "ALL");
     }
 
     @Test

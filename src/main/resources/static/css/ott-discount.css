@@ -134,6 +134,95 @@
   color: #fff;
 }
 
+/* [수정] 히어로 배너 실시간 갱신: 플랫폼/혜택 종류 탭을 누르면 ottDiscount.js가
+   이 영역의 내용을 교체한다. 뚝 끊겨 바뀌면 어색하므로 교체 직전 살짝
+   페이드아웃(.is-fading)했다가 내용 교체 후 다시 페이드인되는 크로스페이드를 준다. */
+.ott-discount-hero__body {
+  position: relative;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.ott-discount-hero__body.is-fading {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* [수정] 히어로 배너 UI/UX 강화: 기존에는 "플랫폼 · 제목 — 요약" 형태의 한 줄
+   텍스트뿐이라 그냥 DB에서 첫 항목을 꺼내 보여주는 것처럼 밋밋했다. 뱃지/태그/
+   가격/CTA 버튼을 갖춘 실제 카드 형태로 바꿔 이달의 대표 혜택이라는 느낌을 살린다. */
+.ott-discount-hero__card {
+  position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 22px 24px;
+  border-radius: 16px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.ott-discount-hero__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ott-badge--hero {
+  position: static;
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+
+.ott-discount-hero__card-title {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.ott-discount-hero__card-summary {
+  margin: 0;
+  color: var(--ott-accent-summary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ott-discount-hero__price-row {
+  margin: 14px 0 0;
+}
+
+.ott-discount-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--ott-accent);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(255, 77, 94, 0.35);
+  transition: background-color var(--ott-transition), transform var(--ott-transition);
+}
+
+.ott-discount-hero__cta:hover {
+  background: var(--ott-accent-hover);
+  transform: translateY(-1px);
+}
+
+.ott-discount-hero__cta::after {
+  content: "→";
+}
+
 /* =========================
    FILTERS
 ========================= */
@@ -258,7 +347,10 @@
 }
 
 .ott-platform-tag {
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
   border-radius: var(--ott-radius-sm);
   font-size: 0.78rem;
   font-weight: 700;
@@ -272,6 +364,47 @@
 .ott-platform-tag--DISNEY  { background: #113ccf; }
 .ott-platform-tag--WATCHA  { background: #ff2f6e; }
 .ott-platform-tag--COUPANG { background: #00a0e9; }
+
+/* [수정] 좌측 상단 뱃지에 OTT_PLATFORM 테이블에 저장된 실제 로고 이미지를 사용한다.
+   (로고가 아직 등록되지 않은 플랫폼은 .ott-platform-tag__icon 글자 아이콘으로 대체) */
+.ott-platform-tag__logo {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1px;
+}
+
+.ott-platform-tag__icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* 히어로 배너 안에서는 태그가 더 크게 보이도록 별도 사이즈 변형을 둔다. */
+.ott-platform-tag--lg {
+  padding: 6px 14px 6px 8px;
+  font-size: 0.88rem;
+  gap: 8px;
+}
+
+.ott-platform-tag--lg .ott-platform-tag__logo,
+.ott-platform-tag--lg .ott-platform-tag__icon {
+  width: 22px;
+  height: 22px;
+  font-size: 0.8rem;
+}
 
 /* [수정] BEST 등 강조 뱃지를 카드 우측 상단에 붙는 리본 형태로 재배치해
    플랫폼 태그와 겹치지 않으면서 시선을 더 잘 끌게 한다. */
@@ -482,28 +615,34 @@
   display: block;
 }
 
+/* [수정] 계산기 모달 UI/UX 강화: 기존에는 dim 레이어가 0.72 알파 + blur(3px)뿐이라
+   배경이 과하게 비쳐 보여 눈이 피로했다. dim을 훨씬 짙고 진하게(0.88) 올리고 블러도
+   키워, 모달이 떠 있을 때 배경 콘텐츠가 거의 인지되지 않도록 한다. */
 .ott-calc-modal__dim {
   position: absolute;
   inset: 0;
-  background: rgba(10, 10, 18, 0.72);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(6, 6, 12, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   animation: ott-fade-in var(--ott-transition);
 }
 
+/* 패널 자체도 반투명한 카드 배경 대신 불투명한 그라디언트 + 뚜렷한 테두리/그림자로
+   바꿔 배경과 확실히 분리되는 하나의 "떠 있는" 카드처럼 보이게 한다. */
 .ott-calc-modal__panel {
   position: relative;
   z-index: 1;
   width: calc(100% - 32px);
   max-width: 420px;
   margin: 10vh auto 0;
+  /* [병합 해결] 모바일 폭 계산 안정화를 위한 box-sizing과 develop의 강화된 모달 배경을 함께 유지합니다. */
   box-sizing: border-box;
-  background: var(--ott-bg-card);
-  border: 1px solid var(--ott-bg-card-border);
+  background: linear-gradient(165deg, #24243c 0%, #16161f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   padding: 30px 26px;
   color: #fff;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.3);
   animation: ott-modal-in 0.25s ease;
 }
 
@@ -570,14 +709,14 @@
 .ott-calc-modal__field select,
 .ott-calc-modal__field input[type="number"] {
   width: 140px;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border-radius: var(--ott-radius-sm);
-  border: 1px solid var(--ott-bg-card-border);
-  background: #181826;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #0e0e17;
   color: #fff;
   text-align: right;
   font-size: 0.95rem;
-  transition: border-color var(--ott-transition);
+  transition: border-color var(--ott-transition), background-color var(--ott-transition);
 }
 
 .ott-calc-modal__field select:focus,
@@ -617,8 +756,8 @@
 }
 
 .ott-calc-modal__result {
-  background: #14141f;
-  border: 1px solid var(--ott-bg-card-border);
+  background: #0e0e17;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--ott-radius-sm);
   padding: 16px;
   font-size: 0.9rem;
@@ -696,8 +835,16 @@
     padding: 4px 12px;
   }
 
+  .ott-discount-hero__card {
+    padding: 18px 16px;
+  }
+
+  .ott-discount-hero__card-top {
+    flex-wrap: wrap;
+  }
+
   /* 헤더가 sticky이므로 필터 바를 같이 고정하면 두 겹으로 화면을 잡아먹는다.
-     모바일에서는 일반 흐름으로 되돌리고, 필터 칩은 가로 스크롤로 대체한다. */
+     모바일에서는 일반 흐름으로 되돌리고, 필터 칩은 줄바꿈으로 대체한다. */
   .ott-filter-section {
     position: static;
     padding: 14px;
@@ -706,22 +853,31 @@
     -webkit-backdrop-filter: none;
   }
 
+  /* [수정] 모바일 반응형 필터 정렬: 기존에는 flex-wrap + 버튼 폭을 텍스트 길이에
+     맞추는 방식(flex: 0 0 auto)이라 "전체"처럼 짧은 글자와 "쿠팡플레이"처럼 긴
+     글자의 버튼 크기가 제각각이라 줄이 들쭉날쭉하고 지저분해 보였다. 가로 스크롤도
+     쓰지 않는다(다음 칩이 카드 경계에서 잘려 보여 UX가 나빴다). 대신 equal-width
+     CSS Grid로 바꿔 같은 줄의 모든 버튼이 항상 동일한 폭을 갖게 하고, 텍스트가
+     길어도(쿠팡플레이 등) ellipsis로 한 줄에 깔끔하게 정리되게 한다.
+     플랫폼(7개)은 3열, 혜택 종류(4개)는 2열로 배치. */
   .ott-filter-group {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    margin: 0 -14px 14px;
-    padding: 2px 14px 6px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
-  .ott-filter-group::-webkit-scrollbar {
-    display: none;
+  .ott-filter-group--chip {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .ott-filter-btn {
-    flex: 0 0 auto;
+    width: 100%;
+    padding: 10px 6px;
+    font-size: 0.82rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
   }
 
   .ott-discount-grid {
@@ -795,6 +951,13 @@
     line-height: 1.3;
   }
 
+  /* [수정] 초소형 화면(480px 이하)에서는 3열로는 버튼 폭이 너무 좁아져 "쿠팡플레이"
+     같은 긴 라벨이 ellipsis로 잘려 보이기 쉽다. 플랫폼 그룹만 2열로 넉넉하게 준다
+     (혜택 종류는 원래도 2열이라 그대로 유지). */
+  #platformFilterGroup {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .ott-discount-card__title {
     padding-right: 48px;
   }
@@ -814,6 +977,7 @@
   .ott-filter-btn,
   .ott-discount-card__link,
   .ott-discount-card__calc-btn,
+  .ott-discount-hero__body,
   .ott-calc-modal__dim,
   .ott-calc-modal__panel {
     transition: none;

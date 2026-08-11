@@ -39,12 +39,45 @@
 
             <section class="content-panel">
 
-                <%-- [수정] 정산 요청 결과 메시지 표시 --%>
+                <%--
+                    =========================================================
+                    [수정] 정산 요청 처리 결과 메시지
+
+                    정산 요청 성공 시 사업자 페이지의 기본 다크 레이아웃과
+                    어울리는 성공 알림 박스로 표시한다.
+
+                    settlement 전용 클래스를 사용하여
+                    다른 사업자 페이지의 알림 스타일에는 영향을 주지 않는다.
+                    =========================================================
+                --%>
                 <c:if test="${not empty successMessage}">
-                    <p class="alert alert-success">${successMessage}</p>
+                    <div class="settlement-alert settlement-alert-success"
+                        role="alert">
+
+                        <span class="settlement-alert-icon"
+                            aria-hidden="true">
+                            ✓
+                        </span>
+
+                        <div class="settlement-alert-content">
+
+                            <strong class="settlement-alert-title">
+                                정산 요청이 완료되었습니다.
+                            </strong>
+
+                            <p class="settlement-alert-message">
+                                신청한 정산 내역은 정산 내역 탭에서 확인할 수 있습니다.
+                            </p>
+
+                        </div>
+
+                    </div>
                 </c:if>
+
                 <c:if test="${not empty errorMessage}">
-                    <p class="alert alert-danger">${errorMessage}</p>
+                    <p class="alert alert-danger">
+                        <c:out value="${errorMessage}" />
+                    </p>
                 </c:if>
 
                 <!-- 탭 -->
