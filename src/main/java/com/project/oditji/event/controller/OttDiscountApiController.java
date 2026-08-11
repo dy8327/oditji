@@ -19,6 +19,12 @@ public class OttDiscountApiController {
     /** [수정] ottDiscount.jsp와 동일하게 9개 단위 페이징 */
     private static final int DISCOUNT_PAGE_SIZE = 9;
 
+    /* [SonarQube] API 응답 키/상태 문자열의 중복 리터럴을 상수로 통합합니다. */
+    private static final String RESPONSE_STATUS = "status";
+    private static final String RESPONSE_MESSAGE = "message";
+    private static final String STATUS_SUCCESS = "success";
+    private static final String STATUS_ERROR = "error";
+
     private final OttDiscountService ottDiscountService;
 
     public OttDiscountApiController(OttDiscountService ottDiscountService) {
@@ -46,7 +52,7 @@ public class OttDiscountApiController {
         List<OttDiscountVO> list =
                 ottDiscountService.getDiscountList(platform, category, pagination.getCurrentPage(), DISCOUNT_PAGE_SIZE);
 
-        response.put("status", "success");
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
         response.put("count", list.size());
         response.put("data", list);
         response.put("currentPage", pagination.getCurrentPage());
@@ -66,12 +72,12 @@ public class OttDiscountApiController {
         OttDiscountVO discount = ottDiscountService.getDiscountDetail(id);
 
         if (discount == null) {
-            response.put("status", "error");
-            response.put("message", "해당 할인 정보를 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "해당 할인 정보를 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        response.put("status", "success");
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
         response.put("data", discount);
         return ResponseEntity.ok(response);
     }
@@ -86,12 +92,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.createDiscount(discountVO);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 정상적으로 등록되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 정상적으로 등록되었습니다.");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "등록에 실패했습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "등록에 실패했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -110,12 +116,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.updateDiscount(discountVO);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 수정되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 수정되었습니다.");
             return ResponseEntity.ok(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "수정에 실패했거나 대상을 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "수정에 실패했거나 대상을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -130,12 +136,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.deleteDiscount(id);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 비활성화(삭제)되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 비활성화(삭제)되었습니다.");
             return ResponseEntity.ok(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "삭제 대상을 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "삭제 대상을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }

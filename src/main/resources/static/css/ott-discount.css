@@ -494,8 +494,10 @@
 .ott-calc-modal__panel {
   position: relative;
   z-index: 1;
+  width: calc(100% - 32px);
   max-width: 420px;
   margin: 10vh auto 0;
+  box-sizing: border-box;
   background: var(--ott-bg-card);
   border: 1px solid var(--ott-bg-card-border);
   border-radius: 18px;

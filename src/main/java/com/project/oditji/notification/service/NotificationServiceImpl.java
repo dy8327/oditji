@@ -279,14 +279,19 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
-        createForBusiness(
+        /*
+         * 같은 클래스의 @Transactional 메서드를 직접 호출하면 프록시를 우회하므로,
+         * 현재 트랜잭션 안에서 DAO 저장 로직을 직접 수행합니다.
+         */
+        notificationDAO.insertBusinessNotification(
                 businessNo,
-                NOTIFICATION_TYPE_LOW_STOCK,
-                "상품 재고 부족",
-                productName + " 상품의 남은 재고가 " + stock + "개입니다.",
-                "/business/product/list",
-                REFERENCE_TYPE_PRODUCT,
-                productNo);
+                createNotification(
+                        NOTIFICATION_TYPE_LOW_STOCK,
+                        "상품 재고 부족",
+                        productName + " 상품의 남은 재고가 " + stock + "개입니다.",
+                        "/business/product/list",
+                        REFERENCE_TYPE_PRODUCT,
+                        productNo));
     }
 
     @Override

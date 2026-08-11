@@ -37,6 +37,7 @@ import com.project.oditji.business.vo.GoodsManageVO;
 import com.project.oditji.business.vo.SettlementManageVO;
 import com.project.oditji.order.vo.OrderItemVO;
 import com.project.oditji.order.vo.OrderVO;
+import com.project.oditji.goods.vo.ProductOptionVO;
 import com.project.oditji.review.vo.ProductReviewVO;
 import com.project.oditji.notification.service.NotificationService;
 import com.project.oditji.content.service.ContentService;
@@ -1010,7 +1011,7 @@ public class BusinessServiceImpl
                 int optionTotalStock = goodsManageVO.getOptionList()
                                 .stream()
                                 .filter(java.util.Objects::nonNull)
-                                .map(com.project.oditji.goods.vo.ProductOptionVO::getStock)
+                                .map(ProductOptionVO::getStock)
                                 .filter(java.util.Objects::nonNull)
                                 .mapToInt(Integer::intValue)
                                 .sum();
@@ -1043,203 +1044,201 @@ public class BusinessServiceImpl
          */
         private void replaceProductOptions(GoodsManageVO goodsManageVO) {
 
+                // [SonarQube] 검증/동기화/삭제 단계를 헬퍼로 분리해 복잡도와 지역 변수 수를 낮춥니다.
                 long productNo = goodsManageVO.getProductNo();
+                List<ProductOptionVO> existingOptionList = businessDAO
+                                .selectProductOptionsByProductNo(productNo);
 
-                /*
-                 * 수정 전 DB에 저장되어 있던 옵션 목록을 조회합니다.
-                 *
-                 * 재입고 여부를 판단할 때
-                 * 기존 재고와 새 재고를 비교하기 위해 필요합니다.
-                 */
-                List<com.project.oditji.goods.vo.ProductOptionVO> existingOptionList = businessDAO
-                                .selectProductOptionsByProductNo(
-                                                productNo);
-
-                String productType = goodsManageVO.getProductType();
-
-                /*
-                 * =========================================================
-                 * [상품 타입 변경 처리]
-                 *
-                 * 상품 종류가 의상/신발이 아니게 변경된 경우에는
-                 * 기존 옵션이 더 이상 필요하지 않으므로 삭제합니다.
-                 * =========================================================
-                 */
-                if (!PRODUCT_TYPE_CLOTHES.equals(productType)
-                                && !PRODUCT_TYPE_SHOES.equals(productType)) {
-
-                        for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
-
-                                businessDAO.deleteProductOptionByOptionNo(
-                                                existingOption.getOptionNo());
-                        }
-
+                if (!isOptionProduct(goodsManageVO.getProductType())) {
+                        deleteProductOptions(existingOptionList);
                         return;
                 }
 
-                /*
-                 * 의상/신발은 옵션이 반드시 하나 이상 있어야 합니다.
-                 */
-                if (goodsManageVO.getOptionList() == null
-                                || goodsManageVO.getOptionList().isEmpty()) {
+                validateReplacementOptionList(goodsManageVO.getOptionList());
 
+                Map<String, ProductOptionVO> existingOptionMap = createExistingOptionMap(existingOptionList);
+                Set<Long> maintainedOptionNoSet = new HashSet<>();
+                int totalStock = synchronizeProductOptions(
+                                goodsManageVO,
+                                existingOptionMap,
+                                maintainedOptionNoSet);
+
+                deleteRemovedProductOptions(existingOptionList, maintainedOptionNoSet);
+                goodsManageVO.setStock(totalStock);
+        }
+
+        private boolean isOptionProduct(String productType) {
+                return PRODUCT_TYPE_CLOTHES.equals(productType)
+                                || PRODUCT_TYPE_SHOES.equals(productType);
+        }
+
+        private void deleteProductOptions(List<ProductOptionVO> optionList) {
+                for (ProductOptionVO option : optionList) {
+                        businessDAO.deleteProductOptionByOptionNo(option.getOptionNo());
+                }
+        }
+
+        private void validateReplacementOptionList(List<ProductOptionVO> optionList) {
+                if (optionList == null || optionList.isEmpty()) {
                         throw new IllegalArgumentException(
                                         "의상과 신발은 색상, 사이즈, 재고 옵션을 1개 이상 등록해야 합니다.");
                 }
+        }
 
-                /*
-                 * =========================================================
-                 * [기존 옵션 빠른 조회용 Map]
-                 *
-                 * 색상 + 사이즈 조합을 key로 사용합니다.
-                 *
-                 * 예:
-                 * BLACK|M
-                 * WHITE|L
-                 * =========================================================
-                 */
-                Map<String, com.project.oditji.goods.vo.ProductOptionVO> existingOptionMap = new HashMap<>();
+        private Map<String, ProductOptionVO> createExistingOptionMap(
+                        List<ProductOptionVO> existingOptionList) {
 
-                for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
+                Map<String, ProductOptionVO> existingOptionMap = new HashMap<>();
 
+                for (ProductOptionVO existingOption : existingOptionList) {
                         String key = createProductOptionKey(
                                         existingOption.getColorName(),
                                         existingOption.getSizeName());
-
                         existingOptionMap.put(key, existingOption);
                 }
 
-                Set<Long> maintainedOptionNoSet = new HashSet<>();
+                return existingOptionMap;
+        }
+
+        private int synchronizeProductOptions(
+                        GoodsManageVO goodsManageVO,
+                        Map<String, ProductOptionVO> existingOptionMap,
+                        Set<Long> maintainedOptionNoSet) {
 
                 Set<String> duplicateCheck = new HashSet<>();
-
                 int totalStock = 0;
 
-                /*
-                 * =========================================================
-                 * 화면에서 전달된 옵션을 순회합니다.
-                 * =========================================================
-                 */
-                for (com.project.oditji.goods.vo.ProductOptionVO newOption : goodsManageVO.getOptionList()) {
-
-                        /*
-                         * 기존 옵션 검증 로직 유지
-                         */
-                        if (newOption == null
-                                        || newOption.getColorName() == null
-                                        || newOption.getColorName().isBlank()
-                                        || newOption.getSizeName() == null
-                                        || newOption.getSizeName().isBlank()
-                                        || newOption.getStock() == null
-                                        || newOption.getStock() < 0) {
-
-                                throw new IllegalArgumentException("모든 옵션의 색상, 사이즈, 재고를 올바르게 입력해주세요.");
-                        }
-
-                        newOption.setColorName(newOption.getColorName().trim());
-
-                        newOption.setSizeName(newOption.getSizeName().trim());
-
-                        newOption.setProductNo(productNo);
+                for (ProductOptionVO newOption : goodsManageVO.getOptionList()) {
+                        normalizeAndValidateProductOption(newOption, goodsManageVO.getProductNo());
 
                         String optionKey = createProductOptionKey(
                                         newOption.getColorName(),
                                         newOption.getSizeName());
 
-                        /*
-                         * 동일 색상/사이즈 중복 검증
-                         */
-                        if (!duplicateCheck.add(optionKey)) {
-
-                                throw new IllegalArgumentException("동일한 색상과 사이즈 조합은 중복 등록할 수 없습니다.");
-                        }
-
+                        validateDuplicateProductOption(duplicateCheck, optionKey);
                         totalStock += newOption.getStock();
 
-                        /*
-                         * =========================================================
-                         * 기존에 동일한 색상/사이즈 옵션이 존재하는 경우
-                         * =========================================================
-                         */
-                        com.project.oditji.goods.vo.ProductOptionVO existingOption = existingOptionMap.get(optionKey);
-
-                        if (existingOption != null) {
-
-                                /*
-                                 * 기존 OPTION_NO를 그대로 사용합니다.
-                                 */
-                                newOption.setOptionNo(existingOption.getOptionNo());
-
-                                maintainedOptionNoSet.add(existingOption.getOptionNo());
-
-                                int oldStock = existingOption.getStock() == null ? 0 : existingOption.getStock();
-
-                                int newStock = newOption.getStock();
-
-                                /*
-                                 * OPTION_NO를 유지하면서 재고 등을 수정합니다.
-                                 */
-                                if (businessDAO.updateProductOption(newOption) != 1) {
-                                        throw new IllegalStateException("상품 옵션 수정에 실패했습니다.");
-                                }
-
-                                /*
-                                 * =====================================================
-                                 * [옵션별 재입고 알림]
-                                 *
-                                 * 기존 재고가 0이었고
-                                 * 수정 후 재고가 1개 이상이 된 경우에만
-                                 * 해당 옵션 신청자에게 알림을 발송합니다.
-                                 * =====================================================
-                                 */
-                                if (oldStock <= 0
-                                                && newStock > 0) {
-
-                                        notificationService
-                                                        .createOptionRestockNotifications(
-                                                                        productNo,
-                                                                        existingOption.getOptionNo(),
-                                                                        goodsManageVO.getProductName(),
-                                                                        newOption.getColorName(),
-                                                                        newOption.getSizeName());
-                                }
-
-                                continue;
-                        }
-
-                        /*
-                         * =========================================================
-                         * 기존 DB에 없는 새로운 옵션
-                         * =========================================================
-                         */
-                        newOption.setOptionNo(null);
-
-                        if (businessDAO.insertProductOption(
-                                        newOption) != 1) {
-
-                                throw new IllegalStateException("상품 옵션 저장에 실패했습니다.");
-                        }
+                        synchronizeProductOption(
+                                        goodsManageVO,
+                                        newOption,
+                                        existingOptionMap.get(optionKey),
+                                        maintainedOptionNoSet);
                 }
 
-                /*
-                 * =========================================================
-                 * 기존에는 있었지만 수정 화면에서 사라진 옵션만 삭제합니다.
-                 * =========================================================
-                 */
-                for (com.project.oditji.goods.vo.ProductOptionVO existingOption : existingOptionList) {
+                return totalStock;
+        }
 
-                        if (!maintainedOptionNoSet.contains(
-                                        existingOption.getOptionNo())) {
+        private void normalizeAndValidateProductOption(
+                        ProductOptionVO option,
+                        long productNo) {
 
+                if (option == null
+                                || option.getColorName() == null
+                                || option.getColorName().isBlank()
+                                || option.getSizeName() == null
+                                || option.getSizeName().isBlank()
+                                || option.getStock() == null
+                                || option.getStock() < 0) {
+
+                        throw new IllegalArgumentException(
+                                        "모든 옵션의 색상, 사이즈, 재고를 올바르게 입력해주세요.");
+                }
+
+                option.setColorName(option.getColorName().trim());
+                option.setSizeName(option.getSizeName().trim());
+                option.setProductNo(productNo);
+        }
+
+        private void validateDuplicateProductOption(
+                        Set<String> duplicateCheck,
+                        String optionKey) {
+
+                if (!duplicateCheck.add(optionKey)) {
+                        throw new IllegalArgumentException(
+                                        "동일한 색상과 사이즈 조합은 중복 등록할 수 없습니다.");
+                }
+        }
+
+        private void synchronizeProductOption(
+                        GoodsManageVO goodsManageVO,
+                        ProductOptionVO newOption,
+                        ProductOptionVO existingOption,
+                        Set<Long> maintainedOptionNoSet) {
+
+                if (existingOption == null) {
+                        insertNewProductOption(newOption);
+                        return;
+                }
+
+                updateExistingProductOption(
+                                goodsManageVO,
+                                newOption,
+                                existingOption,
+                                maintainedOptionNoSet);
+        }
+
+        private void insertNewProductOption(ProductOptionVO newOption) {
+                newOption.setOptionNo(null);
+
+                if (businessDAO.insertProductOption(newOption) != 1) {
+                        throw new IllegalStateException("상품 옵션 저장에 실패했습니다.");
+                }
+        }
+
+        private void updateExistingProductOption(
+                        GoodsManageVO goodsManageVO,
+                        ProductOptionVO newOption,
+                        ProductOptionVO existingOption,
+                        Set<Long> maintainedOptionNoSet) {
+
+                Long optionNo = existingOption.getOptionNo();
+                int oldStock = existingOption.getStock() == null ? 0 : existingOption.getStock();
+                int newStock = newOption.getStock();
+
+                newOption.setOptionNo(optionNo);
+                maintainedOptionNoSet.add(optionNo);
+
+                if (businessDAO.updateProductOption(newOption) != 1) {
+                        throw new IllegalStateException("상품 옵션 수정에 실패했습니다.");
+                }
+
+                notifyOptionRestockIfNeeded(
+                                goodsManageVO,
+                                newOption,
+                                optionNo,
+                                oldStock,
+                                newStock);
+        }
+
+        private void notifyOptionRestockIfNeeded(
+                        GoodsManageVO goodsManageVO,
+                        ProductOptionVO option,
+                        Long optionNo,
+                        int oldStock,
+                        int newStock) {
+
+                if (oldStock > 0 || newStock <= 0) {
+                        return;
+                }
+
+                notificationService.createOptionRestockNotifications(
+                                goodsManageVO.getProductNo(),
+                                optionNo,
+                                goodsManageVO.getProductName(),
+                                option.getColorName(),
+                                option.getSizeName());
+        }
+
+        private void deleteRemovedProductOptions(
+                        List<ProductOptionVO> existingOptionList,
+                        Set<Long> maintainedOptionNoSet) {
+
+                for (ProductOptionVO existingOption : existingOptionList) {
+                        if (!maintainedOptionNoSet.contains(existingOption.getOptionNo())) {
                                 businessDAO.deleteProductOptionByOptionNo(
                                                 existingOption.getOptionNo());
                         }
                 }
-
-                /*
-                 * 옵션 재고 총합을 PRODUCT.STOCK에도 반영합니다.
-                 */
-                goodsManageVO.setStock(totalStock);
         }
 
         /*
@@ -1273,7 +1272,7 @@ public class BusinessServiceImpl
                 }
                 Set<String> duplicateCheck = new HashSet<String>();
                 int totalStock = 0;
-                for (com.project.oditji.goods.vo.ProductOptionVO option : goodsManageVO.getOptionList()) {
+                for (ProductOptionVO option : goodsManageVO.getOptionList()) {
                         if (option == null || option.getColorName() == null || option.getColorName().isBlank()
                                         || option.getSizeName() == null || option.getSizeName().isBlank()
                                         || option.getStock() == null || option.getStock() < 0) {

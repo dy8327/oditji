@@ -196,11 +196,14 @@ class MemberServiceImplMoreConditionCoverageTest {
         when(memberDAO.selectPlatformNoByCode("UNKNOWN"))
                 .thenReturn(null);
 
+        // [SonarQube] assertThrows 람다 안에서 List.of()가 별도 예외 원인이 되지 않도록 미리 생성합니다.
+        List<String> unknownOttList = List.of("UNKNOWN");
+
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.updateMemberOtt(
                         1L,
-                        List.of("UNKNOWN")));
+                        unknownOttList));
     }
 
     @Test
