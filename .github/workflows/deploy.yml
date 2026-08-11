@@ -64,14 +64,14 @@ jobs:
           jar tf oditji.war | grep "WEB-INF/views/error/404.jsp"
           jar tf oditji.war | grep "WEB-INF/views/error/500.jsp"
           jar tf oditji.war | grep "HomeController.class"
-          
+
       - name: Upload WAR
         run: |
           scp \
             -i ~/.ssh/oditji_deploy \
             oditji.war \
             "$SERVER_USER@$SERVER_HOST:/tmp/oditji.war.new"
-            
+
       - name: Deploy application
         run: |
           ssh -i ~/.ssh/oditji_deploy \
@@ -107,23 +107,23 @@ jobs:
           if [ "$DEPLOY_OK" != "true" ]; then
             echo "배포 확인 실패"
 
-          echo "===== ODITJI APP ERROR LOG ====="
-          APP_LOG_FILE="/tmp/oditji-app-deploy.log"
+            echo "===== ODITJI APP ERROR LOG ====="
+            APP_LOG_FILE="/tmp/oditji-app-deploy.log"
 
-          # 이번 배포 시점의 전체 로그를 파일로 저장
-          docker logs --since 15m --timestamps oditji-app \
-            > "$APP_LOG_FILE" 2>&1 || true
+            docker logs --since 15m --timestamps oditji-app \
+              > "$APP_LOG_FILE" 2>&1 || true
 
-          echo "===== FIRST ERROR CONTEXT ====="
-          grep -n -m 1 -B 30 -A 150 -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" "$APP_LOG_FILE" || true
+            echo "===== FIRST ERROR CONTEXT ====="
+            grep -n -m 1 -B 30 -A 150 \
+              -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" \
+              "$APP_LOG_FILE" || true
 
-          echo "===== APP LOG FIRST 200 LINES ====="
-          head -n 200 "$APP_LOG_FILE" || true
+            echo "===== APP LOG FIRST 200 LINES ====="
+            head -n 200 "$APP_LOG_FILE" || true
 
-          echo "===== APP LOG LAST 200 LINES ====="
-          tail -n 200 "$APP_LOG_FILE" || true
+            echo "===== APP LOG LAST 200 LINES ====="
+            tail -n 200 "$APP_LOG_FILE" || true
 
-            # 실패한 WAR도 서버에 보관
             cp -f app/oditji.war app/oditji.war.failed || true
 
             if [ -f app/oditji.war.bak ]; then
@@ -136,6 +136,43 @@ jobs:
 
             exit 1
           fi
+
+          echo "===== ODITJI WARM-UP START ====="
+
+          WARMUP_URLS=(
+            "http://127.0.0.1/oditji/"
+            "http://127.0.0.1/oditji/member/login"
+            "http://127.0.0.1/oditji/member/join"
+            "http://127.0.0.1/oditji/search"
+            "http://127.0.0.1/oditji/content/list?type=all&page=1"
+          )
+
+          for pass in 1 2; do
+            echo "Warm-up pass $pass"
+
+            for url in "${WARMUP_URLS[@]}"; do
+              STATUS_CODE="$(
+                curl \
+                  -sS \
+                  -o /dev/null \
+                  -w "%{http_code}" \
+                  --max-time 20 \
+                  -A "ODITJI-Deploy-Warmup/1.0" \
+                  "$url" || true
+              )"
+
+              case "$STATUS_CODE" in
+                2*|3*)
+                  echo "[WARM-UP OK] $STATUS_CODE $url"
+                  ;;
+                *)
+                  echo "[WARM-UP WARN] $STATUS_CODE $url"
+                  ;;
+              esac
+            done
+          done
+
+          echo "===== ODITJI WARM-UP END ====="
 
           rm -f app/oditji.war.bak
 
