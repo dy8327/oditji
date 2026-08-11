@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ class OttDiscountVOCoverageTest {
     @Test
     void gettersAndSettersShouldRoundTripAllFields() {
         OttDiscountVO vo = new OttDiscountVO();
-        LocalDateTime createdAt = LocalDateTime.of(2026, 8, 11, 9, 30);
+        LocalDateTime createdAt = LocalDateTime.of(2026, Month.AUGUST, 11, 9, 30);
 
         vo.setDiscountId(1L);
         vo.setPlatformCode("NETFLIX");
