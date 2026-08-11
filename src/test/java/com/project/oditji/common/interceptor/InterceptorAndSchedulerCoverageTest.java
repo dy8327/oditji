@@ -21,11 +21,11 @@ import com.project.oditji.admin.scheduler.MemberDeleteScheduler;
 import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.scheduler.EventStatusScheduler;
-import com.project.oditji.common.dao.AccessLogDAO;
 import com.project.oditji.common.vo.AccessLogVO;
 import com.project.oditji.content.scheduler.ContentViewHistoryCleanupScheduler;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.common.service.AccessLogService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,7 +42,7 @@ class InterceptorAndSchedulerCoverageTest {
     @Mock
     private HttpSession session;
     @Mock
-    private AccessLogDAO accessLogDAO;
+    private AccessLogService accessLogService;
     @Mock
     private AdminService adminService;
     @Mock
@@ -147,7 +147,7 @@ class InterceptorAndSchedulerCoverageTest {
 
     @Test
     void accessLogInterceptorShouldResolveForwardedAndRemoteIpAndIgnoreFailure() {
-        AccessLogInterceptor interceptor = new AccessLogInterceptor(accessLogDAO);
+        AccessLogInterceptor interceptor = new AccessLogInterceptor(accessLogService);
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("loginMember")).thenReturn(member(10L, "USER"));
         when(request.getHeader("X-Forwarded-For"))
@@ -157,14 +157,14 @@ class InterceptorAndSchedulerCoverageTest {
         assertTrue(interceptor.preHandle(request, response, new Object()));
         ArgumentCaptor<AccessLogVO> captor =
                 ArgumentCaptor.forClass(AccessLogVO.class);
-        verify(accessLogDAO).insertAccessLog(captor.capture());
+        verify(accessLogService).saveAccessLogAsync(captor.capture());
         assertEquals(Long.valueOf(10L), captor.getValue().getMemberNo());
         assertEquals("1.2.3.4", captor.getValue().getAccessIp());
 
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        doThrow(new IllegalStateException("DB 오류"))
-                .when(accessLogDAO).insertAccessLog(any());
+        doThrow(new IllegalStateException("비동기 처리 오류"))
+        .when(accessLogService).saveAccessLogAsync(any());
         assertTrue(interceptor.preHandle(request, response, new Object()));
     }
 
