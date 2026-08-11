@@ -1386,7 +1386,7 @@
                 GROUP BY ORDER_ITEM_NO
             ) CR ON CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
             WHERE PAY.PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
-              AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CANCEL_REQUEST')
+              AND OI.STATUS IN ('DELIVERED')
             GROUP BY OI.BUSINESS_NO
         ) SALES ON SALES.BUSINESS_NO = B.BUSINESS_NO
         WHERE B.STATUS = 'APPROVED'
@@ -1645,7 +1645,7 @@
                         SUM(
                             CASE
                                 WHEN PAY.PAYMENT_STATUS IN ('PAID', 'PARTIAL_CANCELED')
-                                 AND OI.STATUS IN ('PAID', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CANCEL_REQUEST')
+                                 AND OI.STATUS IN ('DELIVERED')
                                 THEN GREATEST(
                                     (OI.PRODUCT_PRICE * OI.QUANTITY)
                                     - NVL(CR.APPROVED_REFUND_AMOUNT, 0),
