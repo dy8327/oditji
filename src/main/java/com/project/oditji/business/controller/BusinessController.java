@@ -106,7 +106,7 @@ public class BusinessController {
                 model.addAttribute(MODEL_BUSINESS, business);
                 /* 사업자 메인 대시보드 통계 */
                 BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
-                
+
                 model.addAttribute("businessMain", businessMain);
                 model.addAttribute(MODEL_ACTIVE_MENU, "main");
 
@@ -118,12 +118,29 @@ public class BusinessController {
          *
          * [페이징 리팩터링] 관리자 목록 화면과 동일한 방식(PaginationUtil/PageVO)으로
          * 검색어(keyword) + 페이지(page)를 함께 처리한다.
+         *
+         * [기간/승인 상태 조회 추가]
+         * - startDate / endDate : 상품 등록일(PRODUCT.CREATED_AT) 기준 조회
+         * - status : 상품 승인 상태 기준 조회
+         * - 기존 keyword 검색과 페이징 기능은 그대로 유지한다.
          */
         @GetMapping("/product/list")
         public String productList(
                         @RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
+
+                        /* [기간별 조회 추가] 상품 등록일 시작일 */
+                        @RequestParam(value = "startDate", required = false) String startDate,
+
+                        /* [기간별 조회 추가] 상품 등록일 종료일 */
+                        @RequestParam(value = "endDate", required = false) String endDate,
+
+                        /* [승인 상태별 조회 추가] WAITING / APPROVED / REJECTED 등 */
+                        @RequestParam(value = "status", required = false) String status,
+
                         @RequestParam(required = false, defaultValue = "1") int page,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
                 if (businessAccess.denied()) {
@@ -132,17 +149,45 @@ public class BusinessController {
 
                 BusinessVO business = businessAccess.business();
 
-                int totalCount = businessService.getProductListCountByBusinessNo(business.getBusinessNo(), keyword);
-                PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_CARD_PAGE_SIZE,
+                /*
+                 * [기간/승인 상태 조회 추가]
+                 * 검색어뿐 아니라 기간과 승인 상태까지 동일하게 적용한 전체 건수를 조회한다.
+                 */
+                int totalCount = businessService.getProductListCountByBusinessNo(
+                                business.getBusinessNo(),
+                                keyword,
+                                startDate,
+                                endDate,
+                                status);
+
+                PageVO pagination = PaginationUtil.build(
+                                page,
+                                totalCount,
+                                BUSINESS_CARD_PAGE_SIZE,
                                 BUSINESS_PAGE_BLOCK_SIZE);
 
+                /*
+                 * [기간/승인 상태 조회 추가]
+                 * 현재 페이지의 상품 목록에도 동일한 조회 조건을 전달한다.
+                 */
                 List<GoodsManageVO> productList = businessService.getProductListByBusinessNo(
-                                business.getBusinessNo(), keyword, pagination.getCurrentPage(),
+                                business.getBusinessNo(),
+                                keyword,
+                                startDate,
+                                endDate,
+                                status,
+                                pagination.getCurrentPage(),
                                 BUSINESS_CARD_PAGE_SIZE);
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
                 model.addAttribute(PARAM_KEYWORD, keyword);
+
+                /* [기간/승인 상태 조회 추가] 조회 후에도 선택값을 화면에 유지한다. */
+                model.addAttribute("startDate", startDate);
+                model.addAttribute("endDate", endDate);
+                model.addAttribute("status", status);
+
                 model.addAttribute(ATTR_PAGINATION, pagination);
                 model.addAttribute(MODEL_ACTIVE_MENU, "product");
 
@@ -552,19 +597,23 @@ public class BusinessController {
                 }
         }
 
-        /*
-         * =========================================================
-         * 이벤트 목록
-         *
-         * 현재 로그인한 사업자가 상품을 연결하여 등록한 이벤트만 조회한다.
-         * EVENT 테이블에는 BUSINESS_NO가 없으므로
-         * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인한다.
-         * =========================================================
-         */
         @GetMapping("/event/list")
-        public String eventList(@RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
+        public String eventList(
+                        @RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
+
+                        /* [기간별 조회 추가] 조회할 이벤트 기간 시작일 */
+                        @RequestParam(value = "startDate", required = false) String startDate,
+
+                        /* [기간별 조회 추가] 조회할 이벤트 기간 종료일 */
+                        @RequestParam(value = "endDate", required = false) String endDate,
+
+                        /* [승인 상태별 조회 추가] 이벤트 승인/진행 상태 */
+                        @RequestParam(value = "status", required = false) String status,
+
                         @RequestParam(required = false, defaultValue = "1") int page,
-                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+                        HttpSession session,
+                        Model model,
+                        RedirectAttributes redirectAttributes) {
 
                 BusinessAccess businessAccess = getBusinessAccess(session, redirectAttributes);
                 if (businessAccess.denied()) {
@@ -574,12 +623,21 @@ public class BusinessController {
                 BusinessVO business = businessAccess.business();
 
                 /* [페이징 리팩터링] 관리자 목록 화면과 동일한 방식으로 페이지 계산 후 조회한다. */
-                int totalCount = businessService.getEventListCountByBusinessNo(business.getBusinessNo(), keyword);
+                /*
+                 * [기간/승인 상태 조회 추가]
+                 * 검색어 + 이벤트 기간 + 승인 상태를 모두 적용한 전체 건수를 조회한다.
+                 */
+                int totalCount = businessService.getEventListCountByBusinessNo(business.getBusinessNo(), keyword,
+                                startDate, endDate, status);
                 PageVO pagination = PaginationUtil.build(page, totalCount, BUSINESS_PAGE_SIZE,
                                 BUSINESS_PAGE_BLOCK_SIZE);
 
-                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(
-                                business.getBusinessNo(), keyword, pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
+                /*
+                 * [기간/승인 상태 조회 추가]
+                 * 현재 페이지 이벤트 목록에도 동일한 조회 조건을 전달한다.
+                 */
+                List<EventManageVO> eventList = businessService.getEventListByBusinessNo(business.getBusinessNo(),
+                                keyword, startDate, endDate, status, pagination.getCurrentPage(), BUSINESS_PAGE_SIZE);
 
                 /*
                  * [리팩터링 추가] 이벤트 수정 요청 모달(공용 1개, #eventUpdateModal)이
@@ -614,6 +672,11 @@ public class BusinessController {
 
                 model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(PARAM_KEYWORD, keyword);
+
+                /* [기간/승인 상태 조회 추가] 조회 후에도 선택값을 그대로 유지한다. */
+                model.addAttribute("startDate", startDate);
+                model.addAttribute("endDate", endDate);
+                model.addAttribute("status", status);
                 model.addAttribute("eventList", eventList);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
                 model.addAttribute(ATTR_PAGINATION, pagination);

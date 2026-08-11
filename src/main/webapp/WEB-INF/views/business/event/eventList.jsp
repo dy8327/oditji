@@ -52,48 +52,136 @@
 
             <div class="product-control-row">
 
-                <div></div>
+            <%--
+                [기간/승인 상태 조회 추가]
+                이벤트 기간 → 승인 상태 → 검색 조회 순서로 배치하고
+                기존 등록 요청 버튼은 오른쪽 위치와 동작을 그대로 유지한다.
+            --%>
+            <form action="${pageContext.request.contextPath}/business/event/list"
+                method="get"
+                class="business-list-filter-form">
 
-                <form action="${pageContext.request.contextPath}/business/event/list"
-                      method="get"
-                      class="product-search-form">
 
-                    <%--
-                        검색 입력창에 고유 id를 부여하고 label의 for와 연결한다.
-                        label은 화면 배치에 영향을 주지 않도록 시각적으로만 숨긴다.
-                    --%>
+                <%-- =====================================================
+                    1. 기간별 조회
+                    EVENT.START_DATE ~ EVENT.END_DATE와 조회 기간이
+                    겹치는 이벤트를 조회한다.
+                ====================================================== --%>
+                <div class="business-filter-group business-date-filter">
+
+                    <label for="eventStartDate"
+                        class="business-filter-label">
+                        기간
+                    </label>
+
+                    <input type="date"
+                        id="eventStartDate"
+                        name="startDate"
+                        value="<c:out value='${startDate}'/>"
+                        class="business-filter-date">
+
+                    <span class="business-date-separator">
+                        ~
+                    </span>
+
+                    <label for="eventEndDate"
+                        class="sr-only">
+                        이벤트 종료일
+                    </label>
+
+                    <input type="date"
+                        id="eventEndDate"
+                        name="endDate"
+                        value="<c:out value='${endDate}'/>"
+                        class="business-filter-date">
+
+                </div>
+
+
+                <%-- =====================================================
+                    2. 승인 상태별 조회
+                ====================================================== --%>
+                <div class="business-filter-group">
+
+                    <label for="eventStatus"
+                        class="business-filter-label">
+                        승인 상태
+                    </label>
+
+                    <select id="eventStatus"
+                            name="status"
+                            class="business-filter-select">
+
+                        <option value="">
+                            전체
+                        </option>
+
+                        <option value="WAITING"
+                                ${status eq 'WAITING' ? 'selected' : ''}>
+                            승인 대기
+                        </option>
+
+                        <option value="APPROVED"
+                                ${status eq 'APPROVED' ? 'selected' : ''}>
+                            승인 완료
+                        </option>
+
+                        <option value="REJECTED"
+                                ${status eq 'REJECTED' ? 'selected' : ''}>
+                            승인 반려
+                        </option>
+
+                        <option value="END"
+                                ${status eq 'END' ? 'selected' : ''}>
+                            종료
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <%-- =====================================================
+                    3. 기존 검색 조회
+                ====================================================== --%>
+                <div class="business-keyword-filter">
+
                     <label for="eventKeyword"
-                           style="position:absolute;
-                                  width:1px;
-                                  height:1px;
-                                  padding:0;
-                                  margin:-1px;
-                                  overflow:hidden;
-                                  clip:rect(0, 0, 0, 0);
-                                  white-space:nowrap;
-                                  border:0;">
+                        class="sr-only">
                         이벤트명, 상태 및 상품명 검색
                     </label>
 
                     <input type="text"
-                           id="eventKeyword"
-                           name="keyword"
-                           value="<c:out value='${keyword}'/>"
-                           placeholder="이벤트명, 상태, 상품명 검색">
+                        id="eventKeyword"
+                        name="keyword"
+                        value="<c:out value='${keyword}'/>"
+                        placeholder="이벤트명, 상태, 상품명 검색"
+                        class="business-filter-keyword">
 
-                    <button type="submit">
-                        검색
+                    <%--
+                        [기간/승인 상태 조회 추가]
+                        현재 검색 버튼과 동일한 파란색 계열을 유지한다.
+                    --%>
+                    <button type="submit"
+                            class="business-filter-search-btn">
+                        조회
                     </button>
 
-                </form>
+                </div>
 
-                <button type="button"
-                        class="product-register-btn"
-                        onclick="location.href='${pageContext.request.contextPath}/business/event/register'">
-                    등록 요청
-                </button>
+            </form>
 
-            </div>
+
+            <%--
+                기존 등록 요청 버튼은 디자인, 위치, 동작 모두 유지한다.
+            --%>
+            <button type="button"
+                    class="product-register-btn"
+                    onclick="location.href='${pageContext.request.contextPath}/business/event/register'">
+                등록 요청
+            </button>
+
+        </div>
 
             <table class="data-table mobile-fit-table">
 
@@ -344,45 +432,51 @@
             </table>
 
             <c:if test="${not empty pagination
-                        and pagination.totalPage > 0}">
+                and pagination.totalPage > 0}">
 
+                <%--
+                    =========================================================
+                    [기간/승인 상태 조회 추가]
+                    이벤트 목록 페이지 이동 시에도
+                    검색어 / 기간 / 승인 상태 조건을 그대로 유지한다.
+                    =========================================================
+                --%>
                 <div class="pagination">
 
-                    <!-- 이전 블록 -->
-                    <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}"
-                       class="${!pagination.prev ? 'disabled' : ''}">
+                    <%-- 이전 페이지 묶음 --%>
+                    <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                    class="${!pagination.prev ? 'disabled' : ''}">
                         &laquo;
                     </a>
 
-                    <!-- 이전 페이지 -->
-                    <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}"
-                       class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                    <%-- 바로 이전 페이지 --%>
+                    <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                    class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                         &lsaquo;
                     </a>
 
-                    <!-- 페이지 번호 -->
+                    <%-- 페이지 번호 --%>
                     <c:forEach var="p"
-                               begin="${pagination.startPage}"
-                               end="${pagination.endPage}">
+                            begin="${pagination.startPage}"
+                            end="${pagination.endPage}">
 
-                        <a href="?page=${p}&keyword=${param.keyword}"
-                           class="${pagination.currentPage == p
-                               ? 'active'
-                               : ''}">
+                        <a href="?page=${p}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                        class="${pagination.currentPage == p
+                                ? 'active' : ''}">
                             ${p}
                         </a>
 
                     </c:forEach>
 
-                    <!-- 다음 페이지 -->
-                    <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}"
-                       class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                    <%-- 바로 다음 페이지 --%>
+                    <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                    class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                         &rsaquo;
                     </a>
 
-                    <!-- 다음 블록 -->
-                    <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}"
-                       class="${!pagination.next ? 'disabled' : ''}">
+                    <%-- 다음 페이지 묶음 --%>
+                    <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                    class="${!pagination.next ? 'disabled' : ''}">
                         &raquo;
                     </a>
 

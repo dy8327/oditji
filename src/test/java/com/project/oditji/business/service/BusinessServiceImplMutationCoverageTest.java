@@ -77,8 +77,8 @@ class BusinessServiceImplMutationCoverageTest {
                                 10L,
                                 LocalDate.of(2026, Month.AUGUST, 1),
                                 LocalDate.of(2026, Month.AUGUST, 31))).thenReturn(12);
-                when(businessDAO.selectProductListCountByBusinessNo(10L, "상품")).thenReturn(3);
-                when(businessDAO.selectEventListCountByBusinessNo(10L, null)).thenReturn(4);
+                when(businessDAO.selectProductListCountByBusinessNo(10L, "상품", null, null, null)).thenReturn(3);
+                when(businessDAO.selectEventListCountByBusinessNo(10L, null, null, null, null)).thenReturn(4);
 
                 assertEquals(7, service.getBusinessOrderListCount(10L));
                 assertEquals(
@@ -87,8 +87,8 @@ class BusinessServiceImplMutationCoverageTest {
                                                 10L,
                                                 LocalDate.of(2026, Month.AUGUST, 1),
                                                 LocalDate.of(2026, Month.AUGUST, 31)));
-                assertEquals(3, service.getProductListCountByBusinessNo(10L, " 상품 "));
-                assertEquals(4, service.getEventListCountByBusinessNo(10L, " "));
+                assertEquals(3, service.getProductListCountByBusinessNo(10L, " 상품 ", null, null, null));
+                assertEquals(4, service.getEventListCountByBusinessNo(10L, " ", null, null, null));
 
                 assertThrows(
                                 IllegalArgumentException.class,
@@ -103,10 +103,10 @@ class BusinessServiceImplMutationCoverageTest {
                                                 invalidEndDate));
                 assertThrows(
                                 IllegalArgumentException.class,
-                                () -> service.getProductListCountByBusinessNo(-1L, null));
+                                () -> service.getProductListCountByBusinessNo(-1L, null, null, null, null));
                 assertThrows(
                                 IllegalArgumentException.class,
-                                () -> service.getEventListCountByBusinessNo(0L, null));
+                                () -> service.getEventListCountByBusinessNo(0L, null, null, null, null));
         }
 
         @Test

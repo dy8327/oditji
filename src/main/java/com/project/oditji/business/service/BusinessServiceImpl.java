@@ -1551,8 +1551,8 @@ public class BusinessServiceImpl
          * =========================================================
          */
         @Override
-        public List<GoodsManageVO> getProductListByBusinessNo(
-                        long businessNo, String keyword, int currentPage, int pageSize) {
+        public List<GoodsManageVO> getProductListByBusinessNo(long businessNo, String keyword, String startDate,
+                        String endDate, String status, int currentPage, int pageSize) {
 
                 if (businessNo <= 0) {
 
@@ -1561,10 +1561,17 @@ public class BusinessServiceImpl
                 }
 
                 String normalizedKeyword = normalizeKeyword(keyword);
+
+                /* [기간/승인 상태 조회 추가] 빈 문자열은 조회 조건에서 제외한다. */
+                String normalizedStartDate = normalizeKeyword(startDate);
+                String normalizedEndDate = normalizeKeyword(endDate);
+                String normalizedStatus = normalizeKeyword(status);
+
                 int offset = PaginationUtil.offset(currentPage, pageSize);
 
-                List<GoodsManageVO> productList = businessDAO.selectProductListByBusinessNo(
-                                businessNo, normalizedKeyword, offset, pageSize);
+                List<GoodsManageVO> productList = businessDAO.selectProductListByBusinessNo(businessNo,
+                                normalizedKeyword, normalizedStartDate, normalizedEndDate, normalizedStatus, offset,
+                                pageSize);
 
                 if (productList == null) {
                         return Collections.emptyList();
@@ -1599,15 +1606,21 @@ public class BusinessServiceImpl
                 return productList;
         }
 
-        /* [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용) */
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 상품 목록 전체 건수에도 목록과 동일한 조회 조건을 적용한다.
+         */
         @Override
-        public int getProductListCountByBusinessNo(long businessNo, String keyword) {
+        public int getProductListCountByBusinessNo(long businessNo, String keyword, String startDate, String endDate,
+                        String status) {
 
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                return businessDAO.selectProductListCountByBusinessNo(businessNo, normalizeKeyword(keyword));
+                return businessDAO.selectProductListCountByBusinessNo(businessNo, normalizeKeyword(keyword),
+                                normalizeKeyword(startDate), normalizeKeyword(endDate), normalizeKeyword(status));
         }
 
         /*
@@ -2225,11 +2238,8 @@ public class BusinessServiceImpl
          * =========================================================
          */
         @Override
-        public List<EventManageVO> getEventListByBusinessNo(
-                        long businessNo,
-                        String keyword,
-                        int currentPage,
-                        int pageSize) {
+        public List<EventManageVO> getEventListByBusinessNo(long businessNo, String keyword, String startDate,
+                        String endDate, String status, int currentPage, int pageSize) {
 
                 if (businessNo <= 0) {
 
@@ -2238,13 +2248,16 @@ public class BusinessServiceImpl
                 }
 
                 String searchKeyword = normalizeKeyword(keyword);
+
+                /* [기간/승인 상태 조회 추가] 빈 조회값은 null로 정규화한다. */
+                String normalizedStartDate = normalizeKeyword(startDate);
+                String normalizedEndDate = normalizeKeyword(endDate);
+                String normalizedStatus = normalizeKeyword(status);
+
                 int offset = PaginationUtil.offset(currentPage, pageSize);
 
-                List<EventManageVO> eventList = businessDAO.selectEventListByBusinessNo(
-                                businessNo,
-                                searchKeyword,
-                                offset,
-                                pageSize);
+                List<EventManageVO> eventList = businessDAO.selectEventListByBusinessNo(businessNo, searchKeyword,
+                                normalizedStartDate, normalizedEndDate, normalizedStatus, offset, pageSize);
 
                 if (eventList == null) {
                         return Collections.emptyList();
@@ -2253,15 +2266,21 @@ public class BusinessServiceImpl
                 return eventList;
         }
 
-        /* [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용) */
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 이벤트 목록과 동일한 검색 조건을 전체 건수에도 적용한다.
+         */
         @Override
-        public int getEventListCountByBusinessNo(long businessNo, String keyword) {
+        public int getEventListCountByBusinessNo(long businessNo, String keyword, String startDate, String endDate,
+                        String status) {
 
                 if (businessNo <= 0) {
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                return businessDAO.selectEventListCountByBusinessNo(businessNo, normalizeKeyword(keyword));
+                return businessDAO.selectEventListCountByBusinessNo(businessNo, normalizeKeyword(keyword),
+                                normalizeKeyword(startDate), normalizeKeyword(endDate), normalizeKeyword(status));
         }
 
         /*

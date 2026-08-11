@@ -1462,32 +1462,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const row = document.createElement("div");
     row.className = "detail-image-input-row";
 
+    // [상품 세부 이미지 수정] 새로 추가한 이미지 선택 행의 삭제 버튼도
+    // 기존 이미지와 동일하게 한 줄 오른쪽 X 버튼으로 표시합니다.
     row.innerHTML = `
       <div class="custom-file-row update-detail-file-row">
 
         <label for="${inputId}"
-               class="custom-file-button">
+              class="custom-file-button">
           파일 선택
         </label>
 
         <input type="file"
-               id="${inputId}"
-               name="detailImages"
-               class="custom-file-input update-detail-image-input"
-               accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+              id="${inputId}"
+              name="detailImages"
+              class="custom-file-input update-detail-image-input"
+              accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
 
         <span class="update-detail-file-name custom-file-name"
               title="">
           선택된 파일 없음
         </span>
 
-      </div>
+        <button type="button"
+                class="detail-image-remove-btn"
+                aria-label="선택한 세부 이미지 삭제"
+                title="선택한 세부 이미지 삭제">
+          &times;
+        </button>
 
-      <button type="button"
-              class="detail-image-remove-btn"
-              aria-label="세부 이미지 입력 삭제">
-        삭제
-      </button>
+      </div>
     `;
 
     const fileInput = row.querySelector(".update-detail-image-input");

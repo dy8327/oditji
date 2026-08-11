@@ -99,12 +99,16 @@ class BusinessControllerBasicCoverageTest {
                 BusinessVO business = business(30L, "APPROVED");
                 List<GoodsManageVO> products = List.of(new GoodsManageVO());
                 when(businessService.getBusinessByMemberNo(11L)).thenReturn(business);
-                when(businessService.getProductListCountByBusinessNo(30L, null)).thenReturn(1);
-                when(businessService.getProductListByBusinessNo(30L, null, 1, 5)).thenReturn(products);
+                when(businessService.getProductListCountByBusinessNo(30L, null, null, null, null)).thenReturn(1);
+                when(businessService.getProductListByBusinessNo(30L, null, null, null, null, 1, 5))
+                                .thenReturn(products);
                 MockHttpSession session = sessionWith("memberNo", " 11 ");
                 ExtendedModelMap model = new ExtendedModelMap();
 
                 String view = controller.productList(
+                                null,
+                                null,
+                                null,
                                 null,
                                 1,
                                 session,
@@ -248,6 +252,9 @@ class BusinessControllerBasicCoverageTest {
                 when(businessService.getBusinessByMemberNo(16L)).thenReturn(null);
 
                 String view = controller.productList(
+                                null,
+                                null,
+                                null,
                                 null,
                                 1,
                                 session,

@@ -442,6 +442,12 @@
             P.DESCRIPTION,
             P.STATUS,
             P.CREATED_AT,
+            <!--
+                [상품 수정일 추가]
+                상품 목록에서 마지막 수정일을 표시하기 위해 조회한다.
+                수정 이력이 없는 상품은 NULL 그대로 반환한다.
+            -->
+            P.UPDATED_AT,
 
             C.TITLE AS CONTENT_TITLE,
             A.ACTOR_NAME,
@@ -487,13 +493,39 @@
 
 
     <!-- =====================================================
-         사업자가 등록한 상품 목록 검색 조건 (목록/카운트 공용)
+     사업자가 등록한 상품 목록 검색 조건 (목록/카운트 공용)
 
-         [페이징 리팩터링 추가] 상품명 / 관련 콘텐츠명 / 관련 배우명을
-         대상으로 검색한다. productList.jsp 검색창 placeholder와 동일한 범위.
+     [페이징 리팩터링 추가] 상품명 / 관련 콘텐츠명 / 관련 배우명을
+     대상으로 검색한다. productList.jsp 검색창 placeholder와 동일한 범위.
+
+     [기간/승인 상태 조회 추가]
+     - 기간은 PRODUCT.CREATED_AT 등록일 기준
+     - status가 선택된 경우 해당 승인 상태만 조회
     ====================================================== -->
     <sql id="productListSearchCondition">
+
         WHERE P.BUSINESS_NO = #{businessNo}
+
+        <!-- [기간별 조회 추가] 선택한 시작일 00:00:00부터 조회 -->
+        <if test="startDate != null and startDate != ''">
+            AND P.CREATED_AT <![CDATA[ >= ]]> TO_DATE(#{startDate}, 'YYYY-MM-DD')
+        </if>
+
+        <!--
+            [기간별 조회 추가]
+            종료일 다음날 00:00:00 미만으로 조회하여
+            종료일의 23:59:59까지 모두 포함한다.
+        -->
+        <if test="endDate != null and endDate != ''">
+            AND P.CREATED_AT <![CDATA[ < ]]>
+                TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+        </if>
+
+        <!-- [승인 상태별 조회 추가] -->
+        <if test="status != null and status != ''">
+            AND P.STATUS = #{status}
+        </if>
+
         <if test="keyword != null and keyword != ''">
             AND (
                 UPPER(P.PRODUCT_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
@@ -501,6 +533,7 @@
                 OR UPPER(A.ACTOR_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
             )
         </if>
+
     </sql>
 
     <!-- =====================================================
@@ -526,6 +559,12 @@
             P.DESCRIPTION,
             P.STATUS,
             P.CREATED_AT,
+            <!--
+                [상품 수정일 추가]
+                상품 목록에서 마지막 수정일을 표시하기 위해 조회한다.
+                수정 이력이 없는 상품은 NULL 그대로 반환한다.
+            -->
+            P.UPDATED_AT,
 
             C.TITLE AS CONTENT_TITLE,
             A.ACTOR_NAME,
@@ -603,6 +642,12 @@
             P.DESCRIPTION,
             P.STATUS,
             P.CREATED_AT,
+            <!--
+                [상품 수정일 추가]
+                상품 목록에서 마지막 수정일을 표시하기 위해 조회한다.
+                수정 이력이 없는 상품은 NULL 그대로 반환한다.
+            -->
+            P.UPDATED_AT,
 
             C.TITLE AS CONTENT_TITLE,
             A.ACTOR_NAME,
@@ -662,7 +707,13 @@
             DISCOUNT_RATE = #{discountRate},
             STOCK = #{stock},
             DESCRIPTION = #{description, jdbcType=CLOB},
-            STATUS = #{status}
+            STATUS = #{status},
+
+            <!--
+            [상품 수정일 추가]
+            사업자가 상품 수정 요청을 할 때 마지막 수정 시각을 갱신한다.
+            -->
+            UPDATED_AT = SYSDATE
         WHERE PRODUCT_NO = #{productNo}
           AND BUSINESS_NO = #{businessNo}
 
@@ -946,6 +997,33 @@
                 WHERE EP2.EVENT_NO = E.EVENT_NO
                   AND P2.BUSINESS_NO = #{businessNo}
         )
+
+        <!-- =====================================================
+        [기간/승인 상태 조회 추가]
+
+        이벤트 기간 검색은 조회 기간과 실제 이벤트 기간이
+        서로 한 날짜 이상 겹치는 이벤트를 조회한다.
+
+        예)
+        검색: 2026-08-01 ~ 2026-08-10
+        이벤트: 2026-08-05 ~ 2026-08-15
+        → 조회 대상
+        ====================================================== -->
+
+        <if test="startDate != null and startDate != ''">
+            AND E.END_DATE <![CDATA[ >= ]]>
+                TO_DATE(#{startDate}, 'YYYY-MM-DD')
+        </if>
+
+        <if test="endDate != null and endDate != ''">
+            AND E.START_DATE <![CDATA[ <= ]]>
+                TO_DATE(#{endDate}, 'YYYY-MM-DD')
+        </if>
+
+        <!-- [승인 상태별 조회 추가] -->
+        <if test="status != null and status != ''">
+            AND E.STATUS = #{status}
+        </if>
 
         <if test="keyword != null and keyword != ''">
             AND (

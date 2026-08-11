@@ -70,30 +70,124 @@ const contextPath =
 
             <div class="product-control-row">
 
-                <div></div>
-
+                <%--
+                    [기간/승인 상태 조회 추가]
+                    기존 등록 요청 버튼 위치는 유지하면서
+                    기간 조회 → 승인 상태 조회 → 검색 조회 순서로 한 줄에 배치한다.
+                --%>
                 <form action="${pageContext.request.contextPath}/business/product/list"
-                      method="get"
-                      class="product-search-form">
+                    method="get"
+                    class="business-list-filter-form">
 
-                    <%-- 상품 검색 input에 고유 id를 부여하고 숨김 label과 연결한다. --%>
-                    <label for="businessProductKeyword"
-                           style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0;">
-                        상품명, 관련 콘텐츠 및 배우명 검색
-                    </label>
+                    <%-- =====================================================
+                        1. 기간별 조회
+                        상품은 PRODUCT.CREATED_AT 등록일 기준으로 조회한다.
+                    ====================================================== --%>
+                    <div class="business-filter-group business-date-filter">
 
-                    <input type="text"
-                           id="businessProductKeyword"
-                           name="keyword"
-                           value="<c:out value='${param.keyword}'/>"
-                           placeholder="상품명, 관련 콘텐츠, 배우명 검색">
+                        <label for="productStartDate"
+                            class="business-filter-label">
+                            기간
+                        </label>
 
-                    <button type="submit">
-                        검색
-                    </button>
+                        <input type="date"
+                            id="productStartDate"
+                            name="startDate"
+                            value="<c:out value='${startDate}'/>"
+                            class="business-filter-date">
+
+                        <span class="business-date-separator">
+                            ~
+                        </span>
+
+                        <label for="productEndDate"
+                            class="sr-only">
+                            상품 등록 종료일
+                        </label>
+
+                        <input type="date"
+                            id="productEndDate"
+                            name="endDate"
+                            value="<c:out value='${endDate}'/>"
+                            class="business-filter-date">
+
+                    </div>
+
+
+                    <%-- =====================================================
+                        2. 승인 상태별 조회
+                    ====================================================== --%>
+                    <div class="business-filter-group">
+
+                        <label for="productStatus"
+                            class="business-filter-label">
+                            승인 상태
+                        </label>
+
+                        <select id="productStatus"
+                                name="status"
+                                class="business-filter-select">
+
+                            <option value="">
+                                전체
+                            </option>
+
+                            <option value="WAITING"
+                                    ${status eq 'WAITING' ? 'selected' : ''}>
+                                승인 대기
+                            </option>
+
+                            <option value="APPROVED"
+                                    ${status eq 'APPROVED' ? 'selected' : ''}>
+                                승인 완료
+                            </option>
+
+                            <option value="REJECTED"
+                                    ${status eq 'REJECTED' ? 'selected' : ''}>
+                                반려
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <%-- =====================================================
+                        3. 기존 검색 조회
+                    ====================================================== --%>
+                    <div class="business-keyword-filter">
+
+                        <%-- 상품 검색 input에 고유 id를 부여하고 숨김 label과 연결한다. --%>
+                        <label for="businessProductKeyword"
+                            class="sr-only">
+                            상품명, 관련 콘텐츠 및 배우명 검색
+                        </label>
+
+                        <input type="text"
+                            id="businessProductKeyword"
+                            name="keyword"
+                            value="<c:out value='${keyword}'/>"
+                            placeholder="상품명, 관련 콘텐츠, 배우명 검색"
+                            class="business-filter-keyword">
+
+                        <%--
+                            [기간/승인 상태 조회 추가]
+                            기간/상태/검색을 한 번에 조회하며
+                            기존 검색 버튼과 동일한 색상 및 스타일을 적용한다.
+                        --%>
+                        <button type="submit"
+                                class="business-filter-search-btn">
+                            조회
+                        </button>
+
+                    </div>
 
                 </form>
 
+
+                <%--
+                    기존 등록 요청 버튼은 위치와 동작을 그대로 유지한다.
+                --%>
                 <button type="button"
                         class="product-register-btn"
                         onclick="location.href='${pageContext.request.contextPath}/business/product/register'">
@@ -279,6 +373,10 @@ const contextPath =
                                                 <c:out value="${product.stock}"/>개
                                             </span>
 
+                                        </div>
+
+                                        <div class="meta-row">
+
                                             <span>
                                                 가격 :
                                                 <c:out value="${product.price}"/>원
@@ -294,6 +392,48 @@ const contextPath =
                                             </div>
 
                                         </c:if>
+
+                                        <%--
+                                            =========================================================
+                                            [상품 등록일/수정일 추가]
+                                            할인율 아래에 상품 등록일과 마지막 수정일을 표시한다.
+                                            수정 이력이 없는 경우 수정일은 "-"로 표시한다.
+                                            기존 상품 정보와 동일하게 meta-row 스타일을 사용한다.
+                                            =========================================================
+                                        --%>
+                                        <div class="meta-row">
+
+                                            등록일 :
+                                            <c:choose>
+
+                                                <c:when test="${not empty product.createdAt}">
+                                                    <c:out value="${fn:substring(product.createdAt.toString(), 0, 10)}"/>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    -
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </div>
+
+                                        <div class="meta-row">
+
+                                            수정일 :
+                                            <c:choose>
+
+                                                <c:when test="${not empty product.updatedAt}">
+                                                    <c:out value="${fn:substring(product.updatedAt.toString(), 0, 10)}"/>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    -
+                                                </c:otherwise>
+
+                                            </c:choose>
+
+                                        </div>
 
                                     </div>
 
@@ -362,54 +502,57 @@ const contextPath =
 
 
                 <c:if test="${not empty pagination
-                            and pagination.totalPage > 0}">
+                    and pagination.totalPage > 0}">
 
+                    <%--
+                        =========================================================
+                        [기간/승인 상태 조회 추가]
+                        페이지를 이동해도 현재 조회 조건이 유지되도록
+                        keyword / startDate / endDate / status를 함께 전달한다.
+                        =========================================================
+                    --%>
                     <div class="pagination">
 
-                        <!-- 이전 블록 -->
-                        <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}"
-                           class="${!pagination.prev ? 'disabled' : ''}">
+                        <%-- 이전 페이지 묶음 --%>
+                        <a href="?page=${pagination.startPage - 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                        class="${!pagination.prev ? 'disabled' : ''}">
                             &laquo;
                         </a>
 
-                        <!-- 이전 페이지 -->
-                        <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}"
-                           class="${pagination.currentPage == 1 ? 'disabled' : ''}">
+                        <%-- 바로 이전 페이지 --%>
+                        <a href="?page=${pagination.currentPage - 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                        class="${pagination.currentPage == 1 ? 'disabled' : ''}">
                             &lsaquo;
                         </a>
 
-                        <!-- 페이지 번호 -->
+                        <%-- 페이지 번호 --%>
                         <c:forEach var="p"
-                                   begin="${pagination.startPage}"
-                                   end="${pagination.endPage}">
+                                begin="${pagination.startPage}"
+                                end="${pagination.endPage}">
 
-                            <a href="?page=${p}&keyword=${param.keyword}"
-                               class="${pagination.currentPage == p
-                                   ? 'active'
-                                   : ''}">
-
-                                <c:out value="${p}"/>
-
+                            <a href="?page=${p}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                            class="${pagination.currentPage == p
+                                    ? 'active' : ''}">
+                                ${p}
                             </a>
 
                         </c:forEach>
 
-                        <!-- 다음 페이지 -->
-                        <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}"
-                           class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
+                        <%-- 바로 다음 페이지 --%>
+                        <a href="?page=${pagination.currentPage + 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                        class="${pagination.currentPage == pagination.totalPage ? 'disabled' : ''}">
                             &rsaquo;
                         </a>
 
-                        <!-- 다음 블록 -->
-                        <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}"
-                           class="${!pagination.next ? 'disabled' : ''}">
+                        <%-- 다음 페이지 묶음 --%>
+                        <a href="?page=${pagination.endPage + 1}&keyword=${param.keyword}&startDate=${startDate}&endDate=${endDate}&status=${status}"
+                        class="${!pagination.next ? 'disabled' : ''}">
                             &raquo;
                         </a>
 
                     </div>
 
                 </c:if>
-
             </div>
 
         </section>
