@@ -88,16 +88,20 @@ public InternalResourceViewResolver jspViewResolver() {
 
         // 전체 접속 로그 기록
         registry.addInterceptor(accessLogInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/css/**",
-                        "/js/**",
-                        "/images/**",
-                        "/uploads/**",
-                        "/favicon.ico",
-                        "/error",
-                        "/error/**"
-                );
+        .addPathPatterns("/**")
+        .excludePathPatterns(
+                "/css/**",
+                "/js/**",
+                "/images/**",
+                "/uploads/**",
+                "/favicon.ico",
+                "/error",
+                "/error/**",
+
+                // 백그라운드 API는 접속 통계에서 제외
+                "/notification/api/**",
+                "/chat/api/**"
+        );
     }
     @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {

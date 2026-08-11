@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.project.oditji.common.dao.AccessLogDAO;
+import com.project.oditji.common.service.AccessLogService;
 import com.project.oditji.common.vo.AccessLogVO;
 import com.project.oditji.member.vo.MemberVO;
 
@@ -27,13 +27,13 @@ import com.project.oditji.member.vo.MemberVO;
 class AccessLogInterceptorCoverageTest {
 
     @Mock
-    private AccessLogDAO accessLogDAO;
+    private AccessLogService accessLogService;
 
     private AccessLogInterceptor interceptor;
 
     @BeforeEach
     void setUp() {
-        interceptor = new AccessLogInterceptor(accessLogDAO);
+        interceptor = new AccessLogInterceptor(accessLogService);
     }
 
     @Test
@@ -50,7 +50,7 @@ class AccessLogInterceptorCoverageTest {
 
         ArgumentCaptor<AccessLogVO> captor =
                 ArgumentCaptor.forClass(AccessLogVO.class);
-        verify(accessLogDAO).insertAccessLog(captor.capture());
+        verify(accessLogService).saveAccessLogAsync(captor.capture());
 
         AccessLogVO saved = captor.getValue();
         assertNull(saved.getMemberNo());
@@ -81,7 +81,7 @@ class AccessLogInterceptorCoverageTest {
 
         ArgumentCaptor<AccessLogVO> captor =
                 ArgumentCaptor.forClass(AccessLogVO.class);
-        verify(accessLogDAO).insertAccessLog(captor.capture());
+        verify(accessLogService).saveAccessLogAsync(captor.capture());
 
         AccessLogVO saved = captor.getValue();
         assertEquals(77L, saved.getMemberNo());
@@ -98,15 +98,15 @@ class AccessLogInterceptorCoverageTest {
         request.setRemoteAddr("192.0.2.7");
         request.addHeader("X-Forwarded-For", "   ");
 
-        doThrow(new IllegalStateException("db failure"))
-                .when(accessLogDAO)
-                .insertAccessLog(any(AccessLogVO.class));
+        doThrow(new IllegalStateException("async failure"))
+                .when(accessLogService)
+                .saveAccessLogAsync(any(AccessLogVO.class));
 
         assertTrue(interceptor.preHandle(
                 request,
                 new MockHttpServletResponse(),
                 new Object()));
 
-        verify(accessLogDAO).insertAccessLog(any(AccessLogVO.class));
+        verify(accessLogService).saveAccessLogAsync(any(AccessLogVO.class));
     }
 }
