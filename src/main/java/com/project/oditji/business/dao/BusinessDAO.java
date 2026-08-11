@@ -109,13 +109,26 @@ public interface BusinessDAO {
          * 받아 페이지 단위로 조회한다. 전체 건수는 selectProductListCountByBusinessNo로 별도 조회.
          * =========================================================
          */
-        List<GoodsManageVO> selectProductListByBusinessNo(@Param("businessNo") long businessNo,
-                        @Param("keyword") String keyword, @Param("offset") int offset,
+        List<GoodsManageVO> selectProductListByBusinessNo(
+                        @Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword,
+                        @Param("startDate") String startDate,
+                        @Param("endDate") String endDate,
+                        @Param("status") String status,
+                        @Param("offset") int offset,
                         @Param("pageSize") int pageSize);
 
-        // [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용)
-        int selectProductListCountByBusinessNo(@Param("businessNo") long businessNo,
-                        @Param("keyword") String keyword);
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 상품 목록 전체 건수
+         */
+        int selectProductListCountByBusinessNo(
+                        @Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword,
+                        @Param("startDate") String startDate,
+                        @Param("endDate") String endDate,
+                        @Param("status") String status);
 
         /*
          * =========================================================
@@ -203,14 +216,28 @@ public interface BusinessDAO {
          * [페이징 리팩터링] 사업자 이벤트 목록 조회
          * EVENT_PRODUCT -> PRODUCT 경로로 사업자 소유권을 확인하며,
          * offset/pageSize로 페이지 단위 조회한다.
+         * [기간/승인 상태 조회 추가]
          */
-        List<EventManageVO> selectEventListByBusinessNo(@Param("businessNo") long businessNo,
-                        @Param("keyword") String keyword, @Param("offset") int offset,
+        List<EventManageVO> selectEventListByBusinessNo(
+                        @Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword,
+                        @Param("startDate") String startDate,
+                        @Param("endDate") String endDate,
+                        @Param("status") String status,
+                        @Param("offset") int offset,
                         @Param("pageSize") int pageSize);
 
-        // [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용)
-        int selectEventListCountByBusinessNo(@Param("businessNo") long businessNo,
-                        @Param("keyword") String keyword);
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 사업자 이벤트 목록 전체 건수
+         */
+        int selectEventListCountByBusinessNo(
+                        @Param("businessNo") long businessNo,
+                        @Param("keyword") String keyword,
+                        @Param("startDate") String startDate,
+                        @Param("endDate") String endDate,
+                        @Param("status") String status);
 
         // 승인된 이벤트 단건 조회 * EVENT_NO와 BUSINESS_NO를 함께 검사.
         EventManageVO selectApprovedEventForBusiness(@Param("eventNo") long eventNo,
