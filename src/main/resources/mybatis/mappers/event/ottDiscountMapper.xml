@@ -214,4 +214,26 @@
           AND IS_ACTIVE = 'Y'
     </update>
 
+    <!-- [OTT 구독 조합 계산기 추가] 플랫폼별 현재 최저가(할인가 vs 정가 중 낮은 값) 조회 -->
+    <select id="selectBestPriceByPlatform" resultType="com.project.oditji.subscription.vo.PlatformPriceVO">
+        SELECT
+            PLATFORM_CODE       AS platformCode,
+            PLATFORM_NAME       AS platformName,
+            MIN(REGULAR_PRICE)  AS regularPrice,
+            MIN(
+                CASE
+                    WHEN DISCOUNT_PRICE IS NOT NULL
+                     AND DISCOUNT_PRICE &lt; REGULAR_PRICE
+                        THEN DISCOUNT_PRICE
+                    ELSE REGULAR_PRICE
+                END
+            ) AS bestPrice
+        FROM OTT_DISCOUNT_INFO
+        WHERE IS_ACTIVE = 'Y'
+          AND REGULAR_PRICE IS NOT NULL
+          AND (START_DATE IS NULL OR START_DATE &lt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+          AND (END_DATE IS NULL OR END_DATE &gt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+        GROUP BY PLATFORM_CODE, PLATFORM_NAME
+    </select>
+
 </mapper>

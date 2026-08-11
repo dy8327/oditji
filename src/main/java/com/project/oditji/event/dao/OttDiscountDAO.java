@@ -1,6 +1,7 @@
 package com.project.oditji.event.dao;
 
 import com.project.oditji.event.vo.OttDiscountVO;
+import com.project.oditji.subscription.vo.PlatformPriceVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -49,4 +50,11 @@ public interface OttDiscountDAO {
 
     // 만료된 할인 정보 일괄 비활성화
     int updateExpiredDiscounts();
+
+    /*
+     * [OTT 구독 조합 계산기 추가] 플랫폼별로 현재 가장 싼 가격(할인가가 있으면 할인가,
+     * 없으면 정가)을 산출해 반환한다. 위시리스트에 담긴 콘텐츠들을 가장 저렴하게
+     * 커버하는 OTT 조합을 계산할 때 가격 소스로 사용한다.
+     */
+    List<PlatformPriceVO> selectBestPriceByPlatform();
 }
