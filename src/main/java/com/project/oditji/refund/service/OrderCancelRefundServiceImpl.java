@@ -29,6 +29,9 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
     private static final String ORDER_NUMBER_PREFIX = "주문번호 ";
     private static final String ORDER_LIST_URL = "/order/list";
 
+    /* [환불 승인 정산 롤백 추가] 정산 내역에 표시할 자동 반려 사유 */
+    private static final String SETTLEMENT_REFUND_REJECT_REASON = "사용자가 환불 요청을 신청하였습니다. (정산 재요청)";
+
     private final OrderCancelRefundDAO orderCancelRefundDAO;
     private final BusinessDAO businessDAO;
     private final PaymentDAO paymentDAO;
@@ -408,11 +411,18 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         /*
          * =========================================================
-         * [전체 취소 완료 상품 정산 제외 추가]
-         * 실제 결제 전액 취소와 주문상품 취소가 완료된 뒤
-         * 그룹에 포함된 WAITING 정산을 REJECTED로 변경한다.
+         * [전체 환불 승인 시 정산 자동 롤백 추가]
+         * 환불 상품이 이미 승인/지급 완료된 정산에 포함되어 있어도
+         * 정산 요청을 자동 반려하고 정상 매출은 WAITING으로 복구한다.
          * =========================================================
          */
+        orderCancelRefundDAO.autoRejectSettlementRequestsByCancelGroupNo(
+                request.getCancelGroupNo(),
+                SETTLEMENT_REFUND_REJECT_REASON);
+
+        orderCancelRefundDAO.releaseSettlementSiblingsByCancelGroupNo(
+                request.getCancelGroupNo());
+
         orderCancelRefundDAO.rejectSettlementsByCancelGroupNo(
                 request.getCancelGroupNo());
 
@@ -457,11 +467,19 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         /*
          * =========================================================
-         * [부분 취소 완료 상품 정산 제외 추가]
-         * 실제 부분 환불과 주문상품 취소가 완료된 뒤
-         * 해당 WAITING 정산을 REJECTED로 변경한다.
+         * [부분 환불 승인 시 정산 자동 롤백 추가]
+         * 이미 승인/지급 완료된 정산 요청은 자동 반려하고,
+         * 같은 요청의 정상 매출은 WAITING으로 복구한 뒤
+         * 환불 상품 원장만 REJECTED로 제외한다.
          * =========================================================
          */
+        orderCancelRefundDAO.autoRejectSettlementRequestByOrderItemNo(
+                request.getOrderItemNo(),
+                SETTLEMENT_REFUND_REJECT_REASON);
+
+        orderCancelRefundDAO.releaseSettlementSiblingsByOrderItemNo(
+                request.getOrderItemNo());
+
         orderCancelRefundDAO.rejectSettlementByOrderItemNo(
                 request.getOrderItemNo());
 
