@@ -16,8 +16,8 @@ import java.util.Map;
 @RequestMapping("/api/discount")
 public class OttDiscountApiController {
 
-    /** [수정] ottDiscount.jsp와 동일하게 9개 단위 페이징 */
-    private static final int DISCOUNT_PAGE_SIZE = 9;
+    /** [수정] ottDiscount.jsp와 동일하게 8개 단위 페이징 */
+    private static final int DISCOUNT_PAGE_SIZE = 8;
 
     private final OttDiscountService ottDiscountService;
 
@@ -28,7 +28,7 @@ public class OttDiscountApiController {
     /**
      * 1. 할인 정보 목록 조회 (GET)
      * URL: /api/discount?platform=NETFLIX&category=CARD&page=1
-     * [수정] 플랫폼/카테고리 필터를 AJAX로 바꿀 때도 서버와 동일한 9개 단위 페이징을
+     * [수정] 플랫폼/카테고리 필터를 AJAX로 바꿀 때도 서버와 동일한 8개 단위 페이징을
      * 적용해야 하므로 page 파라미터를 추가하고, 프론트에서 페이지네이션 내비게이션을
      * 다시 그릴 수 있도록 currentPage/totalPage/totalCount를 응답에 함께 내려준다.
      */
@@ -46,9 +46,17 @@ public class OttDiscountApiController {
         List<OttDiscountVO> list =
                 ottDiscountService.getDiscountList(platform, category, pagination.getCurrentPage(), DISCOUNT_PAGE_SIZE);
 
+        /* [수정] 히어로 배너 실시간 갱신: 기존에는 최초 페이지 로드시 서버가 렌더링한
+           heroItem이 필터를 바꿔도 그대로 남아있어(=새로고침 전까지 첫 진입 값 고정)
+           "넷플릭스 탭을 눌러도 위 배너가 안 바뀌는" 문제가 있었다. AJAX 필터 응답에도
+           동일한 로직(ottDiscountService.getHeroDiscount)으로 조회한 heroItem을 함께
+           내려주고, 프론트(ottDiscount.js)가 이 값으로 히어로 배너를 다시 그리게 한다. */
+        OttDiscountVO heroItem = ottDiscountService.getHeroDiscount(platform, category);
+
         response.put("status", "success");
         response.put("count", list.size());
         response.put("data", list);
+        response.put("heroItem", heroItem);
         response.put("currentPage", pagination.getCurrentPage());
         response.put("totalPage", pagination.getTotalPage());
         response.put("totalCount", pagination.getTotalCount());

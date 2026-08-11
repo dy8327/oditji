@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.event.service.OttDiscountService;
 import com.project.oditji.event.vo.OttDiscountVO;
 
@@ -31,6 +33,12 @@ public class AdminOttDiscountController {
     private static final String REDIRECT_PREFIX = "redirect:";
     private static final String FLASH_MESSAGE = "message";
     private static final String LIST_PATH = "/admin/discount/list";
+
+    // 관리자 목록 화면 공용 페이징 설정 (AdminController의 ADMIN_PAGE_SIZE/ADMIN_PAGE_BLOCK_SIZE와 동일:
+    // 한 페이지 10건, 페이지 번호 5개 단위 블록)
+    private static final int ADMIN_PAGE_SIZE = 10;
+    private static final int ADMIN_PAGE_BLOCK_SIZE = 5;
+    private static final String ATTR_PAGINATION = "pagination";
 
     /**
      * PLATFORM_CODE -> 표기명(PLATFORM_NAME) 고정 매핑.
@@ -62,15 +70,21 @@ public class AdminOttDiscountController {
             @RequestParam(value = "platform", required = false, defaultValue = DEFAULT_FILTER) String platform,
             @RequestParam(value = "category", required = false, defaultValue = DEFAULT_FILTER) String category,
             @RequestParam(value = "status", required = false, defaultValue = DEFAULT_FILTER) String status,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             Model model) {
 
-        List<OttDiscountVO> discountList = ottDiscountService.getAdminDiscountList(platform, category, status);
+        int totalCount = ottDiscountService.getAdminDiscountListCount(platform, category, status);
+        PageVO pagination = PaginationUtil.build(page, totalCount, ADMIN_PAGE_SIZE, ADMIN_PAGE_BLOCK_SIZE);
+
+        List<OttDiscountVO> discountList = ottDiscountService.getAdminDiscountList(
+                platform, category, status, pagination.getCurrentPage(), ADMIN_PAGE_SIZE);
 
         model.addAttribute("activeMenu", "discount");
         model.addAttribute("discountList", discountList);
         model.addAttribute("selectedPlatform", platform);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedStatus", status);
+        model.addAttribute(ATTR_PAGINATION, pagination);
 
         return "admin/discount/discountManage";
     }
@@ -96,6 +110,7 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterPlatform", required = false, defaultValue = DEFAULT_FILTER) String filterPlatform,
             @RequestParam(value = "filterCategory", required = false, defaultValue = DEFAULT_FILTER) String filterCategory,
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
 
         OttDiscountVO discountVO = toVO(null, platformCode, category, title, regularPrice, discountPrice,
@@ -109,7 +124,7 @@ public class AdminOttDiscountController {
             redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "등록 중 오류가 발생했습니다. 입력값을 확인해 주세요.");
         }
 
-        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus);
+        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus, page);
     }
 
     /**
@@ -134,6 +149,7 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterPlatform", required = false, defaultValue = DEFAULT_FILTER) String filterPlatform,
             @RequestParam(value = "filterCategory", required = false, defaultValue = DEFAULT_FILTER) String filterCategory,
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
 
         OttDiscountVO discountVO = toVO(discountId, platformCode, category, title, regularPrice, discountPrice,
@@ -147,7 +163,7 @@ public class AdminOttDiscountController {
             redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "수정 중 오류가 발생했습니다. 입력값을 확인해 주세요.");
         }
 
-        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus);
+        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus, page);
     }
 
     /**
@@ -160,13 +176,14 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterPlatform", required = false, defaultValue = DEFAULT_FILTER) String filterPlatform,
             @RequestParam(value = "filterCategory", required = false, defaultValue = DEFAULT_FILTER) String filterCategory,
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
 
         boolean result = ottDiscountService.deleteDiscount(discountId);
         redirectAttributes.addFlashAttribute(FLASH_MESSAGE,
                 result ? "할인 정보를 비활성화했습니다." : "비활성화 대상을 찾을 수 없습니다.");
 
-        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus);
+        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus, page);
     }
 
     /**
@@ -179,13 +196,14 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterPlatform", required = false, defaultValue = DEFAULT_FILTER) String filterPlatform,
             @RequestParam(value = "filterCategory", required = false, defaultValue = DEFAULT_FILTER) String filterCategory,
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             RedirectAttributes redirectAttributes) {
 
         boolean result = ottDiscountService.activateDiscount(discountId);
         redirectAttributes.addFlashAttribute(FLASH_MESSAGE,
                 result ? "할인 정보를 다시 활성화했습니다." : "재활성화 대상을 찾을 수 없습니다.");
 
-        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus);
+        return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus, page);
     }
 
     /** 등록/수정 폼 파라미터를 OttDiscountVO로 변환한다. platformName은 platformCode로부터 서버에서 고정 매핑한다. */
@@ -212,10 +230,11 @@ public class AdminOttDiscountController {
         return discountVO;
     }
 
-    /** 등록/수정/비활성화/재활성화 처리 후 방금 보고 있던 필터(platform/category/status) 그대로 목록으로 돌아가기 위한 리다이렉트 URL. */
-    private String listRedirectUrl(String platform, String category, String status) {
+    /** 등록/수정/비활성화/재활성화 처리 후 방금 보고 있던 필터(platform/category/status)와 페이지 그대로 목록으로 돌아가기 위한 리다이렉트 URL. */
+    private String listRedirectUrl(String platform, String category, String status, int page) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(LIST_PATH);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(LIST_PATH)
+                .queryParam("page", page);
 
         if (platform != null && !platform.isBlank()) {
             builder.queryParam("platform", platform);
