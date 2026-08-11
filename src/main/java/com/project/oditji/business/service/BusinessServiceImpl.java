@@ -399,6 +399,39 @@ public class BusinessServiceImpl
                 return summary == null ? new SettlementManageVO() : summary;
         }
 
+        /*
+         * =========================================================
+         * [정산 월 구분 추가]
+         * 이번 달 정산은 지난달 매출, 다음 달 정산은 이번달 매출을 조회한다.
+         * 미정산금액은 선택 기간보다 이전의 WAITING 정산을 합산한다.
+         * =========================================================
+         */
+        @Override
+        public SettlementManageVO getSettlementSummary(long businessNo, String cycle) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                LocalDate currentMonth = LocalDate.now().withDayOfMonth(1);
+                boolean nextCycle = "next".equalsIgnoreCase(cycle);
+                LocalDate startDate = nextCycle ? currentMonth : currentMonth.minusMonths(1);
+                LocalDate endDate = startDate.plusMonths(1);
+                LocalDate settlementDate = endDate.withDayOfMonth(10);
+                String settlementMonth = String.format("%04d-%02d", settlementDate.getYear(),
+                                settlementDate.getMonthValue());
+
+                SettlementManageVO summary = businessDAO.selectSettlementSummaryByPeriod(
+                                businessNo, startDate, endDate, settlementMonth);
+                if (summary == null) {
+                        summary = new SettlementManageVO();
+                }
+
+                summary.setSettlementPeriod(startDate + " ~ " + endDate.minusDays(1));
+                summary.setSettlementDateLabel("매월 10일 (" + settlementDate + ")");
+                summary.setSettlementTotalAmount(summary.getSettledAmount() + summary.getUnsettledAmount());
+                return summary;
+        }
+
         /* 사업자의 정산 요청 내역 조회 */
         @Override
         public List<SettlementRequestVO> getSettlementPaymentHistory(long businessNo) {

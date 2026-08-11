@@ -179,6 +179,10 @@
         <result property="deliveryStatus"
                 column="DELIVERY_STATUS"/>
 
+        <!-- [환불 가능 기간 추가] 배송 완료 시점부터 7일 이내 여부 -->
+        <result property="refundEligible"
+                column="REFUND_ELIGIBLE"/>
+
         <!-- =====================================================
              [부분 취소 요청 상태 및 반려 사유 표시용 매핑]
              가장 최근 진행된 PARTIAL 요청 한 건의 상태/타입/사유 매핑
@@ -825,6 +829,23 @@
                 END
             ) AS DELIVERY_STATUS,
 
+            /*
+             * =====================================================
+             * [환불 가능 기간 추가]
+             * 배송 완료 시점을 DELIVERY.DELIVERED_AT으로 고정하고
+             * 기존 데이터는 UPDATED_AT을 보조값으로 사용한다.
+             * 배송 완료 후 7일(168시간) 이내인 경우에만 1을 반환한다.
+             * =====================================================
+             */
+            CASE
+                WHEN OI.STATUS = 'DELIVERED'
+                 AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED'
+                 AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL
+                 AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7
+                    THEN 1
+                ELSE 0
+            END AS REFUND_ELIGIBLE,
+
             /* =====================================================
                [최근 부분 취소 요청 상태 및 반려 사유 조회]
 
@@ -1003,6 +1024,23 @@
                     ELSE 'CONFIRMED'
                 END
             ) AS DELIVERY_STATUS,
+
+            /*
+             * =====================================================
+             * [환불 가능 기간 추가]
+             * 배송 완료 시점을 DELIVERY.DELIVERED_AT으로 고정하고
+             * 기존 데이터는 UPDATED_AT을 보조값으로 사용한다.
+             * 배송 완료 후 7일(168시간) 이내인 경우에만 1을 반환한다.
+             * =====================================================
+             */
+            CASE
+                WHEN OI.STATUS = 'DELIVERED'
+                 AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED'
+                 AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL
+                 AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7
+                    THEN 1
+                ELSE 0
+            END AS REFUND_ELIGIBLE,
 
             /* =====================================================
                [최근 부분 취소 요청 상태 및 반려 사유 조회]

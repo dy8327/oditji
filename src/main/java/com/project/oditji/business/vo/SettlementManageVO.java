@@ -33,6 +33,12 @@ public class SettlementManageVO {
     private LocalDate requestedAt;
     private LocalDate settledAt;
 
+    /* [정산 월 구분 추가] 정산 기간/정산일/미정산금액/합계 표시용 필드 */
+    private String settlementPeriod;
+    private String settlementDateLabel;
+    private long unsettledAmount;
+    private long settlementTotalAmount;
+
     /* [수정] 사업자 정산 계좌 정보 조회/수정용 필드 */
     private long businessNo;
     private String businessName;
@@ -166,6 +172,38 @@ public class SettlementManageVO {
 
     public void setSettledAt(LocalDate settledAt) {
         this.settledAt = settledAt;
+    }
+
+    public String getSettlementPeriod() {
+        return settlementPeriod;
+    }
+
+    public void setSettlementPeriod(String settlementPeriod) {
+        this.settlementPeriod = settlementPeriod;
+    }
+
+    public String getSettlementDateLabel() {
+        return settlementDateLabel;
+    }
+
+    public void setSettlementDateLabel(String settlementDateLabel) {
+        this.settlementDateLabel = settlementDateLabel;
+    }
+
+    public long getUnsettledAmount() {
+        return unsettledAmount;
+    }
+
+    public void setUnsettledAmount(long unsettledAmount) {
+        this.unsettledAmount = unsettledAmount;
+    }
+
+    public long getSettlementTotalAmount() {
+        return settlementTotalAmount;
+    }
+
+    public void setSettlementTotalAmount(long settlementTotalAmount) {
+        this.settlementTotalAmount = settlementTotalAmount;
     }
 
     public long getBusinessNo() {

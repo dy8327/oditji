@@ -335,6 +335,13 @@ public interface BusinessDAO {
         /* 사업자 정산 관리 조회/변경 */
         SettlementManageVO selectMonthlySettlementSummary(@Param("businessNo") long businessNo);
 
+        /* [정산 월 구분 추가] 선택한 매출 기간 기준 정산 요약 */
+        SettlementManageVO selectSettlementSummaryByPeriod(
+                        @Param("businessNo") long businessNo,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        @Param("settlementMonth") String settlementMonth);
+
         List<SettlementRequestVO> selectSettlementPaymentHistory(@Param("businessNo") long businessNo);
 
         /* 정산 요청 대상 금액 및 계좌 조회 */

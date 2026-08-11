@@ -1208,10 +1208,6 @@
         WHERE OI.BUSINESS_NO = #{businessNo}
 
           AND OI.STATUS IN (
-              'PAID',
-              'CONFIRMED',
-              'PREPARING',
-              'SHIPPING',
               'DELIVERED'
           )
 
@@ -1239,10 +1235,6 @@
           ON O.ORDER_NO = OI.ORDER_NO
         WHERE OI.BUSINESS_NO = #{businessNo}
           AND OI.STATUS IN (
-              'PAID',
-              'CONFIRMED',
-              'PREPARING',
-              'SHIPPING',
               'DELIVERED'
           )
           AND TRUNC(O.CREATED_AT) = TRUNC(SYSDATE)
@@ -1711,6 +1703,11 @@
                 D.TRACKING_NUMBER = #{trackingNumber},
                 D.COURIER = #{courier},
                 D.STATUS = #{status},
+                /* [환불 가능 기간 추가] 최초 배송 완료 시각은 이후 수정에도 유지 */
+                D.DELIVERED_AT = CASE
+                    WHEN #{status} = 'DELIVERED' THEN NVL(D.DELIVERED_AT, SYSDATE)
+                    ELSE D.DELIVERED_AT
+                END,
                 D.UPDATED_AT = SYSDATE
         WHEN NOT MATCHED THEN
             INSERT (
@@ -1719,6 +1716,7 @@
                 TRACKING_NUMBER,
                 COURIER,
                 STATUS,
+                DELIVERED_AT,
                 UPDATED_AT
             ) VALUES (
                 SEQ_DELIVERY_NO.NEXTVAL,
@@ -1726,6 +1724,7 @@
                 #{trackingNumber},
                 #{courier},
                 #{status},
+                CASE WHEN #{status} = 'DELIVERED' THEN SYSDATE ELSE NULL END,
                 SYSDATE
             )
     </update>
@@ -1924,6 +1923,63 @@
             GP.COMMISSION_RATE
     </select>
 
+    <!-- =====================================================
+         [정산 월 구분 추가]
+         선택한 매출 기간의 정산 예정 금액과 그 이전 미정산금액을 함께 조회한다.
+         환불로 REJECTED 된 원장은 집계에서 제외한다.
+    ====================================================== -->
+    <select id="selectSettlementSummaryByPeriod"
+            resultType="com.project.oditji.business.vo.SettlementManageVO">
+        SELECT
+            NVL(SUM(CASE
+                WHEN O.CREATED_AT <![CDATA[ >= ]]> #{startDate}
+                 AND O.CREATED_AT <![CDATA[ < ]]> #{endDate}
+                 AND S.STATUS IN ('WAITING', 'REQUESTED', 'DONE')
+                    THEN S.TOTAL_AMOUNT ELSE 0 END), 0) AS MONTH_SALES,
+            NVL(ROUND(SUM(CASE
+                WHEN O.CREATED_AT <![CDATA[ >= ]]> #{startDate}
+                 AND O.CREATED_AT <![CDATA[ < ]]> #{endDate}
+                 AND S.STATUS IN ('WAITING', 'REQUESTED', 'DONE')
+                    THEN S.FEE_AMOUNT ELSE 0 END)), 0) AS FEE_AMOUNT,
+            NVL(ROUND(SUM(CASE
+                WHEN O.CREATED_AT <![CDATA[ >= ]]> #{startDate}
+                 AND O.CREATED_AT <![CDATA[ < ]]> #{endDate}
+                 AND S.STATUS IN ('WAITING', 'REQUESTED', 'DONE')
+                    THEN S.SETTLED_AMOUNT ELSE 0 END)), 0) AS SETTLED_AMOUNT,
+            NVL(ROUND(SUM(CASE
+                WHEN O.CREATED_AT <![CDATA[ < ]]> #{startDate}
+                 AND S.STATUS = 'WAITING'
+                 AND S.REQUEST_NO IS NULL
+                    THEN S.SETTLED_AMOUNT ELSE 0 END)), 0) AS UNSETTLED_AMOUNT,
+            NVL(MAX(S.APPLIED_RATE), NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)) AS FEE_RATE,
+            CASE
+                WHEN SUM(CASE WHEN S.STATUS = 'WAITING' AND S.REQUEST_NO IS NULL
+                               AND O.CREATED_AT <![CDATA[ < ]]> #{endDate} THEN 1 ELSE 0 END) > 0
+                    THEN 'WAITING'
+                ELSE NVL((
+                    SELECT CASE WHEN SR.STATUS = 'DONE' THEN 'APPROVED' ELSE SR.STATUS END
+                    FROM SETTLEMENT_REQUEST SR
+                    WHERE SR.BUSINESS_NO = B.BUSINESS_NO
+                      AND SR.SETTLEMENT_MONTH = #{settlementMonth}
+                    ORDER BY SR.REQUESTED_AT DESC
+                    FETCH FIRST 1 ROW ONLY
+                ), 'WAITING')
+            END AS STATUS,
+            COUNT(DISTINCT CASE
+                WHEN O.CREATED_AT <![CDATA[ >= ]]> #{startDate}
+                 AND O.CREATED_AT <![CDATA[ < ]]> #{endDate}
+                 AND S.STATUS IN ('WAITING', 'REQUESTED', 'DONE')
+                    THEN OI.ORDER_NO END) AS MONTH_ORDER_COUNT
+        FROM BUSINESS B
+        JOIN GRADE_POLICY GP ON GP.GRADE_NAME = B.GRADE_NAME
+        LEFT JOIN SETTLEMENT S ON S.BUSINESS_NO = B.BUSINESS_NO
+        LEFT JOIN ORDER_ITEM OI ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+        LEFT JOIN ORDERS O ON O.ORDER_NO = OI.ORDER_NO
+        WHERE B.BUSINESS_NO = #{businessNo}
+          AND (S.SETTLEMENT_NO IS NULL OR OI.STATUS = 'DELIVERED')
+        GROUP BY B.BUSINESS_NO, B.CUSTOM_RATE, GP.COMMISSION_RATE
+    </select>
+
     <!-- 사업자 정산 요청 내역 조회 -->
 <select id="selectSettlementPaymentHistory"
         resultType="com.project.oditji.common.vo.SettlementRequestVO">
@@ -1973,6 +2029,12 @@
             FROM ORDER_ITEM OI_CHECK
             WHERE OI_CHECK.ORDER_ITEM_NO = S.ORDER_ITEM_NO
                 AND OI_CHECK.STATUS = 'DELIVERED'
+                AND EXISTS (
+                    SELECT 1
+                    FROM ORDERS O_CHECK
+                    WHERE O_CHECK.ORDER_NO = OI_CHECK.ORDER_NO
+                      AND O_CHECK.CREATED_AT <![CDATA[ < ]]> TRUNC(SYSDATE, 'MM')
+                )
         )
         LEFT JOIN ORDER_ITEM OI
         ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
@@ -2036,6 +2098,13 @@
             FROM ORDER_ITEM OI
             WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
                 AND OI.STATUS = 'DELIVERED'
+                /* [정산 월 구분 추가] 이번 달 정산 요청은 지난달까지의 매출만 포함 */
+                AND EXISTS (
+                    SELECT 1
+                    FROM ORDERS O
+                    WHERE O.ORDER_NO = OI.ORDER_NO
+                      AND O.CREATED_AT <![CDATA[ < ]]> TRUNC(SYSDATE, 'MM')
+                )
         )
     </update>
 

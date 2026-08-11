@@ -73,16 +73,23 @@ public interface OrderCancelRefundDAO {
 
         /*
          * =========================================================
-         * [부분 취소 완료 정산 제외 추가]
+         * [환불 승인 정산 롤백 추가]
          * =========================================================
          */
+        int autoRejectSettlementRequestByOrderItemNo(
+                        @Param("orderItemNo") Long orderItemNo,
+                        @Param("rejectReason") String rejectReason);
+
+        int releaseSettlementSiblingsByOrderItemNo(@Param("orderItemNo") Long orderItemNo);
+
         int rejectSettlementByOrderItemNo(@Param("orderItemNo") Long orderItemNo);
 
-        /*
-         * =========================================================
-         * [전체 취소 완료 정산 제외 추가]
-         * =========================================================
-         */
+        int autoRejectSettlementRequestsByCancelGroupNo(
+                        @Param("cancelGroupNo") Long cancelGroupNo,
+                        @Param("rejectReason") String rejectReason);
+
+        int releaseSettlementSiblingsByCancelGroupNo(@Param("cancelGroupNo") Long cancelGroupNo);
+
         int rejectSettlementsByCancelGroupNo(@Param("cancelGroupNo") Long cancelGroupNo);
 
         int restoreProductStock(@Param("productNo") Long productNo, @Param("quantity") Integer quantity);

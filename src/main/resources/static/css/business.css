@@ -5390,3 +5390,71 @@
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+
+/* =========================================================
+   [정산 월 구분 추가] settlementMain.jsp 전용 월 선택 탭
+   ========================================================= */
+.business-wrap .settlement-cycle-tabs {
+  display: inline-flex;
+  gap: 6px;
+  margin: 22px 0 14px;
+  padding: 4px;
+  border: 1px solid #3a3f47;
+  border-radius: 10px;
+  background: #1b1d22;
+}
+
+.business-wrap .settlement-cycle-tabs a {
+  min-width: 118px;
+  padding: 9px 16px;
+  border-radius: 7px;
+  color: #8f99aa;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.business-wrap .settlement-cycle-tabs a:hover {
+  color: #e7ebf1;
+  background: #262a31;
+}
+
+.business-wrap .settlement-cycle-tabs a.active {
+  color: #fff;
+  background: #2f6fe4;
+}
+
+/* =========================================================
+   [정산 정보 행 스타일 통일]
+   정산 기간과 정산예정금액 합계 행의 별도 배경색과
+   별도 구분선을 제거하여 기존 정산 정보 행과 동일하게 표시합니다.
+   ========================================================= */
+.business-wrap .settlement-summary-box .settlement-period-row {
+  background: transparent;
+}
+
+.business-wrap .settlement-summary-box .settlement-total-row {
+  margin-top: 0;
+  border-top: none;
+  background: transparent;
+}
+
+.business-wrap .settlement-summary-box .settlement-total-row .summary-label,
+.business-wrap .settlement-summary-box .settlement-total-row .summary-value {
+  font-weight: inherit;
+}
+
+@media (max-width: 720px) {
+  .business-wrap .settlement-cycle-tabs {
+    display: flex;
+    width: 100%;
+  }
+  .business-wrap .settlement-cycle-tabs a {
+    flex: 1;
+    min-width: 0;
+  }
+}

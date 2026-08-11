@@ -87,8 +87,33 @@
                     <a href="${pageContext.request.contextPath}/business/settlement/account">계좌 정보 관리</a>
                 </nav>
 
+                <%--
+                    =========================================================
+                    [정산 월 구분 탭 추가]
+                    이번 달 정산 = 지난달 매출 / 다음 달 정산 = 이번달 매출
+                    =========================================================
+                --%>
+                <nav class="settlement-cycle-tabs" aria-label="정산 월 선택">
+                    <a class="${settlementCycle eq 'this' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/business/settlement/main?cycle=this">
+                        이번 달 정산
+                    </a>
+                    <a class="${settlementCycle eq 'next' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/business/settlement/main?cycle=next">
+                        다음 달 정산
+                    </a>
+                </nav>
+
                 <!-- 정산 요약 -->
-                <div class="summary-box">
+                <div class="summary-box settlement-summary-box">
+                    <p class="settlement-period-row">
+                        <span class="summary-label">정산 기간</span>
+                        <span class="summary-value"><c:out value="${settlementSummary.settlementPeriod}"/></span>
+                    </p>
+                    <p class="settlement-period-row">
+                        <span class="summary-label">정산일</span>
+                        <span class="summary-value"><c:out value="${settlementSummary.settlementDateLabel}"/></span>
+                    </p>
                     <p>
                         <span class="summary-label">정산 대상 판매금액</span>
                         <span class="summary-value">
@@ -105,6 +130,18 @@
                         <span class="summary-label">정산 예정금</span>
                         <span class="summary-value point">
                             <fmt:formatNumber value="${settlementSummary.settledAmount}" pattern="#,##0"/>원
+                        </span>
+                    </p>
+                    <p>
+                        <span class="summary-label">지난 달 미정산금액</span>
+                        <span class="summary-value">
+                            <fmt:formatNumber value="${settlementSummary.unsettledAmount}" pattern="#,##0"/>원
+                        </span>
+                    </p>
+                    <p class="settlement-total-row">
+                        <span class="summary-label">정산예정금액 합계</span>
+                        <span class="summary-value point">
+                            <fmt:formatNumber value="${settlementSummary.settlementTotalAmount}" pattern="#,##0"/>원
                         </span>
                     </p>
                     <p>
@@ -175,6 +212,12 @@
                         </c:when>
 
                         <c:otherwise>
+                            <c:choose>
+                                <%-- [정산 월 구분 추가] 다음 달 정산은 현재 월 매출 미리보기만 제공 --%>
+                                <c:when test="${settlementCycle eq 'next'}">
+                                    <button class="btn btn-primary" type="button" disabled>다음 달 정산 예정</button>
+                                </c:when>
+                                <c:otherwise>
                             <form action="${pageContext.request.contextPath}/business/settlement/request"
                                 method="post">
                                 <c:choose>
@@ -190,7 +233,7 @@
                                         <button class="btn btn-primary" type="button" disabled>정산 완료</button>
                                     </c:when>
 
-                                    <c:when test="${settlementSummary.settledAmount le 0}">
+                                    <c:when test="${settlementSummary.settlementTotalAmount le 0}">
                                         <button class="btn btn-primary" type="button" disabled>정산 가능 내역 없음</button>
                                     </c:when>
 
@@ -199,6 +242,8 @@
                                     </c:otherwise>
                                 </c:choose>
                             </form>
+                                </c:otherwise>
+                            </c:choose>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -226,7 +271,7 @@
                     <div class="settlement-card">
                         <span>정산 예정금</span>
                         <strong>
-                            <fmt:formatNumber value="${settlementSummary.settledAmount}" pattern="#,##0"/>원
+                            <fmt:formatNumber value="${settlementSummary.settlementTotalAmount}" pattern="#,##0"/>원
                         </strong>
                     </div>
                 </div>
