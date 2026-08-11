@@ -62,13 +62,21 @@ public interface BusinessService {
          * =========================================================
          * [페이징 리팩터링] 사업자가 등록한 상품 목록 조회
          * 관리자 목록 화면과 동일하게 currentPage/pageSize로 페이지 단위 조회.
+         *
+         * [기간/승인 상태 조회 추가]
+         * 상품 등록일과 승인 상태 조건도 함께 적용한다.
          * =========================================================
          */
-        List<GoodsManageVO> getProductListByBusinessNo(long businessNo, String keyword, int currentPage,
-                        int pageSize);
+        List<GoodsManageVO> getProductListByBusinessNo(long businessNo, String keyword, String startDate,
+                        String endDate, String status, int currentPage, int pageSize);
 
-        // [페이징 리팩터링 추가] 사업자가 등록한 상품 목록 전체 건수 (검색 조건 동일 적용)
-        int getProductListCountByBusinessNo(long businessNo, String keyword);
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 사업자가 등록한 상품 목록 전체 건수
+         */
+        int getProductListCountByBusinessNo(long businessNo, String keyword, String startDate, String endDate,
+                        String status);
 
         /*
          * =========================================================
@@ -111,12 +119,21 @@ public interface BusinessService {
          */
         long registerEvent(EventManageVO eventManageVO, MultipartFile eventImage);
 
-        // [페이징 리팩터링] 사업자 이벤트 목록 조회 (currentPage/pageSize로 페이지 단위 조회)
-        List<EventManageVO> getEventListByBusinessNo(long businessNo, String keyword, int currentPage,
-                        int pageSize);
+        /*
+         * [페이징 리팩터링]
+         * [기간/승인 상태 조회 추가]
+         * 사업자 이벤트 목록 조회
+         */
+        List<EventManageVO> getEventListByBusinessNo(long businessNo, String keyword, String startDate, String endDate,
+                        String status, int currentPage, int pageSize);
 
-        // [페이징 리팩터링 추가] 사업자 이벤트 목록 전체 건수 (검색 조건 동일 적용)
-        int getEventListCountByBusinessNo(long businessNo, String keyword);
+        /*
+         * [페이징 리팩터링 추가]
+         * [기간/승인 상태 조회 추가]
+         * 사업자 이벤트 목록 전체 건수
+         */
+        int getEventListCountByBusinessNo(long businessNo, String keyword, String startDate, String endDate,
+                        String status);
 
         /*
          * =========================================================
