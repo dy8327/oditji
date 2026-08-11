@@ -106,8 +106,7 @@ public class BusinessController {
                 model.addAttribute(MODEL_BUSINESS, business);
                 /* 사업자 메인 대시보드 통계 */
                 BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
-                /* 사업자 인기 상품 */
-                businessMain.setPopularProducts(businessService.getPopularProducts(business.getBusinessNo()));
+                
                 model.addAttribute("businessMain", businessMain);
                 model.addAttribute(MODEL_ACTIVE_MENU, "main");
 

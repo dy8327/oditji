@@ -24,7 +24,6 @@ import com.project.oditji.business.service.NtsBusinessService;
 import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.business.vo.NtsBusinessVerifyVO;
 import com.project.oditji.favorite.service.FavoriteService;
-import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.mail.service.MailService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
@@ -33,7 +32,7 @@ import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.wish.service.WishService;
-import com.project.oditji.goods.vo.GoodsVO;
+
 
 /** 회원 기본 화면, 중복 확인, 마이페이지와 계정 관리 분기를 검증합니다. */
 @ExtendWith(MockitoExtension.class)
@@ -126,10 +125,8 @@ class MemberControllerBasicCoverageTest {
         List<PlatformVO> all = List.of(new PlatformVO(), new PlatformVO());
         when(memberPlatformService.findMemberPlatformList(3L)).thenReturn(selected);
         when(memberPlatformService.findPlatformList()).thenReturn(all);
-        when(favoriteService.selectFavoriteList(3L))
-                .thenReturn(List.of(new ContentVO(), new ContentVO()));
-        when(wishService.selectWishList(3L))
-                .thenReturn(List.of(new GoodsVO()));
+        when(favoriteService.getFavoriteCount(3L)).thenReturn(2);
+        when(wishService.getWishCount(3L)).thenReturn(1);
         when(orderService.getOrderCount(3L)).thenReturn(4);
         when(reviewService.getMyReviewCount(3L)).thenReturn(5);
         ExtendedModelMap model = new ExtendedModelMap();

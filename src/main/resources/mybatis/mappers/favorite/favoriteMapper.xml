@@ -66,6 +66,16 @@
 
     </delete>
 
+    <!-- 회원의 콘텐츠 찜 개수 -->
+    <select id="countFavoriteByMemberNo"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM FAVORITE
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
 
     <!-- 내 찜 목록 -->
     <select id="selectFavoriteList"

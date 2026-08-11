@@ -18,6 +18,8 @@ public interface WishDAO {
 
     List<GoodsVO> selectWishList(Long memberNo);
 
+    int countWishByMemberNo(Long memberNo);
+
     /** 로그인 회원이 찜한 상품번호 목록 (목록/상세 화면의 찜 활성 표시용) */
     List<Integer> selectWishedProductNoList(Long memberNo);
 }

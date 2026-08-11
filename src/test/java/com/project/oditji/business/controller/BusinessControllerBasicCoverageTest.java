@@ -79,10 +79,8 @@ class BusinessControllerBasicCoverageTest {
         void mainShouldLoadDashboardAndPopularProducts() {
                 BusinessVO business = business(20L, "APPROVED");
                 BusinessDashboardVO dashboard = new BusinessDashboardVO();
-                List<GoodsManageVO> popular = List.of(new GoodsManageVO());
                 when(businessService.getBusinessByMemberNo(10L)).thenReturn(business);
                 when(businessService.getBusinessDashboard(20L)).thenReturn(dashboard);
-                when(businessService.getPopularProducts(20L)).thenReturn(popular);
                 ExtendedModelMap model = new ExtendedModelMap();
 
                 String view = controller.businessMain(
@@ -93,7 +91,6 @@ class BusinessControllerBasicCoverageTest {
                 assertEquals("business/main/businessMain", view);
                 assertSame(business, model.get("business"));
                 assertSame(dashboard, model.get("businessMain"));
-                assertEquals(popular, dashboard.getPopularProducts());
                 assertEquals("main", model.get("activeMenu"));
         }
 
