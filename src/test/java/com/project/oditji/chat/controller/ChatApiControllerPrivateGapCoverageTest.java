@@ -1,9 +1,9 @@
 package com.project.oditji.chat.controller;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,14 +33,17 @@ class ChatApiControllerPrivateGapCoverageTest {
     @Test
     void firebaseEnabledShouldCoverNullServiceDisabledAndEnabledBranches() {
         ChatApiController withoutFirebase = new ChatApiController(chatService);
-        assertFalse(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(withoutFirebase, "isFirebaseChatEnabled")));
+        assertNotEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(withoutFirebase, "isFirebaseChatEnabled"));
 
         when(firebaseChatService.isEnabled()).thenReturn(false).thenReturn(true);
-        assertFalse(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(controller, "isFirebaseChatEnabled")));
-        assertTrue(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(controller, "isFirebaseChatEnabled")));
+        assertNotEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(controller, "isFirebaseChatEnabled"));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(controller, "isFirebaseChatEnabled"));
     }
 
     @Test

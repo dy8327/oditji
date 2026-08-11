@@ -1,7 +1,7 @@
 package com.project.oditji.business.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -143,8 +143,8 @@ class BusinessServiceImplFinalHelperGapCoverageTest {
 
         assertEquals("|", ReflectionTestUtils.invokeMethod(service, "createProductOptionKey", (Object) null, (Object) null));
         assertEquals("BLACK|M", ReflectionTestUtils.invokeMethod(service, "createProductOptionKey", " black ", " m "));
-        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(service, "isOptionProduct", "SHOES")));
-        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(service, "isOptionProduct", "GOODS")));
+        assertEquals(Boolean.TRUE, ReflectionTestUtils.invokeMethod(service, "isOptionProduct", "SHOES"));
+        assertNotEquals(Boolean.TRUE, ReflectionTestUtils.invokeMethod(service, "isOptionProduct", "GOODS"));
     }
 
     @Test
@@ -161,8 +161,9 @@ class BusinessServiceImplFinalHelperGapCoverageTest {
                 new byte[] { 1, 2, 3 });
         MockMultipartFile[] files = new MockMultipartFile[] { null, empty, image };
 
-        assertTrue(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(service, "hasSelectedDetailImage", (Object) files)));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(service, "hasSelectedDetailImage", (Object) files));
         assertEquals(
                 1,
                 ((Integer) ReflectionTestUtils.invokeMethod(
@@ -218,10 +219,12 @@ class BusinessServiceImplFinalHelperGapCoverageTest {
         when(searchContentStore.findByTmdbIdAndContentType(3L, "TV")).thenReturn(cached);
         ReflectionTestUtils.invokeMethod(service, "validateCachedContentSelection", 3L, " tv ");
 
-        assertTrue(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(service, "matchesCachedContent", cached, "actor")));
-        assertFalse(Boolean.TRUE.equals(
-                ReflectionTestUtils.invokeMethod(service, "matchesCachedContent", cached, "missing")));
+        assertEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(service, "matchesCachedContent", cached, "actor"));
+        assertNotEquals(
+                Boolean.TRUE,
+                ReflectionTestUtils.invokeMethod(service, "matchesCachedContent", cached, "missing"));
 
         ContentSearchVO converted = ReflectionTestUtils.invokeMethod(service, "convertToContentSearchVO", cached);
         assertEquals(Long.valueOf(3L), converted.getTmdbId());
