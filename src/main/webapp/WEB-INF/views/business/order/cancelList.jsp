@@ -148,23 +148,39 @@
                                                     </c:choose>
                                                 </h3>
                                             </div>
-
-                                            <span class="badge cancel-status-badge ${item.status == 'WAITING' ? 'badge-yellow' : 'badge-gray'}">
-                                                <c:choose>
-                                                    <c:when test="${item.status == 'WAITING'}">
+                                            
+                                            <%-- =========================================================
+                                            [취소/환불 상태 배지 색상 통일]
+                                            주문 현황 페이지의 상태 배지와 동일한 공통 status 스타일을 사용한다.
+                                            WAITING  : 노란색 - 처리 대기
+                                            APPROVED : 초록색 - 승인 완료
+                                            REJECTED : 빨간색 - 반려
+                                            ========================================================= --%>
+                                            <c:choose>
+                                                <c:when test="${item.status == 'WAITING'}">
+                                                    <span class="status waiting cancel-status-badge">
                                                         처리 대기
-                                                    </c:when>
-                                                    <c:when test="${item.status == 'APPROVED'}">
+                                                    </span>
+                                                </c:when>
+
+                                                <c:when test="${item.status == 'APPROVED'}">
+                                                    <span class="status ok cancel-status-badge">
                                                         승인 완료
-                                                    </c:when>
-                                                    <c:when test="${item.status == 'REJECTED'}">
+                                                    </span>
+                                                </c:when>
+
+                                                <c:when test="${item.status == 'REJECTED'}">
+                                                    <span class="status reject cancel-status-badge">
                                                         반려
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        ${item.status}
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
+                                                    </span>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    <span class="status cancel-status-badge">
+                                                        <c:out value="${item.status}"/>
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </header>
 
                                         <%-- 수정: 정보 항목을 동일한 열과 간격으로 정렬한다. --%>

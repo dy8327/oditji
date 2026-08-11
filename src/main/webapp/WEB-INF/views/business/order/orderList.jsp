@@ -101,7 +101,15 @@
                                             <c:when test="${order.orderStatus eq 'CANCEL_REQUEST'}">
                                                 <span class="status waiting">취소 요청 중</span>
                                             </c:when>
-                                            <c:when test="${order.orderStatus eq 'CANCELED'}">
+                                            <%--
+                                                =========================================================
+                                                [주문 취소 상태 표시 통합]
+                                                전체 취소(CANCELED)와 부분 취소(PARTIAL_CANCELED)는
+                                                사업자 주문 현황에서는 동일하게 "주문 취소"로 표시한다.
+                                                =========================================================
+                                            --%>
+                                            <c:when test="${order.orderStatus eq 'CANCELED'
+                                                        or order.orderStatus eq 'PARTIAL_CANCELED'}">
                                                 <span class="status">주문 취소</span>
                                             </c:when>
                                             <c:otherwise>
