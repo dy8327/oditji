@@ -225,6 +225,130 @@
 }
 
 /* =====================================================
+   [사업자 대시보드 사업자 정보 영역 디자인 수정]
+   Hero 우측의 사업자명 / 등급 / 승인 상태를
+   기존 사업자 페이지의 다크톤 디자인에 맞춰 정리한다.
+   다른 페이지와 충돌하지 않도록
+   .business-wrap .business-hero 내부로 범위를 제한한다.
+   ===================================================== */
+
+.business-wrap .business-hero .hero-right {
+  flex-shrink: 0;
+  min-width: 300px;
+}
+
+/* 사업자 정보 전체 카드 */
+.business-wrap .business-hero .business-info {
+  width: 100%;
+  min-width: 300px;
+  padding: 22px 24px;
+
+  background: var(--biz-surface-2);
+  border: 1px solid var(--biz-border-soft);
+  border-radius: var(--biz-radius-md);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 사업자 정보 한 줄 */
+.business-wrap .business-hero .business-info-item {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--biz-border-soft);
+}
+
+/* 마지막 항목의 구분선 제거 */
+.business-wrap .business-hero .business-info-item:last-child {
+  border-bottom: 0;
+}
+
+/* 사업자명 / 등급 / 상태 라벨 */
+.business-wrap .business-hero .business-info-label {
+  flex-shrink: 0;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--biz-text-dim);
+}
+
+/* 사업자명 */
+.business-wrap .business-hero .business-info-value {
+  max-width: 190px;
+
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--biz-text);
+
+  text-align: right;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 사업자 등급 */
+.business-wrap .business-hero .business-info-grade {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 5px 10px;
+
+  color: var(--biz-point);
+  background: var(--biz-point-bg);
+
+  border: 1px solid rgba(94, 163, 255, 0.25);
+  border-radius: var(--biz-radius-pill);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* 승인 상태 영역 */
+.business-wrap .business-hero .business-info-status-item {
+  padding-bottom: 8px;
+}
+
+/* 승인된 사업자 배지 */
+.business-wrap .business-hero .business-approved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 11px;
+
+  color: var(--biz-success);
+  background: var(--biz-success-bg);
+
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: var(--biz-radius-pill);
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 승인 상태 앞의 작은 초록색 표시 */
+.business-wrap .business-hero .business-approved-dot {
+  width: 6px;
+  height: 6px;
+
+  background: var(--biz-success);
+  border-radius: 50%;
+
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+}
+
+/* =====================================================
    Summary Card
    ===================================================== */
 
@@ -5182,4 +5306,87 @@
   .business-wrap .analysis-circle-area {
     padding: 8px 0;
   }
+}
+
+/* =========================================================
+   [수정] 정산 관리 - 정산 요청 성공 알림
+
+   settlementMain.jsp 전용 성공 메시지 디자인입니다.
+   settlement-alert 클래스로 범위를 제한하여
+   상품/이벤트/배송/취소환불 등 다른 사업자 페이지의
+   기존 알림 스타일에는 영향을 주지 않습니다.
+   ========================================================= */
+
+.settlement-alert {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 15px 18px;
+
+  box-sizing: border-box;
+
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+/* [수정] 정산 요청 성공 상태 */
+.settlement-alert-success {
+  background-color: rgba(67, 160, 71, 0.1);
+  border-color: rgba(76, 175, 80, 0.42);
+}
+
+/* [수정] 성공 체크 아이콘 */
+.settlement-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+  background-color: #38863c;
+
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* [수정] 성공 메시지 텍스트 영역 */
+.settlement-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* [수정] 성공 메시지 제목 */
+.settlement-alert-title {
+  display: block;
+
+  margin: 0 0 4px;
+
+  color: #81c784;
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* [수정] 성공 메시지 안내 문구 */
+.settlement-alert-message {
+  margin: 0;
+
+  color: #d7ead8;
+
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
