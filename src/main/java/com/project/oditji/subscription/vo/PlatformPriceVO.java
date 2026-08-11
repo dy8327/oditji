@@ -17,8 +17,14 @@ public class PlatformPriceVO {
     /** 정가 */
     private Integer regularPrice;
 
-    /** 현재 적용 가능한 최저가(할인가 vs 정가 중 낮은 값) */
+    /** 현재 적용 가능한 최저가(사용자가 선택한 할인 조건에 부합하는 할인가, 없으면 정가) */
     private Integer bestPrice;
+
+    /** 할인이 적용됐을 때의 출처(카드사/통신사/멤버십명). 정가가 그대로 적용된 경우 null */
+    private String discountSource;
+
+    /** 할인이 적용됐을 때의 혜택 제목(OTT_DISCOUNT_INFO.TITLE). 정가가 그대로 적용된 경우 null */
+    private String discountTitle;
 
     public String getPlatformCode() {
         return platformCode;
@@ -50,5 +56,31 @@ public class PlatformPriceVO {
 
     public void setBestPrice(Integer bestPrice) {
         this.bestPrice = bestPrice;
+    }
+
+    public String getDiscountSource() {
+        return discountSource;
+    }
+
+    public void setDiscountSource(String discountSource) {
+        this.discountSource = discountSource;
+    }
+
+    public String getDiscountTitle() {
+        return discountTitle;
+    }
+
+    public void setDiscountTitle(String discountTitle) {
+        this.discountTitle = discountTitle;
+    }
+
+    /** 정가 대비 할인율(%). 할인이 적용되지 않았으면 null */
+    public Integer getDiscountRate() {
+        if (regularPrice != null && bestPrice != null
+                && regularPrice > 0 && bestPrice < regularPrice) {
+            double rate = ((double) (regularPrice - bestPrice) / regularPrice) * 100;
+            return (int) Math.round(rate);
+        }
+        return null;
     }
 }

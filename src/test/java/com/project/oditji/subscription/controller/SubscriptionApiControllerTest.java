@@ -20,6 +20,7 @@ import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
+import com.project.oditji.subscription.vo.SubscriptionCalculateRequestVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
@@ -110,15 +111,23 @@ class SubscriptionApiControllerTest {
     }
 
     @Test
-    void calculateShouldDelegateToService() {
+    void calculateShouldDelegateToServiceWithFilterConditions() {
         List<ContentWishItemVO> wishItemList = List.of(new ContentWishItemVO());
+        SubscriptionCalculateRequestVO request = new SubscriptionCalculateRequestVO();
+        request.setWishItemList(wishItemList);
+        request.setTelecomCode("KT");
+        request.setCardCompany("현대카드");
+        request.setMembershipName("네이버");
+
         SubscriptionCalculationResultVO expected = new SubscriptionCalculationResultVO();
-        when(subscriptionCalculatorService.calculate(wishItemList))
+        when(subscriptionCalculatorService.calculate(
+                wishItemList, "KT", "현대카드", "네이버"))
                 .thenReturn(expected);
 
-        SubscriptionCalculationResultVO result = controller.calculate(wishItemList);
+        SubscriptionCalculationResultVO result = controller.calculate(request);
 
         assertSame(expected, result);
-        verify(subscriptionCalculatorService).calculate(wishItemList);
+        verify(subscriptionCalculatorService).calculate(
+                wishItemList, "KT", "현대카드", "네이버");
     }
 }

@@ -18,9 +18,32 @@
     var wishlistCountEl = document.getElementById("subCalcWishlistCount");
     var calculateBtn = document.getElementById("subCalcCalculateBtn");
     var resultPanel = document.getElementById("subCalcResultPanel");
+    var cardSelect = document.getElementById("subCalcCardSelect");
+    var membershipSelect = document.getElementById("subCalcMembershipSelect");
 
     var wishlist = [];
     var searchDebounceTimer = null;
+    var hasCalculatedOnce = false;
+
+    function selectedTelecomCode() {
+        var checked = document.querySelector('input[name="subCalcTelecom"]:checked');
+        return checked ? checked.value : "";
+    }
+
+    /* 필터를 바꾸면(이미 한 번 계산한 상태라면) 바뀐 조건으로 바로 다시 계산해서
+       "조건 선택 -> 즉시 반영" 흐름을 만든다. */
+    function onFilterChanged() {
+        if (hasCalculatedOnce && wishlist.length > 0) {
+            runCalculate();
+        }
+    }
+
+    document.querySelectorAll('input[name="subCalcTelecom"]').forEach(
+            function (radio) {
+        radio.addEventListener("change", onFilterChanged);
+    });
+    cardSelect.addEventListener("change", onFilterChanged);
+    membershipSelect.addEventListener("change", onFilterChanged);
 
     function wishlistKey(item) {
         return item.tmdbId + "_" + item.contentType;
@@ -182,7 +205,9 @@
 
     /* ---------- 계산 ---------- */
 
-    calculateBtn.addEventListener("click", function () {
+    calculateBtn.addEventListener("click", runCalculate);
+
+    function runCalculate() {
         if (wishlist.length === 0) {
             return;
         }
@@ -190,13 +215,20 @@
         resultPanel.innerHTML =
                 '<p class="sub-calc-result-placeholder">계산 중입니다...</p>';
 
+        var requestBody = {
+            wishItemList: wishlist,
+            telecomCode: selectedTelecomCode(),
+            cardCompany: cardSelect.value,
+            membershipName: membershipSelect.value
+        };
+
         fetch(calculateUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             },
-            body: JSON.stringify(wishlist)
+            body: JSON.stringify(requestBody)
         })
             .then(function (res) {
                 if (!res.ok) {
@@ -204,12 +236,15 @@
                 }
                 return res.json();
             })
-            .then(renderResult)
+            .then(function (result) {
+                hasCalculatedOnce = true;
+                renderResult(result);
+            })
             .catch(function () {
                 resultPanel.innerHTML =
                         '<p class="sub-calc-result-placeholder">계산 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.</p>';
             });
-    });
+    }
 
     function renderResult(result) {
         var selected = result.selectedPlatformList || [];
@@ -222,15 +257,37 @@
             return;
         }
 
-        var savings = (result.allPlatformMonthlyPrice || 0)
-                - (result.totalMonthlyPrice || 0);
+        var totalRegular = result.totalRegularMonthlyPrice || 0;
+        var totalDiscounted = result.totalMonthlyPrice || 0;
+        var savings = totalRegular - totalDiscounted;
 
         var platformsHtml = selected.map(function (platform) {
-            return '<li class="sub-calc-result-platform">'
-                    + '<span class="sub-calc-result-platform__name">'
-                    + escapeHtml(platform.platformName) + '</span>'
+            var hasDiscount = platform.discountSource
+                    && platform.bestPrice < platform.regularPrice;
+
+            var priceLine = (hasDiscount
+                    ? '<span class="sub-calc-result-platform__regular">'
+                        + Number(platform.regularPrice).toLocaleString() + '원</span>'
+                    : '')
                     + '<span class="sub-calc-result-platform__price">'
                     + Number(platform.bestPrice).toLocaleString() + '원</span>'
+                    + (hasDiscount && platform.discountRate != null
+                        ? ' <span class="sub-calc-result-platform__rate">('
+                            + platform.discountRate + '% 할인)</span>'
+                        : '');
+
+            var sourceLine = hasDiscount
+                    ? escapeHtml(platform.discountSource) + ' 적용 시'
+                    : '(기본 정가 적용)';
+
+            return '<li class="sub-calc-result-platform">'
+                    + '<div class="sub-calc-result-platform__head">'
+                    + '<span class="sub-calc-result-platform__name">'
+                    + escapeHtml(platform.platformName) + '</span>'
+                    + '<span>' + priceLine + '</span>'
+                    + '</div>'
+                    + '<span class="sub-calc-result-platform__source">'
+                    + sourceLine + '</span>'
                     + '</li>';
         }).join("");
 
@@ -251,19 +308,21 @@
 
         resultPanel.innerHTML =
                 '<div class="sub-calc-result">'
-                + '<p class="sub-calc-result__eyebrow">최저가 구독 조합</p>'
+                + '<p class="sub-calc-result__eyebrow">최저가 구독 조합 결과</p>'
                 + '<ul class="sub-calc-result-platform-list">'
                 + platformsHtml
                 + '</ul>'
                 + '<div class="sub-calc-result-total">'
-                + '<span>월 합계</span>'
-                + '<strong>'
-                + Number(result.totalMonthlyPrice).toLocaleString() + '원</strong>'
+                + '<span>월 정가 합계</span>'
+                + '<span>' + totalRegular.toLocaleString() + '원</span>'
+                + '</div>'
+                + '<div class="sub-calc-result-total sub-calc-result-total--main">'
+                + '<span>할인 적용 총 예상 금액</span>'
+                + '<strong>' + totalDiscounted.toLocaleString() + '원</strong>'
                 + '</div>'
                 + (savings > 0
                         ? '<p class="sub-calc-result-savings">'
-                            + '필요한 플랫폼을 각각 구독할 때보다 매달 '
-                            + savings.toLocaleString() + '원 절약돼요.'
+                            + '월 ' + savings.toLocaleString() + '원 절감 효과!'
                             + '</p>'
                         : '')
                 + unresolvedHtml

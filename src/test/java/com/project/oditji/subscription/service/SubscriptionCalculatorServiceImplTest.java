@@ -2,6 +2,7 @@ package com.project.oditji.subscription.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -35,7 +36,7 @@ class SubscriptionCalculatorServiceImplTest {
 
     @Test
     void emptyWishlistShouldReturnEmptyResultWithoutQueryingPrices() {
-        SubscriptionCalculationResultVO result = service.calculate(List.of());
+        SubscriptionCalculationResultVO result = service.calculate(List.of(), null, null, null);
 
         assertTrue(result.getSelectedPlatformList().isEmpty());
         assertEquals(0, result.getTotalMonthlyPrice());
@@ -51,7 +52,7 @@ class SubscriptionCalculatorServiceImplTest {
         ContentWishItemVO itemB = wishItem("Netflix", "TVING");
 
         SubscriptionCalculationResultVO result =
-                service.calculate(List.of(itemA, itemB));
+                service.calculate(List.of(itemA, itemB), null, null, null);
 
         assertEquals(Set.of("NETFLIX"), codesOf(result));
         assertEquals(17000, result.getTotalMonthlyPrice());
@@ -73,7 +74,7 @@ class SubscriptionCalculatorServiceImplTest {
         ContentWishItemVO itemB = wishItem("Netflix", "Watcha");
 
         SubscriptionCalculationResultVO result =
-                service.calculate(List.of(itemA, itemB));
+                service.calculate(List.of(itemA, itemB), null, null, null);
 
         assertEquals(Set.of("TVING", "WATCHA"), codesOf(result));
         assertEquals(13000, result.getTotalMonthlyPrice());
@@ -87,7 +88,7 @@ class SubscriptionCalculatorServiceImplTest {
         ContentWishItemVO uncovered = wishItem("Apple TV+");
 
         SubscriptionCalculationResultVO result =
-                service.calculate(List.of(covered, uncovered));
+                service.calculate(List.of(covered, uncovered), null, null, null);
 
         assertEquals(Set.of("NETFLIX"), codesOf(result));
         assertEquals(17000, result.getTotalMonthlyPrice());
@@ -105,13 +106,13 @@ class SubscriptionCalculatorServiceImplTest {
         ContentWishItemVO itemB = wishItem("TVING");
 
         SubscriptionCalculationResultVO result =
-                service.calculate(List.of(itemA, itemB));
+                service.calculate(List.of(itemA, itemB), null, null, null);
 
         assertEquals(30900, result.getAllPlatformMonthlyPrice());
     }
 
     private void stubPrices(PlatformPriceVO... prices) {
-        when(ottDiscountDAO.selectBestPriceByPlatform())
+        when(ottDiscountDAO.selectBestPriceByPlatform(any(), any(), any()))
                 .thenReturn(List.of(prices));
     }
 

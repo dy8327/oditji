@@ -36,7 +36,10 @@ public class SubscriptionCalculatorServiceImpl
 
     @Override
     public SubscriptionCalculationResultVO calculate(
-            List<ContentWishItemVO> wishItemList) {
+            List<ContentWishItemVO> wishItemList,
+            String telecomCode,
+            String cardCompany,
+            String membershipName) {
 
         SubscriptionCalculationResultVO result =
                 new SubscriptionCalculationResultVO();
@@ -48,7 +51,10 @@ public class SubscriptionCalculatorServiceImpl
         }
 
         Map<String, PlatformPriceVO> priceByCode =
-                loadPriceByCode();
+                loadPriceByCode(
+                        blankToNull(telecomCode),
+                        blankToNull(cardCompany),
+                        blankToNull(membershipName));
 
         /*
          * 각 콘텐츠를 볼 수 있는 플랫폼 중, 가격 정보가 있는 코드만 남긴다.
@@ -112,6 +118,7 @@ public class SubscriptionCalculatorServiceImpl
                         priceByCode);
 
         int totalPrice = 0;
+        int totalRegularPrice = 0;
 
         List<PlatformPriceVO> selected =
                 new ArrayList<PlatformPriceVO>();
@@ -123,18 +130,44 @@ public class SubscriptionCalculatorServiceImpl
 
             selected.add(priceVO);
             totalPrice += priceVO.getBestPrice();
+
+            if (priceVO.getRegularPrice() != null) {
+
+                totalRegularPrice += priceVO.getRegularPrice();
+            } else {
+
+                totalRegularPrice += priceVO.getBestPrice();
+            }
         }
 
         result.setSelectedPlatformList(selected);
         result.setTotalMonthlyPrice(totalPrice);
+        result.setTotalRegularMonthlyPrice(totalRegularPrice);
 
         return result;
     }
 
-    private Map<String, PlatformPriceVO> loadPriceByCode() {
+    /** 화면에서 넘어온 빈 문자열/공백을 필터 미선택(null)으로 취급한다. */
+    private String blankToNull(String value) {
+
+        if (value == null || value.trim().isEmpty()) {
+
+            return null;
+        }
+
+        return value.trim();
+    }
+
+    private Map<String, PlatformPriceVO> loadPriceByCode(
+            String telecomCode,
+            String cardCompany,
+            String membershipName) {
 
         List<PlatformPriceVO> priceList =
-                ottDiscountDAO.selectBestPriceByPlatform();
+                ottDiscountDAO.selectBestPriceByPlatform(
+                        telecomCode,
+                        cardCompany,
+                        membershipName);
 
         Map<String, PlatformPriceVO> priceByCode =
                 new LinkedHashMap<String, PlatformPriceVO>();

@@ -16,6 +16,7 @@ import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
+import com.project.oditji.subscription.vo.SubscriptionCalculateRequestVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
@@ -82,13 +83,20 @@ public class SubscriptionApiController {
         return wishItemList;
     }
 
-    /** 위시리스트를 가장 저렴하게 커버하는 OTT 구독 조합을 계산한다. */
+    /**
+     * 위시리스트를 가장 저렴하게 커버하는 OTT 구독 조합을 계산한다.
+     * request에는 위시리스트뿐 아니라 사용자가 선택한 할인 조건(통신사/카드사/멤버십)이
+     * 함께 담겨 오며, 이 조건과 일치하는 할인만 반영해 실제로 이용 가능한 가격을 산출한다.
+     */
     @PostMapping("/calculate")
     public SubscriptionCalculationResultVO calculate(
-            @RequestBody List<ContentWishItemVO> wishItemList) {
+            @RequestBody SubscriptionCalculateRequestVO request) {
 
         return subscriptionCalculatorService.calculate(
-                wishItemList);
+                request.getWishItemList(),
+                request.getTelecomCode(),
+                request.getCardCompany(),
+                request.getMembershipName());
     }
 
     private ContentWishItemVO toWishItem(

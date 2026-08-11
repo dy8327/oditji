@@ -15,8 +15,11 @@ public class SubscriptionCalculationResultVO {
     /** 최저 비용 조합에 포함된 플랫폼 목록 */
     private List<PlatformPriceVO> selectedPlatformList = new ArrayList<PlatformPriceVO>();
 
-    /** 선택된 플랫폼들의 월 구독료 합계 */
+    /** 선택된 플랫폼들의 월 구독료 합계(할인 적용) */
     private int totalMonthlyPrice;
+
+    /** 선택된 플랫폼들의 정가 합계(할인 미적용 기준, 절감 효과 비교용) */
+    private int totalRegularMonthlyPrice;
 
     /** 모든 플랫폼을 각각 구독했을 때의 합계(비교용) */
     private int allPlatformMonthlyPrice;
@@ -41,6 +44,14 @@ public class SubscriptionCalculationResultVO {
 
     public void setTotalMonthlyPrice(int totalMonthlyPrice) {
         this.totalMonthlyPrice = totalMonthlyPrice;
+    }
+
+    public int getTotalRegularMonthlyPrice() {
+        return totalRegularMonthlyPrice;
+    }
+
+    public void setTotalRegularMonthlyPrice(int totalRegularMonthlyPrice) {
+        this.totalRegularMonthlyPrice = totalRegularMonthlyPrice;
     }
 
     public int getAllPlatformMonthlyPrice() {
