@@ -538,9 +538,15 @@ public class ContentController {
                                 "releaseByDay",
                                 releaseByDay);
 
+                boolean isCurrentMonth = targetYearMonth.equals(YearMonth.from(today));
+
                 model.addAttribute(
                                 "isCurrentMonth",
-                                targetYearMonth.equals(YearMonth.from(today)));
+                                isCurrentMonth);
+
+                model.addAttribute(
+                                "todayDay",
+                                isCurrentMonth ? today.getDayOfMonth() : 0);
 
                 model.addAttribute(
                                 "prevYear",
