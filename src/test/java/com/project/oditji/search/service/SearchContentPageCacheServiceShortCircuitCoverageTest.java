@@ -1,10 +1,12 @@
 package com.project.oditji.search.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -111,8 +113,8 @@ class SearchContentPageCacheServiceShortCircuitCoverageTest {
                 "appendReleasedContent",
                 selected,
                 null,
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 12, 31),
+                LocalDate.of(2026, Month.JANUARY, 1),
+                LocalDate.of(2026, Month.DECEMBER, 31),
                 2);
 
         SearchResultVO existing = result(1L, "MOVIE", "2026-05-01");
@@ -123,8 +125,8 @@ class SearchContentPageCacheServiceShortCircuitCoverageTest {
                 "appendReleasedContent",
                 selected,
                 List.of(result(2L, "MOVIE", "2026-05-02")),
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 12, 31),
+                LocalDate.of(2026, Month.JANUARY, 1),
+                LocalDate.of(2026, Month.DECEMBER, 31),
                 1);
 
         ReflectionTestUtils.invokeMethod(
@@ -146,7 +148,7 @@ class SearchContentPageCacheServiceShortCircuitCoverageTest {
                 source,
                 1);
 
-        assertTrue(oneLimit.size() == 1);
+        assertEquals(1, oneLimit.size());
     }
 
     @Test

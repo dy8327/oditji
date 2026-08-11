@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -54,8 +55,9 @@ class SearchContentEnrichmentServiceInterruptedShortCircuitCoverageTest {
 
     @Test
     void interruptedFutureGetShouldRestoreInterruptFlagAndThrowSafeException() {
+        CountDownLatch blocker = new CountDownLatch(1);
         when(apiClient.get(anyString())).thenAnswer(invocation -> {
-            Thread.sleep(150L);
+            blocker.await();
             return new JSONObject().put("id", 1L);
         });
 
