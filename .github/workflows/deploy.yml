@@ -95,15 +95,25 @@ jobs:
           DEPLOY_OK=false
 
           for i in $(seq 1 24); do
-            if curl -fsS http://127.0.0.1/oditji/ > /dev/null; then
-              DEPLOY_OK=true
-              break
-            fi
+            STATUS_CODE="$(
+              curl \
+                -sS \
+                --resolve oditji.duckdns.org:443:127.0.0.1 \
+                -o /dev/null \
+                -w "%{http_code}" \
+                --max-time 20 \
+                https://oditji.duckdns.org/oditji/ || true
+            )"
 
-            echo "애플리케이션 시작 대기 중... ($i/24)"
+          if [[ "$STATUS_CODE" == 2* ]]; then
+            echo "애플리케이션 정상 응답: HTTP $STATUS_CODE"
+            DEPLOY_OK=true
+            break
+          fi
+
+            echo "애플리케이션 시작 대기 중... HTTP $STATUS_CODE ($i/24)"
             sleep 5
           done
-
           if [ "$DEPLOY_OK" != "true" ]; then
             echo "배포 확인 실패"
 
@@ -140,34 +150,40 @@ jobs:
           echo "===== ODITJI WARM-UP START ====="
 
           WARMUP_URLS=(
-            "http://127.0.0.1/oditji/"
-            "http://127.0.0.1/oditji/member/login"
-            "http://127.0.0.1/oditji/member/join"
-            "http://127.0.0.1/oditji/search"
-            "http://127.0.0.1/oditji/content/list?type=all&page=1"
-            "http://127.0.0.1/oditji/goods/list?type=all"
+            "https://oditji.duckdns.org/oditji/"
+            "https://oditji.duckdns.org/oditji/member/login"
+            "https://oditji.duckdns.org/oditji/member/join"
+            "https://oditji.duckdns.org/oditji/search"
+            "https://oditji.duckdns.org/oditji/content/list?type=all&page=1"
+            "https://oditji.duckdns.org/oditji/goods/list?type=all"
           )
 
           for pass in 1 2; do
             echo "Warm-up pass $pass"
 
             for url in "${WARMUP_URLS[@]}"; do
+              START_TIME=$(date +%s%3N)
+
               STATUS_CODE="$(
                 curl \
                   -sS \
+                  --resolve oditji.duckdns.org:443:127.0.0.1 \
                   -o /dev/null \
                   -w "%{http_code}" \
-                  --max-time 20 \
+                  --max-time 30 \
                   -A "ODITJI-Deploy-Warmup/1.0" \
                   "$url" || true
               )"
 
+              END_TIME=$(date +%s%3N)
+              ELAPSED=$((END_TIME - START_TIME))
+
               case "$STATUS_CODE" in
-                2*|3*)
-                  echo "[WARM-UP OK] $STATUS_CODE $url"
+                2*)
+                  echo "[WARM-UP OK] HTTP $STATUS_CODE / ${ELAPSED}ms / $url"
                   ;;
                 *)
-                  echo "[WARM-UP WARN] $STATUS_CODE $url"
+                  echo "[WARM-UP WARN] HTTP $STATUS_CODE / ${ELAPSED}ms / $url"
                   ;;
               esac
             done
