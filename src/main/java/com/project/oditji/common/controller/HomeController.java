@@ -105,10 +105,10 @@ public class HomeController {
         /*
          * 신규 콘텐츠
          *
-         * 공개일(releaseDate) 내림차순으로 정렬한
-         * 최신 콘텐츠를 노출한다. "오늘의 콘텐츠"처럼
-         * 최근 30/90일로 필터링해 보충하지 않고,
-         * 전체 콘텐츠를 최신순으로 정렬해 그대로 사용한다.
+         * 공개일(releaseDate) 기준 최신순으로 노출하되,
+         * 오늘보다 3일을 초과해 미래인 콘텐츠는 제외한다.
+         * 오늘 이후 3일 이내 공개 예정작은 목록에 포함하고
+         * 화면에서 "예정작" 뱃지를 함께 표시한다.
          */
         List<SearchResultVO> newContentList =
                 searchContentPageCacheService

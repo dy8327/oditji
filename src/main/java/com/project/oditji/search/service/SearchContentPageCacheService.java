@@ -51,6 +51,8 @@ public class SearchContentPageCacheService {
     private static final String SORT_TITLE = "title";
     private static final String SORT_POPULAR = "popular";
 
+    private static final int MAIN_NEW_UPCOMING_DAYS = 3;
+
     private static final String PLATFORM_NETFLIX = "netflix";
     private static final String PLATFORM_TVING = "tving";
     private static final String PLATFORM_WAVVE = "wavve";
@@ -218,9 +220,12 @@ public class SearchContentPageCacheService {
     /**
      * 신규 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
      *
-     * 오늘의 콘텐츠(getMainTodayContent)와 달리 최근 기간으로
-     * 필터링하지 않고, 공개일(releaseDate) 내림차순으로 전체를
-     * 정렬한 뒤 상위 limit개만 사용합니다. 공개일이 같으면
+     * 공개일(releaseDate)이 오늘보다 3일을 초과해 미래인 콘텐츠는
+     * 메인 신규 콘텐츠에서 제외합니다. 오늘 이후 3일 이내 공개작은
+     * 그대로 노출하되 upcoming=true로 표시해 화면에서 "예정작"
+     * 뱃지를 붙일 수 있게 합니다.
+     *
+     * 필터링 후 공개일 내림차순으로 정렬하고, 공개일이 같으면
      * 인기도, 평점 순으로 보조 정렬합니다.
      */
     public List<SearchResultVO> getMainNewContent(
@@ -233,6 +238,45 @@ public class SearchContentPageCacheService {
                         Collections.emptyList(),
                         Collections.emptyList()
                 );
+
+        LocalDate today =
+                LocalDate.now(DateTimeUtil.KOREA_ZONE);
+
+        LocalDate upcomingEndDate =
+                today.plusDays(MAIN_NEW_UPCOMING_DAYS);
+
+        allContentList.removeIf(
+                content -> {
+
+                    LocalDate releaseDate =
+                            parseReleaseDate(
+                                    content == null
+                                            ? null
+                                            : content.getReleaseDate()
+                            );
+
+                    return releaseDate != null
+                            && releaseDate.isAfter(upcomingEndDate);
+                }
+        );
+
+        for (SearchResultVO content : allContentList) {
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content == null
+                                    ? null
+                                    : content.getReleaseDate()
+                    );
+
+            if (content != null) {
+                content.setUpcoming(
+                        releaseDate != null
+                                && releaseDate.isAfter(today)
+                                && !releaseDate.isAfter(upcomingEndDate)
+                );
+            }
+        }
 
         allContentList.sort(
                 createLatestComparator()

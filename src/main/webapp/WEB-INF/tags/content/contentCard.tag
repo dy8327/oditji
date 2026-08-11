@@ -28,6 +28,9 @@
 <%@ attribute name="scorePositiveOnly"
               required="false"
               type="java.lang.Boolean" %>
+<%@ attribute name="showUpcomingBadge"
+              required="false"
+              type="java.lang.Boolean" %>
 <%@ attribute name="showFavoriteButton"
               required="false"
               type="java.lang.Boolean" %>
@@ -53,6 +56,7 @@
 <c:set var="moreVariant" value="${resolvedVariant eq 'more'}" />
 <c:set var="gridVariant" value="${resolvedVariant eq 'grid'}" />
 <c:set var="sidebarVariant" value="${resolvedVariant eq 'sidebar'}" />
+<c:set var="resolvedShowUpcomingBadge" value="${showUpcomingBadge eq true}" />
 
 <%--
     [리팩터링] 콘텐츠 종류(영화/드라마/애니메이션/예능/다큐멘터리) 뱃지 라벨과 색상 클래스는
@@ -421,6 +425,12 @@
 
         <common:ageRatingBadge ageRating="${content.ageRating}"
                                outerClass="${ageClass}" />
+
+        <c:if test="${resolvedShowUpcomingBadge and content.upcoming}">
+            <span class="content-upcoming-badge">
+                예정작
+            </span>
+        </c:if>
 
     </div>
 
