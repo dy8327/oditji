@@ -578,9 +578,10 @@ public class MemberController {
                 Long memberNo = loginMember.getMemberNo();
 
                 // 찜한 콘텐츠 + 찜한 상품(굿즈) 합산 개수
-                int favoriteContentCount = favoriteService.selectFavoriteList(memberNo).size();
-                int favoriteGoodsCount = wishService.selectWishList(memberNo).size();
+                int favoriteContentCount = favoriteService.getFavoriteCount(memberNo);
+                int favoriteGoodsCount = wishService.getWishCount(memberNo);
                 model.addAttribute("favoriteCount", favoriteContentCount + favoriteGoodsCount);
+                
 
                 // 주문내역 개수
                 model.addAttribute("orderCount", orderService.getOrderCount(memberNo));

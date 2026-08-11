@@ -65,6 +65,16 @@ public class WishServiceImpl
     }
 
     @Override
+        public int getWishCount(Long memberNo) {
+
+        if (memberNo == null) {
+                return 0;
+        }
+
+        return wishDAO.countWishByMemberNo(memberNo);
+        }
+
+    @Override
     public List<GoodsVO> selectWishList(
             Long memberNo) {
 

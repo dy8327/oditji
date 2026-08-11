@@ -502,8 +502,8 @@ class MemberControllerRemainingCoverageTest {
     void mypageShouldCoverNonSocialRegularMemberBranch() {
         MemberVO normal = member(105L, "USER", "회원", "닉");
         MockHttpSession normalSession = session(normal);
-        when(favoriteService.selectFavoriteList(105L)).thenReturn(List.of());
-        when(wishService.selectWishList(105L)).thenReturn(List.of());
+        when(favoriteService.getFavoriteCount(105L)).thenReturn(0);
+        when(wishService.getWishCount(105L)).thenReturn(0);
         ExtendedModelMap model = new ExtendedModelMap();
 
         assertEquals("member/mypage", controller.mypage(normalSession, model));

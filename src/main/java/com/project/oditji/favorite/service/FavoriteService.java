@@ -15,6 +15,8 @@ public interface FavoriteService {
 
     List<ContentVO> selectFavoriteList(Long memberNo);
 
+    int getFavoriteCount(Long memberNo);
+
     /**
      * 내일 개봉·공개하는 콘텐츠를 찜한 회원 전원에게 알림을 생성합니다.
      *
