@@ -857,7 +857,9 @@ public class BusinessController {
          * =========================================================
          */
         @GetMapping("/settlement/main")
-        public String settlement(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        public String settlement(
+                        @RequestParam(name = "cycle", defaultValue = "this") String cycle,
+                        HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
                 // 로그인 사업자의 정산 예정 정보를 조회한다.
                 BusinessVO business = getLoginBusiness(session, redirectAttributes);
@@ -866,8 +868,10 @@ public class BusinessController {
                 }
 
                 model.addAttribute(MODEL_BUSINESS, business);
+                String settlementCycle = "next".equalsIgnoreCase(cycle) ? "next" : "this";
+                model.addAttribute("settlementCycle", settlementCycle);
                 model.addAttribute("settlementSummary",
-                                businessService.getMonthlySettlementSummary(business.getBusinessNo()));
+                                businessService.getSettlementSummary(business.getBusinessNo(), settlementCycle));
                 model.addAttribute("settlementAccount", businessService.getSettlementAccount(business.getBusinessNo()));
                 model.addAttribute(MODEL_ACTIVE_MENU, ACTIVE_MENU_SETTLEMENT);
 
