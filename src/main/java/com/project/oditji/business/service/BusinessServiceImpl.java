@@ -2,6 +2,7 @@ package com.project.oditji.business.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,6 +54,9 @@ public class BusinessServiceImpl
                 implements BusinessService {
 
         private static final Logger log = LoggerFactory.getLogger(BusinessServiceImpl.class);
+
+        /* [SonarQube] 정산 기준일은 배포 서버 타임존과 무관하게 한국 시간을 사용한다. */
+        private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
         private static final long MAX_IMAGE_SIZE = 10L * 1024L * 1024L;
 
@@ -412,7 +416,7 @@ public class BusinessServiceImpl
                         throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
                 }
 
-                LocalDate currentMonth = LocalDate.now().withDayOfMonth(1);
+                LocalDate currentMonth = LocalDate.now(SERVICE_ZONE).withDayOfMonth(1);
                 boolean nextCycle = "next".equalsIgnoreCase(cycle);
                 LocalDate startDate = nextCycle ? currentMonth : currentMonth.minusMonths(1);
                 LocalDate endDate = startDate.plusMonths(1);
