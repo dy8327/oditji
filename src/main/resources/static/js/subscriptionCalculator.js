@@ -1,0 +1,331 @@
+(function () {
+    "use strict";
+
+    var section = document.getElementById("subCalcSection");
+
+    if (!section) {
+        return;
+    }
+
+    var searchUrl = section.dataset.searchUrl;
+    var calculateUrl = section.dataset.calculateUrl;
+    var imageBaseUrl = section.dataset.imageBaseUrl;
+
+    var searchInput = document.getElementById("subCalcSearchInput");
+    var searchResultsBox = document.getElementById("subCalcSearchResults");
+    var wishlistEl = document.getElementById("subCalcWishlist");
+    var wishlistEmptyEl = document.getElementById("subCalcWishlistEmpty");
+    var wishlistCountEl = document.getElementById("subCalcWishlistCount");
+    var calculateBtn = document.getElementById("subCalcCalculateBtn");
+    var resultPanel = document.getElementById("subCalcResultPanel");
+    var cardSelect = document.getElementById("subCalcCardSelect");
+    var membershipSelect = document.getElementById("subCalcMembershipSelect");
+
+    var wishlist = [];
+    var searchDebounceTimer = null;
+    var hasCalculatedOnce = false;
+
+    function selectedTelecomCode() {
+        var checked = document.querySelector('input[name="subCalcTelecom"]:checked');
+        return checked ? checked.value : "";
+    }
+
+    /* 필터를 바꾸면(이미 한 번 계산한 상태라면) 바뀐 조건으로 바로 다시 계산해서
+       "조건 선택 -> 즉시 반영" 흐름을 만든다. */
+    function onFilterChanged() {
+        if (hasCalculatedOnce && wishlist.length > 0) {
+            runCalculate();
+        }
+    }
+
+    document.querySelectorAll('input[name="subCalcTelecom"]').forEach(
+            function (radio) {
+        radio.addEventListener("change", onFilterChanged);
+    });
+    cardSelect.addEventListener("change", onFilterChanged);
+    membershipSelect.addEventListener("change", onFilterChanged);
+
+    function wishlistKey(item) {
+        return item.tmdbId + "_" + item.contentType;
+    }
+
+    function isAlreadyInWishlist(item) {
+        var key = wishlistKey(item);
+        return wishlist.some(function (existing) {
+            return wishlistKey(existing) === key;
+        });
+    }
+
+    function posterUrl(posterPath) {
+        if (!posterPath) {
+            return "";
+        }
+        return imageBaseUrl + posterPath;
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+    }
+
+    /* ---------- 검색 ---------- */
+
+    searchInput.addEventListener("input", function () {
+        var keyword = searchInput.value.trim();
+
+        window.clearTimeout(searchDebounceTimer);
+
+        if (keyword.length === 0) {
+            hideSearchResults();
+            return;
+        }
+
+        searchDebounceTimer = window.setTimeout(function () {
+            runSearch(keyword);
+        }, 250);
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!searchResultsBox.contains(event.target)
+                && event.target !== searchInput) {
+            hideSearchResults();
+        }
+    });
+
+    function runSearch(keyword) {
+        fetch(searchUrl + "?keyword=" + encodeURIComponent(keyword),
+                { headers: { "Accept": "application/json" } })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("검색 요청 실패: " + res.status);
+                }
+                return res.json();
+            })
+            .then(function (results) {
+                renderSearchResults(results || []);
+            })
+            .catch(function () {
+                renderSearchResults([]);
+            });
+    }
+
+    function renderSearchResults(results) {
+        if (results.length === 0) {
+            searchResultsBox.innerHTML =
+                    '<p class="sub-calc-search-empty">검색 결과가 없어요.</p>';
+            searchResultsBox.hidden = false;
+            return;
+        }
+
+        var html = results.map(function (item, index) {
+            var already = isAlreadyInWishlist(item);
+            return '<button type="button" class="sub-calc-search-item"'
+                    + ' data-index="' + index + '"'
+                    + (already ? ' disabled' : '') + '>'
+                    + '<img class="sub-calc-search-item__poster"'
+                    + ' src="' + escapeHtml(posterUrl(item.posterPath)) + '"'
+                    + ' alt="" loading="lazy">'
+                    + '<span class="sub-calc-search-item__title">'
+                    + escapeHtml(item.title) + '</span>'
+                    + (already
+                            ? '<span class="sub-calc-search-item__added">담음</span>'
+                            : '<span class="sub-calc-search-item__add">+ 담기</span>')
+                    + '</button>';
+        }).join("");
+
+        searchResultsBox.innerHTML = html;
+        searchResultsBox.hidden = false;
+
+        searchResultsBox.querySelectorAll(".sub-calc-search-item").forEach(
+                function (btn) {
+            btn.addEventListener("click", function () {
+                var index = Number(btn.dataset.index);
+                addToWishlist(results[index]);
+                hideSearchResults();
+                searchInput.value = "";
+            });
+        });
+    }
+
+    function hideSearchResults() {
+        searchResultsBox.hidden = true;
+        searchResultsBox.innerHTML = "";
+    }
+
+    /* ---------- 위시리스트 ---------- */
+
+    function addToWishlist(item) {
+        if (isAlreadyInWishlist(item)) {
+            return;
+        }
+        wishlist.push(item);
+        renderWishlist();
+    }
+
+    function removeFromWishlist(index) {
+        wishlist.splice(index, 1);
+        renderWishlist();
+    }
+
+    function renderWishlist() {
+        wishlistCountEl.textContent = String(wishlist.length);
+        calculateBtn.disabled = wishlist.length === 0;
+
+        if (wishlist.length === 0) {
+            wishlistEl.innerHTML = "";
+            wishlistEl.appendChild(wishlistEmptyEl);
+            return;
+        }
+
+        var html = wishlist.map(function (item, index) {
+            return '<li class="sub-calc-wishlist__item">'
+                    + '<img class="sub-calc-wishlist__poster"'
+                    + ' src="' + escapeHtml(posterUrl(item.posterPath)) + '"'
+                    + ' alt="" loading="lazy">'
+                    + '<span class="sub-calc-wishlist__title">'
+                    + escapeHtml(item.title) + '</span>'
+                    + '<button type="button" class="sub-calc-wishlist__remove"'
+                    + ' data-index="' + index + '" aria-label="위시리스트에서 제거">'
+                    + '&times;</button>'
+                    + '</li>';
+        }).join("");
+
+        wishlistEl.innerHTML = html;
+
+        wishlistEl.querySelectorAll(".sub-calc-wishlist__remove").forEach(
+                function (btn) {
+            btn.addEventListener("click", function () {
+                removeFromWishlist(Number(btn.dataset.index));
+            });
+        });
+    }
+
+    /* ---------- 계산 ---------- */
+
+    calculateBtn.addEventListener("click", runCalculate);
+
+    function runCalculate() {
+        if (wishlist.length === 0) {
+            return;
+        }
+
+        resultPanel.innerHTML =
+                '<p class="sub-calc-result-placeholder">계산 중입니다...</p>';
+
+        var requestBody = {
+            wishItemList: wishlist,
+            telecomCode: selectedTelecomCode(),
+            cardCompany: cardSelect.value,
+            membershipName: membershipSelect.value
+        };
+
+        fetch(calculateUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("계산 요청 실패: " + res.status);
+                }
+                return res.json();
+            })
+            .then(function (result) {
+                hasCalculatedOnce = true;
+                renderResult(result);
+            })
+            .catch(function () {
+                resultPanel.innerHTML =
+                        '<p class="sub-calc-result-placeholder">계산 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.</p>';
+            });
+    }
+
+    function renderResult(result) {
+        var selected = result.selectedPlatformList || [];
+
+        if (selected.length === 0) {
+            resultPanel.innerHTML =
+                    '<p class="sub-calc-result-placeholder">'
+                    + '담은 작품의 가격 정보를 찾을 수 없어요.'
+                    + '</p>';
+            return;
+        }
+
+        var totalRegular = result.totalRegularMonthlyPrice || 0;
+        var totalDiscounted = result.totalMonthlyPrice || 0;
+        var savings = totalRegular - totalDiscounted;
+
+        var platformsHtml = selected.map(function (platform) {
+            var hasDiscount = platform.discountSource
+                    && platform.bestPrice < platform.regularPrice;
+
+            var priceLine = (hasDiscount
+                    ? '<span class="sub-calc-result-platform__regular">'
+                        + Number(platform.regularPrice).toLocaleString() + '원</span>'
+                    : '')
+                    + '<span class="sub-calc-result-platform__price">'
+                    + Number(platform.bestPrice).toLocaleString() + '원</span>'
+                    + (hasDiscount && platform.discountRate != null
+                        ? ' <span class="sub-calc-result-platform__rate">('
+                            + platform.discountRate + '% 할인)</span>'
+                        : '');
+
+            var sourceLine = hasDiscount
+                    ? escapeHtml(platform.discountSource) + ' 적용 시'
+                    : '(기본 정가 적용)';
+
+            return '<li class="sub-calc-result-platform">'
+                    + '<div class="sub-calc-result-platform__head">'
+                    + '<span class="sub-calc-result-platform__name">'
+                    + escapeHtml(platform.platformName) + '</span>'
+                    + '<span>' + priceLine + '</span>'
+                    + '</div>'
+                    + '<span class="sub-calc-result-platform__source">'
+                    + sourceLine + '</span>'
+                    + '</li>';
+        }).join("");
+
+        var unresolved = result.unresolvedItemList || [];
+        var unresolvedHtml = "";
+
+        if (unresolved.length > 0) {
+            unresolvedHtml =
+                    '<div class="sub-calc-result-unresolved">'
+                    + '<p class="sub-calc-result-unresolved__title">가격 정보가 없어 제외된 작품</p>'
+                    + '<ul>'
+                    + unresolved.map(function (item) {
+                        return '<li>' + escapeHtml(item.title) + '</li>';
+                    }).join("")
+                    + '</ul>'
+                    + '</div>';
+        }
+
+        resultPanel.innerHTML =
+                '<div class="sub-calc-result">'
+                + '<p class="sub-calc-result__eyebrow">최저가 구독 조합 결과</p>'
+                + '<ul class="sub-calc-result-platform-list">'
+                + platformsHtml
+                + '</ul>'
+                + '<div class="sub-calc-result-total">'
+                + '<span>월 정가 합계</span>'
+                + '<span>' + totalRegular.toLocaleString() + '원</span>'
+                + '</div>'
+                + '<div class="sub-calc-result-total sub-calc-result-total--main">'
+                + '<span>할인 적용 총 예상 금액</span>'
+                + '<strong>' + totalDiscounted.toLocaleString() + '원</strong>'
+                + '</div>'
+                + (savings > 0
+                        ? '<p class="sub-calc-result-savings">'
+                            + '월 ' + savings.toLocaleString() + '원 절감 효과!'
+                            + '</p>'
+                        : '')
+                + unresolvedHtml
+                + '</div>';
+    }
+})();

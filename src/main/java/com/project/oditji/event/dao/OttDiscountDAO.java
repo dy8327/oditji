@@ -1,6 +1,7 @@
 package com.project.oditji.event.dao;
 
 import com.project.oditji.event.vo.OttDiscountVO;
+import com.project.oditji.subscription.vo.PlatformPriceVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -49,4 +50,21 @@ public interface OttDiscountDAO {
 
     // 만료된 할인 정보 일괄 비활성화
     int updateExpiredDiscounts();
+
+    /*
+     * [수정] 플랫폼별로 "사용자가 실제로 적용받을 수 있는" 최저가를 산출해 반환한다.
+     * telecomCode/cardCompany/membershipName은 사용자가 화면에서 선택한 조건이며,
+     * OTT_DISCOUNT_INFO.CARD_OR_COMPANY와 정확히 일치하는 할인만 적용 후보로 인정한다.
+     * 셋 다 null/빈 값이면 어떤 조건부 할인도 적용하지 않고 정가를 반환한다.
+     * 위시리스트에 담긴 콘텐츠들을 가장 저렴하게 커버하는 OTT 조합을 계산할 때
+     * 가격 소스로 사용한다.
+     */
+    List<PlatformPriceVO> selectBestPriceByPlatform(@Param("telecomCode") String telecomCode,
+            @Param("cardCompany") String cardCompany, @Param("membershipName") String membershipName);
+
+    /*
+     * [OTT 구독 조합 계산기 추가] 필터 드롭다운/라디오에 쓸 카테고리별
+     * (TELECOM/CARD/MEMBERSHIP) CARD_OR_COMPANY 후보 목록을 조회한다.
+     */
+    List<String> selectDiscountProviderNames(@Param("category") String category);
 }

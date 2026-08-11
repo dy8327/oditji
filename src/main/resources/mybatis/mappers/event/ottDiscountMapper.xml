@@ -214,4 +214,105 @@
           AND IS_ACTIVE = 'Y'
     </update>
 
+    <!-- [수정] 플랫폼별 "실제 이용 가능한" 최저가 조회.
+         과거에는 IS_ACTIVE인 모든 할인 행을 무조건 MIN()으로 비교해서, 사용자가
+         실제로는 해당되지 않는 특수 제휴 혜택(예: 특정 통신사 초고가 요금제 무료 결합)까지
+         전부 후보에 넣는 바람에 최저가가 비현실적인 0원으로 나오는 문제가 있었다.
+         이제는 사용자가 화면에서 선택한 통신사/카드사/멤버십 조건과 CARD_OR_COMPANY가
+         정확히 일치하는 행만 "적용 가능한 할인"으로 인정하고, 조건을 아무것도 선택하지
+         않았다면(모든 파라미터 NULL) 정가만 적용한다. 어떤 할인을 적용했는지 알 수 있도록
+         할인 출처(카드/통신사/멤버십명, 혜택 제목)도 함께 내려준다. -->
+    <select id="selectBestPriceByPlatform" resultType="com.project.oditji.subscription.vo.PlatformPriceVO">
+        WITH BASE AS (
+            SELECT
+                PLATFORM_CODE,
+                PLATFORM_NAME,
+                CATEGORY,
+                TITLE,
+                CARD_OR_COMPANY,
+                REGULAR_PRICE,
+                DISCOUNT_PRICE
+            FROM OTT_DISCOUNT_INFO
+            WHERE IS_ACTIVE = 'Y'
+              AND REGULAR_PRICE IS NOT NULL
+              AND (START_DATE IS NULL OR START_DATE &lt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+              AND (END_DATE IS NULL OR END_DATE &gt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+        ),
+        REG AS (
+            SELECT
+                PLATFORM_CODE,
+                PLATFORM_NAME,
+                MIN(REGULAR_PRICE) AS REGULAR_PRICE
+            FROM BASE
+            GROUP BY PLATFORM_CODE, PLATFORM_NAME
+        ),
+        ELIGIBLE AS (
+            SELECT
+                PLATFORM_CODE,
+                TITLE,
+                CARD_OR_COMPANY,
+                CASE
+                    WHEN DISCOUNT_PRICE IS NOT NULL AND DISCOUNT_PRICE &lt; REGULAR_PRICE
+                        THEN DISCOUNT_PRICE
+                    ELSE REGULAR_PRICE
+                END AS EFFECTIVE_PRICE
+            FROM BASE
+            WHERE 1 = 0
+            <if test="telecomCode != null and telecomCode != ''">
+                OR (CATEGORY = 'TELECOM' AND CARD_OR_COMPANY = #{telecomCode})
+            </if>
+            <if test="cardCompany != null and cardCompany != ''">
+                OR (CATEGORY = 'CARD' AND CARD_OR_COMPANY = #{cardCompany})
+            </if>
+            <if test="membershipName != null and membershipName != ''">
+                OR (CATEGORY = 'MEMBERSHIP' AND CARD_OR_COMPANY = #{membershipName})
+            </if>
+        ),
+        RANKED AS (
+            SELECT
+                PLATFORM_CODE,
+                TITLE,
+                CARD_OR_COMPANY,
+                EFFECTIVE_PRICE,
+                ROW_NUMBER() OVER (PARTITION BY PLATFORM_CODE ORDER BY EFFECTIVE_PRICE ASC) AS RN
+            FROM ELIGIBLE
+        )
+        SELECT
+            REG.PLATFORM_CODE  AS platformCode,
+            REG.PLATFORM_NAME  AS platformName,
+            REG.REGULAR_PRICE  AS regularPrice,
+            CASE
+                WHEN R.EFFECTIVE_PRICE IS NOT NULL AND R.EFFECTIVE_PRICE &lt; REG.REGULAR_PRICE
+                    THEN R.EFFECTIVE_PRICE
+                ELSE REG.REGULAR_PRICE
+            END AS bestPrice,
+            CASE
+                WHEN R.EFFECTIVE_PRICE IS NOT NULL AND R.EFFECTIVE_PRICE &lt; REG.REGULAR_PRICE
+                    THEN R.CARD_OR_COMPANY
+                ELSE NULL
+            END AS discountSource,
+            CASE
+                WHEN R.EFFECTIVE_PRICE IS NOT NULL AND R.EFFECTIVE_PRICE &lt; REG.REGULAR_PRICE
+                    THEN R.TITLE
+                ELSE NULL
+            END AS discountTitle
+        FROM REG
+        LEFT JOIN RANKED R
+               ON R.PLATFORM_CODE = REG.PLATFORM_CODE
+              AND R.RN = 1
+        ORDER BY REG.PLATFORM_CODE
+    </select>
+
+    <!-- [OTT 구독 조합 계산기 추가] 카테고리별(TELECOM/CARD/MEMBERSHIP) 필터 선택지 조회.
+         Admin이 새 할인을 등록/삭제해도 화면 드롭다운이 항상 실제 DB 데이터를 따라가도록
+         하드코딩 대신 DISTINCT 조회로 구성한다. -->
+    <select id="selectDiscountProviderNames" resultType="string">
+        SELECT DISTINCT CARD_OR_COMPANY
+        FROM OTT_DISCOUNT_INFO
+        WHERE IS_ACTIVE = 'Y'
+          AND CATEGORY = #{category}
+          AND CARD_OR_COMPANY IS NOT NULL
+        ORDER BY CARD_OR_COMPANY
+    </select>
+
 </mapper>

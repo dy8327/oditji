@@ -116,6 +116,7 @@
                         <a href="${pageContext.request.contextPath}/event/list?period=upcoming" role="menuitem">예정</a>
                         <a href="${pageContext.request.contextPath}/event/list?period=ended" role="menuitem">종료</a>
                         <a href="${pageContext.request.contextPath}/discount/ott" role="menuitem">OTT 할인 정보</a>
+                        <a href="${pageContext.request.contextPath}/subscription/calculator" role="menuitem">구독 조합 계산기</a>
                     </div>
                 </li>
             </ul>
@@ -126,8 +127,17 @@
             header-search-toggle 버튼을 누르면 헤더 아래로 펼쳐지는 형태로 노출된다.
             (js/common.js의 initMobileSearchToggle 참고)
         --%>
-        <div class="header-search" id="headerSearch">
-            <form id="headerSearchForm" action="${pageContext.request.contextPath}/search" method="get">
+        <%--
+            data-context-path/data-member-no는 js/common.js의
+            검색 자동완성 + 최근 검색어 드롭다운(initHeaderSearchSuggestions)에서 사용한다.
+            비로그인 상태(data-member-no 없음)에서는 최근 검색어를
+            서버(SEARCH_KEYWORD_HISTORY) 대신 브라우저 저장소에 보관한다.
+        --%>
+        <div class="header-search"
+             id="headerSearch"
+             data-context-path="${pageContext.request.contextPath}"
+             data-member-no="${headerMemberNo}">
+            <form id="headerSearchForm" action="${pageContext.request.contextPath}/search" method="get" autocomplete="off">
                 <%--
                     공통 검색창에 고유 id와 label을 연결하여
                     검색 입력 목적을 보조 기술에 제공한다.
@@ -150,7 +160,11 @@
                        name="keyword"
                        value="<c:out value='${keyword}'/>"
                        placeholder="작품, 배우, 감독, 상품 검색"
-                       autocomplete="off">
+                       autocomplete="off"
+                       role="combobox"
+                       aria-expanded="false"
+                       aria-controls="headerSearchDropdown"
+                       aria-autocomplete="list">
                 <button type="submit" aria-label="검색">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -158,6 +172,16 @@
                     </svg>
                 </button>
             </form>
+
+            <%--
+                타이핑 중 콘텐츠/배우 미리보기와 포커스 시 최근 검색어를
+                함께 보여주는 드롭다운. 기본은 숨김이며 js/common.js가
+                "open" 클래스를 토글해서 펼친다.
+            --%>
+            <div class="header-search-dropdown"
+                 id="headerSearchDropdown"
+                 role="listbox"
+                 aria-label="검색 추천"></div>
         </div>
 
         <div class="header-right">

@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
 
+import com.project.oditji.content.service.ContentService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
@@ -35,6 +36,9 @@ class HomeControllerRemainingCoverageTest {
     @Mock
     private MemberPlatformService memberPlatformService;
 
+    @Mock
+    private ContentService contentService;
+
     private HomeController controller;
 
     @BeforeEach
@@ -42,7 +46,8 @@ class HomeControllerRemainingCoverageTest {
         controller =
                 new HomeController(
                         pageCacheService,
-                        memberPlatformService);
+                        memberPlatformService,
+                        contentService);
     }
 
     @Test
@@ -102,6 +107,8 @@ class HomeControllerRemainingCoverageTest {
         when(pageCacheService.getMainPopularContent(30))
                 .thenReturn(List.of());
         stubOtherSections();
+        when(contentService.getRecentlyViewedContentList(null, 20))
+                .thenReturn(List.of());
 
         ExtendedModelMap model =
                 new ExtendedModelMap();
@@ -114,6 +121,10 @@ class HomeControllerRemainingCoverageTest {
                 List.of(),
                 model.get(
                         "selectedPlatformList"));
+        assertEquals(
+                List.of(),
+                model.get(
+                        "recentlyViewedContentList"));
         assertFalse(
                 (Boolean)
                         model.get(

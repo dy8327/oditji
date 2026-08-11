@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
 
+import com.project.oditji.content.service.ContentService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
@@ -35,13 +36,17 @@ class HomeControllerCoverageTest {
     @Mock
     private MemberPlatformService memberPlatformService;
 
+    @Mock
+    private ContentService contentService;
+
     private HomeController controller;
 
     @BeforeEach
     void setUp() {
         controller = new HomeController(
                 searchContentPageCacheService,
-                memberPlatformService);
+                memberPlatformService,
+                contentService);
     }
 
     @Test
@@ -58,6 +63,8 @@ class HomeControllerCoverageTest {
                 .thenReturn(recommended);
         when(searchContentPageCacheService.getFeaturedPlatformList()).thenReturn(featuredPlatforms);
         when(searchContentPageCacheService.getTotalContentCount()).thenReturn(12345);
+        when(contentService.getRecentlyViewedContentList(null, 20))
+                .thenReturn(List.of());
 
         ExtendedModelMap model = new ExtendedModelMap();
         String view = controller.home(model, new MockHttpSession());
@@ -72,6 +79,8 @@ class HomeControllerCoverageTest {
         assertFalse((Boolean) model.get("personalizedRecommendation"));
         assertEquals(featuredPlatforms, model.get("featuredPlatformList"));
         assertEquals(12300, model.get("roundedContentCount"));
+        assertEquals(List.of(), model.get("recentlyViewedContentList"));
+        verify(contentService).getRecentlyViewedContentList(null, 20);
     }
 
     @Test

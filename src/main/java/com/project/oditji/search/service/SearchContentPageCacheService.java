@@ -1791,6 +1791,34 @@ public class SearchContentPageCacheService {
         );
     }
 
+    /**
+     * 헤더 검색창 자동완성 드롭다운용 콘텐츠/배우 미리보기입니다.
+     *
+     * 필터 없이 검색어만으로 매칭하며,
+     * getFirstPagePreview와 동일한 인기순 정렬·매칭 정보(matchType 등)를 그대로 사용합니다.
+     */
+    public List<SearchResultVO> getAutocompletePreview(
+            String keyword,
+            int limit) {
+
+        if (keyword == null
+                || keyword.trim().isEmpty()
+                || limit <= 0) {
+
+            return new ArrayList<SearchResultVO>();
+        }
+
+        return getFirstPagePreview(
+                keyword,
+                limit,
+                limit,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+    }
+
     private List<SearchResultVO> searchAll(
             String keyword,
             List<String> contentCategories,

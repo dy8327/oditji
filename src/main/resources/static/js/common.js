@@ -330,6 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initBackToTop();
     initActiveMenu();
     initHeaderSearch();
+    initHeaderSearchSuggestions();
     initMobileFilterToggle();
 });
 
@@ -694,6 +695,406 @@ function initMobileFilterToggle() {
         }
     });
 }
+/**
+ * 헤더 검색창 자동완성(콘텐츠/배우) + 최근 검색어 드롭다운.
+ *
+ * - 타이핑 중: /search/api/autocomplete로 콘텐츠/배우 미리보기를 보여준다.
+ * - 포커스(입력값 없음): 최근 검색어를 보여준다.
+ *   로그인 회원은 서버(SEARCH_KEYWORD_HISTORY)의 최근 검색어를,
+ *   비로그인 사용자는 브라우저 localStorage에 저장한 최근 검색어를 사용한다.
+ */
+function initHeaderSearchSuggestions() {
+  const container = document.getElementById("headerSearch");
+  const dropdown = document.getElementById("headerSearchDropdown");
+  const form = document.getElementById("headerSearchForm");
+  const input = document.getElementById("headerSearchKeyword");
+
+  if (!container || !dropdown || !form || !input) return;
+
+  const contextPath = container.dataset.contextPath || "";
+  const memberNo = Number(container.dataset.memberNo);
+  const isLoggedIn = Number.isFinite(memberNo) && memberNo > 0;
+
+  const POSTER_BASE_URL = "https://image.tmdb.org/t/p/w200";
+  const LOCAL_STORAGE_KEY = "oditjiRecentSearchKeywords";
+  const MAX_LOCAL_RECENT = 10;
+  const AUTOCOMPLETE_DEBOUNCE_MS = 250;
+
+  let debounceTimer = null;
+  let activeIndex = -1;
+  let currentResultItems = [];
+
+  function getLocalRecentKeywords() {
+    try {
+      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveLocalRecentKeywords(keywordList) {
+    try {
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(keywordList)
+      );
+    } catch (error) {
+      // 저장소 사용 불가(시크릿 모드 등)는 조용히 무시한다.
+    }
+  }
+
+  function addLocalRecentKeyword(keyword) {
+    const withoutDuplicate = getLocalRecentKeywords().filter(
+      (existing) => existing.toLowerCase() !== keyword.toLowerCase()
+    );
+
+    withoutDuplicate.unshift(keyword);
+
+    saveLocalRecentKeywords(withoutDuplicate.slice(0, MAX_LOCAL_RECENT));
+  }
+
+  function removeLocalRecentKeyword(keyword) {
+    saveLocalRecentKeywords(
+      getLocalRecentKeywords().filter((existing) => existing !== keyword)
+    );
+  }
+
+  async function fetchRecentKeywords() {
+    if (!isLoggedIn) {
+      return getLocalRecentKeywords();
+    }
+
+    try {
+      const res = await fetch(`${contextPath}/search/api/recent-keywords`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function deleteRecentKeyword(keyword) {
+    if (!isLoggedIn) {
+      removeLocalRecentKeyword(keyword);
+      return;
+    }
+
+    try {
+      await fetch(
+        `${contextPath}/search/api/recent-keywords?keyword=${encodeURIComponent(keyword)}`,
+        { method: "DELETE" }
+      );
+    } catch (error) {
+      // 삭제 실패 시에도 드롭다운은 계속 사용할 수 있어야 하므로 무시한다.
+    }
+  }
+
+  async function deleteAllRecentKeywords() {
+    if (!isLoggedIn) {
+      saveLocalRecentKeywords([]);
+      return;
+    }
+
+    try {
+      await fetch(`${contextPath}/search/api/recent-keywords/all`, {
+        method: "DELETE"
+      });
+    } catch (error) {
+      // 삭제 실패 시에도 드롭다운은 계속 사용할 수 있어야 하므로 무시한다.
+    }
+  }
+
+  async function fetchAutocomplete(keyword) {
+    try {
+      const res = await fetch(
+        `${contextPath}/search/api/autocomplete?keyword=${encodeURIComponent(keyword)}`
+      );
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function openDropdown() {
+    dropdown.classList.add("open");
+    input.setAttribute("aria-expanded", "true");
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove("open");
+    dropdown.innerHTML = "";
+    input.setAttribute("aria-expanded", "false");
+    activeIndex = -1;
+    currentResultItems = [];
+  }
+
+  function buildDropdownHeading(labelText, onClear) {
+    const heading = document.createElement("div");
+    heading.className = "header-search-dropdown-heading";
+
+    const label = document.createElement("span");
+    label.textContent = labelText;
+    heading.appendChild(label);
+
+    if (onClear) {
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.className = "header-search-dropdown-clear";
+      clearButton.textContent = "전체 삭제";
+      clearButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        await onClear();
+        await renderRecentKeywordSection();
+      });
+      heading.appendChild(clearButton);
+    }
+
+    return heading;
+  }
+
+  function buildResultItem(result) {
+    const item = document.createElement("div");
+    item.className = "header-search-result-item";
+    item.setAttribute("role", "option");
+
+    const posterWrap = document.createElement("div");
+    posterWrap.className = "header-search-result-poster";
+
+    if (result.posterPath) {
+      const img = document.createElement("img");
+      img.src = POSTER_BASE_URL + result.posterPath;
+      img.alt = "";
+      img.loading = "lazy";
+      posterWrap.appendChild(img);
+    }
+
+    const textWrap = document.createElement("div");
+    textWrap.className = "header-search-result-text";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "header-search-result-title";
+    titleEl.textContent = result.title || "제목 없음";
+
+    const metaEl = document.createElement("div");
+    metaEl.className = "header-search-result-meta";
+
+    if (result.matchType === "PERSON") {
+      metaEl.textContent = [result.matchedPersonRole, result.matchedPersonName]
+        .filter(Boolean)
+        .join(" ");
+    } else {
+      metaEl.textContent = result.contentType === "MOVIE" ? "영화" : "시리즈";
+    }
+
+    textWrap.appendChild(titleEl);
+    textWrap.appendChild(metaEl);
+
+    item.appendChild(posterWrap);
+    item.appendChild(textWrap);
+
+    item.addEventListener("click", () => {
+      window.location.href =
+        `${contextPath}/content/prepare?tmdbId=${encodeURIComponent(result.tmdbId)}`
+        + `&contentType=${encodeURIComponent(result.contentType)}`;
+    });
+
+    return item;
+  }
+
+  function goToKeyword(keyword) {
+    input.value = keyword;
+    closeDropdown();
+
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+  }
+
+  function buildRecentChip(keyword) {
+    const chip = document.createElement("span");
+    chip.className = "header-search-recent-chip";
+
+    const keywordSpan = document.createElement("span");
+    keywordSpan.className = "header-search-recent-chip-keyword";
+    keywordSpan.textContent = keyword;
+    keywordSpan.addEventListener("click", () => goToKeyword(keyword));
+
+    const removeSpan = document.createElement("span");
+    removeSpan.className = "header-search-recent-chip-remove";
+    removeSpan.textContent = "\u2715";
+    removeSpan.setAttribute("aria-label", `${keyword} 검색어 삭제`);
+    removeSpan.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      await deleteRecentKeyword(keyword);
+      await renderRecentKeywordSection();
+    });
+
+    chip.appendChild(keywordSpan);
+    chip.appendChild(removeSpan);
+
+    return chip;
+  }
+
+  async function renderRecentKeywordSection() {
+    const keywordList = await fetchRecentKeywords();
+
+    dropdown.innerHTML = "";
+
+    const section = document.createElement("div");
+    section.className = "header-search-dropdown-section";
+
+    section.appendChild(
+      buildDropdownHeading(
+        "최근 검색어",
+        keywordList.length > 0 ? deleteAllRecentKeywords : null
+      )
+    );
+
+    if (keywordList.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "header-search-dropdown-empty";
+      empty.textContent = "최근 검색어가 없습니다.";
+      section.appendChild(empty);
+    } else {
+      const list = document.createElement("div");
+      list.className = "header-search-recent-list";
+
+      keywordList.forEach((keyword) => {
+        list.appendChild(buildRecentChip(keyword));
+      });
+
+      section.appendChild(list);
+    }
+
+    dropdown.appendChild(section);
+    currentResultItems = [];
+    activeIndex = -1;
+    openDropdown();
+  }
+
+  async function renderAutocompleteSection(keyword) {
+    const resultList = await fetchAutocomplete(keyword);
+
+    // 응답을 받는 동안 입력값이 바뀌었으면 이전 검색어 결과는 버린다.
+    if (input.value.trim() !== keyword) {
+      return;
+    }
+
+    dropdown.innerHTML = "";
+
+    const section = document.createElement("div");
+    section.className = "header-search-dropdown-section";
+    section.appendChild(buildDropdownHeading("콘텐츠/배우", null));
+
+    if (resultList.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "header-search-dropdown-empty";
+      empty.textContent = "일치하는 콘텐츠가 없습니다.";
+      section.appendChild(empty);
+    } else {
+      resultList.forEach((result) => {
+        section.appendChild(buildResultItem(result));
+      });
+    }
+
+    dropdown.appendChild(section);
+    currentResultItems = Array.from(
+      dropdown.querySelectorAll(".header-search-result-item")
+    );
+    activeIndex = -1;
+    openDropdown();
+  }
+
+  function updateActiveItem() {
+    currentResultItems.forEach((item, index) => {
+      item.classList.toggle("is-active", index === activeIndex);
+    });
+
+    if (activeIndex >= 0) {
+      currentResultItems[activeIndex].scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  input.addEventListener("input", () => {
+    const keyword = input.value.trim();
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    if (!keyword) {
+      renderRecentKeywordSection();
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      renderAutocompleteSection(keyword);
+    }, AUTOCOMPLETE_DEBOUNCE_MS);
+  });
+
+  input.addEventListener("focus", () => {
+    const keyword = input.value.trim();
+
+    if (!keyword) {
+      renderRecentKeywordSection();
+    } else {
+      renderAutocompleteSection(keyword);
+    }
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (!dropdown.classList.contains("open")) {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      closeDropdown();
+      return;
+    }
+
+    if (currentResultItems.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      activeIndex = (activeIndex + 1) % currentResultItems.length;
+      updateActiveItem();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      activeIndex =
+        (activeIndex - 1 + currentResultItems.length) % currentResultItems.length;
+      updateActiveItem();
+    } else if (event.key === "Enter" && activeIndex >= 0) {
+      event.preventDefault();
+      currentResultItems[activeIndex].click();
+    }
+  });
+
+  form.addEventListener("submit", () => {
+    const keyword = input.value.trim();
+
+    if (keyword && !isLoggedIn) {
+      addLocalRecentKeyword(keyword);
+    }
+
+    closeDropdown();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!container.contains(event.target)) {
+      closeDropdown();
+    }
+  });
+}
+
 // 브라우저 뒤로가기로 이전 페이지가 표시되면 서버 상태 다시 확인
 window.addEventListener("pageshow", function (event) {
   const navigation = performance.getEntriesByType("navigation")[0];
