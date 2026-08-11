@@ -136,7 +136,44 @@ jobs:
 
             exit 1
           fi
+          echo "===== ODITJI WARM-UP START ====="
 
+          WARMUP_URLS=(
+          "http://127.0.0.1/oditji/"
+          "http://127.0.0.1/oditji/member/login"
+          "http://127.0.0.1/oditji/member/join"
+          "http://127.0.0.1/oditji/search"
+          "http://127.0.0.1/oditji/content/list?type=all&page=1"
+          )
+
+          for pass in 1 2; do
+          echo "Warm-up pass $pass"
+
+          for url in "${WARMUP_URLS[@]}"; do
+
+          STATUS_CODE="$(
+          curl \
+          -sS \
+          -o /dev/null \
+          -w "%{http_code}" \
+          --max-time 20 \
+          -A "ODITJI-Deploy-Warmup/1.0" \
+          "$url" || true
+          )"
+
+          case "$STATUS_CODE" in
+          2*|3*)
+          echo "[WARM-UP OK] $STATUS_CODE $url"
+          ;;
+          *)
+          echo "[WARM-UP WARN] $STATUS_CODE $url"
+          ;;
+          esac
+
+       done
+       done
+
+       echo "===== ODITJI WARM-UP END =====" 
           rm -f app/oditji.war.bak
 
           echo "ODITJI 배포 완료"
