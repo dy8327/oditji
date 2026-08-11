@@ -493,7 +493,9 @@
                         <c:forEach var="content"
                                    items="${newContentList}">
 
-                            <oditji:contentCard content="${content}" variant="main" />
+                            <oditji:contentCard content="${content}"
+                                                variant="main"
+                                                showUpcomingBadge="${true}" />
 
                         </c:forEach>
 

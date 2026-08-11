@@ -1,6 +1,6 @@
 package com.project.oditji.event.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class OttDiscountVO {
 
@@ -17,7 +17,9 @@ public class OttDiscountVO {
     private String startDate;
     private String endDate;
     private String isActive;
-    private Date createdAt;
+
+    // [SonarQube] 구형 java.util.Date 대신 Java 8+ 날짜/시간 API를 사용합니다.
+    private LocalDateTime createdAt;
 
     // 추가된 정가 / 할인가 필드
     private Integer regularPrice;
@@ -127,11 +129,11 @@ public class OttDiscountVO {
         this.isActive = isActive;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

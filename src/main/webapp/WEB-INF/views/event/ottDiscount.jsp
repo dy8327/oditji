@@ -215,10 +215,10 @@
 </section>
 </main>
 
-<%-- OTT 할인 계산기 모달 (서버 요청 없이 JavaScript에서 즉시 계산) --%>
+<%-- OTT 할인 계산기 모달: [SonarQube] role=dialog 대신 시맨틱 <dialog> 요소를 사용 --%>
 <div class="ott-calc-modal" id="ottCalcModal" aria-hidden="true">
     <div class="ott-calc-modal__dim" data-close-modal></div>
-    <div class="ott-calc-modal__panel" role="dialog" aria-modal="true" aria-labelledby="ottCalcModalTitle">
+    <dialog class="ott-calc-modal__panel" aria-modal="true" aria-labelledby="ottCalcModalTitle">
         <button type="button" class="ott-calc-modal__close" data-close-modal aria-label="닫기">×</button>
         <h2 class="ott-calc-modal__title" id="ottCalcModalTitle">OTT 할인 계산기</h2>
         <p class="ott-calc-modal__subtitle" id="ottCalcModalSubtitle"></p>
@@ -247,7 +247,7 @@
         <div class="ott-calc-modal__result" id="ottCalcResult">
             <p class="ott-calc-modal__placeholder">원래 가격과 할인율을 입력하면 바로 계산해 드려요.</p>
         </div>
-    </div>
+    </dialog>
 </div>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>

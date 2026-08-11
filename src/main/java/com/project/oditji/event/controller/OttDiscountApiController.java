@@ -1,16 +1,25 @@
 package com.project.oditji.event.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.project.oditji.common.util.PaginationUtil;
 import com.project.oditji.common.vo.PageVO;
 import com.project.oditji.event.service.OttDiscountService;
 import com.project.oditji.event.vo.OttDiscountVO;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/discount")
@@ -18,6 +27,12 @@ public class OttDiscountApiController {
 
     /** [수정] ottDiscount.jsp와 동일하게 8개 단위 페이징 */
     private static final int DISCOUNT_PAGE_SIZE = 8;
+
+    /* [SonarQube] API 응답 키/상태 문자열의 중복 리터럴을 상수로 통합합니다. */
+    private static final String RESPONSE_STATUS = "status";
+    private static final String RESPONSE_MESSAGE = "message";
+    private static final String STATUS_SUCCESS = "success";
+    private static final String STATUS_ERROR = "error";
 
     private final OttDiscountService ottDiscountService;
 
@@ -53,7 +68,7 @@ public class OttDiscountApiController {
            내려주고, 프론트(ottDiscount.js)가 이 값으로 히어로 배너를 다시 그리게 한다. */
         OttDiscountVO heroItem = ottDiscountService.getHeroDiscount(platform, category);
 
-        response.put("status", "success");
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
         response.put("count", list.size());
         response.put("data", list);
         response.put("heroItem", heroItem);
@@ -74,12 +89,12 @@ public class OttDiscountApiController {
         OttDiscountVO discount = ottDiscountService.getDiscountDetail(id);
 
         if (discount == null) {
-            response.put("status", "error");
-            response.put("message", "해당 할인 정보를 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "해당 할인 정보를 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        response.put("status", "success");
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
         response.put("data", discount);
         return ResponseEntity.ok(response);
     }
@@ -94,12 +109,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.createDiscount(discountVO);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 정상적으로 등록되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 정상적으로 등록되었습니다.");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "등록에 실패했습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "등록에 실패했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -118,12 +133,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.updateDiscount(discountVO);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 수정되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 수정되었습니다.");
             return ResponseEntity.ok(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "수정에 실패했거나 대상을 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "수정에 실패했거나 대상을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -138,12 +153,12 @@ public class OttDiscountApiController {
 
         boolean result = ottDiscountService.deleteDiscount(id);
         if (result) {
-            response.put("status", "success");
-            response.put("message", "할인 정보가 비활성화(삭제)되었습니다.");
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 비활성화(삭제)되었습니다.");
             return ResponseEntity.ok(response);
         } else {
-            response.put("status", "error");
-            response.put("message", "삭제 대상을 찾을 수 없습니다.");
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "삭제 대상을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }

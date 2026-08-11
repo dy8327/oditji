@@ -413,6 +413,11 @@ function openCalculatorModal(context) {
         monthsSelect.value = "1";
     }
 
+    var panel = modal.querySelector(".ott-calc-modal__panel");
+    if (panel && !panel.open) {
+        panel.show();
+    }
+
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
 
@@ -424,6 +429,11 @@ function closeCalculatorModal() {
     if (!modal) {
         return;
     }
+    var panel = modal.querySelector(".ott-calc-modal__panel");
+    if (panel && panel.open) {
+        panel.close();
+    }
+
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
 }

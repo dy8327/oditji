@@ -24,6 +24,11 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/api/restock")
 public class RestockRequestApiController {
 
+    /* [SonarQube] 반복되는 JSON 응답 키를 상수로 통합합니다. */
+    private static final String RESPONSE_SUCCESS = "success";
+    private static final String RESPONSE_REQUESTED = "requested";
+    private static final String RESPONSE_MESSAGE = "message";
+
     private final RestockRequestService restockRequestService;
 
     public RestockRequestApiController(RestockRequestService restockRequestService) {
@@ -46,12 +51,12 @@ public class RestockRequestApiController {
         Long memberNo = LoginMemberUtil.getLoginMemberNo(session);
 
         if (memberNo == null) {
-            return ResponseEntity.ok(Map.of("login", false, "requested", false));
+            return ResponseEntity.ok(Map.of("login", false, RESPONSE_REQUESTED, false));
         }
 
         boolean requested = restockRequestService.isRequested(memberNo, productNo, optionNo);
 
-        return ResponseEntity.ok(Map.of("login", true, "requested", requested));
+        return ResponseEntity.ok(Map.of("login", true, RESPONSE_REQUESTED, requested));
     }
 
     @PostMapping("/{productNo}")
@@ -71,15 +76,15 @@ public class RestockRequestApiController {
 
         if (memberNo == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+                    .body(Map.of(RESPONSE_SUCCESS, false, RESPONSE_MESSAGE, "로그인이 필요합니다."));
         }
 
         restockRequestService.requestRestockNotification(memberNo, productNo, optionNo);
 
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "requested", true,
-                "message", "재입고 알림 신청이 완료되었습니다."));
+                RESPONSE_SUCCESS, true,
+                RESPONSE_REQUESTED, true,
+                RESPONSE_MESSAGE, "재입고 알림 신청이 완료되었습니다."));
     }
 
     @DeleteMapping("/{productNo}")
@@ -99,14 +104,14 @@ public class RestockRequestApiController {
 
         if (memberNo == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+                    .body(Map.of(RESPONSE_SUCCESS, false, RESPONSE_MESSAGE, "로그인이 필요합니다."));
         }
 
         restockRequestService.cancelRestockNotification(memberNo, productNo, optionNo);
 
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "requested", false,
-                "message", "재입고 알림 신청이 취소되었습니다."));
+                RESPONSE_SUCCESS, true,
+                RESPONSE_REQUESTED, false,
+                RESPONSE_MESSAGE, "재입고 알림 신청이 취소되었습니다."));
     }
 }
