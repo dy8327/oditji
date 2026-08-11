@@ -227,6 +227,9 @@ class BusinessControllerRemainingCoverageTest {
                                 "redirect:/member/login",
                                 controller.eventList(
                                                 null,
+                                                null,
+                                                null,
+                                                null,
                                                 1,
                                                 new MockHttpSession(),
                                                 new ExtendedModelMap(),
@@ -772,6 +775,9 @@ class BusinessControllerRemainingCoverageTest {
                 assertEquals(
                                 "redirect:/",
                                 controller.productList(
+                                                null,
+                                                null,
+                                                null,
                                                 null,
                                                 1,
                                                 session,
