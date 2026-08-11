@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 
 # Local config / secret files
+src/main/resources/static/js/firebase-config.js
 src/main/resources/application.properties
 
 ### STS ###
@@ -35,6 +36,7 @@ build/
 ### VS Code ###
 .vscode/
 
+<<<<<<< HEAD
 # 검색 콘텐츠 캐시
 /cache/
 /uploads/
@@ -52,3 +54,6 @@ firebase-service-account*.json
 *.jks
 serviceAccountKey.json
 application-local.properties
+=======
+.application.properties
+>>>>>>> origin
