@@ -1,5 +1,6 @@
 package com.project.oditji.admin.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -90,12 +91,14 @@ class AdminServiceImplFinalHelperCoverageTest {
 
     @Test
     void imageDeleteHelpersShouldIgnoreNullBlankEmptyAndTrailingSlashPaths() {
-        invoke("registerImageFileDeleteAfterCommit", (Object) null);
-        invoke("registerImageFileDeleteAfterCommit", List.of());
-        invoke("deletePhysicalImageFile", (Object) null);
-        invoke("deletePhysicalImageFile", "   ");
-        invoke("deletePhysicalImageFile", "/uploads/product/");
-        invoke("deletePhysicalImageFiles", List.of("", "/uploads/product/not-found.jpg"));
+        assertDoesNotThrow(() -> {
+            invoke("registerImageFileDeleteAfterCommit", (Object) null);
+            invoke("registerImageFileDeleteAfterCommit", List.of());
+            invoke("deletePhysicalImageFile", (Object) null);
+            invoke("deletePhysicalImageFile", "   ");
+            invoke("deletePhysicalImageFile", "/uploads/product/");
+            invoke("deletePhysicalImageFiles", List.of("", "/uploads/product/not-found.jpg"));
+        });
     }
 
     @SuppressWarnings("unchecked")

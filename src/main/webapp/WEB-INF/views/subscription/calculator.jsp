@@ -51,7 +51,7 @@
         </div>
 
         <div class="sub-calc-filter-row">
-            <span class="sub-calc-filter-row__label">카드사</span>
+            <label class="sub-calc-filter-row__label" for="subCalcCardSelect">카드사</label>
             <select class="sub-calc-filter-select" id="subCalcCardSelect">
                 <option value="">선택 안 함</option>
                 <c:forEach var="card" items="${cardList}">
@@ -61,7 +61,7 @@
         </div>
 
         <div class="sub-calc-filter-row">
-            <span class="sub-calc-filter-row__label">멤버십</span>
+            <label class="sub-calc-filter-row__label" for="subCalcMembershipSelect">멤버십</label>
             <select class="sub-calc-filter-select" id="subCalcMembershipSelect">
                 <option value="">선택 안 함</option>
                 <c:forEach var="membership" items="${membershipList}">

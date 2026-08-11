@@ -60,9 +60,6 @@ public class SubscriptionCalculatorServiceImpl
          * 각 콘텐츠를 볼 수 있는 플랫폼 중, 가격 정보가 있는 코드만 남긴다.
          * 하나도 남지 않으면(가격 정보 없는 플랫폼에서만 볼 수 있으면) 계산에서 제외한다.
          */
-        List<ContentWishItemVO> resolvableItemList =
-                new ArrayList<ContentWishItemVO>();
-
         List<Set<String>> requirementList =
                 new ArrayList<Set<String>>();
 
@@ -71,27 +68,23 @@ public class SubscriptionCalculatorServiceImpl
 
         for (ContentWishItemVO item : wishItemList) {
 
-            if (item == null) {
+            if (item != null) {
 
-                continue;
+                Set<String> coverableCodes =
+                        resolveCoverableCodes(
+                                item,
+                                priceByCode);
+
+                if (coverableCodes.isEmpty()) {
+
+                    result.getUnresolvedItemList()
+                            .add(item);
+                } else {
+
+                    requirementList.add(coverableCodes);
+                    universe.addAll(coverableCodes);
+                }
             }
-
-            Set<String> coverableCodes =
-                    resolveCoverableCodes(
-                            item,
-                            priceByCode);
-
-            if (coverableCodes.isEmpty()) {
-
-                result.getUnresolvedItemList()
-                        .add(item);
-
-                continue;
-            }
-
-            resolvableItemList.add(item);
-            requirementList.add(coverableCodes);
-            universe.addAll(coverableCodes);
         }
 
         if (requirementList.isEmpty()) {

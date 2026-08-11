@@ -81,7 +81,7 @@
                 </c:if>
 
                 <!-- 탭 -->
-                <nav class="tab-menu">
+                <nav class="tab-menu" aria-label="정산 메뉴">
                     <a class="active" href="${pageContext.request.contextPath}/business/settlement/main">정산 요청</a>
                     <a href="${pageContext.request.contextPath}/business/settlement/complete">정산 내역</a>
                     <a href="${pageContext.request.contextPath}/business/settlement/account">계좌 정보 관리</a>

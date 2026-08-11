@@ -178,10 +178,10 @@
                 함께 보여주는 드롭다운. 기본은 숨김이며 js/common.js가
                 "open" 클래스를 토글해서 펼친다.
             --%>
-            <div class="header-search-dropdown"
-                 id="headerSearchDropdown"
-                 role="listbox"
-                 aria-label="검색 추천"></div>
+            <section class="header-search-dropdown"
+                     id="headerSearchDropdown"
+                     aria-label="검색 추천"
+                     aria-live="polite"></section>
         </div>
 
         <div class="header-right">
