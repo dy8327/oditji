@@ -30,7 +30,6 @@ public class AdminOttDiscountController {
     private static final String DEFAULT_FILTER = "ALL";
     private static final String REDIRECT_PREFIX = "redirect:";
     private static final String FLASH_MESSAGE = "message";
-    private static final String LIST_PATH = "/admin/discount/list";
 
     /**
      * PLATFORM_CODE -> 표기명(PLATFORM_NAME) 고정 매핑.
@@ -98,8 +97,21 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
             RedirectAttributes redirectAttributes) {
 
-        OttDiscountVO discountVO = toVO(null, platformCode, category, title, regularPrice, discountPrice,
-                discountSummary, description, cardOrCompany, targetUrl, badgeText, startDate, endDate);
+        OttDiscountVO discountVO = createDiscountVO(
+                null,
+                platformCode,
+                category,
+                title,
+                regularPrice,
+                discountPrice);
+        applyDiscountDetails(
+                discountVO,
+                discountSummary,
+                description,
+                cardOrCompany,
+                targetUrl,
+                badgeText);
+        applyDiscountPeriod(discountVO, startDate, endDate);
 
         try {
             boolean result = ottDiscountService.createDiscount(discountVO);
@@ -136,8 +148,21 @@ public class AdminOttDiscountController {
             @RequestParam(value = "filterStatus", required = false, defaultValue = DEFAULT_FILTER) String filterStatus,
             RedirectAttributes redirectAttributes) {
 
-        OttDiscountVO discountVO = toVO(discountId, platformCode, category, title, regularPrice, discountPrice,
-                discountSummary, description, cardOrCompany, targetUrl, badgeText, startDate, endDate);
+        OttDiscountVO discountVO = createDiscountVO(
+                discountId,
+                platformCode,
+                category,
+                title,
+                regularPrice,
+                discountPrice);
+        applyDiscountDetails(
+                discountVO,
+                discountSummary,
+                description,
+                cardOrCompany,
+                targetUrl,
+                badgeText);
+        applyDiscountPeriod(discountVO, startDate, endDate);
 
         try {
             boolean result = ottDiscountService.updateDiscount(discountVO);
@@ -188,11 +213,14 @@ public class AdminOttDiscountController {
         return REDIRECT_PREFIX + listRedirectUrl(filterPlatform, filterCategory, filterStatus);
     }
 
-    /** 등록/수정 폼 파라미터를 OttDiscountVO로 변환한다. platformName은 platformCode로부터 서버에서 고정 매핑한다. */
-    private OttDiscountVO toVO(Long discountId, String platformCode, String category, String title,
-            Integer regularPrice, Integer discountPrice,
-            String discountSummary, String description, String cardOrCompany, String targetUrl,
-            String badgeText, String startDate, String endDate) {
+    /** 등록/수정 폼의 핵심 값을 OttDiscountVO로 변환한다. platformName은 platformCode로부터 서버에서 고정 매핑한다. */
+    private OttDiscountVO createDiscountVO(
+            Long discountId,
+            String platformCode,
+            String category,
+            String title,
+            Integer regularPrice,
+            Integer discountPrice) {
 
         OttDiscountVO discountVO = new OttDiscountVO();
         discountVO.setDiscountId(discountId);
@@ -202,20 +230,39 @@ public class AdminOttDiscountController {
         discountVO.setTitle(title);
         discountVO.setRegularPrice(regularPrice);
         discountVO.setDiscountPrice(discountPrice);
+        return discountVO;
+    }
+
+    /** Sonar 파라미터 수 제한을 지키면서 등록/수정 공통 상세값을 분리해 설정한다. */
+    private void applyDiscountDetails(
+            OttDiscountVO discountVO,
+            String discountSummary,
+            String description,
+            String cardOrCompany,
+            String targetUrl,
+            String badgeText) {
+
         discountVO.setDiscountSummary(discountSummary);
         discountVO.setDescription(description);
         discountVO.setCardOrCompany(cardOrCompany);
         discountVO.setTargetUrl(targetUrl);
         discountVO.setBadgeText(badgeText);
+    }
+
+    private void applyDiscountPeriod(
+            OttDiscountVO discountVO,
+            String startDate,
+            String endDate) {
+
         discountVO.setStartDate(startDate);
         discountVO.setEndDate(endDate);
-        return discountVO;
     }
 
     /** 등록/수정/비활성화/재활성화 처리 후 방금 보고 있던 필터(platform/category/status) 그대로 목록으로 돌아가기 위한 리다이렉트 URL. */
     private String listRedirectUrl(String platform, String category, String status) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(LIST_PATH);
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .pathSegment("admin", "discount", "list");
 
         if (platform != null && !platform.isBlank()) {
             builder.queryParam("platform", platform);
