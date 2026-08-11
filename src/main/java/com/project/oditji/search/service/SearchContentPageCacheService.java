@@ -422,6 +422,130 @@ public class SearchContentPageCacheService {
 
 
     /**
+     * "출시 알림 캘린더"에 노출할 콘텐츠를 특정 연·월 기준으로 조회합니다.
+     *
+     * releaseDate(개봉·공개일)가 해당 연·월에 속하는 콘텐츠를
+     * 공개일 오름차순으로 정렬해 반환합니다.
+     */
+    public List<SearchResultVO> getReleaseCalendarContent(
+            int year,
+            int month) {
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        List<SearchResultVO> monthContentList =
+                new ArrayList<SearchResultVO>();
+
+        for (SearchResultVO content : allContentList) {
+
+            LocalDate releaseDate =
+                    parseReleaseDate(
+                            content == null
+                                    ? null
+                                    : content.getReleaseDate()
+                    );
+
+            if (releaseDate != null
+                    && releaseDate.getYear() == year
+                    && releaseDate.getMonthValue() == month) {
+
+                monthContentList.add(content);
+            }
+        }
+
+        monthContentList.sort(
+                Comparator.comparing(
+                        content -> parseReleaseDate(
+                                content.getReleaseDate()
+                        )
+                )
+        );
+
+        return monthContentList;
+    }
+
+    /**
+     * 메인 "최근 본 콘텐츠" 슬라이더용 조회입니다.
+     *
+     * CONTENT_VIEW_HISTORY 기준으로 이미 최근 조회순 정렬되어 넘어온
+     * ContentVO 목록을 받아, JSONL 공용 저장소에서 TMDB ID + 콘텐츠 유형이
+     * 일치하는 SearchResultVO로 변환합니다. (관련 콘텐츠 매칭과 동일한 방식)
+     *
+     * JSONL 저장소에서 내려간(더 이상 존재하지 않는) 콘텐츠는
+     * 자연히 결과에서 제외됩니다.
+     */
+    public List<SearchResultVO> getMainRecentlyViewedContent(
+            List<com.project.oditji.content.vo.ContentVO> orderedContentList) {
+
+        if (orderedContentList == null
+                || orderedContentList.isEmpty()) {
+
+            return new ArrayList<SearchResultVO>();
+        }
+
+        List<SearchResultVO> allContentList =
+                searchAll(
+                        "",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyList()
+                );
+
+        Map<String, SearchResultVO> candidateByTmdbKey =
+                new HashMap<String, SearchResultVO>();
+
+        for (SearchResultVO candidate : allContentList) {
+
+            candidateByTmdbKey.put(
+                    buildTmdbKey(
+                            candidate.getTmdbId(),
+                            candidate.getContentType()
+                    ),
+                    candidate
+            );
+        }
+
+        List<SearchResultVO> result =
+                new ArrayList<SearchResultVO>();
+
+        for (com.project.oditji.content.vo.ContentVO viewedContent
+                : orderedContentList) {
+
+            SearchResultVO matched =
+                    candidateByTmdbKey.get(
+                            buildTmdbKey(
+                                    viewedContent.getTmdbId(),
+                                    viewedContent.getContentType()
+                            )
+                    );
+
+            if (matched != null) {
+                result.add(matched);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * TMDB ID + 콘텐츠 유형으로 콘텐츠를 식별하는 매칭 키를 만듭니다.
+     */
+    private String buildTmdbKey(
+            Long tmdbId,
+            String contentType) {
+
+        return tmdbId
+                + "_"
+                + normalizeRelatedValue(contentType);
+    }
+
+    /**
      * 콘텐츠 상세 페이지의 관련 콘텐츠를 JSONL 공용 저장소에서 조회합니다.
      *
      * 추천 우선순위:

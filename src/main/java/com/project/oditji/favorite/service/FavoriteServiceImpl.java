@@ -9,18 +9,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.dao.FavoriteDAO;
+import com.project.oditji.favorite.vo.FavoriteReleaseTargetVO;
 import com.project.oditji.favorite.vo.FavoriteVO;
+import com.project.oditji.notification.service.NotificationService;
 
 @Service
 public class FavoriteServiceImpl
         implements FavoriteService {
 
+    private static final String NOTIFICATION_TYPE_CONTENT_RELEASE = "CONTENT_RELEASE";
+    private static final String REFERENCE_TYPE_CONTENT = "CONTENT";
+    private static final String CONTENT_DETAIL_URL_PREFIX = "/content/prepare?tmdbId=";
+
     private final FavoriteDAO favoriteDAO;
+    private final NotificationService notificationService;
 
     public FavoriteServiceImpl(
-            FavoriteDAO favoriteDAO) {
+            FavoriteDAO favoriteDAO,
+            NotificationService notificationService) {
 
         this.favoriteDAO = favoriteDAO;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -100,6 +109,51 @@ public class FavoriteServiceImpl
         return favoriteList == null
                 ? Collections.emptyList()
                 : favoriteList;
+    }
+
+    /**
+     * 내일 개봉·공개하는 콘텐츠를 찜한 회원 전원에게 알림을 생성합니다.
+     */
+    @Override
+    @Transactional
+    public int notifyUpcomingReleases() {
+
+        List<FavoriteReleaseTargetVO> targetList =
+                favoriteDAO.selectFavoriteReleaseTargetList();
+
+        if (targetList == null
+                || targetList.isEmpty()) {
+
+            return 0;
+        }
+
+        int notifiedCount = 0;
+
+        for (FavoriteReleaseTargetVO target : targetList) {
+
+            if (target == null
+                    || target.getMemberNo() == null) {
+
+                continue;
+            }
+
+            notificationService.createForMember(
+                    target.getMemberNo(),
+                    NOTIFICATION_TYPE_CONTENT_RELEASE,
+                    "찜한 콘텐츠가 내일 공개돼요",
+                    "'" + target.getTitle()
+                            + "'가 내일 공개됩니다. 놓치지 마세요!",
+                    CONTENT_DETAIL_URL_PREFIX
+                            + target.getTmdbId()
+                            + "&contentType="
+                            + target.getContentType(),
+                    REFERENCE_TYPE_CONTENT,
+                    target.getContentNo());
+
+            notifiedCount++;
+        }
+
+        return notifiedCount;
     }
 
     private void validateFavorite(

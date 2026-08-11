@@ -50,6 +50,28 @@ public interface ContentService {
      */
     int deleteExpiredContentViewHistory();
 
+    /**
+     * 로그인 회원이 최근 조회한 콘텐츠를
+     * 메인 화면 "최근 본 콘텐츠" 슬라이더에 노출하기 위해 조회합니다.
+     *
+     * CONTENT_VIEW_HISTORY 기준으로 최근 조회순 정렬된 콘텐츠를
+     * JSONL 공용 캐시(SearchResultVO)로 변환해 반환합니다.
+     * 캐시에서 내려간 콘텐츠는 결과에서 자연히 제외됩니다.
+     *
+     * 비로그인 회원(memberNo가 null)이면 빈 목록을 반환합니다.
+     */
+    List<SearchResultVO> getRecentlyViewedContentList(
+            Long memberNo,
+            int limit);
+
+    /**
+     * "출시 알림 캘린더" 화면에 노출할, 특정 연·월에 개봉·공개하는
+     * 콘텐츠 목록을 공개일 오름차순으로 조회합니다.
+     */
+    List<SearchResultVO> getReleaseCalendarContent(
+            int year,
+            int month);
+
     List<ActorVO> getActorListByContentNo(
             int contentNo);
 

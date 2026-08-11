@@ -154,6 +154,20 @@ public class ContentDAOImpl implements ContentDAO {
         );
     }
 
+    /**
+     * 로그인 회원이 최근 조회한 콘텐츠 목록을
+     * 최근 조회 시각 내림차순으로 조회합니다.
+     */
+    @Override
+    public List<ContentVO> selectRecentViewedContentList(
+            Map<String, Object> param) {
+
+        return sqlSession.selectList(
+                NAMESPACE + "selectRecentViewedContentList",
+                param
+        );
+    }
+
     @Override
     public List<ContentVO> selectContentListByType(
             Map<String, Object> param) {

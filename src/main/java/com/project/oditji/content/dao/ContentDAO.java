@@ -70,4 +70,16 @@ public interface ContentDAO {
 
     List<ContentVO> selectContentListByType(
             Map<String, Object> param);
+
+    /**
+     * 로그인 회원이 최근 조회한 콘텐츠를
+     * 마지막 조회 시각(LAST_VIEWED_AT) 내림차순으로 조회합니다.
+     *
+     * CONTENT_VIEW_HISTORY는 콘텐츠·날짜별로 여러 행이 있을 수 있으므로
+     * 콘텐츠 기준으로 그룹화한 뒤 가장 최근 조회 시각으로 정렬합니다.
+     *
+     * param: memberNo(Long), limit(int)
+     */
+    List<ContentVO> selectRecentViewedContentList(
+            Map<String, Object> param);
 }
