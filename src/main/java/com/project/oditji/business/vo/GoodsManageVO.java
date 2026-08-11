@@ -33,6 +33,13 @@ public class GoodsManageVO {
     private String status;
     private LocalDateTime createdAt;
 
+    /*
+     * [상품 수정일 추가]
+     * 상품의 마지막 수정 일시입니다.
+     * 한 번도 수정되지 않은 상품은 null입니다.
+     */
+    private LocalDateTime updatedAt;
+
     // 조회용
     private String contentTitle;
     private String actorName;
@@ -173,6 +180,18 @@ public class GoodsManageVO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /*
+     * [상품 수정일 추가]
+     * 상품의 마지막 수정 일시를 반환합니다.
+     */
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getContentTitle() {
@@ -318,6 +337,7 @@ public class GoodsManageVO {
                 ", description='" + description + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", contentTitle='" + contentTitle + '\'' +
                 ", actorName='" + actorName + '\'' +
                 ", businessName='" + businessName + '\'' +
