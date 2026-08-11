@@ -25,9 +25,55 @@
         <p class="sub-calc-hero__eyebrow">ODITJI TOOL</p>
         <h1 class="sub-calc-hero__title">OTT 구독 조합 계산기</h1>
         <p class="sub-calc-hero__desc">
-            보고 싶은 작품을 담아보세요. 그 작품들을 모두 볼 수 있는
-            가장 저렴한 OTT 조합을 계산해 드려요.
+            보고 싶은 작품을 담고, 나의 할인 조건을 체크해보세요.
+            실제 이용 가능한 최저가 구독 조합과 절감 금액을 계산해 드립니다.
         </p>
+    </div>
+
+    <div class="sub-calc-filter-panel" id="subCalcFilterPanel">
+
+        <p class="sub-calc-filter-panel__title">내 할인 조건 선택 (필터)</p>
+
+        <div class="sub-calc-filter-row">
+            <span class="sub-calc-filter-row__label">통신사</span>
+            <div class="sub-calc-filter-radio-group" id="subCalcTelecomGroup">
+                <label class="sub-calc-filter-radio">
+                    <input type="radio" name="subCalcTelecom" value="" checked>
+                    <span>전체</span>
+                </label>
+                <c:forEach var="telecom" items="${telecomList}">
+                    <label class="sub-calc-filter-radio">
+                        <input type="radio" name="subCalcTelecom" value="${telecom}">
+                        <span>${telecom}</span>
+                    </label>
+                </c:forEach>
+            </div>
+        </div>
+
+        <div class="sub-calc-filter-row">
+            <span class="sub-calc-filter-row__label">카드사</span>
+            <select class="sub-calc-filter-select" id="subCalcCardSelect">
+                <option value="">선택 안 함</option>
+                <c:forEach var="card" items="${cardList}">
+                    <option value="${card}">${card}</option>
+                </c:forEach>
+            </select>
+        </div>
+
+        <div class="sub-calc-filter-row">
+            <span class="sub-calc-filter-row__label">멤버십</span>
+            <select class="sub-calc-filter-select" id="subCalcMembershipSelect">
+                <option value="">선택 안 함</option>
+                <c:forEach var="membership" items="${membershipList}">
+                    <option value="${membership}">${membership}</option>
+                </c:forEach>
+            </select>
+        </div>
+
+        <p class="sub-calc-filter-panel__hint">
+            체크한 조건에 해당하는 할인만 반영해서 계산해요. 아무 조건도 선택하지 않으면 정가로 계산돼요.
+        </p>
+
     </div>
 
     <div class="sub-calc-layout">
