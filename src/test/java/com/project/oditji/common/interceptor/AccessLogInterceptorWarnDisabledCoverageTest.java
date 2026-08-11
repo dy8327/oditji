@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.project.oditji.common.dao.AccessLogDAO;
+import com.project.oditji.common.service.AccessLogService;
 import com.project.oditji.common.vo.AccessLogVO;
 
 import ch.qos.logback.classic.Level;
@@ -21,12 +21,12 @@ class AccessLogInterceptorWarnDisabledCoverageTest {
 
     @Test
     void daoFailureShouldStillContinueWhenWarnLoggingIsDisabled() {
-        AccessLogDAO accessLogDAO = mock(AccessLogDAO.class);
+        AccessLogService accessLogService = mock(AccessLogService.class);
         doThrow(new IllegalStateException("db"))
-                .when(accessLogDAO)
-                .insertAccessLog(any(AccessLogVO.class));
+                .when(accessLogService)
+                .saveAccessLogAsync(any(AccessLogVO.class));
 
-        AccessLogInterceptor interceptor = new AccessLogInterceptor(accessLogDAO);
+        AccessLogInterceptor interceptor = new AccessLogInterceptor(accessLogService);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod("GET");
         request.setRequestURI("/coverage/access-log");

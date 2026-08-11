@@ -20,6 +20,7 @@ import org.springframework.ui.Model;
 
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.service.SearchKeywordHistoryService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
@@ -33,6 +34,7 @@ class SearchControllerResidualFlowCoverageTest {
     @Test
     void searchShouldNormalizeNullListsSwapPricesClampGoodsPageAndReplaceNullResults() {
         SearchContentPageCacheService pageCacheService = mock(SearchContentPageCacheService.class);
+        SearchKeywordHistoryService searchKeywordHistoryService = mock(SearchKeywordHistoryService.class);
         GoodsService goodsService = mock(GoodsService.class);
         TmdbDAO tmdbDAO = mock(TmdbDAO.class);
         WishService wishService = mock(WishService.class);
@@ -40,6 +42,7 @@ class SearchControllerResidualFlowCoverageTest {
 
         SearchController controller = new SearchController(
                 pageCacheService,
+                searchKeywordHistoryService,
                 goodsService,
                 tmdbDAO,
                 wishService);
@@ -91,6 +94,7 @@ class SearchControllerResidualFlowCoverageTest {
     void searchTitleShouldCoverKeywordOnlyAndKeywordWithFilter() {
         SearchController controller = new SearchController(
                 mock(SearchContentPageCacheService.class),
+                mock(SearchKeywordHistoryService.class),
                 mock(GoodsService.class),
                 mock(TmdbDAO.class),
                 mock(WishService.class));
