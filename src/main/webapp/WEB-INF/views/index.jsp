@@ -17,7 +17,7 @@
 <title>ODITJI MAIN</title>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/main.css?v=4">
+      href="${pageContext.request.contextPath}/css/main.css?v=6">
 
 <script defer
         src="${pageContext.request.contextPath}/js/main.js"></script>
