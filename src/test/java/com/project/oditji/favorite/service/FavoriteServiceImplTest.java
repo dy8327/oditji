@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.dao.FavoriteDAO;
 import com.project.oditji.favorite.vo.FavoriteVO;
+import com.project.oditji.notification.service.NotificationService;
 
 /**
  * 콘텐츠 찜 등록, 해제, 조회 분기를 DB 없이 검증합니다.
@@ -29,11 +30,14 @@ class FavoriteServiceImplTest {
     @Mock
     private FavoriteDAO favoriteDAO;
 
+    @Mock
+    private NotificationService notificationService;
+
     private FavoriteServiceImpl favoriteService;
 
     @BeforeEach
     void setUp() {
-        favoriteService = new FavoriteServiceImpl(favoriteDAO);
+        favoriteService = new FavoriteServiceImpl(favoriteDAO, notificationService);
     }
 
     @Test

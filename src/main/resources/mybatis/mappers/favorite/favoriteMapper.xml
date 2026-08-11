@@ -100,4 +100,24 @@
 
     </select>
 
+    <!--
+        내일 개봉·공개하는 콘텐츠를 찜한 회원 목록을 조회합니다.
+        출시 알림 캘린더/스케줄러에서 사용합니다.
+    -->
+    <select id="selectFavoriteReleaseTargetList"
+            resultType="com.project.oditji.favorite.vo.FavoriteReleaseTargetVO">
+
+        SELECT
+            F.MEMBER_NO,
+            C.CONTENT_NO,
+            C.TMDB_ID,
+            C.CONTENT_TYPE,
+            C.TITLE
+        FROM FAVORITE F
+        JOIN CONTENT C
+          ON F.CONTENT_NO = C.CONTENT_NO
+        WHERE TRUNC(C.RELEASE_DATE) = TRUNC(SYSDATE) + 1
+
+    </select>
+
 </mapper>

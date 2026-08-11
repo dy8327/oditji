@@ -3,8 +3,10 @@ package com.project.oditji.content.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -263,6 +265,60 @@ public class ContentServiceImpl implements ContentService {
 
         return contentDAO
                 .deleteExpiredContentViewHistory();
+    }
+
+    /**
+     * 로그인 회원의 최근 조회 콘텐츠를
+     * "최근 본 콘텐츠" 슬라이더용으로 조회합니다.
+     */
+    @Override
+    public List<SearchResultVO> getRecentlyViewedContentList(
+            Long memberNo,
+            int limit) {
+
+        if (memberNo == null
+                || memberNo <= 0
+                || limit <= 0) {
+
+            return Collections.emptyList();
+        }
+
+        Map<String, Object> param =
+                new HashMap<String, Object>();
+
+        param.put("memberNo", memberNo);
+        param.put("limit", limit);
+
+        List<ContentVO> recentContentList =
+                contentDAO.selectRecentViewedContentList(
+                        param
+                );
+
+        if (recentContentList == null
+                || recentContentList.isEmpty()) {
+
+            return Collections.emptyList();
+        }
+
+        return searchContentPageCacheService
+                .getMainRecentlyViewedContent(
+                        recentContentList
+                );
+    }
+
+    /**
+     * "출시 알림 캘린더"용 콘텐츠 목록을 JSONL 공용 캐시에서 조회합니다.
+     */
+    @Override
+    public List<SearchResultVO> getReleaseCalendarContent(
+            int year,
+            int month) {
+
+        return searchContentPageCacheService
+                .getReleaseCalendarContent(
+                        year,
+                        month
+                );
     }
 
     /**
