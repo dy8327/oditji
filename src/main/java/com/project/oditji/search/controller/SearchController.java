@@ -18,6 +18,7 @@ import com.project.oditji.common.util.OttPlatformUtil;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.service.SearchKeywordHistoryService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
@@ -44,6 +45,7 @@ public class SearchController {
             "DOCUMENTARY");
 
     private final SearchContentPageCacheService searchContentPageCacheService;
+    private final SearchKeywordHistoryService searchKeywordHistoryService;
     private final GoodsService goodsService;
     private final TmdbDAO tmdbDAO;
     private final WishService wishService;
@@ -53,12 +55,16 @@ public class SearchController {
 
     public SearchController(
             SearchContentPageCacheService searchContentPageCacheService,
+            SearchKeywordHistoryService searchKeywordHistoryService,
             GoodsService goodsService,
             TmdbDAO tmdbDAO,
             WishService wishService) {
 
         this.searchContentPageCacheService =
                 searchContentPageCacheService;
+
+        this.searchKeywordHistoryService =
+                searchKeywordHistoryService;
 
         this.goodsService =
                 goodsService;
@@ -360,6 +366,20 @@ public class SearchController {
          */
         Long loginMemberNo =
                 LoginMemberUtil.getLoginMemberNo(session);
+
+        /*
+         * 로그인 회원이 검색어를 입력해 검색했을 때만
+         * 최근 검색어 이력에 저장합니다.
+         *
+         * 검색어 없이 인기 콘텐츠만 조회한 경우는 저장하지 않습니다.
+         */
+        if (!keyword.isEmpty()) {
+
+            searchKeywordHistoryService.recordSearchKeyword(
+                    loginMemberNo,
+                    keyword
+            );
+        }
 
         Set<Integer> wishedProductNoSet =
                 wishService.getWishedProductNoSet(loginMemberNo);

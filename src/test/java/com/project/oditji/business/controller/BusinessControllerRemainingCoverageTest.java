@@ -374,6 +374,8 @@ class BusinessControllerRemainingCoverageTest {
                 assertEquals(
                                 "redirect:/member/login",
                                 controller.settlement(
+                                                // [정산 월 구분 반영] 현재 월 정산 조회 테스트이므로 cycle 값으로 "this"를 전달합니다.
+                                                "this",
                                                 session(160L),
                                                 new ExtendedModelMap(),
                                                 new RedirectAttributesModelMap()));

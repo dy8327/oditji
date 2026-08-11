@@ -19,6 +19,7 @@ import org.springframework.ui.ExtendedModelMap;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.service.SearchKeywordHistoryService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.search.vo.SearchVO;
@@ -32,6 +33,9 @@ class SearchControllerCoverageTest {
 
     @Mock
     private SearchContentPageCacheService searchContentPageCacheService;
+
+    @Mock
+    private SearchKeywordHistoryService searchKeywordHistoryService;
 
     @Mock
     private GoodsService goodsService;
@@ -49,6 +53,7 @@ class SearchControllerCoverageTest {
     void setUp() {
         controller = new SearchController(
                 searchContentPageCacheService,
+                searchKeywordHistoryService,
                 goodsService,
                 tmdbDAO,
                 wishService);

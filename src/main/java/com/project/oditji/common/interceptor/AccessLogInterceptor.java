@@ -6,7 +6,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.project.oditji.common.dao.AccessLogDAO;
+import com.project.oditji.common.service.AccessLogService;
 import com.project.oditji.common.vo.AccessLogVO;
 import com.project.oditji.member.vo.MemberVO;
 
@@ -26,11 +26,11 @@ import jakarta.servlet.http.HttpSession;
 @Component
 public class AccessLogInterceptor implements HandlerInterceptor {
 
-    private final AccessLogDAO accessLogDAO;
+   private final AccessLogService accessLogService;
     private static final Logger log = LoggerFactory.getLogger(AccessLogInterceptor.class);
 
-    public AccessLogInterceptor(AccessLogDAO accessLogDAO) {
-        this.accessLogDAO = accessLogDAO;
+    public AccessLogInterceptor(AccessLogService accessLogService) {
+        this.accessLogService = accessLogService;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class AccessLogInterceptor implements HandlerInterceptor {
             accessLog.setUserAgent(limitLength(request.getHeader("User-Agent"), 500));
             accessLog.setAccessUrl(limitLength(request.getRequestURI(), 500)
 );
-            accessLogDAO.insertAccessLog(accessLog);
+            accessLogService.saveAccessLogAsync(accessLog);
 
         } catch (Exception e) {
             // 접속 로그 적재 실패가 실제 요청 흐름을 막지 않도록 로그만 남긴다.

@@ -184,6 +184,9 @@ public interface BusinessService {
          */
         SettlementManageVO getMonthlySettlementSummary(long businessNo);
 
+        /* [정산 월 구분 추가] this=이번 달 정산(지난달 매출), next=다음 달 정산(이번달 매출) */
+        SettlementManageVO getSettlementSummary(long businessNo, String cycle);
+
         List<SettlementRequestVO> getSettlementPaymentHistory(long businessNo);
 
         void requestSettlementConfirmation(long businessNo);

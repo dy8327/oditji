@@ -21,6 +21,8 @@ public interface FavoriteDAO {
 
     List<ContentVO> selectFavoriteList(Long memberNo);
 
+    int countFavoriteByMemberNo(Long memberNo);
+
     /**
      * 내일 개봉·공개하는 콘텐츠를 찜한 회원 목록을 조회합니다.
      *

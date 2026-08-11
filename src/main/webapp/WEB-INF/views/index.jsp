@@ -449,6 +449,63 @@
 
     </section>
 
+    <%-- 최근 본 콘텐츠: 로그인 회원의 콘텐츠 상세 조회 이력 기반, 기록이 있을 때만 노출 --%>
+    <c:if test="${not empty recentlyViewedContentList}">
+
+    <section class="slider-section" id="recentSection">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2 class="section-title">
+                    <span class="section-eyebrow">이어보기</span>
+                    최근 본 콘텐츠
+                </h2>
+
+                <p class="section-description">
+                    최근에 살펴본 콘텐츠를 이어서 확인해보세요
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="slider">
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="최근 본 콘텐츠 이전 목록"
+                    onclick="moveSlider('recent','left')">
+                ‹
+            </button>
+
+            <div class="track"
+                 id="recentSlider">
+
+                <c:forEach var="content"
+                           items="${recentlyViewedContentList}">
+
+                    <oditji:contentCard content="${content}"
+                                        variant="main" />
+
+                </c:forEach>
+
+            </div>
+
+            <button class="slider-btn"
+                    type="button"
+                    aria-label="최근 본 콘텐츠 다음 목록"
+                    onclick="moveSlider('recent','right')">
+                ›
+            </button>
+
+        </div>
+
+    </section>
+
+    </c:if>
+
     <%-- 신규 콘텐츠: 최근 등록/공개된 콘텐츠를 별도로 노출 --%>
     <section class="slider-section" id="newSection">
 

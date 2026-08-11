@@ -3540,3 +3540,111 @@
   border-color: rgba(255, 255, 255, 0.8);
   color: #111216;
 }
+
+/* =========================================================
+   [배송 완료 후 7일 환불 안내 추가]
+   주문내역의 총 결제금액 아래에서만 사용하며 다른 카드에는 영향 없음.
+
+   - 데스크톱: 안내 문구 길이에 맞춰 박스 너비 자동 확장
+   - 모바일: 화면 너비를 넘지 않도록 자동 줄바꿈
+   ========================================================= */
+.order-list-container .order-total-group {
+  display: flex;
+
+  /* [수정] 부모 flex 영역에서 내용보다 작게 강제로 줄어들지 않도록 설정 */
+  flex: 0 0 auto;
+
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+
+  /* [수정] 안내 문구 길이를 기준으로 필요한 너비 확보 */
+  width: auto;
+  min-width: max-content;
+}
+
+/* =========================================================
+   [환불 가능 기간 안내]
+   문구의 실제 길이에 맞춰 초록색 안내 박스도 자동으로 늘어납니다.
+   ========================================================= */
+.order-list-container .refund-period-notice {
+  display: inline-flex;
+
+  /* [수정] flex 레이아웃에 의해 안내 박스가 강제로 축소되지 않도록 설정 */
+  flex: 0 0 auto;
+
+  align-items: center;
+  gap: 8px;
+
+  /* [수정] 내용 길이에 따라 박스 너비 자동 결정 */
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+
+  box-sizing: border-box;
+
+  padding: 9px 12px;
+
+  border: 1px solid rgba(76, 175, 80, 0.38);
+  border-radius: 8px;
+
+  background: rgba(76, 175, 80, 0.08);
+
+  color: #a9d9ad;
+  font-size: 12px;
+  line-height: 1.45;
+
+  /* [수정] 데스크톱에서는 안내 문구를 한 줄로 유지 */
+  white-space: nowrap;
+}
+
+/* =========================================================
+   [환불 가능 기간 만료]
+   환불 가능 기간이 지난 경우 기존 안내 박스 구조는 유지하고
+   회색 계열로만 구분하여 표시합니다.
+   ========================================================= */
+.order-list-container .refund-period-notice.expired {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(148, 163, 184, 0.06);
+  color: #8d98aa;
+}
+
+/* =========================================================
+   [환불 안내 아이콘]
+   문구 길이가 변하거나 부모 영역이 좁아져도
+   아이콘 크기가 줄어들지 않도록 고정합니다.
+   ========================================================= */
+.order-list-container .refund-period-notice-icon {
+  flex: 0 0 auto;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   [모바일 환불 안내 보완]
+   모바일에서는 데스크톱의 max-content 고정 너비를 해제하여
+   안내 박스가 화면 밖으로 튀어나가지 않도록 처리합니다.
+   ========================================================= */
+@media (max-width: 720px) {
+  /* [수정] 모바일에서는 주문 총액 그룹이 사용 가능한 전체 너비 사용 */
+  .order-list-container .order-total-group {
+    flex: 1 1 auto;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* [수정] 모바일에서는 화면 폭까지만 박스를 확장하고
+     긴 안내 문구는 자연스럽게 줄바꿈 */
+  .order-list-container .refund-period-notice {
+    flex: 0 1 auto;
+
+    width: fit-content;
+    min-width: 0;
+    max-width: 100%;
+
+    white-space: normal;
+    word-break: keep-all;
+  }
+}

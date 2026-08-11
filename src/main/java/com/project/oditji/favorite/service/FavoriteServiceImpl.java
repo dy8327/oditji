@@ -95,6 +95,16 @@ public class FavoriteServiceImpl
     }
 
     @Override
+        public int getFavoriteCount(Long memberNo) {
+
+        if (memberNo == null) {
+                return 0;
+        }
+
+        return favoriteDAO.countFavoriteByMemberNo(memberNo);
+        }
+
+    @Override
     public List<ContentVO> selectFavoriteList(
             Long memberNo) {
 

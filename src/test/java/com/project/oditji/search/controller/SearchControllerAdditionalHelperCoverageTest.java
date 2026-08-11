@@ -14,6 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.service.SearchKeywordHistoryService;
 import com.project.oditji.search.vo.SearchVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.wish.service.WishService;
@@ -29,6 +30,7 @@ class SearchControllerAdditionalHelperCoverageTest {
     void setUp() {
         controller = new SearchController(
                 mock(SearchContentPageCacheService.class),
+                mock(SearchKeywordHistoryService.class),
                 mock(GoodsService.class),
                 mock(TmdbDAO.class),
                 mock(WishService.class));

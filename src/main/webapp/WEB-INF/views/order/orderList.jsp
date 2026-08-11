@@ -504,21 +504,49 @@
 
             <div class="order-card-footer">
 
-                <div class="order-total">
+                <%--
+                    =========================================================
+                    [배송 완료 후 7일 환불 안내 추가]
+                    주문 대표 상태가 배송 완료가 되면 총 결제금액 바로 아래에
+                    환불 가능 기간을 안내한다. 실제 환불 가능 여부는 서버에서
+                    배송 완료 시각 기준 7일을 다시 검증한다.
+                    =========================================================
+                --%>
+                <div class="order-total-group">
 
-                    <span>
-                        총 결제금액
-                    </span>
+                    <div class="order-total">
 
-                    <span class="order-total-price">
+                        <span>
+                            총 결제금액
+                        </span>
 
-                        ₩
+                        <span class="order-total-price">
 
-                        <fmt:formatNumber
-                            value="${o.totalAmount}"
-                            pattern="#,###"/>
+                            ₩
 
-                    </span>
+                            <fmt:formatNumber
+                                value="${o.totalAmount}"
+                                pattern="#,###"/>
+
+                        </span>
+
+                    </div>
+
+                    <c:if test="${o.orderStatus eq 'DELIVERED'}">
+                        <div class="refund-period-notice ${o.anyRefundEligible ? '' : 'expired'}">
+                            <span class="refund-period-notice-icon" aria-hidden="true">↺</span>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${o.anyRefundEligible}">
+                                        배송 완료 시점부터 7일 이내에 환불 신청이 가능합니다.
+                                    </c:when>
+                                    <c:otherwise>
+                                        배송 완료 후 7일의 환불 신청 기간이 종료되었습니다.
+                                    </c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+                    </c:if>
 
                 </div>
 

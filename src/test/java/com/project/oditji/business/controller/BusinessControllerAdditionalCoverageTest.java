@@ -343,13 +343,18 @@ class BusinessControllerAdditionalCoverageTest {
                 when(businessService.getBusinessByMemberNo(40L)).thenReturn(business);
                 SettlementManageVO summary = new SettlementManageVO();
                 SettlementManageVO account = new SettlementManageVO();
-                when(businessService.getMonthlySettlementSummary(50L)).thenReturn(summary);
+                // [정산 월 구분 반영] BusinessController.settlement()이
+                // getSettlementSummary(businessNo, cycle)을 호출하도록 변경되었으므로
+                // 현재 월(this) 조회 메서드에 맞춰 테스트 Mock을 설정합니다.
+                when(businessService.getSettlementSummary(50L, "this")).thenReturn(summary);
                 when(businessService.getSettlementAccount(50L)).thenReturn(account);
 
                 ExtendedModelMap settlementModel = new ExtendedModelMap();
                 assertEquals(
                                 "business/settlement/settlementMain",
                                 controller.settlement(
+                                                // [정산 월 구분 반영] 현재 월 정산 조회 테스트이므로 cycle 값으로 "this"를 전달합니다.
+                                                "this",
                                                 session(40L),
                                                 settlementModel,
                                                 new RedirectAttributesModelMap()));

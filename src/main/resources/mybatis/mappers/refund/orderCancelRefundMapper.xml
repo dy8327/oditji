@@ -130,7 +130,7 @@
            AND (
                 (OI.STATUS = 'PAID' AND NVL(D.STATUS, 'CONFIRMED') = 'CONFIRMED')
                 OR
-                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED')
+                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED' AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7)
            )
            AND NOT EXISTS (
                SELECT 1 FROM ORDER_ITEM X
@@ -140,7 +140,7 @@
                  AND NOT (
                     (X.STATUS = OI.STATUS AND OI.STATUS = 'PAID' AND NVL(XD.STATUS, 'CONFIRMED') = 'CONFIRMED')
                     OR
-                    (X.STATUS = OI.STATUS AND OI.STATUS = 'DELIVERED' AND NVL(XD.STATUS, 'DELIVERED') = 'DELIVERED')
+                    (X.STATUS = OI.STATUS AND OI.STATUS = 'DELIVERED' AND NVL(XD.STATUS, 'DELIVERED') = 'DELIVERED' AND NVL(XD.DELIVERED_AT, XD.UPDATED_AT) IS NOT NULL AND SYSDATE <![CDATA[ <= ]]> NVL(XD.DELIVERED_AT, XD.UPDATED_AT) + 7)
                  )
            )
          ORDER BY OI.ORDER_ITEM_NO
@@ -159,7 +159,7 @@
            AND (
                 (OI.STATUS = 'PAID' AND NVL(D.STATUS, 'CONFIRMED') = 'CONFIRMED')
                 OR
-                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED')
+                (OI.STATUS = 'DELIVERED' AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED' AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7)
            )
     </select>
 
@@ -395,26 +395,114 @@
     </update>
 
     <!-- =========================================================
-         [부분 결제 취소 완료 정산 제외 추가]
-         실제 부분 환불이 완료된 주문상품의 WAITING 정산을
-         REJECTED 상태로 변경한다.
+         [환불 승인 시 지급 완료 정산 자동 롤백 추가]
+
+         이미 REQUESTED/DONE 처리된 정산 요청 안에 환불 승인 상품이 있으면
+         해당 정산 요청 자체를 자동 반려 처리한다.
     ========================================================== -->
-    <update id="rejectSettlementByOrderItemNo">
-        UPDATE SETTLEMENT
-           SET STATUS = 'REJECTED'
-         WHERE ORDER_ITEM_NO = #{orderItemNo}
-           AND STATUS = 'WAITING'
+    <update id="autoRejectSettlementRequestByOrderItemNo">
+        UPDATE SETTLEMENT_REQUEST SR
+           SET SR.STATUS = 'REJECTED',
+               SR.PROCESSED_AT = SYSDATE,
+               SR.REJECT_REASON = #{rejectReason}
+         WHERE SR.STATUS IN ('REQUESTED', 'DONE')
+           AND SR.REQUEST_NO = (
+               SELECT S.REQUEST_NO
+                 FROM SETTLEMENT S
+                WHERE S.ORDER_ITEM_NO = #{orderItemNo}
+                  AND S.REQUEST_NO IS NOT NULL
+           )
+    </update>
+
+    <!--
+        [환불 승인 시 지급 완료 정산 자동 롤백 추가]
+        환불된 상품과 같은 정산 요청에 묶였던 정상 상품은 다시 WAITING으로
+        되돌려 사업자가 재정산 요청할 수 있도록 한다.
+    -->
+    <update id="releaseSettlementSiblingsByOrderItemNo">
+        UPDATE SETTLEMENT S
+           SET S.REQUEST_NO = NULL,
+               S.STATUS = 'WAITING',
+               S.SETTLED_AT = NULL
+         WHERE S.ORDER_ITEM_NO != #{orderItemNo}
+           AND S.STATUS IN ('REQUESTED', 'DONE')
+           AND S.REQUEST_NO = (
+               SELECT TARGET.REQUEST_NO
+                 FROM SETTLEMENT TARGET
+                WHERE TARGET.ORDER_ITEM_NO = #{orderItemNo}
+                  AND TARGET.REQUEST_NO IS NOT NULL
+           )
     </update>
 
     <!-- =========================================================
-         [전체 결제 취소 완료 정산 제외 추가]
-         전체 취소 그룹에 포함된 주문상품의 WAITING 정산을
-         REJECTED 상태로 일괄 변경한다.
+         [부분 환불 완료 상품 정산 제외 보완]
+         WAITING뿐 아니라 이미 REQUESTED/DONE인 원장도 환불 승인 시
+         REJECTED로 변경하고 지급 완료 시각을 제거한다.
+    ========================================================== -->
+    <update id="rejectSettlementByOrderItemNo">
+        UPDATE SETTLEMENT
+           SET STATUS = 'REJECTED',
+               SETTLED_AT = NULL
+         WHERE ORDER_ITEM_NO = #{orderItemNo}
+           AND STATUS IN ('WAITING', 'REQUESTED', 'DONE')
+    </update>
+
+    <!-- =========================================================
+         [전체 환불 승인 시 지급 완료 정산 자동 롤백 추가]
+         환불 그룹에 포함된 상품을 가진 정산 요청을 자동 반려 처리한다.
+    ========================================================== -->
+    <update id="autoRejectSettlementRequestsByCancelGroupNo">
+        UPDATE SETTLEMENT_REQUEST SR
+           SET SR.STATUS = 'REJECTED',
+               SR.PROCESSED_AT = SYSDATE,
+               SR.REJECT_REASON = #{rejectReason}
+         WHERE SR.STATUS IN ('REQUESTED', 'DONE')
+           AND SR.REQUEST_NO IN (
+               SELECT DISTINCT S.REQUEST_NO
+                 FROM SETTLEMENT S
+                 JOIN CANCEL_REQUEST CR
+                   ON CR.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                WHERE CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+                  AND S.REQUEST_NO IS NOT NULL
+           )
+    </update>
+
+    <!--
+        [전체 환불 승인 시 지급 완료 정산 자동 롤백 추가]
+        같은 정산 요청에 포함됐지만 환불 대상이 아닌 정상 상품은
+        WAITING으로 복구하여 정산 예정 금액/대시보드에 다시 반영한다.
+    -->
+    <update id="releaseSettlementSiblingsByCancelGroupNo">
+        UPDATE SETTLEMENT S
+           SET S.REQUEST_NO = NULL,
+               S.STATUS = 'WAITING',
+               S.SETTLED_AT = NULL
+         WHERE S.STATUS IN ('REQUESTED', 'DONE')
+           AND S.REQUEST_NO IN (
+               SELECT DISTINCT TARGET.REQUEST_NO
+                 FROM SETTLEMENT TARGET
+                 JOIN CANCEL_REQUEST CR_TARGET
+                   ON CR_TARGET.ORDER_ITEM_NO = TARGET.ORDER_ITEM_NO
+                WHERE CR_TARGET.CANCEL_GROUP_NO = #{cancelGroupNo}
+                  AND TARGET.REQUEST_NO IS NOT NULL
+           )
+           AND NOT EXISTS (
+               SELECT 1
+                 FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                  AND CR.CANCEL_GROUP_NO = #{cancelGroupNo}
+           )
+    </update>
+
+    <!-- =========================================================
+         [전체 환불 완료 상품 정산 제외 보완]
+         전체 취소 그룹의 WAITING/REQUESTED/DONE 원장을 모두 REJECTED로 변경한다.
     ========================================================== -->
     <update id="rejectSettlementsByCancelGroupNo">
         UPDATE SETTLEMENT S
-           SET S.STATUS = 'REJECTED'
-         WHERE S.STATUS = 'WAITING'
+           SET S.STATUS = 'REJECTED',
+               S.SETTLED_AT = NULL
+         WHERE S.STATUS IN ('WAITING', 'REQUESTED', 'DONE')
            AND EXISTS (
                SELECT 1
                  FROM CANCEL_REQUEST CR

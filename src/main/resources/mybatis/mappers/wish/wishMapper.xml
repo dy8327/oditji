@@ -49,6 +49,16 @@
 
     </delete>
 
+    <!-- 회원의 상품 찜 개수 -->
+    <select id="countWishByMemberNo"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PRODUCT_WISH
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
 
     <!-- 내 상품 찜 목록
          GoodsDAO 의 goodsResultMap / mainImageJoin 을 그대로 재사용하여

@@ -235,7 +235,8 @@ function moveSlider(type, dir) {
         rec: 'recSlider',
         rank: 'rankSlider',
         popular: 'popularSlider',
-        new: 'newSlider'
+        new: 'newSlider',
+        recent: 'recentSlider'
     };
 
     const targetId = idMap[type] || 'recSlider';

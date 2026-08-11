@@ -34,6 +34,16 @@ public class OrderItemVO extends ProductSelectionVO {
 
     /*
      * =========================================================
+     * [환불 가능 기간 추가]
+     *
+     * 배송 완료 시점부터 7일 이내인지 DB에서 계산한 값을 저장한다.
+     * null인 경우에는 기존 테스트/호환성을 위해 상태값만으로 판단한다.
+     * =========================================================
+     */
+    private Boolean refundEligible;
+
+    /*
+     * =========================================================
      * [부분 취소 처리 결과 표시용 필드 추가]
      *
      * 사용자 주문내역에서 최근 부분 취소 요청의 상태와
@@ -137,9 +147,17 @@ public class OrderItemVO extends ProductSelectionVO {
         return "PAID".equals(status) && "CONFIRMED".equals(deliveryStatus);
     }
 
-    /** 배송 완료 상품만 환불 신청 가능 */
+    /** 배송 완료 후 7일 이내인 상품만 환불 신청 가능 */
     public boolean isRefundEligible() {
+        if (refundEligible != null) {
+            return refundEligible.booleanValue();
+        }
+
         return "DELIVERED".equals(status) && "DELIVERED".equals(deliveryStatus);
+    }
+
+    public void setRefundEligible(Boolean refundEligible) {
+        this.refundEligible = refundEligible;
     }
 
     public String getBusinessName() {
