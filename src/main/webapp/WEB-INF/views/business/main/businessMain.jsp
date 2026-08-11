@@ -36,20 +36,59 @@
                     </div>
 
                     <div class="hero-right">
+
+                        <%--
+                            =====================================================
+                            [사업자 대시보드 사업자 정보 영역 디자인 수정]
+                            - 사업자명 / 등급 / 승인 상태를 카드 형태로 정리
+                            - DB의 APPROVED 값을 그대로 출력하지 않고
+                            승인된 사업자의 경우 "승인된 사업자"로 표시
+                            - 기존 business 객체 및 데이터 구조는 그대로 유지
+                            =====================================================
+                        --%>
                         <div class="business-info">
-                            <div>
-                                사업자명
-                                <strong>${business.businessName}</strong>
+
+                            <!-- 사업자명 -->
+                            <div class="business-info-item">
+                                <span class="business-info-label">사업자명</span>
+
+                                <strong class="business-info-value">
+                                    ${business.businessName}
+                                </strong>
                             </div>
-                            <div>
-                                등급
-                                <strong>${business.gradeName}</strong>
+
+                            <!-- 사업자 등급 -->
+                            <div class="business-info-item">
+                                <span class="business-info-label">등급</span>
+
+                                <strong class="business-info-grade">
+                                    ${business.gradeName}
+                                </strong>
                             </div>
-                            <div>
-                                상태
-                                <strong>${business.status}</strong>
-                            </div>
+
+                            <!--
+                                =====================================================
+                                [사업자 승인 상태 표시 수정]
+                                APPROVED 상태일 때만 사용자에게
+                                "승인된 사업자"라는 한글 상태를 표시한다.
+                                DB에 저장된 APPROVED 값 자체는 변경하지 않는다.
+                                =====================================================
+                            -->
+                            <c:if test="${business.status == 'APPROVED'}">
+                                <div class="business-info-item business-info-status-item">
+
+                                    <span class="business-info-label">상태</span>
+
+                                    <span class="business-approved-badge">
+                                        <span class="business-approved-dot"></span>
+                                        승인된 사업자
+                                    </span>
+
+                                </div>
+                            </c:if>
+
                         </div>
+
                     </div>
 
                 </section>

@@ -57,14 +57,24 @@ public class OttDiscountServiceImpl implements OttDiscountService {
     }
 
     @Override
-    public List<OttDiscountVO> getAdminDiscountList(String platform, String category, String status) {
+    public List<OttDiscountVO> getAdminDiscountList(String platform, String category, String status, int page, int pageSize) {
+        String normalizedPlatform = normalize(platform);
+        String normalizedCategory = normalize(category);
+        String normalizedStatus = normalizeStatus(status);
+        int offset = PaginationUtil.offset(page, pageSize);
+
+        List<OttDiscountVO> discountList = ottDiscountDAO.selectAdminDiscountList(
+                normalizedPlatform, normalizedCategory, normalizedStatus, offset, pageSize);
+        return discountList == null ? List.of() : discountList;
+    }
+
+    @Override
+    public int getAdminDiscountListCount(String platform, String category, String status) {
         String normalizedPlatform = normalize(platform);
         String normalizedCategory = normalize(category);
         String normalizedStatus = normalizeStatus(status);
 
-        List<OttDiscountVO> discountList =
-                ottDiscountDAO.selectAdminDiscountList(normalizedPlatform, normalizedCategory, normalizedStatus);
-        return discountList == null ? List.of() : discountList;
+        return ottDiscountDAO.selectAdminDiscountListCount(normalizedPlatform, normalizedCategory, normalizedStatus);
     }
 
     @Override
