@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.project.oditji.common.util.PlatformSelectionUtil;
+import com.project.oditji.content.service.ContentService;
 import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
@@ -24,22 +25,31 @@ public class HomeController {
     private static final int MAIN_POPULAR_SECTION_EXTRA_LIMIT = 20;
     private static final int MAIN_SLIDER_LIMIT = 20;
 
+    private static final int MAIN_RECENTLY_VIEWED_LIMIT = 20;
+
     private final SearchContentPageCacheService
             searchContentPageCacheService;
 
     private final MemberPlatformService
             memberPlatformService;
 
+    private final ContentService
+            contentService;
+
     public HomeController(
             SearchContentPageCacheService
                     searchContentPageCacheService,
-            MemberPlatformService memberPlatformService) {
+            MemberPlatformService memberPlatformService,
+            ContentService contentService) {
 
         this.searchContentPageCacheService =
                 searchContentPageCacheService;
 
         this.memberPlatformService =
                 memberPlatformService;
+
+        this.contentService =
+                contentService;
     }
 
     @GetMapping("/")
@@ -149,6 +159,20 @@ public class HomeController {
                         ? null
                         : loginMember.getMemberNo();
 
+        /*
+         * 최근 본 콘텐츠
+         *
+         * 로그인 회원의 CONTENT_VIEW_HISTORY를 최근 조회순으로 조회해
+         * JSONL 공용 캐시(SearchResultVO)로 변환한다.
+         * 비로그인 회원은 빈 목록을 받는다.
+         */
+        List<SearchResultVO> recentlyViewedContentList =
+                contentService
+                        .getRecentlyViewedContentList(
+                                memberNo,
+                                MAIN_RECENTLY_VIEWED_LIMIT
+                        );
+
         List<PlatformVO> selectedPlatformList =
                 memberNo == null
                         ? new ArrayList<PlatformVO>()
@@ -196,6 +220,11 @@ public class HomeController {
         model.addAttribute(
                 "newContentList",
                 newContentList
+        );
+
+        model.addAttribute(
+                "recentlyViewedContentList",
+                recentlyViewedContentList
         );
 
         model.addAttribute(
