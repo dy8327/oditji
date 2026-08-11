@@ -239,13 +239,43 @@ public class SearchContentPageCacheService {
                         Collections.emptyList()
                 );
 
+        applyUpcomingReleasePolicy(
+                allContentList
+        );
+
+        allContentList.sort(
+                createLatestComparator()
+        );
+
+        return limitList(
+                allContentList,
+                limit
+        );
+    }
+
+    /**
+     * 검색 결과와 신규 콘텐츠에서 공개 예정작 노출 범위를 통일합니다.
+     *
+     * 오늘 이후 3일 이내 콘텐츠는 upcoming=true로 표시하고,
+     * 4일 이후 공개 예정 콘텐츠는 목록에서 제외합니다.
+     * 공개일이 없거나 이미 공개된 콘텐츠는 그대로 유지합니다.
+     */
+    private void applyUpcomingReleasePolicy(
+            List<SearchResultVO> contentList) {
+
+        if (contentList == null
+                || contentList.isEmpty()) {
+
+            return;
+        }
+
         LocalDate today =
                 LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
         LocalDate upcomingEndDate =
                 today.plusDays(MAIN_NEW_UPCOMING_DAYS);
 
-        allContentList.removeIf(
+        contentList.removeIf(
                 content -> {
 
                     LocalDate releaseDate =
@@ -260,32 +290,23 @@ public class SearchContentPageCacheService {
                 }
         );
 
-        for (SearchResultVO content : allContentList) {
+        for (SearchResultVO content : contentList) {
+
+            if (content == null) {
+                continue;
+            }
 
             LocalDate releaseDate =
                     parseReleaseDate(
-                            content == null
-                                    ? null
-                                    : content.getReleaseDate()
+                            content.getReleaseDate()
                     );
 
-            if (content != null) {
-                content.setUpcoming(
-                        releaseDate != null
-                                && releaseDate.isAfter(today)
-                                && !releaseDate.isAfter(upcomingEndDate)
-                );
-            }
+            content.setUpcoming(
+                    releaseDate != null
+                            && releaseDate.isAfter(today)
+                            && !releaseDate.isAfter(upcomingEndDate)
+            );
         }
-
-        allContentList.sort(
-                createLatestComparator()
-        );
-
-        return limitList(
-                allContentList,
-                limit
-        );
     }
 
     /**
@@ -1146,7 +1167,7 @@ public class SearchContentPageCacheService {
      *
      * type은 전체·인기·신규 목록 범위를 결정하고,
      * sort는 인기순·평점순·최신순·가나다순 정렬을 결정합니다.
-     * 신규 탭은 기존 정책대로 최근 30일 공개작만 사용합니다.
+     * 신규 탭은 최근 30일 공개작과 오늘 이후 3일 이내 예정작만 사용합니다.
      */
     public ContentListPageVO getContentListPage(
             String type,
@@ -1183,14 +1204,19 @@ public class SearchContentPageCacheService {
         if ("new".equals(normalizedType)) {
 
             /*
-             * 신규 탭은 오늘보다 미래인 콘텐츠를 제외하고,
-             * 최근 30일 이내 공개된 콘텐츠만 표시합니다.
+             * 신규 탭도 메인과 동일하게 오늘 이후 3일 이내 예정작은
+             * 표시하고, 4일 이후 예정작은 제외합니다.
+             * 과거 콘텐츠는 최근 30일 공개작만 유지합니다.
              */
             LocalDate today =
                     LocalDate.now(DateTimeUtil.KOREA_ZONE);
 
             LocalDate startDate =
                     today.minusDays(30);
+
+            applyUpcomingReleasePolicy(
+                    filteredList
+            );
 
             filteredList.removeIf(
                     content -> {
@@ -1203,8 +1229,7 @@ public class SearchContentPageCacheService {
                                 );
 
                         return releaseDate == null
-                                || releaseDate.isBefore(startDate)
-                                || releaseDate.isAfter(today);
+                                || releaseDate.isBefore(startDate);
                     }
             );
         }
@@ -1529,6 +1554,15 @@ public class SearchContentPageCacheService {
                         providerIds,
                         ageRatings
                 );
+
+        /*
+         * 검색 결과도 메인 신규 콘텐츠와 동일한 공개 예정 기준을 사용합니다.
+         * 3일 이내 예정작은 유지하고 upcoming=true로 표시하며,
+         * 4일 이후 예정작은 검색 결과 건수와 페이징에서 함께 제외합니다.
+         */
+        applyUpcomingReleasePolicy(
+                filtered
+        );
 
         int totalResults =
                 filtered.size();

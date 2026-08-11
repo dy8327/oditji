@@ -24,7 +24,7 @@
           href="${pageContext.request.contextPath}/css/goods.css">
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=5">
+          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=6">
 
     <!-- 콘텐츠/굿즈 카드의 찜 버튼 스타일 -->
     <link rel="stylesheet"
@@ -354,7 +354,8 @@
                                     <oditji:contentCard content="${content}"
                                                         variant="grid"
                                                         releaseDateFormat="full"
-                                                        scorePositiveOnly="true" />
+                                                        scorePositiveOnly="true"
+                                                        showUpcomingBadge="true" />
 
                                 </c:forEach>
                             </div>
@@ -431,7 +432,8 @@
                                 <oditji:contentCard content="${content}"
                                                     variant="grid"
                                                     releaseDateFormat="full"
-                                                    scorePositiveOnly="true" />
+                                                    scorePositiveOnly="true"
+                                                    showUpcomingBadge="true" />
 
                             </c:forEach>
                         </div>

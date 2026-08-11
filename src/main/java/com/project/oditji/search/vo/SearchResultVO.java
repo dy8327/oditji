@@ -38,7 +38,8 @@ public class SearchResultVO extends ContentMetadataVO {
     private String recommendationReasonType;
 
     /**
-     * 메인 신규 콘텐츠에서 오늘 이후 3일 이내 공개 예정인 콘텐츠인지 여부입니다.
+     * 메인 신규 콘텐츠, 검색 결과, 신규 콘텐츠 목록에서
+     * 오늘 이후 3일 이내 공개 예정인 콘텐츠인지 여부입니다.
      * 화면에서 "예정작" 뱃지를 표시할 때 사용합니다.
      */
     private boolean upcoming;

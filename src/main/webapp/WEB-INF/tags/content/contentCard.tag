@@ -138,6 +138,12 @@
                                        outerClass="content-list-poster-age-rating"
                                        innerClass="age-rating-badge" />
 
+                <c:if test="${resolvedShowUpcomingBadge and content.upcoming}">
+                    <span class="content-list-upcoming-badge">
+                        예정작
+                    </span>
+                </c:if>
+
                 <c:if test="${not empty content.tmdbScore and (not resolvedScorePositiveOnly or content.tmdbScore > 0)}">
                     <span class="content-list-score-badge">
                         <span aria-hidden="true">★</span>

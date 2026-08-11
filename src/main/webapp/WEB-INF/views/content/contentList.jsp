@@ -25,7 +25,7 @@
 
     <!-- 콘텐츠 목록 화면 전용 레이아웃과 카드 디자인입니다. -->
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=5">
+          href="${pageContext.request.contextPath}/css/content-list-modern.css?v=6">
 
     <script>
         const contextPath = "${pageContext.request.contextPath}";
@@ -320,7 +320,8 @@
                                    items="${contentList}">
 
                             <oditji:contentCard content="${content}"
-                                                variant="grid" />
+                                                variant="grid"
+                                                showUpcomingBadge="${type eq 'new'}" />
 
                         </c:forEach>
 

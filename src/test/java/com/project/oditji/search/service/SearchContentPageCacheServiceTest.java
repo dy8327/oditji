@@ -166,6 +166,41 @@ class SearchContentPageCacheServiceTest {
     }
 
     @Test
+    void contentPageShouldShowThreeDayUpcomingAndExcludeLaterFutureContent() {
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+        List<CachedContentVO> mixed = new ArrayList<CachedContentVO>(contents);
+        mixed.add(content(
+                8L,
+                "TV",
+                "4일 뒤 검색 예정작",
+                "드라마",
+                "예정감독",
+                "예정배우",
+                "12세 이상 관람가",
+                today.plusDays(4).toString(),
+                List.of("tving"),
+                8.0,
+                90.0));
+        when(searchContentStore.getAll()).thenReturn(mixed);
+
+        SearchResultPageVO page = service.getContentPage(
+                "",
+                1,
+                20,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
+
+        assertEquals(7, page.getTotalResults());
+        assertTrue(page.getResultList().stream().anyMatch(
+                content -> "미래 공개".equals(content.getTitle())
+                        && content.isUpcoming()));
+        assertFalse(page.getResultList().stream().anyMatch(
+                content -> "4일 뒤 검색 예정작".equals(content.getTitle())));
+    }
+
+    @Test
     void contentPageShouldSearchTitleDirectorAndCast() {
         SearchResultPageVO titlePage = service.getContentPage(
                 "인기",
@@ -269,7 +304,7 @@ class SearchContentPageCacheServiceTest {
     }
 
     @Test
-    void newContentListShouldOnlyContainRecentAndNotFutureContent() {
+    void newContentListShouldIncludeOnlyRecentAndThreeDayUpcomingContent() {
         ContentListPageVO page = service.getContentListPage(
                 "new",
                 "latest",
@@ -279,15 +314,50 @@ class SearchContentPageCacheServiceTest {
                 List.of(),
                 List.of());
 
-        assertEquals(2, page.getTotalResults());
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+
+        assertEquals(3, page.getTotalResults());
+        assertEquals("미래 공개", page.getContentList().get(0).getTitle());
+        assertTrue(page.getContentList().get(0).isUpcoming());
         assertTrue(page.getContentList().stream().allMatch(
                 content -> {
                     LocalDate releaseDate = LocalDate.parse(
                             content.getReleaseDate());
-                    return !releaseDate.isBefore(
-                            LocalDate.now(DateTimeUtil.KOREA_ZONE).minusDays(30))
-                            && !releaseDate.isAfter(LocalDate.now(DateTimeUtil.KOREA_ZONE));
+                    return !releaseDate.isBefore(today.minusDays(30))
+                            && !releaseDate.isAfter(today.plusDays(3));
                 }));
+    }
+
+    @Test
+    void newContentListShouldExcludeContentMoreThanThreeDaysInFuture() {
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+        List<CachedContentVO> mixed = new ArrayList<CachedContentVO>(contents);
+        mixed.add(content(
+                8L,
+                "TV",
+                "4일 뒤 신규 목록",
+                "드라마",
+                "예정감독",
+                "예정배우",
+                "12세 이상 관람가",
+                today.plusDays(4).toString(),
+                List.of("tving"),
+                8.0,
+                90.0));
+        when(searchContentStore.getAll()).thenReturn(mixed);
+
+        ContentListPageVO page = service.getContentListPage(
+                "new",
+                "latest",
+                1,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
+
+        assertEquals(3, page.getTotalResults());
+        assertFalse(page.getContentList().stream().anyMatch(
+                content -> "4일 뒤 신규 목록".equals(content.getTitle())));
     }
 
     @Test
