@@ -4382,17 +4382,25 @@
   white-space: nowrap;
 }
 
-/* JS가 추가하는 파일 입력 삭제 버튼 대응 */
-.business-wrap #productUpdateModal .update-detail-remove-btn {
+/* =====================================================
+   [상품 수정 모달 세부 이미지]
+   새로 선택한 세부 이미지 입력 행 삭제 X 버튼
+   - business.js에서 생성하는 detail-image-remove-btn에 적용
+   - 기존 등록 이미지의 X 버튼과 동일한 형태로 표시
+===================================================== */
+.business-wrap #productUpdateModal .detail-image-remove-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   flex: 0 0 auto;
 
-  min-width: 54px;
+  width: 34px;
   height: 34px;
-  padding: 0 11px;
+  min-width: 34px;
+  padding: 0;
+
+  margin-left: auto;
 
   border: 1px solid var(--biz-border);
   border-radius: 7px;
@@ -4400,14 +4408,16 @@
   background: transparent;
   color: var(--biz-text-sub);
 
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
 
   cursor: pointer;
   transition: var(--biz-transition);
 }
 
-.business-wrap #productUpdateModal .update-detail-remove-btn:hover {
+.business-wrap #productUpdateModal .detail-image-remove-btn:hover {
+  background: rgba(255, 86, 86, 0.1);
   border-color: var(--biz-danger);
   color: var(--biz-danger);
 }
