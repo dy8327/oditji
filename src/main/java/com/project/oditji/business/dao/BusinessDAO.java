@@ -382,7 +382,53 @@ public interface BusinessDAO {
                         @Param("businessNo") long businessNo,
                         @Param("requestNo") long requestNo);
 
+        /*
+         * =========================================================
+         * [사전 정산 요청 추가]
+         * 현재 월의 배송 완료 정산 대상과 계좌 정보를 조회한다.
+         * SETTLEMENT_MONTH는 다음 달(실제 정산 처리 월)로 계산한다.
+         * =========================================================
+         */
+        SettlementRequestVO selectEarlySettlementRequestTarget(@Param("businessNo") long businessNo);
+
+        /*
+         * [사전 정산 요청 추가]
+         * 같은 사업자/정산월에 처리 중인 사전·일반 정산 요청이 있는지 확인한다.
+         */
+        int countActiveSettlementRequestByMonth(
+                        @Param("businessNo") long businessNo,
+                        @Param("settlementMonth") String settlementMonth);
+
+        /* [사전 정산 요청 추가] PRE_REQUESTED 상태의 월별 정산 요청을 생성한다. */
+        int insertEarlySettlementRequest(SettlementRequestVO settlementRequestVO);
+
+        /* [사전 정산 요청 자동 확정 추가] 확정 시점이 도래한 사전 요청 목록을 조회한다. */
+        List<SettlementRequestVO> selectEarlySettlementRequestsToFinalize();
+
+        /*
+         * [사전 정산 요청 자동 확정 추가]
+         * 실제 연결된 SETTLEMENT 기준으로 금액/주문수를 다시 계산하고 REQUESTED로 전환한다.
+         */
+        int refreshFinalizedEarlySettlementRequest(@Param("requestNo") long requestNo);
+
+        /*
+         * [사전 정산 요청 자동 확정 추가]
+         * 월 마감 시 실제 정산 가능한 건이 하나도 없으면 사전 요청을 반려 처리한다.
+         */
+        int rejectEarlySettlementRequest(
+                        @Param("requestNo") long requestNo,
+                        @Param("rejectReason") String rejectReason);
+
         SettlementManageVO selectSettlementAccount(@Param("businessNo") long businessNo);
+
+        /*
+         * =========================================================
+         * [사전 정산 요청 금액 자동 갱신 추가]
+         * 사전 정산 요청 이후 새로운 배송 완료 매출이 발생하면
+         * 해당 사업자의 현재 PRE_REQUESTED 요청 금액을 다시 계산한다.
+         * =========================================================
+         */
+        int refreshPreRequestedSettlementAmount(@Param("businessNo") long businessNo);
 
         int updateSettlementAccount(
                         @Param("businessNo") long businessNo,
