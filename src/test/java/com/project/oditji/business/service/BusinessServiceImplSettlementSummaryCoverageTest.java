@@ -33,112 +33,120 @@ import com.project.oditji.tmdb.service.TmdbService;
 @ExtendWith(MockitoExtension.class)
 class BusinessServiceImplSettlementSummaryCoverageTest {
 
-    @Mock
-    private BusinessDAO businessDAO;
+        @Mock
+        private BusinessDAO businessDAO;
 
-    @Mock
-    private ContentService contentService;
+        @Mock
+        private ContentService contentService;
 
-    @Mock
-    private SearchContentStore searchContentStore;
+        @Mock
+        private SearchContentStore searchContentStore;
 
-    @Mock
-    private TmdbService tmdbService;
+        @Mock
+        private TmdbService tmdbService;
 
-    @Mock
-    private NotificationService notificationService;
+        @Mock
+        private NotificationService notificationService;
 
-    private BusinessServiceImpl service;
+        private BusinessServiceImpl service;
 
-    @BeforeEach
-    void setUp() {
-        service = new BusinessServiceImpl(
-                businessDAO,
-                contentService,
-                searchContentStore,
-                tmdbService,
-                notificationService,
-                "uploads/product",
-                "uploads/event");
-    }
+        @BeforeEach
+        void setUp() {
+                service = new BusinessServiceImpl(
+                                businessDAO,
+                                contentService,
+                                searchContentStore,
+                                tmdbService,
+                                notificationService,
+                                "uploads/product",
+                                "uploads/event");
+        }
 
-    @Test
-    void settlementSummaryShouldRejectInvalidBusinessNumber() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.getSettlementSummary(0L, "next"));
-    }
+        @Test
+        void settlementSummaryShouldRejectInvalidBusinessNumber() {
+                assertThrows(
+                                IllegalArgumentException.class,
+                                () -> service.getSettlementSummary(0L, "next"));
+        }
 
-    @Test
-    void settlementSummaryShouldCoverCurrentNextAndNullDaoResult() {
-        SettlementManageVO currentSummary = new SettlementManageVO();
-        currentSummary.setSettledAmount(120_000L);
-        currentSummary.setUnsettledAmount(30_000L);
+        @Test
+        void settlementSummaryShouldCoverCurrentNextAndNullDaoResult() {
+                SettlementManageVO currentSummary = new SettlementManageVO();
+                currentSummary.setSettledAmount(120_000L);
+                currentSummary.setUnsettledAmount(30_000L);
 
-        when(businessDAO.selectSettlementSummaryByPeriod(
-                eq(11L),
-                any(LocalDate.class),
-                any(LocalDate.class),
-                anyString()))
-                .thenReturn(currentSummary);
+                when(businessDAO.selectSettlementSummaryByPeriod(
+                                eq(11L),
+                                any(LocalDate.class),
+                                any(LocalDate.class),
+                                anyString(),
+                                eq("this")))
+                                .thenReturn(currentSummary);
 
-        when(businessDAO.selectSettlementSummaryByPeriod(
-                eq(12L),
-                any(LocalDate.class),
-                any(LocalDate.class),
-                anyString()))
-                .thenReturn(null);
+                when(businessDAO.selectSettlementSummaryByPeriod(
+                                eq(12L),
+                                any(LocalDate.class),
+                                any(LocalDate.class),
+                                anyString(),
+                                eq("next")))
+                                .thenReturn(null);
 
-        SettlementManageVO current = service.getSettlementSummary(11L, null);
-        SettlementManageVO next = service.getSettlementSummary(12L, "NeXt");
+                SettlementManageVO current = service.getSettlementSummary(11L, null);
+                SettlementManageVO next = service.getSettlementSummary(12L, "NeXt");
 
-        assertSame(currentSummary, current);
-        assertEquals(150_000L, current.getSettlementTotalAmount());
-        assertNotNull(next);
-        assertEquals(0L, next.getSettlementTotalAmount());
+                assertSame(currentSummary, current);
+                assertEquals(150_000L, current.getSettlementTotalAmount());
+                assertNotNull(next);
+                assertEquals(0L, next.getSettlementTotalAmount());
 
-        ArgumentCaptor<LocalDate> startDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        ArgumentCaptor<LocalDate> endDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        ArgumentCaptor<String> settlementMonthCaptor = ArgumentCaptor.forClass(String.class);
+                ArgumentCaptor<LocalDate> startDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
+                ArgumentCaptor<LocalDate> endDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
+                ArgumentCaptor<String> settlementMonthCaptor = ArgumentCaptor.forClass(String.class);
+                // [정산 월 구분 보완] DAO에 추가된 cycle 인자도 함께 검증합니다.
+                ArgumentCaptor<String> cycleCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(businessDAO, times(2)).selectSettlementSummaryByPeriod(
-                anyLong(),
-                startDateCaptor.capture(),
-                endDateCaptor.capture(),
-                settlementMonthCaptor.capture());
+                verify(businessDAO, times(2)).selectSettlementSummaryByPeriod(
+                                anyLong(),
+                                startDateCaptor.capture(),
+                                endDateCaptor.capture(),
+                                settlementMonthCaptor.capture(),
+                                cycleCaptor.capture());
 
-        List<LocalDate> startDates = startDateCaptor.getAllValues();
-        List<LocalDate> endDates = endDateCaptor.getAllValues();
-        List<String> settlementMonths = settlementMonthCaptor.getAllValues();
+                List<LocalDate> startDates = startDateCaptor.getAllValues();
+                List<LocalDate> endDates = endDateCaptor.getAllValues();
+                List<String> settlementMonths = settlementMonthCaptor.getAllValues();
+                List<String> cycles = cycleCaptor.getAllValues();
 
-        LocalDate currentStart = startDates.get(0);
-        LocalDate currentEnd = endDates.get(0);
-        LocalDate nextStart = startDates.get(1);
-        LocalDate nextEnd = endDates.get(1);
+                LocalDate currentStart = startDates.get(0);
+                LocalDate currentEnd = endDates.get(0);
+                LocalDate nextStart = startDates.get(1);
+                LocalDate nextEnd = endDates.get(1);
 
-        assertEquals(1, currentStart.getDayOfMonth());
-        assertEquals(currentStart.plusMonths(1), currentEnd);
-        assertEquals(currentStart.plusMonths(1), nextStart);
-        assertEquals(nextStart.plusMonths(1), nextEnd);
+                assertEquals(1, currentStart.getDayOfMonth());
+                assertEquals(currentStart.plusMonths(1), currentEnd);
+                assertEquals(currentStart.plusMonths(1), nextStart);
+                assertEquals(nextStart.plusMonths(1), nextEnd);
 
-        assertEquals(
-                String.format("%04d-%02d", currentEnd.getYear(), currentEnd.getMonthValue()),
-                settlementMonths.get(0));
-        assertEquals(
-                String.format("%04d-%02d", nextEnd.getYear(), nextEnd.getMonthValue()),
-                settlementMonths.get(1));
+                assertEquals(
+                                String.format("%04d-%02d", currentEnd.getYear(), currentEnd.getMonthValue()),
+                                settlementMonths.get(0));
+                assertEquals(
+                                String.format("%04d-%02d", nextEnd.getYear(), nextEnd.getMonthValue()),
+                                settlementMonths.get(1));
+                assertEquals("this", cycles.get(0));
+                assertEquals("next", cycles.get(1));
 
-        assertEquals(
-                currentStart + " ~ " + currentEnd.minusDays(1),
-                current.getSettlementPeriod());
-        assertEquals(
-                "매월 10일 (" + currentEnd.withDayOfMonth(10) + ")",
-                current.getSettlementDateLabel());
-        assertEquals(
-                nextStart + " ~ " + nextEnd.minusDays(1),
-                next.getSettlementPeriod());
-        assertEquals(
-                "매월 10일 (" + nextEnd.withDayOfMonth(10) + ")",
-                next.getSettlementDateLabel());
-    }
+                assertEquals(
+                                currentStart + " ~ " + currentEnd.minusDays(1),
+                                current.getSettlementPeriod());
+                assertEquals(
+                                "매월 10일 (" + currentEnd.withDayOfMonth(10) + ")",
+                                current.getSettlementDateLabel());
+                assertEquals(
+                                nextStart + " ~ " + nextEnd.minusDays(1),
+                                next.getSettlementPeriod());
+                assertEquals(
+                                "매월 10일 (" + nextEnd.withDayOfMonth(10) + ")",
+                                next.getSettlementDateLabel());
+        }
 }
