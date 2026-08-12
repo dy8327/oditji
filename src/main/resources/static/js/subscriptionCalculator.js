@@ -9,6 +9,8 @@
 
     var searchUrl = section.dataset.searchUrl;
     var calculateUrl = section.dataset.calculateUrl;
+    var saveUrl = section.dataset.saveUrl;
+    var resultBaseUrl = section.dataset.resultBaseUrl;
     var imageBaseUrl = section.dataset.imageBaseUrl;
 
     var searchInput = document.getElementById("subCalcSearchInput");
@@ -24,6 +26,7 @@
     var wishlist = [];
     var searchDebounceTimer = null;
     var hasCalculatedOnce = false;
+    var lastCalculationResult = null;
 
     function selectedTelecomCode() {
         var checked = document.querySelector('input[name="subCalcTelecom"]:checked');
@@ -238,6 +241,7 @@
             })
             .then(function (result) {
                 hasCalculatedOnce = true;
+                lastCalculationResult = result;
                 renderResult(result);
             })
             .catch(function () {
@@ -326,6 +330,94 @@
                             + '</p>'
                         : '')
                 + unresolvedHtml
+                + '</div>'
+                + '<div class="sub-calc-result-actions">'
+                + '<button type="button" class="sub-calc-save-btn" id="subCalcSaveBtn">'
+                + '결과 저장 / 공유 링크 만들기'
+                + '</button>'
+                + '</div>'
+                + '<div class="sub-calc-share-box" id="subCalcShareBox" hidden>'
+                + '<input type="text" class="sub-calc-share-input" id="subCalcShareInput" readonly>'
+                + '<button type="button" class="sub-calc-copy-btn" id="subCalcCopyBtn">복사</button>'
                 + '</div>';
+
+        bindResultActions();
+    }
+
+    /* ---------- 결과 저장 / 공유 ---------- */
+
+    function bindResultActions() {
+        var saveBtn = document.getElementById("subCalcSaveBtn");
+        var shareBox = document.getElementById("subCalcShareBox");
+        var shareInput = document.getElementById("subCalcShareInput");
+        var copyBtn = document.getElementById("subCalcCopyBtn");
+
+        if (!saveBtn) {
+            return;
+        }
+
+        saveBtn.addEventListener("click", function () {
+            if (!lastCalculationResult) {
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = "저장 중...";
+
+            fetch(saveUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(lastCalculationResult)
+            })
+                .then(function (res) {
+                    if (!res.ok) {
+                        throw new Error("저장 요청 실패: " + res.status);
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    var shareUrl = window.location.origin
+                            + resultBaseUrl + data.resultId;
+
+                    shareInput.value = shareUrl;
+                    shareBox.hidden = false;
+
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "결과 저장 / 공유 링크 만들기";
+
+                    if (typeof showAlert === "function") {
+                        showAlert("결과가 저장됐어요. 링크를 복사해서 공유해보세요.", "success");
+                    }
+                })
+                .catch(function () {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "결과 저장 / 공유 링크 만들기";
+
+                    if (typeof showAlert === "function") {
+                        showAlert("저장 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+                    }
+                });
+        });
+
+        copyBtn.addEventListener("click", function () {
+            if (!shareInput.value) {
+                return;
+            }
+
+            navigator.clipboard.writeText(shareInput.value)
+                .then(function () {
+                    if (typeof showAlert === "function") {
+                        showAlert("공유 링크가 복사됐어요.", "success");
+                    }
+                })
+                .catch(function () {
+                    if (typeof showAlert === "function") {
+                        showAlert("링크 복사에 실패했어요.", "error");
+                    }
+                });
+        });
     }
 })();

@@ -19,6 +19,8 @@
          id="subCalcSection"
          data-search-url="${pageContext.request.contextPath}/api/subscription/search-content"
          data-calculate-url="${pageContext.request.contextPath}/api/subscription/calculate"
+         data-save-url="${pageContext.request.contextPath}/api/subscription/save"
+         data-result-base-url="${pageContext.request.contextPath}/subscription/result/"
          data-image-base-url="https://image.tmdb.org/t/p/w92">
 
     <div class="sub-calc-hero">

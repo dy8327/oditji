@@ -30,12 +30,14 @@ import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
 class SubscriptionCalculatorServiceImplAdditionalCoverageTest {
 
     private OttDiscountDAO ottDiscountDAO;
+    private com.project.oditji.subscription.dao.SubscriptionDAO subscriptionDAO;
     private SubscriptionCalculatorServiceImpl service;
 
     @BeforeEach
     void setUp() {
         ottDiscountDAO = mock(OttDiscountDAO.class);
-        service = new SubscriptionCalculatorServiceImpl(ottDiscountDAO);
+        subscriptionDAO = mock(com.project.oditji.subscription.dao.SubscriptionDAO.class);
+        service = new SubscriptionCalculatorServiceImpl(ottDiscountDAO, subscriptionDAO);
     }
 
     @Test

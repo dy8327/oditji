@@ -5,9 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.project.oditji.event.dao.OttDiscountDAO;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
+import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
 
 /**
  * OTT 구독 조합 계산기 화면을 담당합니다.
@@ -26,8 +29,13 @@ public class SubscriptionController {
 
     private final OttDiscountDAO ottDiscountDAO;
 
-    public SubscriptionController(OttDiscountDAO ottDiscountDAO) {
+    private final SubscriptionCalculatorService subscriptionCalculatorService;
+
+    public SubscriptionController(
+            OttDiscountDAO ottDiscountDAO,
+            SubscriptionCalculatorService subscriptionCalculatorService) {
         this.ottDiscountDAO = ottDiscountDAO;
+        this.subscriptionCalculatorService = subscriptionCalculatorService;
     }
 
     @GetMapping("/calculator")
@@ -45,5 +53,30 @@ public class SubscriptionController {
         model.addAttribute("membershipList", membershipList);
 
         return "subscription/calculator";
+    }
+
+    /**
+     * 공유 링크로 저장된 계산 결과를 복원해서 보여준다. 로그인 여부와 무관하게 조회 가능하다.
+     * 존재하지 않는 resultId면 resultNotFound 플래그만 세팅해서 안내 화면을 보여준다.
+     */
+    @GetMapping("/result/{resultId}")
+    public String result(
+            @PathVariable("resultId") String resultId,
+            Model model) {
+
+        SubscriptionCalculationResultVO result =
+                subscriptionCalculatorService.restoreResult(resultId);
+
+        if (result == null) {
+
+            model.addAttribute("resultNotFound", true);
+
+            return "subscription/result";
+        }
+
+        model.addAttribute("result", result);
+        model.addAttribute("resultId", resultId);
+
+        return "subscription/result";
     }
 }
