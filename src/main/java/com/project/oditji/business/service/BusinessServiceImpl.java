@@ -495,6 +495,108 @@ public class BusinessServiceImpl
                                 settlementRequest.getRequestNo());
         }
 
+        /*
+         * =========================================================
+         * [사전 정산 요청 추가]
+         * 다음 달 정산 대상에 대해 PRE_REQUESTED 상태의 월별 요청만 먼저 생성한다.
+         * 이 시점에는 SETTLEMENT.REQUEST_NO를 연결하지 않으므로
+         * 이후 현재 월에 새로 발생하는 매출도 월 마감 시 함께 포함할 수 있다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public void requestEarlySettlement(long businessNo) {
+                if (businessNo <= 0) {
+                        throw new IllegalArgumentException("올바르지 않은 사업자 번호입니다.");
+                }
+
+                SettlementRequestVO settlementRequest = businessDAO.selectEarlySettlementRequestTarget(businessNo);
+
+                if (settlementRequest == null
+                                || settlementRequest.getOrderCount() == null
+                                || settlementRequest.getOrderCount() <= 0
+                                || settlementRequest.getSettledAmount() == null
+                                || settlementRequest.getSettledAmount() <= 0) {
+                        throw new IllegalStateException("사전 정산을 요청할 수 있는 배송 완료 내역이 없습니다.");
+                }
+
+                if (settlementRequest.getBankName() == null
+                                || settlementRequest.getBankName().isBlank()
+                                || settlementRequest.getAccountNumber() == null
+                                || settlementRequest.getAccountNumber().isBlank()
+                                || settlementRequest.getAccountHolder() == null
+                                || settlementRequest.getAccountHolder().isBlank()) {
+                        throw new IllegalStateException("사전 정산 요청 전에 정산 계좌 정보를 등록해주세요.");
+                }
+
+                int activeRequestCount = businessDAO.countActiveSettlementRequestByMonth(
+                                businessNo, settlementRequest.getSettlementMonth());
+                if (activeRequestCount > 0) {
+                        throw new IllegalStateException("이미 해당 정산월의 사전 정산 요청이 등록되어 있습니다.");
+                }
+
+                int insertedCount = businessDAO.insertEarlySettlementRequest(settlementRequest);
+                if (insertedCount != 1) {
+                        throw new IllegalStateException("사전 정산 요청 정보를 생성하지 못했습니다.");
+                }
+        }
+
+        /*
+         * =========================================================
+         * [사전 정산 요청 자동 확정 추가]
+         * 정산월이 도래한 PRE_REQUESTED 요청을 기존 SETTLEMENT 원장과 연결한다.
+         * 연결 후 금액은 사전 신청 당시 스냅샷이 아니라 실제 연결 원장을 기준으로
+         * 다시 계산하여 이후 발생한 매출까지 최종 금액에 반영한다.
+         * =========================================================
+         */
+        @Override
+        @Transactional
+        public int finalizeEarlySettlementRequests() {
+                List<SettlementRequestVO> earlyRequests = businessDAO.selectEarlySettlementRequestsToFinalize();
+                if (earlyRequests == null || earlyRequests.isEmpty()) {
+                        return 0;
+                }
+
+                int finalizedCount = 0;
+
+                for (SettlementRequestVO earlyRequest : earlyRequests) {
+                        if (earlyRequest == null
+                                        || earlyRequest.getRequestNo() == null
+                                        || earlyRequest.getBusinessNo() == null) {
+                                continue;
+                        }
+
+                        int linkedCount = businessDAO.updateSettlementRequestNo(
+                                        earlyRequest.getBusinessNo(),
+                                        earlyRequest.getRequestNo());
+
+                        if (linkedCount <= 0) {
+                                businessDAO.rejectEarlySettlementRequest(
+                                                earlyRequest.getRequestNo(),
+                                                "정산 확정 시점에 정산 가능한 배송 완료 내역이 없습니다.");
+                                continue;
+                        }
+
+                        int refreshedCount = businessDAO.refreshFinalizedEarlySettlementRequest(
+                                        earlyRequest.getRequestNo());
+                        if (refreshedCount != 1) {
+                                throw new IllegalStateException("사전 정산 요청의 최종 금액을 갱신하지 못했습니다.");
+                        }
+
+                        notificationService.createForAdmins(
+                                        "SETTLEMENT_REQUEST",
+                                        "사업자 사전 정산 요청 확정",
+                                        "사업자가 미리 신청한 정산 요청이 월 마감 후 자동 확정되었습니다.",
+                                        "/admin/settlement/main",
+                                        "SETTLEMENT_REQUEST",
+                                        earlyRequest.getRequestNo());
+
+                        finalizedCount++;
+                }
+
+                return finalizedCount;
+        }
+
         /* [수정] 사업자 정산 계좌 조회 */
         @Override
         public SettlementManageVO getSettlementAccount(long businessNo) {
@@ -626,6 +728,23 @@ public class BusinessServiceImpl
 
                 saveDelivery(delivery, businessNo, orderItemNo, normalizedStatus);
                 businessDAO.updateOrderStatusByOrderItem(currentItem.getOrderNo());
+
+                /*
+                 * =========================================================
+                 * [사전 정산 요청 금액 자동 갱신 추가]
+                 *
+                 * 주문상품이 실제로 배송 완료 상태가 된 경우
+                 * 현재 사업자의 PRE_REQUESTED 사전 정산 요청 금액을 다시 계산한다.
+                 *
+                 * 사전 정산 요청 후 발생한 추가 매출도 배송 완료 시점에
+                 * 사업자 정산 내역 / 관리자 지급 대기 금액에 즉시 반영된다.
+                 * =========================================================
+                 */
+                if (DELIVERY_STATUS_DELIVERED.equals(normalizedStatus)
+                                && !DELIVERY_STATUS_DELIVERED.equals(currentStatus)) {
+
+                        businessDAO.refreshPreRequestedSettlementAmount(businessNo);
+                }
 
                 if (!normalizedStatus.equals(currentStatus)) {
                         createDeliveryStatusNotification(
