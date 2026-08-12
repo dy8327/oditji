@@ -35,6 +35,10 @@ function initializeHeaderNotification() {
     const clearAllButton = document.getElementById(
         "notificationClearAllBtn"
     );
+    const chatUnreadBadge = document.getElementById("chatUnreadBadge");
+    const chatEntryBtn = document.getElementById("chatEntryBtn");
+    const chatUnreadDropdown = document.getElementById("chatUnreadDropdown");
+    const chatUnreadList = document.getElementById("chatUnreadList");
 
     if (!menu
             || !button
@@ -266,11 +270,50 @@ function initializeHeaderNotification() {
         if (profileButton) {
             profileButton.setAttribute("aria-expanded", "false");
         }
+
+        closeChatDropdown();
     }
 
     function closeDropdown() {
         dropdown.classList.remove("open");
         button.setAttribute("aria-expanded", "false");
+    }
+
+    /**
+     * 헤더 채팅 아이콘의 "안 읽은 채팅방" 드롭다운을 엽니다.
+     * 알림벨/프로필 드롭다운과 동시에 열려 있지 않도록 함께 닫아 줍니다.
+     */
+    function openChatDropdown() {
+
+        if (!chatUnreadDropdown || !chatEntryBtn) {
+            return;
+        }
+
+        chatUnreadDropdown.classList.add("open");
+        chatEntryBtn.setAttribute("aria-expanded", "true");
+
+        const profileDropdown = document.querySelector(".profile-dropdown");
+        const profileButton = document.getElementById("profileBtn");
+
+        if (profileDropdown) {
+            profileDropdown.classList.remove("open");
+        }
+
+        if (profileButton) {
+            profileButton.setAttribute("aria-expanded", "false");
+        }
+
+        closeDropdown();
+    }
+
+    function closeChatDropdown() {
+
+        if (!chatUnreadDropdown || !chatEntryBtn) {
+            return;
+        }
+
+        chatUnreadDropdown.classList.remove("open");
+        chatEntryBtn.setAttribute("aria-expanded", "false");
     }
 
     button.addEventListener("click", function(event) {
@@ -293,11 +336,47 @@ function initializeHeaderNotification() {
         event.stopPropagation();
     });
 
+    /*
+     * 채팅 아이콘은 <a href="/chat/list">라서 기본적으로는 그대로 이동한다.
+     * 배지에 숫자가 떠 있을 때(안 읽은 메시지가 있을 때)만 이동을 막고
+     * "안 읽은 채팅방" 드롭다운을 대신 연다. 목록 항목 자체는 일반 링크이므로
+     * 클릭하면 preventDefault 없이 바로 해당 채팅방으로 이동한다.
+     */
+    if (chatEntryBtn) {
+
+        chatEntryBtn.addEventListener("click", function(event) {
+
+            const hasUnread = chatUnreadBadge && !chatUnreadBadge.hidden;
+
+            if (!hasUnread) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (chatUnreadDropdown && chatUnreadDropdown.classList.contains("open")) {
+                closeChatDropdown();
+                return;
+            }
+
+            openChatDropdown();
+        });
+    }
+
+    if (chatUnreadDropdown) {
+        chatUnreadDropdown.addEventListener("click", function(event) {
+            event.stopPropagation();
+        });
+    }
+
     document.addEventListener("click", closeDropdown);
+    document.addEventListener("click", closeChatDropdown);
 
     document.addEventListener("keydown", function(event) {
         if (event.key === "Escape") {
             closeDropdown();
+            closeChatDropdown();
         }
     });
 
@@ -615,8 +694,60 @@ function initializeHeaderNotification() {
     }
 
     /**
+     * 헤더의 채팅 아이콘(#chatUnreadBadge)에 미읽은 자유방/공지방 수를 표시합니다.
+     * chatUnreadBadge가 없는 페이지(채팅 아이콘 미노출 대상)에서는 아무 것도 하지 않습니다.
+     */
+    function renderChatIconBadge(count) {
+
+        if (!chatUnreadBadge) {
+            return;
+        }
+
+        if (count > 0) {
+            chatUnreadBadge.hidden = false;
+            chatUnreadBadge.textContent = count > 99 ? "99+" : String(count);
+            chatUnreadBadge.setAttribute(
+                "aria-label",
+                "읽지 않은 채팅방 " + count + "개"
+            );
+        } else {
+            chatUnreadBadge.hidden = true;
+            chatUnreadBadge.textContent = "";
+            chatUnreadBadge.setAttribute("aria-label", "읽지 않은 채팅방 0개");
+        }
+    }
+
+    /**
+     * 헤더 채팅 아이콘을 눌렀을 때 뜨는 "안 읽은 채팅방" 드롭다운 목록을 채웁니다.
+     * 알림벨 목록과 동일한 항목 구조(title/typeLabel/message/href)를 그대로 재사용하므로
+     * createNotificationItem()으로 만든 링크를 누르면 바로 해당 채팅방으로 이동합니다.
+     */
+    function renderChatUnreadDropdownList(items) {
+
+        if (!chatUnreadList) {
+            return;
+        }
+
+        chatUnreadList.innerHTML = "";
+
+        if (items.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "notification-empty";
+            empty.textContent = "안 읽은 채팅방이 없습니다.";
+            chatUnreadList.appendChild(empty);
+            return;
+        }
+
+        items.forEach(function(item) {
+            chatUnreadList.appendChild(createNotificationItem(item));
+        });
+    }
+
+    /**
      * 채팅 source는 미읽은 메시지가 존재하는 방만 상세에 표시합니다.
-     * badgeCount는 방별 실제 메시지 수의 합이 아니라 해당 방의 개수입니다.
+     * 알림벨의 badgeCount(work 알림과 합산되는 값)는 기존과 동일하게 방 개수를 사용하고,
+     * 헤더 채팅 아이콘의 배지(chatUnreadBadge)는 방별 미읽은 메시지 수를 모두 더한
+     * 총 개수를 사용합니다.
      */
     function updateChatSource() {
 
@@ -626,10 +757,13 @@ function initializeHeaderNotification() {
                 items: [],
                 clearAll: clearAllChatNotifications
             });
+            renderChatIconBadge(0);
+            renderChatUnreadDropdownList([]);
             return;
         }
 
         const items = [];
+        let totalUnreadMessageCount = 0;
 
         chatContext.roomList.forEach(function(room) {
 
@@ -643,6 +777,8 @@ function initializeHeaderNotification() {
             if (unreadMessageCount <= 0) {
                 return;
             }
+
+            totalUnreadMessageCount += unreadMessageCount;
 
             items.push({
                 id: "chat-" + room.roomId,
@@ -660,11 +796,18 @@ function initializeHeaderNotification() {
             });
         });
 
+        items.sort(function(first, second) {
+            return (Number(second.createdAtEpochMs) || 0)
+                - (Number(first.createdAtEpochMs) || 0);
+        });
+
         setSource("chat", {
             badgeCount: items.length,
             items,
             clearAll: clearAllChatNotifications
         });
+        renderChatIconBadge(totalUnreadMessageCount);
+        renderChatUnreadDropdownList(items);
     }
 
     function subscribeRoom(room) {

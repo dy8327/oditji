@@ -20,10 +20,6 @@
 
     <main id="mainContent" class="main-content">
 
-        <a href="${pageContext.request.contextPath}/main" class="back-link">
-            ← 뒤로가기
-        </a>
-
         <section class="admin-hero">
 
             <h1>관리자 대시보드</h1>

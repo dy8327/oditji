@@ -1237,7 +1237,9 @@ document.addEventListener("DOMContentLoaded", function() {
             await showAlert(data.message || "채팅방 나가기 처리가 완료되었습니다.", data.success ? "success" : "info");
 
             if (data.success) {
-                goToRoomList();
+                goToRoomList(
+                    roomType === "PUBLIC" ? { left: true, roomId: roomId } : null
+                );
             }
         })
         .catch(function(error) {
@@ -1267,12 +1269,19 @@ document.addEventListener("DOMContentLoaded", function() {
      * 채팅방 목록으로 이동합니다.
      * iframe으로 임베드된 상태(데스크톱 중앙 패널/모바일)에서는 iframe 자체를
      * 이동시키지 않고 부모 대시보드(roomList)에 위임하여 좌측 목록 화면으로 돌아갑니다.
+     *
+     * @param {Object} [extraData] close-room 메시지에 함께 실어 보낼 추가 데이터.
+     *        나가기(leaveRoom) 성공 시 roomList.js가 좌측 목록의 참가 상태(참가/입장 ↔ 입장)를
+     *        새로고침 없이 즉시 되돌릴 수 있도록 { left: true, roomId } 형태로 전달합니다.
      */
-    function goToRoomList() {
+    function goToRoomList(extraData) {
 
         if (isEmbedded && window.parent) {
             window.parent.postMessage(
-                { source: "oditji-chat-room", action: "close-room" },
+                Object.assign(
+                    { source: "oditji-chat-room", action: "close-room" },
+                    extraData || {}
+                ),
                 window.location.origin
             );
             return;

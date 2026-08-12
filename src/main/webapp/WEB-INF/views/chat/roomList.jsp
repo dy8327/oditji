@@ -15,14 +15,24 @@
     </c:choose>
 </title>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=3">
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room-list.css?v=3">
+      href="${pageContext.request.contextPath}/css/chat-room-list.css?v=5">
 <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 <body class="chat-dashboard-page chat-room-list-page">
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+<%-- 대시보드로 돌아가는 링크는 관리자/사업자 메인 대시보드로 각각 연결한다. --%>
+<c:choose>
+    <c:when test="${isAdmin}">
+        <c:url var="dashboardUrl" value="/admin/main" />
+    </c:when>
+    <c:otherwise>
+        <c:url var="dashboardUrl" value="/business/main" />
+    </c:otherwise>
+</c:choose>
 
 <%--
     3단 대시보드 셸.
@@ -30,7 +40,7 @@
     모바일(<=768px): panel-middle / panel-right 는 CSS에서 숨겨지고,
     방 목록 자체가 카카오톡 앱 홈 화면처럼 전체 화면을 채운다.
 --%>
-<div id="mainContent" class="chat-dashboard">
+<div id="mainContent" class="chat-dashboard right-collapsed">
 
     <section class="dashboard-panel panel-left">
         <div class="room-list-root">
@@ -174,7 +184,8 @@
                                                 <button type="button"
                                                         class="room-action-btn public-enter-btn"
                                                         data-room-id="${room.roomId}"
-                                                        data-room-type="PUBLIC">
+                                                        data-room-type="PUBLIC"
+                                                        data-joined="${room.joined}">
                                                     <c:choose>
                                                         <c:when test="${room.joined}">입장</c:when>
                                                         <c:otherwise>참가/입장</c:otherwise>
@@ -241,18 +252,44 @@
         <div class="panel-placeholder" id="roomPlaceholder">
             <div class="placeholder-icon">💬</div>
             <p>왼쪽 목록에서 채팅방을 선택하세요.</p>
+            <a href="${dashboardUrl}" class="dashboard-link-btn">대시보드로 이동</a>
         </div>
         <iframe class="panel-frame"
                 id="roomFrame"
                 title="채팅방"
                 style="display:none;"></iframe>
+
+        <%-- 채팅 화면 어디서든 대시보드로 바로 이동할 수 있는 플로팅 버튼 --%>
+        <a href="${dashboardUrl}" class="dashboard-fab" aria-label="대시보드로 이동">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+            </svg>
+        </a>
     </section>
 
     <section class="dashboard-panel panel-right" id="rightPanel">
-        <iframe class="panel-frame"
-                id="createFrameDesktop"
-                title="채팅방 생성"
-                data-src="${pageContext.request.contextPath}/chat/create?embed=1"></iframe>
+        <button type="button"
+                class="panel-right-toggle"
+                id="rightPanelToggle"
+                aria-expanded="false"
+                aria-controls="rightPanelBody">
+            <span class="panel-right-toggle-icon" aria-hidden="true">›</span>
+            <span class="panel-right-toggle-label">
+                <c:choose>
+                    <c:when test="${isAdmin}">공지방 생성</c:when>
+                    <c:otherwise>자유방 생성</c:otherwise>
+                </c:choose>
+            </span>
+        </button>
+        <div class="panel-right-body" id="rightPanelBody">
+            <iframe class="panel-frame"
+                    id="createFrameDesktop"
+                    title="채팅방 생성"
+                    data-src="${pageContext.request.contextPath}/chat/create?embed=1"></iframe>
+        </div>
     </section>
 
 </div>
@@ -283,7 +320,7 @@
        value="${pageContext.request.contextPath}">
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/roomList.js?v=4"></script>
+        src="${pageContext.request.contextPath}/js/roomList.js?v=7"></script>
 
 </body>
 </html>

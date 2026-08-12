@@ -39,6 +39,7 @@
 
     --panel-left-width: 320px;
     --panel-right-width: 340px;
+    --panel-right-collapsed-width: 44px;
     /*
      * roomList.jsp는 항상 header.jsp(사이트 전역 내비게이션 바, common.css의
      * --header-height: 80px)를 .chat-dashboard 위에 함께 출력한다.
@@ -82,6 +83,15 @@ body.chat-dashboard-page {
     height: calc(100vh - var(--dashboard-header-height));
     background: var(--kakao-bg-0);
     overflow: hidden;
+    transition: grid-template-columns 0.2s ease;
+}
+
+/* 우측 "채팅방 생성" 패널을 탭처럼 접었을 때: 탭 버튼 너비만 남기고 나머지는 중앙 패널에 돌려준다 */
+.chat-dashboard.right-collapsed {
+    grid-template-columns:
+        var(--panel-left-width)
+        minmax(0, 1fr)
+        var(--panel-right-collapsed-width);
 }
 
 .chat-dashboard .dashboard-panel {
@@ -99,10 +109,70 @@ body.chat-dashboard-page {
 
 .chat-dashboard .panel-right {
     border-left: 1px solid var(--kakao-border);
+    flex-direction: row;
+    padding: 0;
+}
+
+.panel-right-toggle {
+    flex: 0 0 var(--panel-right-collapsed-width);
+    width: var(--panel-right-collapsed-width);
+    height: 100%;
+    border: 0;
+    border-right: 1px solid var(--kakao-border);
+    background: var(--kakao-bg-2);
+    color: var(--kakao-text-secondary);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 0;
+}
+
+.panel-right-toggle:hover {
+    background: var(--kakao-bg-3);
+    color: var(--kakao-text-primary);
+}
+
+.panel-right-toggle-icon {
+    font-size: 15px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.chat-dashboard.right-collapsed .panel-right-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.panel-right-toggle-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.panel-right-body {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+}
+
+.panel-right-body .panel-frame {
+    flex: 1;
+}
+
+.chat-dashboard.right-collapsed .panel-right-body {
+    display: none;
 }
 
 .chat-dashboard .panel-middle {
     background: var(--kakao-bg-1);
+    position: relative;
 }
 
 .dashboard-panel .panel-frame {
@@ -136,6 +206,45 @@ body.chat-dashboard-page {
     justify-content: center;
     font-size: 24px;
     color: var(--kakao-yellow-dark);
+}
+
+.dashboard-panel .panel-placeholder .dashboard-link-btn {
+    margin-top: 4px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: var(--kakao-bg-3);
+    color: var(--kakao-text-primary);
+    font-size: 13px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dashboard-panel .panel-placeholder .dashboard-link-btn:hover {
+    background: var(--kakao-yellow);
+    color: #201d00;
+}
+
+/* 채팅 화면(목록/방 상세) 어디서든 대시보드로 바로 이동하는 원형 플로팅 버튼.
+   방 상세 화면 하단에는 메시지 입력창/전송 버튼이 있어 겹치지 않도록 상단에 둔다. */
+.dashboard-fab {
+    position: absolute;
+    right: 20px;
+    top: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--kakao-yellow);
+    color: #201d00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(254, 229, 0, 0.35);
+    z-index: 20;
+    transition: filter 0.15s ease;
+}
+
+.dashboard-fab:hover {
+    filter: brightness(1.05);
 }
 
 /* 모바일 전용 하단 플로팅 방 생성 버튼 (데스크톱은 오른쪽 패널이 항상 보이므로 숨김) */

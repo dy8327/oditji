@@ -15,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.holiday.service.HolidayService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.tmdb.dao.TmdbDAO;
 import com.project.oditji.verify.service.VerifyService;
@@ -34,7 +35,8 @@ class ContentControllerRemainingCoverageTest {
                 mock(FavoriteService.class),
                 mock(TmdbDAO.class),
                 mock(VerifyService.class),
-                mock(GoodsService.class));
+                mock(GoodsService.class),
+                mock(HolidayService.class));
     }
 
     @Test

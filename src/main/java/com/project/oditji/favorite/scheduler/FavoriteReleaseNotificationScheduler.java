@@ -12,8 +12,8 @@ import com.project.oditji.favorite.service.FavoriteService;
 /**
  * 찜한 콘텐츠의 공개일이 다가오면 회원에게 알림을 보내는 스케줄러입니다.
  *
- * 매일 아침 한 번, 내일 개봉·공개하는 콘텐츠를 찜한 회원 전원에게
- * 업무 알림(NOTIFICATION)을 생성합니다.
+ * 매일 아침 한 번, 오늘 또는 내일(하루 전) 개봉·공개하는 콘텐츠를 찜한
+ * 회원 전원에게 업무 알림(NOTIFICATION)을 생성합니다.
  */
 @Component
 public class FavoriteReleaseNotificationScheduler {

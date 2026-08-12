@@ -122,7 +122,11 @@ public class FavoriteServiceImpl
     }
 
     /**
-     * 내일 개봉·공개하는 콘텐츠를 찜한 회원 전원에게 알림을 생성합니다.
+     * 오늘 또는 내일 개봉·공개하는 콘텐츠를 찜한 회원 전원에게 알림을 생성합니다.
+     *
+     * DAYS_UNTIL_RELEASE가 0(오늘 공개)인지 1(내일 공개, 하루 전)인지에 따라
+     * 알림 제목·문구를 다르게 보냅니다. 값이 없거나 0이 아닌 경우에는
+     * 하루 전 알림 문구를 기본값으로 사용합니다.
      */
     @Override
     @Transactional
@@ -147,12 +151,25 @@ public class FavoriteServiceImpl
                 continue;
             }
 
+            boolean isReleasedToday =
+                    target.getDaysUntilRelease() != null
+                            && target.getDaysUntilRelease() == 0;
+
+            String title = isReleasedToday
+                    ? "찜한 콘텐츠가 오늘 공개돼요"
+                    : "찜한 콘텐츠가 내일 공개돼요";
+
+            String message = isReleasedToday
+                    ? "'" + target.getTitle()
+                            + "'가 오늘 공개됩니다. 지금 만나보세요!"
+                    : "'" + target.getTitle()
+                            + "'가 내일 공개됩니다. 놓치지 마세요!";
+
             notificationService.createForMember(
                     target.getMemberNo(),
                     NOTIFICATION_TYPE_CONTENT_RELEASE,
-                    "찜한 콘텐츠가 내일 공개돼요",
-                    "'" + target.getTitle()
-                            + "'가 내일 공개됩니다. 놓치지 마세요!",
+                    title,
+                    message,
                     CONTENT_DETAIL_URL_PREFIX
                             + target.getTmdbId()
                             + "&contentType="
