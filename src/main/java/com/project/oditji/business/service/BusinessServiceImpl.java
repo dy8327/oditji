@@ -74,6 +74,7 @@ public class BusinessServiceImpl
         private static final String STATUS_WAITING = "WAITING";
         private static final String REFERENCE_TYPE_PRODUCT = "PRODUCT";
         private static final String NOTIFICATION_TYPE_EVENT_REQUEST = "EVENT_REQUEST";
+        private static final String SETTLEMENT_REQUEST = "SETTLEMENT_REQUEST";
         private static final String ADMIN_EVENT_WAITING_URL = "/admin/event/list?tab=waiting";
         private static final String REFERENCE_TYPE_EVENT = "EVENT";
 
@@ -487,11 +488,11 @@ public class BusinessServiceImpl
                 }
 
                 notificationService.createForAdmins(
-                                "SETTLEMENT_REQUEST",
+                                SETTLEMENT_REQUEST,
                                 "사업자 정산 요청",
                                 "사업자가 정산금 지급을 요청했습니다.",
                                 "/admin/settlement/main",
-                                "SETTLEMENT_REQUEST",
+                                SETTLEMENT_REQUEST,
                                 settlementRequest.getRequestNo());
         }
 
@@ -560,38 +561,35 @@ public class BusinessServiceImpl
                 int finalizedCount = 0;
 
                 for (SettlementRequestVO earlyRequest : earlyRequests) {
-                        if (earlyRequest == null
-                                        || earlyRequest.getRequestNo() == null
-                                        || earlyRequest.getBusinessNo() == null) {
-                                continue;
+                        if (earlyRequest != null
+                                        && earlyRequest.getRequestNo() != null
+                                        && earlyRequest.getBusinessNo() != null) {
+                                int linkedCount = businessDAO.updateSettlementRequestNo(
+                                                earlyRequest.getBusinessNo(),
+                                                earlyRequest.getRequestNo());
+
+                                if (linkedCount <= 0) {
+                                        businessDAO.rejectEarlySettlementRequest(
+                                                        earlyRequest.getRequestNo(),
+                                                        "정산 확정 시점에 정산 가능한 배송 완료 내역이 없습니다.");
+                                } else {
+                                        int refreshedCount = businessDAO.refreshFinalizedEarlySettlementRequest(
+                                                        earlyRequest.getRequestNo());
+                                        if (refreshedCount != 1) {
+                                                throw new IllegalStateException("사전 정산 요청의 최종 금액을 갱신하지 못했습니다.");
+                                        }
+
+                                        notificationService.createForAdmins(
+                                                        SETTLEMENT_REQUEST,
+                                                        "사업자 사전 정산 요청 확정",
+                                                        "사업자가 미리 신청한 정산 요청이 월 마감 후 자동 확정되었습니다.",
+                                                        "/admin/settlement/main",
+                                                        SETTLEMENT_REQUEST,
+                                                        earlyRequest.getRequestNo());
+
+                                        finalizedCount++;
+                                }
                         }
-
-                        int linkedCount = businessDAO.updateSettlementRequestNo(
-                                        earlyRequest.getBusinessNo(),
-                                        earlyRequest.getRequestNo());
-
-                        if (linkedCount <= 0) {
-                                businessDAO.rejectEarlySettlementRequest(
-                                                earlyRequest.getRequestNo(),
-                                                "정산 확정 시점에 정산 가능한 배송 완료 내역이 없습니다.");
-                                continue;
-                        }
-
-                        int refreshedCount = businessDAO.refreshFinalizedEarlySettlementRequest(
-                                        earlyRequest.getRequestNo());
-                        if (refreshedCount != 1) {
-                                throw new IllegalStateException("사전 정산 요청의 최종 금액을 갱신하지 못했습니다.");
-                        }
-
-                        notificationService.createForAdmins(
-                                        "SETTLEMENT_REQUEST",
-                                        "사업자 사전 정산 요청 확정",
-                                        "사업자가 미리 신청한 정산 요청이 월 마감 후 자동 확정되었습니다.",
-                                        "/admin/settlement/main",
-                                        "SETTLEMENT_REQUEST",
-                                        earlyRequest.getRequestNo());
-
-                        finalizedCount++;
                 }
 
                 return finalizedCount;

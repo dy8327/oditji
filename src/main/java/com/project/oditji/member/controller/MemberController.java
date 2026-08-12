@@ -546,7 +546,7 @@ public class MemberController {
                 BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
 
                 if (business != null) {
-                        return "redirect:/business/main";
+                        return REDIRECT_BUSINESS_MAIN;
                 }
 
                 // SNS 로그인 회원 여부
