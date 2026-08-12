@@ -114,7 +114,7 @@ class NotificationServiceImplRemainingCoverageTest {
                 null);
 
         verify(notificationDAO, never())
-                .insertBusinessNotification(anyLong(), any());
+                .insertBusinessNotification(anyLong(), any(), any());
 
         service.createForBusiness(
                 5L,
@@ -129,7 +129,7 @@ class NotificationServiceImplRemainingCoverageTest {
                 ArgumentCaptor.forClass(NotificationVO.class);
 
         verify(notificationDAO)
-                .insertBusinessNotification(eq(5L), captor.capture());
+                .insertBusinessNotification(eq(5L), any(), captor.capture());
 
         assertEquals("TYPE", captor.getValue().getNotificationType());
     }

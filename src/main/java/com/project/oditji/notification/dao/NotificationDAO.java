@@ -19,6 +19,7 @@ public interface NotificationDAO {
 
         int insertBusinessNotification(
                         @Param("businessNo") Long businessNo,
+                        @Param("noticeCategory") String noticeCategory,
                         @Param("notification") NotificationVO notification);
 
         int insertOrderBusinessNotifications(
@@ -81,4 +82,28 @@ public interface NotificationDAO {
         int updateOptionRestockRequestsNotified(
                         @Param("productNo") Long productNo,
                         @Param("optionNo") Long optionNo);
+
+        /*
+         * [알림 수신 설정 추가]
+         * 회원이 명시적으로 꺼둔(NOTICE_CATEGORY, IS_ENABLED='N') 카테고리 목록을 조회합니다.
+         * 행이 없는 카테고리는 기본 수신(Y)으로 간주합니다.
+         */
+        List<String> selectDisabledNoticeCategoryList(@Param("memberNo") Long memberNo);
+
+        /*
+         * [알림 수신 설정 추가]
+         * 특정 회원이 특정 카테고리를 꺼두었는지(IS_ENABLED='N') 확인합니다.
+         */
+        int countDisabledNotificationSetting(
+                        @Param("memberNo") Long memberNo,
+                        @Param("noticeCategory") String noticeCategory);
+
+        /*
+         * [알림 수신 설정 추가]
+         * 회원의 카테고리별 수신 설정을 UPSERT 합니다.
+         */
+        int mergeNotificationSetting(
+                        @Param("memberNo") Long memberNo,
+                        @Param("noticeCategory") String noticeCategory,
+                        @Param("isEnabled") String isEnabled);
 }

@@ -239,10 +239,23 @@
               AND (END_DATE IS NULL OR END_DATE &gt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
         ),
         REG AS (
+            /*
+             * [버그 수정] 같은 PLATFORM_CODE라도 행마다 REGULAR_PRICE가 다르다
+             * (예: NETFLIX의 네이버플러스 멤버십 행은 7,000원이지만, 실제 넷플릭스
+             * 정가는 17,000원). 단순 MIN(REGULAR_PRICE)를 쓰면 다른 상품(멤버십 결합
+             * 상품 자체의 가격)이 플랫폼의 정가로 잘못 채택될 수 있다.
+             * 따라서 CARD/TELECOM 행의 정가를 우선 사용하고(카드/통신사 할인은
+             * 항상 그 플랫폼 자체 정가 기준으로 등록되어 있어 신뢰할 수 있다),
+             * CARD/TELECOM 행이 아예 없는 플랫폼(왓챠, 쿠팡플레이처럼 멤버십
+             * 결합으로만 이용 가능한 경우)에 한해 전체 MIN(REGULAR_PRICE)로 대체한다.
+             */
             SELECT
                 PLATFORM_CODE,
                 PLATFORM_NAME,
-                MIN(REGULAR_PRICE) AS REGULAR_PRICE
+                COALESCE(
+                    MIN(CASE WHEN CATEGORY IN ('CARD', 'TELECOM') THEN REGULAR_PRICE END),
+                    MIN(REGULAR_PRICE)
+                ) AS REGULAR_PRICE
             FROM BASE
             GROUP BY PLATFORM_CODE, PLATFORM_NAME
         ),

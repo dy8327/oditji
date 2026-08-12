@@ -1,6 +1,9 @@
 package com.project.oditji.notification.service;
 
+import java.util.List;
+
 import com.project.oditji.notification.vo.NotificationContextVO;
+import com.project.oditji.notification.vo.NotificationSettingItemVO;
 
 /**
  * 일반 회원, 사업자, 관리자 공통 알림 기능을 제공합니다.
@@ -98,4 +101,16 @@ public interface NotificationService {
                         String productName,
                         String colorName,
                         String sizeName);
+
+        /**
+         * [알림 수신 설정 추가]
+         * 마이페이지에 노출할 회원의 알림 카테고리별 On/Off 상태 목록을 반환합니다.
+         */
+        List<NotificationSettingItemVO> getSettingItems(Long memberNo);
+
+        /**
+         * [알림 수신 설정 추가]
+         * 특정 카테고리의 수신 여부를 저장합니다.
+         */
+        void updateSetting(Long memberNo, String noticeCategory, boolean enabled);
 }

@@ -266,6 +266,29 @@
   min-width: 0;
 }
 
+/* [알림 수신 설정 위치 변경] 회원정보 수정 버튼 아래에 알림 수신 설정 버튼을 배치 */
+.mypage-profile-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.mypage-profile-actions .mypage-action-btn {
+  width: 100%;
+}
+
+/* 알림 수신 설정 모달 설명 문구 */
+.modal-box .modal-desc {
+  margin: -10px 0 18px;
+  color: #9aa4b5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .mypage-profile-image {
   flex: 0 0 auto;
   padding: 3px;
@@ -498,6 +521,97 @@
 }
 .activity-review .mypage-activity-icon {
   color: #ffc34a;
+}
+
+/* =========================================================
+   [알림 수신 설정 추가] 알림 수신 설정 토글
+========================================================= */
+.mypage-notification-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mypage-notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(137, 157, 190, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
+}
+
+.mypage-notification-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mypage-notification-item-label {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mypage-notification-item-desc {
+  color: #858d9c;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.mypage-toggle-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 25px;
+}
+
+.mypage-toggle-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mypage-toggle-switch-track {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 999px;
+  background: rgba(137, 157, 190, 0.28);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.mypage-toggle-switch-track::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
+  background: #3d82ff;
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
+  transform: translateX(19px);
+}
+
+.mypage-toggle-switch input:disabled + .mypage-toggle-switch-track {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* =========================================================
@@ -1204,6 +1318,28 @@
 .activity-order .mypage-activity-icon,
 .activity-review .mypage-activity-icon {
   color: #e5e7eb;
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 알림 수신 설정 카드도 동일한 무채색 유리 패널로 통일 */
+.mypage-notification-item {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+}
+
+.mypage-notification-item-desc {
+  color: #8f949d;
+}
+
+.mypage-toggle-switch-track {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
+  background: #e5e7eb;
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
+  background: #0b0c0f;
 }
 
 /* =========================================================
