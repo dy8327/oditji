@@ -31,27 +31,31 @@ class MemberServiceImplBusinessOperandGapCoverageTest {
     void businessValidationShouldCoverOppositeNullAndBlankOperands() {
         BusinessVO nullName = validBusiness();
         nullName.setBusinessName(null);
+        MemberVO nullNameMember = validMember();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.joinBusinessMember(validMember(), nullName));
+                () -> service.joinBusinessMember(nullNameMember, nullName));
 
         BusinessVO blankNumber = validBusiness();
         blankNumber.setBusinessNumber("   ");
+        MemberVO blankNumberMember = validMember();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.joinBusinessMember(validMember(), blankNumber));
+                () -> service.joinBusinessMember(blankNumberMember, blankNumber));
 
         BusinessVO nullRepresentative = validBusiness();
         nullRepresentative.setRepresentativeName(null);
+        MemberVO nullRepresentativeMember = validMember();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.joinBusinessMember(validMember(), nullRepresentative));
+                () -> service.joinBusinessMember(nullRepresentativeMember, nullRepresentative));
 
         BusinessVO nullOpenDate = validBusiness();
         nullOpenDate.setOpenDate(null);
+        MemberVO nullOpenDateMember = validMember();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.joinBusinessMember(validMember(), nullOpenDate));
+                () -> service.joinBusinessMember(nullOpenDateMember, nullOpenDate));
     }
 
     private MemberVO validMember() {
