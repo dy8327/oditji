@@ -219,16 +219,29 @@
                                 --%>
                                 <c:set var="settlementRequestedAtStr" value="${dt:format(settlement.requestedAt, 'yyyy-MM-dd')}"/>
 
+                                <%--
+                                    =========================================================
+                                    [정산 상태 라벨 수정]
+                                    WAITING / PRE_REQUESTED / REQUESTED 상태는
+                                    관리자 정산 관리 화면에서 모두 "지급 대기"로 표시한다.
+                                    =========================================================
+                                --%>
                                 <c:choose>
+
+                                    <c:when test="${settlement.status == 'WAITING'
+                                            or settlement.status == 'PRE_REQUESTED'
+                                            or settlement.status == 'REQUESTED'}">
+                                        <c:set var="settlementStatusLabel" value="지급 대기"/>
+                                    </c:when>
+
                                     <c:when test="${settlement.status == 'DONE'}">
                                         <c:set var="settlementStatusLabel" value="지급 완료"/>
                                     </c:when>
+
                                     <c:when test="${settlement.status == 'REJECTED'}">
                                         <c:set var="settlementStatusLabel" value="반려"/>
                                     </c:when>
-                                    <c:otherwise>
-                                        <c:set var="settlementStatusLabel" value="대기"/>
-                                    </c:otherwise>
+
                                 </c:choose>
 
                                 <%-- 모바일 상세보기 모달에 그대로 넘겨줄 정산 예정금 표시 문자열 --%>
@@ -279,31 +292,36 @@
 
                                     <td class="col-mobile-hide">
 
+                                        <%--
+                                            =========================================================
+                                            [정산 상태 표시 수정]
+                                            WAITING / PRE_REQUESTED / REQUESTED 상태는
+                                            모두 "지급 대기"로 표시한다.
+
+                                            기존 노란색 대기 상태 스타일은 그대로 사용한다.
+                                            =========================================================
+                                        --%>
                                         <c:choose>
 
-                                            <c:when test="${settlement.status == 'DONE'}">
+                                            <c:when test="${settlement.status == 'WAITING'
+                                                    or settlement.status == 'PRE_REQUESTED'
+                                                    or settlement.status == 'REQUESTED'}">
+                                                <span class="status-waiting">
+                                                    지급 대기
+                                                </span>
+                                            </c:when>
 
+                                            <c:when test="${settlement.status == 'DONE'}">
                                                 <span class="status-ok">
                                                     지급 완료
                                                 </span>
-
                                             </c:when>
 
                                             <c:when test="${settlement.status == 'REJECTED'}">
-
                                                 <span class="status-reject">
                                                     반려
                                                 </span>
-
                                             </c:when>
-
-                                            <c:otherwise>
-
-                                                <span class="status-waiting">
-                                                    대기
-                                                </span>
-
-                                            </c:otherwise>
 
                                         </c:choose>
 

@@ -72,15 +72,19 @@
 
                                             <%--
                                                 =========================================================
-                                                [수정] 정산 요청 처리 중 상태
+                                                [사전 정산 요청 상태 표시 수정]
 
-                                                기존 상태 텍스트는 유지하고
-                                                사업자 페이지 공통 대기 상태 스타일을 적용합니다.
+                                                PRE_REQUESTED / REQUESTED 상태는
+                                                사업자 정산 내역 화면에서 모두 "정산 요청"으로 표시한다.
+
+                                                기존 사업자 페이지의 대기 상태와 동일한
+                                                노란색 status waiting 스타일을 그대로 사용한다.
                                                 =========================================================
                                             --%>
-                                            <c:when test="${item.status eq 'REQUESTED'}">
+                                            <c:when test="${item.status eq 'PRE_REQUESTED'
+                                                    or item.status eq 'REQUESTED'}">
                                                 <span class="status waiting">
-                                                    처리 중
+                                                    정산 요청
                                                 </span>
                                             </c:when>
 

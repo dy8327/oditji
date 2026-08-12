@@ -39,11 +39,17 @@
 
             (SELECT COUNT(*) FROM EVENT WHERE STATUS = 'WAITING') AS EVENT_REQUEST_COUNT,
 
-            <!-- 지급 대기 중인 정산 요청 수 -->
+            <!--
+                =========================================================
+                [사전 정산 요청 대시보드 반영]
+                PRE_REQUESTED / REQUESTED 상태를
+                관리자 대시보드의 "정산 요청 대기" 건수에 함께 포함한다.
+                =========================================================
+            -->
             (
                 SELECT COUNT(*)
                 FROM SETTLEMENT_REQUEST
-                WHERE STATUS = 'REQUESTED'
+                WHERE STATUS IN ('PRE_REQUESTED', 'REQUESTED')
             ) AS SETTLEMENT_WAITING_COUNT,
 
             (SELECT COUNT(DISTINCT A.MEMBER_NO)
@@ -1726,8 +1732,22 @@
         <if test="keyword != null and keyword != ''">
             AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
         </if>
+        <!--
+            =========================================================
+            [정산 지급 대기 필터 수정]
+            화면에서 지급 대기(REQUESTED)를 선택하면
+            PRE_REQUESTED / REQUESTED 상태를 함께 조회한다.
+            =========================================================
+        -->
         <if test="status != null and status != '' and status != 'ALL'">
-            AND SR.STATUS = #{status}
+            <choose>
+                <when test="status == 'REQUESTED'">
+                    AND SR.STATUS IN ('PRE_REQUESTED', 'REQUESTED')
+                </when>
+                <otherwise>
+                    AND SR.STATUS = #{status}
+                </otherwise>
+            </choose>
         </if>
         <if test="period != null and period != '' and period != 'all'">
             <choose>
@@ -1758,8 +1778,21 @@
         <if test="keyword != null and keyword != ''">
             AND B.BUSINESS_NAME LIKE '%' || #{keyword} || '%'
         </if>
+        <!--
+            =========================================================
+            [정산 지급 대기 페이징 수 수정]
+            지급 대기 조회 시 PRE_REQUESTED / REQUESTED를 함께 계산한다.
+            =========================================================
+        -->
         <if test="status != null and status != '' and status != 'ALL'">
-            AND SR.STATUS = #{status}
+            <choose>
+                <when test="status == 'REQUESTED'">
+                    AND SR.STATUS IN ('PRE_REQUESTED', 'REQUESTED')
+                </when>
+                <otherwise>
+                    AND SR.STATUS = #{status}
+                </otherwise>
+            </choose>
         </if>
         <if test="period != null and period != '' and period != 'all'">
             <choose>
@@ -1972,7 +2005,7 @@
             resultType="com.project.oditji.admin.vo.SettlementStatVO">
         SELECT
             COUNT(*) AS TOTAL_COUNT,
-            NVL(SUM(CASE WHEN STATUS = 'REQUESTED' THEN 1 ELSE 0 END), 0) AS REQUESTED_COUNT,
+            NVL(SUM(CASE WHEN STATUS IN ('PRE_REQUESTED', 'REQUESTED') THEN 1 ELSE 0 END), 0) AS REQUESTED_COUNT,
             NVL(SUM(CASE WHEN STATUS = 'DONE' THEN 1 ELSE 0 END), 0) AS DONE_COUNT,
             NVL(SUM(CASE WHEN STATUS = 'REJECTED' THEN 1 ELSE 0 END), 0) AS REJECTED_COUNT
         FROM SETTLEMENT_REQUEST

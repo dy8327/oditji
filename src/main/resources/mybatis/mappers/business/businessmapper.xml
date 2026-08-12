@@ -2031,6 +2031,14 @@
                     THEN S.SETTLED_AMOUNT ELSE 0 END)), 0) AS UNSETTLED_AMOUNT,
             NVL(MAX(S.APPLIED_RATE), NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)) AS FEE_RATE,
             CASE
+                /* [사전 정산 요청 추가] 새 매출이 생겨도 사전 요청 완료 상태를 우선 유지한다. */
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM SETTLEMENT_REQUEST SR_PRE
+                    WHERE SR_PRE.BUSINESS_NO = B.BUSINESS_NO
+                      AND SR_PRE.SETTLEMENT_MONTH = #{settlementMonth}
+                      AND SR_PRE.STATUS = 'PRE_REQUESTED'
+                ) THEN 'PRE_REQUESTED'
                 WHEN SUM(CASE WHEN S.STATUS = 'WAITING' AND S.REQUEST_NO IS NULL
                                AND O.CREATED_AT <![CDATA[ < ]]> #{endDate} THEN 1 ELSE 0 END) > 0
                     THEN 'WAITING'
@@ -2184,6 +2192,216 @@
                       AND O.CREATED_AT <![CDATA[ < ]]> TRUNC(SYSDATE, 'MM')
                 )
         )
+    </update>
+
+    <!-- =====================================================
+         [사전 정산 요청 추가]
+         현재 월까지 발생한 배송 완료 WAITING 정산을 사전 요청 예상 금액으로 조회한다.
+         SETTLEMENT_MONTH는 다음 달(실제 정산 처리 월)로 저장한다.
+         아직 REQUEST_NO는 연결하지 않으므로 이후 매출도 계속 예상 금액에 반영된다.
+    ====================================================== -->
+    <select id="selectEarlySettlementRequestTarget"
+            resultType="com.project.oditji.common.vo.SettlementRequestVO">
+        SELECT
+            B.BUSINESS_NO,
+            TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1), 'YYYY-MM') AS SETTLEMENT_MONTH,
+            NVL(SUM(S.TOTAL_AMOUNT), 0) AS TOTAL_AMOUNT,
+            NVL(ROUND(SUM(S.FEE_AMOUNT)), 0) AS FEE_AMOUNT,
+            NVL(ROUND(SUM(S.SETTLED_AMOUNT)), 0) AS SETTLED_AMOUNT,
+            COUNT(DISTINCT OI.ORDER_NO) AS ORDER_COUNT,
+            B.BANK_NAME,
+            B.ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER
+        FROM BUSINESS B
+        LEFT JOIN SETTLEMENT S
+          ON S.BUSINESS_NO = B.BUSINESS_NO
+         AND S.REQUEST_NO IS NULL
+         AND S.STATUS = 'WAITING'
+         AND EXISTS (
+            SELECT 1
+            FROM ORDER_ITEM OI_CHECK
+            JOIN ORDERS O_CHECK
+              ON O_CHECK.ORDER_NO = OI_CHECK.ORDER_NO
+            WHERE OI_CHECK.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+              AND OI_CHECK.STATUS = 'DELIVERED'
+              AND O_CHECK.CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+         )
+        LEFT JOIN ORDER_ITEM OI
+          ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+        WHERE B.BUSINESS_NO = #{businessNo}
+        GROUP BY
+            B.BUSINESS_NO,
+            B.BANK_NAME,
+            B.ACCOUNT_NUMBER,
+            B.ACCOUNT_HOLDER
+    </select>
+
+    <!-- [사전 정산 요청 추가] 같은 정산월의 진행 중 요청 중복 생성 방지 -->
+    <select id="countActiveSettlementRequestByMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM SETTLEMENT_REQUEST
+        WHERE BUSINESS_NO = #{businessNo}
+          AND SETTLEMENT_MONTH = #{settlementMonth}
+          AND STATUS IN ('PRE_REQUESTED', 'REQUESTED', 'DONE')
+    </select>
+
+    <!-- [사전 정산 요청 추가] 실제 정산 원장은 연결하지 않고 예약 요청만 생성 -->
+    <insert id="insertEarlySettlementRequest"
+            parameterType="com.project.oditji.common.vo.SettlementRequestVO">
+        <selectKey keyProperty="requestNo"
+                resultType="long"
+                order="BEFORE">
+            SELECT SEQ_SETTLEMENT_REQUEST_NO.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO SETTLEMENT_REQUEST (
+            REQUEST_NO,
+            BUSINESS_NO,
+            SETTLEMENT_MONTH,
+            TOTAL_AMOUNT,
+            FEE_AMOUNT,
+            SETTLED_AMOUNT,
+            ORDER_COUNT,
+            BANK_NAME,
+            ACCOUNT_NUMBER,
+            ACCOUNT_HOLDER,
+            STATUS,
+            REQUESTED_AT
+        ) VALUES (
+            #{requestNo},
+            #{businessNo},
+            #{settlementMonth},
+            #{totalAmount},
+            #{feeAmount},
+            #{settledAmount},
+            #{orderCount},
+            #{bankName},
+            #{accountNumber},
+            #{accountHolder},
+            'PRE_REQUESTED',
+            SYSDATE
+        )
+    </insert>
+
+    <!--
+    =========================================================
+    [사전 정산 요청 금액 자동 갱신 추가]
+
+    사전 정산 요청 후 현재 월에 새로운 배송 완료 건이 발생하면
+    해당 PRE_REQUESTED 요청의 금액/수수료/정산금/주문수를
+    현재 월 전체 배송 완료 정산 원장 기준으로 다시 계산한다.
+
+    아직 실제 정산 요청이 아니므로 SETTLEMENT.REQUEST_NO는
+    연결하지 않고 금액 스냅샷만 최신 상태로 갱신한다.
+    =========================================================
+    -->
+    <update id="refreshPreRequestedSettlementAmount">
+
+        UPDATE SETTLEMENT_REQUEST SR
+
+        SET (
+            TOTAL_AMOUNT,
+            FEE_AMOUNT,
+            SETTLED_AMOUNT,
+            ORDER_COUNT
+        ) = (
+
+            SELECT
+                NVL(SUM(S.TOTAL_AMOUNT), 0),
+                NVL(ROUND(SUM(S.FEE_AMOUNT)), 0),
+                NVL(ROUND(SUM(S.SETTLED_AMOUNT)), 0),
+                COUNT(DISTINCT OI.ORDER_NO)
+
+            FROM SETTLEMENT S
+
+            JOIN ORDER_ITEM OI
+            ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+
+            JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+
+            WHERE S.BUSINESS_NO = SR.BUSINESS_NO
+
+            /* 아직 실제 정산 요청에 연결되지 않은 원장만 대상 */
+            AND S.REQUEST_NO IS NULL
+
+            /* 실제 정산 전 WAITING 원장 */
+            AND S.STATUS = 'WAITING'
+
+            /* 배송 완료된 주문상품만 정산 대상 */
+            AND OI.STATUS = 'DELIVERED'
+
+            /* 현재 월 매출만 사전 정산 대상 */
+            AND O.CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE, 'MM')
+            AND O.CREATED_AT <![CDATA[ < ]]> ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+
+        )
+
+        WHERE SR.BUSINESS_NO = #{businessNo}
+
+        /* 사전 정산 요청 상태에 대해서만 갱신 */
+        AND SR.STATUS = 'PRE_REQUESTED'
+
+        /* 현재 월 매출의 다음 달 정산 요청 */
+        AND SR.SETTLEMENT_MONTH =
+            TO_CHAR(
+                ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1),
+                'YYYY-MM'
+            )
+
+    </update>
+
+    <!-- [사전 정산 요청 자동 확정 추가] 정산월이 도래했지만 아직 확정되지 않은 사전 요청 조회 -->
+    <select id="selectEarlySettlementRequestsToFinalize"
+            resultType="com.project.oditji.common.vo.SettlementRequestVO">
+        SELECT
+            REQUEST_NO,
+            BUSINESS_NO,
+            SETTLEMENT_MONTH,
+            STATUS,
+            REQUESTED_AT
+        FROM SETTLEMENT_REQUEST
+        WHERE STATUS = 'PRE_REQUESTED'
+          AND SETTLEMENT_MONTH <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYY-MM')
+        ORDER BY REQUESTED_AT, REQUEST_NO
+    </select>
+
+    <!--
+        [사전 정산 요청 자동 확정 추가]
+        기존 updateSettlementRequestNo로 연결된 실제 원장을 기준으로 최종 금액을 다시 계산한다.
+    -->
+    <update id="refreshFinalizedEarlySettlementRequest">
+        UPDATE SETTLEMENT_REQUEST SR
+        SET (
+            TOTAL_AMOUNT,
+            FEE_AMOUNT,
+            SETTLED_AMOUNT,
+            ORDER_COUNT
+        ) = (
+            SELECT
+                NVL(SUM(S.TOTAL_AMOUNT), 0),
+                NVL(ROUND(SUM(S.FEE_AMOUNT)), 0),
+                NVL(ROUND(SUM(S.SETTLED_AMOUNT)), 0),
+                COUNT(DISTINCT OI.ORDER_NO)
+            FROM SETTLEMENT S
+            LEFT JOIN ORDER_ITEM OI
+              ON OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+            WHERE S.REQUEST_NO = SR.REQUEST_NO
+        ),
+            STATUS = 'REQUESTED'
+        WHERE SR.REQUEST_NO = #{requestNo}
+          AND SR.STATUS = 'PRE_REQUESTED'
+    </update>
+
+    <!-- [사전 정산 요청 자동 확정 추가] 확정 시 실제 대상이 없어진 경우 반려 처리 -->
+    <update id="rejectEarlySettlementRequest">
+        UPDATE SETTLEMENT_REQUEST
+        SET STATUS = 'REJECTED',
+            PROCESSED_AT = SYSDATE,
+            REJECT_REASON = #{rejectReason}
+        WHERE REQUEST_NO = #{requestNo}
+          AND STATUS = 'PRE_REQUESTED'
     </update>
 
     <!-- [수정] 사업자 정산 계좌 조회 -->

@@ -208,6 +208,24 @@ public interface BusinessService {
 
         void requestSettlementConfirmation(long businessNo);
 
+        /*
+         * =========================================================
+         * [사전 정산 요청 추가]
+         * 다음 달 정산 대상에 대해 월 마감 전 사전 정산 요청을 등록한다.
+         * 실제 SETTLEMENT 연결은 대상 월이 시작된 뒤 자동 확정 처리한다.
+         * =========================================================
+         */
+        void requestEarlySettlement(long businessNo);
+
+        /*
+         * =========================================================
+         * [사전 정산 요청 자동 확정 추가]
+         * PRE_REQUESTED 상태의 월별 정산 요청을 실제 정산 요청으로 확정한다.
+         * 스케줄러에서 호출하며 처리 완료된 요청 건수를 반환한다.
+         * =========================================================
+         */
+        int finalizeEarlySettlementRequests();
+
         SettlementManageVO getSettlementAccount(long businessNo);
 
         void updateSettlementAccount(long businessNo, String bankName, String accountNumber, String accountHolder);
