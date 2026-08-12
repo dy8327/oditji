@@ -25,4 +25,24 @@ public interface SubscriptionCalculatorService {
             String telecomCode,
             String cardCompany,
             String membershipName);
+
+    /**
+     * 계산 결과를 SUBSCRIPTION_RESULT에 저장하고 공유 링크에 쓸 resultId를 발급합니다.
+     * memberNo가 null이면 비로그인 저장으로 처리합니다.
+     */
+    String saveResult(
+            SubscriptionCalculationResultVO result,
+            Long memberNo);
+
+    /**
+     * 공유 링크의 resultId로 저장된 계산 결과를 복원합니다.
+     * 존재하지 않거나 만료된 resultId면 null을 반환합니다.
+     */
+    SubscriptionCalculationResultVO restoreResult(String resultId);
+
+    /**
+     * [비회원 공유 링크 임시 보관 추가]
+     * 만료된 비회원 결과를 정리하고 삭제된 건수를 반환합니다.
+     */
+    int deleteExpiredResults();
 }

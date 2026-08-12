@@ -1,19 +1,27 @@
 package com.project.oditji.subscription.service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import com.project.oditji.event.dao.OttDiscountDAO;
+import com.project.oditji.subscription.dao.SubscriptionDAO;
 import com.project.oditji.subscription.util.OttPlatformCodeUtil;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.PlatformPriceVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.subscription.vo.SubscriptionShareVO;
 
 @Service
 public class SubscriptionCalculatorServiceImpl
@@ -26,12 +34,26 @@ public class SubscriptionCalculatorServiceImpl
      */
     private static final int MAX_BRUTE_FORCE_PLATFORM_COUNT = 20;
 
+    /** 공유 링크 resultId 접두사 (SUBS_ + UUID 32자 = 총 37자, VARCHAR2(64) 여유 있음) */
+    private static final String RESULT_ID_PREFIX = "SUBS_";
+
+    /*
+     * [비회원 공유 링크 임시 보관 추가]
+     * 비회원이 만든 공유 링크는 이 기간이 지나면 자동으로 삭제된다.
+     * 회원이 로그인 상태로 저장한 결과는 대상이 아니라 영구 보관된다.
+     */
+    private static final int GUEST_RESULT_EXPIRE_DAYS = 30;
+
     private final OttDiscountDAO ottDiscountDAO;
 
+    private final SubscriptionDAO subscriptionDAO;
+
     public SubscriptionCalculatorServiceImpl(
-            OttDiscountDAO ottDiscountDAO) {
+            OttDiscountDAO ottDiscountDAO,
+            SubscriptionDAO subscriptionDAO) {
 
         this.ottDiscountDAO = ottDiscountDAO;
+        this.subscriptionDAO = subscriptionDAO;
     }
 
     @Override
@@ -308,5 +330,241 @@ public class SubscriptionCalculatorServiceImpl
         }
 
         return true;
+    }
+
+    @Override
+    public String saveResult(
+            SubscriptionCalculationResultVO result,
+            Long memberNo) {
+
+        if (result == null
+                || result.getSelectedPlatformList().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "저장할 계산 결과가 없습니다.");
+        }
+
+        String resultId = createResultId();
+
+        SubscriptionShareVO shareVO = new SubscriptionShareVO();
+
+        shareVO.setResultId(resultId);
+        shareVO.setMemberNo(memberNo);
+        shareVO.setTotalPrice(
+                result.getTotalRegularMonthlyPrice());
+        shareVO.setDiscountPrice(
+                result.getTotalRegularMonthlyPrice()
+                        - result.getTotalMonthlyPrice());
+        shareVO.setFinalPrice(
+                result.getTotalMonthlyPrice());
+        shareVO.setSelectedServicesJson(
+                toSelectedServicesJson(result));
+
+        /*
+         * [비회원 공유 링크 임시 보관 추가]
+         * memberNo가 없는(비로그인) 저장만 만료 시각을 채운다.
+         * 회원 저장은 EXPIRES_AT을 NULL로 두어 계속 보관한다.
+         */
+        shareVO.setExpiresAt(
+                memberNo == null
+                        ? addDays(new Date(), GUEST_RESULT_EXPIRE_DAYS)
+                        : null);
+
+        subscriptionDAO.insertResult(shareVO);
+
+        return resultId;
+    }
+
+    private Date addDays(Date date, int days) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DATE, days);
+
+        return calendar.getTime();
+    }
+
+    @Override
+    public int deleteExpiredResults() {
+        return subscriptionDAO.deleteExpiredResults();
+    }
+
+    @Override
+    public SubscriptionCalculationResultVO restoreResult(
+            String resultId) {
+
+        if (resultId == null
+                || resultId.trim().isEmpty()) {
+
+            return null;
+        }
+
+        SubscriptionShareVO shareVO =
+                subscriptionDAO.selectResultById(
+                        resultId.trim());
+
+        if (shareVO == null) {
+
+            return null;
+        }
+
+        return fromSelectedServicesJson(shareVO);
+    }
+
+    /** 공유 링크에 쓸 고유 resultId를 UUID 기반으로 발급한다. */
+    private String createResultId() {
+
+        String uuid = UUID.randomUUID()
+                .toString()
+                .replace("-", "");
+
+        return RESULT_ID_PREFIX + uuid;
+    }
+
+    /**
+     * 계산 결과 중 저장이 필요한 부분(선택 플랫폼 상세, 미해결 작품 제목,
+     * 전체 개별구독 합계)만 JSON 문자열로 직렬화한다. 프로젝트 컨벤션에 맞춰
+     * 별도 ObjectMapper 없이 org.json으로 직접 구성한다.
+     */
+    private String toSelectedServicesJson(
+            SubscriptionCalculationResultVO result) {
+
+        JSONObject root = new JSONObject();
+
+        JSONArray platformArray = new JSONArray();
+
+        for (PlatformPriceVO platform : result.getSelectedPlatformList()) {
+
+            JSONObject platformJson = new JSONObject();
+
+            platformJson.put("platformCode", platform.getPlatformCode());
+            platformJson.put("platformName", platform.getPlatformName());
+            platformJson.put("regularPrice", platform.getRegularPrice());
+            platformJson.put("bestPrice", platform.getBestPrice());
+            platformJson.put("discountSource",
+                    platform.getDiscountSource() == null
+                            ? JSONObject.NULL
+                            : platform.getDiscountSource());
+            platformJson.put("discountTitle",
+                    platform.getDiscountTitle() == null
+                            ? JSONObject.NULL
+                            : platform.getDiscountTitle());
+
+            platformArray.put(platformJson);
+        }
+
+        root.put("selectedPlatformList", platformArray);
+
+        JSONArray unresolvedTitleArray = new JSONArray();
+
+        for (ContentWishItemVO item : result.getUnresolvedItemList()) {
+
+            if (item != null && item.getTitle() != null) {
+
+                unresolvedTitleArray.put(item.getTitle());
+            }
+        }
+
+        root.put("unresolvedTitleList", unresolvedTitleArray);
+        root.put("allPlatformMonthlyPrice",
+                result.getAllPlatformMonthlyPrice());
+
+        return root.toString();
+    }
+
+    /**
+     * 저장된 SELECTED_SERVICES JSON을 SubscriptionCalculationResultVO로 복원한다.
+     * JSON이 손상되어 있으면 정가/최종가만 반영된 빈 결과를 방어적으로 반환한다.
+     */
+    private SubscriptionCalculationResultVO fromSelectedServicesJson(
+            SubscriptionShareVO shareVO) {
+
+        SubscriptionCalculationResultVO result =
+                new SubscriptionCalculationResultVO();
+
+        result.setTotalRegularMonthlyPrice(shareVO.getTotalPrice());
+        result.setTotalMonthlyPrice(shareVO.getFinalPrice());
+
+        try {
+
+            JSONObject root = new JSONObject(
+                    shareVO.getSelectedServicesJson());
+
+            JSONArray platformArray =
+                    root.optJSONArray("selectedPlatformList");
+
+            List<PlatformPriceVO> selectedList =
+                    new ArrayList<PlatformPriceVO>();
+
+            if (platformArray != null) {
+
+                for (int i = 0; i < platformArray.length(); i++) {
+
+                    JSONObject platformJson =
+                            platformArray.getJSONObject(i);
+
+                    PlatformPriceVO platform = new PlatformPriceVO();
+
+                    platform.setPlatformCode(
+                            platformJson.optString("platformCode", null));
+                    platform.setPlatformName(
+                            platformJson.optString("platformName", null));
+                    platform.setRegularPrice(
+                            optInteger(platformJson, "regularPrice"));
+                    platform.setBestPrice(
+                            optInteger(platformJson, "bestPrice"));
+                    platform.setDiscountSource(
+                            platformJson.isNull("discountSource")
+                                    ? null
+                                    : platformJson.optString("discountSource", null));
+                    platform.setDiscountTitle(
+                            platformJson.isNull("discountTitle")
+                                    ? null
+                                    : platformJson.optString("discountTitle", null));
+
+                    selectedList.add(platform);
+                }
+            }
+
+            result.setSelectedPlatformList(selectedList);
+
+            JSONArray unresolvedTitleArray =
+                    root.optJSONArray("unresolvedTitleList");
+
+            List<ContentWishItemVO> unresolvedList =
+                    new ArrayList<ContentWishItemVO>();
+
+            if (unresolvedTitleArray != null) {
+
+                for (int i = 0; i < unresolvedTitleArray.length(); i++) {
+
+                    ContentWishItemVO item = new ContentWishItemVO();
+                    item.setTitle(unresolvedTitleArray.getString(i));
+
+                    unresolvedList.add(item);
+                }
+            }
+
+            result.setUnresolvedItemList(unresolvedList);
+            result.setAllPlatformMonthlyPrice(
+                    root.optInt("allPlatformMonthlyPrice", 0));
+
+        } catch (JSONException e) {
+
+            /* 저장된 JSON이 손상된 경우 정가/최종가만 담긴 빈 결과로 방어적으로 대응한다. */
+            return result;
+        }
+
+        return result;
+    }
+
+    private Integer optInteger(JSONObject json, String key) {
+
+        if (json.isNull(key)) {
+
+            return null;
+        }
+
+        return json.optInt(key);
     }
 }

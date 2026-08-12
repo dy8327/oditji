@@ -1,5 +1,7 @@
 package com.project.oditji.notification.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.notification.dao.NotificationDAO;
 import com.project.oditji.notification.vo.NotificationContextVO;
+import com.project.oditji.notification.vo.NotificationSettingItemVO;
 import com.project.oditji.notification.vo.NotificationVO;
 
 /**
@@ -22,6 +25,24 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_TYPE_LOW_STOCK = "LOW_STOCK";
     private static final String NOTIFICATION_TYPE_RESTOCKED = "RESTOCKED";
     private static final String REFERENCE_TYPE_PRODUCT = "PRODUCT";
+
+    /*
+     * [알림 수신 설정 추가]
+     * 회원(마이페이지)이 실제로 받는 NOTIFICATION_TYPE을 On/Off 가능한
+     * 카테고리로 묶은 매핑입니다. 여기에 없는 타입(관리자/사업자 전용 알림 등)은
+     * 설정 대상이 아니므로 항상 발송됩니다.
+     */
+    private static final Map<String, String> NOTIFICATION_TYPE_TO_CATEGORY = createTypeToCategoryMap();
+
+    /*
+     * [알림 수신 설정 추가]
+     * 마이페이지 토글 UI에 노출할 카테고리 목록(코드, 표시명, 설명) 입니다.
+     * LinkedHashMap으로 노출 순서를 고정합니다.
+     */
+    private static final Map<String, String[]> NOTICE_CATEGORY_DEFINITIONS = createCategoryDefinitions();
+
+    private static final String ENABLED_YES = "Y";
+    private static final String ENABLED_NO = "N";
 
     private final NotificationDAO notificationDAO;
 
@@ -128,6 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationDAO.insertBusinessNotification(
                 businessNo,
+                resolveNoticeCategory(notificationType),
                 createNotification(
                         notificationType,
                         title,
@@ -136,6 +158,7 @@ public class NotificationServiceImpl implements NotificationService {
                         referenceType,
                         referenceNo));
     }
+
 
     @Override
     @Transactional
@@ -285,6 +308,7 @@ public class NotificationServiceImpl implements NotificationService {
          */
         notificationDAO.insertBusinessNotification(
                 businessNo,
+                null,
                 createNotification(
                         NOTIFICATION_TYPE_LOW_STOCK,
                         "상품 재고 부족",
@@ -352,6 +376,19 @@ public class NotificationServiceImpl implements NotificationService {
             Long referenceNo) {
 
         if (memberNo == null || memberNo <= 0L) {
+            return;
+        }
+
+        /*
+         * [알림 수신 설정 추가]
+         * 설정 카테고리가 있는 타입에 한해 회원이 꺼두었는지 확인한 뒤,
+         * 꺼두었다면 알림을 생성하지 않고 조용히 건너뜁니다.
+         */
+        String noticeCategory = resolveNoticeCategory(notificationType);
+
+        if (noticeCategory != null
+                && notificationDAO.countDisabledNotificationSetting(memberNo, noticeCategory) > 0) {
+
             return;
         }
 
@@ -466,5 +503,113 @@ public class NotificationServiceImpl implements NotificationService {
                     productNo,
                     optionNo);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificationSettingItemVO> getSettingItems(Long memberNo) {
+
+        validateMemberNo(memberNo);
+
+        List<String> disabledCategoryList = notificationDAO.selectDisabledNoticeCategoryList(memberNo);
+
+        List<NotificationSettingItemVO> items = new ArrayList<>();
+
+        for (Map.Entry<String, String[]> entry : NOTICE_CATEGORY_DEFINITIONS.entrySet()) {
+
+            String category = entry.getKey();
+            String[] labelAndDescription = entry.getValue();
+            boolean enabled = !disabledCategoryList.contains(category);
+
+            items.add(new NotificationSettingItemVO(
+                    category,
+                    labelAndDescription[0],
+                    labelAndDescription[1],
+                    enabled));
+        }
+
+        return items;
+    }
+
+    @Override
+    @Transactional
+    public void updateSetting(Long memberNo, String noticeCategory, boolean enabled) {
+
+        validateMemberNo(memberNo);
+
+        if (noticeCategory == null || !NOTICE_CATEGORY_DEFINITIONS.containsKey(noticeCategory)) {
+            throw new IllegalArgumentException("올바르지 않은 알림 카테고리입니다.");
+        }
+
+        notificationDAO.mergeNotificationSetting(
+                memberNo,
+                noticeCategory,
+                enabled ? ENABLED_YES : ENABLED_NO);
+    }
+
+    /*
+     * [알림 수신 설정 추가]
+     * NOTIFICATION_TYPE에 대응하는 설정 카테고리를 반환합니다.
+     * 설정 대상이 아닌 타입(관리자/사업자 업무 알림 등)은 null을 반환합니다.
+     */
+    private String resolveNoticeCategory(String notificationType) {
+        return NOTIFICATION_TYPE_TO_CATEGORY.get(notificationType);
+    }
+
+    /*
+     * [알림 수신 설정 추가]
+     * 회원이 실제로 수신하는 NOTIFICATION_TYPE → 설정 카테고리 매핑입니다.
+     */
+    private static Map<String, String> createTypeToCategoryMap() {
+
+        Map<String, String> map = new LinkedHashMap<>();
+
+        // 찜한 콘텐츠 출시 알림
+        map.put("CONTENT_RELEASE", "CONTENT_RELEASE");
+
+        // 재입고 알림 (전체/옵션 공통)
+        map.put("RESTOCKED", "RESTOCK");
+
+        // 주문/배송/환불 알림
+        map.put("DELIVERY_PREPARING", "ORDER_DELIVERY");
+        map.put("DELIVERY_SHIPPED", "ORDER_DELIVERY");
+        map.put("DELIVERY_DELIVERED", "ORDER_DELIVERY");
+        map.put("REFUND_COMPLETED", "ORDER_DELIVERY");
+        map.put("REFUND_REJECTED", "ORDER_DELIVERY");
+
+        // 리뷰 신고 처리 알림
+        map.put("CONTENT_REVIEW_REPORT_RECEIVED", "REVIEW_REPORT");
+        map.put("PRODUCT_REVIEW_REPORT_RECEIVED", "REVIEW_REPORT");
+        map.put("CONTENT_REVIEW_REPORT_PROCESSED", "REVIEW_REPORT");
+        map.put("PRODUCT_REVIEW_REPORT_PROCESSED", "REVIEW_REPORT");
+
+        return map;
+    }
+
+    /*
+     * [알림 수신 설정 추가]
+     * 마이페이지 토글 UI에 노출할 카테고리 정의(표시명, 설명)입니다.
+     */
+    private static Map<String, String[]> createCategoryDefinitions() {
+
+        Map<String, String[]> map = new LinkedHashMap<>();
+
+        map.put("CONTENT_RELEASE", new String[] {
+                "콘텐츠 출시 알림",
+                "찜한 콘텐츠가 새로 출시되면 알려드립니다." });
+
+        map.put("RESTOCK", new String[] {
+                "재입고 알림",
+                "재입고 신청한 상품이 다시 입고되면 알려드립니다." });
+
+        map.put("ORDER_DELIVERY", new String[] {
+                "주문·배송·환불 알림",
+                "주문한 상품의 배송 진행 상황과 환불 처리 결과를 알려드립니다." });
+
+        map.put("REVIEW_REPORT", new String[] {
+                "리뷰 신고 처리 알림",
+                "내가 접수한 리뷰 신고의 접수/처리 결과를 알려드립니다." });
+
+        return map;
     }
 }

@@ -176,6 +176,18 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteMemberSocialByMember", memberNo);
     }
 
+    public int deleteSubscriptionResultByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteSubscriptionResultByMember", memberNo);
+    }
+
+    public int deleteNotificationSettingByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteNotificationSettingByMember", memberNo);
+    }
+
+    public int deleteSearchKeywordHistoryByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteSearchKeywordHistoryByMember", memberNo);
+    }
+
     // 최종 MEMBER 삭제
     public int deleteMember(Long memberNo) {
         return sqlSession.delete("adminDeleteMember", memberNo);

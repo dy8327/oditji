@@ -128,10 +128,17 @@
                         </div>
                     </div>
 
-                    <!-- 기존 JS가 사용하는 ID 유지 -->
-                    <button type="button" id="updateMemberBtn" class="mypage-action-btn">
-                        회원정보 수정 <span aria-hidden="true">›</span>
-                    </button>
+                    <div class="mypage-profile-actions">
+                        <!-- 기존 JS가 사용하는 ID 유지 -->
+                        <button type="button" id="updateMemberBtn" class="mypage-action-btn">
+                            회원정보 수정 <span aria-hidden="true">›</span>
+                        </button>
+
+                        <!-- [알림 수신 설정 위치 변경] 별도 패널 대신 프로필 영역 모달 버튼으로 이동 -->
+                        <button type="button" id="notificationSettingBtn" class="mypage-action-btn">
+                            알림 수신 설정 <span aria-hidden="true">›</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -540,6 +547,46 @@
 
 
         </form>
+
+    </div>
+
+</div>
+
+<!-- ================= NOTIFICATION SETTING MODAL ================= -->
+
+<!--
+    [알림 수신 설정 위치 변경]
+    기존에는 독립 패널(mypageNotificationSection)로 항상 노출되어 있었으나,
+    프로필 영역의 '알림 수신 설정' 버튼을 눌렀을 때만 모달로 띄우는 방식으로 변경.
+    내부 목록(notificationSettingList)을 그리는 mypage.js 로직은 그대로 재사용한다.
+-->
+<div id="notificationModal"
+     class="modal-overlay hidden">
+
+    <div class="modal-box">
+
+        <h2>
+            알림 수신 설정
+        </h2>
+
+        <p class="modal-desc">
+            받고 싶은 알림만 골라서 켜고 끌 수 있습니다.
+        </p>
+
+        <div class="mypage-notification-list" id="notificationSettingList">
+            <div class="mypage-empty">알림 설정을 불러오는 중입니다...</div>
+        </div>
+
+        <div class="modal-btns">
+
+            <button type="button"
+                    id="closeNotificationModal">
+
+                닫기
+
+            </button>
+
+        </div>
 
     </div>
 

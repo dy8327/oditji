@@ -114,6 +114,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           ON M.MEMBER_NO = B.MEMBER_NO
         WHERE B.BUSINESS_NO = #{businessNo}
           AND M.STATUS = 'ACTIVE'
+          <!-- [알림 수신 설정 추가] 설정 카테고리가 있는 타입만, 꺼둔 회원을 제외합니다. -->
+          <if test="noticeCategory != null">
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM NOTIFICATION_SETTING NS
+                  WHERE NS.MEMBER_NO = B.MEMBER_NO
+                    AND NS.NOTICE_CATEGORY = #{noticeCategory}
+                    AND NS.IS_ENABLED = 'N'
+              )
+          </if>
     </insert>
 
     <insert id="insertOrderBusinessNotifications">
@@ -331,6 +341,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
               AND RR.OPTION_NO IS NULL
               AND RR.STATUS = 'WAITING'
               AND M.STATUS = 'ACTIVE'
+              <!-- [알림 수신 설정 추가] RESTOCK 카테고리를 꺼둔 회원은 제외합니다. -->
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM NOTIFICATION_SETTING NS
+                  WHERE NS.MEMBER_NO = RR.MEMBER_NO
+                    AND NS.NOTICE_CATEGORY = 'RESTOCK'
+                    AND NS.IS_ENABLED = 'N'
+              )
         ) TARGET_MEMBER
     </insert>
 
@@ -388,6 +406,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
               AND RR.OPTION_NO = #{optionNo}
               AND RR.STATUS = 'WAITING'
               AND M.STATUS = 'ACTIVE'
+              <!-- [알림 수신 설정 추가] RESTOCK 카테고리를 꺼둔 회원은 제외합니다. -->
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM NOTIFICATION_SETTING NS
+                  WHERE NS.MEMBER_NO = RR.MEMBER_NO
+                    AND NS.NOTICE_CATEGORY = 'RESTOCK'
+                    AND NS.IS_ENABLED = 'N'
+              )
         ) TARGET_MEMBER
     </insert>
 
@@ -406,5 +432,58 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           AND STATUS = 'WAITING'
     </update>
 
+
+    <!-- =====================================================
+         [알림 수신 설정 추가]
+         회원이 명시적으로 꺼둔 카테고리 목록을 조회합니다.
+         행이 없는 카테고리는 기본 수신(Y)으로 간주합니다.
+    ====================================================== -->
+    <select id="selectDisabledNoticeCategoryList"
+            resultType="string">
+        SELECT NOTICE_CATEGORY
+        FROM NOTIFICATION_SETTING
+        WHERE MEMBER_NO = #{memberNo}
+          AND IS_ENABLED = 'N'
+    </select>
+
+    <!-- =====================================================
+         [알림 수신 설정 추가]
+         단건 알림 발송 전, 해당 카테고리가 꺼져 있는지 확인합니다.
+    ====================================================== -->
+    <select id="countDisabledNotificationSetting"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM NOTIFICATION_SETTING
+        WHERE MEMBER_NO = #{memberNo}
+          AND NOTICE_CATEGORY = #{noticeCategory}
+          AND IS_ENABLED = 'N'
+    </select>
+
+    <!-- =====================================================
+         [알림 수신 설정 추가]
+         회원의 카테고리별 수신 설정을 UPSERT 합니다.
+    ====================================================== -->
+    <update id="mergeNotificationSetting">
+        MERGE INTO NOTIFICATION_SETTING NS
+        USING DUAL
+        ON (NS.MEMBER_NO = #{memberNo}
+            AND NS.NOTICE_CATEGORY = #{noticeCategory})
+        WHEN MATCHED THEN
+            UPDATE SET
+                NS.IS_ENABLED = #{isEnabled},
+                NS.UPDATED_AT = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (
+                MEMBER_NO,
+                NOTICE_CATEGORY,
+                IS_ENABLED,
+                UPDATED_AT
+            ) VALUES (
+                #{memberNo},
+                #{noticeCategory},
+                #{isEnabled},
+                SYSDATE
+            )
+    </update>
 
 </mapper>

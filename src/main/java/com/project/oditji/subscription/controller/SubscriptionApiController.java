@@ -2,8 +2,11 @@ package com.project.oditji.subscription.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
 import com.project.oditji.search.vo.SearchResultVO;
@@ -19,6 +23,8 @@ import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculateRequestVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
+
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/subscription")
@@ -97,6 +103,58 @@ public class SubscriptionApiController {
                 request.getTelecomCode(),
                 request.getCardCompany(),
                 request.getMembershipName());
+    }
+
+    /**
+     * 계산 결과를 저장하고 공유 링크(/subscription/result/{resultId})에 쓸
+     * resultId를 발급한다. 로그인 사용자는 세션의 loginMember를 MEMBER_NO로 매핑하고,
+     * 비로그인 사용자도 저장할 수 있다.
+     */
+    @PostMapping("/save")
+    public ResponseEntity<Map<String, Object>> save(
+            @RequestBody SubscriptionCalculationResultVO result,
+            HttpSession session) {
+
+        try {
+
+            MemberVO loginMember = getLoginMember(session);
+
+            Long memberNo =
+                    loginMember == null
+                            ? null
+                            : loginMember.getMemberNo();
+
+            String resultId =
+                    subscriptionCalculatorService.saveResult(
+                            result,
+                            memberNo);
+
+            Map<String, Object> response = new HashMap<String, Object>();
+            response.put("resultId", resultId);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+
+            Map<String, Object> errorResponse = new HashMap<String, Object>();
+            errorResponse.put("message", e.getMessage());
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(errorResponse);
+        }
+    }
+
+    private MemberVO getLoginMember(HttpSession session) {
+
+        Object loginMember = session.getAttribute("loginMember");
+
+        if (loginMember instanceof MemberVO memberVO) {
+
+            return memberVO;
+        }
+
+        return null;
     }
 
     private ContentWishItemVO toWishItem(

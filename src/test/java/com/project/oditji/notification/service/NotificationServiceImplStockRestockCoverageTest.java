@@ -59,7 +59,7 @@ class NotificationServiceImplStockRestockCoverageTest {
         verify(notificationDAO, never())
                 .countUnreadBusinessProductNotification(anyLong(), any(), anyLong());
         verify(notificationDAO, never())
-                .insertBusinessNotification(anyLong(), any());
+                .insertBusinessNotification(anyLong(), any(), any());
     }
 
     @Test
@@ -87,7 +87,7 @@ class NotificationServiceImplStockRestockCoverageTest {
         verify(notificationDAO, never())
                 .countUnreadBusinessProductNotification(anyLong(), any(), anyLong());
         verify(notificationDAO, never())
-                .insertBusinessNotification(anyLong(), any());
+                .insertBusinessNotification(anyLong(), any(), any());
     }
 
     @Test
@@ -106,7 +106,7 @@ class NotificationServiceImplStockRestockCoverageTest {
         service.createLowStockNotificationIfNeeded(30L);
 
         verify(notificationDAO, never())
-                .insertBusinessNotification(anyLong(), any());
+                .insertBusinessNotification(anyLong(), any(), any());
 
         when(notificationDAO.selectProductStockNotificationInfo(31L))
                 .thenReturn(Map.of(
@@ -124,7 +124,7 @@ class NotificationServiceImplStockRestockCoverageTest {
         ArgumentCaptor<NotificationVO> captor =
                 ArgumentCaptor.forClass(NotificationVO.class);
         verify(notificationDAO)
-                .insertBusinessNotification(eq(8L), captor.capture());
+                .insertBusinessNotification(eq(8L), any(), captor.capture());
 
         NotificationVO saved = captor.getValue();
         assertEquals("LOW_STOCK", saved.getNotificationType());

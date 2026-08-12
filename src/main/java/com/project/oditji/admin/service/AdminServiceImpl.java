@@ -252,6 +252,9 @@ public class AdminServiceImpl implements AdminService {
 
         adminDAO.deleteMemberPlatformByMemberNo(memberNo);
         adminDAO.deleteMemberSocialByMemberNo(memberNo);
+        adminDAO.deleteSubscriptionResultByMemberNo(memberNo);
+        adminDAO.deleteNotificationSettingByMemberNo(memberNo);
+        adminDAO.deleteSearchKeywordHistoryByMemberNo(memberNo);
 
         // MEMBER 최종 삭제
         adminDAO.deleteMember(memberNo);

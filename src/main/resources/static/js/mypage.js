@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const modals = {
     member: document.getElementById("memberModal"),
+    notification: document.getElementById("notificationModal"),
     ott: document.getElementById("ottModal"),
     delete: document.getElementById("deleteModal"),
   };
@@ -44,6 +45,106 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =========================================================
+       [알림 수신 설정 추가]
+       마이페이지 진입 시 현재 설정을 불러와 토글로 그려주고,
+       클릭 시 Ajax로 저장한다. (common.js가 fetch에 CSRF 헤더를
+       자동으로 붙여주므로 별도 토큰 처리는 필요 없다.)
+    ========================================================= */
+
+  const contextPath = body.dataset.contextPath ?? "";
+  const notificationSettingList = document.getElementById("notificationSettingList");
+
+  if (notificationSettingList) {
+    loadNotificationSettingList();
+  }
+
+  async function loadNotificationSettingList() {
+    try {
+      const response = await fetch(`${contextPath}/api/notification/setting`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP 오류: ${response.status}`);
+      }
+
+      const result = await response.json();
+      renderNotificationSettingList(result.settingList ?? []);
+    } catch (error) {
+      console.error(error);
+      notificationSettingList.innerHTML =
+        '<div class="mypage-empty">알림 설정을 불러오지 못했습니다.</div>';
+    }
+  }
+
+  function renderNotificationSettingList(settingList) {
+    if (!settingList.length) {
+      notificationSettingList.innerHTML =
+        '<div class="mypage-empty">표시할 알림 설정이 없습니다.</div>';
+      return;
+    }
+
+    notificationSettingList.innerHTML = "";
+
+    settingList.forEach((setting) => {
+      const item = document.createElement("div");
+      item.className = "mypage-notification-item";
+
+      const copy = document.createElement("div");
+      copy.className = "mypage-notification-item-copy";
+
+      const label = document.createElement("span");
+      label.className = "mypage-notification-item-label";
+      label.textContent = setting.label;
+
+      const desc = document.createElement("span");
+      desc.className = "mypage-notification-item-desc";
+      desc.textContent = setting.description;
+
+      copy.append(label, desc);
+
+      const toggleLabel = document.createElement("label");
+      toggleLabel.className = "mypage-toggle-switch";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = !!setting.enabled;
+      checkbox.addEventListener("change", () => {
+        updateNotificationSetting(setting.noticeCategory, checkbox.checked, checkbox);
+      });
+
+      const track = document.createElement("span");
+      track.className = "mypage-toggle-switch-track";
+
+      toggleLabel.append(checkbox, track);
+      item.append(copy, toggleLabel);
+      notificationSettingList.appendChild(item);
+    });
+  }
+
+  async function updateNotificationSetting(noticeCategory, enabled, checkbox) {
+    checkbox.disabled = true;
+
+    try {
+      const response = await fetch(`${contextPath}/api/notification/setting`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noticeCategory, enabled }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "알림 설정 저장에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error(error);
+      checkbox.checked = !enabled;
+      await showAlert("알림 설정 저장에 실패했습니다.", "error");
+    } finally {
+      checkbox.disabled = false;
+    }
+  }
+
+  /* =========================================================
        MEMBER UPDATE
     ========================================================= */
 
@@ -67,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
   bindOpen("updateMemberBtn", modals.member);
+  bindOpen("notificationSettingBtn", modals.notification);
   bindOpen("updateOttBtn", modals.ott);
   bindOpen("deleteBtn", modals.delete);
 
@@ -75,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
   bindClose("closeMemberModal", modals.member);
+  bindClose("closeNotificationModal", modals.notification);
   bindClose("closeOttModal", modals.ott);
   bindClose("closeDeleteModal", modals.delete);
 

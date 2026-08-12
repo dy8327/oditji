@@ -24,6 +24,16 @@
   max-width: 1120px;
   margin: 60px auto 96px;
   padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* 카드 내부 요소가 padding/border 때문에 부모 폭을 넘어가지 않도록
+   섹션 전체에 border-box를 강제한다. (input/button 폭 계산 오류 방지) */
+.sub-calc-section,
+.sub-calc-section *,
+.sub-calc-section *::before,
+.sub-calc-section *::after {
+  box-sizing: border-box;
 }
 
 .sub-calc-section :is(button, a, input, select):focus-visible {
@@ -149,6 +159,7 @@
 
   .sub-calc-filter-select {
     width: 100%;
+    min-width: 0;
   }
 }
 
@@ -399,21 +410,26 @@
 
 .sub-calc-result-panel {
   min-height: 320px;
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
 }
 
+/* 결과가 없을 때만 안내 문구를 패널 중앙에 놓는다.
+   패널 자체를 항상 flex 중앙정렬로 두면 결과가 채워진 뒤
+   내부 버튼/인풋의 가로폭 계산이 꼬여 레이아웃이 깨지므로,
+   중앙정렬은 placeholder 자신의 auto margin으로만 처리한다. */
 .sub-calc-result-placeholder {
   color: var(--sc-text-dim);
   font-size: 14px;
   text-align: center;
-  margin: 0;
+  margin: auto;
   padding: 24px;
 }
 
 .sub-calc-result {
   width: 100%;
+  min-width: 0;
 }
 
 .sub-calc-result__eyebrow {
@@ -448,11 +464,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.sub-calc-result-platform__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sub-calc-result-platform__price {
   color: var(--sc-accent);
   font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .sub-calc-result-platform__regular {
@@ -477,9 +503,20 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
   color: var(--sc-text-dim);
   font-size: 13px;
   padding-top: 8px;
+}
+
+.sub-calc-result-total span:first-child {
+  min-width: 0;
+}
+
+.sub-calc-result-total span:last-child,
+.sub-calc-result-total strong {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .sub-calc-result-total--main {
@@ -522,4 +559,183 @@
   padding-left: 18px;
   color: var(--sc-text-dim);
   font-size: 13px;
+}
+
+/* =========================
+   RESULT ACTIONS (저장 / 공유)
+========================= */
+
+a.sub-calc-calculate-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sub-calc-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sc-bg-card-border);
+}
+
+.sub-calc-save-btn {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: var(--sc-accent);
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--sc-accent);
+  border-radius: var(--sc-radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+  transition: background var(--sc-transition), color var(--sc-transition);
+}
+
+.sub-calc-save-btn:hover:not(:disabled) {
+  background: var(--sc-accent);
+  color: #0c1f16;
+}
+
+.sub-calc-save-btn:disabled {
+  border-color: var(--sc-bg-card-border);
+  color: var(--sc-text-dim);
+  cursor: not-allowed;
+}
+
+.sub-calc-share-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.sub-calc-share-input {
+  flex: 1 1 160px;
+  min-width: 0;
+  width: 100%;
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.sub-calc-copy-btn {
+  flex-shrink: 0;
+  background: var(--sc-accent);
+  color: #0c1f16;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  border-radius: var(--sc-radius-sm);
+  padding: 0 16px;
+  min-height: 38px;
+  cursor: pointer;
+  transition: background var(--sc-transition);
+  white-space: nowrap;
+}
+
+.sub-calc-copy-btn:hover {
+  background: var(--sc-accent-hover);
+}
+
+/* =========================
+   RESPONSIVE (모바일 전반)
+========================= */
+
+@media (max-width: 860px) {
+  .sub-calc-search-panel,
+  .sub-calc-result-panel {
+    padding: 20px;
+  }
+
+  .sub-calc-hero {
+    padding: 36px 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sub-calc-section {
+    margin: 32px auto 64px;
+    padding: 0 16px;
+  }
+
+  .sub-calc-hero {
+    padding: 28px 16px;
+    border-radius: 16px;
+  }
+
+  .sub-calc-hero__title {
+    font-size: 22px;
+  }
+
+  .sub-calc-hero__desc {
+    font-size: 13px;
+  }
+
+  .sub-calc-filter-panel,
+  .sub-calc-search-panel,
+  .sub-calc-result-panel {
+    padding: 16px;
+  }
+
+  .sub-calc-search-item__title,
+  .sub-calc-wishlist__title {
+    font-size: 12px;
+  }
+
+  .sub-calc-result-platform {
+    font-size: 13px;
+  }
+
+  .sub-calc-result-total strong {
+    font-size: 19px;
+  }
+
+  /* 좁은 화면에서는 저장 버튼과 복사 영역을 세로로 쌓는다 */
+  .sub-calc-result-actions {
+    flex-direction: column;
+  }
+
+  .sub-calc-share-box {
+    flex-direction: column;
+  }
+
+  .sub-calc-share-input {
+    flex-basis: auto;
+  }
+
+  .sub-calc-copy-btn {
+    width: 100%;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sub-calc-wishlist-count {
+    font-size: 11px;
+  }
+
+  .sub-calc-search-item__poster,
+  .sub-calc-wishlist__poster {
+    width: 26px;
+    height: 38px;
+  }
+
+  .sub-calc-result-total {
+    font-size: 12px;
+  }
+
+  .sub-calc-result-total strong {
+    font-size: 17px;
+  }
 }
