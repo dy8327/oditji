@@ -196,6 +196,10 @@
                         <p>※ 배송 완료된 주문만 정산 요청에 포함됩니다.</p>
                         <p>※ 플랫폼 수수료를 제외한 정산금이 위 계좌로 지급됩니다.</p>
                         <p>※ 정산 요청 당시의 계좌 정보가 정산 내역에 저장됩니다.</p>
+                        <%-- [사전 정산 요청 추가] 기존 안내 영역과 레이아웃은 유지하고 문구만 추가 --%>
+                        <c:if test="${settlementCycle eq 'next'}">
+                            <p>※ 사전 정산 요청 후 이번 달에 추가되는 정산 대상 매출도 월 마감 시 자동으로 포함됩니다.</p>
+                        </c:if>
                     </div>
                 </div>
 
@@ -213,35 +217,100 @@
 
                         <c:otherwise>
                             <c:choose>
-                                <%-- [정산 월 구분 추가] 다음 달 정산은 현재 월 매출 미리보기만 제공 --%>
+                                <%--
+                                    =========================================================
+                                    [사전 정산 요청 UI 수정]
+                                    기존 "다음 달 정산 예정" 상태는 별도 라벨로 유지하고
+                                    실제 사전 정산 신청 기능은 별도의 "정산 미리 요청" 버튼으로 제공한다.
+
+                                    PRE_REQUESTED 상태에서는 중복 요청을 막기 위해
+                                    "사전 정산 요청 완료" 버튼을 비활성 상태로 표시한다.
+                                    =========================================================
+                                --%>
                                 <c:when test="${settlementCycle eq 'next'}">
-                                    <button class="btn btn-primary" type="button" disabled>다음 달 정산 예정</button>
+
+                                    <div class="settlement-next-action">
+
+                                        <c:choose>
+
+                                            <%-- 이미 사전 정산을 요청한 경우 --%>
+                                            <c:when test="${settlementSummary.status eq 'PRE_REQUESTED'}">
+                                                <button class="btn btn-primary"
+                                                        type="button"
+                                                        disabled>
+                                                    사전 정산 요청 완료
+                                                </button>
+                                            </c:when>
+
+                                            <%-- 정산할 금액이 없는 경우 --%>
+                                            <c:when test="${settlementSummary.settlementTotalAmount le 0}">
+                                                <button class="btn btn-primary"
+                                                        type="button"
+                                                        disabled>
+                                                    사전 정산 가능 내역 없음
+                                                </button>
+                                            </c:when>
+
+                                            <%-- 사전 정산 요청 가능 --%>
+                                            <c:otherwise>
+                                                <form action="${pageContext.request.contextPath}/business/settlement/pre-request"
+                                                    method="post">
+
+                                                    <button class="btn btn-primary"
+                                                            type="submit">
+                                                        사전 정산 요청
+                                                    </button>
+
+                                                </form>
+                                            </c:otherwise>
+
+                                        </c:choose>
+
+                                        <%--
+                                            =========================================================
+                                            [사전 정산 요청 UI 수정]
+                                            버튼 아래에 다음 달 정산 예정 안내 박스를 표시한다.
+                                            =========================================================
+                                        --%>
+                                        <div class="settlement-next-notice">
+                                            <span class="settlement-next-notice-icon"
+                                                aria-hidden="true">
+                                                !
+                                            </span>
+
+                                            <span class="settlement-next-notice-text">
+                                                다음 달 정산 예정입니다.
+                                            </span>
+                                        </div>
+
+                                    </div>
+
                                 </c:when>
                                 <c:otherwise>
-                            <form action="${pageContext.request.contextPath}/business/settlement/request"
-                                method="post">
-                                <c:choose>
-                                    <c:when test="${settlementSummary.status eq 'REQUESTED'}">
-                                        <button class="btn btn-primary" type="button" disabled>정산 요청 처리 중</button>
-                                    </c:when>
+                                    <form action="${pageContext.request.contextPath}/business/settlement/request"
+                                        method="post">
+                                        <c:choose>
+                                            <c:when test="${settlementSummary.status eq 'REQUESTED'}">
+                                                <button class="btn btn-primary" type="button" disabled>정산 요청 처리 중</button>
+                                            </c:when>
 
-                                    <c:when test="${settlementSummary.status eq 'REJECTED'}">
-                                        <button class="btn btn-primary" type="button" disabled>정산 요청 반려</button>
-                                    </c:when>
+                                            <c:when test="${settlementSummary.status eq 'REJECTED'}">
+                                                <button class="btn btn-primary" type="button" disabled>정산 요청 반려</button>
+                                            </c:when>
 
-                                    <c:when test="${settlementSummary.status eq 'APPROVED'}">
-                                        <button class="btn btn-primary" type="button" disabled>정산 완료</button>
-                                    </c:when>
+                                            <c:when test="${settlementSummary.status eq 'APPROVED'}">
+                                                <button class="btn btn-primary" type="button" disabled>정산 완료</button>
+                                            </c:when>
 
-                                    <c:when test="${settlementSummary.settlementTotalAmount le 0}">
-                                        <button class="btn btn-primary" type="button" disabled>정산 가능 내역 없음</button>
-                                    </c:when>
+                                            <c:when test="${settlementSummary.settlementTotalAmount le 0}">
+                                                <button class="btn btn-primary" type="button" disabled>정산 가능 내역 없음</button>
+                                            </c:when>
 
-                                    <c:otherwise>
-                                        <button class="btn btn-primary" type="submit">정산 요청</button>
-                                    </c:otherwise>
-                                </c:choose>
-                            </form>
+                                            <c:otherwise>
+                                                <button class="btn btn-primary" type="submit">정산 요청</button>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </form>
                                 </c:otherwise>
                             </c:choose>
                         </c:otherwise>
@@ -255,6 +324,8 @@
                         <strong>
                             <c:choose>
                                 <c:when test="${settlementSummary.status eq 'WAITING'}">정산 요청 가능</c:when>
+                                <%-- [사전 정산 요청 추가] 다음 달 정산 예약 상태 표시 --%>
+                                <c:when test="${settlementSummary.status eq 'PRE_REQUESTED'}">사전 정산 요청 완료</c:when>
                                 <c:when test="${settlementSummary.status eq 'REQUESTED'}">관리자 처리 중</c:when>
                                 <c:when test="${settlementSummary.status eq 'APPROVED'}">정산 완료</c:when>
                                 <c:when test="${settlementSummary.status eq 'REJECTED'}">정산 반려</c:when>
