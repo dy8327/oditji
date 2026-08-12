@@ -184,7 +184,10 @@
                                                         <c:when test="${order.orderStatus == 'SHIPPING'}">배송 중</c:when>
                                                         <c:when test="${order.orderStatus == 'DELIVERED'}">배송 완료</c:when>
                                                         <c:when test="${order.orderStatus == 'CONFIRMED'}">구매 확정</c:when>
-                                                        <c:when test="${order.orderStatus == 'CANCELED'}">주문 취소</c:when>
+                                                        <%-- [주문 취소 상태 표시 통합]
+                                                            전체 취소(CANCELED)와 부분 취소(PARTIAL_CANCELED)는
+                                                            관리자 주문 조회 화면에서 모두 '주문 취소'로 표시합니다. --%>
+                                                        <c:when test="${order.orderStatus == 'CANCELED' or order.orderStatus == 'PARTIAL_CANCELED'}">주문 취소</c:when>
                                                         <c:when test="${order.orderStatus == 'CANCEL_REQUEST'}">취소 요청 중</c:when>
                                                         <c:when test="${order.orderStatus == 'REFUNDED'}">환불 완료</c:when>
                                                         <c:otherwise>${order.orderStatus}</c:otherwise>
