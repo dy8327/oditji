@@ -959,6 +959,33 @@ public class BusinessController {
                 return "redirect:/business/settlement/main";
         }
 
+        /*
+         * =========================================================
+         * [사전 정산 요청 추가]
+         * 다음 달 정산 탭에서 현재 월 매출에 대한 사전 정산 요청을 등록한다.
+         * 실제 주문별 SETTLEMENT 연결은 다음 달이 시작된 뒤 자동 확정된다.
+         * =========================================================
+         */
+        @PostMapping("/settlement/pre-request")
+        public String requestEarlySettlement(HttpSession session, RedirectAttributes redirectAttributes) {
+
+                BusinessVO business = getLoginBusiness(session, redirectAttributes);
+                if (business == null) {
+                        return REDIRECT_MEMBER_LOGIN;
+                }
+
+                try {
+                        businessService.requestEarlySettlement(business.getBusinessNo());
+                        redirectAttributes.addFlashAttribute(
+                                        ATTR_SUCCESS_MESSAGE,
+                                        "사전 정산 요청이 완료되었습니다. 이번 달에 추가되는 정산 대상 매출도 자동으로 반영됩니다.");
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                        redirectAttributes.addFlashAttribute(ATTR_ERROR_MESSAGE, e.getMessage());
+                }
+
+                return "redirect:/business/settlement/main?cycle=next";
+        }
+
         /* [수정] 월별 플랫폼 수수료 내역 화면 */
         @GetMapping("/settlement/complete")
         public String settlementComplete(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
