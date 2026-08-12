@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,8 +48,8 @@ class SearchContentPageCacheServiceReleaseOperandGapCoverageTest {
 
     @Test
     void appendReleasedContentShouldCoverNullInvalidBeforeAfterAndBoundaryDates() {
-        LocalDate start = LocalDate.of(2026, 1, 10);
-        LocalDate end = LocalDate.of(2026, 1, 20);
+        LocalDate start = LocalDate.of(2026, Month.JANUARY, 10);
+        LocalDate end = LocalDate.of(2026, Month.JANUARY, 20);
 
         List<SearchResultVO> source = new ArrayList<SearchResultVO>();
         source.add(null);
