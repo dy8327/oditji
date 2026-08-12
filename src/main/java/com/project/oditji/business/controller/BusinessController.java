@@ -62,6 +62,8 @@ public class BusinessController {
         private static final String MODEL_EVENT = "event";
         private static final String MODEL_ORDER = "order";
         private static final String PARAM_KEYWORD = "keyword";
+        private static final String PARAM_START_DATE = "startDate";
+        private static final String PARAM_END_DATE = "endDate";
         private static final String PARAM_STATUS = "status";
         private static final String STATUS_APPROVED = "APPROVED";
         private static final String ACTIVE_MENU_SETTLEMENT = "settlement";
@@ -129,13 +131,13 @@ public class BusinessController {
                         @RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
 
                         /* [기간별 조회 추가] 상품 등록일 시작일 */
-                        @RequestParam(value = "startDate", required = false) String startDate,
+                        @RequestParam(value = PARAM_START_DATE, required = false) String startDate,
 
                         /* [기간별 조회 추가] 상품 등록일 종료일 */
-                        @RequestParam(value = "endDate", required = false) String endDate,
+                        @RequestParam(value = PARAM_END_DATE, required = false) String endDate,
 
                         /* [승인 상태별 조회 추가] WAITING / APPROVED / REJECTED 등 */
-                        @RequestParam(value = "status", required = false) String status,
+                        @RequestParam(value = PARAM_STATUS, required = false) String status,
 
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session,
@@ -184,9 +186,9 @@ public class BusinessController {
                 model.addAttribute(PARAM_KEYWORD, keyword);
 
                 /* [기간/승인 상태 조회 추가] 조회 후에도 선택값을 화면에 유지한다. */
-                model.addAttribute("startDate", startDate);
-                model.addAttribute("endDate", endDate);
-                model.addAttribute("status", status);
+                model.addAttribute(PARAM_START_DATE, startDate);
+                model.addAttribute(PARAM_END_DATE, endDate);
+                model.addAttribute(PARAM_STATUS, status);
 
                 model.addAttribute(ATTR_PAGINATION, pagination);
                 model.addAttribute(MODEL_ACTIVE_MENU, "product");
@@ -602,13 +604,13 @@ public class BusinessController {
                         @RequestParam(value = PARAM_KEYWORD, required = false) String keyword,
 
                         /* [기간별 조회 추가] 조회할 이벤트 기간 시작일 */
-                        @RequestParam(value = "startDate", required = false) String startDate,
+                        @RequestParam(value = PARAM_START_DATE, required = false) String startDate,
 
                         /* [기간별 조회 추가] 조회할 이벤트 기간 종료일 */
-                        @RequestParam(value = "endDate", required = false) String endDate,
+                        @RequestParam(value = PARAM_END_DATE, required = false) String endDate,
 
                         /* [승인 상태별 조회 추가] 이벤트 승인/진행 상태 */
-                        @RequestParam(value = "status", required = false) String status,
+                        @RequestParam(value = PARAM_STATUS, required = false) String status,
 
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session,
@@ -674,9 +676,9 @@ public class BusinessController {
                 model.addAttribute(PARAM_KEYWORD, keyword);
 
                 /* [기간/승인 상태 조회 추가] 조회 후에도 선택값을 그대로 유지한다. */
-                model.addAttribute("startDate", startDate);
-                model.addAttribute("endDate", endDate);
-                model.addAttribute("status", status);
+                model.addAttribute(PARAM_START_DATE, startDate);
+                model.addAttribute(PARAM_END_DATE, endDate);
+                model.addAttribute(PARAM_STATUS, status);
                 model.addAttribute("eventList", eventList);
                 model.addAttribute(MODEL_PRODUCT_LIST, productList);
                 model.addAttribute(ATTR_PAGINATION, pagination);
@@ -1024,8 +1026,8 @@ public class BusinessController {
          */
         @GetMapping("/settlement/sales")
         public String sales(
-                        @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                        @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                        @RequestParam(value = PARAM_START_DATE, required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                        @RequestParam(value = PARAM_END_DATE, required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                         @RequestParam(required = false, defaultValue = "1") int page,
                         HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
@@ -1062,8 +1064,8 @@ public class BusinessController {
                         model.addAttribute(MODEL_BUSINESS, business);
                         model.addAttribute("salesStatus", salesStatus);
                         model.addAttribute("salesHistory", salesHistory);
-                        model.addAttribute("startDate", resolvedStartDate);
-                        model.addAttribute("endDate", resolvedEndDate);
+                        model.addAttribute(PARAM_START_DATE, resolvedStartDate);
+                        model.addAttribute(PARAM_END_DATE, resolvedEndDate);
                         model.addAttribute(ATTR_PAGINATION, pagination);
                         model.addAttribute(MODEL_ACTIVE_MENU, "sales");
 
