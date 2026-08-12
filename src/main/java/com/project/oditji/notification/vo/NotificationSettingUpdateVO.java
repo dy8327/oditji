@@ -8,9 +8,6 @@ public class NotificationSettingUpdateVO {
     private String noticeCategory;
     private boolean enabled;
 
-    public NotificationSettingUpdateVO() {
-    }
-
     public String getNoticeCategory() {
         return noticeCategory;
     }

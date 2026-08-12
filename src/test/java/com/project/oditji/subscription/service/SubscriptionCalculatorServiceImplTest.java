@@ -36,7 +36,7 @@ class SubscriptionCalculatorServiceImplTest {
     private OttDiscountDAO ottDiscountDAO;
 
     @Mock
-    private com.project.oditji.subscription.dao.SubscriptionDAO subscriptionDAO;
+    private SubscriptionDAO subscriptionDAO;
 
     private SubscriptionCalculatorServiceImpl service;
 

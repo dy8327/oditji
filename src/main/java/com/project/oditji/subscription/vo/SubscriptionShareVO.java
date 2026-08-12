@@ -1,6 +1,6 @@
 package com.project.oditji.subscription.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * SUBSCRIPTION_RESULT 테이블 매핑 VO입니다.
@@ -28,9 +28,10 @@ public class SubscriptionShareVO {
      * 비회원(MEMBER_NO NULL)이 저장한 결과에만 만료 시각을 채운다.
      * 회원 결과는 계속 NULL로 두어 영구 보관한다.
      */
-    private Date expiresAt;
+    // [SonarQube] legacy Date 대신 java.time API를 사용합니다.
+    private LocalDateTime expiresAt;
 
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     public String getResultId() {
         return resultId;
@@ -80,19 +81,19 @@ public class SubscriptionShareVO {
         this.selectedServicesJson = selectedServicesJson;
     }
 
-    public Date getExpiresAt() {
+    public LocalDateTime getExpiresAt() {
         return expiresAt;
     }
 
-    public void setExpiresAt(Date expiresAt) {
+    public void setExpiresAt(LocalDateTime expiresAt) {
         this.expiresAt = expiresAt;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }
