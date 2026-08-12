@@ -362,12 +362,23 @@ public interface BusinessDAO {
         /* 사업자 정산 관리 조회/변경 */
         SettlementManageVO selectMonthlySettlementSummary(@Param("businessNo") long businessNo);
 
-        /* [정산 월 구분 추가] 선택한 매출 기간 기준 정산 요약 */
+        /*
+         * =========================================================
+         * [정산 월 구분 보완]
+         *
+         * 이번 달 정산(this)과 다음 달 정산(next)의 집계 기준을
+         * Mapper에서 구분할 수 있도록 cycle 값을 함께 전달한다.
+         *
+         * - this : 지난달 정산 내역
+         * - next : 현재 월의 실제 사전 정산 가능 금액
+         * =========================================================
+         */
         SettlementManageVO selectSettlementSummaryByPeriod(
                         @Param("businessNo") long businessNo,
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate,
-                        @Param("settlementMonth") String settlementMonth);
+                        @Param("settlementMonth") String settlementMonth,
+                        @Param("cycle") String cycle);
 
         List<SettlementRequestVO> selectSettlementPaymentHistory(@Param("businessNo") long businessNo);
 

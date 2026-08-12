@@ -342,7 +342,12 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
             return;
         }
 
-        approvePartialCancel(request);
+        /*
+         * [부분 취소/환불 승인 정산금 갱신 추가]
+         * 부분 승인에서도 사업자 번호를 전달하여
+         * PRE_REQUESTED 정산 금액을 다시 계산할 수 있도록 한다.
+         */
+        approvePartialCancel(request, business.getBusinessNo());
     }
 
     private void approveFullCancel(OrderCancelRefundVO request, Long businessNo) {
@@ -426,6 +431,26 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
         orderCancelRefundDAO.rejectSettlementsByCancelGroupNo(
                 request.getCancelGroupNo());
 
+        /*
+         * =========================================================
+         * [전체 취소/전체 환불 승인 사전 정산 금액 재계산]
+         *
+         * 하나의 전체 취소/환불 그룹에 여러 사업자의 상품이
+         * 포함될 수 있으므로 마지막 승인 사업자 한 명만 갱신하지 않고,
+         * 해당 취소 그룹에 포함된 모든 사업자의 PRE_REQUESTED
+         * 정산 금액을 각각 다시 계산한다.
+         *
+         * 동일 사업자의 상품이 여러 개 포함된 경우에는
+         * distinct()로 사업자별 한 번만 갱신한다.
+         * =========================================================
+         */
+        groupRequests.stream()
+                .map(OrderCancelRefundVO::getBusinessNo)
+                .filter(groupBusinessNo -> groupBusinessNo != null && groupBusinessNo > 0)
+                .distinct()
+                .forEach(
+                        businessDAO::refreshPreRequestedSettlementAmount);
+
         canceledPayment.setCanceledAmount(canceledPayment.getPaymentAmount());
 
         if (paymentDAO.updatePaymentCanceled(canceledPayment) != 1) {
@@ -445,7 +470,7 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
                 request.getCancelGroupNo());
     }
 
-    private void approvePartialCancel(OrderCancelRefundVO request) {
+    private void approvePartialCancel(OrderCancelRefundVO request, Long businessNo) {
 
         PaymentVO payment = getPayment(request.getOrderNo());
         long cancelAmount = request.getRefundAmount() == null
@@ -482,6 +507,17 @@ public class OrderCancelRefundServiceImpl implements OrderCancelRefundService {
 
         orderCancelRefundDAO.rejectSettlementByOrderItemNo(
                 request.getOrderItemNo());
+
+        /*
+         * =========================================================
+         * [부분 취소/부분 환불 승인 사전 정산 금액 재계산]
+         *
+         * 부분 취소 또는 부분 환불 승인으로 해당 주문상품이
+         * 정산 대상에서 제외되면 PRE_REQUESTED 금액을
+         * 즉시 다시 계산한다.
+         * =========================================================
+         */
+        businessDAO.refreshPreRequestedSettlementAmount(businessNo);
 
         if (orderCancelRefundDAO.restoreProductStock(
                 request.getProductNo(),

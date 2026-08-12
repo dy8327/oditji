@@ -424,8 +424,20 @@ public class BusinessServiceImpl
                 String settlementMonth = String.format("%04d-%02d", settlementDate.getYear(),
                                 settlementDate.getMonthValue());
 
+                /*
+                 * =========================================================
+                 * [정산 월 구분 보완]
+                 *
+                 * Mapper에서 이번 달/다음 달 정산의 집계 조건을
+                 * 서로 다르게 적용할 수 있도록 cycle 값을 전달한다.
+                 * =========================================================
+                 */
                 SettlementManageVO summary = businessDAO.selectSettlementSummaryByPeriod(
-                                businessNo, startDate, endDate, settlementMonth);
+                                businessNo,
+                                startDate,
+                                endDate,
+                                settlementMonth,
+                                nextCycle ? "next" : "this");
                 if (summary == null) {
                         summary = new SettlementManageVO();
                 }
