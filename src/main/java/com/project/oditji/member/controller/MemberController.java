@@ -69,6 +69,7 @@ public class MemberController {
         private static final String VIEW_MEMBER_CHANGE_PW = "member/changePw";
         private static final String REDIRECT_PREFIX = "redirect:";
         private static final String REDIRECT_HOME = "redirect:/";
+        private static final String REDIRECT_BUSINESS_MAIN = "redirect:/business/main";
         private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
         private static final String REDIRECT_MEMBER_MYPAGE = "redirect:/member/mypage";
         private static final String REDIRECT_MEMBER_FIND_PW = "redirect:/member/findPw";
@@ -326,17 +327,17 @@ public class MemberController {
                         }
 
                         BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
-                        String businessLoginMessage = getBusinessLoginMessage(business);
-                        if (businessLoginMessage != null) {
-                                redirectAttributes.addFlashAttribute(ATTRIBUTE_MESSAGE, businessLoginMessage);
 
-                                return REDIRECT_MEMBER_LOGIN;
-                        }
-
+                        /*
+                         * [미승인 사업자 로그인 허용]
+                         * BUSINESS.STATUS가 WAITING/REJECTED여도 로그인 자체는 허용합니다.
+                         * 실제 사업 운영 기능 접근 제한은 BusinessCheckInterceptor에서
+                         * 현재 사업자 승인 상태를 다시 확인하여 처리합니다.
+                         */
                         request.changeSessionId();
                         saveLoginSession(session, loginMember, business);
 
-                        return getLoginSuccessRedirect(session);
+                        return getLoginSuccessRedirect(session, business);
 
                 } catch (MemberBlockedException e) {
                         redirectAttributes.addFlashAttribute("blockedMessage", e.getMessage());
@@ -358,26 +359,6 @@ public class MemberController {
 
                         return REDIRECT_MEMBER_LOGIN;
                 }
-        }
-
-        private String getBusinessLoginMessage(BusinessVO business) {
-                if (business == null || "APPROVED".equals(business.getStatus())) {
-                        return null;
-                }
-
-                if ("WAITING".equals(business.getStatus())) {
-                        return "관리자 승인 대기 중인 사업자 계정입니다.";
-                }
-
-                if ("REJECTED".equals(business.getStatus())) {
-                        String message = "사업자 승인이 거절되었습니다.";
-                        if (business.getRejectReason() != null && !business.getRejectReason().isBlank()) {
-                                message += "\n사유: " + business.getRejectReason();
-                        }
-                        return message;
-                }
-
-                return "현재 사업자 계정 상태로는 로그인할 수 없습니다.";
         }
 
         private void saveLoginSession(HttpSession session, MemberVO loginMember, BusinessVO business) {
@@ -405,6 +386,20 @@ public class MemberController {
                 }
 
                 return displayName == null || displayName.isBlank() ? "회원" : displayName;
+        }
+
+        /**
+         * 미승인 사업자는 로그인 직후 사업자 마이페이지 홈으로 이동시킵니다.
+         * 로그인 전에 저장된 상품/정산 등의 복귀 URL이 남아 있더라도
+         * 제한된 기능으로 바로 진입하지 않도록 복귀 URL을 제거합니다.
+         */
+        private String getLoginSuccessRedirect(HttpSession session, BusinessVO business) {
+                if (business != null && !"APPROVED".equals(business.getStatus())) {
+                        session.removeAttribute(LOGIN_REDIRECT_SESSION_KEY);
+                        return REDIRECT_BUSINESS_MAIN;
+                }
+
+                return getLoginSuccessRedirect(session);
         }
 
         private String getLoginSuccessRedirect(HttpSession session) {
@@ -551,7 +546,7 @@ public class MemberController {
                 BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
 
                 if (business != null) {
-                        return "redirect:/business/main";
+                        return REDIRECT_BUSINESS_MAIN;
                 }
 
                 // SNS 로그인 회원 여부

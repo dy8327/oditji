@@ -105,12 +105,27 @@ public class BusinessController {
                 }
 
                 BusinessVO business = businessAccess.business();
-                model.addAttribute(MODEL_BUSINESS, business);
-                /* 사업자 메인 대시보드 통계 */
-                BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
 
-                model.addAttribute("businessMain", businessMain);
+                /*
+                 * [미승인 사업자 마이페이지 제한]
+                 * 관리자 승인/반려 직후에도 화면과 세션이 동일한 최신 상태를 사용하도록
+                 * DB에서 조회한 사업자 정보를 세션에 다시 반영합니다.
+                 */
+                session.setAttribute("businessNo", business.getBusinessNo());
+                session.setAttribute("businessName", business.getBusinessName());
+                session.setAttribute("businessStatus", business.getStatus());
+
+                model.addAttribute(MODEL_BUSINESS, business);
                 model.addAttribute(MODEL_ACTIVE_MENU, "main");
+
+                /*
+                 * WAITING/REJECTED 사업자는 승인 상태 확인 화면만 사용하므로
+                 * 매출/주문/정산 대시보드 조회를 실행하지 않습니다.
+                 */
+                if (STATUS_APPROVED.equals(business.getStatus())) {
+                        BusinessDashboardVO businessMain = businessService.getBusinessDashboard(business.getBusinessNo());
+                        model.addAttribute("businessMain", businessMain);
+                }
 
                 return "business/main/businessMain";
         }

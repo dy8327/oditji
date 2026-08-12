@@ -114,6 +114,20 @@
   color: var(--biz-text);
 }
 
+/* 미승인 사업자 사이드바 상태 문구 */
+.business-wrap .business-restricted-menu-text {
+  display: block;
+  padding: 11px 16px;
+
+  border-left: 3px solid var(--biz-warning);
+  border-radius: var(--biz-radius-sm);
+  background: var(--biz-warning-bg);
+
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--biz-warning);
+}
+
 /* =====================================================
    Layout
    ===================================================== */
@@ -346,6 +360,113 @@
   border-radius: 50%;
 
   box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+}
+
+/* 미승인 사업자 상태 배지 */
+.business-wrap .business-hero .business-waiting-badge,
+.business-wrap .business-hero .business-rejected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 11px;
+  border-radius: var(--biz-radius-pill);
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.business-wrap .business-hero .business-waiting-badge {
+  color: var(--biz-warning);
+  background: var(--biz-warning-bg);
+  border: 1px solid rgba(250, 204, 21, 0.22);
+}
+
+.business-wrap .business-hero .business-rejected-badge {
+  color: var(--biz-danger);
+  background: var(--biz-danger-bg);
+  border: 1px solid rgba(255, 107, 107, 0.22);
+}
+
+.business-wrap .business-hero .business-waiting-dot,
+.business-wrap .business-hero .business-rejected-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.business-wrap .business-hero .business-waiting-dot {
+  background: var(--biz-warning);
+}
+
+.business-wrap .business-hero .business-rejected-dot {
+  background: var(--biz-danger);
+}
+
+/* 미승인 사업자 승인 상태 안내 영역 */
+.business-wrap .business-approval-notice {
+  margin-bottom: 40px;
+  padding: 28px;
+
+  background: var(--biz-surface-1);
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-md);
+}
+
+.business-wrap .business-approval-notice-header {
+  margin-bottom: 16px;
+}
+
+.business-wrap .business-approval-notice-label {
+  display: inline-block;
+  margin-bottom: 10px;
+
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--biz-point);
+}
+
+.business-wrap .business-approval-notice h2 {
+  margin: 0;
+  font-size: 22px;
+  color: var(--biz-text);
+}
+
+.business-wrap .business-approval-notice-text,
+.business-wrap .business-approval-notice-footnote {
+  margin: 0;
+  color: var(--biz-text-sub);
+  line-height: 1.7;
+}
+
+.business-wrap .business-approval-notice-footnote {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--biz-text-dim);
+}
+
+.business-wrap .business-reject-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 16px 18px;
+
+  background: var(--biz-danger-bg);
+  border: 1px solid rgba(255, 107, 107, 0.18);
+  border-radius: var(--biz-radius-sm);
+}
+
+.business-wrap .business-reject-reason span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--biz-danger);
+}
+
+.business-wrap .business-reject-reason strong {
+  color: var(--biz-text);
+  line-height: 1.6;
 }
 
 /* =====================================================

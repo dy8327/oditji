@@ -14,7 +14,7 @@
       href="${pageContext.request.contextPath}/css/member.css">
 
 <script defer
-        src="${pageContext.request.contextPath}/js/member.js">
+        src="${pageContext.request.contextPath}/js/member.js?v=20260812-2">
 </script>
 
 <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
@@ -49,10 +49,16 @@
 
         </div>
 
+        <%--
+            [수정] 브라우저 기본 required 검증이 submit 이벤트를 먼저 막아
+            member.js의 항목별 안내 문구가 표시되지 않는 문제를 방지한다.
+            novalidate로 HTML 기본 검증만 비활성화하고 required 속성은 기존대로 유지한다.
+        --%>
         <form id="joinForm"
               action="${pageContext.request.contextPath}/member/join"
               method="post"
-              enctype="multipart/form-data">
+              enctype="multipart/form-data"
+              novalidate>
 
             <input type="hidden"
                    name="joinType"

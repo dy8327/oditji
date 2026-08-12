@@ -25,14 +25,41 @@
 
                     <div class="hero-left">
                         <p class="hero-sub">ODITJI 사업자 전용 페이지</p>
-                        <h1>
-                            상품과 판매 현황을<br/>
-                            한눈에 관리하세요
-                        </h1>
-                        <p>
-                            상품 등록부터 주문, 정산, 리뷰까지<br/>
-                            사업 운영 현황을 확인할 수 있습니다.
-                        </p>
+
+                        <c:choose>
+                            <c:when test="${business.status == 'APPROVED'}">
+                                <h1>
+                                    상품과 판매 현황을<br/>
+                                    한눈에 관리하세요
+                                </h1>
+                                <p>
+                                    상품 등록부터 주문, 정산, 리뷰까지<br/>
+                                    사업 운영 현황을 확인할 수 있습니다.
+                                </p>
+                            </c:when>
+
+                            <c:when test="${business.status == 'REJECTED'}">
+                                <h1>
+                                    사업자 승인 결과를<br/>
+                                    확인해주세요
+                                </h1>
+                                <p>
+                                    현재 입점 신청이 반려된 상태입니다.<br/>
+                                    반려 사유를 확인한 후 관리자 안내에 따라주세요.
+                                </p>
+                            </c:when>
+
+                            <c:otherwise>
+                                <h1>
+                                    사업자 승인을<br/>
+                                    기다리고 있습니다
+                                </h1>
+                                <p>
+                                    로그인과 승인 상태 확인은 가능합니다.<br/>
+                                    사업 운영 기능은 승인 완료 후 이용할 수 있습니다.
+                                </p>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
 
                     <div class="hero-right">
@@ -74,24 +101,89 @@
                                 DB에 저장된 APPROVED 값 자체는 변경하지 않는다.
                                 =====================================================
                             -->
-                            <c:if test="${business.status == 'APPROVED'}">
-                                <div class="business-info-item business-info-status-item">
+                            <div class="business-info-item business-info-status-item">
 
-                                    <span class="business-info-label">상태</span>
+                                <span class="business-info-label">상태</span>
 
-                                    <span class="business-approved-badge">
-                                        <span class="business-approved-dot"></span>
-                                        승인된 사업자
-                                    </span>
+                                <c:choose>
+                                    <c:when test="${business.status == 'APPROVED'}">
+                                        <span class="business-approved-badge">
+                                            <span class="business-approved-dot"></span>
+                                            승인된 사업자
+                                        </span>
+                                    </c:when>
 
-                                </div>
-                            </c:if>
+                                    <c:when test="${business.status == 'REJECTED'}">
+                                        <span class="business-rejected-badge">
+                                            <span class="business-rejected-dot"></span>
+                                            승인 반려
+                                        </span>
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <span class="business-waiting-badge">
+                                            <span class="business-waiting-dot"></span>
+                                            승인 대기
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
+
+                            </div>
 
                         </div>
 
                     </div>
 
                 </section>
+
+                <%--
+                    [미승인 사업자 마이페이지 제한]
+                    미승인 사업자는 사업자 정보와 현재 승인 상태만 확인할 수 있습니다.
+                    상품/이벤트/주문/정산/채팅 기능은 서버 인터셉터에서도 함께 차단합니다.
+                --%>
+                <c:if test="${business.status != 'APPROVED'}">
+                    <section class="business-approval-notice">
+                        <div class="business-approval-notice-header">
+                            <span class="business-approval-notice-label">승인 상태 안내</span>
+
+                            <c:choose>
+                                <c:when test="${business.status == 'REJECTED'}">
+                                    <h2>사업자 승인이 반려되었습니다.</h2>
+                                </c:when>
+                                <c:otherwise>
+                                    <h2>사업자 승인을 기다리고 있습니다.</h2>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+                        <c:choose>
+                            <c:when test="${business.status == 'REJECTED'}">
+                                <p class="business-approval-notice-text">
+                                    현재는 사업자 마이페이지의 승인 상태 확인만 가능합니다.
+                                </p>
+
+                                <c:if test="${not empty business.rejectReason}">
+                                    <div class="business-reject-reason">
+                                        <span>반려 사유</span>
+                                        <strong><c:out value="${business.rejectReason}"/></strong>
+                                    </div>
+                                </c:if>
+                            </c:when>
+
+                            <c:otherwise>
+                                <p class="business-approval-notice-text">
+                                    관리자가 입점 신청 정보를 확인하고 있습니다. 승인 완료 전까지 사업 운영 메뉴는 제한됩니다.
+                                </p>
+                            </c:otherwise>
+                        </c:choose>
+
+                        <p class="business-approval-notice-footnote">
+                            사업자 상태가 APPROVED로 변경되면 상품, 이벤트, 주문·배송, 정산, 채팅 메뉴를 이용할 수 있습니다.
+                        </p>
+                    </section>
+                </c:if>
+
+                <c:if test="${business.status == 'APPROVED'}">
 
                 <!-- 핵심 사업 지표 -->
                 <section class="dashboard-section">
@@ -654,6 +746,8 @@
                     </div>
 
                 </section>
+
+                </c:if>
 
             </main>
 
