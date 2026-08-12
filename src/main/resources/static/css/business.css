@@ -5750,3 +5750,79 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   [사전 정산 요청 UI 수정]
+   3번째 디자인
+   - 정산 미리 요청 버튼과 다음 달 정산 예정 안내를 가로 배치
+   - 버튼과 안내 박스 높이 및 세로 정렬 통일
+   - 기존 페이지 다크 레이아웃 유지
+   ========================================================= */
+.business-wrap .settlement-next-action {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* form 기본 여백 제거 */
+.business-wrap .settlement-next-action form {
+  margin: 0;
+}
+
+/* 정산 미리 요청 버튼과 안내 박스 높이 맞춤 */
+.business-wrap .settlement-next-action .btn,
+.business-wrap .settlement-next-notice {
+  height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+/* 다음 달 정산 예정 안내 박스 */
+.business-wrap .settlement-next-notice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: fit-content;
+  max-width: 100%;
+
+  padding: 0 13px;
+
+  border: 1px solid rgba(255, 91, 91, 0.65);
+  border-radius: 7px;
+
+  background: rgba(255, 91, 91, 0.07);
+}
+
+/* 안내 박스 느낌표 아이콘 */
+.business-wrap .settlement-next-notice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 19px;
+  height: 19px;
+
+  border: 1px solid #ff6b6b;
+  border-radius: 50%;
+
+  color: #ff6b6b;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+
+  flex-shrink: 0;
+}
+
+/* 안내 문구 */
+.business-wrap .settlement-next-notice-text {
+  color: #ff6b6b;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  white-space: nowrap;
+}
