@@ -3,6 +3,8 @@ package com.project.oditji.notification.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -94,7 +96,7 @@ class NotificationSettingApiControllerCoverageTest {
         request.setNoticeCategory("INVALID");
         request.setEnabled(true);
 
-        org.mockito.Mockito.doThrow(new IllegalArgumentException("올바르지 않은 알림 카테고리입니다."))
+        doThrow(new IllegalArgumentException("올바르지 않은 알림 카테고리입니다."))
                 .when(notificationService)
                 .updateSetting(1L, "INVALID", true);
 
@@ -117,6 +119,6 @@ class NotificationSettingApiControllerCoverageTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertTrue((Boolean) response.getBody().get("success"));
-        org.mockito.Mockito.verify(notificationService).updateSetting(1L, "RESTOCK", false);
+        verify(notificationService).updateSetting(1L, "RESTOCK", false);
     }
 }

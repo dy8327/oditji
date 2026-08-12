@@ -1,8 +1,7 @@
 package com.project.oditji.subscription.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +42,10 @@ public class SubscriptionCalculatorServiceImpl
      * 회원이 로그인 상태로 저장한 결과는 대상이 아니라 영구 보관된다.
      */
     private static final int GUEST_RESULT_EXPIRE_DAYS = 30;
+
+    // [SonarQube] 저장/복원에 공통으로 쓰는 JSON 키를 상수로 관리합니다.
+    private static final String JSON_KEY_DISCOUNT_SOURCE = "discountSource";
+    private static final String JSON_KEY_DISCOUNT_TITLE = "discountTitle";
 
     private final OttDiscountDAO ottDiscountDAO;
 
@@ -367,21 +370,12 @@ public class SubscriptionCalculatorServiceImpl
          */
         shareVO.setExpiresAt(
                 memberNo == null
-                        ? addDays(new Date(), GUEST_RESULT_EXPIRE_DAYS)
+                        ? LocalDateTime.now().plusDays(GUEST_RESULT_EXPIRE_DAYS)
                         : null);
 
         subscriptionDAO.insertResult(shareVO);
 
         return resultId;
-    }
-
-    private Date addDays(Date date, int days) {
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.add(Calendar.DATE, days);
-
-        return calendar.getTime();
     }
 
     @Override
@@ -441,11 +435,11 @@ public class SubscriptionCalculatorServiceImpl
             platformJson.put("platformName", platform.getPlatformName());
             platformJson.put("regularPrice", platform.getRegularPrice());
             platformJson.put("bestPrice", platform.getBestPrice());
-            platformJson.put("discountSource",
+            platformJson.put(JSON_KEY_DISCOUNT_SOURCE,
                     platform.getDiscountSource() == null
                             ? JSONObject.NULL
                             : platform.getDiscountSource());
-            platformJson.put("discountTitle",
+            platformJson.put(JSON_KEY_DISCOUNT_TITLE,
                     platform.getDiscountTitle() == null
                             ? JSONObject.NULL
                             : platform.getDiscountTitle());
@@ -514,13 +508,13 @@ public class SubscriptionCalculatorServiceImpl
                     platform.setBestPrice(
                             optInteger(platformJson, "bestPrice"));
                     platform.setDiscountSource(
-                            platformJson.isNull("discountSource")
+                            platformJson.isNull(JSON_KEY_DISCOUNT_SOURCE)
                                     ? null
-                                    : platformJson.optString("discountSource", null));
+                                    : platformJson.optString(JSON_KEY_DISCOUNT_SOURCE, null));
                     platform.setDiscountTitle(
-                            platformJson.isNull("discountTitle")
+                            platformJson.isNull(JSON_KEY_DISCOUNT_TITLE)
                                     ? null
-                                    : platformJson.optString("discountTitle", null));
+                                    : platformJson.optString(JSON_KEY_DISCOUNT_TITLE, null));
 
                     selectedList.add(platform);
                 }
