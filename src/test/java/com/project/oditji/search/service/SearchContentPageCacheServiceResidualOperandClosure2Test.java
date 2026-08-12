@@ -1,8 +1,7 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -86,8 +85,8 @@ class SearchContentPageCacheServiceResidualOperandClosure2Test {
                 tvDrama,
                 "VARIETY");
 
-        assertFalse(Boolean.TRUE.equals(movie));
-        assertTrue(Boolean.TRUE.equals(documentary));
-        assertFalse(Boolean.TRUE.equals(variety));
+        assertNotEquals(Boolean.TRUE, movie);
+        assertEquals(Boolean.TRUE, documentary);
+        assertNotEquals(Boolean.TRUE, variety);
     }
 }
