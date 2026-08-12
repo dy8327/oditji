@@ -3,6 +3,8 @@ package com.project.oditji.common.interceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.project.oditji.business.service.BusinessService;
+import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.member.vo.MemberVO;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,14 @@ public class BusinessCheckInterceptor implements HandlerInterceptor {
 
     private static final long ADMIN_MEMBER_NO = 1L;
     private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_BUSINESS = "BUSINESS";
+    private static final String STATUS_APPROVED = "APPROVED";
+
+    private final BusinessService businessService;
+
+    public BusinessCheckInterceptor(BusinessService businessService) {
+        this.businessService = businessService;
+    }
 
     @Override
     public boolean preHandle(
@@ -41,28 +51,69 @@ public class BusinessCheckInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        Object businessNo = session.getAttribute("businessNo");
-        String businessStatus = (String) session.getAttribute("businessStatus");
-
-       /* 승인된 사업자 외 접근 차단 */
-        if (businessNo == null || !"APPROVED".equals(businessStatus)) {
-            // 필터·인터셉터 단계의 오류도 동일한 안내 화면을 사용하도록 /error로 위임합니다.
+        /* 사업자 역할이 아닌 회원은 사업자 영역에 접근할 수 없습니다. */
+        if (!ROLE_BUSINESS.equals(loginMember.getRole())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
+
+        /*
+         * [미승인 사업자 제한 적용]
+         * 세션의 businessStatus는 관리자 승인/반려 직후 오래된 값일 수 있으므로
+         * 매 요청마다 DB의 현재 BUSINESS 상태를 조회해 권한을 판단합니다.
+         */
+        BusinessVO business = businessService.getBusinessByMemberNo(loginMember.getMemberNo());
+        if (business == null || business.getBusinessNo() == null) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
+
+        refreshBusinessSession(session, business);
+
+        /*
+         * WAITING/REJECTED 사업자도 사업자 마이페이지 홈에서는
+         * 현재 승인 상태와 반려 사유를 확인할 수 있습니다.
+         */
+        if (isBusinessMainRequest(request)) {
+            return true;
+        }
+
+        /* 그 외 상품/이벤트/주문/정산/채팅 기능은 승인된 사업자만 허용합니다. */
+        if (!STATUS_APPROVED.equals(business.getStatus())) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
+
         return true;
+    }
+
+    private void refreshBusinessSession(HttpSession session, BusinessVO business) {
+        session.setAttribute("businessNo", business.getBusinessNo());
+        session.setAttribute("businessName", business.getBusinessName());
+        session.setAttribute("businessStatus", business.getStatus());
+    }
+
+    /**
+     * 현재 요청이 사업자 마이페이지 홈인지 확인합니다.
+     */
+    private boolean isBusinessMainRequest(HttpServletRequest request) {
+        return "/business/main".equals(getRequestPath(request));
     }
 
     /**
      * 현재 요청이 채팅 기능 요청인지 확인합니다.
      */
     private boolean isChatRequest(HttpServletRequest request) {
-
-        String contextPath = request.getContextPath();
-        String requestUri = request.getRequestURI();
-        String path = requestUri.substring(contextPath.length());
+        String path = getRequestPath(request);
 
         return "/chat".equals(path) || path.startsWith("/chat/");
+    }
+
+    private String getRequestPath(HttpServletRequest request) {
+        String contextPath = request.getContextPath();
+        String requestUri = request.getRequestURI();
+
+        return requestUri.substring(contextPath.length());
     }
 
     /**

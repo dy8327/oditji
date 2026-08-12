@@ -21,6 +21,8 @@ import com.project.oditji.admin.scheduler.MemberDeleteScheduler;
 import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.business.dao.BusinessDAO;
 import com.project.oditji.business.scheduler.EventStatusScheduler;
+import com.project.oditji.business.service.BusinessService;
+import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.common.vo.AccessLogVO;
 import com.project.oditji.content.scheduler.ContentViewHistoryCleanupScheduler;
 import com.project.oditji.content.service.ContentService;
@@ -47,6 +49,8 @@ class InterceptorAndSchedulerCoverageTest {
     private AdminService adminService;
     @Mock
     private BusinessDAO businessDAO;
+    @Mock
+    private BusinessService businessService;
     @Mock
     private ContentService contentService;
 
@@ -111,7 +115,7 @@ class InterceptorAndSchedulerCoverageTest {
     @Test
     void businessInterceptorShouldAllowApprovedBusinessAndAdminChat()
             throws Exception {
-        BusinessCheckInterceptor interceptor = new BusinessCheckInterceptor();
+        BusinessCheckInterceptor interceptor = new BusinessCheckInterceptor(businessService);
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("loginMember"))
                 .thenReturn(member(1L, "ADMIN"));
@@ -121,8 +125,8 @@ class InterceptorAndSchedulerCoverageTest {
 
         when(session.getAttribute("loginMember"))
                 .thenReturn(member(2L, "BUSINESS"));
-        when(session.getAttribute("businessNo")).thenReturn(20L);
-        when(session.getAttribute("businessStatus")).thenReturn("APPROVED");
+        BusinessVO approved = business(20L, "APPROVED");
+        when(businessService.getBusinessByMemberNo(2L)).thenReturn(approved);
         when(request.getRequestURI()).thenReturn("/oditji/business/dashboard");
         assertTrue(interceptor.preHandle(request, response, new Object()));
     }
@@ -130,7 +134,7 @@ class InterceptorAndSchedulerCoverageTest {
     @Test
     void businessInterceptorShouldRejectAnonymousAndUnapprovedBusiness()
             throws Exception {
-        BusinessCheckInterceptor interceptor = new BusinessCheckInterceptor();
+        BusinessCheckInterceptor interceptor = new BusinessCheckInterceptor(businessService);
         when(request.getSession(false)).thenReturn(null);
         assertFalse(interceptor.preHandle(request, response, new Object()));
         verify(response).sendRedirect("/oditji/member/login");
@@ -138,9 +142,9 @@ class InterceptorAndSchedulerCoverageTest {
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("loginMember"))
                 .thenReturn(member(2L, "BUSINESS"));
-        /* 실제 인터셉터가 사업자 번호를 먼저 확인하므로 함께 설정합니다. */
-        when(session.getAttribute("businessNo")).thenReturn(20L);
-        when(session.getAttribute("businessStatus")).thenReturn("WAITING");
+        when(businessService.getBusinessByMemberNo(2L))
+                .thenReturn(business(20L, "WAITING"));
+        when(request.getRequestURI()).thenReturn("/oditji/business/product/list");
         assertFalse(interceptor.preHandle(request, response, new Object()));
         verify(response).sendError(HttpServletResponse.SC_FORBIDDEN);
     }
@@ -193,6 +197,14 @@ class InterceptorAndSchedulerCoverageTest {
         cleanupScheduler.cleanupEveryDay();
         verify(contentService, times(2))
                 .deleteExpiredContentViewHistory();
+    }
+
+    private BusinessVO business(Long businessNo, String status) {
+        BusinessVO business = new BusinessVO();
+        business.setBusinessNo(businessNo);
+        business.setStatus(status);
+        business.setBusinessName("테스트사업자");
+        return business;
     }
 
     private MemberVO member(Long memberNo, String role) {

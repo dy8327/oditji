@@ -403,23 +403,33 @@ class MemberControllerRemainingCoverageTest {
         BusinessVO rejected = businessState(920L, "REJECTED", "거절상점");
         rejected.setRejectReason("   ");
         when(businessService.getBusinessByMemberNo(92L)).thenReturn(rejected);
-        RedirectAttributesModelMap rejectedRedirect = new RedirectAttributesModelMap();
+        MockHttpSession rejectedSession = new MockHttpSession();
+        MockHttpServletRequest rejectedRequest = request("/oditji", 80);
+        rejectedRequest.setSession(rejectedSession);
         assertEquals(
-                "redirect:/member/login",
-                controller.login(rejectedMember, request("/oditji", 80), new MockHttpSession(), rejectedRedirect));
-        assertEquals("사업자 승인이 거절되었습니다.", rejectedRedirect.getFlashAttributes().get("message"));
+                "redirect:/business/main",
+                controller.login(
+                        rejectedMember,
+                        rejectedRequest,
+                        rejectedSession,
+                        new RedirectAttributesModelMap()));
+        assertEquals("REJECTED", rejectedSession.getAttribute("businessStatus"));
 
         MemberVO unknownMember = member(93L, "BUSINESS", "대표", "닉네임");
         when(memberService.loginMember(unknownMember)).thenReturn(unknownMember);
         when(businessService.getBusinessByMemberNo(93L))
                 .thenReturn(businessState(930L, "SUSPENDED", "상태상점"));
-        RedirectAttributesModelMap unknownRedirect = new RedirectAttributesModelMap();
+        MockHttpSession unknownSession = new MockHttpSession();
+        MockHttpServletRequest unknownRequest = request("/oditji", 80);
+        unknownRequest.setSession(unknownSession);
         assertEquals(
-                "redirect:/member/login",
-                controller.login(unknownMember, request("/oditji", 80), new MockHttpSession(), unknownRedirect));
-        assertEquals(
-                "현재 사업자 계정 상태로는 로그인할 수 없습니다.",
-                unknownRedirect.getFlashAttributes().get("message"));
+                "redirect:/business/main",
+                controller.login(
+                        unknownMember,
+                        unknownRequest,
+                        unknownSession,
+                        new RedirectAttributesModelMap()));
+        assertEquals("SUSPENDED", unknownSession.getAttribute("businessStatus"));
     }
 
     @Test

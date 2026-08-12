@@ -126,35 +126,37 @@ class MemberControllerAdditionalCoverageTest {
         BusinessVO waitingBusiness = business(20L, "WAITING", "대기상점");
         when(memberService.loginMember(waitingMember)).thenReturn(waitingMember);
         when(businessService.getBusinessByMemberNo(2L)).thenReturn(waitingBusiness);
-        RedirectAttributesModelMap waitingRedirect = new RedirectAttributesModelMap();
+        MockHttpSession waitingSession = new MockHttpSession();
+        waitingSession.setAttribute("redirectAfterLogin", "/business/product/list");
+        MockHttpServletRequest waitingRequest = request("/oditji");
+        waitingRequest.setSession(waitingSession);
         assertEquals(
-                "redirect:/member/login",
+                "redirect:/business/main",
                 controller.login(
                         waitingMember,
-                        request("/oditji"),
-                        new MockHttpSession(),
-                        waitingRedirect));
-        assertEquals(
-                "관리자 승인 대기 중인 사업자 계정입니다.",
-                waitingRedirect.getFlashAttributes().get("message"));
+                        waitingRequest,
+                        waitingSession,
+                        new RedirectAttributesModelMap()));
+        assertEquals(waitingMember, waitingSession.getAttribute("loginMember"));
+        assertEquals("WAITING", waitingSession.getAttribute("businessStatus"));
+        assertNull(waitingSession.getAttribute("redirectAfterLogin"));
 
         MemberVO rejectedMember = member(3L, "BUSINESS", "사업자", "사업닉");
         BusinessVO rejectedBusiness = business(30L, "REJECTED", "거절상점");
         rejectedBusiness.setRejectReason("서류 확인 필요");
         when(memberService.loginMember(rejectedMember)).thenReturn(rejectedMember);
         when(businessService.getBusinessByMemberNo(3L)).thenReturn(rejectedBusiness);
-        RedirectAttributesModelMap rejectedRedirect = new RedirectAttributesModelMap();
+        MockHttpSession rejectedSession = new MockHttpSession();
+        MockHttpServletRequest rejectedRequest = request("/oditji");
+        rejectedRequest.setSession(rejectedSession);
         assertEquals(
-                "redirect:/member/login",
+                "redirect:/business/main",
                 controller.login(
                         rejectedMember,
-                        request("/oditji"),
-                        new MockHttpSession(),
-                        rejectedRedirect));
-        assertTrue(rejectedRedirect.getFlashAttributes()
-                .get("message")
-                .toString()
-                .contains("서류 확인 필요"));
+                        rejectedRequest,
+                        rejectedSession,
+                        new RedirectAttributesModelMap()));
+        assertEquals("REJECTED", rejectedSession.getAttribute("businessStatus"));
 
         MemberVO user = member(4L, "USER", "홍길동", "길동닉");
         user.setMemberId("member04");

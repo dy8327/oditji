@@ -4,24 +4,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import com.project.oditji.business.service.BusinessService;
+import com.project.oditji.business.vo.BusinessVO;
 import com.project.oditji.member.vo.MemberVO;
 
 /**
- * 사업자 인터셉터의 관리자 채팅 예외와 승인 상태 조건을 보완합니다.
+ * 사업자 인터셉터의 관리자 채팅 예외와 미승인 사업자 제한 분기를 보완합니다.
  */
 class BusinessCheckInterceptorRemainingCoverageTest {
 
+    private BusinessService businessService;
     private BusinessCheckInterceptor interceptor;
 
     @BeforeEach
     void setUp() {
-        interceptor = new BusinessCheckInterceptor();
+        businessService = mock(BusinessService.class);
+        interceptor = new BusinessCheckInterceptor(businessService);
     }
 
     @Test
@@ -68,7 +74,7 @@ class BusinessCheckInterceptorRemainingCoverageTest {
     }
 
     @Test
-    void adminOutsideChatShouldStillRequireApprovedBusinessSession() throws Exception {
+    void adminOutsideChatShouldStillBeForbidden() throws Exception {
         MockHttpServletRequest request =
                 request("/oditji/business/product/list");
         request.getSession().setAttribute(
@@ -93,58 +99,85 @@ class BusinessCheckInterceptorRemainingCoverageTest {
     }
 
     @Test
-    void businessShouldRequireBothBusinessNumberAndApprovedStatus() throws Exception {
-        MemberVO business = member(20L, "BUSINESS");
+    void waitingBusinessShouldAccessMainButNotProtectedFeatures() throws Exception {
+        MemberVO loginMember = member(20L, "BUSINESS");
+        BusinessVO waitingBusiness = business(200L, "WAITING", "대기상점");
+        when(businessService.getBusinessByMemberNo(20L)).thenReturn(waitingBusiness);
 
-        MockHttpServletRequest missingNumber =
-                request("/oditji/business/order");
-        missingNumber.getSession().setAttribute("loginMember", business);
-        missingNumber.getSession().setAttribute(
-                "businessStatus",
-                "APPROVED");
-
-        MockHttpServletResponse missingNumberResponse =
-                new MockHttpServletResponse();
-
-        assertFalse(interceptor.preHandle(
-                missingNumber,
-                missingNumberResponse,
-                new Object()));
-        assertEquals(403, missingNumberResponse.getStatus());
-
-        MockHttpServletRequest missingStatus =
-                request("/oditji/business/order");
-        missingStatus.getSession().setAttribute("loginMember", business);
-        missingStatus.getSession().setAttribute("businessNo", 20);
-
-        assertFalse(interceptor.preHandle(
-                missingStatus,
-                new MockHttpServletResponse(),
-                new Object()));
-
-        MockHttpServletRequest waiting =
-                request("/oditji/business/order");
-        waiting.getSession().setAttribute("loginMember", business);
-        waiting.getSession().setAttribute("businessNo", 20);
-        waiting.getSession().setAttribute("businessStatus", "WAITING");
-
-        assertFalse(interceptor.preHandle(
-                waiting,
-                new MockHttpServletResponse(),
-                new Object()));
-
-        MockHttpServletRequest approved =
-                request("/oditji/business/order");
-        approved.getSession().setAttribute("loginMember", business);
-        approved.getSession().setAttribute("businessNo", 20);
-        approved.getSession().setAttribute(
-                "businessStatus",
-                "APPROVED");
+        MockHttpServletRequest mainRequest =
+                request("/oditji/business/main");
+        mainRequest.getSession().setAttribute("loginMember", loginMember);
 
         assertTrue(interceptor.preHandle(
-                approved,
+                mainRequest,
                 new MockHttpServletResponse(),
                 new Object()));
+        assertEquals(200L, mainRequest.getSession().getAttribute("businessNo"));
+        assertEquals("대기상점", mainRequest.getSession().getAttribute("businessName"));
+        assertEquals("WAITING", mainRequest.getSession().getAttribute("businessStatus"));
+
+        MockHttpServletRequest protectedRequest =
+                request("/oditji/business/product/list");
+        protectedRequest.getSession().setAttribute("loginMember", loginMember);
+        MockHttpServletResponse protectedResponse = new MockHttpServletResponse();
+
+        assertFalse(interceptor.preHandle(
+                protectedRequest,
+                protectedResponse,
+                new Object()));
+        assertEquals(403, protectedResponse.getStatus());
+    }
+
+    @Test
+    void rejectedBusinessShouldAlsoAccessOnlyMain() throws Exception {
+        MemberVO loginMember = member(21L, "BUSINESS");
+        when(businessService.getBusinessByMemberNo(21L))
+                .thenReturn(business(210L, "REJECTED", "반려상점"));
+
+        MockHttpServletRequest mainRequest = request("/oditji/business/main");
+        mainRequest.getSession().setAttribute("loginMember", loginMember);
+        assertTrue(interceptor.preHandle(
+                mainRequest,
+                new MockHttpServletResponse(),
+                new Object()));
+
+        MockHttpServletRequest chatRequest = request("/oditji/chat/list");
+        chatRequest.getSession().setAttribute("loginMember", loginMember);
+        MockHttpServletResponse chatResponse = new MockHttpServletResponse();
+        assertFalse(interceptor.preHandle(
+                chatRequest,
+                chatResponse,
+                new Object()));
+        assertEquals(403, chatResponse.getStatus());
+    }
+
+    @Test
+    void approvedBusinessShouldPassProtectedFeatures() throws Exception {
+        MemberVO loginMember = member(22L, "BUSINESS");
+        when(businessService.getBusinessByMemberNo(22L))
+                .thenReturn(business(220L, "APPROVED", "승인상점"));
+
+        MockHttpServletRequest request =
+                request("/oditji/business/order/list");
+        request.getSession().setAttribute("loginMember", loginMember);
+
+        assertTrue(interceptor.preHandle(
+                request,
+                new MockHttpServletResponse(),
+                new Object()));
+    }
+
+    @Test
+    void missingBusinessRecordShouldBeForbidden() throws Exception {
+        MemberVO loginMember = member(23L, "BUSINESS");
+        when(businessService.getBusinessByMemberNo(23L)).thenReturn(null);
+
+        MockHttpServletRequest request = request("/oditji/business/main");
+        request.getSession().setAttribute("loginMember", loginMember);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertFalse(interceptor.preHandle(request, response, new Object()));
+        assertEquals(403, response.getStatus());
     }
 
     private void assertForbiddenChat(MemberVO member) throws Exception {
@@ -175,5 +208,13 @@ class BusinessCheckInterceptorRemainingCoverageTest {
         member.setMemberNo(memberNo);
         member.setRole(role);
         return member;
+    }
+
+    private BusinessVO business(Long businessNo, String status, String name) {
+        BusinessVO business = new BusinessVO();
+        business.setBusinessNo(businessNo);
+        business.setStatus(status);
+        business.setBusinessName(name);
+        return business;
     }
 }

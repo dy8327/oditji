@@ -1,9 +1,11 @@
 package com.project.oditji.member.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.business.service.BusinessService;
@@ -17,11 +19,11 @@ import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.wish.service.WishService;
 
-/** 사업자 로그인 거절 메시지에서 rejectReason null 단축평가 분기를 보완합니다. */
+/** 미승인 사업자 로그인 성공 후 제한된 사업자 홈으로 이동하는 분기를 보완합니다. */
 class MemberControllerBusinessRejectReasonNullCoverageTest {
 
     @Test
-    void rejectedBusinessWithoutRejectReasonShouldReturnBaseMessageOnly() {
+    void rejectedBusinessShouldRedirectToBusinessMainAndClearSavedRedirect() {
         MemberController controller = new MemberController(
                 mock(MemberService.class),
                 mock(MemberPlatformService.class),
@@ -39,11 +41,16 @@ class MemberControllerBusinessRejectReasonNullCoverageTest {
         business.setStatus("REJECTED");
         business.setRejectReason(null);
 
-        String message = ReflectionTestUtils.invokeMethod(
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("redirectAfterLogin", "/business/settlement/main");
+
+        String redirect = ReflectionTestUtils.invokeMethod(
                 controller,
-                "getBusinessLoginMessage",
+                "getLoginSuccessRedirect",
+                session,
                 business);
 
-        assertEquals("사업자 승인이 거절되었습니다.", message);
+        assertEquals("redirect:/business/main", redirect);
+        assertNull(session.getAttribute("redirectAfterLogin"));
     }
 }

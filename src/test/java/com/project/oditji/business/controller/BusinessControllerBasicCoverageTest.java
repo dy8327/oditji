@@ -95,6 +95,25 @@ class BusinessControllerBasicCoverageTest {
         }
 
         @Test
+        void mainShouldShowRestrictedStatusWithoutDashboardForWaitingBusiness() {
+                BusinessVO business = business(21L, "WAITING");
+                when(businessService.getBusinessByMemberNo(11L)).thenReturn(business);
+                MockHttpSession session = sessionWith("loginMemberNo", 11L);
+                ExtendedModelMap model = new ExtendedModelMap();
+
+                String view = controller.businessMain(
+                                session,
+                                model,
+                                new RedirectAttributesModelMap());
+
+                assertEquals("business/main/businessMain", view);
+                assertSame(business, model.get("business"));
+                assertNull(model.get("businessMain"));
+                assertEquals("WAITING", session.getAttribute("businessStatus"));
+                verify(businessService, never()).getBusinessDashboard(21L);
+        }
+
+        @Test
         void productListShouldSupportLegacyStringMemberNumberAndCacheStandardKey() {
                 BusinessVO business = business(30L, "APPROVED");
                 List<GoodsManageVO> products = List.of(new GoodsManageVO());

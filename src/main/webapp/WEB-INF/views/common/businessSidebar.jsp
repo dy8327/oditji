@@ -38,6 +38,14 @@
 
 
 
+        <%--
+            [미승인 사업자 마이페이지 제한]
+            WAITING/REJECTED 상태에서는 대시보드만 노출하고,
+            실제 사업 운영 메뉴는 APPROVED 상태에서만 표시합니다.
+        --%>
+        <c:choose>
+            <c:when test="${sessionScope.businessStatus == 'APPROVED'}">
+
         <!-- 상품 관리 -->
         <div class="menu-group">
 
@@ -143,6 +151,26 @@
 
         </div>
 
+
+            </c:when>
+
+            <c:otherwise>
+                <div class="menu-group business-approval-menu">
+                    <h3>사업자 승인</h3>
+
+                    <span class="business-restricted-menu-text">
+                        <c:choose>
+                            <c:when test="${sessionScope.businessStatus == 'REJECTED'}">
+                                승인 반려 상태
+                            </c:when>
+                            <c:otherwise>
+                                승인 대기 상태
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
+                </div>
+            </c:otherwise>
+        </c:choose>
 
     </nav>
 
