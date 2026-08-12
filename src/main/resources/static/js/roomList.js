@@ -43,6 +43,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const mobileCreateModal = document.getElementById("mobileCreateModal");
     const mobileCreateClose = document.getElementById("mobileCreateClose");
 
+    const mainContent = document.getElementById("mainContent");
+    const rightPanelToggle = document.getElementById("rightPanelToggle");
+
     const actionButtons = document.querySelectorAll(".room-action-btn");
     const roomCards = document.querySelectorAll(".room-card");
 
@@ -232,6 +235,23 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    /*
+     * 우측 "채팅방 생성" 패널을 탭처럼 접었다 펼친다.
+     * 접힌 상태에서도 탭 버튼은 항상 보이므로 언제든 다시 펼칠 수 있다.
+     */
+    if (rightPanelToggle && mainContent) {
+        rightPanelToggle.addEventListener("click", function() {
+
+            const collapsed = mainContent.classList.toggle("right-collapsed");
+
+            rightPanelToggle.setAttribute("aria-expanded", String(!collapsed));
+
+            if (!collapsed) {
+                ensureDesktopCreateFrameLoaded();
+            }
+        });
+    }
+
     if (createRoomBtn) {
         createRoomBtn.addEventListener("click", function() {
 
@@ -261,7 +281,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            joinAndEnterRoom(contextPath, roomId, button);
+            const alreadyJoined = button.dataset.joined === "true";
+
+            joinAndEnterRoom(contextPath, roomId, button, alreadyJoined);
         });
     });
 
@@ -317,6 +339,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (data.action === "close-room") {
             resetMiddlePanel();
+
+            /*
+             * 나가기 성공 후 전달된 경우에만 roomId가 함께 온다.
+             * 새로고침 없이도 좌측 목록의 참가 상태를 다시 "참가/입장"으로 되돌려
+             * 다음에 같은 방에 들어갈 때 참여 확인 문구가 다시 뜨도록 한다.
+             */
+            if (data.left && data.roomId) {
+                markRoomAsLeft(data.roomId);
+            }
         }
     });
 
@@ -339,9 +370,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
 /**
  * 자유방 참가 API를 호출한 후 참가 성공 또는 기존 참가 상태이면 입장합니다.
+ * 이미 참가한 방(alreadyJoined)은 확인 문구 없이 바로 입장하고,
+ * 아직 참가하지 않은 방만 나가기와 마찬가지로 참여 의사를 먼저 확인합니다.
  * 사업자 번호는 서버 세션에서 확인하므로 요청 본문으로 보내지 않습니다.
  */
-function joinAndEnterRoom(contextPath, roomId, button) {
+async function joinAndEnterRoom(contextPath, roomId, button, alreadyJoined) {
+
+    if (!alreadyJoined) {
+
+        const joinConfirmed = await showConfirm("자유방에 참여하시겠습니까?", "question");
+
+        if (!joinConfirmed) {
+            return;
+        }
+    }
 
     button.disabled = true;
 
@@ -370,6 +412,14 @@ function joinAndEnterRoom(contextPath, roomId, button) {
     .then(function(data) {
 
         if (data.success) {
+
+            /*
+             * 새로고침 없이 같은 방을 다시 열 때 참여 확인 문구가 또 뜨지 않도록,
+             * 서버가 내려준 참가 상태를 클라이언트에서도 즉시 반영해 둔다.
+             */
+            button.dataset.joined = "true";
+            button.textContent = "입장";
+
             if (typeof openRoomRef === "function") {
                 openRoomRef(roomId);
             } else {
@@ -387,6 +437,27 @@ function joinAndEnterRoom(contextPath, roomId, button) {
     .finally(function() {
         button.disabled = false;
     });
+}
+
+/**
+ * 나가기 성공으로 좌측 목록에 있는 해당 자유방의 참가 상태를 되돌립니다.
+ * roomList.js는 embed된 room.jsp와 다른 문서이므로, 나가기 자체는 room.js가
+ * 처리하고 그 결과만 postMessage로 전달받아 여기서 버튼 상태만 동기화합니다.
+ */
+function markRoomAsLeft(roomId) {
+
+    const selector = '.room-action-btn[data-room-type="PUBLIC"][data-room-id="'
+        + (window.CSS && CSS.escape ? CSS.escape(roomId) : roomId)
+        + '"]';
+
+    const button = document.querySelector(selector);
+
+    if (!button) {
+        return;
+    }
+
+    button.dataset.joined = "false";
+    button.textContent = "참가/입장";
 }
 
 /**

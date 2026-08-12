@@ -29,6 +29,7 @@ import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
 import com.project.oditji.goods.service.GoodsService;
 import com.project.oditji.goods.vo.GoodsVO;
+import com.project.oditji.holiday.service.HolidayService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.review.vo.ContentReviewVO;
@@ -57,6 +58,8 @@ public class ContentController {
         private final VerifyService verifyService;
         // [관련 상품 추가] 콘텐츠 상세페이지에 연결된 상품을 조회할 때 사용합니다.
         private final GoodsService goodsService;
+        // [출시 알림 캘린더 공휴일 표시 추가] 한국천문연구원 특일 정보 API로 공휴일을 조회할 때 사용합니다.
+        private final HolidayService holidayService;
 
         private static final int RELATED_GOODS_SIZE = 8;
         private static final String PLATFORM_NETFLIX = "netflix";
@@ -74,7 +77,9 @@ public class ContentController {
                         // [성인 콘텐츠 접근 제한 추가] 기존 성인인증 서비스를 주입받습니다.
                         VerifyService verifyService,
                         // [관련 상품 추가] GoodsService를 주입받습니다.
-                        GoodsService goodsService) {
+                        GoodsService goodsService,
+                        // [출시 알림 캘린더 공휴일 표시 추가] HolidayService를 주입받습니다.
+                        HolidayService holidayService) {
 
                 this.contentService = contentService;
                 this.reviewService = reviewService;
@@ -83,6 +88,7 @@ public class ContentController {
                 // [성인 콘텐츠 접근 제한 추가] DB의 MEMBER.ADULT_VERIFIED 값을 확인할 때 사용합니다.
                 this.verifyService = verifyService;
                 this.goodsService = goodsService;
+                this.holidayService = holidayService;
         }
 
         @GetMapping("/prepare")
@@ -518,6 +524,14 @@ public class ContentController {
                 YearMonth prevYearMonth = targetYearMonth.minusMonths(1);
                 YearMonth nextYearMonth = targetYearMonth.plusMonths(1);
 
+                // [출시 알림 캘린더 공휴일 표시 추가]
+                // 진짜 달력처럼 공휴일을 빨간 날짜로 보여주기 위해 한국천문연구원
+                // 특일 정보 API에서 이 달의 공휴일 목록을 조회합니다.
+                Map<Integer, String> holidayByDay =
+                                holidayService.getHolidaysByMonth(
+                                                targetYear,
+                                                targetMonth);
+
                 model.addAttribute(
                                 "targetYear",
                                 targetYear);
@@ -539,8 +553,19 @@ public class ContentController {
                                 releaseByDay);
 
                 model.addAttribute(
+                                "holidayByDay",
+                                holidayByDay);
+
+                model.addAttribute(
                                 "isCurrentMonth",
                                 targetYearMonth.equals(YearMonth.from(today)));
+
+                // [오늘 날짜 배지 표시 버그 수정]
+                // JSP에서 "오늘" 셀을 강조하는 데 사용하는 값인데 그동안 모델에
+                // 내려가지 않아 오늘 배지가 항상 표시되지 않았습니다.
+                model.addAttribute(
+                                "todayDay",
+                                today.getDayOfMonth());
 
                 model.addAttribute(
                                 "prevYear",

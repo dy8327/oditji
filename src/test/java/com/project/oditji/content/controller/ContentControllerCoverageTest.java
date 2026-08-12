@@ -28,6 +28,7 @@ import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.favorite.vo.FavoriteVO;
 import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.holiday.service.HolidayService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.tmdb.dao.TmdbDAO;
@@ -50,6 +51,8 @@ class ContentControllerCoverageTest {
     private VerifyService verifyService;
     @Mock
     private GoodsService goodsService;
+    @Mock
+    private HolidayService holidayService;
 
     private ContentController controller;
 
@@ -61,7 +64,8 @@ class ContentControllerCoverageTest {
                 favoriteService,
                 tmdbDAO,
                 verifyService,
-                goodsService);
+                goodsService,
+                holidayService);
     }
 
     @Test

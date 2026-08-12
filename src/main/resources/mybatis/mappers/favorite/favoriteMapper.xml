@@ -111,8 +111,11 @@
     </select>
 
     <!--
-        내일 개봉·공개하는 콘텐츠를 찜한 회원 목록을 조회합니다.
+        오늘 또는 내일 개봉·공개하는 콘텐츠를 찜한 회원 목록을 조회합니다.
         출시 알림 캘린더/스케줄러에서 사용합니다.
+
+        DAYS_UNTIL_RELEASE = 0 이면 오늘 공개, 1이면 내일(하루 전) 공개를 의미하며,
+        FavoriteServiceImpl에서 이 값에 따라 알림 문구를 다르게 생성합니다.
     -->
     <select id="selectFavoriteReleaseTargetList"
             resultType="com.project.oditji.favorite.vo.FavoriteReleaseTargetVO">
@@ -122,11 +125,12 @@
             C.CONTENT_NO,
             C.TMDB_ID,
             C.CONTENT_TYPE,
-            C.TITLE
+            C.TITLE,
+            TRUNC(C.RELEASE_DATE) - TRUNC(SYSDATE) AS DAYS_UNTIL_RELEASE
         FROM FAVORITE F
         JOIN CONTENT C
           ON F.CONTENT_NO = C.CONTENT_NO
-        WHERE TRUNC(C.RELEASE_DATE) = TRUNC(SYSDATE) + 1
+        WHERE TRUNC(C.RELEASE_DATE) IN (TRUNC(SYSDATE), TRUNC(SYSDATE) + 1)
 
     </select>
 

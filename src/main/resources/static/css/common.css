@@ -80,6 +80,36 @@
 }
 
 /* =========================================================
+   Mobile Overlay
+   (모바일 전체 메뉴 / 검색창이 펼쳐졌을 때 뒤 배경을 어둡게
+   눌러주어 지금 열려 있는 영역에 시선이 집중되도록 하고,
+   실수로 뒤쪽 콘텐츠를 누르는 것을 막아줍니다.
+   common.js의 syncHeaderOverlay()가 open 클래스를 토글합니다.)
+========================================================= */
+.header-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  background: rgba(8, 8, 10, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+}
+
+.header-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (min-width: 993px) {
+  .header-overlay {
+    display: none;
+  }
+}
+
+/* =========================================================
    Container
 ========================================================= */
 
@@ -95,6 +125,11 @@
   align-items: center;
 
   justify-content: space-between;
+
+  /* [추가] 노치/펀치홀 등 세이프 에어리어가 있는 기기에서
+     좌우 콘텐츠가 잘리지 않도록 여백을 더해줍니다. */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* =========================================================
@@ -152,6 +187,7 @@
 }
 
 .header-nav-link {
+  position: relative;
   min-height: 42px;
   display: flex;
   align-items: center;
@@ -163,14 +199,38 @@
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
-  transition: var(--transition);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+/* [수정] OTT 사이트(웨이브/티빙 등) 나브처럼 꽉 찬 pill 배경 대신
+   은은한 배경 + 아래쪽에서 자라나는 밑줄로 호버/활성 상태를 표현합니다. */
+.header-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-point);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-nav-link:hover,
 .header-nav-link:focus-visible,
 .header-nav-dropdown.open > .header-nav-trigger {
-  background: var(--color-bg3);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--color-white);
+}
+
+.header-nav-link:hover::after,
+.header-nav-link:focus-visible::after,
+.header-nav-dropdown.open > .header-nav-trigger::after {
+  transform: scaleX(1);
 }
 
 .header-nav-arrow {
@@ -188,10 +248,11 @@
   position: absolute;
   top: calc(100% + 12px);
   left: 50%;
-  width: 210px;
-  padding: 12px;
+  width: 230px;
+  padding: 10px;
   background: #2a2d32;
   border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-point-strong);
   border-radius: 14px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
   opacity: 0;
@@ -232,23 +293,71 @@
 }
 
 .header-submenu a {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 40px;
-  padding: 9px 10px;
+  padding: 9px 10px 9px 18px;
   border-radius: 9px;
   color: var(--color-gray);
   font-size: 14px;
   font-weight: 500;
-  transition: var(--transition);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+/* [추가] 항목 왼쪽에 숨어 있다가 호버/활성 시 나타나는 점(•) 인디케이터.
+   OTT 서비스 드롭다운에서 흔히 쓰는, 배경을 꽉 채우지 않는 절제된 강조 방식입니다. */
+.header-submenu > a::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-point);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* 수정: 1단 메뉴의 바로 아래 링크에만 적용 */
 .header-submenu > a:hover,
 .header-submenu > a:focus-visible,
 .header-submenu > a.active {
-  background: #383c42;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--color-white);
+  padding-left: 22px;
+}
+
+.header-submenu > a:hover::before,
+.header-submenu > a:focus-visible::before,
+.header-submenu > a.active::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* [추가] 신규/랭킹 등 일부 메뉴 항목 옆에 붙는 작은 뱃지 */
+.header-submenu-badge {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(94, 163, 255, 0.15);
+  color: var(--color-point);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.header-submenu-badge--hot {
+  background: rgba(255, 112, 82, 0.16);
+  color: #ff8f6b;
 }
 
 /* =========================================================
@@ -282,7 +391,7 @@
 .header-category-trigger:hover,
 .header-category-trigger:focus-visible,
 .header-category-menu.pinned > .header-category-trigger {
-  background: #383c42;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--color-white);
 }
 
@@ -302,10 +411,11 @@
   position: absolute;
   top: -12px;
   left: calc(100% + 12px);
-  width: 150px;
-  padding: 12px;
+  width: 160px;
+  padding: 10px;
   background: #2a2d32;
   border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-point-strong);
   border-radius: 14px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
   opacity: 0;
@@ -338,22 +448,49 @@
 }
 
 .header-category-submenu a {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 40px;
-  padding: 9px 10px;
+  padding: 9px 10px 9px 18px;
   border-radius: 9px;
   color: var(--color-gray);
   font-size: 14px;
   font-weight: 500;
-  transition: var(--transition);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+.header-category-submenu a::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-point);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* 수정: 마우스를 올린 세부 카테고리만 색상 변경 */
 .header-category-submenu a:hover,
 .header-category-submenu a:focus-visible {
-  background: #383c42;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--color-white);
+  padding-left: 22px;
+}
+
+.header-category-submenu a:hover::before,
+.header-category-submenu a:focus-visible::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
 }
 
 .header-nav-toggle {
@@ -366,6 +503,11 @@
   gap: 5px;
   border-radius: 10px;
   color: var(--color-white);
+  transition: var(--transition);
+}
+
+.header-nav-toggle:hover {
+  background: var(--color-bg3);
 }
 
 .header-nav-toggle span {
@@ -374,7 +516,22 @@
   height: 2px;
   background: currentColor;
   border-radius: 999px;
-  transition: var(--transition);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+/* [추가] 메뉴가 열리면 삼선 아이콘이 X 모양으로 전환되어
+   현재 상태(열림/닫힘)를 시각적으로 명확히 전달합니다. */
+.header-nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.header-nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.header-nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* =========================================================
@@ -988,6 +1145,12 @@
   font-weight: 700;
 }
 
+.header-nav-link.active::after,
+.header-nav-trigger.active::after {
+  background: var(--color-white);
+  transform: scaleX(1);
+}
+
 /* =========================================================
    Focus
 ========================================================= */
@@ -996,6 +1159,7 @@
 .join-btn:focus-visible,
 .login-btn:focus-visible,
 .icon-btn:focus-visible,
+.header-nav-toggle:focus-visible,
 .profile-btn:focus-visible {
   outline: 2px solid var(--color-point);
 
@@ -1181,6 +1345,13 @@
     gap: 15px;
   }
 
+  /* [추가] 모바일 검색 input의 글자 크기가 16px 미만이면
+     iOS Safari가 포커스 시 화면을 자동으로 확대해 레이아웃이
+     깨진 것처럼 보입니다. 16px로 올려 확대를 막습니다. */
+  .header-search input {
+    font-size: 16px;
+  }
+
   /* 모바일에서는 좌측 삼선 버튼 폭과 우측 아이콘/로그인 버튼 폭이
      서로 달라 로고가 가운데가 아닌 삼선 버튼 바로 옆에 붙어
      보였습니다. 로고를 절대 위치로 헤더 중앙에 고정해 좌/우
@@ -1196,8 +1367,14 @@
   /* 로그인 상태에서 장바구니 아이콘까지 뜨면 아이콘 개수가 늘어나
      로고가 가운데에서 밀리며 레이아웃이 깨졌습니다. 장바구니는
      모바일에서는 아예 숨기고(마이페이지에서 접근 가능),
-     데스크톱에는 영향 없습니다. */
+     데스크톱에는 영향 없습니다.
+     채팅 아이콘도 같은 이유로 모바일에서는 숨깁니다
+     (관리자/사업자는 대시보드에서 채팅에 접근할 수 있습니다). */
   .cart-btn {
+    display: none;
+  }
+
+  .chat-menu {
     display: none;
   }
 
@@ -1293,6 +1470,71 @@
 
   .logo-main {
     font-size: 22px;
+  }
+
+  /* [추가] 프로필 드롭다운도 알림 드롭다운과 동일하게 화면 폭 기준으로
+     펼쳐지도록 하여, 좁은 화면에서 고정폭(220px) 드롭다운이 화면
+     가장자리에 답답하게 붙거나 넘치는 문제를 방지합니다. */
+  .profile-dropdown {
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+/* [추가] 초소형 화면(400px 이하)에서 헤더 우측 아이콘들이
+   서로 붙어 눌리는 문제를 막기 위한 추가 간격/크기 보정 */
+@media (max-width: 400px) {
+  .header-right {
+    gap: 4px;
+
+    margin-right: 2px;
+  }
+
+  .header-nav-toggle {
+    margin-right: 8px;
+  }
+
+  .login-btn {
+    width: 68px;
+    height: 34px;
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   Touch Feedback
+   (:hover가 사실상 동작하지 않는 터치 기기에서도
+   버튼을 눌렀을 때 즉각적인 시각 피드백을 주기 위한 규칙)
+========================================================= */
+@media (hover: none) and (pointer: coarse) {
+  .icon-btn:active,
+  .header-nav-toggle:active {
+    background: var(--color-bg3);
+    color: var(--color-white);
+    transform: scale(0.94);
+  }
+
+  .login-btn:active {
+    transform: scale(0.96);
+  }
+
+  .join-btn:active {
+    opacity: 0.7;
+  }
+
+  .header-nav-link:active,
+  .header-submenu a:active,
+  .header-category-submenu a:active,
+  .header-category-trigger:active {
+    background: #383c42;
+    color: var(--color-white);
+  }
+
+  .profile-btn:active {
+    background: #3a3e46;
   }
 }
 
@@ -1521,6 +1763,19 @@ html {
   display: none !important;
 }
 
+/* 헤더 채팅 아이콘(.chat-btn) 우측 상단에 미읽음 배지를 올리기 위한 기준 위치.
+   배지 자체는 .notification-badge 스타일을 그대로 재사용한다(header-notification.js).
+   드롭다운(.chat-unread-dropdown)도 .notification-dropdown과 같은 규칙으로 이 래퍼를
+   기준(position:absolute)으로 펼쳐지므로 .notification-menu와 동일하게 relative를 준다. */
+.chat-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.chat-btn {
+  position: relative;
+}
+
 .notification-dropdown {
   position: absolute;
   top: 62px;
@@ -1719,9 +1974,9 @@ html {
 .back-to-top-btn {
   position: fixed;
 
-  right: 24px;
+  right: calc(24px + env(safe-area-inset-right, 0px));
 
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 
   z-index: 9998;
 
@@ -1774,8 +2029,8 @@ html {
 
 @media (max-width: 576px) {
   .back-to-top-btn {
-    right: 16px;
-    bottom: 16px;
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     width: 44px;
     height: 44px;
   }

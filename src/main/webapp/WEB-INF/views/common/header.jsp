@@ -52,8 +52,8 @@
                     <div class="header-submenu" role="menu">
                         <div class="header-submenu-heading">콘텐츠 탐색</div>
                         <a href="${pageContext.request.contextPath}/content/list?type=popular" role="menuitem">인기</a>
-                        <a href="${pageContext.request.contextPath}/content/list?type=new" role="menuitem">신규</a>
-                        <a href="${pageContext.request.contextPath}/ranking" role="menuitem">랭킹</a>
+                        <a href="${pageContext.request.contextPath}/content/list?type=new" role="menuitem">신규 <span class="header-submenu-badge">NEW</span></a>
+                        <a href="${pageContext.request.contextPath}/ranking" role="menuitem">랭킹 <span class="header-submenu-badge header-submenu-badge--hot">HOT</span></a>
                         <a href="${pageContext.request.contextPath}/content/today" role="menuitem">오늘의 콘텐츠</a>
                         <a href="${pageContext.request.contextPath}/recommend" role="menuitem">추천 콘텐츠</a>
                         <a href="${pageContext.request.contextPath}/content/release-calendar" role="menuitem">출시 캘린더</a>
@@ -214,6 +214,64 @@
                         일반 회원은 Oracle 업무 알림만 사용하고,
                         관리자와 사업자는 업무 알림과 채팅 알림을 함께 사용합니다.
                     --%>
+                    <%-- 관리자/승인된 사업자만 사용하는 사업자 채팅(공지방·자유방) 진입 아이콘.
+                         일반 회원에게는 노출하지 않는다. --%>
+                    <c:if test="${headerChatEnabled}">
+                        <div class="chat-menu" id="chatMenu">
+                            <a href="${pageContext.request.contextPath}/chat/list"
+                               class="icon-btn chat-btn"
+                               id="chatEntryBtn"
+                               title="채팅"
+                               aria-label="채팅방 목록으로 이동"
+                               aria-haspopup="true"
+                               aria-expanded="false"
+                               aria-controls="chatUnreadDropdown">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 3C6.9 3 3 6.4 3 10.6c0 2.5 1.4 4.7 3.6 6.1-.1.9-.4 2-1.1 3.1a.5.5 0 0 0 .6.7c1.7-.5 3-1.2 3.8-1.8.7.2 1.4.3 2.1.3 5.1 0 9-3.4 9-7.4S17.1 3 12 3Z"
+                                          stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"/>
+                                    <circle cx="8.3" cy="10.6" r="1.1" fill="currentColor"/>
+                                    <circle cx="12" cy="10.6" r="1.1" fill="currentColor"/>
+                                    <circle cx="15.7" cy="10.6" r="1.1" fill="currentColor"/>
+                                </svg>
+                                <%--
+                                    채팅 미읽음 배지. 값 갱신/실시간 구독은 header-notification.js가
+                                    이미 알림벨용으로 붙여둔 Firestore 리스너(chat source)를 그대로 재사용해
+                                    여기서는 표시만 담당한다(#notificationBadge와 동일한 스타일 클래스 재사용).
+                                --%>
+                                <span class="notification-badge chat-badge"
+                                      id="chatUnreadBadge"
+                                      aria-label="읽지 않은 채팅방 0개"
+                                      hidden></span>
+                            </a>
+
+                            <%--
+                                배지에 숫자가 떠 있을 때만(안 읽은 메시지가 있을 때만) 아이콘 클릭 시
+                                이 드롭다운이 열리고, 목록 항목을 누르면 해당 채팅방으로 바로 이동한다.
+                                배지가 없을 때는 header-notification.js가 preventDefault를 걸지 않으므로
+                                <a href="...chat/list">의 기본 동작(채팅방 목록 이동)이 그대로 유지된다.
+                            --%>
+                            <div class="notification-dropdown chat-unread-dropdown"
+                                 id="chatUnreadDropdown"
+                                 aria-label="안 읽은 채팅방 목록">
+
+                                <div class="notification-dropdown-header">
+                                    <strong>안 읽은 채팅방</strong>
+                                </div>
+
+                                <div class="notification-list"
+                                     id="chatUnreadList"
+                                     aria-live="polite">
+                                    <div class="notification-empty">
+                                        안 읽은 채팅방이 없습니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </c:if>
+
                     <c:if test="${not empty headerMemberNo}">
                         <div class="notification-menu"
                          id="notificationMenu"
@@ -347,6 +405,10 @@
     </div>
 </header>
 
+<%-- [추가] 모바일 전체 메뉴/검색이 펼쳐졌을 때 뒤 배경을 어둡게 눌러주는 오버레이.
+     common.js의 syncHeaderOverlay()가 상태에 맞춰 open 클래스를 토글한다. --%>
+<div class="header-overlay" id="headerOverlay" aria-hidden="true"></div>
+
 <%--
     맨 위로 이동 버튼.
     스크롤을 내리다가 헤더가 자동으로 숨겨지는 시점(js/common.js의 initHeaderScroll)에 맞춰
@@ -367,5 +429,5 @@
 
 <c:if test="${not empty sessionScope.loginMember}">
     <script type="module"
-            src="${pageContext.request.contextPath}/js/header-notification.js?v=6"></script>
+            src="${pageContext.request.contextPath}/js/header-notification.js?v=9"></script>
 </c:if>

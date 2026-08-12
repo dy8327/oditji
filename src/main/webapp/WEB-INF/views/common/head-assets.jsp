@@ -15,7 +15,7 @@
 --%>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=9">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=12">
 
 <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=9"></script>

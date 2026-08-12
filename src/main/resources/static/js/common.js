@@ -391,6 +391,17 @@ function initNavigationDropdowns() {
       item.classList.toggle("open", shouldOpen);
       trigger.setAttribute("aria-expanded", String(shouldOpen));
     });
+
+    /**
+     * [추가] 클릭으로 어떤 메뉴가 열려 고정(.open)되어 있는 상태에서
+     * 다른 메뉴에 마우스를 올리면(CSS :hover로 그 메뉴도 함께 열리면서)
+     * 두 드롭다운이 동시에 화면에 겹쳐 보이는 문제가 있었다.
+     * 새 메뉴에 마우스가 들어오는 순간 먼저 열려 있던 메뉴를 닫아
+     * 항상 하나의 드롭다운만 보이도록 한다.
+     */
+    item.addEventListener("mouseenter", () => {
+      closeNavigationDropdowns(item);
+    });
   });
 
   document.addEventListener("click", () => {
@@ -483,6 +494,7 @@ function initMobileNavigation() {
     event.stopPropagation();
     const opened = nav.classList.toggle("open");
     toggle.setAttribute("aria-expanded", String(opened));
+    syncHeaderOverlay();
   });
 
   nav.addEventListener("click", (event) => {
@@ -494,6 +506,7 @@ function initMobileNavigation() {
       nav.classList.remove("open");
       toggle.setAttribute("aria-expanded", "false");
       closeNavigationDropdowns();
+      syncHeaderOverlay();
     }
   });
 
@@ -502,8 +515,28 @@ function initMobileNavigation() {
       nav.classList.remove("open");
       toggle.setAttribute("aria-expanded", "false");
       closeNavigationDropdowns();
+      syncHeaderOverlay();
     }
   });
+}
+
+/**
+ * [추가] 모바일 전체 메뉴(#headerNav) 또는 모바일 검색(#headerSearch) 중
+ * 하나라도 열려 있으면 배경 오버레이(#headerOverlay)를 켜고,
+ * 둘 다 닫혀 있으면 끈다. 두 토글 함수가 각자 호출한다.
+ */
+function syncHeaderOverlay() {
+  const overlay = document.getElementById("headerOverlay");
+  if (!overlay) return;
+
+  const nav = document.getElementById("headerNav");
+  const search = document.getElementById("headerSearch");
+
+  const isOpen =
+    Boolean(nav && nav.classList.contains("open")) ||
+    Boolean(search && search.classList.contains("open"));
+
+  overlay.classList.toggle("open", isOpen);
 }
 
 /**
@@ -536,6 +569,8 @@ function initMobileSearchToggle() {
                 input.focus();
             }
         }
+
+        syncHeaderOverlay();
     });
 
     search.addEventListener("click", (event) => {
@@ -568,6 +603,7 @@ function closeMobileSearch() {
 
     search.classList.remove("open");
     toggle.setAttribute("aria-expanded", "false");
+    syncHeaderOverlay();
 }
 
 /** 스크롤 효과 (헤더 숨김에 맞춰 맨 위로 버튼도 함께 노출) */
@@ -583,7 +619,18 @@ function initHeaderScroll() {
     const currentScroll = window.pageYOffset;
     header.classList.toggle("scrolled", currentScroll > 10);
 
-        if (currentScroll > lastScroll && currentScroll > 150) {
+        const nav = document.getElementById("headerNav");
+        const search = document.getElementById("headerSearch");
+        const mobileMenuOpen =
+            Boolean(nav && nav.classList.contains("open")) ||
+            Boolean(search && search.classList.contains("open"));
+
+        if (mobileMenuOpen) {
+            // [추가] 메뉴/검색이 펼쳐진 상태에서 스크롤 때문에 헤더가
+            // 갑자기 숨겨지면 메뉴가 함께 사라져 보여 혼란스럽다.
+            header.classList.remove("hide");
+            header.classList.add("show");
+        } else if (currentScroll > lastScroll && currentScroll > 150) {
             header.classList.add("hide");
             header.classList.remove("show");
             backToTopBtn?.classList.add("show");

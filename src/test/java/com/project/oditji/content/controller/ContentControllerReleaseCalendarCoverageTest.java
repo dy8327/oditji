@@ -23,6 +23,7 @@ import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.content.service.ContentService;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.holiday.service.HolidayService;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.search.vo.SearchResultVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
@@ -44,6 +45,8 @@ class ContentControllerReleaseCalendarCoverageTest {
     private VerifyService verifyService;
     @Mock
     private GoodsService goodsService;
+    @Mock
+    private HolidayService holidayService;
 
     private ContentController controller;
 
@@ -55,7 +58,8 @@ class ContentControllerReleaseCalendarCoverageTest {
                 favoriteService,
                 tmdbDAO,
                 verifyService,
-                goodsService);
+                goodsService,
+                holidayService);
     }
 
     @Test

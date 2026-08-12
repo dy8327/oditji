@@ -45,7 +45,7 @@
 
             <p class="content-more-description">
                 이 달에 개봉·공개하는 작품을 한눈에 확인하세요.
-                찜한 작품은 공개일이 다가오면 알림으로 알려드려요.
+                찜한 작품은 공개 하루 전과 당일, 두 번 알림으로 알려드려요.
             </p>
 
         </div>
@@ -152,8 +152,27 @@
                     <path d="M9.5 18a2.5 2.5 0 0 0 5 0" fill="none" stroke="currentColor"
                           stroke-width="1.6" stroke-linecap="round"/>
                 </svg>
-                찜한 작품은 공개일이 다가오면 알림으로 알려드려요.
+                찜한 작품은 공개 하루 전, 그리고 공개 당일에 알림으로 알려드려요.
             </p>
+
+            <c:if test="${not empty holidayByDay}">
+
+                <%-- 이 달의 공휴일을 한눈에 볼 수 있도록 요약해서 보여줍니다. --%>
+                <p class="release-calendar-notice-item release-calendar-notice-item--holiday">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" fill="none"
+                              stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M4 9.5h16M8 3v3.5M16 3v3.5" fill="none"
+                              stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="8.2" cy="13.3" r="1.1" fill="currentColor"/>
+                    </svg>
+                    ${targetMonth}월 공휴일 :
+                    <c:forEach var="holidayEntry" items="${holidayByDay}" varStatus="holidayStatus">
+                        ${targetMonth}/${holidayEntry.key} ${holidayEntry.value}<c:if test="${not holidayStatus.last}">,</c:if>
+                    </c:forEach>
+                </p>
+
+            </c:if>
 
         </div>
 
@@ -177,17 +196,30 @@
                 <c:set var="dayContentCount" value="${fn:length(dayContentList)}" />
                 <c:set var="cellWeekday" value="${(firstDayOfWeek + day - 1) % 7}" />
                 <c:set var="isToday" value="${isCurrentMonth and day == todayDay}" />
+                <c:set var="holidayName" value="${holidayByDay[day]}" />
+                <c:set var="isHoliday" value="${not empty holidayName}" />
 
-                <div class="release-calendar-cell${empty dayContentList ? '' : ' release-calendar-cell--has-content'}${cellWeekday == 0 ? ' release-calendar-cell--sun' : ''}${cellWeekday == 6 ? ' release-calendar-cell--sat' : ''}${isToday ? ' release-calendar-cell--today' : ''}"
+                <div class="release-calendar-cell${empty dayContentList ? '' : ' release-calendar-cell--has-content'}${cellWeekday == 0 ? ' release-calendar-cell--sun' : ''}${cellWeekday == 6 ? ' release-calendar-cell--sat' : ''}${isHoliday ? ' release-calendar-cell--holiday' : ''}${isToday ? ' release-calendar-cell--today' : ''}"
                      data-calendar-cell-popover="releaseCalendarPopover-${day}">
 
-                    <span class="release-calendar-date">
-                        <c:if test="${isToday}">
-                            <span class="release-calendar-date-badge">${day}</span>
+                    <span class="release-calendar-date-row">
+
+                        <span class="release-calendar-date${isHoliday ? ' release-calendar-date--holiday' : ''}"
+                              title="${holidayName}">
+                            <c:if test="${isToday}">
+                                <span class="release-calendar-date-badge">${day}</span>
+                            </c:if>
+                            <c:if test="${not isToday}">
+                                ${day}
+                            </c:if>
+                        </span>
+
+                        <c:if test="${isHoliday}">
+                            <span class="release-calendar-holiday-name" title="${holidayName}">
+                                ${holidayName}
+                            </span>
                         </c:if>
-                        <c:if test="${not isToday}">
-                            ${day}
-                        </c:if>
+
                     </span>
 
                     <c:if test="${not empty dayContentList}">

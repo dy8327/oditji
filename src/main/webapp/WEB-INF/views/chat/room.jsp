@@ -160,7 +160,7 @@
 </div>
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js?v=6"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=7"></script>
 
 </body>
 </html>

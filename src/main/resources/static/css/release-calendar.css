@@ -197,6 +197,11 @@ body.release-calendar-no-scroll {
   color: var(--color-point);
 }
 
+/* 이 달의 공휴일 요약 문구는 다른 안내 문구와 구분되도록 포인트 컬러를 붉은 톤으로 씁니다. */
+.release-calendar-notice-item--holiday svg {
+  color: #ff5a5a;
+}
+
 /* =========================================================
    달력 그리드
 ========================================================= */
@@ -264,6 +269,25 @@ body.release-calendar-no-scroll {
   box-shadow: 0 0 0 1px var(--color-point);
 }
 
+/* 공휴일 셀은 실제 달력처럼 옅은 붉은 톤으로 구분해 눈에 띄게 합니다. */
+.release-calendar-cell--holiday {
+  border-color: rgba(255, 90, 90, 0.35);
+  background: linear-gradient(180deg, rgba(255, 90, 90, 0.08), var(--color-bg2) 45%);
+}
+
+.release-calendar-cell--holiday.release-calendar-cell--has-content {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 90, 90, 0.08),
+    rgba(94, 163, 255, 0.06) 55%,
+    var(--color-bg2) 90%
+  );
+}
+
+.release-calendar-cell--holiday.release-calendar-cell--today {
+  box-shadow: 0 0 0 1px var(--color-point), inset 0 0 0 1px rgba(255, 90, 90, 0.4);
+}
+
 /* 모바일에서만 보이는 "N개" 배지. 데스크톱에서는 숨기고
    포스터 미리보기를 그대로 노출한다. */
 .release-calendar-cell-count {
@@ -275,6 +299,15 @@ body.release-calendar-no-scroll {
 .release-calendar-cell--has-content:focus-visible {
   outline: 2px solid var(--color-point);
   outline-offset: 2px;
+}
+
+/* 날짜 숫자와 공휴일 명칭을 한 줄에 나란히 배치하는 컨테이너입니다. */
+.release-calendar-date-row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  min-width: 0;
 }
 
 .release-calendar-date {
@@ -291,6 +324,27 @@ body.release-calendar-no-scroll {
 
 .release-calendar-cell--sat .release-calendar-date {
   color: #7fb2ff;
+}
+
+/* 공휴일 날짜 숫자는 요일 색상보다 우선해 항상 빨간색으로 표시합니다. */
+.release-calendar-date--holiday {
+  color: #ff5a5a;
+}
+
+.release-calendar-date--holiday .release-calendar-date-badge {
+  background: #ff5a5a;
+}
+
+/* 데스크톱에서만 공휴일 이름을 날짜 옆에 짧게 보여줍니다. */
+.release-calendar-holiday-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #ff5a5a;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .release-calendar-date-badge {
@@ -601,6 +655,11 @@ body.release-calendar-no-scroll {
 
   .release-calendar-content-list,
   .release-calendar-more {
+    display: none;
+  }
+
+  /* 모바일의 좁은 셀에서는 공휴일 이름 대신 빨간 날짜 숫자로만 표시합니다. */
+  .release-calendar-holiday-name {
     display: none;
   }
 
