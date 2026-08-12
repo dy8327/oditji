@@ -17,6 +17,7 @@ import com.project.oditji.content.service.ContentService;
 import com.project.oditji.content.vo.ContentVO;
 import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.goods.service.GoodsService;
+import com.project.oditji.holiday.service.HolidayService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.review.service.ReviewService;
 import com.project.oditji.tmdb.dao.TmdbDAO;
@@ -42,7 +43,8 @@ class ContentControllerResidualInputCoverageTest {
                 mock(FavoriteService.class),
                 mock(TmdbDAO.class),
                 verifyService,
-                goodsService);
+                goodsService,
+                mock(HolidayService.class));
     }
 
     @Test
