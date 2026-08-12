@@ -736,6 +736,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /*
+   * =========================================================
+   * 회원가입 검증 오류 안내
+   *
+   * SweetAlert2는 기본적으로 알림을 닫은 뒤 알림을 열기 전에
+   * 포커스되어 있던 요소(대부분 회원가입 버튼)로 포커스를 되돌린다.
+   * 이 동작 때문에 오류 입력칸으로 이동한 뒤 다시 회원가입 버튼으로
+   * 화면이 내려가는 현상이 발생하므로 회원가입 검증 알림에서만
+   * returnFocus를 비활성화한다.
+   * =========================================================
+   */
+  async function showJoinValidationAlert(message, targetId) {
+    const target = document.getElementById(targetId);
+
+    if (target) {
+      const scrollTarget = target.closest(".form-group") || target;
+
+      scrollTarget.scrollIntoView({
+        behavior: "auto",
+        block: "center",
+      });
+
+      if (target.matches("input:not([type='file']), select, textarea, button")) {
+        target.focus({ preventScroll: true });
+      }
+    }
+
+    await Swal.fire({
+      icon: "warning",
+      text: message,
+      confirmButtonText: "확인",
+      returnFocus: false,
+    });
+
+    if (target && target.matches("input:not([type='file']), select, textarea, button")) {
+      target.focus({ preventScroll: true });
+    }
+  }
+
   /* 최종 회원가입 유효성 검사*/
   async function validateJoin() {
     const currentJoinType = joinType ? joinType.value : "USER";
@@ -751,32 +790,27 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ---------- 공통 필드 검증 (일반/사업자 동일) ---------- */
 
     if (!regex.id.test(idValue)) {
-      await showAlert("아이디는 5~12자의 소문자/숫자만 가능합니다.", "warning");
-      focusInput("memberId");
+      await showJoinValidationAlert("아이디는 5~12자의 소문자/숫자만 가능합니다.", "memberId");
       return false;
     }
 
     if (!idChecked || checkedIdValue !== idValue) {
-      await showAlert("아이디 중복확인을 해주세요.", "warning");
-      focusInput("memberId");
+      await showJoinValidationAlert("아이디 중복확인을 해주세요.", "memberId");
       return false;
     }
 
     if (!regex.pw.test(pwValue)) {
-      await showAlert("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.", "warning");
-      focusInput("memberPw");
+      await showJoinValidationAlert("비밀번호는 8~20자이며 영문, 숫자, 특수문자를 모두 포함해야 합니다.", "memberPw");
       return false;
     }
 
     if (pwValue !== pwCheckValue) {
-      await showAlert("비밀번호가 일치하지 않습니다.", "warning");
-      focusInput("memberPwCheck");
+      await showJoinValidationAlert("비밀번호가 일치하지 않습니다.", "memberPwCheck");
       return false;
     }
 
     if (!regex.email.test(emailValue)) {
-      await showAlert("이메일 형식이 올바르지 않습니다.", "warning");
-      focusInput("email");
+      await showJoinValidationAlert("이메일 형식이 올바르지 않습니다.", "email");
       return false;
     }
 
@@ -789,15 +823,13 @@ document.addEventListener("DOMContentLoaded", () => {
      * =========================================================
      */
     if (!emailChecked || checkedEmailValue !== emailValue) {
-      await showAlert("이메일 중복확인을 해주세요.", "warning");
-      focusInput("email");
+      await showJoinValidationAlert("이메일 중복확인을 해주세요.", "email");
       return false;
     }
 
     /* 일반회원은 전화번호 필수 */
     if (!isBusinessJoin && (phoneValue === "" || phoneValue === "010-")) {
-      await showAlert("전화번호를 입력해주세요.", "warning");
-      focusInput("phone");
+      await showJoinValidationAlert("전화번호를 입력해주세요.", "phone");
       return false;
     }
 
@@ -806,8 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
       phone.value = "";
     } else if (phoneValue !== "" && !regex.phone.test(phoneValue)) {
       phone.value = "";
-      await showAlert("전화번호는 010-1234-5678 형식으로 입력해주세요.", "warning");
-      focusInput("phone");
+      await showJoinValidationAlert("전화번호는 010-1234-5678 형식으로 입력해주세요.", "phone");
       return false;
     }
 
@@ -828,24 +859,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 이름 */
     if (nameValue.length < 2) {
-      await showAlert("이름은 2자 이상 입력해주세요.", "warning");
-      focusInput("memberName");
+      await showJoinValidationAlert("이름은 2자 이상 입력해주세요.", "memberName");
 
       return false;
     }
 
     /* 닉네임 */
     if (!regex.nick.test(nicknameValue)) {
-      await showAlert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.", "warning");
-      focusInput("nickname");
+      await showJoinValidationAlert("닉네임은 2~10자의 한글/영문/숫자만 가능합니다.", "nickname");
 
       return false;
     }
 
     /* 닉네임 중복확인 */
     if (!nicknameChecked || checkedNicknameValue !== nicknameValue) {
-      await showAlert("닉네임 중복확인을 해주세요.", "warning");
-      focusInput("nickname");
+      await showJoinValidationAlert("닉네임 중복확인을 해주세요.", "nickname");
 
       return false;
     }
@@ -863,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * 실제 OTT 또는 OTT 없음 중 하나는 반드시 선택한다.
      */
     if (ottCount < 1 && !noOttSelected) {
-      await showAlert("사용 중인 OTT를 선택하거나 OTT 없음을 선택해주세요.", "warning");
+      await showJoinValidationAlert("사용 중인 OTT를 선택하거나 OTT 없음을 선택해주세요.", "noOtt");
       return false;
     }
 
@@ -890,55 +918,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 상호명 */
     if (!businessName || businessName.value.trim().length === 0) {
-      await showAlert("상호명을 입력해주세요.", "warning");
-      focusInput("businessName");
+      await showJoinValidationAlert("상호명을 입력해주세요.", "businessName");
 
       return false;
     }
 
     /* 대표자명 */
     if (!representativeName || representativeName.value.trim().length === 0) {
-      await showAlert("대표자명을 입력해주세요.", "warning");
-      focusInput("representativeName");
+      await showJoinValidationAlert("대표자명을 입력해주세요.", "representativeName");
 
       return false;
     }
 
     /* 개업일 */
     if (!openDate || !regex.openDate.test(openDate.value.trim())) {
-      await showAlert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.", "warning");
-      focusInput("openDate");
+      await showJoinValidationAlert("개업일은 YYYYMMDD 형식의 숫자 8자리로 입력해주세요.", "openDate");
 
       return false;
     }
 
     /* 사업자등록번호 */
     if (!regex.businessNumber.test(businessNumberValue)) {
-      await showAlert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.", "warning");
-      focusInput("businessNumber");
+      await showJoinValidationAlert("사업자등록번호는 000-00-00000 형식으로 입력해주세요.", "businessNumber");
 
       return false;
     }
 
     /* 사업자번호 중복 확인 */
     if (!businessNumberChecked || checkedBusinessNumberValue !== businessNumberValue) {
-      await showAlert("사업자등록번호 중복확인을 해주세요.", "warning");
-      focusInput("businessNumber");
+      await showJoinValidationAlert("사업자등록번호 중복확인을 해주세요.", "businessNumber");
 
       return false;
     }
 
     /* 국세청 사업자 진위확인 */
     if (!businessVerified || verifiedBusinessNumber !== businessNumberValue || verifiedRepresentativeName !== representativeName.value.trim() || verifiedOpenDate !== openDate.value.trim()) {
-      await showAlert("사업자 정보 인증을 완료해주세요.", "warning");
+      await showJoinValidationAlert("사업자 정보 인증을 완료해주세요.", "verifyBusinessBtn");
 
       return false;
     }
 
     /* 사업자등록증 */
     if (!licenseFile || licenseFile.files.length === 0) {
-      await showAlert("사업자등록증을 첨부해주세요.", "warning");
-      focusInput("licenseFile");
+      await showJoinValidationAlert("사업자등록증을 첨부해주세요.", "licenseFile");
 
       return false;
     }
@@ -949,31 +971,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
 
     if (!allowedExtensions.includes(extension)) {
-      await showAlert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.", "warning");
+      await showJoinValidationAlert("사업자등록증은 PDF, JPG, JPEG, PNG 파일만 등록할 수 있습니다.", "licenseFile");
 
       return false;
     }
 
     /* 은행명 */
     if (!bankName || bankName.value.trim().length === 0) {
-      await showAlert("은행명을 입력해주세요.", "warning");
-      focusInput("bankName");
+      await showJoinValidationAlert("은행명을 입력해주세요.", "bankName");
 
       return false;
     }
 
     /* 계좌번호 */
     if (!accountNumber || accountNumber.value.trim().length === 0) {
-      await showAlert("계좌번호를 입력해주세요.", "warning");
-      focusInput("accountNumber");
+      await showJoinValidationAlert("계좌번호를 입력해주세요.", "accountNumber");
 
       return false;
     }
 
     /* 예금주 */
     if (!accountHolder || accountHolder.value.trim().length === 0) {
-      await showAlert("예금주를 입력해주세요.", "warning");
-      focusInput("accountHolder");
+      await showJoinValidationAlert("예금주를 입력해주세요.", "accountHolder");
 
       return false;
     }
