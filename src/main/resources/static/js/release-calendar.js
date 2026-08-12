@@ -78,6 +78,13 @@
             openPopover.style.top = "";
             openPopover.style.left = "";
 
+            // [SonarQube 접근성] native <dialog>의 open 상태도 함께 정리한다.
+            if (typeof openPopover.close === "function" && openPopover.open) {
+                openPopover.close();
+            } else {
+                openPopover.removeAttribute("open");
+            }
+
             if (backdrop) {
                 backdrop.classList.remove("is-open");
             }
@@ -145,6 +152,14 @@
 
             if (isCurrentlyOpen) {
                 return;
+            }
+
+            // [SonarQube 접근성] native <dialog>을 비모달 방식으로 연 뒤
+            // 기존 데스크톱 앵커/모바일 중앙 배치 스타일을 그대로 적용한다.
+            if (typeof popover.show === "function" && !popover.open) {
+                popover.show();
+            } else if (!popover.hasAttribute("open")) {
+                popover.setAttribute("open", "");
             }
 
             positionPopoverNearTrigger(trigger, popover);

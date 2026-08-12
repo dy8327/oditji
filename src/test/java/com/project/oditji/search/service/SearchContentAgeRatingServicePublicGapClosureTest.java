@@ -1,7 +1,6 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -72,8 +71,8 @@ class SearchContentAgeRatingServicePublicGapClosureTest {
 
         assertEquals("청소년 관람불가", adult.getAgeRating());
         assertEquals("등급 정보 없음", unknown.getAgeRating());
-        assertTrue(Boolean.TRUE.equals(adult.getAgeRatingRestrictionChecked()));
-        assertTrue(Boolean.TRUE.equals(unknown.getAgeRatingRestrictionChecked()));
+        assertEquals(Boolean.TRUE, adult.getAgeRatingRestrictionChecked());
+        assertEquals(Boolean.TRUE, unknown.getAgeRatingRestrictionChecked());
     }
 
     private CachedContentVO content(Long tmdbId, String type, String ageRating) {

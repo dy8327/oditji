@@ -259,12 +259,12 @@
                              모바일에서는 날짜 셀 자체를 탭하는 것이 이 패널을 엽니다
                              (release-calendar.js). 모바일에서는 CSS로 화면 중앙 모달처럼
                              보이도록 스타일이 바뀝니다. --%>
-                        <div class="release-calendar-popover"
-                             id="releaseCalendarPopover-${day}"
-                             role="dialog"
-                             aria-modal="true"
-                             aria-labelledby="releaseCalendarPopoverTitle-${day}"
-                             data-calendar-popover>
+                        <%-- [SonarQube 접근성] role="dialog"을 부여한 div 대신
+                             브라우저 기본 대화상자 의미를 제공하는 native dialog 요소를 사용합니다. --%>
+                        <dialog class="release-calendar-popover"
+                                id="releaseCalendarPopover-${day}"
+                                aria-labelledby="releaseCalendarPopoverTitle-${day}"
+                                data-calendar-popover>
 
                             <div class="release-calendar-popover-header">
 
@@ -315,7 +315,7 @@
 
                             </ul>
 
-                        </div>
+                        </dialog>
 
                     </c:if>
 
