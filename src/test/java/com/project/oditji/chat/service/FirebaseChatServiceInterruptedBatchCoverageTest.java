@@ -61,13 +61,16 @@ class FirebaseChatServiceInterruptedBatchCoverageTest {
         noticeRoom.setRoomType("NOTICE");
         noticeRoom.setMaxMember(100);
 
+        List<ChatRoomVO> roomList = List.of(noticeRoom);
+        List<ChatRoomVO> joinedRoomList = List.of();
+
         Thread.currentThread().interrupt();
 
         IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
                 () -> service.synchronizeCurrentUser(
-                        List.of(noticeRoom),
-                        List.of(),
+                        roomList,
+                        joinedRoomList,
                         10L,
                         20,
                         "ADMIN",
