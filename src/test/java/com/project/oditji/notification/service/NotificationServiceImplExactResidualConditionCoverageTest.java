@@ -54,7 +54,7 @@ class NotificationServiceImplExactResidualConditionCoverageTest {
                 null,
                 null);
 
-        verify(notificationDAO, never()).insertBusinessNotification(anyLong(), any());
+        verify(notificationDAO, never()).insertBusinessNotification(anyLong(), any(), any());
         verify(notificationDAO, never()).selectProductOwnerMemberNo(anyLong());
         verify(notificationDAO, never()).selectEventOwnerMemberNo(anyLong());
     }
