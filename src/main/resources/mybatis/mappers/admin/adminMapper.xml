@@ -328,6 +328,30 @@
         WHERE MEMBER_NO = #{memberNo}
     </delete>
 
+    <!-- 17-1. SUBSCRIPTION_RESULT: 회원이 저장한 OTT 구독 조합 계산 결과 -->
+    <delete id="adminDeleteSubscriptionResultByMember" parameterType="long">
+        DELETE FROM SUBSCRIPTION_RESULT
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 17-2. NOTIFICATION_SETTING: 회원의 알림 수신 설정 -->
+    <delete id="adminDeleteNotificationSettingByMember" parameterType="long">
+        DELETE FROM NOTIFICATION_SETTING
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 17-4. SEARCH_KEYWORD_HISTORY: 회원의 검색 키워드 이력 -->
+    <delete id="adminDeleteSearchKeywordHistoryByMember" parameterType="long">
+        DELETE FROM SEARCH_KEYWORD_HISTORY
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!--
+        NOTIFICATION.RECEIVER_MEMBER_NO는 FK(FK_NOTIFICATION_MEMBER)가
+        ON DELETE CASCADE로 걸려 있어 MEMBER 삭제 시 자동으로 함께 삭제되므로
+        별도 삭제문이 필요 없다. (IDENTITY_VERIFY_LOG의 SET NULL 케이스와 동일한 이유)
+    -->
+
     <!--
         IDENTITY_VERIFY_LOG.MEMBER_NO는 FK가 ON DELETE SET NULL로 걸려 있어
         MEMBER 삭제 시 자동으로 NULL 처리되므로 별도 삭제문이 필요 없다.
