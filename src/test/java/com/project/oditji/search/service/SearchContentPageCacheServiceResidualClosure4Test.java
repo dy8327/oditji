@@ -67,7 +67,7 @@ class SearchContentPageCacheServiceResidualClosure4Test {
     @Test
     void appendReleasedAndAllContentShouldCoverGuardDateAndLimitBranches() {
         LocalDate start = LocalDate.of(2026, Month.AUGUST, 1);
-        LocalDate end = LocalDate.of(2026, 8, 31);
+        LocalDate end = LocalDate.of(2026, Month.AUGUST, 31);
 
         Map<String, SearchResultVO> full = new LinkedHashMap<>();
         full.put("MOVIE:99", result(99L, start));
