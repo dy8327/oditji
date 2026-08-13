@@ -1,9 +1,8 @@
 package com.project.oditji.member.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,18 +91,22 @@ class MemberControllerResidualClosure3Test {
                 "isSameOrigin",
                 URI.create("https://localhost/path"),
                 request);
-        assertTrue(Boolean.TRUE.equals(sameHttps));
+        assertEquals(Boolean.TRUE, sameHttps);
 
         when(request.getServerPort()).thenReturn(80);
         Boolean differentPort = invoke(
                 "isSameOrigin",
                 URI.create("https://localhost/path"),
                 request);
-        assertFalse(Boolean.TRUE.equals(differentPort));
+        assertNotEquals(Boolean.TRUE, differentPort);
 
-        assertTrue(Boolean.TRUE.equals(invoke("isAllowedBusinessLicenseExtension", ".pdf")));
-        assertTrue(Boolean.TRUE.equals(invoke("isAllowedBusinessLicenseExtension", ".png")));
-        assertFalse(Boolean.TRUE.equals(invoke("isAllowedBusinessLicenseExtension", ".gif")));
+        // [SonarQube] boolean 비교식을 assertTrue/assertFalse로 감싸지 않고 실제값을 직접 검증합니다.
+        Boolean pdfAllowed = invoke("isAllowedBusinessLicenseExtension", ".pdf");
+        Boolean pngAllowed = invoke("isAllowedBusinessLicenseExtension", ".png");
+        Boolean gifAllowed = invoke("isAllowedBusinessLicenseExtension", ".gif");
+        assertEquals(Boolean.TRUE, pdfAllowed);
+        assertEquals(Boolean.TRUE, pngAllowed);
+        assertNotEquals(Boolean.TRUE, gifAllowed);
     }
 
     @SuppressWarnings("unchecked")

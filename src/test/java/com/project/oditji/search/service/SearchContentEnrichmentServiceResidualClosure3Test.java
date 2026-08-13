@@ -1,9 +1,8 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -47,9 +46,13 @@ class SearchContentEnrichmentServiceResidualClosure3Test {
 
     @Test
     void scalarAndTextHelpersShouldCoverNullBlankAndPresentInputs() {
-        assertFalse(Boolean.TRUE.equals(invoke("hasText", (Object) null)));
-        assertFalse(Boolean.TRUE.equals(invoke("hasText", "   ")));
-        assertTrue(Boolean.TRUE.equals(invoke("hasText", "value")));
+        // [SonarQube] boolean 비교식을 assertTrue/assertFalse로 감싸지 않고 실제값을 직접 검증합니다.
+        Boolean nullHasText = invoke("hasText", (Object) null);
+        Boolean blankHasText = invoke("hasText", "   ");
+        Boolean valueHasText = invoke("hasText", "value");
+        assertNotEquals(Boolean.TRUE, nullHasText);
+        assertNotEquals(Boolean.TRUE, blankHasText);
+        assertEquals(Boolean.TRUE, valueHasText);
 
         assertEquals("", invoke("safeText", (Object) null));
         assertEquals("value", invoke("safeText", "value"));

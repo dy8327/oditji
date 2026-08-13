@@ -1,8 +1,8 @@
 package com.project.oditji.search.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -67,7 +67,8 @@ class SearchContentAgeRatingServiceResidualClosure3Test {
                 service,
                 "isRestrictionRecheckTarget",
                 checked);
-        assertFalse(Boolean.TRUE.equals(restrictedTarget));
+        // [SonarQube] 비교식 대신 기대값과 실제값을 직접 비교합니다.
+        assertNotEquals(Boolean.TRUE, restrictedTarget);
 
         assertNull(ReflectionTestUtils.invokeMethod(
                 service,
@@ -85,7 +86,7 @@ class SearchContentAgeRatingServiceResidualClosure3Test {
                 "limitAgeRatingTargets",
                 new ArrayList<CachedContentVO>(List.of(checked)),
                 1);
-        assertTrue(same.size() == 1);
+        assertEquals(1, same.size());
     }
 
     private CachedContentVO content(Long tmdbId, String type, String ageRating) {
