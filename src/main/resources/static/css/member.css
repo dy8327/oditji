@@ -1,4 +1,150 @@
 /* =========================================================
+   TOKENS (라이트/다크모드 리팩터링 - 신규 :root 변수 블록)
+========================================================= */
+:root {
+  /* 기본 배경 */
+  --member-bg-deep: #181818;
+  --member-bg-deep-2: #1f1f1f;
+  --member-bg-panel: #262626;
+  --member-bg-card: #2a2a2a;
+  --member-bg-card-alt: #232323;
+  --member-bg-input: #343434;
+  --member-bg-input-alt: #2c2c2c;
+  --member-bg-list: #1e1e1e;
+  --member-bg-option: #2b2b2b;
+  --member-option-hover-bg: #333333;
+  --member-gray-333: #333;
+  --member-chip-hover-bg: #444;
+  --member-btn-cta-bg: #2f2f2f;
+  --member-confirm-bg: #fff;
+  --member-confirm-input-border: #ccc;
+  --member-confirm-cancel-bg: #eee;
+
+  /* 테두리 / 라인 */
+  --member-card-border: #3f3f3f;
+  --member-border-soft: #4a4a4a;
+  --member-border-input-alt: #454545;
+  --member-line: #3a3a3a;
+
+  /* 텍스트 */
+  --member-white: #ffffff;
+  --member-card-text: #f5f5f5;
+  --member-label-text: #cfcfcf;
+  --member-btn-text: #ededed;
+  --member-text-placeholder: #8a8a8a;
+  --member-text-placeholder-alt: #7d7d7d;
+  --member-text-secondary: #d1d1d1;
+  --member-text-desc: #b8b8b8;
+  --member-text-dim: #5a5a5a;
+  --member-text-hint: #757575;
+  --member-text-faint: #9a9a9a;
+  --member-confirm-text: #555;
+  --member-confirm-restore-text: #575757;
+  --member-required-mark: #ff6b6b;
+  --member-optional-mark: #9d9d9d;
+  --member-toggle-text: #bdbdbd;
+  --member-error-text-alt: #ef4444;
+
+  /* 포인트 블루 / 포커스 */
+  --member-focus-blue: #3b82f6;
+  --member-focus-blue-a14: rgba(59, 130, 246, 0.14);
+  --member-focus-blue-a15: rgba(59, 130, 246, 0.15);
+  --member-focus-blue-a35: rgba(59, 130, 246, 0.35);
+  --member-focus-blue-a38: rgba(59, 130, 246, 0.38);
+  --member-point-blue: #1e6ff5;
+  --member-point-blue-hover: #2563eb;
+  --member-point-blue-light: #6ea8ff;
+  --member-point-blue-a12: rgba(30, 111, 245, 0.12);
+  --member-point-blue-a16: rgba(30, 111, 245, 0.16);
+
+  /* 브랜드 레드 (OTT 체크박스) */
+  --member-brand-red: #e50914;
+  --member-brand-red-active: #b20710;
+
+  /* 골드 (탭 강조) */
+  --member-gold: #f0c419;
+
+  /* 에러 (SNS OTT 선택 오류) */
+  --member-error-bg: rgba(255, 80, 80, 0.12);
+  --member-error-border: rgba(255, 80, 80, 0.4);
+  --member-error-text: #ff9b9b;
+
+  /* 인증/조회 안내 박스 (verification-notice / find-id-result) */
+  --member-info-bg: #242a35;
+  --member-info-border: #36527d;
+  --member-info-desc: #d9e6ff;
+  --member-info-help: #9aa7ba;
+  --member-success-text: #cfe0ff;
+
+  /* 흰색 오버레이 알파 단계 */
+  --member-overlay-04: rgba(255, 255, 255, 0.04);
+  --member-overlay-045: rgba(255, 255, 255, 0.045);
+  --member-overlay-06: rgba(255, 255, 255, 0.06);
+  --member-overlay-08: rgba(255, 255, 255, 0.08);
+  --member-overlay-12: rgba(255, 255, 255, 0.12);
+  --member-overlay-15: rgba(255, 255, 255, 0.15);
+  --member-overlay-16: rgba(255, 255, 255, 0.16);
+  --member-overlay-18: rgba(255, 255, 255, 0.18);
+  --member-overlay-19: rgba(255, 255, 255, 0.19);
+  --member-overlay-20: rgba(255, 255, 255, 0.2);
+  --member-overlay-30: rgba(255, 255, 255, 0.3);
+  --member-overlay-34: rgba(255, 255, 255, 0.34);
+  --member-overlay-38: rgba(255, 255, 255, 0.38);
+  --member-overlay-50: rgba(255, 255, 255, 0.5);
+  --member-overlay-55: rgba(255, 255, 255, 0.55);
+  --member-overlay-72: rgba(255, 255, 255, 0.72);
+  --member-overlay-85: rgba(255, 255, 255, 0.85);
+  --member-overlay-88: rgba(255, 255, 255, 0.88);
+  --member-overlay-90: rgba(255, 255, 255, 0.9);
+
+  /* 검정 그림자 알파 단계 */
+  --member-shadow-18: rgba(0, 0, 0, 0.18);
+  --member-shadow-20: rgba(0, 0, 0, 0.2);
+  --member-shadow-50: rgba(0, 0, 0, 0.5);
+  --member-shadow-55: rgba(0, 0, 0, 0.55);
+  --member-shadow-58: rgba(0, 0, 0, 0.58);
+
+  /* 그린 (성공/저장 액션) */
+  --member-success-a015: rgba(76, 175, 80, 0.015);
+  --member-success-a055: rgba(76, 175, 80, 0.055);
+  --member-success-a10: rgba(76, 175, 80, 0.1);
+  --member-success-a16: rgba(76, 175, 80, 0.16);
+  --member-success-a48: rgba(76, 175, 80, 0.48);
+  --member-success-a50: rgba(76, 175, 80, 0.5);
+  --member-success-a75: rgba(76, 175, 80, 0.75);
+  --member-success-icon: #53b957;
+  --member-save-btn-grad-1: #4caf50;
+  --member-save-btn-grad-2: #388e3c;
+  --member-save-btn-hover-1: #58b85c;
+  --member-save-btn-hover-2: #3f9743;
+
+  /* 회원정보 수정 모달 - 배경/그라디언트 */
+  --member-modal-bg-grad-1: rgba(24, 27, 31, 0.99);
+  --member-modal-bg-grad-2: rgba(9, 11, 13, 0.99);
+  --member-modal-label: #f0f1f2;
+  --member-modal-icon-grad-1: rgba(55, 58, 63, 0.78);
+  --member-modal-icon-grad-2: rgba(24, 26, 29, 0.92);
+  --member-modal-icon-text: #f4f5f5;
+  --member-input-bg-deep: rgba(5, 6, 7, 0.78);
+  --member-modal-input-text: #f3f4f5;
+  --member-modal-input-focus-bg: rgba(9, 11, 11, 0.94);
+
+  /* 회원정보 수정 모달 - 유리질감 버튼 (중복확인 / 비밀번호 토글 / 파일선택) */
+  --member-glass-btn-start: rgba(65, 67, 70, 0.94);
+  --member-glass-btn-end: rgba(42, 44, 47, 0.96);
+  --member-glass-btn-text: #f4f4f4;
+  --member-glass-btn-hover-start: rgba(76, 78, 82, 0.96);
+  --member-glass-btn-hover-end: rgba(50, 52, 55, 0.98);
+
+  /* 회원정보 수정 모달 - 취소 버튼 */
+  --member-cancel-btn-start: rgba(67, 69, 73, 0.96);
+  --member-cancel-btn-end: rgba(45, 47, 50, 0.98);
+  --member-cancel-btn-text: #f3f3f3;
+  --member-cancel-btn-hover-start: rgba(78, 80, 84, 0.98);
+  --member-cancel-btn-hover-end: rgba(52, 54, 57, 0.98);
+}
+
+/* =========================================================
    AUTH LAYOUT (LOGIN / JOIN)
 ========================================================= */
 
@@ -12,7 +158,7 @@
 
   padding: 80px 20px;
 
-  background: linear-gradient(180deg, #181818 0%, #1f1f1f 100%);
+  background: linear-gradient(180deg, var(--member-bg-deep) 0%, var(--member-bg-deep-2) 100%);
 }
 
 /* =========================================================
@@ -26,13 +172,13 @@
 
   border-radius: 16px;
 
-  background: #2a2a2a;
+  background: var(--member-bg-card);
 
-  border: 1px solid #3f3f3f;
+  border: 1px solid var(--member-card-border);
 
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 18px 45px var(--member-shadow-55);
 
-  color: #f5f5f5;
+  color: var(--member-card-text);
 }
 
 .auth-box.large {
@@ -52,7 +198,7 @@
 
   font-weight: 700;
 
-  color: #ffffff;
+  color: var(--member-white);
 
   letter-spacing: -0.3px;
 }
@@ -73,7 +219,7 @@
 
   margin-bottom: 6px;
 
-  color: #cfcfcf;
+  color: var(--member-label-text);
 }
 
 /* INPUT */
@@ -81,13 +227,13 @@
 .form-group input:not([type="checkbox"]) {
   padding: 12px 14px;
 
-  background: #343434;
+  background: var(--member-bg-input);
 
-  border: 1px solid #4a4a4a;
+  border: 1px solid var(--member-border-soft);
 
   border-radius: 10px;
 
-  color: #ffffff;
+  color: var(--member-white);
 
   font-size: 14px;
 
@@ -95,15 +241,15 @@
 }
 
 .form-group input:not([type="checkbox"])::placeholder {
-  color: #8a8a8a;
+  color: var(--member-text-placeholder);
 }
 
 /* FOCUS */
 
 .form-group input:focus {
-  border-color: #3b82f6;
+  border-color: var(--member-focus-blue);
 
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px var(--member-focus-blue-a15);
 }
 
 /* =========================================================
@@ -124,11 +270,11 @@
 
   border-radius: 10px;
 
-  background: #3a3a3a;
+  background: var(--member-line);
 
-  border: 1px solid #4a4a4a;
+  border: 1px solid var(--member-border-soft);
 
-  color: #ededed;
+  color: var(--member-btn-text);
 
   font-size: 12px;
 
@@ -138,7 +284,7 @@
 }
 
 .row button:hover {
-  background: #4a4a4a;
+  background: var(--member-border-soft);
 }
 
 /* =========================================================
@@ -158,7 +304,7 @@
 
   cursor: pointer;
 
-  background: #1e6ff5;
+  background: var(--member-point-blue);
 
   color: white;
 
@@ -170,7 +316,7 @@
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--member-point-blue-hover);
 }
 
 /* =========================================================
@@ -186,9 +332,9 @@
 
   padding: 14px;
 
-  background: #262626;
+  background: var(--member-bg-panel);
 
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--member-line);
 
   border-radius: 12px;
 }
@@ -206,9 +352,9 @@
 
   border-radius: 8px;
 
-  background: #333;
+  background: var(--member-gray-333);
 
-  color: #d1d1d1;
+  color: var(--member-text-secondary);
 
   font-size: 13px;
 
@@ -226,23 +372,23 @@
 
   margin: 0;
 
-  accent-color: #e50914;
+  accent-color: var(--member-brand-red);
 }
 
 .ott-box label:hover {
-  background: #444;
+  background: var(--member-chip-hover-bg);
 }
 
 .ott-box label:has(input:checked) {
-  background: #e50914;
+  background: var(--member-brand-red);
 
-  color: #fff;
+  color: var(--member-confirm-bg);
 
   font-weight: 600;
 }
 
 .ott-box label:has(input:checked):hover {
-  background: #b20710;
+  background: var(--member-brand-red-active);
 }
 
 .ott-box-logo {
@@ -254,7 +400,7 @@
 
   border-radius: 4px;
 
-  background: #ffffff;
+  background: var(--member-white);
 
   padding: 2px;
 
@@ -274,7 +420,7 @@
 
 .sns-ott-page {
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 0%, #262626 0%, #181818 65%);
+  background: radial-gradient(circle at 50% 0%, var(--member-bg-panel) 0%, var(--member-bg-deep) 65%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,11 +430,11 @@
 .sns-ott-container {
   width: 460px;
   padding: 40px 36px;
-  background: #232323;
-  border: 1px solid #343434;
+  background: var(--member-bg-card-alt);
+  border: 1px solid var(--member-bg-input);
   border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-  color: #ffffff;
+  box-shadow: 0 24px 60px var(--member-shadow-50);
+  color: var(--member-white);
 }
 
 /* 브랜드 로고 / 스텝 표시 */
@@ -303,8 +449,8 @@
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: #ffffff;
-  background: #1e6ff5;
+  color: var(--member-white);
+  background: var(--member-point-blue);
   padding: 5px 12px;
   border-radius: 8px;
 }
@@ -315,7 +461,7 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  color: #6ea8ff;
+  color: var(--member-point-blue-light);
   margin-bottom: 8px;
 }
 
@@ -329,7 +475,7 @@
 
 .sns-ott-desc {
   text-align: center;
-  color: #b8b8b8;
+  color: var(--member-text-desc);
   font-size: 13.5px;
   line-height: 1.6;
   margin: 0 0 28px;
@@ -339,9 +485,9 @@
   padding: 12px 14px;
   margin-bottom: 18px;
   border-radius: 10px;
-  background: rgba(255, 80, 80, 0.12);
-  border: 1px solid rgba(255, 80, 80, 0.4);
-  color: #ff9b9b;
+  background: var(--member-error-bg);
+  border: 1px solid var(--member-error-border);
+  color: var(--member-error-text);
   font-size: 13px;
 }
 
@@ -356,28 +502,28 @@
 .sns-ott-email-label {
   font-size: 12.5px;
   font-weight: 600;
-  color: #cfcfcf;
+  color: var(--member-label-text);
   margin-bottom: 7px;
 }
 
 .sns-ott-email-input {
   padding: 13px 14px;
-  background: #2c2c2c;
-  border: 1px solid #454545;
+  background: var(--member-bg-input-alt);
+  border: 1px solid var(--member-border-input-alt);
   border-radius: 10px;
-  color: #ffffff;
+  color: var(--member-white);
   font-size: 14px;
   transition: 0.2s;
 }
 
 .sns-ott-email-input::placeholder {
-  color: #7d7d7d;
+  color: var(--member-text-placeholder-alt);
 }
 
 .sns-ott-email-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--member-focus-blue);
+  box-shadow: 0 0 0 3px var(--member-focus-blue-a15);
 }
 
 /* 이메일 중복확인 */
@@ -396,9 +542,9 @@
   flex-shrink: 0;
   padding: 0 16px;
   border-radius: 10px;
-  background: #343434;
-  border: 1px solid #4a4a4a;
-  color: #ededed;
+  background: var(--member-bg-input);
+  border: 1px solid var(--member-border-soft);
+  color: var(--member-btn-text);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
@@ -406,7 +552,7 @@
 }
 
 .sns-ott-check-btn:hover {
-  background: #454545;
+  background: var(--member-border-input-alt);
 }
 
 .sns-ott-check-btn:disabled {
@@ -426,13 +572,13 @@
 .sns-ott-section-label {
   font-size: 12.5px;
   font-weight: 600;
-  color: #cfcfcf;
+  color: var(--member-label-text);
 }
 
 .sns-ott-count {
   font-size: 12px;
   font-weight: 600;
-  color: #6ea8ff;
+  color: var(--member-point-blue-light);
 }
 
 /* OTT 카드 리스트 */
@@ -443,15 +589,15 @@
   gap: 10px;
   padding: 16px;
   border-radius: 14px;
-  background: #1e1e1e;
-  border: 1px solid #343434;
+  background: var(--member-bg-list);
+  border: 1px solid var(--member-bg-input);
 }
 
 .sns-ott-option {
   position: relative;
   font-size: 13px;
   font-weight: 500;
-  color: #d1d1d1;
+  color: var(--member-text-secondary);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -460,21 +606,21 @@
   min-height: 66px;
   padding: 10px 6px;
   border-radius: 10px;
-  background: #2b2b2b;
-  border: 1px solid #3a3a3a;
+  background: var(--member-bg-option);
+  border: 1px solid var(--member-line);
   cursor: pointer;
   transition: 0.15s ease;
 }
 
 .sns-ott-option:hover {
-  background: #333333;
-  border-color: #4a4a4a;
+  background: var(--member-option-hover-bg);
+  border-color: var(--member-border-soft);
 }
 
 .sns-ott-option:has(input:checked) {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: #3b82f6;
-  color: #ffffff;
+  background: var(--member-focus-blue-a14);
+  border-color: var(--member-focus-blue);
+  color: var(--member-white);
 }
 
 .sns-ott-option input {
@@ -488,7 +634,7 @@
   height: 32px;
   object-fit: contain;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--member-white);
   padding: 4px;
 }
 
@@ -496,7 +642,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1.5px solid #5a5a5a;
+  border: 1.5px solid var(--member-text-dim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,16 +653,16 @@
   content: "";
   width: 8px;
   height: 5px;
-  border-left: 2px solid #ffffff;
-  border-bottom: 2px solid #ffffff;
+  border-left: 2px solid var(--member-white);
+  border-bottom: 2px solid var(--member-white);
   transform: rotate(-45deg) translateY(-1px);
   opacity: 0;
   transition: 0.15s ease;
 }
 
 .sns-ott-option:has(input:checked) .sns-ott-mark {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--member-focus-blue);
+  border-color: var(--member-focus-blue);
 }
 
 .sns-ott-option:has(input:checked) .sns-ott-mark::after {
@@ -546,7 +692,7 @@
 .sns-ott-hint {
   margin-top: 12px;
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--member-text-placeholder);
   text-align: center;
   line-height: 1.5;
 }
@@ -559,8 +705,8 @@
   margin-top: 28px;
   border: none;
   border-radius: 12px;
-  background: #1e6ff5;
-  color: #ffffff;
+  background: var(--member-point-blue);
+  color: var(--member-white);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -569,14 +715,14 @@
 }
 
 .sns-ott-submit-btn:hover {
-  background: #2563eb;
+  background: var(--member-point-blue-hover);
 }
 
 .sns-ott-footnote {
   margin-top: 14px;
   text-align: center;
   font-size: 11.5px;
-  color: #757575;
+  color: var(--member-text-hint);
 }
 
 @media (max-width: 520px) {
@@ -619,7 +765,7 @@
 
   padding-top: 14px;
 
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid var(--member-line);
 
   text-align: center;
 }
@@ -627,7 +773,7 @@
 .sns-title {
   font-size: 12px;
 
-  color: #9a9a9a;
+  color: var(--member-text-faint);
 
   margin-bottom: 12px;
 }
@@ -648,7 +794,7 @@
 
   display: inline-block;
 
-  border: 1px solid #4a4a4a;
+  border: 1px solid var(--member-border-soft);
 
   transition: 0.2s;
 }
@@ -668,23 +814,23 @@
 
   font-size: 13px;
 
-  color: #b8b8b8;
+  color: var(--member-text-desc);
 }
 
 .auth-links a {
-  color: #b8b8b8;
+  color: var(--member-text-desc);
 
   transition: 0.2s;
 }
 
 .auth-links a:hover {
-  color: #ffffff;
+  color: var(--member-white);
 }
 
 .auth-links span {
   margin: 0 10px;
 
-  color: #5a5a5a;
+  color: var(--member-text-dim);
 }
 
 /* =========================================================
@@ -696,7 +842,7 @@
 
   padding-top: 14px;
 
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid var(--member-line);
 
   text-align: center;
 }
@@ -704,7 +850,7 @@
 .cta-item {
   font-size: 13px;
 
-  color: #b8b8b8;
+  color: var(--member-text-desc);
 
   margin-bottom: 10px;
 }
@@ -716,11 +862,11 @@
 
   border-radius: 10px;
 
-  border: 1px solid #4a4a4a;
+  border: 1px solid var(--member-border-soft);
 
-  background: #2f2f2f;
+  background: var(--member-btn-cta-bg);
 
-  color: #ffffff;
+  color: var(--member-white);
 
   font-size: 13px;
 
@@ -728,7 +874,7 @@
 }
 
 .cta-btn:hover {
-  background: #3a3a3a;
+  background: var(--member-line);
 }
 
 /* =========================================================
@@ -738,7 +884,7 @@
 .error-text {
   font-size: 12px;
 
-  color: #ef4444;
+  color: var(--member-error-text-alt);
 
   margin-top: 6px;
 }
@@ -772,8 +918,8 @@
 
   padding: 10px 12px;
 
-  background: #343434;
-  border: 1px solid #4a4a4a;
+  background: var(--member-bg-input);
+  border: 1px solid var(--member-border-soft);
 
   border-radius: 10px;
 
@@ -795,10 +941,10 @@
 
   border-radius: 10px;
 
-  background: #3a3a3a;
-  border: 1px solid #4a4a4a;
+  background: var(--member-line);
+  border: 1px solid var(--member-border-soft);
 
-  color: #ededed;
+  color: var(--member-btn-text);
 
   font-size: 13px;
   font-weight: 500;
@@ -811,7 +957,7 @@
 }
 
 .file-label:hover {
-  background: #4a4a4a;
+  background: var(--member-border-soft);
 }
 
 .file-name {
@@ -822,7 +968,7 @@
 
   font-size: 13px;
 
-  color: #b8b8b8;
+  color: var(--member-text-desc);
 
   line-height: 1;
 
@@ -834,7 +980,7 @@
 .join-tab-menu {
   display: flex;
   margin-bottom: 24px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 2px solid var(--member-overlay-15);
 }
 .join-tab-btn {
   flex: 1;
@@ -845,7 +991,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--member-overlay-55);
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   transition:
@@ -853,11 +999,11 @@
     border-color 0.15s ease;
 }
 .join-tab-btn:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--member-overlay-85);
 }
 .join-tab-btn.active {
-  color: #f0c419;
-  border-bottom: 2px solid #f0c419;
+  color: var(--member-gold);
+  border-bottom: 2px solid var(--member-gold);
 }
 
 /* =========================================================
@@ -870,8 +1016,8 @@
   font-weight: 700;
   margin: 28px 0 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid var(--member-overlay-12);
+  color: var(--member-overlay-90);
 }
 
 .join-section-title.no-border {
@@ -895,7 +1041,7 @@
 .join-section-title .required-info {
   font-size: 11px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--member-overlay-50);
   white-space: nowrap;
 }
 
@@ -913,7 +1059,7 @@
 }
 .form-hint {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--member-overlay-50);
   margin-top: 4px;
 }
 
@@ -924,7 +1070,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--member-shadow-50);
   z-index: 1000;
   align-items: center;
   justify-content: center;
@@ -935,12 +1081,12 @@
 }
 
 .oditji-modal-box {
-  background: #fff;
+  background: var(--member-confirm-bg);
   border-radius: 8px;
   padding: 24px;
   width: 320px;
   max-width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--member-shadow-20);
 }
 
 .oditji-modal-box h3 {
@@ -950,7 +1096,7 @@
 
 .oditji-modal-box p {
   font-size: 13px;
-  color: #555;
+  color: var(--member-confirm-text);
   line-height: 1.5;
   margin-bottom: 14px;
 }
@@ -959,7 +1105,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--member-confirm-input-border);
   border-radius: 4px;
   margin-bottom: 14px;
   font-size: 14px;
@@ -980,19 +1126,19 @@
 }
 
 .oditji-btn-cancel {
-  background: #eee;
-  color: #333;
+  background: var(--member-confirm-cancel-bg);
+  color: var(--member-gray-333);
 }
 
 .oditji-btn-restore {
-  background: #cfcfcf;
+  background: var(--member-label-text);
   /* [수정] 흰 글자 on #cfcfcf 는 대비 약 1.56:1로 매우 부족해 어두운 글자로 교체 */
-  color: #575757;
+  color: var(--member-confirm-restore-text);
   cursor: not-allowed;
 }
 
 .oditji-btn-restore.enabled {
-  background: #333;
+  background: var(--member-gray-333);
   cursor: pointer;
 }
 
@@ -1001,13 +1147,13 @@
 ========================================================= */
 .required-mark {
   margin-left: 3px;
-  color: #ff6b6b;
+  color: var(--member-required-mark);
   font-weight: 700;
 }
 
 .optional-mark {
   margin-left: 4px;
-  color: #9d9d9d;
+  color: var(--member-optional-mark);
   font-size: 12px;
   font-weight: 400;
 }
@@ -1042,18 +1188,18 @@
   border-radius: 6px;
   background: transparent;
 
-  color: #bdbdbd;
+  color: var(--member-toggle-text);
   font-size: 12px;
   cursor: pointer;
 }
 
 .password-toggle-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--member-white);
+  background: var(--member-overlay-08);
 }
 
 .password-toggle-btn:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--member-focus-blue);
   outline-offset: 1px;
 }
 
@@ -1070,8 +1216,8 @@
   margin-bottom: 22px;
   padding: 16px;
 
-  background: #242a35;
-  border: 1px solid #36527d;
+  background: var(--member-info-bg);
+  border: 1px solid var(--member-info-border);
   border-radius: 12px;
 }
 
@@ -1085,8 +1231,8 @@
   justify-content: center;
 
   border-radius: 50%;
-  background: #1e6ff5;
-  color: #ffffff;
+  background: var(--member-point-blue);
+  color: var(--member-white);
 
   font-size: 17px;
   font-weight: 700;
@@ -1100,7 +1246,7 @@
   display: block;
   margin-bottom: 5px;
 
-  color: #ffffff;
+  color: var(--member-white);
   font-size: 14px;
   font-weight: 700;
 }
@@ -1108,21 +1254,21 @@
 .verification-notice-description {
   margin: 0 0 5px;
 
-  color: #d9e6ff;
+  color: var(--member-info-desc);
   font-size: 14px;
   line-height: 1.6;
   word-break: break-word;
 }
 
 .verification-notice-description strong {
-  color: #ffffff;
+  color: var(--member-white);
   font-weight: 700;
 }
 
 .verification-notice-help {
   display: block;
 
-  color: #9aa7ba;
+  color: var(--member-info-help);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -1133,10 +1279,10 @@
   padding: 11px 13px;
 
   border-radius: 10px;
-  background: rgba(30, 111, 245, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: var(--member-point-blue-a12);
+  border: 1px solid var(--member-focus-blue-a35);
 
-  color: #cfe0ff;
+  color: var(--member-success-text);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1154,8 +1300,8 @@
   margin-top: 18px;
   padding: 16px;
 
-  background: #242a35;
-  border: 1px solid #36527d;
+  background: var(--member-info-bg);
+  border: 1px solid var(--member-info-border);
   border-radius: 12px;
 }
 
@@ -1169,8 +1315,8 @@
   justify-content: center;
 
   border-radius: 50%;
-  background: #1e6ff5;
-  color: #ffffff;
+  background: var(--member-point-blue);
+  color: var(--member-white);
 
   font-size: 17px;
   font-weight: 700;
@@ -1185,7 +1331,7 @@
   display: block;
   margin-bottom: 5px;
 
-  color: #ffffff;
+  color: var(--member-white);
   font-size: 14px;
   font-weight: 700;
 }
@@ -1193,7 +1339,7 @@
 .find-id-result-description {
   margin: 0 0 10px;
 
-  color: #d9e6ff;
+  color: var(--member-info-desc);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -1207,10 +1353,10 @@
   padding: 10px 12px;
 
   border-radius: 9px;
-  background: rgba(30, 111, 245, 0.16);
-  border: 1px solid rgba(59, 130, 246, 0.38);
+  background: var(--member-point-blue-a16);
+  border: 1px solid var(--member-focus-blue-a38);
 
-  color: #ffffff;
+  color: var(--member-white);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.4;
@@ -1221,7 +1367,7 @@
 .find-id-result-help {
   display: block;
 
-  color: #9aa7ba;
+  color: var(--member-info-help);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -1242,14 +1388,14 @@
 
   padding: 34px 38px 32px;
 
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--member-overlay-18);
   border-radius: 18px;
 
-  background: radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.045), transparent 32%), linear-gradient(145deg, rgba(24, 27, 31, 0.99), rgba(9, 11, 13, 0.99));
+  background: radial-gradient(circle at 82% 12%, var(--member-overlay-045), transparent 32%), linear-gradient(145deg, var(--member-modal-bg-grad-1), var(--member-modal-bg-grad-2));
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 22px 60px rgba(0, 0, 0, 0.58);
+    inset 0 1px 0 var(--member-overlay-04),
+    0 22px 60px var(--member-shadow-58);
 }
 
 /* =========================================================
@@ -1259,13 +1405,13 @@
   margin-bottom: 30px;
   padding-bottom: 22px;
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid var(--member-overlay-16);
 }
 
 #memberModal .member-update-header h2 {
   margin: 0;
 
-  color: #f5f5f5;
+  color: var(--member-card-text);
 
   font-size: 25px;
   font-weight: 700;
@@ -1303,7 +1449,7 @@
 #memberModal .member-update-label label {
   margin: 0;
 
-  color: #f0f1f2;
+  color: var(--member-modal-label);
 
   font-size: 16px;
   font-weight: 600;
@@ -1325,16 +1471,16 @@
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--member-overlay-16);
   border-radius: 50%;
 
-  background: linear-gradient(145deg, rgba(55, 58, 63, 0.78), rgba(24, 26, 29, 0.92));
+  background: linear-gradient(145deg, var(--member-modal-icon-grad-1), var(--member-modal-icon-grad-2));
 
-  color: #f4f5f5;
+  color: var(--member-modal-icon-text);
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 7px 18px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 var(--member-overlay-06),
+    0 7px 18px var(--member-shadow-18);
 }
 
 #memberModal .member-update-icon svg {
@@ -1362,14 +1508,14 @@
 
   padding: 0 16px;
 
-  border: 1px solid rgba(255, 255, 255, 0.19);
+  border: 1px solid var(--member-overlay-19);
   border-radius: 9px;
 
   outline: none;
 
-  background: rgba(5, 6, 7, 0.78);
+  background: var(--member-input-bg-deep);
 
-  color: #f3f4f5;
+  color: var(--member-modal-input-text);
 
   font-size: 15px;
 
@@ -1382,15 +1528,15 @@
 #memberModal .member-update-field input[type="text"]:focus,
 #memberModal .member-update-field input[type="email"]:focus,
 #memberModal .member-update-field input[type="password"]:focus {
-  border-color: rgba(76, 175, 80, 0.75);
+  border-color: var(--member-success-a75);
 
-  background: rgba(9, 11, 11, 0.94);
+  background: var(--member-modal-input-focus-bg);
 
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+  box-shadow: 0 0 0 3px var(--member-success-a10);
 }
 
 #memberModal .member-update-field input::placeholder {
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--member-overlay-38);
 }
 
 /* =========================================================
@@ -1411,12 +1557,12 @@
 
   padding: 0 12px;
 
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--member-overlay-18);
   border-radius: 9px;
 
-  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+  background: linear-gradient(180deg, var(--member-glass-btn-start), var(--member-glass-btn-end));
 
-  color: #f4f4f4;
+  color: var(--member-glass-btn-text);
 
   font-size: 13px;
   font-weight: 600;
@@ -1430,9 +1576,9 @@
 }
 
 #memberModal .duplicate-check-btn:hover {
-  border-color: rgba(255, 255, 255, 0.34);
+  border-color: var(--member-overlay-34);
 
-  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+  background: linear-gradient(180deg, var(--member-glass-btn-hover-start), var(--member-glass-btn-hover-end));
 }
 
 #memberModal .duplicate-check-btn:active {
@@ -1469,12 +1615,12 @@
   min-width: 64px;
   height: 50px;
 
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--member-overlay-18);
   border-radius: 9px;
 
-  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+  background: linear-gradient(180deg, var(--member-glass-btn-start), var(--member-glass-btn-end));
 
-  color: #f4f4f4;
+  color: var(--member-glass-btn-text);
 
   font-size: 13px;
   font-weight: 600;
@@ -1483,9 +1629,9 @@
 }
 
 #memberModal .password-toggle-btn:hover {
-  border-color: rgba(255, 255, 255, 0.34);
+  border-color: var(--member-overlay-34);
 
-  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+  background: linear-gradient(180deg, var(--member-glass-btn-hover-start), var(--member-glass-btn-hover-end));
 }
 
 /* =========================================================
@@ -1504,12 +1650,12 @@
 
   padding: 16px 18px;
 
-  border: 1px solid rgba(76, 175, 80, 0.48);
+  border: 1px solid var(--member-success-a48);
   border-radius: 9px;
 
-  background: linear-gradient(90deg, rgba(76, 175, 80, 0.055), rgba(76, 175, 80, 0.015));
+  background: linear-gradient(90deg, var(--member-success-a055), var(--member-success-a015));
 
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--member-overlay-88);
 
   font-size: 14px;
   line-height: 1.5;
@@ -1526,7 +1672,7 @@
   align-items: center;
   justify-content: center;
 
-  color: #53b957;
+  color: var(--member-success-icon);
 }
 
 #memberModal .member-update-info-icon svg {
@@ -1551,10 +1697,10 @@
 
   padding: 6px 9px;
 
-  border: 1px solid rgba(255, 255, 255, 0.19);
+  border: 1px solid var(--member-overlay-19);
   border-radius: 9px;
 
-  background: rgba(5, 6, 7, 0.78);
+  background: var(--member-input-bg-deep);
 
   overflow: hidden;
 }
@@ -1574,7 +1720,7 @@
 
   background: transparent;
 
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--member-overlay-72);
 
   font-size: 13px;
 }
@@ -1591,12 +1737,12 @@
 
   padding: 0 16px;
 
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--member-overlay-20);
   border-radius: 7px;
 
-  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+  background: linear-gradient(180deg, var(--member-glass-btn-start), var(--member-glass-btn-end));
 
-  color: #f4f4f4;
+  color: var(--member-glass-btn-text);
 
   font-size: 13px;
   font-weight: 600;
@@ -1609,9 +1755,9 @@
 }
 
 #memberModal .member-update-file-wrap input[type="file"]::file-selector-button:hover {
-  border-color: rgba(255, 255, 255, 0.34);
+  border-color: var(--member-overlay-34);
 
-  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+  background: linear-gradient(180deg, var(--member-glass-btn-hover-start), var(--member-glass-btn-hover-end));
 }
 
 /* =========================================================
@@ -1647,32 +1793,32 @@
 
 /* 저장 버튼 */
 #memberModal .member-update-buttons #memberUpdateBtn {
-  border: 1px solid rgba(76, 175, 80, 0.5);
+  border: 1px solid var(--member-success-a50);
 
-  background: linear-gradient(180deg, #4caf50, #388e3c);
+  background: linear-gradient(180deg, var(--member-save-btn-grad-1), var(--member-save-btn-grad-2));
 
-  color: #ffffff;
+  color: var(--member-white);
 
-  box-shadow: 0 8px 18px rgba(76, 175, 80, 0.16);
+  box-shadow: 0 8px 18px var(--member-success-a16);
 }
 
 #memberModal .member-update-buttons #memberUpdateBtn:hover {
-  background: linear-gradient(180deg, #58b85c, #3f9743);
+  background: linear-gradient(180deg, var(--member-save-btn-hover-1), var(--member-save-btn-hover-2));
 }
 
 /* 취소 버튼 */
 #memberModal .member-update-buttons #closeMemberModal {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--member-overlay-16);
 
-  background: linear-gradient(180deg, rgba(67, 69, 73, 0.96), rgba(45, 47, 50, 0.98));
+  background: linear-gradient(180deg, var(--member-cancel-btn-start), var(--member-cancel-btn-end));
 
-  color: #f3f3f3;
+  color: var(--member-cancel-btn-text);
 }
 
 #memberModal .member-update-buttons #closeMemberModal:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--member-overlay-30);
 
-  background: linear-gradient(180deg, rgba(78, 80, 84, 0.98), rgba(52, 54, 57, 0.98));
+  background: linear-gradient(180deg, var(--member-cancel-btn-hover-start), var(--member-cancel-btn-hover-end));
 }
 
 #memberModal .member-update-buttons button:active {

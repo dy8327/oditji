@@ -4,10 +4,229 @@
    - 기존 모달/폼 기능은 하단 원본 스타일을 그대로 유지
 ========================================================= */
 
+/* =========================================================
+   TOKENS (라이트/다크모드 리팩터링 - 지역 스코프 CSS 변수)
+========================================================= */
+:root {
+  /* 기본 중립색 */
+  --mp-white: #fff;
+  --mp-text-primary: #f7f9ff;
+
+  /* 패널 공통 (mypage-panel / mypage-hero / mypage-withdraw) */
+  --mp-panel-border: rgba(133, 157, 194, 0.2);
+  --mp-panel-glow: rgba(28, 89, 191, 0.11);
+  --mp-panel-bg-1: rgba(8, 16, 31, 0.98);
+  --mp-panel-bg-2: rgba(5, 12, 24, 0.98);
+  --mp-panel-sheen: rgba(22, 97, 255, 0.035);
+  --mp-heading-desc: #80899b;
+  --mp-icon-blue: #4d9cff;
+
+  /* 액션 버튼 (mypage-action-btn) */
+  --mp-btn-border: #1769f8;
+  --mp-btn-bg-1: rgba(12, 36, 72, 0.92);
+  --mp-btn-bg-2: rgba(7, 22, 47, 0.96);
+  --mp-btn-glow: rgba(30, 113, 255, 0.11);
+  --mp-btn-outline: rgba(51, 133, 255, 0.06);
+  --mp-btn-text: #dfeaff;
+  --mp-btn-span: #9fd1ff;
+  --mp-btn-border-hover: #4a98ff;
+  --mp-btn-glow-hover: rgba(30, 113, 255, 0.16);
+  --mp-btn-shadow-hover: rgba(0, 67, 180, 0.18);
+
+  /* 히어로 비주얼 */
+  --mp-hero-bg: #040a14;
+  --mp-hero-scrim-1: rgba(2, 8, 20, 0.1);
+  --mp-hero-scrim-0: rgba(2, 8, 20, 0);
+  --mp-hero-scrim-2: rgba(2, 7, 15, 0.2);
+  --mp-badge-border: #0f65d8;
+  --mp-badge-text: #3596ff;
+  --mp-hero-copy-text: #e7e9ef;
+  --mp-spark-border: rgba(37, 112, 255, 0.65);
+  --mp-spark-bg-1: rgba(27, 105, 255, 0.45);
+  --mp-spark-bg-2: rgba(5, 18, 42, 0.8);
+  --mp-spark-shadow: rgba(22, 103, 255, 0.42);
+  --mp-spark-text: #d6ecff;
+  --mp-line-mid1: #1476ff;
+  --mp-line-mid2: #9dd2ff;
+  --mp-line-shadow: #1d74ff;
+  --mp-hero-message: #c6cbd5;
+
+  /* 프로필 */
+  --mp-modal-desc: #9aa4b5;
+  --mp-avatar-ring-1: #6ab5ff;
+  --mp-avatar-ring-2: #1a63ff;
+  --mp-avatar-ring-3: #d8eaff;
+  --mp-avatar-shadow: rgba(29, 111, 255, 0.35);
+  --mp-avatar-border: #edf4ff;
+  --mp-avatar-bg: #e5e8ee;
+  --mp-badge-member-border: rgba(43, 101, 200, 0.22);
+  --mp-badge-member-bg: rgba(15, 39, 79, 0.55);
+  --mp-badge-member-text: #82b5ff;
+  --mp-text-email: #727d90;
+  --mp-text-created: #838c9b;
+
+  /* OTT */
+  --mp-ott-scrim-1: rgba(7, 16, 31, 1);
+  --mp-ott-scrim-2: rgba(7, 16, 31, 0.97);
+  --mp-ott-scrim-3: rgba(7, 16, 31, 0.7);
+  --mp-ott-scrim-4: rgba(7, 16, 31, 0.18);
+  --mp-chip-border: rgba(119, 144, 183, 0.2);
+  --mp-chip-bg: rgba(5, 10, 20, 0.74);
+  --mp-chip-text: #f2f5fb;
+  --mp-chip-border-hover: rgba(52, 126, 255, 0.65);
+  --mp-chip-bg-hover: rgba(12, 29, 60, 0.88);
+  --mp-text-empty: #778397;
+
+  /* 활동 카드 / 알림 / 구독결과 카드 공통 */
+  --mp-card-border: rgba(137, 157, 190, 0.18);
+  --mp-card-bg-1: rgba(18, 28, 46, 0.96);
+  --mp-card-bg-2: rgba(9, 16, 29, 0.96);
+  --mp-card-border-hover: rgba(61, 130, 255, 0.5);
+  --mp-card-bg-hover-1: rgba(23, 38, 65, 0.98);
+  --mp-card-bg-hover-2: rgba(9, 18, 34, 0.98);
+  --mp-icon-bg-1: rgba(255, 255, 255, 0.06);
+  --mp-icon-bg-2: rgba(255, 255, 255, 0.01);
+  --mp-text-muted: #858d9c;
+  --mp-accent-favorite: #ff3347;
+  --mp-accent-cart: #46a0ff;
+  --mp-accent-order: #d8a33a;
+  --mp-accent-review: #ffc34a;
+  --mp-accent-subscription: #7ad1c4;
+
+  /* 알림 토글 */
+  --mp-toggle-track: rgba(137, 157, 190, 0.28);
+  --mp-toggle-checked: #3d82ff;
+
+  /* 구독계산 결과 버튼 */
+  --mp-neutral-light: #e5e7eb;
+  --mp-detailbtn-text: #14161a;
+  --mp-copybtn-text: #d7d9de;
+  --mp-delete-border: rgba(220, 90, 90, 0.45);
+  --mp-delete-bg: rgba(122, 46, 46, 0.35);
+  --mp-delete-text: #ff9d9d;
+  --mp-delete-border-hover: rgba(220, 90, 90, 0.75);
+  --mp-delete-bg-hover: rgba(122, 46, 46, 0.55);
+  --mp-delete-text-hover: #ffc2c2;
+
+  /* 회원탈퇴 - 최초(v1, 웜톤) 버전 */
+  --mp-withdraw-border-v1: rgba(233, 39, 56, 0.88);
+  --mp-withdraw-glow-v1: rgba(255, 24, 46, 0.08);
+  --mp-withdraw-bg-1: #07111f;
+  --mp-withdraw-bg-2: #090d18;
+  --mp-withdraw-bg-3: #120914;
+  --mp-withdraw-dot: rgba(255, 54, 76, 0.9);
+  --mp-withdraw-icon-border: #ff213b;
+  --mp-withdraw-icon-color: #ff243d;
+  --mp-withdraw-desc-v1: #7f8694;
+  --mp-withdraw-btn-border-v1: #ef263f;
+  --mp-withdraw-btn-bg-v1: rgba(23, 7, 13, 0.32);
+  --mp-withdraw-btn-text-v1: #ff2f47;
+  --mp-withdraw-btn-bg-hover-v1: rgba(37, 10, 18, 0.5);
+  --mp-withdraw-btn-shadow-v1: rgba(255, 34, 60, 0.08);
+
+  /* 모달 공통 */
+  --mp-modal-overlay-bg: rgba(0, 0, 0, 0.7);
+  --mp-modal-bg: #1f1f1f;
+  --mp-modal-text: #f5f5f5;
+  --mp-modal-shadow: rgba(0, 0, 0, 0.6);
+  --mp-modal-label: #bbb;
+  --mp-control-gray-dark: #333;
+  --mp-input-bg: #111;
+  --mp-control-gray: #444;
+  --mp-control-gray-hover: #555;
+  --mp-msg-valid: #65c86e;
+  --mp-msg-invalid: #ff7b7b;
+  --mp-danger-text: #ff6b6b;
+  --mp-submit-bg: #3a853d;
+
+  /* 흑백 시네마 테마 오버라이드 (mono) */
+  --mp-cinema-border: rgba(255, 255, 255, 0.14);
+  --mp-cinema-bg-1: rgba(15, 16, 19, 0.98);
+  --mp-cinema-bg-2: rgba(6, 7, 9, 0.99);
+  --mp-hero-bg-mono: #050505;
+  --mp-badge-text-mono: #f2f2f2;
+  --mp-spark-bg-mono-2: rgba(10, 10, 10, 0.88);
+  --mp-icon-mono: #d9dde5;
+  --mp-text-muted-mono: #8f949d;
+  --mp-badge-member-text-mono: #d7dbe2;
+  --mp-avatar-ring-mono-1: #f4f4f4;
+  --mp-gray-777: #777;
+  --mp-btn-bg-mono-1: rgba(42, 44, 49, 0.9);
+  --mp-btn-bg-mono-2: rgba(13, 14, 17, 0.96);
+  --mp-btn-text-mono: #f2f3f5;
+  --mp-btn-span-mono: #d9dce2;
+  --mp-ott-scrim-mono-1: rgba(9, 10, 12, 1);
+  --mp-ott-scrim-mono-2: rgba(9, 10, 12, 0.97);
+  --mp-ott-scrim-mono-3: rgba(9, 10, 12, 0.7);
+  --mp-ott-scrim-mono-4: rgba(9, 10, 12, 0.2);
+  --mp-chip-bg-mono: rgba(4, 4, 5, 0.78);
+  --mp-chip-bg-hover-mono: rgba(35, 36, 40, 0.9);
+  --mp-card-bg-mono-1: rgba(34, 36, 41, 0.92);
+  --mp-card-bg-mono-2: rgba(11, 12, 15, 0.98);
+  --mp-card-bg-hover-mono-1: rgba(48, 50, 56, 0.96);
+  --mp-card-bg-hover-mono-2: rgba(14, 15, 18, 0.99);
+  --mp-toggle-knob-mono: #0b0c0f;
+  --mp-withdraw-glow-mono: rgba(255, 66, 82, 0.08);
+  --mp-withdraw-bg-mono-1: rgba(19, 20, 24, 0.98);
+  --mp-withdraw-bg-mono-2: rgba(7, 8, 10, 0.99);
+  --mp-withdraw-icon-border-mono: #c6c8cd;
+  --mp-withdraw-icon-color-mono: #f2f2f3;
+  --mp-withdraw-desc-mono: #8e929a;
+  --mp-withdraw-btn-border-mono: rgba(255, 78, 95, 0.72);
+  --mp-withdraw-btn-bg-mono: rgba(52, 12, 19, 0.22);
+  --mp-withdraw-btn-text-mono: #ff6474;
+  --mp-withdraw-btn-border-hover-mono: #ff6b7a;
+  --mp-withdraw-btn-bg-hover-mono: rgba(70, 15, 24, 0.42);
+  --mp-withdraw-btn-shadow-hover-mono: rgba(255, 49, 71, 0.12);
+
+  /* 회원탈퇴 - 최종(v3) 버튼 오버라이드 */
+  --mp-withdraw-btn-border-final: #ef334b;
+  --mp-withdraw-btn-text-final: #ff5668;
+  --mp-withdraw-btn-bg-hover-final: #e92740;
+  --mp-withdraw-btn-shadow-final: rgba(233, 39, 64, 0.22);
+
+  /* 흰색 오버레이 알파 단계 (공유) */
+  --mp-white-018: rgba(255, 255, 255, 0.018);
+  --mp-white-02: rgba(255, 255, 255, 0.02);
+  --mp-white-025: rgba(255, 255, 255, 0.025);
+  --mp-white-035: rgba(255, 255, 255, 0.035);
+  --mp-white-04: rgba(255, 255, 255, 0.04);
+  --mp-white-045: rgba(255, 255, 255, 0.045);
+  --mp-white-055: rgba(255, 255, 255, 0.055);
+  --mp-white-08: rgba(255, 255, 255, 0.08);
+  --mp-white-10: rgba(255, 255, 255, 0.1);
+  --mp-white-13: rgba(255, 255, 255, 0.13);
+  --mp-white-16: rgba(255, 255, 255, 0.16);
+  --mp-white-17: rgba(255, 255, 255, 0.17);
+  --mp-white-20: rgba(255, 255, 255, 0.2);
+  --mp-white-22: rgba(255, 255, 255, 0.22);
+  --mp-white-24: rgba(255, 255, 255, 0.24);
+  --mp-white-34: rgba(255, 255, 255, 0.34);
+  --mp-white-38: rgba(255, 255, 255, 0.38);
+  --mp-white-45: rgba(255, 255, 255, 0.45);
+  --mp-white-48: rgba(255, 255, 255, 0.48);
+  --mp-white-50: rgba(255, 255, 255, 0.5);
+  --mp-white-55: rgba(255, 255, 255, 0.55);
+  --mp-white-72: rgba(255, 255, 255, 0.72);
+  --mp-white-075: rgba(255, 255, 255, 0.075);
+  --mp-white-90: rgba(255, 255, 255, 0.9);
+
+  /* 검정 그림자 알파 단계 (공유) */
+  --mp-black-02: rgba(0, 0, 0, 0.02);
+  --mp-black-16: rgba(0, 0, 0, 0.16);
+  --mp-black-18: rgba(0, 0, 0, 0.18);
+  --mp-black-22: rgba(0, 0, 0, 0.22);
+  --mp-black-24: rgba(0, 0, 0, 0.24);
+  --mp-black-30: rgba(0, 0, 0, 0.3);
+  --mp-black-32: rgba(0, 0, 0, 0.32);
+  --mp-black-34: rgba(0, 0, 0, 0.34);
+  --mp-black-35: rgba(0, 0, 0, 0.35);
+}
+
 .mypage-container {
   width: min(1480px, calc(100% - 64px));
   margin: 32px auto 54px;
-  color: #f7f9ff;
+  color: var(--mp-text-primary);
 }
 
 .mypage-dashboard {
@@ -32,11 +251,11 @@
 .mypage-withdraw {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(133, 157, 194, 0.2);
-  background: radial-gradient(circle at 92% 10%, rgba(28, 89, 191, 0.11), transparent 35%), linear-gradient(145deg, rgba(8, 16, 31, 0.98), rgba(5, 12, 24, 0.98));
+  border: 1px solid var(--mp-panel-border);
+  background: radial-gradient(circle at 92% 10%, var(--mp-panel-glow), transparent 35%), linear-gradient(145deg, var(--mp-panel-bg-1), var(--mp-panel-bg-2));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
-    0 16px 44px rgba(0, 0, 0, 0.24);
+    inset 0 1px 0 var(--mp-white-025),
+    0 16px 44px var(--mp-black-24);
 }
 
 .mypage-panel {
@@ -49,7 +268,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 0 72%, rgba(22, 97, 255, 0.035));
+  background: linear-gradient(105deg, transparent 0 72%, var(--mp-panel-sheen));
 }
 
 .mypage-panel-heading {
@@ -68,7 +287,7 @@
 
 .mypage-panel-heading h2 {
   margin: 0;
-  color: #fff;
+  color: var(--mp-white);
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -76,14 +295,14 @@
 
 .mypage-panel-heading p {
   margin: 1px 0 0 5px;
-  color: #80899b;
+  color: var(--mp-heading-desc);
   font-size: 13px;
 }
 
 .mypage-heading-icon {
   width: 24px;
   height: 24px;
-  color: #4d9cff;
+  color: var(--mp-icon-blue);
   flex: 0 0 auto;
 }
 
@@ -107,13 +326,13 @@
   min-width: 180px;
   min-height: 52px;
   padding: 0 22px;
-  border: 1px solid #1769f8;
+  border: 1px solid var(--mp-btn-border);
   border-radius: 10px;
-  background: linear-gradient(180deg, rgba(12, 36, 72, 0.92), rgba(7, 22, 47, 0.96));
+  background: linear-gradient(180deg, var(--mp-btn-bg-1), var(--mp-btn-bg-2));
   box-shadow:
-    inset 0 0 18px rgba(30, 113, 255, 0.11),
-    0 0 0 1px rgba(51, 133, 255, 0.06);
-  color: #dfeaff;
+    inset 0 0 18px var(--mp-btn-glow),
+    0 0 0 1px var(--mp-btn-outline);
+  color: var(--mp-btn-text);
   font-size: 14px;
   font-weight: 600;
   transition:
@@ -123,7 +342,7 @@
 }
 
 .mypage-action-btn span {
-  color: #9fd1ff;
+  color: var(--mp-btn-span);
   font-size: 29px;
   font-weight: 300;
   line-height: 1;
@@ -131,10 +350,10 @@
 
 .mypage-action-btn:hover {
   transform: translateY(-2px);
-  border-color: #4a98ff;
+  border-color: var(--mp-btn-border-hover);
   box-shadow:
-    inset 0 0 22px rgba(30, 113, 255, 0.16),
-    0 8px 24px rgba(0, 67, 180, 0.18);
+    inset 0 0 22px var(--mp-btn-glow-hover),
+    0 8px 24px var(--mp-btn-shadow-hover);
 }
 
 /* =========================================================
@@ -148,10 +367,10 @@
   /* [마이페이지 배경 이미지 수정]
      텍스트 없는 왼쪽 카드 전용 배경을 적용합니다.
      context-path가 /oditji인 현재 프로젝트 기준 경로입니다. */
-  background-color: #040a14;
+  background-color: var(--mp-hero-bg);
   /* [마이페이지 해당 부분만 수정]
      사용자가 선택한 시안에서 텍스트만 제거한 배경 전용 이미지를 적용합니다. */
-  background-image: linear-gradient(90deg, rgba(2, 8, 20, 0.1), rgba(2, 8, 20, 0)), url("/oditji/images/mypage-left-bg.png");
+  background-image: linear-gradient(90deg, var(--mp-hero-scrim-1), var(--mp-hero-scrim-0)), url("/oditji/images/mypage-left-bg.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 100% 100%;
@@ -172,7 +391,7 @@
   inset: 0;
   z-index: 5;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 60%, rgba(2, 7, 15, 0.2));
+  background: linear-gradient(180deg, transparent 60%, var(--mp-hero-scrim-2));
 }
 
 .mypage-hero-badge {
@@ -183,9 +402,9 @@
   justify-content: center;
   height: 34px;
   padding: 0 15px;
-  border: 1px solid #0f65d8;
+  border: 1px solid var(--mp-badge-border);
   border-radius: 999px;
-  color: #3596ff;
+  color: var(--mp-badge-text);
   font-size: 12px;
   letter-spacing: 0.05em;
 }
@@ -198,7 +417,7 @@
 
 .mypage-hero-copy > p:first-child {
   margin: 0 0 4px;
-  color: #e7e9ef;
+  color: var(--mp-hero-copy-text);
   font-size: 23px;
   font-weight: 400;
 }
@@ -206,7 +425,7 @@
 .mypage-hero-copy h1 {
   display: inline-block;
   margin: 0;
-  color: #fff;
+  color: var(--mp-white);
   font-size: clamp(38px, 4vw, 53px);
   font-weight: 700;
   letter-spacing: -0.055em;
@@ -218,11 +437,11 @@
   width: 42px;
   height: 42px;
   margin-left: 12px;
-  border: 1px solid rgba(37, 112, 255, 0.65);
+  border: 1px solid var(--mp-spark-border);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(27, 105, 255, 0.45), rgba(5, 18, 42, 0.8) 66%);
-  box-shadow: 0 0 22px rgba(22, 103, 255, 0.42);
-  color: #d6ecff;
+  background: radial-gradient(circle, var(--mp-spark-bg-1), var(--mp-spark-bg-2) 66%);
+  box-shadow: 0 0 22px var(--mp-spark-shadow);
+  color: var(--mp-spark-text);
   vertical-align: 9px;
 }
 
@@ -230,13 +449,13 @@
   width: 154px;
   height: 2px;
   margin: 30px 0 26px;
-  background: linear-gradient(90deg, transparent, #1476ff 38%, #9dd2ff 52%, transparent);
-  box-shadow: 0 0 12px #1d74ff;
+  background: linear-gradient(90deg, transparent, var(--mp-line-mid1) 38%, var(--mp-line-mid2) 52%, transparent);
+  box-shadow: 0 0 12px var(--mp-line-shadow);
 }
 
 .mypage-hero-message {
   margin: 0;
-  color: #c6cbd5;
+  color: var(--mp-hero-message);
   font-size: 17px;
   line-height: 1.75;
 }
@@ -284,7 +503,7 @@
 /* 알림 수신 설정 모달 설명 문구 */
 .modal-box .modal-desc {
   margin: -10px 0 18px;
-  color: #9aa4b5;
+  color: var(--mp-modal-desc);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -293,8 +512,8 @@
   flex: 0 0 auto;
   padding: 3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6ab5ff, #1a63ff 57%, #d8eaff);
-  box-shadow: 0 0 24px rgba(29, 111, 255, 0.35);
+  background: linear-gradient(135deg, var(--mp-avatar-ring-1), var(--mp-avatar-ring-2) 57%, var(--mp-avatar-ring-3));
+  box-shadow: 0 0 24px var(--mp-avatar-shadow);
 }
 
 .mypage-profile-image img {
@@ -302,9 +521,9 @@
   width: 110px;
   height: 110px;
   object-fit: cover;
-  border: 3px solid #edf4ff;
+  border: 3px solid var(--mp-avatar-border);
   border-radius: 50%;
-  background: #e5e8ee;
+  background: var(--mp-avatar-bg);
 }
 
 .mypage-profile-info {
@@ -320,7 +539,7 @@
 
 .mypage-name-row h3 {
   margin: 0;
-  color: #fff;
+  color: var(--mp-white);
   font-size: 31px;
   font-weight: 700;
   letter-spacing: -0.04em;
@@ -332,10 +551,10 @@
   gap: 7px;
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid rgba(43, 101, 200, 0.22);
+  border: 1px solid var(--mp-badge-member-border);
   border-radius: 999px;
-  background: rgba(15, 39, 79, 0.55);
-  color: #82b5ff;
+  background: var(--mp-badge-member-bg);
+  color: var(--mp-badge-member-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -343,7 +562,7 @@
 .mypage-profile-email {
   margin: 7px 0 9px;
   overflow: hidden;
-  color: #727d90;
+  color: var(--mp-text-email);
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -354,7 +573,7 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  color: #838c9b;
+  color: var(--mp-text-created);
   font-size: 14px;
 }
 
@@ -377,7 +596,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: linear-gradient(90deg, rgba(7, 16, 31, 1) 0%, rgba(7, 16, 31, 0.97) 39%, rgba(7, 16, 31, 0.7) 61%, rgba(7, 16, 31, 0.18) 100%), url("/oditji/images/mypage-ott-bg.png");
+  background-image: linear-gradient(90deg, var(--mp-ott-scrim-1) 0%, var(--mp-ott-scrim-2) 39%, var(--mp-ott-scrim-3) 61%, var(--mp-ott-scrim-4) 100%), url("/oditji/images/mypage-ott-bg.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -401,10 +620,10 @@
   gap: 12px;
   min-height: 42px;
   padding: 0 18px;
-  border: 1px solid rgba(119, 144, 183, 0.2);
+  border: 1px solid var(--mp-chip-border);
   border-radius: 999px;
-  background: rgba(5, 10, 20, 0.74);
-  color: #f2f5fb;
+  background: var(--mp-chip-bg);
+  color: var(--mp-chip-text);
   font-size: 14px;
   font-weight: 600;
   transition:
@@ -415,8 +634,8 @@
 
 .mypage-ott-chip:hover {
   transform: translateY(-2px);
-  border-color: rgba(52, 126, 255, 0.65);
-  background: rgba(12, 29, 60, 0.88);
+  border-color: var(--mp-chip-border-hover);
+  background: var(--mp-chip-bg-hover);
 }
 
 .mypage-ott-chip-logo {
@@ -427,7 +646,7 @@
 }
 
 .mypage-empty {
-  color: #778397;
+  color: var(--mp-text-empty);
   font-size: 14px;
 }
 
@@ -454,10 +673,10 @@
   align-items: center;
   min-height: 116px;
   padding: 16px 18px;
-  border: 1px solid rgba(137, 157, 190, 0.18);
+  border: 1px solid var(--mp-card-border);
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  background: linear-gradient(145deg, var(--mp-card-bg-1), var(--mp-card-bg-2));
+  box-shadow: inset 0 1px 0 var(--mp-white-025);
   /* [마이페이지 구독 계산 결과 모달 연동 추가] 5번째 카드는 <button>으로 만들어서 기본 버튼 스타일을 초기화한다 */
   width: 100%;
   font: inherit;
@@ -471,8 +690,8 @@
 
 .mypage-activity-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(61, 130, 255, 0.5);
-  background: linear-gradient(145deg, rgba(23, 38, 65, 0.98), rgba(9, 18, 34, 0.98));
+  border-color: var(--mp-card-border-hover);
+  background: linear-gradient(145deg, var(--mp-card-bg-hover-1), var(--mp-card-bg-hover-2));
 }
 
 .mypage-activity-icon {
@@ -483,11 +702,11 @@
   height: 56px;
   border: 1px solid currentColor;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+  background: radial-gradient(circle, var(--mp-icon-bg-1), var(--mp-icon-bg-2));
   font-size: 27px;
   box-shadow:
-    inset 0 0 18px rgba(255, 255, 255, 0.025),
-    0 0 22px rgba(0, 0, 0, 0.16);
+    inset 0 0 18px var(--mp-white-025),
+    0 0 22px var(--mp-black-16);
 }
 
 .mypage-activity-icon svg {
@@ -502,7 +721,7 @@
 
 .mypage-activity-count {
   align-self: end;
-  color: #fff;
+  color: var(--mp-white);
   font-size: 31px;
   font-weight: 700;
   line-height: 1;
@@ -510,25 +729,25 @@
 
 .mypage-activity-title {
   align-self: start;
-  color: #858d9c;
+  color: var(--mp-text-muted);
   font-size: 13px;
   line-height: 1.35;
 }
 
 .activity-favorite .mypage-activity-icon {
-  color: #ff3347;
+  color: var(--mp-accent-favorite);
 }
 .activity-cart .mypage-activity-icon {
-  color: #46a0ff;
+  color: var(--mp-accent-cart);
 }
 .activity-order .mypage-activity-icon {
-  color: #d8a33a;
+  color: var(--mp-accent-order);
 }
 .activity-review .mypage-activity-icon {
-  color: #ffc34a;
+  color: var(--mp-accent-review);
 }
 .activity-subscription .mypage-activity-icon {
-  color: #7ad1c4;
+  color: var(--mp-accent-subscription);
 }
 
 /* =========================================================
@@ -548,9 +767,9 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 16px;
-  border: 1px solid rgba(137, 157, 190, 0.18);
+  border: 1px solid var(--mp-card-border);
   border-radius: 14px;
-  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
+  background: linear-gradient(145deg, var(--mp-card-bg-1), var(--mp-card-bg-2));
 }
 
 .mypage-notification-item-copy {
@@ -560,13 +779,13 @@
 }
 
 .mypage-notification-item-label {
-  color: #fff;
+  color: var(--mp-white);
   font-size: 14px;
   font-weight: 600;
 }
 
 .mypage-notification-item-desc {
-  color: #858d9c;
+  color: var(--mp-text-muted);
   font-size: 12.5px;
   line-height: 1.4;
 }
@@ -591,7 +810,7 @@
   inset: 0;
   display: block;
   border-radius: 999px;
-  background: rgba(137, 157, 190, 0.28);
+  background: var(--mp-toggle-track);
   cursor: pointer;
   transition: background 0.2s ease;
 }
@@ -604,13 +823,13 @@
   width: 19px;
   height: 19px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  background: var(--mp-white);
+  box-shadow: 0 1px 3px var(--mp-black-35);
   transition: transform 0.2s ease;
 }
 
 .mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
-  background: #3d82ff;
+  background: var(--mp-toggle-checked);
 }
 
 .mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
@@ -635,9 +854,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border: 1px solid rgba(137, 157, 190, 0.18);
+  border: 1px solid var(--mp-card-border);
   border-radius: 14px;
-  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
+  background: linear-gradient(145deg, var(--mp-card-bg-1), var(--mp-card-bg-2));
 }
 
 .mypage-subresult-item-header {
@@ -647,12 +866,12 @@
 }
 
 .mypage-subresult-item-date {
-  color: #858d9c;
+  color: var(--mp-text-muted);
   font-size: 12.5px;
 }
 
 .mypage-subresult-item-platforms {
-  color: #fff;
+  color: var(--mp-white);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
@@ -666,12 +885,12 @@
 }
 
 .mypage-subresult-item-price-detail {
-  color: #858d9c;
+  color: var(--mp-text-muted);
   font-size: 12.5px;
 }
 
 .mypage-subresult-item-final-price {
-  color: #fff;
+  color: var(--mp-white);
   font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
@@ -701,40 +920,40 @@
 
 /* 상세보기: 목록에서 가장 자주 쓰는 주 행동이므로 밝은 톤으로 시각적 우선순위를 준다 */
 .mypage-subresult-detail-btn {
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: #e5e7eb;
-  color: #14161a;
+  border: 1px solid var(--mp-white-55);
+  background: var(--mp-neutral-light);
+  color: var(--mp-detailbtn-text);
 }
 
 .mypage-subresult-detail-btn:hover {
-  background: #ffffff;
-  border-color: #ffffff;
+  background: var(--mp-white);
+  border-color: var(--mp-white);
 }
 
 /* 공유링크 복사: 보조 행동이므로 테두리만 있는 고스트 버튼으로 한 단계 낮춘다 */
 .mypage-subresult-copy-btn {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--mp-white-22);
   background: transparent;
-  color: #d7d9de;
+  color: var(--mp-copybtn-text);
 }
 
 .mypage-subresult-copy-btn:hover {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  border-color: var(--mp-white-45);
+  background: var(--mp-white-08);
+  color: var(--mp-white);
 }
 
 /* 삭제: 위험 행동이므로 색으로 구분하되, 흑백 테마와 어울리도록 톤을 낮춘 반투명 레드 */
 .mypage-subresult-delete-btn {
-  border: 1px solid rgba(220, 90, 90, 0.45);
-  background: rgba(122, 46, 46, 0.35);
-  color: #ff9d9d;
+  border: 1px solid var(--mp-delete-border);
+  background: var(--mp-delete-bg);
+  color: var(--mp-delete-text);
 }
 
 .mypage-subresult-delete-btn:hover {
-  border-color: rgba(220, 90, 90, 0.75);
-  background: rgba(122, 46, 46, 0.55);
-  color: #ffc2c2;
+  border-color: var(--mp-delete-border-hover);
+  background: var(--mp-delete-bg-hover);
+  color: var(--mp-delete-text-hover);
 }
 
 .mypage-subresult-delete-btn:disabled {
@@ -768,14 +987,14 @@
   margin-top: 16px;
   padding: 12px 22px 12px 18px;
 
-  border: 1px solid rgba(233, 39, 56, 0.88);
+  border: 1px solid var(--mp-withdraw-border-v1);
   border-radius: 18px;
 
-  background: radial-gradient(circle at 82% 50%, rgba(255, 24, 46, 0.08), transparent 18%), linear-gradient(90deg, #07111f 0%, #090d18 58%, #120914 100%);
+  background: radial-gradient(circle at 82% 50%, var(--mp-withdraw-glow-v1), transparent 18%), linear-gradient(90deg, var(--mp-withdraw-bg-1) 0%, var(--mp-withdraw-bg-2) 58%, var(--mp-withdraw-bg-3) 100%);
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 10px 24px rgba(0, 0, 0, 0.22);
+    inset 0 1px 0 var(--mp-white-02),
+    0 10px 24px var(--mp-black-22);
 }
 
 /* 우측 점 패턴 */
@@ -790,7 +1009,7 @@
   pointer-events: none;
   opacity: 0.18;
 
-  background-image: radial-gradient(rgba(255, 54, 76, 0.9) 1px, transparent 1px);
+  background-image: radial-gradient(var(--mp-withdraw-dot) 1px, transparent 1px);
   background-size: 6px 6px;
 }
 
@@ -805,10 +1024,10 @@
   display: grid;
   place-items: center;
 
-  border: 3px solid #ff213b;
+  border: 3px solid var(--mp-withdraw-icon-border);
   clip-path: polygon(50% 0%, 92% 18%, 86% 72%, 50% 100%, 14% 72%, 8% 18%);
 
-  color: #ff243d;
+  color: var(--mp-withdraw-icon-color);
   box-sizing: border-box;
 }
 
@@ -828,7 +1047,7 @@
 
 .mypage-withdraw-copy h2 {
   margin: 0 0 4px;
-  color: #ffffff;
+  color: var(--mp-white);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.2;
@@ -837,7 +1056,7 @@
 
 .mypage-withdraw-copy p {
   margin: 0;
-  color: #7f8694;
+  color: var(--mp-withdraw-desc-v1);
   font-size: 12px;
   line-height: 1.45;
   letter-spacing: -0.01em;
@@ -860,11 +1079,11 @@
   width: 128px;
   height: 48px;
 
-  border: 1px solid #ef263f;
+  border: 1px solid var(--mp-withdraw-btn-border-v1);
   border-radius: 10px;
 
-  background: rgba(23, 7, 13, 0.32);
-  color: #ff2f47;
+  background: var(--mp-withdraw-btn-bg-v1);
+  color: var(--mp-withdraw-btn-text-v1);
 
   font-size: 14px;
   font-weight: 700;
@@ -878,8 +1097,8 @@
 
 .mypage-withdraw-btn:hover {
   transform: translateY(-1px);
-  background: rgba(37, 10, 18, 0.5);
-  box-shadow: 0 0 14px rgba(255, 34, 60, 0.08);
+  background: var(--mp-withdraw-btn-bg-hover-v1);
+  box-shadow: 0 0 14px var(--mp-withdraw-btn-shadow-v1);
 }
 
 .mypage-withdraw-btn-text {
@@ -1053,7 +1272,7 @@
   width: 100%;
   height: 100%;
 
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--mp-modal-overlay-bg);
 
   display: flex;
   justify-content: center;
@@ -1071,14 +1290,14 @@
   width: 560px;
   max-width: calc(100vw - 40px);
 
-  background: #1f1f1f;
-  color: #f5f5f5;
+  background: var(--mp-modal-bg);
+  color: var(--mp-modal-text);
 
   border-radius: 14px;
 
   padding: 28px 30px;
 
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 15px 40px var(--mp-modal-shadow);
 
   animation: modalPop 0.18s ease-out;
 }
@@ -1125,7 +1344,7 @@
 
 .modal-box label {
   font-size: 13px;
-  color: #bbb;
+  color: var(--mp-modal-label);
 }
 
 /* =========================
@@ -1142,10 +1361,10 @@
   padding: 0 13px;
 
   border-radius: 8px;
-  border: 1px solid #333;
+  border: 1px solid var(--mp-control-gray-dark);
 
-  background: #111;
-  color: #fff;
+  background: var(--mp-input-bg);
+  color: var(--mp-white);
 }
 
 /* =========================
@@ -1168,10 +1387,10 @@
   min-width: 96px;
   height: 46px;
   padding: 0 10px;
-  border: 1px solid #444;
+  border: 1px solid var(--mp-control-gray);
   border-radius: 8px;
-  background: #333;
-  color: #fff;
+  background: var(--mp-control-gray-dark);
+  color: var(--mp-white);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -1182,8 +1401,8 @@
 }
 
 .modal-box .duplicate-check-btn:hover {
-  background: #444;
-  border-color: #555;
+  background: var(--mp-control-gray);
+  border-color: var(--mp-control-gray-hover);
 }
 
 .modal-box .input-message {
@@ -1193,11 +1412,11 @@
 }
 
 .modal-box .input-message.valid {
-  color: #65c86e;
+  color: var(--mp-msg-valid);
 }
 
 .modal-box .input-message.invalid {
-  color: #ff7b7b;
+  color: var(--mp-msg-invalid);
 }
 
 /* =========================
@@ -1227,11 +1446,11 @@
   height: 46px;
   padding: 0;
 
-  border: 1px solid #444;
+  border: 1px solid var(--mp-control-gray);
   border-radius: 8px;
 
-  background: #333;
-  color: #fff;
+  background: var(--mp-control-gray-dark);
+  color: var(--mp-white);
 
   font-size: 13px;
   font-weight: 600;
@@ -1241,8 +1460,8 @@
 }
 
 .modal-box .password-toggle-btn:hover {
-  background: #444;
-  border-color: #555;
+  background: var(--mp-control-gray);
+  border-color: var(--mp-control-gray-hover);
 }
 
 .modal-box input[type="file"] {
@@ -1255,7 +1474,7 @@
    DANGER TEXT (탈퇴용)
 ========================= */
 .danger-text {
-  color: #ff6b6b;
+  color: var(--mp-danger-text);
   font-size: 13px;
   margin-bottom: 12px;
 }
@@ -1284,13 +1503,13 @@
 /* 저장 버튼 */
 .modal-btns button[type="submit"] {
   /* [수정] 흰 글자 on #4caf50는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
-  background: #3a853d;
+  background: var(--mp-submit-bg);
   color: white;
 }
 
 /* 취소 버튼 */
 .modal-btns button[type="button"] {
-  background: #444;
+  background: var(--mp-control-gray);
   color: white;
 }
 
@@ -1342,43 +1561,43 @@
 ========================================================= */
 .mypage-dashboard .mypage-panel,
 .mypage-dashboard .mypage-hero {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.055), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+  border-color: var(--mp-cinema-border);
+  background: radial-gradient(circle at 85% 12%, var(--mp-white-055), transparent 32%), linear-gradient(145deg, var(--mp-cinema-bg-1), var(--mp-cinema-bg-2));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    0 18px 42px rgba(0, 0, 0, 0.34);
+    inset 0 1px 0 var(--mp-white-045),
+    0 18px 42px var(--mp-black-34);
 }
 
 .mypage-dashboard .mypage-panel::before {
-  background: linear-gradient(112deg, transparent 0 68%, rgba(255, 255, 255, 0.025));
+  background: linear-gradient(112deg, transparent 0 68%, var(--mp-white-025));
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] 좌측 배경은 원본 배치를 유지한 흑백 파일 사용 */
 .mypage-hero {
-  background-color: #050505;
-  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.02)), url("/oditji/images/mypage-left-bg.png");
+  background-color: var(--mp-hero-bg-mono);
+  background-image: linear-gradient(90deg, var(--mp-black-18), var(--mp-black-02)), url("/oditji/images/mypage-left-bg.png");
 }
 
 .mypage-hero-badge {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.32);
-  color: #f2f2f2;
+  border-color: var(--mp-white-50);
+  background: var(--mp-black-32);
+  color: var(--mp-badge-text-mono);
 }
 
 .mypage-hero-spark {
-  border-color: rgba(255, 255, 255, 0.48);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(10, 10, 10, 0.88) 68%);
-  box-shadow: 0 0 22px rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  border-color: var(--mp-white-48);
+  background: radial-gradient(circle, var(--mp-white-24), var(--mp-spark-bg-mono-2) 68%);
+  box-shadow: 0 0 22px var(--mp-white-20);
+  color: var(--mp-white);
 }
 
 .mypage-hero-line {
-  background: linear-gradient(90deg, transparent, #777 34%, #fff 52%, transparent);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.38);
+  background: linear-gradient(90deg, transparent, var(--mp-gray-777) 34%, var(--mp-white) 52%, transparent);
+  box-shadow: 0 0 12px var(--mp-white-38);
 }
 
 .mypage-heading-icon {
-  color: #d9dde5;
+  color: var(--mp-icon-mono);
 }
 
 .mypage-panel-heading p,
@@ -1386,63 +1605,63 @@
 .mypage-created-at,
 .mypage-activity-title,
 .mypage-empty {
-  color: #8f949d;
+  color: var(--mp-text-muted-mono);
 }
 
 .mypage-member-type {
-  border-color: rgba(255, 255, 255, 0.17);
-  background: rgba(255, 255, 255, 0.055);
-  color: #d7dbe2;
+  border-color: var(--mp-white-17);
+  background: var(--mp-white-055);
+  color: var(--mp-badge-member-text-mono);
 }
 
 .mypage-profile-image {
-  background: linear-gradient(135deg, #f4f4f4, #777 58%, #fff);
-  box-shadow: 0 0 24px rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, var(--mp-avatar-ring-mono-1), var(--mp-gray-777) 58%, var(--mp-white));
+  box-shadow: 0 0 24px var(--mp-white-16);
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] 공통 버튼 색상만 무채색으로 변경 */
 .mypage-action-btn {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: linear-gradient(180deg, rgba(42, 44, 49, 0.9), rgba(13, 14, 17, 0.96));
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.035);
-  color: #f2f3f5;
+  border-color: var(--mp-white-34);
+  background: linear-gradient(180deg, var(--mp-btn-bg-mono-1), var(--mp-btn-bg-mono-2));
+  box-shadow: inset 0 0 18px var(--mp-white-035);
+  color: var(--mp-btn-text-mono);
 }
 
 .mypage-action-btn span {
-  color: #d9dce2;
+  color: var(--mp-btn-span-mono);
 }
 
 .mypage-action-btn:hover {
-  border-color: rgba(255, 255, 255, 0.72);
+  border-color: var(--mp-white-72);
   box-shadow:
-    inset 0 0 20px rgba(255, 255, 255, 0.075),
-    0 8px 24px rgba(0, 0, 0, 0.32);
+    inset 0 0 20px var(--mp-white-075),
+    0 8px 24px var(--mp-black-32);
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] OTT 배경도 동일한 무채색 계열로 연결 */
 .mypage-ott::after {
-  background-image: linear-gradient(90deg, rgba(9, 10, 12, 1) 0%, rgba(9, 10, 12, 0.97) 38%, rgba(9, 10, 12, 0.7) 61%, rgba(9, 10, 12, 0.2) 100%), url("/oditji/images/mypage-ott-bg.png");
+  background-image: linear-gradient(90deg, var(--mp-ott-scrim-mono-1) 0%, var(--mp-ott-scrim-mono-2) 38%, var(--mp-ott-scrim-mono-3) 61%, var(--mp-ott-scrim-mono-4) 100%), url("/oditji/images/mypage-ott-bg.png");
 }
 
 .mypage-ott-chip {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(4, 4, 5, 0.78);
+  border-color: var(--mp-cinema-border);
+  background: var(--mp-chip-bg-mono);
 }
 
 .mypage-ott-chip:hover {
-  border-color: rgba(255, 255, 255, 0.48);
-  background: rgba(35, 36, 40, 0.9);
+  border-color: var(--mp-white-48);
+  background: var(--mp-chip-bg-hover-mono);
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] 활동 카드 전체를 검정·회색 유리 패널로 통일 */
 .mypage-activity-card {
-  border-color: rgba(255, 255, 255, 0.13);
-  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+  border-color: var(--mp-white-13);
+  background: linear-gradient(145deg, var(--mp-card-bg-mono-1), var(--mp-card-bg-mono-2));
 }
 
 .mypage-activity-card:hover {
-  border-color: rgba(255, 255, 255, 0.38);
-  background: linear-gradient(145deg, rgba(48, 50, 56, 0.96), rgba(14, 15, 18, 0.99));
+  border-color: var(--mp-white-38);
+  background: linear-gradient(145deg, var(--mp-card-bg-hover-mono-1), var(--mp-card-bg-hover-mono-2));
 }
 
 .mypage-activity-icon,
@@ -1451,30 +1670,30 @@
 .activity-order .mypage-activity-icon,
 .activity-review .mypage-activity-icon,
 .activity-subscription .mypage-activity-icon {
-  color: #e5e7eb;
+  color: var(--mp-neutral-light);
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] 알림 수신 설정 카드도 동일한 무채색 유리 패널로 통일 */
 .mypage-notification-item,
 .mypage-subresult-item {
-  border-color: rgba(255, 255, 255, 0.13);
-  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+  border-color: var(--mp-white-13);
+  background: linear-gradient(145deg, var(--mp-card-bg-mono-1), var(--mp-card-bg-mono-2));
 }
 
 .mypage-notification-item-desc {
-  color: #8f949d;
+  color: var(--mp-text-muted-mono);
 }
 
 .mypage-toggle-switch-track {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--mp-white-22);
 }
 
 .mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
-  background: #e5e7eb;
+  background: var(--mp-neutral-light);
 }
 
 .mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
-  background: #0b0c0f;
+  background: var(--mp-toggle-knob-mono);
 }
 
 /* =========================================================
@@ -1486,12 +1705,12 @@
   grid-template-columns: 58px minmax(0, 1fr) 154px;
   min-height: 88px;
   padding: 14px 20px;
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--mp-white-16);
   border-radius: 20px;
-  background: radial-gradient(circle at 86% 50%, rgba(255, 66, 82, 0.08), transparent 20%), linear-gradient(100deg, rgba(19, 20, 24, 0.98), rgba(7, 8, 10, 0.99));
+  background: radial-gradient(circle at 86% 50%, var(--mp-withdraw-glow-mono), transparent 20%), linear-gradient(100deg, var(--mp-withdraw-bg-mono-1), var(--mp-withdraw-bg-mono-2));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 34px rgba(0, 0, 0, 0.3);
+    inset 0 1px 0 var(--mp-white-04),
+    0 16px 34px var(--mp-black-30);
 }
 
 .mypage-withdraw::before {
@@ -1499,22 +1718,22 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 45%);
+  background: linear-gradient(90deg, var(--mp-white-018), transparent 45%);
 }
 
 .mypage-withdraw::after {
   right: 188px;
   width: 132px;
   opacity: 0.12;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px);
+  background-image: radial-gradient(var(--mp-white-90) 1px, transparent 1px);
 }
 
 .mypage-withdraw-icon {
   width: 44px;
   height: 48px;
-  border-color: #c6c8cd;
-  color: #f2f2f3;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+  border-color: var(--mp-withdraw-icon-border-mono);
+  color: var(--mp-withdraw-icon-color-mono);
+  filter: drop-shadow(0 0 10px var(--mp-white-10));
 }
 
 .mypage-withdraw-copy h2 {
@@ -1522,21 +1741,21 @@
 }
 
 .mypage-withdraw-copy p {
-  color: #8e929a;
+  color: var(--mp-withdraw-desc-mono);
   font-size: 12.5px;
 }
 
 .mypage-withdraw-btn {
   width: 140px;
-  border-color: rgba(255, 78, 95, 0.72);
-  background: rgba(52, 12, 19, 0.22);
-  color: #ff6474;
+  border-color: var(--mp-withdraw-btn-border-mono);
+  background: var(--mp-withdraw-btn-bg-mono);
+  color: var(--mp-withdraw-btn-text-mono);
 }
 
 .mypage-withdraw-btn:hover {
-  border-color: #ff6b7a;
-  background: rgba(70, 15, 24, 0.42);
-  box-shadow: 0 0 18px rgba(255, 49, 71, 0.12);
+  border-color: var(--mp-withdraw-btn-border-hover-mono);
+  background: var(--mp-withdraw-btn-bg-hover-mono);
+  box-shadow: 0 0 18px var(--mp-withdraw-btn-shadow-hover-mono);
 }
 
 /* =========================================================
@@ -1572,14 +1791,14 @@
   margin-top: 16px;
   padding: 16px 20px 16px 26px;
 
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--mp-cinema-border);
   border-radius: 20px;
 
-  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.045), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+  background: radial-gradient(circle at 85% 12%, var(--mp-white-045), transparent 32%), linear-gradient(145deg, var(--mp-cinema-bg-1), var(--mp-cinema-bg-2));
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 34px rgba(0, 0, 0, 0.3);
+    inset 0 1px 0 var(--mp-white-04),
+    0 16px 34px var(--mp-black-30);
 }
 
 /* [수정] 회원탈퇴 영역의 왼쪽 경고 아이콘 제거 */
@@ -1601,7 +1820,7 @@
 
 .mypage-withdraw-copy h2 {
   margin: 0 0 5px;
-  color: #ffffff;
+  color: var(--mp-white);
   font-size: 16px;
   font-weight: 700;
   line-height: 1.3;
@@ -1609,7 +1828,7 @@
 
 .mypage-withdraw-copy p {
   margin: 0;
-  color: #8e929a;
+  color: var(--mp-withdraw-desc-mono);
   font-size: 12.5px;
   line-height: 1.6;
 
@@ -1632,11 +1851,11 @@
   width: 140px;
   min-height: 48px;
 
-  border: 1px solid #ef334b;
+  border: 1px solid var(--mp-withdraw-btn-border-final);
   border-radius: 10px;
 
   background: transparent;
-  color: #ff5668;
+  color: var(--mp-withdraw-btn-text-final);
 
   box-shadow: none;
 
@@ -1651,10 +1870,10 @@
 .mypage-withdraw-btn:hover,
 .mypage-withdraw-btn:focus-visible {
   transform: translateY(-1px);
-  border-color: #ef334b;
-  background: #e92740;
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(233, 39, 64, 0.22);
+  border-color: var(--mp-withdraw-btn-border-final);
+  background: var(--mp-withdraw-btn-bg-hover-final);
+  color: var(--mp-white);
+  box-shadow: 0 8px 20px var(--mp-withdraw-btn-shadow-final);
   outline: none;
 }
 
