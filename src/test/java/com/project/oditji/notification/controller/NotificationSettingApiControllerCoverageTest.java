@@ -121,4 +121,16 @@ class NotificationSettingApiControllerCoverageTest {
         assertTrue((Boolean) response.getBody().get("success"));
         verify(notificationService).updateSetting(1L, "RESTOCK", false);
     }
+
+    @Test
+    void updateSettingShouldPassNullRequestAsDisabledNullCategory() {
+
+        ResponseEntity<Map<String, Object>> response =
+                controller.updateSetting(null, loginSession(1L));
+
+        assertEquals(200, response.getStatusCode().value());
+        assertTrue((Boolean) response.getBody().get("success"));
+        verify(notificationService).updateSetting(1L, null, false);
+    }
+
 }

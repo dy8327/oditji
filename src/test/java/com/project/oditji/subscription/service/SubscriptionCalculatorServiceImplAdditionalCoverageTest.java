@@ -2,6 +2,7 @@ package com.project.oditji.subscription.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,12 +20,14 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.project.oditji.event.dao.OttDiscountDAO;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.PlatformPriceVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.subscription.vo.SubscriptionShareVO;
 
 /** 구독 조합 계산기의 null, 필터, 가격 정제, 동률 및 방어 분기를 보완합니다. */
 class SubscriptionCalculatorServiceImplAdditionalCoverageTest {
@@ -222,6 +225,82 @@ class SubscriptionCalculatorServiceImplAdditionalCoverageTest {
         assertFalse(invokeCoversAll(
                 candidate,
                 List.of(Set.of("A"))));
+    }
+
+
+    @Test
+    void deleteExpiredResultsShouldDelegateAndReturnDeletedCount() {
+        when(subscriptionDAO.deleteExpiredResults()).thenReturn(3);
+
+        assertEquals(3, service.deleteExpiredResults());
+
+        verify(subscriptionDAO).deleteExpiredResults();
+    }
+
+    @Test
+    void saveAndRestoreShouldCoverOptionalJsonValuesAndIgnoredUnresolvedItems() {
+        PlatformPriceVO platform = price("NETFLIX", null, 9000);
+        platform.setPlatformName("넷플릭스");
+        platform.setDiscountSource("KT");
+        platform.setDiscountTitle("통신사 결합 할인");
+
+        ContentWishItemVO noTitle = new ContentWishItemVO();
+        ContentWishItemVO unresolved = new ContentWishItemVO();
+        unresolved.setTitle("미해결 작품");
+
+        List<ContentWishItemVO> unresolvedItems = new ArrayList<ContentWishItemVO>();
+        unresolvedItems.add(null);
+        unresolvedItems.add(noTitle);
+        unresolvedItems.add(unresolved);
+
+        SubscriptionCalculationResultVO original = new SubscriptionCalculationResultVO();
+        original.setSelectedPlatformList(List.of(platform));
+        original.setTotalRegularMonthlyPrice(12000);
+        original.setTotalMonthlyPrice(9000);
+        original.setAllPlatformMonthlyPrice(9000);
+        original.setUnresolvedItemList(unresolvedItems);
+
+        service.saveResult(original, null);
+
+        ArgumentCaptor<SubscriptionShareVO> captor =
+                ArgumentCaptor.forClass(SubscriptionShareVO.class);
+        verify(subscriptionDAO).insertResult(captor.capture());
+
+        SubscriptionShareVO saved = captor.getValue();
+        assertNotNull(saved.getExpiresAt());
+        when(subscriptionDAO.selectResultById(saved.getResultId()))
+                .thenReturn(saved);
+
+        SubscriptionCalculationResultVO restored =
+                service.restoreResult(saved.getResultId());
+
+        PlatformPriceVO restoredPlatform =
+                restored.getSelectedPlatformList().get(0);
+        assertNull(restoredPlatform.getRegularPrice());
+        assertEquals("KT", restoredPlatform.getDiscountSource());
+        assertEquals("통신사 결합 할인", restoredPlatform.getDiscountTitle());
+        assertEquals(1, restored.getUnresolvedItemList().size());
+        assertEquals("미해결 작품", restored.getUnresolvedItemList().get(0).getTitle());
+    }
+
+    @Test
+    void restoreResultShouldAcceptJsonWithoutOptionalArrays() {
+        SubscriptionShareVO share = new SubscriptionShareVO();
+        share.setResultId("SUBS_MINIMAL");
+        share.setTotalPrice(12000);
+        share.setFinalPrice(9000);
+        share.setSelectedServicesJson("{\"allPlatformMonthlyPrice\":15000}");
+
+        when(subscriptionDAO.selectResultById("SUBS_MINIMAL"))
+                .thenReturn(share);
+
+        SubscriptionCalculationResultVO restored =
+                service.restoreResult("  SUBS_MINIMAL  ");
+
+        assertNotNull(restored);
+        assertTrue(restored.getSelectedPlatformList().isEmpty());
+        assertTrue(restored.getUnresolvedItemList().isEmpty());
+        assertEquals(15000, restored.getAllPlatformMonthlyPrice());
     }
 
     private String invokeBlankToNull(String value) {
