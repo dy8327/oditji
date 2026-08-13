@@ -442,7 +442,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
 }
 
@@ -458,6 +458,11 @@
   border-radius: 16px;
   background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  /* [마이페이지 구독 계산 결과 모달 연동 추가] 5번째 카드는 <button>으로 만들어서 기본 버튼 스타일을 초기화한다 */
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -521,6 +526,9 @@
 }
 .activity-review .mypage-activity-icon {
   color: #ffc34a;
+}
+.activity-subscription .mypage-activity-icon {
+  color: #7ad1c4;
 }
 
 /* =========================================================
@@ -607,6 +615,131 @@
 
 .mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
   transform: translateX(19px);
+}
+
+/* =========================================================
+   [마이페이지 구독 계산 결과 모달 연동 추가]
+========================================================= */
+.mypage-subresult-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.mypage-subresult-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(137, 157, 190, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
+}
+
+.mypage-subresult-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mypage-subresult-item-date {
+  color: #858d9c;
+  font-size: 12.5px;
+}
+
+.mypage-subresult-item-platforms {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.mypage-subresult-item-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mypage-subresult-item-price-detail {
+  color: #858d9c;
+  font-size: 12.5px;
+}
+
+.mypage-subresult-item-final-price {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mypage-subresult-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.mypage-subresult-detail-btn,
+.mypage-subresult-copy-btn,
+.mypage-subresult-delete-btn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+/* 상세보기: 목록에서 가장 자주 쓰는 주 행동이므로 밝은 톤으로 시각적 우선순위를 준다 */
+.mypage-subresult-detail-btn {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: #e5e7eb;
+  color: #14161a;
+}
+
+.mypage-subresult-detail-btn:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+/* 공유링크 복사: 보조 행동이므로 테두리만 있는 고스트 버튼으로 한 단계 낮춘다 */
+.mypage-subresult-copy-btn {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: #d7d9de;
+}
+
+.mypage-subresult-copy-btn:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* 삭제: 위험 행동이므로 색으로 구분하되, 흑백 테마와 어울리도록 톤을 낮춘 반투명 레드 */
+.mypage-subresult-delete-btn {
+  border: 1px solid rgba(220, 90, 90, 0.45);
+  background: rgba(122, 46, 46, 0.35);
+  color: #ff9d9d;
+}
+
+.mypage-subresult-delete-btn:hover {
+  border-color: rgba(220, 90, 90, 0.75);
+  background: rgba(122, 46, 46, 0.55);
+  color: #ffc2c2;
+}
+
+.mypage-subresult-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .mypage-toggle-switch input:disabled + .mypage-toggle-switch-track {
@@ -1316,12 +1449,14 @@
 .activity-favorite .mypage-activity-icon,
 .activity-cart .mypage-activity-icon,
 .activity-order .mypage-activity-icon,
-.activity-review .mypage-activity-icon {
+.activity-review .mypage-activity-icon,
+.activity-subscription .mypage-activity-icon {
   color: #e5e7eb;
 }
 
 /* [마이페이지 흑백 시네마 테마 수정] 알림 수신 설정 카드도 동일한 무채색 유리 패널로 통일 */
-.mypage-notification-item {
+.mypage-notification-item,
+.mypage-subresult-item {
   border-color: rgba(255, 255, 255, 0.13);
   background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
 }

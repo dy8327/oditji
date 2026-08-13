@@ -17,6 +17,7 @@ import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** 로그인 성공 redirect의 세션 속성 자체가 없는 첫 번째 short-circuit 분기를 보완합니다. */
@@ -36,6 +37,7 @@ class MemberControllerNullRedirectAttributeCoverageTest {
                 mock(WishService.class),
                 mock(OrderService.class),
                 mock(ReviewService.class),
+                mock(SubscriptionCalculatorService.class),
                 "build/test-profile",
                 "build/test-license");
     }

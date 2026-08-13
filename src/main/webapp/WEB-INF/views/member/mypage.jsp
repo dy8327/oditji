@@ -220,6 +220,17 @@
                         <span class="mypage-activity-count">${reviewCount}</span>
                         <span class="mypage-activity-title">내가 작성한 리뷰</span>
                     </a>
+
+                    <!-- [마이페이지 구독 계산 결과 모달 연동 추가] -->
+                    <button type="button"
+                            id="subResultCardBtn"
+                            class="mypage-activity-card activity-subscription">
+                        <span class="mypage-activity-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M16 14h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M16 18h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+                        </span>
+                        <span class="mypage-activity-count" id="subResultCount">${subResultCount}</span>
+                        <span class="mypage-activity-title">구독 계산 결과</span>
+                    </button>
                 </div>
             </section>
         </div>
@@ -581,6 +592,41 @@
 
             <button type="button"
                     id="closeNotificationModal">
+
+                닫기
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= SUBSCRIPTION RESULT MODAL ================= -->
+
+<!--
+    [마이페이지 구독 계산 결과 모달 연동 추가]
+    '나의 활동' 카드의 구독 계산 결과 개수를 클릭하면 열리는 모달.
+    목록은 mypage.js에서 GET /api/subscription/saved-results로 불러와 그린다.
+-->
+<div id="subResultModal"
+     class="modal-overlay hidden">
+
+    <div class="modal-box">
+
+        <h2>
+            나의 OTT 구독 조합 저장 기록
+        </h2>
+
+        <div class="mypage-subresult-list" id="subResultList">
+            <div class="mypage-empty">저장된 결과를 불러오는 중입니다...</div>
+        </div>
+
+        <div class="modal-btns">
+
+            <button type="button"
+                    id="closeSubResultModal">
 
                 닫기
 

@@ -23,6 +23,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 import ch.qos.logback.classic.Level;
@@ -47,6 +48,7 @@ class MemberControllerJoinLoggingGuardCoverageTest {
                 mock(WishService.class),
                 mock(OrderService.class),
                 mock(ReviewService.class),
+                mock(SubscriptionCalculatorService.class),
                 "build/test-profile",
                 "build/test-license");
     }

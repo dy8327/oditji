@@ -22,6 +22,7 @@ import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** MemberController의 비밀번호 재설정과 내부 redirect helper의 short-circuit 분기를 보완합니다. */
@@ -41,6 +42,7 @@ class MemberControllerResidualPrivateConditionCoverageTest {
                 mock(WishService.class),
                 mock(OrderService.class),
                 mock(ReviewService.class),
+                mock(SubscriptionCalculatorService.class),
                 "uploads/profile",
                 "uploads/business");
     }

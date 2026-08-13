@@ -60,4 +60,27 @@
           AND EXPIRES_AT &lt; SYSDATE
     </delete>
 
+    <!-- [마이페이지 구독 계산 결과 모달 연동 추가] 회원별 저장 결과 최신순 조회 -->
+    <select id="selectResultsByMember" resultMap="subscriptionShareResultMap">
+        SELECT
+            RESULT_ID,
+            MEMBER_NO,
+            TOTAL_PRICE,
+            DISCOUNT_PRICE,
+            FINAL_PRICE,
+            SELECTED_SERVICES,
+            EXPIRES_AT,
+            CREATED_AT
+        FROM SUBSCRIPTION_RESULT
+        WHERE MEMBER_NO = #{memberNo}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <!-- [마이페이지 구독 계산 결과 모달 연동 추가] 본인 소유 결과만 삭제 -->
+    <delete id="deleteResultByIdAndMember">
+        DELETE FROM SUBSCRIPTION_RESULT
+        WHERE RESULT_ID = #{resultId}
+          AND MEMBER_NO = #{memberNo}
+    </delete>
+
 </mapper>

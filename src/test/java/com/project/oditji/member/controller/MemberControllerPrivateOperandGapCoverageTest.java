@@ -20,6 +20,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** 회원 컨트롤러 private helper의 null/blank 복합 조건을 보완합니다. */
@@ -41,6 +42,7 @@ class MemberControllerPrivateOperandGapCoverageTest {
                 mock(WishService.class),
                 mock(OrderService.class),
                 mock(ReviewService.class),
+                mock(SubscriptionCalculatorService.class),
                 "build/test-profile",
                 "build/test-license");
     }

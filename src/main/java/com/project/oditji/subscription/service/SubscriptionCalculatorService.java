@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.subscription.vo.SubscriptionSavedResultVO;
 
 /**
  * "보고 싶은 작품 목록"을 가장 저렴하게 커버하는 OTT 구독 조합을 계산합니다.
@@ -45,4 +46,23 @@ public interface SubscriptionCalculatorService {
      * 만료된 비회원 결과를 정리하고 삭제된 건수를 반환합니다.
      */
     int deleteExpiredResults();
+
+    /**
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * 로그인 회원이 저장한 결과 개수를 반환합니다(마이페이지 '나의 활동' 카드용).
+     */
+    int getSavedResultCount(Long memberNo);
+
+    /**
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * 로그인 회원이 저장한 결과를 최신순으로 조회합니다.
+     */
+    List<SubscriptionSavedResultVO> getSavedResultsByMember(Long memberNo);
+
+    /**
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * resultId로 저장된 결과를 삭제합니다. memberNo가 소유한 결과가 아니면 삭제되지 않습니다.
+     * 실제로 삭제됐으면 true를 반환합니다.
+     */
+    boolean removeSavedResult(String resultId, Long memberNo);
 }

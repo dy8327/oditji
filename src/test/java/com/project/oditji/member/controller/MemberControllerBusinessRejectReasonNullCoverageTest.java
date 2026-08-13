@@ -17,6 +17,7 @@ import com.project.oditji.member.service.MemberPlatformService;
 import com.project.oditji.member.service.MemberService;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** 미승인 사업자 로그인 성공 후 제한된 사업자 홈으로 이동하는 분기를 보완합니다. */
@@ -34,6 +35,7 @@ class MemberControllerBusinessRejectReasonNullCoverageTest {
                 mock(WishService.class),
                 mock(OrderService.class),
                 mock(ReviewService.class),
+                mock(SubscriptionCalculatorService.class),
                 "C:/test/profile",
                 "C:/test/business-license");
 
