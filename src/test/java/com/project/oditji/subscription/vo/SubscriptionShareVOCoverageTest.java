@@ -3,6 +3,7 @@ package com.project.oditji.subscription.vo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,8 +13,8 @@ class SubscriptionShareVOCoverageTest {
     @Test
     void settersAndGettersShouldRoundTripEveryField() {
         SubscriptionShareVO share = new SubscriptionShareVO();
-        LocalDateTime expiresAt = LocalDateTime.of(2026, 9, 12, 10, 30);
-        LocalDateTime createdAt = LocalDateTime.of(2026, 8, 13, 9, 30);
+        LocalDateTime expiresAt = LocalDateTime.of(2026, Month.SEPTEMBER, 12, 10, 30);
+        LocalDateTime createdAt = LocalDateTime.of(2026, Month.AUGUST, 13, 9, 30);
 
         share.setResultId("SUBS_TEST");
         share.setMemberNo(7L);
