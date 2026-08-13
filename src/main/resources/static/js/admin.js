@@ -9,9 +9,8 @@
  * 여러 페이지에서 동일하게 쓰이던 closeModal 함수를 하나로 통합
  * ========================================================= */
 function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+  document.getElementById(id).classList.remove("open");
 }
-
 
 /* =========================================================
  * [모바일 리팩토링] 공통 - 관리자 목록 표 "상세보기" 모달
@@ -37,42 +36,38 @@ function closeModal(id) {
  *      "필드명:보일값1,보일값2"를 붙인다. (예: data-detail-toggle="status:ACTIVE")
  * ========================================================= */
 function openRowDetailModal(modalId, triggerButton) {
+  var modal = document.getElementById(modalId);
 
-    var modal = document.getElementById(modalId);
+  if (!modal || !triggerButton) {
+    return;
+  }
 
-    if (!modal || !triggerButton) {
-        return;
-    }
+  var dataset = triggerButton.dataset;
 
-    var dataset = triggerButton.dataset;
+  Object.keys(dataset).forEach(function (key) {
+    var value = dataset[key];
+    var targets = modal.querySelectorAll('[data-detail-field="' + key + '"]');
 
-    Object.keys(dataset).forEach(function (key) {
+    targets.forEach(function (el) {
+      var tag = el.tagName;
 
-        var value = dataset[key];
-        var targets = modal.querySelectorAll('[data-detail-field="' + key + '"]');
-
-        targets.forEach(function (el) {
-
-            var tag = el.tagName;
-
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-                el.value = value;
-            } else {
-                el.textContent = value;
-            }
-        });
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+        el.value = value;
+      } else {
+        el.textContent = value;
+      }
     });
+  });
 
-    modal.querySelectorAll('[data-detail-toggle]').forEach(function (el) {
+  modal.querySelectorAll("[data-detail-toggle]").forEach(function (el) {
+    var parts = el.dataset.detailToggle.split(":");
+    var field = parts[0];
+    var allowedValues = (parts[1] || "").split(",");
 
-        var parts = el.dataset.detailToggle.split(':');
-        var field = parts[0];
-        var allowedValues = (parts[1] || '').split(',');
+    el.style.display = allowedValues.indexOf(dataset[field]) !== -1 ? "" : "none";
+  });
 
-        el.style.display = (allowedValues.indexOf(dataset[field]) !== -1) ? '' : 'none';
-    });
-
-    modal.classList.add('open');
+  modal.classList.add("open");
 }
 
 /* =========================================================
@@ -87,54 +82,52 @@ function openRowDetailModal(modalId, triggerButton) {
  * 미리 담아두고, 모드에 따라 form.action만 바꿔치기한다.
  * ========================================================= */
 function openDiscountRegisterModal() {
+  var modal = document.getElementById("discountFormModal");
+  var form = document.getElementById("discountForm");
 
-    var modal = document.getElementById('discountFormModal');
-    var form = document.getElementById('discountForm');
+  if (!modal || !form) {
+    return;
+  }
 
-    if (!modal || !form) {
-        return;
-    }
+  form.reset();
+  form.action = form.dataset.registerUrl;
 
-    form.reset();
-    form.action = form.dataset.registerUrl;
+  var titleEl = document.getElementById("discountFormTitle");
+  if (titleEl) {
+    titleEl.textContent = "OTT 할인 등록";
+  }
 
-    var titleEl = document.getElementById('discountFormTitle');
-    if (titleEl) {
-        titleEl.textContent = 'OTT 할인 등록';
-    }
-
-    /* 신규 등록에는 대상 discountId가 없으므로 모바일 활성화/비활성화 영역을 숨긴다.
+  /* 신규 등록에는 대상 discountId가 없으므로 모바일 활성화/비활성화 영역을 숨긴다.
        (openDiscountEditModal이 다시 열릴 때 openRowDetailModal이 알아서 보여준다) */
-    var statusActions = document.getElementById('discountStatusActions');
-    if (statusActions) {
-        statusActions.style.display = 'none';
-    }
+  var statusActions = document.getElementById("discountStatusActions");
+  if (statusActions) {
+    statusActions.style.display = "none";
+  }
 
-    modal.classList.add('open');
+  modal.classList.add("open");
 }
 
 function openDiscountEditModal(triggerButton) {
+  var modal = document.getElementById("discountFormModal");
+  var form = document.getElementById("discountForm");
 
-    var modal = document.getElementById('discountFormModal');
-    var form = document.getElementById('discountForm');
+  if (!modal || !form || !triggerButton) {
+    return;
+  }
 
-    if (!modal || !form || !triggerButton) {
-        return;
-    }
+  var statusActions = document.getElementById("discountStatusActions");
+  if (statusActions) {
+    statusActions.style.display = "";
+  }
 
-    var statusActions = document.getElementById('discountStatusActions');
-    if (statusActions) {
-        statusActions.style.display = '';
-    }
+  openRowDetailModal("discountFormModal", triggerButton);
 
-    openRowDetailModal('discountFormModal', triggerButton);
+  form.action = form.dataset.updateUrl;
 
-    form.action = form.dataset.updateUrl;
-
-    var titleEl = document.getElementById('discountFormTitle');
-    if (titleEl) {
-        titleEl.textContent = 'OTT 할인 수정';
-    }
+  var titleEl = document.getElementById("discountFormTitle");
+  if (titleEl) {
+    titleEl.textContent = "OTT 할인 수정";
+  }
 }
 
 /*
@@ -142,29 +135,27 @@ function openDiscountEditModal(triggerButton) {
  * (기존 discountManage.jsp 하단 인라인 <script>에 있던 코드를 이전함)
  */
 function validateDiscountForm() {
+  var regPriceInput = document.getElementById("discountRegularPrice");
+  var discPriceInput = document.getElementById("discountDiscountPrice");
 
-    var regPriceInput = document.getElementById('discountRegularPrice');
-    var discPriceInput = document.getElementById('discountDiscountPrice');
+  var regPrice = regPriceInput.value ? parseInt(regPriceInput.value, 10) : null;
+  var discPrice = discPriceInput.value ? parseInt(discPriceInput.value, 10) : null;
 
-    var regPrice = regPriceInput.value ? parseInt(regPriceInput.value, 10) : null;
-    var discPrice = discPriceInput.value ? parseInt(discPriceInput.value, 10) : null;
-
-    if (discPrice !== null && !isNaN(discPrice)) {
-
-        if (regPrice === null || isNaN(regPrice)) {
-            alert('할인가를 입력하려면 정가를 먼저 입력해야 합니다.');
-            regPriceInput.focus();
-            return false;
-        }
-
-        if (discPrice >= regPrice) {
-            alert('할인가는 정가보다 작아야 합니다.');
-            discPriceInput.focus();
-            return false;
-        }
+  if (discPrice !== null && !isNaN(discPrice)) {
+    if (regPrice === null || isNaN(regPrice)) {
+      alert("할인가를 입력하려면 정가를 먼저 입력해야 합니다.");
+      regPriceInput.focus();
+      return false;
     }
 
-    return true;
+    if (discPrice >= regPrice) {
+      alert("할인가는 정가보다 작아야 합니다.");
+      discPriceInput.focus();
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /* =========================================================
@@ -181,60 +172,56 @@ function validateDiscountForm() {
  * ========================================================= */
 
 function openMemberIdModal(target) {
+  var modal = document.getElementById("memberIdModal");
 
-    var modal = document.getElementById('memberIdModal');
+  if (!modal) {
+    return;
+  }
 
-    if (!modal) {
-        return;
+  var fullId = target.getAttribute("title") || target.textContent.trim();
+
+  var valueEl = document.getElementById("memberIdModalValue");
+  if (valueEl) {
+    valueEl.textContent = fullId;
+  }
+
+  // monitoring.jsp는 아이디 아래에 닉네임(.monitoring-nickname)을 함께 보여준다.
+  // 닉네임이 없는 memberManage.jsp에서는 해당 줄을 그냥 숨긴다.
+  var cell = target.closest(".member-id-cell");
+  var nicknameSource = cell ? cell.querySelector(".monitoring-nickname") : null;
+  var nicknameEl = document.getElementById("memberIdModalNickname");
+
+  if (nicknameEl) {
+    if (nicknameSource && nicknameSource.textContent.trim() !== "") {
+      nicknameEl.textContent = nicknameSource.textContent.trim();
+      nicknameEl.style.display = "";
+    } else {
+      nicknameEl.textContent = "";
+      nicknameEl.style.display = "none";
     }
+  }
 
-    var fullId = target.getAttribute('title') || target.textContent.trim();
-
-    var valueEl = document.getElementById('memberIdModalValue');
-    if (valueEl) {
-        valueEl.textContent = fullId;
-    }
-
-    // monitoring.jsp는 아이디 아래에 닉네임(.monitoring-nickname)을 함께 보여준다.
-    // 닉네임이 없는 memberManage.jsp에서는 해당 줄을 그냥 숨긴다.
-    var cell = target.closest('.member-id-cell');
-    var nicknameSource = cell ? cell.querySelector('.monitoring-nickname') : null;
-    var nicknameEl = document.getElementById('memberIdModalNickname');
-
-    if (nicknameEl) {
-        if (nicknameSource && nicknameSource.textContent.trim() !== '') {
-            nicknameEl.textContent = nicknameSource.textContent.trim();
-            nicknameEl.style.display = '';
-        } else {
-            nicknameEl.textContent = '';
-            nicknameEl.style.display = 'none';
-        }
-    }
-
-    modal.classList.add('open');
+  modal.classList.add("open");
 }
 
 function toggleMemberIdText(target) {
+  // 말줄임(...) 상태가 아니면(=데스크톱이거나 짧은 값이면) 모달을 띄울 필요가 없다
+  if (target.scrollWidth <= target.clientWidth) {
+    return;
+  }
 
-    // 말줄임(...) 상태가 아니면(=데스크톱이거나 짧은 값이면) 모달을 띄울 필요가 없다
-    if (target.scrollWidth <= target.clientWidth) {
-        return;
-    }
-
-    openMemberIdModal(target);
+  openMemberIdModal(target);
 }
 
-document.addEventListener('click', function (e) {
+document.addEventListener("click", function (e) {
+  var target = e.target.closest(".member-id-text");
 
-    var target = e.target.closest('.member-id-text');
+  if (!target) {
+    return;
+  }
 
-    if (!target) {
-        return;
-    }
-
-    toggleMemberIdText(target);
+  toggleMemberIdText(target);
 });
-
 
 /* =========================================================
  * memberManage.jsp - 회원 관리 (필터/일괄처리/개별처리)
@@ -246,21 +233,20 @@ document.addEventListener('click', function (e) {
  * 다시 목록으로 돌아갈 수 있도록 여기서 읽어온다.
  */
 function getMemberListState() {
+  var stateEl = document.getElementById("memberListState");
 
-    var stateEl = document.getElementById('memberListState');
+  if (!stateEl) {
+    return { context: "", keyword: "", searchType: "", status: "", memberType: "", page: "1" };
+  }
 
-    if (!stateEl) {
-        return { context: '', keyword: '', searchType: '', status: '', memberType: '', page: '1' };
-    }
-
-    return {
-        context: stateEl.dataset.context || '',
-        keyword: stateEl.dataset.keyword || '',
-        searchType: stateEl.dataset.searchType || '',
-        status: stateEl.dataset.status || '',
-        memberType: stateEl.dataset.memberType || '',
-        page: stateEl.dataset.page || '1'
-    };
+  return {
+    context: stateEl.dataset.context || "",
+    keyword: stateEl.dataset.keyword || "",
+    searchType: stateEl.dataset.searchType || "",
+    status: stateEl.dataset.status || "",
+    memberType: stateEl.dataset.memberType || "",
+    page: stateEl.dataset.page || "1",
+  };
 }
 
 /*
@@ -269,90 +255,85 @@ function getMemberListState() {
  * 그래서 클릭 시점에 별도의 <form>을 만들어 제출하는 방식으로 처리한다.
  */
 function submitMemberAction(actionPath, memberNo) {
+  var state = getMemberListState();
 
-    var state = getMemberListState();
+  var form = document.createElement("form");
+  form.method = "POST";
+  form.action = state.context + actionPath;
+  form.style.display = "none";
 
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = state.context + actionPath;
-    form.style.display = 'none';
+  var fields = {
+    memberNo: memberNo,
+    keyword: state.keyword,
+    searchType: state.searchType,
+    status: state.status,
+    memberType: state.memberType,
+    page: state.page,
+  };
 
-    var fields = {
-        memberNo: memberNo,
-        keyword: state.keyword,
-        searchType: state.searchType,
-        status: state.status,
-        memberType: state.memberType,
-        page: state.page
-    };
+  Object.keys(fields).forEach(function (name) {
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = fields[name];
+    form.appendChild(input);
+  });
 
-    Object.keys(fields).forEach(function (name) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = fields[name];
-        form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
+  document.body.appendChild(form);
+  form.submit();
 }
 
 function memberSuspend(memberNo) {
-    submitMemberAction('/admin/member/suspend', memberNo);
+  submitMemberAction("/admin/member/suspend", memberNo);
 }
 
 function memberRestore(memberNo) {
-    submitMemberAction('/admin/member/restore', memberNo);
+  submitMemberAction("/admin/member/restore", memberNo);
 }
 
 function memberWithdraw(memberNo) {
+  showConfirm("해당 회원 데이터를 완전히 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.").then(function (confirmed) {
+    if (!confirmed) {
+      return;
+    }
 
-    showConfirm('해당 회원 데이터를 완전히 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.').then(function (confirmed) {
-
-        if (!confirmed) {
-            return;
-        }
-
-        submitMemberAction('/admin/member/withdraw', memberNo);
-    });
+    submitMemberAction("/admin/member/withdraw", memberNo);
+  });
 }
 
 /* 헤더의 "전체 선택" 체크박스와 각 행 체크박스를 동기화한다. */
 function toggleAllMembers(checkAllBox) {
+  var checks = document.querySelectorAll(".member-check");
 
-    var checks = document.querySelectorAll('.member-check');
+  checks.forEach(function (check) {
+    check.checked = checkAllBox.checked;
+  });
 
-    checks.forEach(function (check) {
-        check.checked = checkAllBox.checked;
-    });
-
-    updateSelectedMemberCount();
+  updateSelectedMemberCount();
 }
 
 /* 선택된 회원 수를 갱신하고, 1명도 선택하지 않았으면 일괄처리 버튼을 비활성화한다. */
 function updateSelectedMemberCount() {
+  var checkedList = document.querySelectorAll(".member-check:checked");
+  var allChecks = document.querySelectorAll(".member-check");
+  var count = checkedList.length;
 
-    var checkedList = document.querySelectorAll('.member-check:checked');
-    var allChecks = document.querySelectorAll('.member-check');
-    var count = checkedList.length;
+  var countEl = document.getElementById("selectedMemberCount");
+  if (countEl) {
+    countEl.textContent = count;
+  }
 
-    var countEl = document.getElementById('selectedMemberCount');
-    if (countEl) {
-        countEl.textContent = count;
+  var checkAllBox = document.getElementById("memberCheckAll");
+  if (checkAllBox) {
+    checkAllBox.checked = allChecks.length > 0 && count === allChecks.length;
+  }
+
+  ["bulkSuspendBtn", "bulkRestoreBtn", "bulkDeleteBtn"].forEach(function (id) {
+    var btn = document.getElementById(id);
+    if (btn) {
+      btn.disabled = count === 0;
     }
-
-    var checkAllBox = document.getElementById('memberCheckAll');
-    if (checkAllBox) {
-        checkAllBox.checked = (allChecks.length > 0 && count === allChecks.length);
-    }
-
-    ['bulkSuspendBtn', 'bulkRestoreBtn', 'bulkDeleteBtn'].forEach(function (id) {
-        var btn = document.getElementById(id);
-        if (btn) {
-            btn.disabled = (count === 0);
-        }
-    });
+  });
 }
 
 /*
@@ -361,23 +342,21 @@ function updateSelectedMemberCount() {
  * (예: onclick="return confirmMemberBulkAction(event, '정지');")
  */
 function confirmMemberBulkAction(event, label) {
+  var count = document.querySelectorAll(".member-check:checked").length;
 
-    var count = document.querySelectorAll('.member-check:checked').length;
+  if (count === 0) {
+    showAlert("선택된 회원이 없습니다.", "warning");
+    return false;
+  }
 
-    if (count === 0) {
-        showAlert('선택된 회원이 없습니다.', 'warning');
-        return false;
-    }
+  var message = count + "명의 회원을 " + label + " 처리하시겠습니까?";
 
-    var message = count + '명의 회원을 ' + label + ' 처리하시겠습니까?';
+  if (label === "완전삭제") {
+    message += "\n삭제 후 복구할 수 없습니다.";
+  }
 
-    if (label === '완전삭제') {
-        message += '\n삭제 후 복구할 수 없습니다.';
-    }
-
-    return confirmAndSubmit(event, message);
+  return confirmAndSubmit(event, message);
 }
-
 
 /* =========================================================
  * reviewManage.jsp / productReviewManage.jsp - 리뷰 관리 (일괄처리/내용보기)
@@ -386,58 +365,55 @@ function confirmMemberBulkAction(event, label) {
 
 /* 헤더의 "전체 선택" 체크박스와 각 행 체크박스를 동기화한다. */
 function toggleAllReviews(checkAllBox) {
+  var checks = document.querySelectorAll(".review-check");
 
-    var checks = document.querySelectorAll('.review-check');
+  checks.forEach(function (check) {
+    check.checked = checkAllBox.checked;
+  });
 
-    checks.forEach(function (check) {
-        check.checked = checkAllBox.checked;
-    });
-
-    updateSelectedReviewCount();
+  updateSelectedReviewCount();
 }
 
 /* 선택된 리뷰 수를 갱신하고, 1건도 선택하지 않았으면 일괄처리 버튼을 비활성화한다. */
 function updateSelectedReviewCount() {
+  var checkedList = document.querySelectorAll(".review-check:checked");
+  var allChecks = document.querySelectorAll(".review-check");
+  var count = checkedList.length;
 
-    var checkedList = document.querySelectorAll('.review-check:checked');
-    var allChecks = document.querySelectorAll('.review-check');
-    var count = checkedList.length;
+  var countEl = document.getElementById("selectedReviewCount");
+  if (countEl) {
+    countEl.textContent = count;
+  }
 
-    var countEl = document.getElementById('selectedReviewCount');
-    if (countEl) {
-        countEl.textContent = count;
+  var checkAllBox = document.getElementById("reviewCheckAll");
+  if (checkAllBox) {
+    checkAllBox.checked = allChecks.length > 0 && count === allChecks.length;
+  }
+
+  ["bulkDeleteReviewBtn", "bulkApproveReviewBtn", "bulkRejectReviewBtn"].forEach(function (id) {
+    var btn = document.getElementById(id);
+    if (btn) {
+      btn.disabled = count === 0;
     }
-
-    var checkAllBox = document.getElementById('reviewCheckAll');
-    if (checkAllBox) {
-        checkAllBox.checked = (allChecks.length > 0 && count === allChecks.length);
-    }
-
-    ['bulkDeleteReviewBtn', 'bulkApproveReviewBtn', 'bulkRejectReviewBtn'].forEach(function (id) {
-        var btn = document.getElementById(id);
-        if (btn) {
-            btn.disabled = (count === 0);
-        }
-    });
+  });
 }
 
 /* 일괄처리 버튼(삭제/승인/반려) 클릭 시 선택 건수를 확인시켜준다. */
 function confirmReviewBulkAction(event, label) {
+  var count = document.querySelectorAll(".review-check:checked").length;
 
-    var count = document.querySelectorAll('.review-check:checked').length;
+  if (count === 0) {
+    showAlert("선택된 리뷰가 없습니다.", "warning");
+    return false;
+  }
 
-    if (count === 0) {
-        showAlert('선택된 리뷰가 없습니다.', 'warning');
-        return false;
-    }
+  var message = count + "건의 리뷰를 " + label + " 처리하시겠습니까?";
 
-    var message = count + '건의 리뷰를 ' + label + ' 처리하시겠습니까?';
+  if (label === "삭제" || label === "승인") {
+    message += "\n삭제된 리뷰는 복구할 수 없습니다.";
+  }
 
-    if (label === '삭제' || label === '승인') {
-        message += '\n삭제된 리뷰는 복구할 수 없습니다.';
-    }
-
-    return confirmAndSubmit(event, message);
+  return confirmAndSubmit(event, message);
 }
 
 /*
@@ -458,149 +434,150 @@ function confirmReviewBulkAction(event, label) {
  * (상세내용 자체에 " - "가 더 있을 수 있으므로 첫 번째 구분자만 기준으로 자른다.)
  */
 function parseReportReasons(raw) {
+  if (!raw || raw === "null" || raw === "undefined") {
+    return [];
+  }
 
-    if (!raw || raw === 'null' || raw === 'undefined') {
-        return [];
-    }
-
-    return raw.split(' / ')
-        .filter(function (item) { return item.trim() !== ''; })
-        .map(function (item) {
-            var sepIndex = item.indexOf(' - ');
-            return {
-                reason: (sepIndex === -1 ? item : item.substring(0, sepIndex)).trim(),
-                detail: (sepIndex === -1 ? '' : item.substring(sepIndex + 3)).trim()
-            };
-        });
+  return raw
+    .split(" / ")
+    .filter(function (item) {
+      return item.trim() !== "";
+    })
+    .map(function (item) {
+      var sepIndex = item.indexOf(" - ");
+      return {
+        reason: (sepIndex === -1 ? item : item.substring(0, sepIndex)).trim(),
+        detail: (sepIndex === -1 ? "" : item.substring(sepIndex + 3)).trim(),
+      };
+    });
 }
 
 function openReviewContentModal(button) {
+  document.getElementById("reviewContentReviewNo").value = button.dataset.reviewNo;
+  document.getElementById("reviewContentWriter").textContent = displayOrDash(button.dataset.writer);
+  document.getElementById("reviewContentTarget").textContent = displayOrDash(button.dataset.target);
+  document.getElementById("reviewContentRating").textContent = displayOrDash(button.dataset.rating) + "점";
+  document.getElementById("reviewContentDate").textContent = displayOrDash(button.dataset.createdAt);
+  document.getElementById("reviewContentBody").textContent = displayOrDash(button.dataset.content);
 
-    document.getElementById('reviewContentReviewNo').value = button.dataset.reviewNo;
-    document.getElementById('reviewContentWriter').textContent = displayOrDash(button.dataset.writer);
-    document.getElementById('reviewContentTarget').textContent = displayOrDash(button.dataset.target);
-    document.getElementById('reviewContentRating').textContent = displayOrDash(button.dataset.rating) + '점';
-    document.getElementById('reviewContentDate').textContent = displayOrDash(button.dataset.createdAt);
-    document.getElementById('reviewContentBody').textContent = displayOrDash(button.dataset.content);
+  /*
+   * 신고 사유 섹션은 "신고 내역" 탭 화면에서만 렌더링되므로(JSP의 c:if),
+   * 전체 리뷰 탭에서는 이 요소 자체가 DOM에 없다. 존재할 때만 채운다.
+   */
+  var reportBodyEl = document.getElementById("reviewReportReasonBody");
 
-    /*
-     * 신고 사유 섹션은 "신고 내역" 탭 화면에서만 렌더링되므로(JSP의 c:if),
-     * 전체 리뷰 탭에서는 이 요소 자체가 DOM에 없다. 존재할 때만 채운다.
-     */
-    var reportBodyEl = document.getElementById('reviewReportReasonBody');
+  if (reportBodyEl) {
+    var reports = parseReportReasons(button.dataset.reportReason);
 
-    if (reportBodyEl) {
-
-        var reports = parseReportReasons(button.dataset.reportReason);
-
-        if (reports.length === 0) {
-            reportBodyEl.innerHTML = '<div class="report-reason-empty">신고 사유가 없습니다.</div>';
-        } else {
-            reportBodyEl.innerHTML = reports.map(function (r) {
-                return '<div class="report-reason-card">'
-                    + '<span class="report-reason-tag">' + escapeHtml(r.reason) + '</span>'
-                    + '<div class="report-reason-detail">' + escapeHtml(r.detail) + '</div>'
-                    + '</div>';
-            }).join('');
-        }
+    if (reports.length === 0) {
+      reportBodyEl.innerHTML = '<div class="report-reason-empty">신고 사유가 없습니다.</div>';
+    } else {
+      reportBodyEl.innerHTML = reports
+        .map(function (r) {
+          return (
+            '<div class="report-reason-card">' +
+            '<span class="report-reason-tag">' +
+            escapeHtml(r.reason) +
+            "</span>" +
+            '<div class="report-reason-detail">' +
+            escapeHtml(r.detail) +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
     }
+  }
 
-    document.getElementById('reviewContentModal').classList.add('open');
+  document.getElementById("reviewContentModal").classList.add("open");
 }
 
 function deleteContentReview(reviewNo) {
+  showConfirm("이 리뷰를 삭제하시겠습니까?").then(function (confirmed) {
+    if (!confirmed) {
+      return;
+    }
 
-    showConfirm('이 리뷰를 삭제하시겠습니까?').then(function (confirmed) {
+    var form = document.createElement("form");
 
-        if (!confirmed) {
-            return;
-        }
+    form.method = "post";
+    form.action = "/oditji/admin/review/delete";
 
-        var form = document.createElement('form');
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "reviewNo";
+    input.value = reviewNo;
 
-        form.method = 'post';
-        form.action = '/oditji/admin/review/delete';
+    form.appendChild(input);
 
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'reviewNo';
-        input.value = reviewNo;
-
-        form.appendChild(input);
-
-        document.body.appendChild(form);
-        form.submit();
-    });
+    document.body.appendChild(form);
+    form.submit();
+  });
 }
-
 
 function deleteProductReview(reviewNo) {
+  showConfirm("이 리뷰를 삭제하시겠습니까?").then(function (confirmed) {
+    if (!confirmed) {
+      return;
+    }
 
-    showConfirm('이 리뷰를 삭제하시겠습니까?').then(function (confirmed) {
+    var form = document.createElement("form");
 
-        if (!confirmed) {
-            return;
-        }
+    form.method = "post";
+    form.action = "/oditji/admin/productReview/delete";
 
-        var form = document.createElement('form');
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "reviewNo";
+    input.value = reviewNo;
 
-        form.method = 'post';
-        form.action = '/oditji/admin/productReview/delete';
+    form.appendChild(input);
 
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'reviewNo';
-        input.value = reviewNo;
-
-        form.appendChild(input);
-
-        document.body.appendChild(form);
-        form.submit();
-    });
+    document.body.appendChild(form);
+    form.submit();
+  });
 }
-
 
 /* =========================================================
  * businessManage.jsp - 사업자 관리
  * ========================================================= */
 function openGradeModal(businessNo, name, memberId, email, currentGrade, totalSales) {
-    document.getElementById('gradeBusinessNo').value = businessNo;
-    document.getElementById('gradeBusinessName').textContent = name;
-    document.getElementById('gradeBusinessId').textContent = memberId;
-    document.getElementById('gradeBusinessEmail').textContent = email;
-    document.getElementById('gradeBusinessCurrent').textContent = currentGrade;
+  document.getElementById("gradeBusinessNo").value = businessNo;
+  document.getElementById("gradeBusinessName").textContent = name;
+  document.getElementById("gradeBusinessId").textContent = memberId;
+  document.getElementById("gradeBusinessEmail").textContent = email;
+  document.getElementById("gradeBusinessCurrent").textContent = currentGrade;
 
-    // [모바일 리팩토링] 누적 실매출 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
-    var salesEl = document.getElementById('gradeBusinessSales');
-    if (salesEl) {
-        var amount = Number(totalSales);
-        salesEl.textContent = isNaN(amount) ? '-' : amount.toLocaleString('ko-KR') + '원';
-    }
+  // [모바일 리팩토링] 누적 실매출 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+  var salesEl = document.getElementById("gradeBusinessSales");
+  if (salesEl) {
+    var amount = Number(totalSales);
+    salesEl.textContent = isNaN(amount) ? "-" : amount.toLocaleString("ko-KR") + "원";
+  }
 
-    var radios = document.getElementsByName('gradeName');
-    for (var i = 0; i < radios.length; i++) {
-        radios[i].checked = (radios[i].value === currentGrade);
-    }
+  var radios = document.getElementsByName("gradeName");
+  for (var i = 0; i < radios.length; i++) {
+    radios[i].checked = radios[i].value === currentGrade;
+  }
 
-    document.getElementById('gradeModal').classList.add('open');
+  document.getElementById("gradeModal").classList.add("open");
 }
 
 function openApprovalModal(businessNo, businessName, memberId, email, businessNumber, settlementAccount) {
-    document.getElementById('approvalBusinessNo').value = businessNo;
-    document.getElementById('approvalBusinessName').textContent = businessName;
-    document.getElementById('approvalMemberId').textContent = memberId;
-    document.getElementById('approvalEmail').textContent = email;
-    document.getElementById('approvalBusinessNumber').textContent = businessNumber;
+  document.getElementById("approvalBusinessNo").value = businessNo;
+  document.getElementById("approvalBusinessName").textContent = businessName;
+  document.getElementById("approvalMemberId").textContent = memberId;
+  document.getElementById("approvalEmail").textContent = email;
+  document.getElementById("approvalBusinessNumber").textContent = businessNumber;
 
-    // [모바일 리팩토링] 정산 계좌 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
-    var accountEl = document.getElementById('approvalAccount');
-    if (accountEl) {
-        accountEl.textContent = settlementAccount;
-    }
+  // [모바일 리팩토링] 정산 계좌 컬럼이 모바일 표에서는 숨겨지므로 모달에서 보여준다.
+  var accountEl = document.getElementById("approvalAccount");
+  if (accountEl) {
+    accountEl.textContent = settlementAccount;
+  }
 
-    document.getElementById('approvalModal').classList.add('open');
+  document.getElementById("approvalModal").classList.add("open");
 }
-
 
 /* =========================================================
  * eventManage.jsp - 이벤트 관리
@@ -608,15 +585,10 @@ function openApprovalModal(businessNo, businessName, memberId, email, businessNu
 
 /* HTML 특수문자를 이스케이프해서 상품명/판매자명 등을 안전하게 innerHTML에 넣는다. */
 function escapeHtml(value) {
-    if (value === null || value === undefined) {
-        return '';
-    }
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
 /*
@@ -625,11 +597,11 @@ function escapeHtml(value) {
  * 이벤트 상세 전용 함수는 formatEventWon으로 따로 둔다.)
  */
 function formatEventWon(value) {
-    var amount = Number(value);
-    if (isNaN(amount)) {
-        return escapeHtml(value);
-    }
-    return amount.toLocaleString('ko-KR') + '원';
+  var amount = Number(value);
+  if (isNaN(amount)) {
+    return escapeHtml(value);
+  }
+  return amount.toLocaleString("ko-KR") + "원";
 }
 
 /*
@@ -645,96 +617,104 @@ function formatEventWon(value) {
  * 0건을 갱신해 500 오류로 이어지던 문제를 화면에서 원천적으로 막기 위함이다.)
  */
 function openEventDetailModal(button) {
+  var eventNo = button.dataset.eventNo;
+  var businessName = button.dataset.businessName;
+  var title = button.dataset.title;
+  var period = button.dataset.period;
+  var createdAt = button.dataset.createdAt;
+  var status = button.dataset.status;
+  var approvalLabel = button.dataset.approvalLabel;
+  var progressLabel = button.dataset.progressLabel;
+  var productDetail = button.dataset.productDetail;
+  var bannerImage = button.dataset.bannerImage;
 
-    var eventNo = button.dataset.eventNo;
-    var businessName = button.dataset.businessName;
-    var title = button.dataset.title;
-    var period = button.dataset.period;
-    var createdAt = button.dataset.createdAt;
-    var status = button.dataset.status;
-    var approvalLabel = button.dataset.approvalLabel;
-    var progressLabel = button.dataset.progressLabel;
-    var productDetail = button.dataset.productDetail;
-    var bannerImage = button.dataset.bannerImage;
+  document.getElementById("reqeventNo").value = eventNo;
+  document.getElementById("reqBusinessName").textContent = businessName;
+  document.getElementById("reqtitle").textContent = title;
+  document.getElementById("reqEventPeriod").textContent = period;
+  document.getElementById("reqCreatedAt").textContent = createdAt;
+  document.getElementById("reqApprovalStatus").textContent = approvalLabel;
+  document.getElementById("reqProgressStatus").textContent = progressLabel;
 
-    document.getElementById('reqeventNo').value = eventNo;
-    document.getElementById('reqBusinessName').textContent = businessName;
-    document.getElementById('reqtitle').textContent = title;
-    document.getElementById('reqEventPeriod').textContent = period;
-    document.getElementById('reqCreatedAt').textContent = createdAt;
-    document.getElementById('reqApprovalStatus').textContent = approvalLabel;
-    document.getElementById('reqProgressStatus').textContent = progressLabel;
+  // 사업자가 등록한 이벤트 배너 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
+  var imageEl = document.getElementById("reqEventImage");
+  var imageEmptyEl = document.getElementById("reqEventImageEmpty");
 
-    // 사업자가 등록한 이벤트 배너 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
-    var imageEl = document.getElementById('reqEventImage');
-    var imageEmptyEl = document.getElementById('reqEventImageEmpty');
+  if (bannerImage) {
+    imageEl.src = bannerImage;
+    imageEl.style.display = "";
+    imageEmptyEl.style.display = "none";
+  } else {
+    imageEl.removeAttribute("src");
+    imageEl.style.display = "none";
+    imageEmptyEl.style.display = "";
+  }
 
-    if (bannerImage) {
-        imageEl.src = bannerImage;
-        imageEl.style.display = '';
-        imageEmptyEl.style.display = 'none';
-    } else {
-        imageEl.removeAttribute('src');
-        imageEl.style.display = 'none';
-        imageEmptyEl.style.display = '';
-    }
+  var tbody = document.getElementById("reqProductTableBody");
+  var items = (productDetail || "").split(";").filter(function (item) {
+    return item.trim() !== "";
+  });
 
-    var tbody = document.getElementById('reqProductTableBody');
-    var items = (productDetail || '')
-        .split(';')
-        .filter(function (item) { return item.trim() !== ''; });
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="ep-empty">연결된 상품이 없습니다.</td></tr>';
+  } else {
+    tbody.innerHTML = items
+      .map(function (item) {
+        var parts = item.split("|");
+        var name = parts[0] || "";
+        var rate = Number(parts[1]) || 0;
+        var price = parts[2] || "0";
+        var discounted = parts[3] || price;
+        var business = parts[4] || businessName;
 
-    if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="ep-empty">연결된 상품이 없습니다.</td></tr>';
-    } else {
-        tbody.innerHTML = items.map(function (item) {
-            var parts = item.split('|');
-            var name = parts[0] || '';
-            var rate = Number(parts[1]) || 0;
-            var price = parts[2] || '0';
-            var discounted = parts[3] || price;
-            var business = parts[4] || businessName;
+        // 할인이 없는 상품은 기존가격에 취소선을 넣지 않고, 할인율도 배지 대신 "-"로 표시한다.
+        var priceCell = rate > 0 ? '<span class="ep-price-original">' + formatEventWon(price) + "</span>" : formatEventWon(price);
 
-            // 할인이 없는 상품은 기존가격에 취소선을 넣지 않고, 할인율도 배지 대신 "-"로 표시한다.
-            var priceCell = rate > 0
-                ? '<span class="ep-price-original">' + formatEventWon(price) + '</span>'
-                : formatEventWon(price);
+        var rateCell = rate > 0 ? '<span class="ep-rate-badge">' + rate + "% 할인</span>" : '<span class="ep-rate-none">-</span>';
 
-            var rateCell = rate > 0
-                ? '<span class="ep-rate-badge">' + rate + '% 할인</span>'
-                : '<span class="ep-rate-none">-</span>';
+        return (
+          "<tr>" +
+          '<td class="ep-name">' +
+          escapeHtml(name) +
+          "</td>" +
+          '<td class="ep-seller">' +
+          escapeHtml(business) +
+          "</td>" +
+          '<td class="ep-price">' +
+          priceCell +
+          "</td>" +
+          '<td class="ep-rate">' +
+          rateCell +
+          "</td>" +
+          '<td class="ep-price ep-price-final"><strong>' +
+          formatEventWon(discounted) +
+          "</strong></td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+  }
 
-            return '<tr>'
-                + '<td class="ep-name">' + escapeHtml(name) + '</td>'
-                + '<td class="ep-seller">' + escapeHtml(business) + '</td>'
-                + '<td class="ep-price">' + priceCell + '</td>'
-                + '<td class="ep-rate">' + rateCell + '</td>'
-                + '<td class="ep-price ep-price-final"><strong>' + formatEventWon(discounted) + '</strong></td>'
-                + '</tr>';
-        }).join('');
-    }
+  // 대기(WAITING) 상태일 때만 승인/반려 버튼을 보여주고, 이미 처리된 이벤트는
+  // 내용만 확인할 수 있도록 버튼 대신 안내 문구를 보여준다. (닫기 버튼은 항상 보여준다.)
+  var isWaiting = status === "WAITING";
 
-    // 대기(WAITING) 상태일 때만 승인/반려 버튼을 보여주고, 이미 처리된 이벤트는
-    // 내용만 확인할 수 있도록 버튼 대신 안내 문구를 보여준다. (닫기 버튼은 항상 보여준다.)
-    var isWaiting = (status === 'WAITING');
+  var approveBtn = document.getElementById("eventApproveBtn");
+  var rejectBtn = document.getElementById("eventRejectBtn");
+  var noteEl = document.getElementById("eventReadonlyNote");
 
-    var approveBtn = document.getElementById('eventApproveBtn');
-    var rejectBtn = document.getElementById('eventRejectBtn');
-    var noteEl = document.getElementById('eventReadonlyNote');
+  if (approveBtn) {
+    approveBtn.style.display = isWaiting ? "" : "none";
+  }
+  if (rejectBtn) {
+    rejectBtn.style.display = isWaiting ? "" : "none";
+  }
+  if (noteEl) {
+    noteEl.style.display = isWaiting ? "none" : "";
+  }
 
-    if (approveBtn) {
-        approveBtn.style.display = isWaiting ? '' : 'none';
-    }
-    if (rejectBtn) {
-        rejectBtn.style.display = isWaiting ? '' : 'none';
-    }
-    if (noteEl) {
-        noteEl.style.display = isWaiting ? 'none' : '';
-    }
-
-    document.getElementById('eventRequestModal').classList.add('open');
+  document.getElementById("eventRequestModal").classList.add("open");
 }
-
 
 /* =========================================================
  * orderManage.jsp - 주문 조회 (조회 전용)
@@ -744,42 +724,42 @@ function openEventDetailModal(button) {
 
 // 숫자를 "1,234원" 형태로 표시. 값이 없으면 "-"를 표시한다.
 function formatWon(value) {
-    var num = Number(value);
-    if (!value || isNaN(num)) {
-        return '-';
-    }
-    return num.toLocaleString() + '원';
+  var num = Number(value);
+  if (!value || isNaN(num)) {
+    return "-";
+  }
+  return num.toLocaleString() + "원";
 }
 
 // 값이 비어있으면 "-"를 표시한다. (undefined 문자열 등도 방어)
 function displayOrDash(value) {
-    if (!value || value === 'null' || value === 'undefined') {
-        return '-';
-    }
-    return value;
+  if (!value || value === "null" || value === "undefined") {
+    return "-";
+  }
+  return value;
 }
 
 // ORDERS.ORDER_STATUS / DELIVERY.STATUS / ORDER_ITEM.STATUS 코드값을 한글 라벨로 변환한다.
 // 사업자 주문/배송 페이지(orderList.jsp, deliveryList.jsp)의 표기와 동일하게 맞춘다.
 var ORDER_STATUS_LABELS = {
-    'ORDERED': '주문 완료',
-    'PAID': '결제 완료',
-    'PREPARING': '상품 준비 중',
-    'SHIPPING': '배송 중',
-    'DELIVERED': '배송 완료',
-    'CONFIRMED': '구매 확정',
-    'CANCELED': '주문 취소',
-    'CANCEL_REQUEST': '취소 요청 중',
-    'REFUNDED': '환불 완료'
+  ORDERED: "주문 완료",
+  PAID: "결제 완료",
+  PREPARING: "상품 준비 중",
+  SHIPPING: "배송 중",
+  DELIVERED: "배송 완료",
+  CONFIRMED: "구매 확정",
+  CANCELED: "주문 취소",
+  CANCEL_REQUEST: "취소 요청 중",
+  REFUNDED: "환불 완료",
 };
 
 function orderStatusLabel(status) {
-    if (!status || status === 'null' || status === 'undefined') {
-        return '-';
-    }
-    // 매핑 표에 없는 새 상태값이 추가되더라도 원본 코드 그대로 노출하지 않고
-    // 최소한 언더스코어를 공백으로 바꿔 사람이 읽기 쉬운 형태로 보여준다.
-    return ORDER_STATUS_LABELS[status] || status.replace(/_/g, ' ');
+  if (!status || status === "null" || status === "undefined") {
+    return "-";
+  }
+  // 매핑 표에 없는 새 상태값이 추가되더라도 원본 코드 그대로 노출하지 않고
+  // 최소한 언더스코어를 공백으로 바꿔 사람이 읽기 쉬운 형태로 보여준다.
+  return ORDER_STATUS_LABELS[status] || status.replace(/_/g, " ");
 }
 
 /*
@@ -792,71 +772,68 @@ function orderStatusLabel(status) {
  * 패턴으로 통일한다.
  */
 function openOrderDetailModal(button) {
+  var orderNo = button.dataset.orderNo;
+  var productName = button.dataset.productName;
+  var contentTitle = button.dataset.contentTitle;
+  var quantity = button.dataset.quantity;
+  var productPrice = button.dataset.productPrice;
+  var totalAmount = button.dataset.totalAmount;
+  var orderStatus = button.dataset.orderStatus;
+  var deliveryStatus = button.dataset.deliveryStatus;
+  var receiverName = button.dataset.receiverName;
+  var receiverPhone = button.dataset.receiverPhone;
+  var address = button.dataset.address;
+  var trackingNumber = button.dataset.trackingNumber;
+  var courier = button.dataset.courier;
+  var createdAt = button.dataset.createdAt;
 
-    var orderNo = button.dataset.orderNo;
-    var productName = button.dataset.productName;
-    var contentTitle = button.dataset.contentTitle;
-    var quantity = button.dataset.quantity;
-    var productPrice = button.dataset.productPrice;
-    var totalAmount = button.dataset.totalAmount;
-    var orderStatus = button.dataset.orderStatus;
-    var deliveryStatus = button.dataset.deliveryStatus;
-    var receiverName = button.dataset.receiverName;
-    var receiverPhone = button.dataset.receiverPhone;
-    var address = button.dataset.address;
-    var trackingNumber = button.dataset.trackingNumber;
-    var courier = button.dataset.courier;
-    var createdAt = button.dataset.createdAt;
+  document.getElementById("detailOrderNo").textContent = displayOrDash(orderNo);
+  document.getElementById("detailProductName").textContent = displayOrDash(productName);
+  document.getElementById("detailContentTitle").textContent = displayOrDash(contentTitle);
+  document.getElementById("detailQuantity").textContent = displayOrDash(quantity) + "개";
+  document.getElementById("detailProductPrice").textContent = formatWon(productPrice);
+  document.getElementById("detailTotalAmount").textContent = formatWon(totalAmount);
+  document.getElementById("detailOrderStatus").textContent = orderStatusLabel(orderStatus);
+  document.getElementById("detailDeliveryStatus").textContent = orderStatusLabel(deliveryStatus);
+  document.getElementById("detailReceiverName").textContent = displayOrDash(receiverName);
+  document.getElementById("detailReceiverPhone").textContent = displayOrDash(receiverPhone);
+  document.getElementById("detailAddress").textContent = displayOrDash(address);
+  document.getElementById("detailCourier").textContent = displayOrDash(courier);
+  document.getElementById("detailTrackingNumber").textContent = displayOrDash(trackingNumber);
+  document.getElementById("detailCreatedAt").textContent = displayOrDash(createdAt);
 
-    document.getElementById('detailOrderNo').textContent = displayOrDash(orderNo);
-    document.getElementById('detailProductName').textContent = displayOrDash(productName);
-    document.getElementById('detailContentTitle').textContent = displayOrDash(contentTitle);
-    document.getElementById('detailQuantity').textContent = displayOrDash(quantity) + '개';
-    document.getElementById('detailProductPrice').textContent = formatWon(productPrice);
-    document.getElementById('detailTotalAmount').textContent = formatWon(totalAmount);
-    document.getElementById('detailOrderStatus').textContent = orderStatusLabel(orderStatus);
-    document.getElementById('detailDeliveryStatus').textContent = orderStatusLabel(deliveryStatus);
-    document.getElementById('detailReceiverName').textContent = displayOrDash(receiverName);
-    document.getElementById('detailReceiverPhone').textContent = displayOrDash(receiverPhone);
-    document.getElementById('detailAddress').textContent = displayOrDash(address);
-    document.getElementById('detailCourier').textContent = displayOrDash(courier);
-    document.getElementById('detailTrackingNumber').textContent = displayOrDash(trackingNumber);
-    document.getElementById('detailCreatedAt').textContent = displayOrDash(createdAt);
-
-    document.getElementById('orderDetailModal').classList.add('open');
+  document.getElementById("orderDetailModal").classList.add("open");
 }
 
 function openRefundDetailModal(button) {
+  var cancelStatus = button.dataset.cancelStatus;
+  var cancelType = button.dataset.cancelType;
 
-    var cancelStatus = button.dataset.cancelStatus;
-    var cancelType = button.dataset.cancelType;
+  var statusLabel = cancelStatus;
+  if (cancelStatus === "WAITING") {
+    statusLabel = "처리 대기";
+  } else if (cancelStatus === "APPROVED") {
+    statusLabel = "승인 완료";
+  } else if (cancelStatus === "REJECTED") {
+    statusLabel = "반려";
+  }
 
-    var statusLabel = cancelStatus;
-    if (cancelStatus === 'WAITING') {
-        statusLabel = '처리 대기';
-    } else if (cancelStatus === 'APPROVED') {
-        statusLabel = '승인 완료';
-    } else if (cancelStatus === 'REJECTED') {
-        statusLabel = '반려';
-    }
+  var typeLabel = cancelType === "FULL" ? "전체 취소" : "상품 부분 취소";
 
-    var typeLabel = (cancelType === 'FULL') ? '전체 취소' : '상품 부분 취소';
+  document.getElementById("refundDetailOrderNo").textContent = displayOrDash(button.dataset.orderNo);
+  document.getElementById("refundDetailProductName").textContent = displayOrDash(button.dataset.productName);
+  document.getElementById("refundDetailMemberId").textContent = displayOrDash(button.dataset.memberId);
+  document.getElementById("refundDetailType").textContent = typeLabel;
+  document.getElementById("refundDetailQuantity").textContent = displayOrDash(button.dataset.quantity) + "개";
+  document.getElementById("refundDetailAmount").textContent = formatWon(button.dataset.refundAmount);
+  document.getElementById("refundDetailStatus").textContent = displayOrDash(statusLabel);
+  document.getElementById("refundDetailCreatedAt").textContent = displayOrDash(button.dataset.createdAt);
+  document.getElementById("refundDetailProcessedAt").textContent = displayOrDash(button.dataset.processedAt);
+  document.getElementById("refundDetailReason").value = displayOrDash(button.dataset.reason);
+  document.getElementById("refundDetailRejectReason").value = displayOrDash(button.dataset.rejectReason);
 
-    document.getElementById('refundDetailOrderNo').textContent = displayOrDash(button.dataset.orderNo);
-    document.getElementById('refundDetailProductName').textContent = displayOrDash(button.dataset.productName);
-    document.getElementById('refundDetailMemberId').textContent = displayOrDash(button.dataset.memberId);
-    document.getElementById('refundDetailType').textContent = typeLabel;
-    document.getElementById('refundDetailQuantity').textContent = displayOrDash(button.dataset.quantity) + '개';
-    document.getElementById('refundDetailAmount').textContent = formatWon(button.dataset.refundAmount);
-    document.getElementById('refundDetailStatus').textContent = displayOrDash(statusLabel);
-    document.getElementById('refundDetailCreatedAt').textContent = displayOrDash(button.dataset.createdAt);
-    document.getElementById('refundDetailProcessedAt').textContent = displayOrDash(button.dataset.processedAt);
-    document.getElementById('refundDetailReason').value = displayOrDash(button.dataset.reason);
-    document.getElementById('refundDetailRejectReason').value = displayOrDash(button.dataset.rejectReason);
-
-    document.getElementById('refundDetailModal').classList.add('open');
+  document.getElementById("refundDetailModal").classList.add("open");
 }
-
 
 /* =========================================================
  * productManage.jsp - 상품 관리
@@ -865,11 +842,11 @@ function openRefundDetailModal(button) {
 // 숫자를 "1,234원" 형태로 표시한다. (formatEventWon / formatWon과 동일한 역할이지만,
 // 각 화면 섹션이 독립적으로 유지되도록 상품 관리 전용으로 따로 둔다.)
 function formatProductWon(value) {
-    var amount = Number(value);
-    if (isNaN(amount)) {
-        return escapeHtml(value);
-    }
-    return amount.toLocaleString('ko-KR') + '원';
+  var amount = Number(value);
+  if (isNaN(amount)) {
+    return escapeHtml(value);
+  }
+  return amount.toLocaleString("ko-KR") + "원";
 }
 
 /*
@@ -885,58 +862,56 @@ function formatProductWon(value) {
  * 의도치 않게 상태를 덮어써버릴 수 있는 문제를 화면에서 막기 위함이다.)
  */
 function openProductRequestModal(button) {
+  var status = button.dataset.status || "";
 
-    var status = button.dataset.status || '';
+  document.getElementById("reqProductNo").value = button.dataset.productNo;
+  document.getElementById("reqProductStatusRaw").value = status;
 
-    document.getElementById('reqProductNo').value = button.dataset.productNo;
-    document.getElementById('reqProductStatusRaw').value = status;
+  document.getElementById("reqProductBusinessName").textContent = button.dataset.businessName || "";
+  document.getElementById("reqProductName").textContent = button.dataset.productName || "";
+  document.getElementById("reqProductContentTitle").textContent = button.dataset.contentTitle || "";
+  document.getElementById("reqProductPrice").textContent = formatProductWon(button.dataset.price || 0);
 
-    document.getElementById('reqProductBusinessName').textContent = button.dataset.businessName || '';
-    document.getElementById('reqProductName').textContent = button.dataset.productName || '';
-    document.getElementById('reqProductContentTitle').textContent = button.dataset.contentTitle || '';
-    document.getElementById('reqProductPrice').textContent = formatProductWon(button.dataset.price || 0);
+  // 사업자가 등록한 상품 대표 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
+  var mainImage = button.dataset.mainImage || "";
+  var imageEl = document.getElementById("reqProductImage");
+  var imageEmptyEl = document.getElementById("reqProductImageEmpty");
 
-    // 사업자가 등록한 상품 대표 이미지. 없으면 이미지 대신 안내 문구를 보여준다.
-    var mainImage = button.dataset.mainImage || '';
-    var imageEl = document.getElementById('reqProductImage');
-    var imageEmptyEl = document.getElementById('reqProductImageEmpty');
+  if (mainImage) {
+    imageEl.src = mainImage;
+    imageEl.style.display = "";
+    imageEmptyEl.style.display = "none";
+  } else {
+    imageEl.removeAttribute("src");
+    imageEl.style.display = "none";
+    imageEmptyEl.style.display = "";
+  }
 
-    if (mainImage) {
-        imageEl.src = mainImage;
-        imageEl.style.display = '';
-        imageEmptyEl.style.display = 'none';
-    } else {
-        imageEl.removeAttribute('src');
-        imageEl.style.display = 'none';
-        imageEmptyEl.style.display = '';
-    }
+  var discountRate = Number(button.dataset.discountRate);
+  document.getElementById("reqProductDiscountRate").textContent = discountRate > 0 ? discountRate + "% 할인" : "할인 없음";
 
-    var discountRate = Number(button.dataset.discountRate);
-    document.getElementById('reqProductDiscountRate').textContent =
-        (discountRate > 0) ? discountRate + '% 할인' : '할인 없음';
+  document.getElementById("reqProductStock").textContent = (button.dataset.stock || "0") + "개";
+  document.getElementById("reqProductCreatedAt").textContent = button.dataset.createdAt || "";
+  document.getElementById("reqProductStatus").textContent = button.dataset.statusLabel || "";
+  document.getElementById("reqProductDescription").value = button.dataset.description || "";
 
-    document.getElementById('reqProductStock').textContent = (button.dataset.stock || '0') + '개';
-    document.getElementById('reqProductCreatedAt').textContent = button.dataset.createdAt || '';
-    document.getElementById('reqProductStatus').textContent = button.dataset.statusLabel || '';
-    document.getElementById('reqProductDescription').value = button.dataset.description || '';
+  var isActionable = status === "WAITING" || status === "DELETE_REQUESTED";
 
-    var isActionable = (status === 'WAITING' || status === 'DELETE_REQUESTED');
+  var approveBtn = document.getElementById("productApproveBtn");
+  var rejectBtn = document.getElementById("productRejectBtn");
+  var noteEl = document.getElementById("productReadonlyNote");
 
-    var approveBtn = document.getElementById('productApproveBtn');
-    var rejectBtn = document.getElementById('productRejectBtn');
-    var noteEl = document.getElementById('productReadonlyNote');
+  if (approveBtn) {
+    approveBtn.style.display = isActionable ? "" : "none";
+  }
+  if (rejectBtn) {
+    rejectBtn.style.display = isActionable ? "" : "none";
+  }
+  if (noteEl) {
+    noteEl.style.display = isActionable ? "none" : "";
+  }
 
-    if (approveBtn) {
-        approveBtn.style.display = isActionable ? '' : 'none';
-    }
-    if (rejectBtn) {
-        rejectBtn.style.display = isActionable ? '' : 'none';
-    }
-    if (noteEl) {
-        noteEl.style.display = isActionable ? 'none' : '';
-    }
-
-    document.getElementById('productRequestModal').classList.add('open');
+  document.getElementById("productRequestModal").classList.add("open");
 }
 
 /*
@@ -945,30 +920,25 @@ function openProductRequestModal(button) {
  * '전체' 탭에서 삭제 요청 건을 열람하는 경우에도 정확한 문구가 나오도록 하기 위함이다.
  */
 function getProductRequestRawStatus() {
-    var statusInput = document.querySelector('#productRequestForm input[name="status"]');
-    return statusInput ? statusInput.value : '';
+  var statusInput = document.querySelector('#productRequestForm input[name="status"]');
+  return statusInput ? statusInput.value : "";
 }
 
 function confirmProductApprove(event) {
-    var status = getProductRequestRawStatus();
+  var status = getProductRequestRawStatus();
 
-    var message = (status === 'DELETE_REQUESTED')
-        ? '삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?'
-        : '이 상품 요청을 승인하시겠습니까?';
+  var message = status === "DELETE_REQUESTED" ? "삭제 요청을 승인하면 해당 상품이 DB에서 최종 삭제됩니다. 계속하시겠습니까?" : "이 상품 요청을 승인하시겠습니까?";
 
-    return confirmAndSubmit(event, message);
+  return confirmAndSubmit(event, message);
 }
 
 function confirmProductReject(event) {
-    var status = getProductRequestRawStatus();
+  var status = getProductRequestRawStatus();
 
-    var message = (status === 'DELETE_REQUESTED')
-        ? '이 상품의 삭제 요청을 반려하시겠습니까?'
-        : '이 상품 요청을 반려하시겠습니까?';
+  var message = status === "DELETE_REQUESTED" ? "이 상품의 삭제 요청을 반려하시겠습니까?" : "이 상품 요청을 반려하시겠습니까?";
 
-    return confirmAndSubmit(event, message);
+  return confirmAndSubmit(event, message);
 }
-
 
 /* =========================================================
  * monitoring.jsp - 모니터링 (방문자 추이 / 상품 클릭 TOP5 차트)
@@ -978,58 +948,343 @@ function confirmProductReject(event) {
  * JSP의 canvas data-chart 속성에 실어 보내면, 여기서 JSON.parse 해서 사용한다.
  * ========================================================= */
 function initMonitoringCharts() {
+  /*
+   * [모니터링 화면 개편]
+   * 차트 색상도 admin.css의 --adm-* 변수 구조를 그대로 사용한다.
+   * CSS 변수 값을 읽어 Chart.js 옵션에 전달하므로 테마/공통 토큰 변경 시
+   * 차트만 별도의 하드코딩 색으로 남지 않는다.
+   */
+  var rootStyle = getComputedStyle(document.documentElement);
+  var cssVar = function (name, fallback) {
+    var value = rootStyle.getPropertyValue(name).trim();
+    return value || fallback;
+  };
 
-    var visitorCanvas = document.getElementById('visitorTrendChart');
+  var chartLine = cssVar("--adm-monitor-chart-line", "#4f8dfd");
+  var chartFill = cssVar("--adm-monitor-chart-fill", "rgba(79, 141, 253, 0.16)");
+  var chartPoint = cssVar("--adm-monitor-chart-point", "#dbe8ff");
+  var chartGrid = cssVar("--adm-monitor-grid", "rgba(255, 255, 255, 0.07)");
+  var chartText = cssVar("--adm-text-dim", "#8c919b");
+  var chartTextStrong = cssVar("--adm-text-sub", "#c5c8ce");
+  var tooltipBg = cssVar("--adm-monitor-tooltip-bg", "rgba(18, 22, 30, 0.96)");
 
-    if (visitorCanvas) {
+  var visitorCanvas = document.getElementById("visitorTrendChart");
 
-        var visitorData = JSON.parse(visitorCanvas.dataset.chart || '[]');
+  if (visitorCanvas) {
+    var visitorData = JSON.parse(visitorCanvas.dataset.chart || "[]");
 
-        new Chart(visitorCanvas, {
-            type: 'line',
-            data: {
-                labels: visitorData.map(function (d) { return d.date; }),
-                datasets: [{
-                    label: '방문자 수',
-                    data: visitorData.map(function (d) { return d.count; }),
-                    borderColor: '#4f8dfd',
-                    backgroundColor: 'rgba(79,141,253,0.15)',
-                    tension: 0.3,
-                    fill: true
-                }]
+    new Chart(visitorCanvas, {
+      type: "line",
+      data: {
+        labels: visitorData.map(function (d) {
+          return d.date;
+        }),
+        datasets: [
+          {
+            label: "방문자 수",
+            data: visitorData.map(function (d) {
+              return d.count;
+            }),
+            borderColor: chartLine,
+            backgroundColor: chartFill,
+            pointBackgroundColor: chartPoint,
+            pointBorderColor: chartLine,
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            tension: 0.28,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: "index",
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: tooltipBg,
+            titleColor: chartTextStrong,
+            bodyColor: chartTextStrong,
+            borderColor: chartGrid,
+            borderWidth: 1,
+            padding: 10,
+            displayColors: true,
+            callbacks: {
+              label: function (context) {
+                return " 방문자 수 " + context.parsed.y + "명";
+              },
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-            }
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: chartText, maxRotation: 0, autoSkip: true },
+            border: { color: chartGrid },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: chartText, precision: 0, stepSize: 1 },
+            grid: { color: chartGrid },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  }
+
+  var popularCanvas = document.getElementById("popularClickChart");
+
+  if (popularCanvas) {
+    var popularData = JSON.parse(popularCanvas.dataset.chart || "[]");
+
+    /*
+     * =========================================================
+     * [모니터링 - 상품 클릭 TOP 5 정렬 개선]
+     * Chart.js 기본 Y축 문자열 라벨을 사용하지 않고,
+     * 순위 / 상품명 / 클릭 수를 각각 별도 위치에 직접 그린다.
+     *
+     * 상품명 길이와 관계없이 각 열이 동일한 위치에 정렬되며,
+     * 막대 영역도 일정하게 유지한다.
+     * 기존 관리자 --adm-* CSS 변수 구조를 그대로 사용한다.
+     * =========================================================
+     */
+
+    /*
+     * 선택 기간에 따라 클릭 수가 100회를 넘어갈 수 있으므로
+     * 가장 큰 클릭 수를 기준으로 X축 최대값을 자동 조정한다.
+     *
+     * 100 이하이면 100을 사용하고,
+     * 100 초과이면 20 단위로 올림한다.
+     */
+    var popularMaxCount = popularData.reduce(function (max, item) {
+      var count = Number(item.count) || 0;
+      return Math.max(max, count);
+    }, 0);
+
+    var popularAxisMax = Math.max(100, Math.ceil(popularMaxCount / 20) * 20);
+
+    /*
+     * =========================================================
+     * [상품 클릭 TOP 5 - 좌우 텍스트 전용 플러그인]
+     *
+     * 왼쪽:
+     *   순위
+     *   상품명
+     *
+     * 오른쪽:
+     *   클릭 수
+     *
+     * 를 각각 독립된 좌표에 표시하여
+     * 데이터 길이가 달라도 세로 열이 흐트러지지 않게 한다.
+     * =========================================================
+     */
+    var popularLabelPlugin = {
+      id: "popularLabelPlugin",
+
+      afterDatasetsDraw: function (chart) {
+        var ctx = chart.ctx;
+        var meta = chart.getDatasetMeta(0);
+
+        ctx.save();
+
+        meta.data.forEach(function (bar, index) {
+          var item = popularData[index];
+
+          if (!item) {
+            return;
+          }
+
+          var productName = item.name || "-";
+          var clickCount = Number(item.count) || 0;
+
+          /*
+           * -------------------------
+           * 순위
+           * -------------------------
+           */
+          ctx.fillStyle = cssVar("--adm-text-sub", "#c5c8ce");
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          ctx.fillText(String(index + 1), 16, bar.y);
+
+          /*
+           * -------------------------
+           * 상품명
+           * -------------------------
+           */
+          ctx.fillStyle = cssVar("--adm-text-sub", "#c5c8ce");
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "left";
+
+          ctx.fillText(String(productName), 38, bar.y);
+
+          /*
+           * -------------------------
+           * 우측 클릭 수
+           * -------------------------
+           */
+          ctx.fillStyle = cssVar("--adm-text-sub", "#c5c8ce");
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "right";
+
+          ctx.fillText(clickCount.toLocaleString("ko-KR"), chart.width - 8, bar.y);
         });
-    }
 
-    var popularCanvas = document.getElementById('popularClickChart');
+        ctx.restore();
+      },
+    };
 
-    if (popularCanvas) {
+    new Chart(popularCanvas, {
+      type: "bar",
 
-        var popularData = JSON.parse(popularCanvas.dataset.chart || '[]');
+      data: {
+        /*
+         * 실제 Chart.js Y축 라벨은 화면에서 숨기지만,
+         * 데이터 인덱스와 막대 개수 계산을 위해 상품명을 그대로 전달한다.
+         */
+        labels: popularData.map(function (item) {
+          return item.name;
+        }),
 
-        new Chart(popularCanvas, {
-            type: 'bar',
-            data: {
-                labels: popularData.map(function (d) { return d.name; }),
-                datasets: [{
-                    label: '클릭 수',
-                    data: popularData.map(function (d) { return d.count; }),
-                    backgroundColor: '#4f8dfd'
-                }]
+        datasets: [
+          {
+            label: "클릭 수",
+
+            data: popularData.map(function (item) {
+              return Number(item.count) || 0;
+            }),
+
+            /*
+             * 기존 모니터링 전용 파란색 변수를 그대로 사용한다.
+             */
+            backgroundColor: cssVar("--adm-monitor-chart-line", "#4f8dfd"),
+
+            /*
+             * 레퍼런스 이미지처럼 막대를 너무 두껍게 만들지 않는다.
+             */
+            barThickness: 14,
+
+            /*
+             * 막대 끝을 살짝 둥글게 처리한다.
+             */
+            borderRadius: 3,
+
+            borderSkipped: false,
+          },
+        ],
+      },
+
+      options: {
+        /*
+         * 가로 막대 차트
+         */
+        indexAxis: "y",
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        /*
+         * 왼쪽 순위 + 상품명 영역과
+         * 오른쪽 클릭 수 영역을 별도로 확보한다.
+         *
+         * 실제 막대는 이 여백 사이에서만 그려진다.
+         */
+        layout: {
+          padding: {
+            top: 8,
+            right: 42,
+            bottom: 0,
+            left: 105,
+          },
+        },
+
+        plugins: {
+          /*
+           * "클릭 수" 범례는 별도로 표시하지 않는다.
+           */
+          legend: { display: false },
+
+          /*
+           * 막대에 마우스를 올렸을 때
+           * 클릭 수를 "92회" 형태로 표시한다.
+           */
+          tooltip: {
+            backgroundColor: cssVar("--adm-monitor-tooltip-bg", "rgba(18, 22, 30, 0.96)"),
+
+            titleColor: cssVar("--adm-text", "#ffffff"),
+
+            bodyColor: cssVar("--adm-text-sub", "#c5c8ce"),
+
+            borderColor: cssVar("--adm-monitor-grid", "rgba(255, 255, 255, 0.07)"),
+
+            borderWidth: 1,
+
+            callbacks: {
+              label: function (context) {
+                return Number(context.raw || 0).toLocaleString("ko-KR") + "회";
+              },
             },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
-            }
-        });
-    }
+          },
+        },
+
+        scales: {
+          /*
+           * =========================================================
+           * Y축
+           * 기본 tick 라벨은 완전히 숨긴다.
+           * 순위/상품명은 popularLabelPlugin에서 직접 표시한다.
+           * =========================================================
+           */
+          y: {
+            border: { display: false },
+
+            grid: { display: false },
+
+            ticks: {
+              display: false,
+            },
+          },
+
+          /*
+           * =========================================================
+           * X축
+           * 0 / 20 / 40 / 60 / 80 / 100 ...
+           * =========================================================
+           */
+          x: {
+            beginAtZero: true,
+
+            max: popularAxisMax,
+
+            border: { color: cssVar("--adm-border", "#2b2b2b") },
+
+            grid: { color: cssVar("--adm-monitor-grid", "rgba(255, 255, 255, 0.07)") },
+
+            ticks: {
+              color: cssVar("--adm-text-dim", "#8c919b"),
+
+              font: { size: 11 },
+
+              precision: 0,
+
+              stepSize: 20,
+            },
+          },
+        },
+      },
+
+      plugins: [popularLabelPlugin],
+    });
+  }
 }
 
-document.addEventListener('DOMContentLoaded', initMonitoringCharts);
+document.addEventListener("DOMContentLoaded", initMonitoringCharts);

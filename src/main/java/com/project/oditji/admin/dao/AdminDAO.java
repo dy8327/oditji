@@ -16,6 +16,7 @@ import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
+import com.project.oditji.admin.vo.MonitoringSummaryVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.OrderStatVO;
 import com.project.oditji.admin.vo.PlatformVO;
@@ -92,8 +93,8 @@ public class AdminDAO {
     public List<Long> selectWithdrawnMemberNos(List<Long> memberNos) {
         return sqlSession.selectList("selectWithdrawnMemberNos", memberNos);
     }
-    
-    //사업자 삭제 방지
+
+    // 사업자 삭제 방지
     public boolean isBusinessMember(Long memberNo) {
         Integer count = sqlSession.selectOne("adminIsBusinessMember", memberNo);
         return count != null && count > 0;
@@ -554,12 +555,47 @@ public class AdminDAO {
         return sqlSession.selectList("selectMonitoringList");
     }
 
+    /* [모니터링 화면 개편] 상단 회원/방문/주문/매출 요약 통계를 한 번에 조회한다. */
+    public MonitoringSummaryVO selectMonitoringSummary() {
+        return sqlSession.selectOne("selectMonitoringSummary");
+    }
+
+    /*
+     * [모니터링 방문 수 기간 연동]
+     * 선택 기간 전체에서 같은 회원의 중복 접속을 제거한 순 방문자 수를 조회한다.
+     */
+    public long selectUniqueVisitorCountByPeriod(String period) {
+        Long count = sqlSession.selectOne("selectUniqueVisitorCountByPeriod", period);
+        return count == null ? 0L : count;
+    }
+
     public List<VisitorTrendVO> selectVisitorTrend() {
         return sqlSession.selectList("selectVisitorTrend");
     }
 
+    /* [모니터링 화면 개편] 선택한 기간(7d/3m/6m/1y)에 맞는 방문자 추이를 조회한다. */
+    public List<VisitorTrendVO> selectVisitorTrendByPeriod(String period) {
+        return sqlSession.selectList("selectVisitorTrendByPeriod", period);
+    }
+
     public List<PopularClickVO> selectPopularProductClicks() {
         return sqlSession.selectList("selectPopularProductClicks");
+    }
+
+    /*
+     * [모니터링 공통 조회 기간]
+     * 회원 수는 전체 기준, 방문/주문/매출은 선택 기간 기준으로 조회한다.
+     */
+    public MonitoringSummaryVO selectMonitoringSummaryByPeriod(String period) {
+        return sqlSession.selectOne("selectMonitoringSummaryByPeriod", period);
+    }
+
+    /*
+     * [모니터링 공통 조회 기간]
+     * 선택 기간의 상품 클릭 TOP 5를 조회한다.
+     */
+    public List<PopularClickVO> selectPopularProductClicksByPeriod(String period) {
+        return sqlSession.selectList("selectPopularProductClicksByPeriod", period);
     }
 
     // ===================== 콘텐츠 관리 (CONTENT) =====================

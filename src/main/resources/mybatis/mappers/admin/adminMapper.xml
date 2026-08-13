@@ -1896,6 +1896,159 @@
     <!-- 상품 클릭 수는 PRODUCT_CLICK_LOG 를 집계하고,
          최근 접속일/IP는 ACCESS_LOG 의 최신 로그를 사용한다. -->
 
+    <!--
+    =========================================================
+    [모니터링 공통 조회 기간]
+    회원 수는 전체 USER 회원 현황으로 유지하고,
+    방문 수 / 배송완료 주문 수 / 배송완료 실매출은
+    선택한 기간(7일/3개월/6개월/1년)에 맞춰 집계한다.
+
+    주문/매출 기간 기준은 주문일이 아니라
+    실제 배송완료 시점인 DELIVERY.DELIVERED_AT을 사용한다.
+    승인된 취소/환불 금액은 실매출에서 차감한다.
+    =========================================================
+    -->
+    <select id="selectMonitoringSummaryByPeriod"
+            resultType="com.project.oditji.admin.vo.MonitoringSummaryVO">
+
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM MEMBER
+                WHERE ROLE = 'USER'
+                AND STATUS != 'WITHDRAWN'
+            ) AS MEMBER_COUNT,
+
+            (
+                SELECT COUNT(DISTINCT A.MEMBER_NO)
+                FROM ACCESS_LOG A
+                JOIN MEMBER M
+                ON M.MEMBER_NO = A.MEMBER_NO
+                WHERE M.ROLE = 'USER'
+
+                <choose>
+                    <when test="_parameter == '3m'">
+                        AND A.CREATED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2)
+                    </when>
+
+                    <when test="_parameter == '6m'">
+                        AND A.CREATED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                    </when>
+
+                    <when test="_parameter == '1y'">
+                        AND A.CREATED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -11)
+                    </when>
+
+                    <otherwise>
+                        AND A.CREATED_AT <![CDATA[>=]]>
+                            TRUNC(SYSDATE) - 6
+                    </otherwise>
+                </choose>
+
+                AND A.CREATED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+
+            ) AS RECENT_VISITOR_COUNT,
+
+            (
+                SELECT COUNT(DISTINCT OI.ORDER_ITEM_NO)
+                FROM ORDER_ITEM OI
+                JOIN DELIVERY D
+                ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+                WHERE D.STATUS = 'DELIVERED'
+                AND D.DELIVERED_AT IS NOT NULL
+
+                <choose>
+                    <when test="_parameter == '3m'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2)
+                    </when>
+
+                    <when test="_parameter == '6m'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                    </when>
+
+                    <when test="_parameter == '1y'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -11)
+                    </when>
+
+                    <otherwise>
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            TRUNC(SYSDATE) - 6
+                    </otherwise>
+                </choose>
+
+                AND D.DELIVERED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+
+            ) AS DELIVERED_ORDER_COUNT,
+
+            (
+                SELECT NVL(
+                    SUM(
+                        GREATEST(
+                            (OI.PRODUCT_PRICE * OI.QUANTITY)
+                            - NVL(CR.APPROVED_REFUND_AMOUNT, 0),
+                            0
+                        )
+                    ),
+                    0
+                )
+
+                FROM ORDER_ITEM OI
+
+                JOIN DELIVERY D
+                ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+                LEFT JOIN (
+                    SELECT
+                        ORDER_ITEM_NO,
+                        SUM(REFUND_AMOUNT) AS APPROVED_REFUND_AMOUNT
+                    FROM CANCEL_REQUEST
+                    WHERE STATUS = 'APPROVED'
+                    GROUP BY ORDER_ITEM_NO
+                ) CR
+                ON CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+                WHERE D.STATUS = 'DELIVERED'
+                AND D.DELIVERED_AT IS NOT NULL
+
+                <choose>
+                    <when test="_parameter == '3m'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2)
+                    </when>
+
+                    <when test="_parameter == '6m'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                    </when>
+
+                    <when test="_parameter == '1y'">
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -11)
+                    </when>
+
+                    <otherwise>
+                        AND D.DELIVERED_AT <![CDATA[>=]]>
+                            TRUNC(SYSDATE) - 6
+                    </otherwise>
+                </choose>
+
+                AND D.DELIVERED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+
+            ) AS DELIVERED_SALES_AMOUNT
+
+        FROM DUAL
+    </select>
+
     <select id="selectMonitoringList" resultType="com.project.oditji.admin.vo.MonitoringVO">
         SELECT
             M.MEMBER_NO                        AS MEMBER_NO,
@@ -1922,16 +2075,158 @@
         ORDER BY LOG.LAST_ACCESS_AT DESC NULLS LAST
     </select>
 
-    <!-- 최근 7일 일자별 방문자 수 (ACCESS_LOG, DISTINCT MEMBER_NO) -->
+    <!--
+    =========================================================
+    [모니터링 방문 수 기간 연동]
+    선택한 기간 전체의 순 방문자 수를 조회한다.
+
+    - 7d : 오늘 포함 최근 7일
+    - 3m : 이번 달 포함 최근 3개월
+    - 6m : 이번 달 포함 최근 6개월
+    - 1y : 이번 달 포함 최근 1년
+
+    COUNT(DISTINCT MEMBER_NO)를 사용하므로
+    동일 회원이 기간 안에서 여러 번 접속해도 1명으로 집계한다.
+    =========================================================
+    -->
+    <select id="selectUniqueVisitorCountByPeriod" resultType="long">
+        SELECT COUNT(DISTINCT A.MEMBER_NO)
+        FROM ACCESS_LOG A
+        JOIN MEMBER M
+            ON M.MEMBER_NO = A.MEMBER_NO
+        WHERE M.ROLE = 'USER'
+
+        <choose>
+
+            <!-- 최근 3개월 -->
+            <when test="_parameter == '3m'">
+                AND A.CREATED_AT <![CDATA[>=]]>
+                    ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2)
+                AND A.CREATED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+            </when>
+
+            <!-- 최근 6개월 -->
+            <when test="_parameter == '6m'">
+                AND A.CREATED_AT <![CDATA[>=]]>
+                    ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                AND A.CREATED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+            </when>
+
+            <!-- 최근 1년 -->
+            <when test="_parameter == '1y'">
+                AND A.CREATED_AT <![CDATA[>=]]>
+                    ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -11)
+                AND A.CREATED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+            </when>
+
+            <!-- 기본값: 최근 7일 -->
+            <otherwise>
+                AND A.CREATED_AT <![CDATA[>=]]>
+                    TRUNC(SYSDATE) - 6
+                AND A.CREATED_AT <![CDATA[<]]>
+                    TRUNC(SYSDATE) + 1
+            </otherwise>
+
+        </choose>
+    </select>
+
+    <!--
+        최근 7일 일자별 방문자 수 (ACCESS_LOG, DISTINCT MEMBER_NO)
+        [모니터링 화면 개편] 접속자가 없는 날짜도 0명으로 포함해 7일 축이 빠지지 않게 한다.
+    -->
     <select id="selectVisitorTrend" resultType="com.project.oditji.admin.vo.VisitorTrendVO">
         SELECT
-            TO_CHAR(TRUNC(A.CREATED_AT), 'YYYY-MM-DD') AS ACCESS_DATE,
-            COUNT(DISTINCT A.MEMBER_NO)                AS VISITOR_COUNT
-        FROM ACCESS_LOG A
-        WHERE A.MEMBER_NO IS NOT NULL
-          AND A.CREATED_AT <![CDATA[ >= ]]> TRUNC(SYSDATE) - 6
-        GROUP BY TRUNC(A.CREATED_AT)
-        ORDER BY TRUNC(A.CREATED_AT)
+            TO_CHAR(P.ACCESS_DATE, 'MM-DD') AS ACCESS_DATE,
+            COUNT(DISTINCT CASE WHEN M.ROLE = 'USER' THEN A.MEMBER_NO END) AS VISITOR_COUNT
+        FROM (
+            SELECT TRUNC(SYSDATE) - (7 - LEVEL) AS ACCESS_DATE
+            FROM DUAL
+            CONNECT BY LEVEL <![CDATA[<=]]> 7
+        ) P
+        LEFT JOIN ACCESS_LOG A
+            ON A.CREATED_AT <![CDATA[>=]]> P.ACCESS_DATE
+           AND A.CREATED_AT <![CDATA[<]]> P.ACCESS_DATE + 1
+        LEFT JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+        GROUP BY P.ACCESS_DATE
+        ORDER BY P.ACCESS_DATE
+    </select>
+
+    <!--
+        [모니터링 화면 개편] 기간별 방문자 추이.
+        7일은 날짜별, 3개월/6개월/1년은 월별로 집계한다.
+        CONNECT BY로 기준 날짜/월을 먼저 생성해 접속자가 0명인 구간도
+        차트에서 빠지지 않고 0으로 표시되게 한다.
+    -->
+    <select id="selectVisitorTrendByPeriod" resultType="com.project.oditji.admin.vo.VisitorTrendVO">
+        <choose>
+            <when test="_parameter == '3m'">
+                SELECT
+                    TO_CHAR(P.PERIOD_START, 'YYYY-MM') AS ACCESS_DATE,
+                    COUNT(DISTINCT CASE WHEN M.ROLE = 'USER' THEN A.MEMBER_NO END) AS VISITOR_COUNT
+                FROM (
+                    SELECT ADD_MONTHS(TRUNC(SYSDATE, 'MM'), LEVEL - 3) AS PERIOD_START
+                    FROM DUAL
+                    CONNECT BY LEVEL <![CDATA[<=]]> 3
+                ) P
+                LEFT JOIN ACCESS_LOG A
+                    ON A.CREATED_AT <![CDATA[>=]]> P.PERIOD_START
+                   AND A.CREATED_AT <![CDATA[<]]> ADD_MONTHS(P.PERIOD_START, 1)
+                LEFT JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+                GROUP BY P.PERIOD_START
+                ORDER BY P.PERIOD_START
+            </when>
+            <when test="_parameter == '6m'">
+                SELECT
+                    TO_CHAR(P.PERIOD_START, 'YYYY-MM') AS ACCESS_DATE,
+                    COUNT(DISTINCT CASE WHEN M.ROLE = 'USER' THEN A.MEMBER_NO END) AS VISITOR_COUNT
+                FROM (
+                    SELECT ADD_MONTHS(TRUNC(SYSDATE, 'MM'), LEVEL - 6) AS PERIOD_START
+                    FROM DUAL
+                    CONNECT BY LEVEL <![CDATA[<=]]> 6
+                ) P
+                LEFT JOIN ACCESS_LOG A
+                    ON A.CREATED_AT <![CDATA[>=]]> P.PERIOD_START
+                   AND A.CREATED_AT <![CDATA[<]]> ADD_MONTHS(P.PERIOD_START, 1)
+                LEFT JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+                GROUP BY P.PERIOD_START
+                ORDER BY P.PERIOD_START
+            </when>
+            <when test="_parameter == '1y'">
+                SELECT
+                    TO_CHAR(P.PERIOD_START, 'YYYY-MM') AS ACCESS_DATE,
+                    COUNT(DISTINCT CASE WHEN M.ROLE = 'USER' THEN A.MEMBER_NO END) AS VISITOR_COUNT
+                FROM (
+                    SELECT ADD_MONTHS(TRUNC(SYSDATE, 'MM'), LEVEL - 12) AS PERIOD_START
+                    FROM DUAL
+                    CONNECT BY LEVEL <![CDATA[<=]]> 12
+                ) P
+                LEFT JOIN ACCESS_LOG A
+                    ON A.CREATED_AT <![CDATA[>=]]> P.PERIOD_START
+                   AND A.CREATED_AT <![CDATA[<]]> ADD_MONTHS(P.PERIOD_START, 1)
+                LEFT JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+                GROUP BY P.PERIOD_START
+                ORDER BY P.PERIOD_START
+            </when>
+            <otherwise>
+                SELECT
+                    TO_CHAR(P.ACCESS_DATE, 'MM-DD') AS ACCESS_DATE,
+                    COUNT(DISTINCT CASE WHEN M.ROLE = 'USER' THEN A.MEMBER_NO END) AS VISITOR_COUNT
+                FROM (
+                    SELECT TRUNC(SYSDATE) - (7 - LEVEL) AS ACCESS_DATE
+                    FROM DUAL
+                    CONNECT BY LEVEL <![CDATA[<=]]> 7
+                ) P
+                LEFT JOIN ACCESS_LOG A
+                    ON A.CREATED_AT <![CDATA[>=]]> P.ACCESS_DATE
+                   AND A.CREATED_AT <![CDATA[<]]> P.ACCESS_DATE + 1
+                LEFT JOIN MEMBER M ON M.MEMBER_NO = A.MEMBER_NO
+                GROUP BY P.ACCESS_DATE
+                ORDER BY P.ACCESS_DATE
+            </otherwise>
+        </choose>
     </select>
 
     <!-- 상품 클릭 수 TOP 5 (PRODUCT_CLICK_LOG + PRODUCT) -->
@@ -1947,6 +2242,80 @@
             ORDER BY COUNT(*) DESC
         )
         WHERE ROWNUM <![CDATA[<=]]> 5
+    </select>
+
+    <!--
+    =========================================================
+    [모니터링 공통 조회 기간 - 상품 클릭 TOP 5]
+    PRODUCT_CLICK_LOG.CLICKED_AT을 기준으로
+    선택한 기간의 상품 클릭 수를 집계한다.
+
+    - 7d : 오늘 포함 최근 7일
+    - 3m : 이번 달 포함 최근 3개월
+    - 6m : 이번 달 포함 최근 6개월
+    - 1y : 이번 달 포함 최근 1년
+
+    클릭 수가 많은 상품 순으로 최대 5개까지 조회한다.
+    =========================================================
+    -->
+    <select id="selectPopularProductClicksByPeriod"
+            resultType="com.project.oditji.admin.vo.PopularClickVO">
+
+        SELECT *
+        FROM (
+            SELECT
+                P.PRODUCT_NAME AS PRODUCT_NAME,
+                COUNT(*)       AS CLICK_COUNT
+
+            FROM PRODUCT_CLICK_LOG L
+
+            JOIN PRODUCT P
+            ON P.PRODUCT_NO = L.PRODUCT_NO
+
+            WHERE 1 = 1
+
+            <choose>
+
+                <!-- 최근 3개월 -->
+                <when test="_parameter == '3m'">
+                    AND L.CLICKED_AT <![CDATA[>=]]>
+                        ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2)
+                </when>
+
+                <!-- 최근 6개월 -->
+                <when test="_parameter == '6m'">
+                    AND L.CLICKED_AT <![CDATA[>=]]>
+                        ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                </when>
+
+                <!-- 최근 1년 -->
+                <when test="_parameter == '1y'">
+                    AND L.CLICKED_AT <![CDATA[>=]]>
+                        ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -11)
+                </when>
+
+                <!-- 기본값: 최근 7일 -->
+                <otherwise>
+                    AND L.CLICKED_AT <![CDATA[>=]]>
+                        TRUNC(SYSDATE) - 6
+                </otherwise>
+
+            </choose>
+
+            AND L.CLICKED_AT <![CDATA[<]]>
+                TRUNC(SYSDATE) + 1
+
+            GROUP BY
+                P.PRODUCT_NO,
+                P.PRODUCT_NAME
+
+            ORDER BY
+                COUNT(*) DESC,
+                P.PRODUCT_NO ASC
+        )
+
+        WHERE ROWNUM <![CDATA[<=]]> 5
+
     </select>
 
     <!-- ===================== 콘텐츠 관리 (CONTENT) ===================== -->

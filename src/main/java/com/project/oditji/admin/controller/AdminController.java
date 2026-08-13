@@ -17,6 +17,7 @@ import com.project.oditji.admin.service.AdminService;
 import com.project.oditji.admin.vo.ContentManageVO;
 import com.project.oditji.admin.vo.PlatformVO;
 import com.project.oditji.admin.vo.PopularClickVO;
+import com.project.oditji.admin.vo.MonitoringSummaryVO;
 import com.project.oditji.admin.vo.VisitorTrendVO;
 import com.project.oditji.common.util.PaginationUtil;
 import com.project.oditji.common.vo.PageVO;
@@ -156,12 +157,12 @@ public class AdminController {
 
             StringBuilder message = new StringBuilder(processedCount + "명의 회원을 처리했습니다.");
             if (skippedCount > 0) {
-            // 자동삭제 예정 회원이나 삭제가 제한된 사업자 회원 등
-            // 현재 작업 대상이 아닌 회원은 처리에서 제외한다.
-            message.append(" (처리 대상이 아닌 회원 ")
-                    .append(skippedCount)
-                    .append("명은 제외되었습니다.)");
-        }
+                // 자동삭제 예정 회원이나 삭제가 제한된 사업자 회원 등
+                // 현재 작업 대상이 아닌 회원은 처리에서 제외한다.
+                message.append(" (처리 대상이 아닌 회원 ")
+                        .append(skippedCount)
+                        .append("명은 제외되었습니다.)");
+            }
             ra.addFlashAttribute(FLASH_MESSAGE, message.toString());
 
         } catch (IllegalArgumentException e) {
@@ -524,7 +525,6 @@ public class AdminController {
         return REDIRECT_PREFIX + eventListRedirectUrl(tab, period, keyword, page);
     }
 
-
     /**
      * 이벤트 승인/반려 처리 후 방금 보고 있던 상태·기간·검색어·페이지 필터 그대로 목록으로 돌아가기 위한 리다이렉트 URL을 만든다.
      */
@@ -587,7 +587,7 @@ public class AdminController {
 
             // 처리 대상 상품이 삭제 요청 상태였다면 실제 DB 삭제가 완료되었다는 메시지를 보여준다.
             // (모달을 열 때 넘겨받은 해당 상품의 상태값을 기준으로 판단하므로,
-            //  '전체' 탭에서 삭제 요청 건을 승인하는 경우에도 정확한 안내 문구가 나온다.)
+            // '전체' 탭에서 삭제 요청 건을 승인하는 경우에도 정확한 안내 문구가 나온다.)
             if ("DELETE_REQUESTED".equals(status)) {
                 redirectAttributes.addFlashAttribute(FLASH_MESSAGE, "상품 삭제 요청을 승인하여 상품을 최종 삭제했습니다.");
             } else {
@@ -837,13 +837,37 @@ public class AdminController {
     // ===================== 8. 시스템 관리 (모니터링) =====================
 
     @GetMapping("/monitoring")
-    public String monitoring(Model model) {
+    public String monitoring(
+            @RequestParam(defaultValue = "7d") String period,
+            Model model) {
         model.addAttribute(ATTR_ACTIVE_MENU, "monitoring");
         model.addAttribute("monitoringList", adminService.getMonitoringList());
 
-        List<VisitorTrendVO> visitorTrend = adminService.getVisitorTrend();
-        List<PopularClickVO> popularClicks = adminService.getPopularProductClicks();
+        /*
+         * [모니터링 화면 개편]
+         * 화면 상단 4개 요약 카드와 방문자 추이 기간 탭을 추가한다.
+         * 허용하지 않은 period 값은 기본값인 최근 7일로 정규화한다.
+         */
+        String normalizedPeriod = switch (period) {
+            case "3m", "6m", "1y" -> period;
+            default -> "7d";
+        };
 
+        /*
+         * [모니터링 공통 조회 기간]
+         * 회원 수를 제외한 방문 수 / 배송완료 주문 / 배송완료 실매출 /
+         * 상품 클릭 TOP 5가 동일한 기간 기준으로 집계되도록 한다.
+         */
+        MonitoringSummaryVO monitoringSummary = adminService.getMonitoringSummaryByPeriod(normalizedPeriod);
+
+        List<VisitorTrendVO> visitorTrend = "7d".equals(normalizedPeriod)
+                ? adminService.getVisitorTrend()
+                : adminService.getVisitorTrendByPeriod(normalizedPeriod);
+
+        List<PopularClickVO> popularClicks = adminService.getPopularProductClicksByPeriod(normalizedPeriod);
+
+        model.addAttribute("monitoringSummary", monitoringSummary);
+        model.addAttribute("period", normalizedPeriod);
         model.addAttribute("visitorTrend", visitorTrend);
         model.addAttribute("popularClicks", popularClicks);
 
@@ -868,6 +892,14 @@ public class AdminController {
         model.addAttribute("popularClicksJson", popularJson.toString());
 
         return "admin/monitoring/monitoring";
+    }
+
+    /*
+     * 기존 단위 테스트와 내부 직접 호출이 사용하던 시그니처를 유지한다.
+     * 실제 HTTP 요청은 위 @GetMapping 메서드가 처리하고, 이 오버로드는 최근 7일을 기본값으로 위임한다.
+     */
+    public String monitoring(Model model) {
+        return monitoring("7d", model);
     }
 
     // ===================== (사이드바 미노출) 콘텐츠 관리 =====================
