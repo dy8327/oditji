@@ -132,7 +132,7 @@ class SearchContentPageCacheServiceResidualClosure4Test {
                         "전체 관람가",
                         "15세 이상 관람가"));
 
-        assertTrue(normalized.contains("등급정보없음"));
+        assertTrue(normalized.contains("등급 정보 없음"));
         assertTrue(normalized.contains("청소년 관람불가"));
         assertTrue(normalized.contains("15세 이상 관람가"));
         assertTrue(normalized.contains("12세 이상 관람가"));
