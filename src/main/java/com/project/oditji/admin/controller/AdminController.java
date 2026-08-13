@@ -156,10 +156,12 @@ public class AdminController {
 
             StringBuilder message = new StringBuilder(processedCount + "명의 회원을 처리했습니다.");
             if (skippedCount > 0) {
-                // 자동삭제 대기 중인 회원은 화면에서 선택이 막혀 있지만,
-                // 우회 요청 등으로 포함된 경우를 대비해 실제로 몇 명이 제외되었는지 안내한다.
-                message.append(" (자동삭제 예정 회원 ").append(skippedCount).append("명은 처리에서 제외되었습니다.)");
-            }
+            // 자동삭제 예정 회원이나 삭제가 제한된 사업자 회원 등
+            // 현재 작업 대상이 아닌 회원은 처리에서 제외한다.
+            message.append(" (처리 대상이 아닌 회원 ")
+                    .append(skippedCount)
+                    .append("명은 제외되었습니다.)");
+        }
             ra.addFlashAttribute(FLASH_MESSAGE, message.toString());
 
         } catch (IllegalArgumentException e) {
