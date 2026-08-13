@@ -66,8 +66,13 @@
                    value="USER">
 
             <!-- 공통 기본 정보 -->
-            <div class="join-section-title no-border">
-                기본 정보
+            <div class="join-section-title no-border required-info-title">
+                <span>기본 정보</span>
+
+                <%-- [회원가입 필수 입력 안내 추가] * 표시 항목은 필수 입력 정보임을 안내한다. --%>
+                <span class="required-info">
+                    <span class="required-mark">*</span>는 필수 입력 정보입니다.
+                </span>
             </div>
 
             <%--
@@ -289,8 +294,7 @@
             </div>
 
             <!-- 일반회원 전용: OTT 선택 -->
-            <div class="user-only-fields active"
-                 id="userOnlyFields">
+            <div class="user-only-fields active" id="userOnlyFields">
 
                 <div class="join-section-title">
                     사용 중인 OTT
@@ -358,17 +362,22 @@
             </div>
 
             <!-- 사업자 전용: 사업자 및 정산 정보 -->
-            <div class="business-only-fields"
-                 id="businessOnlyFields">
+            <div class="business-only-fields" id="businessOnlyFields">
 
-                <div class="join-section-title">
-                    사업자 정보
+                <div class="join-section-title no-border required-info-title">
+                    <span>사업자 정보</span>
+
+                    <%-- [회원가입 필수 입력 안내 추가] * 표시 항목은 필수 입력 정보임을 안내한다. --%>
+                    <span class="required-info">
+                        <span class="required-mark">*</span>는 필수 입력 정보입니다.
+                    </span>
                 </div>
 
                 <div class="form-group">
 
                     <label for="businessName">
                         상호명
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
@@ -382,6 +391,7 @@
 
                     <label for="representativeName">
                         대표자명
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
@@ -395,6 +405,7 @@
 
                     <label for="openDate">
                         개업일
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
@@ -407,7 +418,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="businessNumber">사업자등록번호</label>
+                    <label for="businessNumber">
+                        사업자등록번호
+                        <span class="required-mark">*</span>
+                    </label>
 
                     <div class="row business-number-row">
                         <input type="text"
@@ -440,6 +454,7 @@
                     --%>
                     <label for="licenseFile">
                         사업자등록증
+                        <span class="required-mark">*</span>
                     </label>
 
                     <div class="file-box">
@@ -475,6 +490,7 @@
 
                     <label for="bankName">
                         은행명
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
@@ -488,6 +504,7 @@
 
                     <label for="accountNumber">
                         계좌번호
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
@@ -501,6 +518,7 @@
 
                     <label for="accountHolder">
                         예금주
+                        <span class="required-mark">*</span>
                     </label>
 
                     <input type="text"
