@@ -203,6 +203,10 @@ class AdminServiceImplTest {
         order.verify(adminDAO).deleteAdminLogByAdminNo(10L);
         order.verify(adminDAO).deleteMemberPlatformByMemberNo(10L);
         order.verify(adminDAO).deleteMemberSocialByMemberNo(10L);
+        order.verify(adminDAO).deleteSubscriptionResultByMemberNo(10L);
+        order.verify(adminDAO).deleteNotificationSettingByMemberNo(10L);
+        order.verify(adminDAO).deleteSearchKeywordHistoryByMemberNo(10L);
+        order.verify(adminDAO).deleteChatRoomReadStateByMemberNo(10L);
         order.verify(adminDAO).deleteMember(10L);
     }
 

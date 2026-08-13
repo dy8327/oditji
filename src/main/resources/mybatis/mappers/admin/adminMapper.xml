@@ -346,6 +346,12 @@
         WHERE MEMBER_NO = #{memberNo}
     </delete>
 
+    <!-- 17-5. CHAT_ROOM_READ_STATE: 회원의 채팅방 읽음 상태 -->
+    <delete id="adminDeleteChatRoomReadStateByMember" parameterType="long">
+        DELETE FROM CHAT_ROOM_READ_STATE
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
     <!--
         NOTIFICATION.RECEIVER_MEMBER_NO는 FK(FK_NOTIFICATION_MEMBER)가
         ON DELETE CASCADE로 걸려 있어 MEMBER 삭제 시 자동으로 함께 삭제되므로

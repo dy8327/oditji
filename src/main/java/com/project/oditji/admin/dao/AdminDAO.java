@@ -188,6 +188,10 @@ public class AdminDAO {
         return sqlSession.delete("adminDeleteSearchKeywordHistoryByMember", memberNo);
     }
 
+    public int deleteChatRoomReadStateByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteChatRoomReadStateByMember", memberNo);
+    }
+
     // 최종 MEMBER 삭제
     public int deleteMember(Long memberNo) {
         return sqlSession.delete("adminDeleteMember", memberNo);
