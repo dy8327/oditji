@@ -931,6 +931,9 @@
 .form-row {
   display: flex;
   gap: 14px;
+
+  /* [수정] 다음 입력 항목과 다른 form-group과 동일한 간격 유지 */
+  margin-bottom: 22px;
 }
 
 .form-row .form-group {
@@ -2080,7 +2083,6 @@
  * 블록보다 뒤에 둔다.
  */
 @media (max-width: 640px) {
-
   .product-detail-table thead {
     display: none;
   }
@@ -2135,11 +2137,21 @@
     text-align: left;
   }
 
-  .product-detail-table td:nth-of-type(1)::before { content: "상품명"; }
-  .product-detail-table td:nth-of-type(2)::before { content: "판매자"; }
-  .product-detail-table td:nth-of-type(3)::before { content: "기존가격"; }
-  .product-detail-table td:nth-of-type(4)::before { content: "할인율"; }
-  .product-detail-table td:nth-of-type(5)::before { content: "적용가격"; }
+  .product-detail-table td:nth-of-type(1)::before {
+    content: "상품명";
+  }
+  .product-detail-table td:nth-of-type(2)::before {
+    content: "판매자";
+  }
+  .product-detail-table td:nth-of-type(3)::before {
+    content: "기존가격";
+  }
+  .product-detail-table td:nth-of-type(4)::before {
+    content: "할인율";
+  }
+  .product-detail-table td:nth-of-type(5)::before {
+    content: "적용가격";
+  }
 
   /* 상품명은 카드 제목처럼 라벨 없이 굵게, 아래쪽에 구분선을 두어 나머지 정보와 분리한다 */
   .product-detail-table td.ep-name {
@@ -2436,5 +2448,98 @@
 
   .mobile-access-date {
     display: inline;
+  }
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 수정 모달 상태 변경 버튼]
+   PC에서는 목록의 상태 변경 버튼을 사용하므로
+   수정 모달 내부 비활성화/재활성화 버튼은 숨긴다.
+   ========================================================= */
+#discountStatusActions {
+  display: none !important;
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 모바일 전용 보정]
+   상태 변경 버튼 표시 + 날짜 입력 영역 보정
+   ========================================================= */
+@media (max-width: 768px) {
+  /* 모바일에서는 수정 모달 내부 상태 변경 버튼 표시 */
+  #discountStatusActions {
+    display: flex !important;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--adm-border);
+    width: 100%;
+  }
+
+  #discountStatusActions form {
+    width: 100%;
+    margin: 0;
+  }
+
+  #discountStatusActions .btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* =========================================================
+     [OTT 할인 관리 - 모바일 날짜 입력 영역 보정]
+     시작일/종료일을 모달 내부에서 정확히 동일한 크기로 배치
+     ========================================================= */
+
+  /* 실제 OTT 할인 등록/수정 모달 ID는 discountFormModal */
+  #discountFormModal .form-row {
+    display: flex;
+    width: 100%;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  /* 시작일 / 종료일 영역을 정확히 1:1로 분배 */
+  #discountFormModal .form-row .form-group {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* 날짜 입력창이 모바일 브라우저별 기본 크기 때문에 잘리지 않도록 보정 */
+  #discountFormModal .form-row input[type="date"].form-input {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+
+    height: 48px;
+
+    /* 좁은 모바일에서 날짜 + 달력 아이콘 공간 확보 */
+    padding: 0 8px;
+
+    box-sizing: border-box;
+
+    /* 일부 모바일 기기에서 14px은 날짜 문자열이 꽉 차므로 약간 축소 */
+    font-size: 13px;
+
+    font-family: inherit;
+  }
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 초소형 모바일 날짜 입력 보정]
+   360px 이하에서도 시작일/종료일이 잘리지 않도록 처리
+   ========================================================= */
+@media (max-width: 380px) {
+  #discountFormModal .form-row {
+    gap: 10px;
+  }
+
+  #discountFormModal .form-row input[type="date"].form-input {
+    padding-left: 6px;
+    padding-right: 4px;
+    font-size: 12px;
   }
 }
