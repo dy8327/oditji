@@ -267,15 +267,25 @@
 <!-- ================= MEMBER MODAL ================= -->
 
 
-<div id="memberModal"
-     class="modal-overlay hidden">
+<div id="memberModal" class="modal-overlay hidden">
 
 
-    <div class="modal-box">
+    <!-- =========================================================
+         [회원정보 수정 모달 디자인 변경]
+         - 기존 회원정보 수정 기능과 form 전송 구조는 그대로 유지합니다.
+         - 닉네임 / 이메일 / 전화번호 / 비밀번호 / 프로필 이미지 항목을
+           아이콘 + 라벨 + 입력 영역 형태로 통일합니다.
+         - 다른 모달에는 영향을 주지 않도록 member-update-modal 클래스를 추가합니다.
+         ========================================================= -->
+    <div class="modal-box member-update-modal">
 
-        <h2>
-            회원정보 수정
-        </h2>
+        <div class="member-update-header">
+
+            <h2>
+                회원정보 수정
+            </h2>
+
+        </div>
 
 
         <form id="memberUpdateForm"
@@ -306,72 +316,56 @@
 
 
 
-            <!-- 닉네임 -->
+            <!-- =========================================================
+                 [회원정보 수정 디자인 변경 - 닉네임]
+                 기존 닉네임 입력값과 중복확인 기능은 그대로 유지합니다.
+                 ========================================================= -->
 
-            <div class="form-group">
+            <div class="form-group member-update-form-group">
 
-                <label for="updateNickname">
-                    닉네임
-                </label>
+                <div class="member-update-label">
+
+                    <span class="member-update-icon"
+                          aria-hidden="true">
+
+                        <!-- 사용자 아이콘 -->
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <path d="M20 21a8 8 0 0 0-16 0"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+
+                        </svg>
+
+                    </span>
 
 
-                <div class="duplicate-check-row">
-
-                    <input type="text"
-                           id="updateNickname"
-                           name="nickname"
-                           value="${loginMember.nickname}"
-                           placeholder="한글/영문/숫자 2~10자"
-                           maxlength="10"
-                           required>
-
-
-                    <button type="button"
-                            id="checkUpdateNicknameBtn"
-                            class="duplicate-check-btn">
-
-                        중복확인
-
-                    </button>
+                    <label for="updateNickname">
+                        닉네임
+                    </label>
 
                 </div>
 
 
-                <small id="nicknameMessage"
-                       class="input-message">
-
-                </small>
-
-            </div>
-
-
-
-
-
-            <!-- 이메일 -->
-
-
-            <c:if test="${!socialMember}">
-
-                <div class="form-group">
-
-                    <label for="updateEmail">
-                        이메일
-                    </label>
-
+                <div class="member-update-field">
 
                     <div class="duplicate-check-row">
 
-                        <input type="email"
-                               id="updateEmail"
-                               name="email"
-                               value="${loginMember.email}"
-                               placeholder="example@email.com"
+                        <input type="text"
+                               id="updateNickname"
+                               name="nickname"
+                               value="${loginMember.nickname}"
+                               placeholder="한글/영문/숫자 2~10자"
+                               maxlength="10"
                                required>
 
 
                         <button type="button"
-                                id="checkUpdateEmailBtn"
+                                id="checkUpdateNicknameBtn"
                                 class="duplicate-check-btn">
 
                             중복확인
@@ -381,177 +375,440 @@
                     </div>
 
 
-                    <small id="emailMessage"
+                    <small id="nicknameMessage"
                            class="input-message">
 
                     </small>
 
                 </div>
 
-            </c:if>
-
-
-
-
-
-            <!-- 전화번호 -->
-
-
-            <div class="form-group">
-
-                <label for="updatePhone">
-                    전화번호
-                </label>
-
-
-                <input type="text"
-                       id="updatePhone"
-                       name="phone"
-                       value="${loginMember.phone}"
-                       placeholder="010-1234-5678"
-                       maxlength="13">
-
             </div>
 
-
-
-
-
-            <!-- 비밀번호 변경 -->
-
+            <!-- 이메일 -->
 
             <c:if test="${!socialMember}">
 
+                <!-- =========================================================
+                     [회원정보 수정 디자인 변경 - 이메일]
+                     일반 회원에게만 표시되는 기존 이메일 입력 및
+                     중복확인 기능을 그대로 유지합니다.
+                     ========================================================= -->
+                <div class="form-group member-update-form-group">
 
-                <div class="form-group">
+                    <div class="member-update-label">
 
-                    <label for="currentPw">
-                        현재 비밀번호
-                    </label>
+                        <span class="member-update-icon"
+                              aria-hidden="true">
 
+                            <!-- 이메일 아이콘 -->
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
 
-                    <div class="password-input-row">
+                                <rect x="3"
+                                      y="5"
+                                      width="18"
+                                      height="14"
+                                      rx="2"></rect>
 
-                        <input type="password"
-                               id="currentPw"
-                               name="currentPw"
-                               autocomplete="current-password">
+                                <path d="m3 7 9 6 9-6"></path>
 
-                        <button type="button"
-                                class="password-toggle-btn"
-                                data-target="currentPw"
-                                aria-label="현재 비밀번호 표시">
-                            보기
-                        </button>
+                            </svg>
 
-                    </div>
-
-                </div>
-
-
-
-
-                <div class="form-group">
-
-                    <label for="newPw">
-                        새 비밀번호
-                    </label>
+                        </span>
 
 
-                    <div class="password-input-row">
-
-                        <input type="password"
-                               id="newPw"
-                               name="newPw"
-                               placeholder="영문, 숫자, 특수문자 포함 8~20자"
-                               autocomplete="new-password">
-
-                        <button type="button"
-                                class="password-toggle-btn"
-                                data-target="newPw"
-                                aria-label="새 비밀번호 표시">
-                            보기
-                        </button>
+                        <label for="updateEmail">
+                            이메일
+                        </label>
 
                     </div>
 
-                </div>
+
+                    <div class="member-update-field">
+
+                        <div class="duplicate-check-row">
+
+                            <input type="email"
+                                   id="updateEmail"
+                                   name="email"
+                                   value="${loginMember.email}"
+                                   placeholder="example@email.com"
+                                   required>
 
 
+                            <button type="button"
+                                    id="checkUpdateEmailBtn"
+                                    class="duplicate-check-btn">
+
+                                중복확인
+
+                            </button>
+
+                        </div>
 
 
-                <div class="form-group">
+                        <small id="emailMessage"
+                               class="input-message">
 
-                    <label for="newPwCheck">
-                        새 비밀번호 확인
-                    </label>
-
-
-                    <div class="password-input-row">
-
-                        <input type="password"
-                               id="newPwCheck"
-                               name="newPwCheck"
-                               autocomplete="new-password">
-
-                        <button type="button"
-                                class="password-toggle-btn"
-                                data-target="newPwCheck"
-                                aria-label="새 비밀번호 확인 표시">
-                            보기
-                        </button>
+                        </small>
 
                     </div>
-
-                </div>
-
-
-            </c:if>
-
-
-
-
-
-            <!-- SNS 회원 안내 -->
-
-
-            <c:if test="${socialMember}">
-
-                <div class="info-box">
-
-                    소셜 로그인 회원은
-                    해당 소셜 계정에서 비밀번호를 관리합니다.
 
                 </div>
 
             </c:if>
 
+            <!-- =========================================================
+                 [회원정보 수정 디자인 변경 - 전화번호]
+                 기존 전화번호 입력 기능은 그대로 유지합니다.
+                 ========================================================= -->
 
+            <div class="form-group member-update-form-group">
 
+                <div class="member-update-label">
 
+                    <span class="member-update-icon"
+                          aria-hidden="true">
 
-            <!-- 프로필 이미지 -->
+                        <!-- 전화 아이콘 -->
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
 
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2
+                                     19.79 19.79 0 0 1-8.63-3.07
+                                     19.5 19.5 0 0 1-6-6
+                                     19.79 19.79 0 0 1-3.07-8.67
+                                     A2 2 0 0 1 4.11 2h3
+                                     a2 2 0 0 1 2 1.72
+                                     12.84 12.84 0 0 0 .7 2.81
+                                     2 2 0 0 1-.45 2.11L8.09 9.91
+                                     a16 16 0 0 0 6 6l1.27-1.27
+                                     a2 2 0 0 1 2.11-.45
+                                     12.84 12.84 0 0 0 2.81.7
+                                     A2 2 0 0 1 22 16.92z"></path>
 
-            <div class="form-group">
+                        </svg>
 
-                <label for="profileImageFile">
-                    프로필 이미지
-                </label>
+                    </span>
 
+                    <label for="updatePhone">
+                        전화번호
+                    </label>
 
-                <input type="file"
-                       id="profileImageFile"
-                       name="profileImageFile"
-                       accept="image/*">
+                </div>
+
+                <div class="member-update-field">
+
+                    <input type="text"
+                           id="updatePhone"
+                           name="phone"
+                           value="${loginMember.phone}"
+                           placeholder="010-1234-5678"
+                           maxlength="13">
+
+                </div>
 
             </div>
 
+            <!-- 비밀번호 변경 -->
+
+            <c:if test="${!socialMember}">
+
+                <!-- =========================================================
+                     [회원정보 수정 디자인 변경 - 현재 비밀번호]
+                     기존 비밀번호 표시/숨김 기능은 그대로 유지합니다.
+                     ========================================================= -->
+                <div class="form-group member-update-form-group">
+
+                    <div class="member-update-label">
+
+                        <span class="member-update-icon"
+                              aria-hidden="true">
+
+                            <!-- 잠금 아이콘 -->
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+
+                                <rect x="4"
+                                      y="10"
+                                      width="16"
+                                      height="11"
+                                      rx="2"></rect>
+
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+
+                            </svg>
+
+                        </span>
+
+                        <label for="currentPw">
+                            현재 비밀번호
+                        </label>
+
+                    </div>
+
+                    <div class="member-update-field">
+
+                        <div class="password-input-row">
+
+                            <input type="password"
+                                   id="currentPw"
+                                   name="currentPw"
+                                   autocomplete="current-password">
+
+                            <button type="button"
+                                    class="password-toggle-btn"
+                                    data-target="currentPw"
+                                    aria-label="현재 비밀번호 표시">
+                                보기
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =========================================================
+                     [회원정보 수정 디자인 변경 - 새 비밀번호]
+                     기존 비밀번호 입력 기능은 그대로 유지합니다.
+                     ========================================================= -->
+                <div class="form-group member-update-form-group">
+
+                    <div class="member-update-label">
+
+                        <span class="member-update-icon"
+                              aria-hidden="true">
+
+                            <!-- 잠금 아이콘 -->
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+
+                                <rect x="4"
+                                      y="10"
+                                      width="16"
+                                      height="11"
+                                      rx="2"></rect>
+
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+
+                            </svg>
+
+                        </span>
+
+                        <label for="newPw">
+                            새 비밀번호
+                        </label>
+
+                    </div>
+
+                    <div class="member-update-field">
+
+                        <div class="password-input-row">
+
+                            <input type="password"
+                                   id="newPw"
+                                   name="newPw"
+                                   placeholder="영문, 숫자, 특수문자 포함 8~20자"
+                                   autocomplete="new-password">
+
+                            <button type="button"
+                                    class="password-toggle-btn"
+                                    data-target="newPw"
+                                    aria-label="새 비밀번호 표시">
+                                보기
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =========================================================
+                     [회원정보 수정 디자인 변경 - 새 비밀번호 확인]
+                     기존 비밀번호 확인 기능은 그대로 유지합니다.
+                     ========================================================= -->
+                <div class="form-group member-update-form-group">
+
+                    <div class="member-update-label">
+
+                        <span class="member-update-icon"
+                              aria-hidden="true">
+
+                            <!-- 잠금 아이콘 -->
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+
+                                <rect x="4"
+                                      y="10"
+                                      width="16"
+                                      height="11"
+                                      rx="2"></rect>
+
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+
+                            </svg>
+
+                        </span>
 
 
+                        <label for="newPwCheck">
+                            새 비밀번호 확인
+                        </label>
+
+                    </div>
 
 
-            <div class="modal-btns">
+                    <div class="member-update-field">
+
+                        <div class="password-input-row">
+
+                            <input type="password"
+                                   id="newPwCheck"
+                                   name="newPwCheck"
+                                   autocomplete="new-password">
+
+                            <button type="button"
+                                    class="password-toggle-btn"
+                                    data-target="newPwCheck"
+                                    aria-label="새 비밀번호 확인 표시">
+                                보기
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </c:if>
+
+            <!-- SNS 회원 안내 -->
+
+            <c:if test="${socialMember}">
+
+                <!-- =========================================================
+                     [회원정보 수정 디자인 변경 - 소셜 로그인 안내]
+                     기존 안내 문구는 유지하고 시안의 초록색 안내 박스 형태로 변경합니다.
+                     ========================================================= -->
+                <div class="info-box member-update-info-box">
+
+                    <span class="member-update-info-icon"
+                          aria-hidden="true">
+
+                        <!-- 잠금 아이콘 -->
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <rect x="5"
+                                  y="10"
+                                  width="14"
+                                  height="11"
+                                  rx="2"></rect>
+
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+
+                        </svg>
+
+                    </span>
+
+
+                    <span>
+                        소셜 로그인 회원은
+                        해당 소셜 계정에서 비밀번호를 관리합니다.
+                    </span>
+
+                </div>
+
+            </c:if>
+
+            <!-- =========================================================
+                 [회원정보 수정 디자인 변경 - 프로필 이미지]
+                 기존 파일 업로드 기능과 name/id는 그대로 유지합니다.
+                 닉네임/전화번호와 동일하게 아이콘 + 라벨 + 입력 영역 구조로 변경합니다.
+                 ========================================================= -->
+
+            <div class="form-group member-update-form-group member-update-profile-group">
+
+                <div class="member-update-label">
+
+                    <span class="member-update-icon"
+                          aria-hidden="true">
+
+                        <!-- 이미지 아이콘 -->
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <rect x="3"
+                                  y="3"
+                                  width="18"
+                                  height="18"
+                                  rx="2"></rect>
+
+                            <circle cx="8.5"
+                                    cy="8.5"
+                                    r="1.5"></circle>
+
+                            <path d="m21 15-5-5L5 21"></path>
+
+                        </svg>
+
+                    </span>
+
+
+                    <label for="profileImageFile">
+                        프로필 이미지
+                    </label>
+
+                </div>
+
+
+                <div class="member-update-field">
+
+                    <div class="member-update-file-wrap">
+
+                        <input type="file"
+                               id="profileImageFile"
+                               name="profileImageFile"
+                               accept="image/*">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-btns member-update-buttons">
 
                 <button type="submit"
                         id="memberUpdateBtn">
