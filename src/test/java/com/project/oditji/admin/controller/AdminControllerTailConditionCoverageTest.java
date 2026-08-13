@@ -105,7 +105,7 @@ class AdminControllerTailConditionCoverageTest {
 
         verify(memberRedirect).addFlashAttribute(
                 "message",
-                "1명의 회원을 처리했습니다. (자동삭제 예정 회원 1명은 처리에서 제외되었습니다.)");
+                "1명의 회원을 처리했습니다. (처리 대상이 아닌 회원 1명은 제외되었습니다.)");
         verify(reviewRedirect).addFlashAttribute(
                 "message",
                 "1건의 리뷰를 처리 처리했습니다. (이미 처리되었거나 대상이 아닌 1건은 제외되었습니다.)");

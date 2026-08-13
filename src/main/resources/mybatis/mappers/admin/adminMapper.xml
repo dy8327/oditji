@@ -198,6 +198,16 @@
         </foreach>
     </select>
 
+    <!-- 사업자 회원 여부 확인: 사업자 데이터 보존을 위해 일반 회원 하드삭제에서 제외 -->
+    <select id="adminIsBusinessMember"
+            parameterType="long"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+        AND ROLE = 'BUSINESS'
+    </select>
+
     <!--
         1. REVIEW_REPORT: 회원이 신고자(MEMBER_NO)이거나 처리 관리자(ADMIN_NO)인 경우.
         회원이 작성한 리뷰가 신고당한 REVIEW_REPORT 행은 더 이상 여기서 지우지 않는다.
@@ -343,6 +353,12 @@
     <!-- 17-4. SEARCH_KEYWORD_HISTORY: 회원의 검색 키워드 이력 -->
     <delete id="adminDeleteSearchKeywordHistoryByMember" parameterType="long">
         DELETE FROM SEARCH_KEYWORD_HISTORY
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!-- 17-5. CHAT_ROOM_READ_STATE: 회원의 채팅방 읽음 상태 -->
+    <delete id="adminDeleteChatRoomReadStateByMember" parameterType="long">
+        DELETE FROM CHAT_ROOM_READ_STATE
         WHERE MEMBER_NO = #{memberNo}
     </delete>
 

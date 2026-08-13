@@ -198,10 +198,16 @@ public class AdminServiceImpl implements AdminService {
         }
 
         List<Long> withdrawnNos = adminDAO.selectWithdrawnMemberNos(memberNos);
+        int skippedCount = withdrawnNos.size();
 
         for (Long memberNo : memberNos) {
 
             if (withdrawnNos.contains(memberNo)) {
+                continue;
+            }
+
+            if (ACTION_DELETE.equals(action) && adminDAO.isBusinessMember(memberNo)) {
+                skippedCount++;
                 continue;
             }
 
@@ -213,15 +219,19 @@ public class AdminServiceImpl implements AdminService {
             }
         }
 
-        return withdrawnNos.size();
+        return skippedCount;
     }
 
     @Override
     @Transactional
     public void deleteMember(Long memberNo) {
+
+        if (adminDAO.isBusinessMember(memberNo)) {
+            throw new IllegalStateException("사업자 회원은 판매·주문·정산 데이터 보존을 위해 완전 삭제할 수 없습니다.");
+        }
+
         deleteMemberInternal(memberNo);
     }
-
     private void deleteMemberInternal(Long memberNo) {
 
         // 회원 삭제 전 FK 참조 데이터 제거
@@ -255,6 +265,7 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.deleteSubscriptionResultByMemberNo(memberNo);
         adminDAO.deleteNotificationSettingByMemberNo(memberNo);
         adminDAO.deleteSearchKeywordHistoryByMemberNo(memberNo);
+        adminDAO.deleteChatRoomReadStateByMemberNo(memberNo);
 
         // MEMBER 최종 삭제
         adminDAO.deleteMember(memberNo);
@@ -267,6 +278,12 @@ public class AdminServiceImpl implements AdminService {
         List<Long> memberList = adminDAO.selectExpiredWithdrawMembers();
 
         for (Long memberNo : memberList) {
+
+            // 사업자는 상품·주문·정산 등 운영 데이터 보존을 위해 자동 완전삭제하지 않는다.
+            if (adminDAO.isBusinessMember(memberNo)) {
+                continue;
+            }
+
             deleteMemberInternal(memberNo);
         }
     }

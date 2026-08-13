@@ -92,6 +92,12 @@ public class AdminDAO {
     public List<Long> selectWithdrawnMemberNos(List<Long> memberNos) {
         return sqlSession.selectList("selectWithdrawnMemberNos", memberNos);
     }
+    
+    //사업자 삭제 방지
+    public boolean isBusinessMember(Long memberNo) {
+        Integer count = sqlSession.selectOne("adminIsBusinessMember", memberNo);
+        return count != null && count > 0;
+    }
 
     // ===================== 탈퇴 회원 자동 삭제 =====================
 
@@ -186,6 +192,10 @@ public class AdminDAO {
 
     public int deleteSearchKeywordHistoryByMemberNo(Long memberNo) {
         return sqlSession.delete("adminDeleteSearchKeywordHistoryByMember", memberNo);
+    }
+
+    public int deleteChatRoomReadStateByMemberNo(Long memberNo) {
+        return sqlSession.delete("adminDeleteChatRoomReadStateByMember", memberNo);
     }
 
     // 최종 MEMBER 삭제

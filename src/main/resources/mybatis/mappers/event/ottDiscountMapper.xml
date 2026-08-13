@@ -46,8 +46,8 @@
          페이지 수 계산이 어긋나지 않으므로 sql 조각으로 분리해 재사용한다. -->
     <sql id="discountListWhere">
         WHERE IS_ACTIVE = 'Y'
-          AND (START_DATE IS NULL OR START_DATE &lt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
-          AND (END_DATE IS NULL OR END_DATE &gt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+          AND (START_DATE IS NULL OR START_DATE &lt;= TRUNC(SYSDATE))
+          AND (END_DATE IS NULL OR END_DATE &gt;= TRUNC(SYSDATE))
         <if test="platform != null and platform != '' and platform != 'ALL'">
             AND PLATFORM_CODE = #{platform}
         </if>
@@ -161,8 +161,8 @@
             #{cardOrCompany, jdbcType=VARCHAR},
             #{targetUrl, jdbcType=VARCHAR},
             #{badgeText, jdbcType=VARCHAR},
-            #{startDate, jdbcType=VARCHAR},
-            #{endDate, jdbcType=VARCHAR},
+            TO_DATE(#{startDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+            TO_DATE(#{endDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
             NVL(#{isActive, jdbcType=VARCHAR}, 'Y'),
             SYSDATE,
             #{regularPrice, jdbcType=INTEGER},
@@ -183,8 +183,8 @@
             CARD_OR_COMPANY = #{cardOrCompany, jdbcType=VARCHAR},
             TARGET_URL = #{targetUrl, jdbcType=VARCHAR},
             BADGE_TEXT = #{badgeText, jdbcType=VARCHAR},
-            START_DATE = #{startDate, jdbcType=VARCHAR},
-            END_DATE = #{endDate, jdbcType=VARCHAR},
+            START_DATE = TO_DATE(#{startDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
+            END_DATE = TO_DATE(#{endDate, jdbcType=VARCHAR}, 'YYYY-MM-DD'),
             IS_ACTIVE = NVL(#{isActive, jdbcType=VARCHAR}, IS_ACTIVE),
             REGULAR_PRICE = #{regularPrice, jdbcType=INTEGER},
             DISCOUNT_PRICE = #{discountPrice, jdbcType=INTEGER}
@@ -210,7 +210,7 @@
     <update id="updateExpiredDiscounts">
         UPDATE OTT_DISCOUNT_INFO
         SET IS_ACTIVE = 'N'
-        WHERE END_DATE &lt; TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+        WHERE END_DATE &lt; TRUNC(SYSDATE)
           AND IS_ACTIVE = 'Y'
     </update>
 
@@ -235,8 +235,8 @@
             FROM OTT_DISCOUNT_INFO
             WHERE IS_ACTIVE = 'Y'
               AND REGULAR_PRICE IS NOT NULL
-              AND (START_DATE IS NULL OR START_DATE &lt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
-              AND (END_DATE IS NULL OR END_DATE &gt;= TO_CHAR(SYSDATE, 'YYYY-MM-DD'))
+              AND (START_DATE IS NULL OR START_DATE &lt;= TRUNC(SYSDATE))
+              AND (END_DATE IS NULL OR END_DATE &gt;= TRUNC(SYSDATE))
         ),
         REG AS (
             /*

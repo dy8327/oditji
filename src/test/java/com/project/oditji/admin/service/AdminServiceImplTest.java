@@ -203,6 +203,10 @@ class AdminServiceImplTest {
         order.verify(adminDAO).deleteAdminLogByAdminNo(10L);
         order.verify(adminDAO).deleteMemberPlatformByMemberNo(10L);
         order.verify(adminDAO).deleteMemberSocialByMemberNo(10L);
+        order.verify(adminDAO).deleteSubscriptionResultByMemberNo(10L);
+        order.verify(adminDAO).deleteNotificationSettingByMemberNo(10L);
+        order.verify(adminDAO).deleteSearchKeywordHistoryByMemberNo(10L);
+        order.verify(adminDAO).deleteChatRoomReadStateByMemberNo(10L);
         order.verify(adminDAO).deleteMember(10L);
     }
 
@@ -762,4 +766,56 @@ class AdminServiceImplTest {
         verify(adminDAO).insertPlatform(platform);
         verify(adminDAO).updatePlatform(platform);
     }
+
+    @Test
+        void deleteMemberShouldRejectBusinessMember() {
+
+        when(adminDAO.isBusinessMember(10L)).thenReturn(true);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> adminService.deleteMember(10L));
+
+        verify(adminDAO, never()).deleteMember(10L);
+        }
+
+        @Test
+        void bulkMemberActionShouldSkipBusinessMemberOnDelete() {
+
+        List<Long> memberNos = List.of(1L, 2L);
+
+        when(adminDAO.selectWithdrawnMemberNos(memberNos))
+                .thenReturn(List.of());
+
+        when(adminDAO.isBusinessMember(1L))
+                .thenReturn(false);
+
+        when(adminDAO.isBusinessMember(2L))
+                .thenReturn(true);
+
+        int skipped = adminService.bulkMemberAction(memberNos, "delete");
+
+        assertEquals(1, skipped);
+
+        verify(adminDAO).deleteMember(1L);
+        verify(adminDAO, never()).deleteMember(2L);
+        }
+
+        @Test
+        void deleteExpiredWithdrawMembersShouldSkipBusinessMember() {
+
+        when(adminDAO.selectExpiredWithdrawMembers())
+                .thenReturn(List.of(11L, 12L));
+
+        when(adminDAO.isBusinessMember(11L))
+                .thenReturn(false);
+
+        when(adminDAO.isBusinessMember(12L))
+                .thenReturn(true);
+                
+        adminService.deleteExpiredWithdrawMembers();
+
+        verify(adminDAO).deleteMember(11L);
+        verify(adminDAO, never()).deleteMember(12L);
+        }
 }

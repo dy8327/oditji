@@ -103,7 +103,7 @@ class AdminControllerCoverageTest {
                 1,
                 successRedirect);
         assertEquals(
-                "2명의 회원을 처리했습니다. (자동삭제 예정 회원 1명은 처리에서 제외되었습니다.)",
+                "2명의 회원을 처리했습니다. (처리 대상이 아닌 회원 1명은 제외되었습니다.)",
                 successRedirect.getFlashAttributes().get("message"));
 
         when(adminService.bulkMemberAction(memberNos, "invalid"))
