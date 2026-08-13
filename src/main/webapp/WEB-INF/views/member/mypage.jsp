@@ -237,16 +237,42 @@
     </div>
 
     <!-- ================= Withdraw ================= -->
-    <section class="mypage-withdraw" aria-labelledby="withdrawTitle">
-        <div class="mypage-withdraw-copy">
-            <h2 id="withdrawTitle">회원탈퇴</h2>
-            <p>탈퇴 시 계정은 즉시 비활성화되며, 7일 후 모든 데이터가 자동으로 완전히 삭제됩니다.</p>
-        </div>
-        <!-- 기존 JS가 사용하는 ID 유지 -->
-        <button type="button" id="deleteBtn" class="mypage-withdraw-btn">
-            회원탈퇴 <span aria-hidden="true">›</span>
-        </button>
-    </section>
+    <c:choose>
+
+        <!-- 사업자 회원 -->
+        <c:when test="${loginMember.role eq 'BUSINESS'}">
+            <section class="mypage-withdraw" aria-labelledby="withdrawTitle">
+                <div class="mypage-withdraw-copy">
+                    <h2 id="withdrawTitle">회원탈퇴</h2>
+                    <p>
+                        사업자 회원은 판매·주문·정산 데이터 보존을 위해
+                        일반 회원탈퇴를 할 수 없습니다.
+                    </p>
+                </div>
+            </section>
+        </c:when>
+
+        <!-- 일반 회원 -->
+        <c:otherwise>
+            <section class="mypage-withdraw" aria-labelledby="withdrawTitle">
+                <div class="mypage-withdraw-copy">
+                    <h2 id="withdrawTitle">회원탈퇴</h2>
+                    <p>
+                        탈퇴 시 계정은 즉시 비활성화되며,
+                        7일 후 모든 데이터가 자동으로 완전히 삭제됩니다.
+                    </p>
+                </div>
+
+                <!-- 기존 JS가 사용하는 ID 유지 -->
+                <button type="button"
+                        id="deleteBtn"
+                        class="mypage-withdraw-btn">
+                    회원탈퇴 <span aria-hidden="true">›</span>
+                </button>
+            </section>
+        </c:otherwise>
+
+    </c:choose>
 </main>
 
 
