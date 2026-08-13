@@ -9,11 +9,14 @@
 <title>500 - ODITJI</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/error.css">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body class="error-page">
 
-<div class="error-wrap">
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+
+<div id="mainContent" class="error-wrap">
 
     <div class="error-card">
 
@@ -26,6 +29,7 @@
         <div class="error-sub">
             <c:choose>
                 <c:when test="${not empty errorMessage}"><c:out value="${errorMessage}"/></c:when>
+
                 <c:otherwise>잠시 후 다시 시도해주세요.</c:otherwise>
             </c:choose>
         </div>
