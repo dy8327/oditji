@@ -21,9 +21,53 @@
   --search-accent: #ffffff;
   --search-yellow: #ffd75e;
   --search-danger: #ff6b78;
+  --search-glow-warm: rgba(255, 210, 120, 0.06);
+  --search-glow-cool: rgba(120, 170, 255, 0.05);
+  --search-panel-overlay: rgba(22, 24, 26, 0.96);
+  --search-dark-overlay: rgba(10, 11, 12, 0.24);
+  --search-shadow-soft: rgba(0, 0, 0, 0.2);
+  --search-shadow-tab: rgba(0, 0, 0, 0.28);
+  --search-shadow-modal: rgba(0, 0, 0, 0.55);
+  --search-modal-backdrop: rgba(0, 0, 0, 0.76);
+  --search-yellow-glow-55: rgba(255, 215, 94, 0.55);
+  --search-yellow-glow-50: rgba(255, 215, 94, 0.5);
+  --search-yellow-glow-0: rgba(255, 215, 94, 0);
+  --search-white-a02: rgba(255, 255, 255, 0.02);
+  --search-white-a018: rgba(255, 255, 255, 0.018);
+  --search-white-a025: rgba(255, 255, 255, 0.025);
+  --search-white-a035: rgba(255, 255, 255, 0.035);
+  --search-white-a055: rgba(255, 255, 255, 0.055);
+  --search-white-a06: rgba(255, 255, 255, 0.06);
+  --search-white-a07: rgba(255, 255, 255, 0.07);
+  --search-white-a08: rgba(255, 255, 255, 0.08);
+  --search-white-a12: rgba(255, 255, 255, 0.12);
+  --search-white-a13: rgba(255, 255, 255, 0.13);
+  --search-white-a15: rgba(255, 255, 255, 0.15);
+  --search-white-a25: rgba(255, 255, 255, 0.25);
+  --search-white-a3: rgba(255, 255, 255, 0.3);
+  --search-white-a34: rgba(255, 255, 255, 0.34);
+  --search-white-a35: rgba(255, 255, 255, 0.35);
+  --search-white-a62: rgba(255, 255, 255, 0.62);
+  --search-white-a8: rgba(255, 255, 255, 0.8);
+  --search-ink: #111315;
+  --search-placeholder: #666d74;
+  --search-btn-hover-bg: #e8e9eb;
+  --search-hero-gradient-mid: #d9dde3;
+  --search-chip-text: #e8eaed;
+  --search-chip-close: #90969d;
+  --search-more-btn-text: #9f9f9f;
+  --search-modal-bg: #191b1e;
+  --search-modal-close-icon: #91979e;
+  --search-ott-option-bg: #202327;
+  --search-ott-option-text: #d9dce0;
+  --search-ott-option-hover-bg: #24282c;
+  --search-tab-text: #979ca5;
+  --search-tab-active-gradient-start: #f0f0f1;
+  --search-tab-active-gradient-end: #bfc1c5;
+  --search-tab-active-text: #111216;
   min-height: calc(100vh - 72px);
   padding: 40px 28px 72px;
-  background: radial-gradient(circle at 78% -12%, rgba(255, 210, 120, 0.06), transparent 34%), radial-gradient(circle at 8% 0%, rgba(120, 170, 255, 0.05), transparent 30%), var(--search-bg);
+  background: radial-gradient(circle at 78% -12%, var(--search-glow-warm), transparent 34%), radial-gradient(circle at 8% 0%, var(--search-glow-cool), transparent 30%), var(--search-bg);
   color: var(--search-text);
   box-sizing: border-box;
 }
@@ -69,7 +113,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scrollbar-color: var(--search-white-a25) transparent;
 }
 
 .search-left-sidebar::-webkit-scrollbar {
@@ -77,7 +121,7 @@
 }
 
 .search-left-sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--search-white-a25);
   border-radius: 3px;
 }
 
@@ -90,8 +134,8 @@
   overflow: hidden;
   border: 1px solid var(--search-border);
   border-radius: 18px;
-  background: rgba(22, 24, 26, 0.96);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  background: var(--search-panel-overlay);
+  box-shadow: 0 18px 50px var(--search-shadow-soft);
 }
 
 .search-filter-header {
@@ -127,21 +171,21 @@
   height: 6px;
   border-radius: 50%;
   background: var(--search-yellow);
-  box-shadow: 0 0 0 0 rgba(255, 215, 94, 0.55);
+  box-shadow: 0 0 0 0 var(--search-yellow-glow-55);
   animation: searchEyebrowPulse 2.2s ease-out infinite;
 }
 
 @keyframes searchEyebrowPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 94, 0.5);
+    box-shadow: 0 0 0 0 var(--search-yellow-glow-50);
   }
 
   70% {
-    box-shadow: 0 0 0 7px rgba(255, 215, 94, 0);
+    box-shadow: 0 0 0 7px var(--search-yellow-glow-0);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 94, 0);
+    box-shadow: 0 0 0 0 var(--search-yellow-glow-0);
   }
 }
 
@@ -179,7 +223,7 @@
 }
 
 .filter-group + .filter-group {
-  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  border-top: 1px solid var(--search-white-a055);
 }
 
 .filter-group-title {
@@ -222,12 +266,12 @@
   height: 15px;
   flex: 0 0 15px;
   margin: 0;
-  accent-color: #ffffff;
+  accent-color: var(--search-accent);
   cursor: pointer;
 }
 
 .filter-option input[type="checkbox"]:checked + span {
-  color: #ffffff;
+  color: var(--search-accent);
   font-weight: 700;
 }
 
@@ -261,7 +305,7 @@
   margin-top: 10px;
   border: 1px solid var(--search-border-strong);
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--search-white-a025);
   color: var(--search-text-soft);
   font-size: 11px;
   font-weight: 700;
@@ -274,9 +318,9 @@
 
 .filter-secondary-action-btn:hover,
 .filter-provider-select-btn:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  border-color: var(--search-white-a3);
+  background: var(--search-white-a06);
+  color: var(--search-accent);
 }
 
 .filter-provider-summary {
@@ -320,18 +364,18 @@
   border: 1px solid var(--search-border);
   border-radius: 8px;
   outline: 0;
-  background: #111315;
-  color: #ffffff;
+  background: var(--search-ink);
+  color: var(--search-accent);
   font-size: 11px;
   transition: border-color 0.16s ease;
 }
 
 .goods-price-field input:focus {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--search-white-a35);
 }
 
 .goods-price-field input::placeholder {
-  color: #666d74;
+  color: var(--search-placeholder);
 }
 
 .filter-action-box {
@@ -339,7 +383,7 @@
   gap: 8px;
   padding: 16px 20px 20px;
   border-top: 1px solid var(--search-border);
-  background: rgba(10, 11, 12, 0.24);
+  background: var(--search-dark-overlay);
 }
 
 .filter-submit-btn,
@@ -356,13 +400,13 @@
 }
 
 .filter-submit-btn {
-  border: 1px solid #ffffff;
-  background: #ffffff;
-  color: #111315 !important;
+  border: 1px solid var(--search-accent);
+  background: var(--search-accent);
+  color: var(--search-ink) !important;
 }
 
 .filter-submit-btn:hover {
-  background: #e8e9eb;
+  background: var(--search-btn-hover-bg);
 }
 
 .filter-reset-btn {
@@ -373,7 +417,7 @@
 
 .filter-reset-btn:hover {
   border-color: var(--search-border-strong);
-  color: #ffffff !important;
+  color: var(--search-accent) !important;
 }
 
 /* =========================================================
@@ -399,7 +443,7 @@
 
 .search-result-hero h1 {
   margin: 7px 0 0;
-  background: linear-gradient(100deg, #ffffff 40%, #d9dde3 70%, #ffffff 100%);
+  background: linear-gradient(100deg, var(--search-accent) 40%, var(--search-hero-gradient-mid) 70%, var(--search-accent) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -458,24 +502,24 @@
   justify-content: center;
   padding: 0 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--search-white-a07);
   color: inherit;
   font-size: 10px;
 }
 
 .search-result-tab:hover {
-  color: #ffffff;
+  color: var(--search-accent);
 }
 
 .search-result-tab.is-active {
-  background: #ffffff;
-  color: #111315;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  background: var(--search-accent);
+  color: var(--search-ink);
+  box-shadow: 0 8px 20px var(--search-shadow-tab);
 }
 
 .search-result-tab.is-active b {
-  background: #17191b;
-  color: #ffffff;
+  background: var(--search-panel);
+  color: var(--search-accent);
 }
 
 /* =========================================================
@@ -490,7 +534,7 @@
   padding: 13px 15px;
   border: 1px solid var(--search-border);
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--search-white-a02);
 }
 
 .active-filter-title {
@@ -514,10 +558,10 @@
   align-items: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--search-white-a15);
   border-radius: 999px;
   background: var(--search-panel-strong);
-  color: #e8eaed;
+  color: var(--search-chip-text);
   font-size: 11px;
   cursor: pointer;
   transition:
@@ -526,12 +570,12 @@
 }
 
 .active-filter-chip:hover {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--search-white-a35);
   background: var(--search-panel-hover);
 }
 
 .active-filter-chip span {
-  color: #90969d;
+  color: var(--search-chip-close);
   font-size: 15px;
   line-height: 1;
 }
@@ -540,7 +584,7 @@
 .active-filter-chip .age-rating-badge {
   width: 18px;
   height: 18px;
-  color: #ffffff;
+  color: var(--search-accent);
   font-size: 8px;
 }
 
@@ -559,7 +603,7 @@
 }
 
 .active-filter-reset:hover {
-  color: #ffffff !important;
+  color: var(--search-accent) !important;
 }
 
 /* =========================================================
@@ -588,7 +632,7 @@
 
 .search-section-heading h2 {
   margin: 5px 0 0;
-  color: #ffffff;
+  color: var(--search-accent);
   font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -617,7 +661,7 @@ button.search-more-button {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #9f9f9f;
+  color: var(--search-more-btn-text);
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
@@ -625,11 +669,11 @@ button.search-more-button {
 }
 
 button.search-more-button:hover {
-  color: #ffffff;
+  color: var(--search-accent);
 }
 
 button.search-more-button:focus-visible {
-  color: #ffffff;
+  color: var(--search-accent);
   outline: 2px solid var(--search-yellow);
   outline-offset: 3px;
   border-radius: 4px;
@@ -644,12 +688,12 @@ button.search-more-button:focus-visible {
   padding: 30px;
   border: 1px dashed var(--search-border-strong);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--search-white-a018);
   text-align: center;
 }
 
 .empty-state strong {
-  color: #ffffff;
+  color: var(--search-accent);
   font-size: 15px;
 }
 
@@ -709,13 +753,13 @@ button.search-more-button:focus-visible {
 .page-btn:hover {
   border-color: var(--search-border-strong);
   background: var(--search-panel-hover);
-  color: #ffffff !important;
+  color: var(--search-accent) !important;
 }
 
 .page-now {
-  border: 1px solid #ffffff;
-  background: #ffffff;
-  color: #111315;
+  border: 1px solid var(--search-accent);
+  background: var(--search-accent);
+  color: var(--search-ink);
 }
 
 .page-arrow {
@@ -757,7 +801,7 @@ button.search-more-button:focus-visible {
 .ott-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.76);
+  background: var(--search-modal-backdrop);
   backdrop-filter: blur(5px);
 }
 
@@ -766,10 +810,10 @@ button.search-more-button:focus-visible {
   z-index: 1;
   width: min(100%, 560px);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  border: 1px solid var(--search-white-a13);
   border-radius: 18px;
-  background: #191b1e;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+  background: var(--search-modal-bg);
+  box-shadow: 0 30px 90px var(--search-shadow-modal);
   animation: searchOttModalOpen 0.18s ease-out;
 }
 
@@ -797,7 +841,7 @@ button.search-more-button:focus-visible {
 
 .ott-modal-header h2 {
   margin: 5px 0 0;
-  color: #ffffff;
+  color: var(--search-accent);
   font-size: 18px;
 }
 
@@ -811,15 +855,15 @@ button.search-more-button:focus-visible {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #91979e;
+  color: var(--search-modal-close-icon);
   font-size: 25px;
   line-height: 1;
   cursor: pointer;
 }
 
 .ott-modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  background: var(--search-white-a07);
+  color: var(--search-accent);
 }
 
 .ott-modal-body {
@@ -842,8 +886,8 @@ button.search-more-button:focus-visible {
   padding: 11px 13px;
   border: 1px solid var(--search-border);
   border-radius: 11px;
-  background: #202327;
-  color: #d9dce0;
+  background: var(--search-ott-option-bg);
+  color: var(--search-ott-option-text);
   font-size: 12px;
   cursor: pointer;
   transition:
@@ -852,8 +896,8 @@ button.search-more-button:focus-visible {
 }
 
 .ott-modal-option:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: #24282c;
+  border-color: var(--search-white-a25);
+  background: var(--search-ott-option-hover-bg);
 }
 
 .ott-modal-all-option {
@@ -864,7 +908,7 @@ button.search-more-button:focus-visible {
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: #ffffff;
+  accent-color: var(--search-accent);
 }
 
 .ott-modal-option-logo {
@@ -872,7 +916,7 @@ button.search-more-button:focus-visible {
   height: 28px;
   border-radius: 7px;
   object-fit: cover;
-  background: #ffffff;
+  background: var(--search-accent);
 }
 
 .ott-modal-option-text {
@@ -907,9 +951,9 @@ button.search-more-button:focus-visible {
 }
 
 .ott-modal-confirm-btn {
-  border: 1px solid #ffffff;
-  background: #ffffff;
-  color: #111315 !important;
+  border: 1px solid var(--search-accent);
+  background: var(--search-accent);
+  color: var(--search-ink) !important;
 }
 
 body.search-modal-open {
@@ -953,8 +997,8 @@ body.search-modal-open {
     margin-bottom: 14px;
     border: 1px solid var(--search-border);
     border-radius: 10px;
-    background: rgba(22, 24, 26, 0.96);
-    color: #ffffff;
+    background: var(--search-panel-overlay);
+    color: var(--search-accent);
     font-size: 14px;
     font-weight: 700;
   }
@@ -1065,7 +1109,7 @@ body.search-modal-open {
   padding: 0 0 20px;
 
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid var(--search-border);
   border-radius: 0;
   background: transparent;
 }
@@ -1081,11 +1125,11 @@ body.search-modal-open {
   min-height: 42px;
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--search-white-a12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--search-white-a035);
 
-  color: #979ca5;
+  color: var(--search-tab-text);
   font-size: 13px;
   font-weight: 600;
 
@@ -1101,18 +1145,18 @@ body.search-modal-open {
 }
 
 .search-result-tab:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  border-color: var(--search-white-a34);
+  background: var(--search-white-a07);
+  color: var(--search-accent);
 }
 
 .search-result-tab.is-active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: var(--search-white-a62);
+  background: linear-gradient(180deg, var(--search-tab-active-gradient-start), var(--search-tab-active-gradient-end));
 
-  color: #111216;
+  color: var(--search-tab-active-text);
 
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 18px var(--search-white-a08);
 }
 
 /* [수정] 기존 원형 숫자 배지를 제거하고 리뷰 탭처럼 괄호로 표시 */
@@ -1146,7 +1190,7 @@ body.search-modal-open {
 }
 
 .search-result-tab:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--search-white-a8);
   outline-offset: 3px;
 }
 

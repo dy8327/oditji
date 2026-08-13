@@ -27,6 +27,132 @@
   --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---- 텍스트 on 강조색(버튼 위 텍스트, 위치별로 값이 조금씩 달라 원본 그대로 보존) ---- */
+  --oditji-on-accent: #0d1f0e;
+  --oditji-on-accent-alt: #181818;
+  --oditji-tab-on-accent: #0f150f;
+  --oditji-list-tab-on-accent: #0d160e;
+  --oditji-history-btn-on-accent: #101610;
+
+  /* ---- 주문취소 버튼 전용 빨강(전역 danger와 별개, 의도적으로 채도 높은 빨강) ---- */
+  --oditji-cancel-btn-bg: #ff4d4d;
+  --oditji-cancel-btn-bg-hover: #d93636;
+
+  /* ---- 인셋 패널 배경(주문 아이템/주문 정보/환불 표 래퍼가 공유) ---- */
+  --oditji-well-bg: rgba(18, 18, 20, 0.28);
+
+  /* ---- 정보(파랑) 계열 — 리뷰 버튼, 승인 배지 ---- */
+  --oditji-info-blue: #7eb1ff;
+  --oditji-info-blue-hover: #9ac4ff;
+  --oditji-info-blue-soft: rgba(126, 177, 255, 0.16);
+
+  /* ---- danger hover 배경(--oditji-danger와 같은 RGB, 알파만 다름) ---- */
+  --oditji-danger-hover-soft: rgba(226, 88, 93, 0.22);
+
+  /* ---- 대기(주황/노랑) 상태 ---- */
+  --oditji-waiting-border: rgba(255, 193, 7, 0.45);
+  --oditji-waiting-bg-soft: rgba(255, 193, 7, 0.08);
+  --oditji-waiting-badge-bg: rgba(255, 193, 7, 0.14);
+  --oditji-waiting-text: #f0c75e;
+
+  /* ---- 배송 상세 모달 오버레이/그림자 ---- */
+  --oditji-modal-overlay: rgba(8, 8, 9, 0.72);
+  --oditji-modal-shadow: rgba(0, 0, 0, 0.45);
+
+  /* ---- [중요] 취소/환불 내역 조회 조건 박스 — 주석상 "최초 제공된 화면의 흰색 카드/회색 테두리 디자인 유지"로 명시됨. 라이트모드 여부와 무관하게 항상 이 값 그대로 유지해야 하는 고정 디자인이므로, 33번(light-mode.css) 단계에서 재정의하지 않는다 ---- */
+  --oditji-fixed-light-white: #fff;
+  --oditji-fixed-light-ink: #222;
+  --oditji-fixed-light-border: #e4e4e4;
+  --oditji-fixed-light-label: #444;
+  --oditji-fixed-light-input-border: #d8d8d8;
+
+  /* ---- 전체 취소/환불 버튼 & 조회 폼(레거시 구조, order-list-container 밖에서 쓰일 때 기본값) ---- */
+  --oditji-cancel-solid: #b94a48;
+  --oditji-refund-solid: #4b67a1;
+  --oditji-panel-white: #fff;
+  --oditji-solid-btn-text: #fff;
+  --oditji-panel-ink: #222;
+  --oditji-panel-border: #e6e6e6;
+  --oditji-panel-input-border: #d7d7d7;
+  --oditji-badge-cancel-bg: #fff1e8;
+  --oditji-badge-cancel-text: #a64b12;
+  --oditji-badge-refund-bg: #eaf0ff;
+  --oditji-badge-refund-text: #37558e;
+
+  /* ---- order-list-container 다크 리스트 UI ---- */
+  --oditji-list-tabs-border: #38383e;
+  --oditji-list-tabs-bg: #1b1b1e;
+  --oditji-list-shadow-sm: rgba(0, 0, 0, 0.14);
+  --oditji-list-tab-active-grad-start: #52bc58;
+  --oditji-list-tab-active-grad-end: #45a94a;
+  --oditji-list-tab-active-shadow: rgba(76, 175, 80, 0.2);
+  --oditji-list-card-border: #34343a;
+  --oditji-list-card-bg: #1a1a1d;
+  --oditji-list-muted-text: #aeb0b7;
+  --oditji-list-faint-text: #7f8189;
+  --oditji-list-heading-text: #f3f3f4;
+  --oditji-list-item-border: #35353b;
+  --oditji-list-item-bg: #19191c;
+  --oditji-list-item-border-hover: #44454c;
+  --oditji-list-item-bg-hover: #1d1d20;
+  --oditji-list-info-text: #a8a9af;
+  --oditji-list-info-section-border: #37373d;
+  --oditji-list-info-section-bg: #18181b;
+  --oditji-list-info-label: #9a9ca4;
+  --oditji-list-cancel-outline-hover: #3a853d;
+  --oditji-list-select-cancel-text: #ef5350;
+  --oditji-list-select-cancel-hover: #ea1a16;
+  --oditji-list-refund-solid: #4972d3;
+  --oditji-list-selected-refund-border: #6f93e6;
+  --oditji-list-selected-refund-bg: rgba(98, 134, 217, 0.1);
+  --oditji-list-selected-refund-text: #87a8f0;
+  --oditji-list-form-shadow: rgba(0, 0, 0, 0.12);
+  --oditji-list-field-label: #b6b7bd;
+  --oditji-list-input-border: #3a3a41;
+  --oditji-list-input-bg: #151517;
+  --oditji-list-input-text: #f2f2f3;
+  --oditji-list-input-focus-ring: rgba(76, 175, 80, 0.12);
+  --oditji-list-quick-btn-text: #c9cad0;
+  --oditji-list-quick-btn-border-hover: #606169;
+  --oditji-list-date-range-text: #777981;
+  --oditji-history-btn-hover: #5ac25f;
+  --oditji-list-reset-btn-border: #46464d;
+  --oditji-list-reset-btn-hover-bg: #242428;
+  --oditji-list-table-shadow: rgba(0, 0, 0, 0.1);
+  --oditji-list-table-head-bg: #1e1e22;
+  --oditji-list-table-head-border: #36363c;
+  --oditji-list-table-row-border: #303036;
+  --oditji-list-table-text: #ececef;
+  --oditji-list-table-row-hover: #202024;
+  --oditji-list-badge-cancel-bg: rgba(232, 148, 86, 0.14);
+  --oditji-list-badge-cancel-text: #f1a66d;
+  --oditji-list-badge-refund-bg: rgba(98, 134, 217, 0.16);
+  --oditji-list-badge-refund-text: #8eacf0;
+  --oditji-pure-white: #ffffff;
+
+  /* ---- 나의 주문내역 탭 — 캡슐형(pill) 화이트 오버레이 재설계(파일 맨 끝, 우선 적용) ---- */
+  --oditji-pill-tabs-border: rgba(255, 255, 255, 0.09);
+  --oditji-pill-btn-border: rgba(255, 255, 255, 0.12);
+  --oditji-pill-btn-bg: rgba(255, 255, 255, 0.035);
+  --oditji-pill-btn-text: #979ca5;
+  --oditji-pill-btn-border-hover: rgba(255, 255, 255, 0.34);
+  --oditji-pill-btn-bg-hover: rgba(255, 255, 255, 0.07);
+  --oditji-pill-active-border: rgba(255, 255, 255, 0.62);
+  --oditji-pill-active-grad-start: #f0f0f1;
+  --oditji-pill-active-grad-end: #bfc1c5;
+  --oditji-pill-active-text: #111216;
+  --oditji-pill-active-glow: rgba(255, 255, 255, 0.08);
+  --oditji-pill-focus-outline: rgba(255, 255, 255, 0.8);
+  --oditji-pill-hover-grad-end: #d4d5d8;
+
+  /* ---- 환불 가능 기간 안내 박스 ---- */
+  --oditji-notice-active-border: rgba(76, 175, 80, 0.38);
+  --oditji-notice-active-bg: rgba(76, 175, 80, 0.08);
+  --oditji-notice-active-text: #a9d9ad;
+  --oditji-notice-expired-border: rgba(148, 163, 184, 0.24);
+  --oditji-notice-expired-bg: rgba(148, 163, 184, 0.06);
+  --oditji-notice-expired-text: #8d98aa;
 }
 
 /* =====================================================
@@ -331,7 +457,7 @@
   border-color: var(--oditji-accent);
   background: var(--oditji-accent);
 
-  color: #0d1f0e;
+  color: var(--oditji-on-accent);
 }
 
 .address-search-btn:active {
@@ -443,7 +569,7 @@
   border-radius: var(--oditji-radius-sm);
   background: var(--oditji-accent);
 
-  color: #0d1f0e;
+  color: var(--oditji-on-accent);
   font-family: var(--font-body);
   font-size: 16px;
   font-weight: 700;
@@ -486,10 +612,10 @@
   border-radius: var(--oditji-radius-sm);
 
   /* 🔴 1. 배경색을 빨간색으로 변경 */
-  background: #ff4d4d;
+  background: var(--oditji-cancel-btn-bg);
 
   /* ⚪ 2. 빨간 배경에서 가독성을 높이기 위해 글자색을 흰색으로 변경 */
-  color: #0d1f0e;
+  color: var(--oditji-on-accent);
 
   font-family: var(--font-body);
   font-size: 16px;
@@ -504,7 +630,7 @@
 
 #cancelBtn:hover {
   /* 🔴 3. 마우스 올렸을 때 더 진한 빨간색 */
-  background: #d93636;
+  background: var(--oditji-cancel-btn-bg-hover);
 }
 
 #cancelBtn:active {
@@ -520,7 +646,7 @@
 
 #cancelBtn:focus-visible {
   /* 🔴 4. 키보드 포커스 테두리도 빨간색으로 변경 */
-  outline: 2px solid #ff4d4d;
+  outline: 2px solid var(--oditji-cancel-btn-bg);
   outline-offset: 2px;
 }
 
@@ -605,7 +731,7 @@
 
   border: 1px solid var(--oditji-border);
   border-radius: var(--oditji-radius-lg);
-  background: rgba(18, 18, 20, 0.28);
+  background: var(--oditji-well-bg);
 }
 
 .order-card .order-item + .order-item {
@@ -814,9 +940,9 @@
 
   border: none;
   border-radius: var(--oditji-radius-sm);
-  background: #7eb1ff;
+  background: var(--oditji-info-blue);
 
-  color: #181818;
+  color: var(--oditji-on-accent-alt);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
@@ -829,7 +955,7 @@
 }
 
 .review-btn:hover {
-  background: #9ac4ff;
+  background: var(--oditji-info-blue-hover);
 }
 
 .review-btn:active {
@@ -837,7 +963,7 @@
 }
 
 .review-btn:focus-visible {
-  outline: 2px solid #9ac4ff;
+  outline: 2px solid var(--oditji-info-blue-hover);
   outline-offset: 2px;
 }
 
@@ -984,7 +1110,7 @@
 
 .complete-actions a:first-child {
   background: var(--oditji-accent);
-  color: #0d1f0e;
+  color: var(--oditji-on-accent);
 }
 
 .complete-actions a:first-child:hover {
@@ -1151,8 +1277,8 @@
 }
 
 .item-cancel-btn:hover {
-  border-color: var(--oditji-danger, #ef6b6b);
-  color: var(--oditji-danger, #ef6b6b);
+  border-color: var(--oditji-danger);
+  color: var(--oditji-danger);
 }
 
 .item-cancel-state {
@@ -1192,7 +1318,7 @@
 }
 
 .item-cancel-state.rejected {
-  color: var(--oditji-danger, #ef6b6b);
+  color: var(--oditji-danger);
 }
 
 .item-cancel-reject-reason {
@@ -1249,12 +1375,12 @@
 }
 
 .full-cancel-status-box.waiting {
-  border-color: rgba(255, 193, 7, 0.45);
-  background: rgba(255, 193, 7, 0.08);
+  border-color: var(--oditji-waiting-border);
+  background: var(--oditji-waiting-bg-soft);
 }
 
 .full-cancel-status-box.waiting .full-cancel-status-title {
-  color: #f0c75e;
+  color: var(--oditji-waiting-text);
 }
 
 .full-cancel-status-box.rejected {
@@ -1390,7 +1516,7 @@
   padding: 20px;
   border: 1px solid var(--oditji-border);
   border-radius: var(--oditji-radius-lg);
-  background: rgba(18, 18, 20, 0.28);
+  background: var(--oditji-well-bg);
 }
 
 .order-info-title {
@@ -1472,7 +1598,7 @@
 .order-page-link.active {
   border-color: var(--oditji-accent);
   background: var(--oditji-accent);
-  color: #181818;
+  color: var(--oditji-on-accent-alt);
   cursor: default;
 }
 
@@ -1819,7 +1945,7 @@
 
   padding: 24px 16px;
 
-  background: rgba(8, 8, 9, 0.72);
+  background: var(--oditji-modal-overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -1845,7 +1971,7 @@
   border: 1px solid var(--oditji-border);
   border-radius: 18px;
   background: var(--oditji-surface);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 60px var(--oditji-modal-shadow);
 
   animation: oditji-modal-pop 0.22s var(--oditji-ease);
 }
@@ -1929,6 +2055,7 @@
 .delivery-progress {
   --oditji-info: #4dabf7;
   --oditji-info-soft: rgba(77, 171, 247, 0.18);
+  --oditji-info-transparent: rgba(77, 171, 247, 0);
 
   box-sizing: border-box;
   width: 100%;
@@ -2103,10 +2230,10 @@
     box-shadow: 0 0 0 0 var(--oditji-info-soft);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(77, 171, 247, 0);
+    box-shadow: 0 0 0 8px var(--oditji-info-transparent);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(77, 171, 247, 0);
+    box-shadow: 0 0 0 0 var(--oditji-info-transparent);
   }
 }
 
@@ -2365,7 +2492,7 @@
 
 .order-tab-btn.active {
   background: var(--oditji-accent);
-  color: #0f150f;
+  color: var(--oditji-tab-on-accent);
 }
 
 .order-tab-panel {
@@ -2405,11 +2532,11 @@
 .bulk-action-btn {
   padding: 11px 20px;
 
-  border: 1px solid var(--oditji-danger, #ef6b6b);
+  border: 1px solid var(--oditji-danger);
   border-radius: var(--oditji-radius-sm);
   background: var(--oditji-danger-soft);
 
-  color: var(--oditji-danger, #ef6b6b);
+  color: var(--oditji-danger);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
@@ -2422,7 +2549,7 @@
 }
 
 .bulk-action-btn:hover {
-  background: rgba(226, 88, 93, 0.22);
+  background: var(--oditji-danger-hover-soft);
 }
 
 .bulk-action-btn:active {
@@ -2481,7 +2608,7 @@
 
   border: 1px solid var(--oditji-border);
   border-radius: var(--oditji-radius-lg);
-  background: rgba(18, 18, 20, 0.28);
+  background: var(--oditji-well-bg);
 }
 
 .refund-table {
@@ -2550,8 +2677,8 @@
 }
 
 .refund-badge.waiting {
-  background: rgba(255, 193, 7, 0.14);
-  color: #f0c75e;
+  background: var(--oditji-waiting-badge-bg);
+  color: var(--oditji-waiting-text);
 }
 
 .refund-badge.rejected {
@@ -2568,8 +2695,8 @@
    위해 함께 정의해 둔 톤. 현재 데이터에서는 승인=환불 완료로
    처리되어 기본적으로는 .completed를 사용한다. */
 .refund-badge.approved {
-  background: rgba(126, 177, 255, 0.16);
-  color: #7eb1ff;
+  background: var(--oditji-info-blue-soft);
+  color: var(--oditji-info-blue);
 }
 
 @media (max-width: 720px) {
@@ -2639,9 +2766,9 @@
   gap: 12px;
   margin: 0 0 20px;
   padding: 18px 20px;
-  border: 1px solid #e4e4e4;
+  border: 1px solid var(--oditji-fixed-light-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--oditji-fixed-light-white);
 }
 .cancel-refund-filter-box label {
   display: flex;
@@ -2649,29 +2776,29 @@
   gap: 7px;
   font-size: 13px;
   font-weight: 600;
-  color: #444;
+  color: var(--oditji-fixed-light-label);
 }
 .cancel-refund-filter-box select,
 .cancel-refund-filter-box input {
   min-width: 145px;
   height: 40px;
   padding: 0 11px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid var(--oditji-fixed-light-input-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--oditji-fixed-light-white);
 }
 .cancel-refund-filter-box button {
   height: 40px;
   padding: 0 18px;
-  border: 1px solid #222;
+  border: 1px solid var(--oditji-fixed-light-ink);
   border-radius: 6px;
-  background: #222;
-  color: #fff;
+  background: var(--oditji-fixed-light-ink);
+  color: var(--oditji-fixed-light-white);
   cursor: pointer;
 }
 .cancel-refund-filter-box #historyResetBtn {
-  background: #fff;
-  color: #222;
+  background: var(--oditji-fixed-light-white);
+  color: var(--oditji-fixed-light-ink);
 }
 
 /* =========================================================
@@ -2679,19 +2806,19 @@
    기존 주문 카드 색상 구조는 유지하고 전체 버튼만 구분색을 적용한다.
 ========================================================= */
 .full-order-cancel-btn {
-  background: #b94a48;
-  border-color: #b94a48;
-  color: #fff;
+  background: var(--oditji-cancel-solid);
+  border-color: var(--oditji-cancel-solid);
+  color: var(--oditji-solid-btn-text);
 }
 .full-order-refund-btn {
-  background: #4b67a1;
-  border-color: #4b67a1;
-  color: #fff;
+  background: var(--oditji-refund-solid);
+  border-color: var(--oditji-refund-solid);
+  color: var(--oditji-solid-btn-text);
 }
 .selected-refund-btn {
-  border-color: #4b67a1;
-  color: #4b67a1;
-  background: #fff;
+  border-color: var(--oditji-refund-solid);
+  color: var(--oditji-refund-solid);
+  background: var(--oditji-panel-white);
 }
 .refund-search-form {
   display: flex;
@@ -2700,9 +2827,9 @@
   gap: 14px;
   padding: 20px;
   margin-bottom: 24px;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--oditji-panel-border);
   border-radius: 12px;
-  background: #fff;
+  background: var(--oditji-panel-white);
 }
 .refund-search-field {
   display: flex;
@@ -2717,9 +2844,9 @@
 .refund-search-field input {
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid #d7d7d7;
+  border: 1px solid var(--oditji-panel-input-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--oditji-panel-white);
 }
 .refund-date-range {
   display: flex;
@@ -2735,7 +2862,7 @@
   min-height: 42px;
   padding: 0 18px;
   border-radius: 8px;
-  border: 1px solid #222;
+  border: 1px solid var(--oditji-panel-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2743,12 +2870,12 @@
   cursor: pointer;
 }
 .history-search-btn {
-  background: #222;
-  color: #fff;
+  background: var(--oditji-panel-ink);
+  color: var(--oditji-solid-btn-text);
 }
 .history-reset-btn {
-  background: #fff;
-  color: #222;
+  background: var(--oditji-panel-white);
+  color: var(--oditji-panel-ink);
 }
 .refund-type-badge {
   display: inline-block;
@@ -2758,12 +2885,12 @@
   font-size: 12px;
 }
 .refund-type-badge.cancel {
-  background: #fff1e8;
-  color: #a64b12;
+  background: var(--oditji-badge-cancel-bg);
+  color: var(--oditji-badge-cancel-text);
 }
 .refund-type-badge.refund {
-  background: #eaf0ff;
-  color: #37558e;
+  background: var(--oditji-badge-refund-bg);
+  color: var(--oditji-badge-refund-text);
 }
 @media (max-width: 760px) {
   .refund-search-form,
@@ -2789,9 +2916,9 @@
 .order-list-container .order-tabs {
   margin-bottom: 28px;
   padding: 5px;
-  border-color: #38383e;
-  background: #1b1b1e;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  border-color: var(--oditji-list-tabs-border);
+  background: var(--oditji-list-tabs-bg);
+  box-shadow: 0 8px 24px var(--oditji-list-shadow-sm);
 }
 
 .order-list-container .order-tab-btn {
@@ -2803,9 +2930,9 @@
 }
 
 .order-list-container .order-tab-btn.active {
-  background: linear-gradient(135deg, #52bc58, #45a94a);
-  color: #0d160e;
-  box-shadow: 0 5px 14px rgba(76, 175, 80, 0.2);
+  background: linear-gradient(135deg, var(--oditji-list-tab-active-grad-start), var(--oditji-list-tab-active-grad-end));
+  color: var(--oditji-list-tab-on-accent);
+  box-shadow: 0 5px 14px var(--oditji-list-tab-active-shadow);
 }
 
 .order-list-container .order-tab-panel > h1 {
@@ -2818,9 +2945,9 @@
 .order-list-container .order-card {
   margin-bottom: 24px;
   padding: 24px;
-  border-color: #34343a;
-  background: #1a1a1d;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
+  border-color: var(--oditji-list-card-border);
+  background: var(--oditji-list-card-bg);
+  box-shadow: 0 14px 36px var(--oditji-list-shadow-sm);
 }
 
 .order-list-container .order-card-main {
@@ -2839,17 +2966,17 @@
   min-height: auto;
   margin-bottom: 14px;
   padding: 0 2px;
-  color: #aeb0b7;
+  color: var(--oditji-list-muted-text);
 }
 
 .order-list-container .order-card-header strong {
-  color: #7f8189;
+  color: var(--oditji-list-faint-text);
   font-weight: 600;
 }
 
 .order-list-container .order-card-header > div:first-child span {
   margin-left: 6px;
-  color: #f3f3f4;
+  color: var(--oditji-list-heading-text);
   font-weight: 700;
 }
 
@@ -2857,16 +2984,16 @@
 .order-list-container .order-card .order-item {
   min-height: 112px;
   padding: 16px 16px 16px 14px;
-  border-color: #35353b;
-  background: #19191c;
+  border-color: var(--oditji-list-item-border);
+  background: var(--oditji-list-item-bg);
   transition:
     border-color 0.18s var(--oditji-ease),
     background-color 0.18s var(--oditji-ease);
 }
 
 .order-list-container .order-card .order-item:hover {
-  border-color: #44454c;
-  background: #1d1d20;
+  border-color: var(--oditji-list-item-border-hover);
+  background: var(--oditji-list-item-bg-hover);
 }
 
 .order-list-container .order-card .order-item > a > img,
@@ -2884,7 +3011,7 @@
 
 .order-list-container .order-item-info > div {
   margin-top: 4px;
-  color: #a8a9af;
+  color: var(--oditji-list-info-text);
 }
 
 /* [수정] 배송조회·리뷰 버튼을 카드 톤에 맞게 정리한다.
@@ -2903,8 +3030,8 @@
 /* [수정] 우측 주문 정보 영역을 독립 카드처럼 표현한다. */
 .order-list-container .order-info-section {
   padding: 22px 20px;
-  border-color: #37373d;
-  background: #18181b;
+  border-color: var(--oditji-list-info-section-border);
+  background: var(--oditji-list-info-section-bg);
 }
 
 .order-list-container .order-info-title {
@@ -2920,7 +3047,7 @@
 }
 
 .order-list-container .order-info-label {
-  color: #9a9ca4;
+  color: var(--oditji-list-info-label);
 }
 
 .order-list-container .order-info-value {
@@ -2979,44 +3106,44 @@
 
 /* [수정] 전체 상품 주문 취소 버튼은 초록색 외곽선 스타일로 표시한다. */
 .order-list-container .full-order-cancel-btn {
-  color: #4caf50;
-  border: 1px solid #4caf50;
+  color: var(--oditji-accent);
+  border: 1px solid var(--oditji-accent);
 }
 
 /* [추가] 전체 상품 주문 취소 버튼 마우스 오버 효과 */
 .order-list-container .full-order-cancel-btn:hover {
   /* [수정] 흰 글자 on #4caf50는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
-  background-color: #3a853d;
-  border-color: #3a853d;
-  color: #ffffff;
+  background-color: var(--oditji-list-cancel-outline-hover);
+  border-color: var(--oditji-list-cancel-outline-hover);
+  color: var(--oditji-pure-white);
 }
 
 /* [수정] 선택 상품 주문 취소 버튼은 기존 빨간색 외곽선 스타일을 유지한다. */
 .order-list-container .order-select-cancel-btn:not(.selected-refund-btn) {
-  color: #ef5350;
-  border: 1px solid #ef5350;
+  color: var(--oditji-list-select-cancel-text);
+  border: 1px solid var(--oditji-list-select-cancel-text);
 }
 
 /* [추가] 선택 상품 주문 취소 버튼 마우스 오버 효과 */
 .order-list-container .order-select-cancel-btn:not(.selected-refund-btn):hover {
   /* [수정] 흰 글자 on #ef5350는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
-  background-color: #ea1a16;
-  border-color: #ea1a16;
-  color: #ffffff;
+  background-color: var(--oditji-list-select-cancel-hover);
+  border-color: var(--oditji-list-select-cancel-hover);
+  color: var(--oditji-pure-white);
 }
 
 /* [수정] 전체/선택 환불 버튼은 취소 버튼과 다른 파란 계열로 구분한다. */
 .order-list-container .full-order-refund-btn {
   /* [수정] 흰 글자 on #6286d9는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
-  border-color: #4972d3;
-  background: #4972d3;
-  color: #fff;
+  border-color: var(--oditji-list-refund-solid);
+  background: var(--oditji-list-refund-solid);
+  color: var(--oditji-panel-white);
 }
 
 .order-list-container .selected-refund-btn {
-  border-color: #6f93e6;
-  background: rgba(98, 134, 217, 0.1);
-  color: #87a8f0;
+  border-color: var(--oditji-list-selected-refund-border);
+  background: var(--oditji-list-selected-refund-bg);
+  color: var(--oditji-list-selected-refund-text);
 }
 
 /* =========================================================
@@ -3030,10 +3157,10 @@
   gap: 18px;
   margin-bottom: 22px;
   padding: 22px;
-  border: 1px solid #34343a;
+  border: 1px solid var(--oditji-list-card-border);
   border-radius: 12px;
-  background: #1a1a1d;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  background: var(--oditji-list-card-bg);
+  box-shadow: 0 12px 30px var(--oditji-list-form-shadow);
 }
 
 .order-list-container .refund-search-field {
@@ -3042,7 +3169,7 @@
 }
 
 .order-list-container .refund-search-field > label {
-  color: #b6b7bd;
+  color: var(--oditji-list-field-label);
   font-size: 13px;
   font-weight: 700;
 }
@@ -3054,11 +3181,11 @@
   min-height: 44px;
   box-sizing: border-box;
   padding: 0 13px;
-  border: 1px solid #3a3a41;
+  border: 1px solid var(--oditji-list-input-border);
   border-radius: 8px;
   outline: none;
-  background-color: #151517;
-  color: #f2f2f3;
+  background-color: var(--oditji-list-input-bg);
+  color: var(--oditji-list-input-text);
   font-family: var(--font-body);
   font-size: 14px;
   transition:
@@ -3070,7 +3197,7 @@
 .order-list-container .refund-search-field select:focus,
 .order-list-container .refund-search-field input:focus {
   border-color: var(--oditji-accent);
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+  box-shadow: 0 0 0 3px var(--oditji-list-input-focus-ring);
 }
 
 /* =========================================================
@@ -3091,10 +3218,10 @@
 .order-list-container .refund-quick-btn {
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid #3a3a41;
+  border: 1px solid var(--oditji-list-input-border);
   border-radius: 999px;
-  background: #151517;
-  color: #c9cad0;
+  background: var(--oditji-list-input-bg);
+  color: var(--oditji-list-quick-btn-text);
   font-family: var(--font-body);
   font-size: 12.5px;
   font-weight: 600;
@@ -3106,8 +3233,8 @@
 }
 
 .order-list-container .refund-quick-btn:hover {
-  border-color: #606169;
-  color: #fff;
+  border-color: var(--oditji-list-quick-btn-border-hover);
+  color: var(--oditji-pure-white);
 }
 
 .order-list-container .refund-quick-btn.active {
@@ -3124,7 +3251,7 @@
 }
 
 .order-list-container .refund-date-range > span {
-  color: #777981;
+  color: var(--oditji-list-date-range-text);
   font-size: 13px;
   white-space: nowrap;
 }
@@ -3147,24 +3274,24 @@
 .order-list-container .history-search-btn {
   border-color: var(--oditji-accent);
   background: var(--oditji-accent);
-  color: #101610;
+  color: var(--oditji-history-btn-on-accent);
 }
 
 .order-list-container .history-search-btn:hover {
-  border-color: #5ac25f;
-  background: #5ac25f;
+  border-color: var(--oditji-history-btn-hover);
+  background: var(--oditji-history-btn-hover);
 }
 
 .order-list-container .history-reset-btn {
-  border-color: #46464d;
+  border-color: var(--oditji-list-reset-btn-border);
   background: transparent;
-  color: #c9cad0;
+  color: var(--oditji-list-quick-btn-text);
 }
 
 .order-list-container .history-reset-btn:hover {
-  border-color: #606169;
-  background: #242428;
-  color: #fff;
+  border-color: var(--oditji-list-quick-btn-border-hover);
+  background: var(--oditji-list-reset-btn-hover-bg);
+  color: var(--oditji-pure-white);
 }
 
 /* =========================================================
@@ -3172,9 +3299,9 @@
    헤더·행·상태 배지의 대비를 높이고 기존 테이블 구조는 유지한다.
 ========================================================= */
 .order-list-container .refund-table-wrap {
-  border-color: #34343a;
-  background: #19191c;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  border-color: var(--oditji-list-card-border);
+  background: var(--oditji-list-item-bg);
+  box-shadow: 0 12px 30px var(--oditji-list-table-shadow);
 }
 
 .order-list-container .refund-table {
@@ -3182,13 +3309,13 @@
 }
 
 .order-list-container .refund-table thead {
-  background: #1e1e22;
+  background: var(--oditji-list-table-head-bg);
 }
 
 .order-list-container .refund-table thead th {
   padding: 16px 18px;
-  border-bottom-color: #36363c;
-  color: #aeb0b7;
+  border-bottom-color: var(--oditji-list-table-head-border);
+  color: var(--oditji-list-muted-text);
   font-size: 13px;
 
   /* [추가] 취소/환불 내역 테이블 헤더 가운데 정렬 */
@@ -3197,8 +3324,8 @@
 
 .order-list-container .refund-table tbody td {
   padding: 17px 18px;
-  border-bottom-color: #303036;
-  color: #ececef;
+  border-bottom-color: var(--oditji-list-table-row-border);
+  color: var(--oditji-list-table-text);
   line-height: 1.5;
 
   /* [추가] 각 컬럼 값도 헤더와 동일하게 가운데 정렬 */
@@ -3211,7 +3338,7 @@
 }
 
 .order-list-container .refund-table tbody tr:hover {
-  background: #202024;
+  background: var(--oditji-list-table-row-hover);
 }
 
 /* =========================================================
@@ -3273,13 +3400,13 @@
 }
 
 .order-list-container .refund-type-badge.cancel {
-  background: rgba(232, 148, 86, 0.14);
-  color: #f1a66d;
+  background: var(--oditji-list-badge-cancel-bg);
+  color: var(--oditji-list-badge-cancel-text);
 }
 
 .order-list-container .refund-type-badge.refund {
-  background: rgba(98, 134, 217, 0.16);
-  color: #8eacf0;
+  background: var(--oditji-list-badge-refund-bg);
+  color: var(--oditji-list-badge-refund-text);
 }
 
 /* [수정] 태블릿 이하에서는 카드·검색 폼을 한 열로 자연스럽게 배치한다. */
@@ -3420,7 +3547,7 @@
   }
 
   .order-list-container .refund-table tbody tr + tr {
-    border-top: 1px solid #303036;
+    border-top: 1px solid var(--oditji-list-table-row-border);
   }
 }
 
@@ -3443,7 +3570,7 @@
   padding: 0 0 20px;
 
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid var(--oditji-pill-tabs-border);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -3461,11 +3588,11 @@
 
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--oditji-pill-btn-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--oditji-pill-btn-bg);
 
-  color: #979ca5;
+  color: var(--oditji-pill-btn-text);
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
@@ -3483,22 +3610,22 @@
 }
 
 .order-list-container .order-tab-btn:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  border-color: var(--oditji-pill-btn-border-hover);
+  background: var(--oditji-pill-btn-bg-hover);
+  color: var(--oditji-pure-white);
 }
 
 .order-list-container .order-tab-btn.active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: var(--oditji-pill-active-border);
+  background: linear-gradient(180deg, var(--oditji-pill-active-grad-start), var(--oditji-pill-active-grad-end));
 
-  color: #111216;
+  color: var(--oditji-pill-active-text);
 
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 18px var(--oditji-pill-active-glow);
 }
 
 .order-list-container .order-tab-btn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--oditji-pill-focus-outline);
   outline-offset: 3px;
 }
 
@@ -3529,16 +3656,16 @@
    - 기존 크기, 여백, 테두리 형태는 유지합니다.
 ========================================================= */
 .order-list-container .history-search-btn {
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
-  border-color: rgba(255, 255, 255, 0.62);
-  color: #111216;
+  background: linear-gradient(180deg, var(--oditji-pill-active-grad-start), var(--oditji-pill-active-grad-end));
+  border-color: var(--oditji-pill-active-border);
+  color: var(--oditji-pill-active-text);
 }
 
 /* [수정] 마우스를 올려도 기존 초록색으로 돌아가지 않도록 유지 */
 .order-list-container .history-search-btn:hover {
-  background: linear-gradient(180deg, #ffffff, #d4d5d8);
-  border-color: rgba(255, 255, 255, 0.8);
-  color: #111216;
+  background: linear-gradient(180deg, var(--oditji-pure-white), var(--oditji-pill-hover-grad-end));
+  border-color: var(--oditji-pill-focus-outline);
+  color: var(--oditji-pill-active-text);
 }
 
 /* =========================================================
@@ -3585,12 +3712,12 @@
 
   padding: 9px 12px;
 
-  border: 1px solid rgba(76, 175, 80, 0.38);
+  border: 1px solid var(--oditji-notice-active-border);
   border-radius: 8px;
 
-  background: rgba(76, 175, 80, 0.08);
+  background: var(--oditji-notice-active-bg);
 
-  color: #a9d9ad;
+  color: var(--oditji-notice-active-text);
   font-size: 12px;
   line-height: 1.45;
 
@@ -3604,9 +3731,9 @@
    회색 계열로만 구분하여 표시합니다.
    ========================================================= */
 .order-list-container .refund-period-notice.expired {
-  border-color: rgba(148, 163, 184, 0.24);
-  background: rgba(148, 163, 184, 0.06);
-  color: #8d98aa;
+  border-color: var(--oditji-notice-expired-border);
+  background: var(--oditji-notice-expired-bg);
+  color: var(--oditji-notice-expired-text);
 }
 
 /* =========================================================
