@@ -39,6 +39,7 @@ import com.project.oditji.favorite.service.FavoriteService;
 import com.project.oditji.wish.service.WishService;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -84,6 +85,7 @@ public class MemberController {
         private final WishService wishService;
         private final OrderService orderService;
         private final ReviewService reviewService;
+        private final SubscriptionCalculatorService subscriptionCalculatorService;
 
         private final String profileUploadPath;
         private final String businessLicenseUploadPath;
@@ -99,6 +101,7 @@ public class MemberController {
                         WishService wishService,
                         OrderService orderService,
                         ReviewService reviewService,
+                        SubscriptionCalculatorService subscriptionCalculatorService,
                         @Value("${oditji.upload.profile-path}") String profileUploadPath,
                         @Value("${oditji.upload.business-license-path}") String businessLicenseUploadPath) {
 
@@ -111,6 +114,7 @@ public class MemberController {
                 this.wishService = wishService;
                 this.orderService = orderService;
                 this.reviewService = reviewService;
+                this.subscriptionCalculatorService = subscriptionCalculatorService;
                 this.profileUploadPath = profileUploadPath;
                 this.businessLicenseUploadPath = businessLicenseUploadPath;
         }
@@ -583,6 +587,9 @@ public class MemberController {
 
                 // 내가 작성한 리뷰 개수(콘텐츠 리뷰 + 상품 리뷰 합산)
                 model.addAttribute("reviewCount", reviewService.getMyReviewCount(memberNo));
+
+                // [마이페이지 구독 계산 결과 모달 연동 추가] 저장된 구독 계산 결과 개수
+                model.addAttribute("subResultCount", subscriptionCalculatorService.getSavedResultCount(memberNo));
 
                 return "member/mypage";
         }

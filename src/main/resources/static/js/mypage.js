@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     notification: document.getElementById("notificationModal"),
     ott: document.getElementById("ottModal"),
     delete: document.getElementById("deleteModal"),
+    subResult: document.getElementById("subResultModal"),
   };
 
   /* =========================================================
@@ -145,6 +146,204 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =========================================================
+       [마이페이지 구독 계산 결과 모달 연동 추가]
+       카드 클릭 시 모달을 열고 저장된 결과 목록을 불러온다.
+    ========================================================= */
+
+  const subResultCountEl = document.getElementById("subResultCount");
+  const subResultList = document.getElementById("subResultList");
+
+  document.getElementById("subResultCardBtn")?.addEventListener("click", () => {
+    openModal(modals.subResult);
+    loadSubResultList();
+  });
+
+  async function loadSubResultList() {
+    if (!subResultList) {
+      return;
+    }
+
+    subResultList.innerHTML = '<div class="mypage-empty">저장된 결과를 불러오는 중입니다...</div>';
+
+    try {
+      const response = await fetch(`${contextPath}/api/subscription/saved-results`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP 오류: ${response.status}`);
+      }
+
+      const result = await response.json();
+      renderSubResultList(result.savedResultList ?? []);
+    } catch (error) {
+      console.error(error);
+      subResultList.innerHTML = '<div class="mypage-empty">저장된 결과를 불러오지 못했습니다.</div>';
+    }
+  }
+
+  function renderSubResultList(savedResultList) {
+    if (!subResultList) {
+      return;
+    }
+
+    if (!savedResultList.length) {
+      subResultList.innerHTML = '<div class="mypage-empty">저장된 구독 계산 결과가 없습니다.</div>';
+      return;
+    }
+
+    subResultList.innerHTML = "";
+
+    savedResultList.forEach((savedResult) => {
+      subResultList.appendChild(createSubResultItem(savedResult));
+    });
+  }
+
+  function createSubResultItem(savedResult) {
+    const item = document.createElement("div");
+    item.className = "mypage-subresult-item";
+
+    const header = document.createElement("div");
+    header.className = "mypage-subresult-item-header";
+
+    const createdAt = document.createElement("span");
+    createdAt.className = "mypage-subresult-item-date";
+    createdAt.textContent = formatSubResultDate(savedResult.createdAt);
+
+    header.appendChild(createdAt);
+
+    const platforms = document.createElement("p");
+    platforms.className = "mypage-subresult-item-platforms";
+    platforms.textContent = savedResult.platformNameList?.length
+      ? savedResult.platformNameList.join(", ")
+      : "선택한 플랫폼 정보 없음";
+
+    const priceRow = document.createElement("div");
+    priceRow.className = "mypage-subresult-item-price-row";
+
+    const priceDetail = document.createElement("span");
+    priceDetail.className = "mypage-subresult-item-price-detail";
+    priceDetail.textContent = `정가 ${formatSubResultPrice(savedResult.totalPrice)} · 절감 ${formatSubResultPrice(savedResult.discountPrice)}`;
+
+    const finalPrice = document.createElement("span");
+    finalPrice.className = "mypage-subresult-item-final-price";
+    finalPrice.textContent = `월 ${formatSubResultPrice(savedResult.finalPrice)}`;
+
+    priceRow.append(priceDetail, finalPrice);
+
+    const actions = document.createElement("div");
+    actions.className = "mypage-subresult-item-actions";
+
+    const detailBtn = document.createElement("button");
+    detailBtn.type = "button";
+    detailBtn.className = "mypage-subresult-detail-btn";
+    detailBtn.textContent = "상세보기";
+    detailBtn.addEventListener("click", () => {
+      window.open(`${contextPath}/subscription/result/${encodeURIComponent(savedResult.resultId)}`, "_blank", "noopener,noreferrer");
+    });
+
+    const copyLinkBtn = document.createElement("button");
+    copyLinkBtn.type = "button";
+    copyLinkBtn.className = "mypage-subresult-copy-btn";
+    copyLinkBtn.textContent = "공유링크 복사";
+    copyLinkBtn.addEventListener("click", () => {
+      copySubResultLink(savedResult.resultId, copyLinkBtn);
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "mypage-subresult-delete-btn";
+    deleteBtn.textContent = "삭제";
+    deleteBtn.addEventListener("click", () => {
+      deleteSubResult(savedResult.resultId, deleteBtn);
+    });
+
+    actions.append(detailBtn, copyLinkBtn, deleteBtn);
+
+    item.append(header, platforms, priceRow, actions);
+
+    return item;
+  }
+
+  async function copySubResultLink(resultId, copyLinkBtn) {
+    const shareUrl = `${window.location.origin}${contextPath}/subscription/result/${encodeURIComponent(resultId)}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      await showAlert("공유 링크가 복사됐어요.", "success");
+    } catch (error) {
+      console.error(error);
+      await showAlert("링크 복사에 실패했어요.", "error");
+    }
+  }
+
+  async function deleteSubResult(resultId, deleteBtn) {
+    const confirmed = await showConfirm("이 저장 결과를 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.", "warning");
+
+    if (!confirmed) {
+      return;
+    }
+
+    deleteBtn.disabled = true;
+
+    try {
+      const response = await fetch(`${contextPath}/api/subscription/saved-results/${encodeURIComponent(resultId)}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "저장 결과 삭제에 실패했습니다.");
+      }
+
+      await loadSubResultList();
+      await refreshSubResultCount();
+    } catch (error) {
+      console.error(error);
+      await showAlert("저장 결과 삭제에 실패했습니다.", "error");
+      deleteBtn.disabled = false;
+    }
+  }
+
+  async function refreshSubResultCount() {
+    if (!subResultCountEl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${contextPath}/api/subscription/saved-results`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP 오류: ${response.status}`);
+      }
+
+      const result = await response.json();
+      subResultCountEl.textContent = (result.savedResultList ?? []).length;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function formatSubResultDate(isoString) {
+    if (!isoString) {
+      return "";
+    }
+
+    const date = new Date(isoString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    const pad = (value) => String(value).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  function formatSubResultPrice(price) {
+    return `${Number(price ?? 0).toLocaleString()}원`;
+  }
+
+  /* =========================================================
        MEMBER UPDATE
     ========================================================= */
 
@@ -180,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindClose("closeNotificationModal", modals.notification);
   bindClose("closeOttModal", modals.ott);
   bindClose("closeDeleteModal", modals.delete);
+  bindClose("closeSubResultModal", modals.subResult);
 
   /* =========================================================
        OUTSIDE CLICK

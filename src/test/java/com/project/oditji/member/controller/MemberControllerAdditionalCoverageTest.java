@@ -27,6 +27,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** 로그인 복귀 주소, 사업자 상태, 계정 복구와 비밀번호 재설정 분기를 보완합니다. */
@@ -51,6 +52,8 @@ class MemberControllerAdditionalCoverageTest {
     private OrderService orderService;
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private SubscriptionCalculatorService subscriptionCalculatorService;
 
     private MemberController controller;
 
@@ -66,6 +69,7 @@ class MemberControllerAdditionalCoverageTest {
                 wishService,
                 orderService,
                 reviewService,
+                subscriptionCalculatorService,
                 "build/test-profile",
                 "build/test-license");
     }

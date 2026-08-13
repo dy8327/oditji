@@ -1,5 +1,7 @@
 package com.project.oditji.subscription.dao;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,4 +25,19 @@ public interface SubscriptionDAO {
      * 회원이 저장한 결과는 EXPIRES_AT이 NULL이라 대상에서 제외됩니다.
      */
     int deleteExpiredResults();
+
+    /*
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * 회원 번호(MEMBER_NO) 기준으로 저장된 결과를 최신순으로 조회합니다.
+     */
+    List<SubscriptionShareVO> selectResultsByMember(@Param("memberNo") Long memberNo);
+
+    /*
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * resultId와 memberNo가 모두 일치하는 저장 결과만 삭제합니다(본인 검증).
+     * 실제로 삭제된 행 수를 반환합니다.
+     */
+    int deleteResultByIdAndMember(
+            @Param("resultId") String resultId,
+            @Param("memberNo") Long memberNo);
 }

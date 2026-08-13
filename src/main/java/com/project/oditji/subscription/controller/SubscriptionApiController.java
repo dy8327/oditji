@@ -6,14 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.oditji.common.util.LoginMemberUtil;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.search.service.SearchContentPageCacheService;
 import com.project.oditji.search.vo.SearchResultPageVO;
@@ -22,6 +26,7 @@ import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculateRequestVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.subscription.vo.SubscriptionSavedResultVO;
 import com.project.oditji.tmdb.vo.OttPlatformVO;
 
 import jakarta.servlet.http.HttpSession;
@@ -32,6 +37,11 @@ public class SubscriptionApiController {
 
     /** 위시리스트에 담기 전 미리보기용 검색 결과 개수 (자동완성 성격이라 적게 유지) */
     private static final int SEARCH_RESULT_SIZE = 8;
+
+    // [마이페이지 구독 계산 결과 모달 연동 추가]
+    private static final String RESPONSE_SUCCESS = "success";
+    private static final String RESPONSE_MESSAGE = "message";
+    private static final String MESSAGE_LOGIN_REQUIRED = "로그인이 필요합니다.";
 
     private final SearchContentPageCacheService searchContentPageCacheService;
 
@@ -143,6 +153,70 @@ public class SubscriptionApiController {
                     .badRequest()
                     .body(errorResponse);
         }
+    }
+
+    /**
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * 로그인 회원이 저장한 구독 계산 결과 목록을 최신순으로 반환한다.
+     */
+    @GetMapping("/saved-results")
+    public ResponseEntity<Map<String, Object>> getSavedResults(
+            HttpSession session) {
+
+        Long memberNo = LoginMemberUtil.getLoginMemberNo(session);
+
+        if (memberNo == null) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                            RESPONSE_SUCCESS, false,
+                            RESPONSE_MESSAGE, MESSAGE_LOGIN_REQUIRED));
+        }
+
+        List<SubscriptionSavedResultVO> savedResultList =
+                subscriptionCalculatorService.getSavedResultsByMember(
+                        memberNo);
+
+        return ResponseEntity.ok(Map.of(
+                RESPONSE_SUCCESS, true,
+                "savedResultList", savedResultList));
+    }
+
+    /**
+     * [마이페이지 구독 계산 결과 모달 연동 추가]
+     * 로그인 회원 본인이 저장한 결과만 개별 삭제한다.
+     */
+    @DeleteMapping("/saved-results/{resultId}")
+    public ResponseEntity<Map<String, Object>> deleteSavedResult(
+            @PathVariable("resultId") String resultId,
+            HttpSession session) {
+
+        Long memberNo = LoginMemberUtil.getLoginMemberNo(session);
+
+        if (memberNo == null) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                            RESPONSE_SUCCESS, false,
+                            RESPONSE_MESSAGE, MESSAGE_LOGIN_REQUIRED));
+        }
+
+        boolean deleted =
+                subscriptionCalculatorService.removeSavedResult(
+                        resultId,
+                        memberNo);
+
+        if (!deleted) {
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            RESPONSE_SUCCESS, false,
+                            RESPONSE_MESSAGE, "삭제할 저장 결과를 찾을 수 없습니다."));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                RESPONSE_SUCCESS, true,
+                RESPONSE_MESSAGE, "저장 결과를 삭제했습니다."));
     }
 
     private MemberVO getLoginMember(HttpSession session) {

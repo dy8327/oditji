@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.oditji.event.dao.OttDiscountDAO;
 import com.project.oditji.subscription.dao.SubscriptionDAO;
@@ -20,6 +21,7 @@ import com.project.oditji.subscription.util.OttPlatformCodeUtil;
 import com.project.oditji.subscription.vo.ContentWishItemVO;
 import com.project.oditji.subscription.vo.PlatformPriceVO;
 import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.subscription.vo.SubscriptionSavedResultVO;
 import com.project.oditji.subscription.vo.SubscriptionShareVO;
 
 @Service
@@ -381,6 +383,138 @@ public class SubscriptionCalculatorServiceImpl
     @Override
     public int deleteExpiredResults() {
         return subscriptionDAO.deleteExpiredResults();
+    }
+
+    @Override
+    public int getSavedResultCount(Long memberNo) {
+
+        if (memberNo == null) {
+
+            return 0;
+        }
+
+        return subscriptionDAO
+                .selectResultsByMember(memberNo)
+                .size();
+    }
+
+    @Override
+    public List<SubscriptionSavedResultVO> getSavedResultsByMember(
+            Long memberNo) {
+
+        List<SubscriptionSavedResultVO> savedResultList =
+                new ArrayList<SubscriptionSavedResultVO>();
+
+        if (memberNo == null) {
+
+            return savedResultList;
+        }
+
+        List<SubscriptionShareVO> shareVOList =
+                subscriptionDAO.selectResultsByMember(memberNo);
+
+        if (shareVOList == null) {
+
+            return savedResultList;
+        }
+
+        for (SubscriptionShareVO shareVO : shareVOList) {
+
+            savedResultList.add(
+                    toSavedResultVO(shareVO));
+        }
+
+        return savedResultList;
+    }
+
+    @Override
+    @Transactional
+    public boolean removeSavedResult(
+            String resultId,
+            Long memberNo) {
+
+        if (resultId == null
+                || resultId.trim().isEmpty()
+                || memberNo == null) {
+
+            return false;
+        }
+
+        return subscriptionDAO.deleteResultByIdAndMember(
+                resultId.trim(),
+                memberNo) > 0;
+    }
+
+    /**
+     * 마이페이지 모달 목록에 필요한 값만 담아 SubscriptionSavedResultVO로 변환한다.
+     * SELECTED_SERVICES JSON에서는 플랫폼 이름 목록만 뽑아낸다.
+     */
+    private SubscriptionSavedResultVO toSavedResultVO(
+            SubscriptionShareVO shareVO) {
+
+        SubscriptionSavedResultVO savedResult =
+                new SubscriptionSavedResultVO();
+
+        savedResult.setResultId(shareVO.getResultId());
+        savedResult.setCreatedAt(shareVO.getCreatedAt());
+        savedResult.setTotalPrice(shareVO.getTotalPrice());
+        savedResult.setDiscountPrice(shareVO.getDiscountPrice());
+        savedResult.setFinalPrice(shareVO.getFinalPrice());
+        savedResult.setPlatformNameList(
+                extractPlatformNameList(
+                        shareVO.getSelectedServicesJson()));
+
+        return savedResult;
+    }
+
+    /**
+     * 저장된 SELECTED_SERVICES JSON에서 선택 플랫폼 이름 목록만 방어적으로 뽑아낸다.
+     * JSON이 손상됐거나 없으면 빈 목록을 반환한다.
+     */
+    private List<String> extractPlatformNameList(
+            String selectedServicesJson) {
+
+        List<String> platformNameList =
+                new ArrayList<String>();
+
+        if (selectedServicesJson == null
+                || selectedServicesJson.trim().isEmpty()) {
+
+            return platformNameList;
+        }
+
+        try {
+
+            JSONObject root = new JSONObject(selectedServicesJson);
+
+            JSONArray platformArray =
+                    root.optJSONArray("selectedPlatformList");
+
+            if (platformArray != null) {
+
+                for (int i = 0; i < platformArray.length(); i++) {
+
+                    JSONObject platformJson =
+                            platformArray.getJSONObject(i);
+
+                    String platformName =
+                            platformJson.optString("platformName", null);
+
+                    if (platformName != null
+                            && !platformName.trim().isEmpty()) {
+
+                        platformNameList.add(platformName);
+                    }
+                }
+            }
+
+        } catch (JSONException e) {
+
+            /* 저장된 JSON이 손상된 경우 빈 목록으로 방어적으로 대응한다. */
+            return new ArrayList<String>();
+        }
+
+        return platformNameList;
     }
 
     @Override

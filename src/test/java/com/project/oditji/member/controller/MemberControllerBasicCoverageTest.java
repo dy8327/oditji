@@ -31,6 +31,7 @@ import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.member.vo.PlatformVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 
@@ -56,6 +57,8 @@ class MemberControllerBasicCoverageTest {
     private OrderService orderService;
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private SubscriptionCalculatorService subscriptionCalculatorService;
 
     /**
      * 실제 컨트롤러 생성자 인자 변경에 테스트가 직접 결합되지 않도록

@@ -50,6 +50,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /**
@@ -79,6 +80,8 @@ class MemberControllerRemainingCoverageTest {
     private OrderService orderService;
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private SubscriptionCalculatorService subscriptionCalculatorService;
 
     private MemberController controller;
 
@@ -749,6 +752,7 @@ class MemberControllerRemainingCoverageTest {
                 wishService,
                 orderService,
                 reviewService,
+                subscriptionCalculatorService,
                 profilePath.toString(),
                 licensePath.toString());
     }

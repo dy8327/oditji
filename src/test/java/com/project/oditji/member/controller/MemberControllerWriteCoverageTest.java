@@ -43,6 +43,7 @@ import com.project.oditji.member.service.MemberService;
 import com.project.oditji.member.vo.MemberVO;
 import com.project.oditji.order.service.OrderService;
 import com.project.oditji.review.service.ReviewService;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
 import com.project.oditji.wish.service.WishService;
 
 /** 회원가입, 로그아웃, 회원정보 수정의 파일·세션·검증 분기를 보완합니다. */
@@ -70,6 +71,8 @@ class MemberControllerWriteCoverageTest {
     private OrderService orderService;
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private SubscriptionCalculatorService subscriptionCalculatorService;
 
     private MemberController controller;
 
@@ -85,6 +88,7 @@ class MemberControllerWriteCoverageTest {
                 wishService,
                 orderService,
                 reviewService,
+                subscriptionCalculatorService,
                 tempDirectory.resolve("profiles").toString(),
                 tempDirectory.resolve("licenses").toString());
     }
