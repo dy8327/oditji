@@ -202,12 +202,14 @@ public class AdminServiceImpl implements AdminService {
 
         for (Long memberNo : memberNos) {
 
-            if (withdrawnNos.contains(memberNo)) {
-                continue;
+            boolean skipMember = withdrawnNos.contains(memberNo);
+
+            if (!skipMember && ACTION_DELETE.equals(action) && adminDAO.isBusinessMember(memberNo)) {
+                skippedCount++;
+                skipMember = true;
             }
 
-            if (ACTION_DELETE.equals(action) && adminDAO.isBusinessMember(memberNo)) {
-                skippedCount++;
+            if (skipMember) {
                 continue;
             }
 
