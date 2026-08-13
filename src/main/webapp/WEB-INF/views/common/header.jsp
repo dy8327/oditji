@@ -186,6 +186,35 @@
 
         <div class="header-right">
             <%--
+                라이트/다크 모드 토글 버튼.
+                기본은 다크 모드이며, 클릭 시 js/theme-toggle.js가
+                <html data-theme="..."> 값을 바꾸고 localStorage에 저장합니다.
+                버튼 안에는 달/해 아이콘을 모두 넣어두고 light-mode.css가
+                현재 테마에 맞는 아이콘만 보여줍니다.
+            --%>
+            <button type="button"
+                    class="icon-btn theme-toggle-btn"
+                    id="themeToggleBtn"
+                    aria-pressed="false"
+                    aria-label="라이트 모드로 전환"
+                    title="라이트 모드로 전환">
+                <svg class="theme-toggle-icon theme-toggle-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+                <svg class="theme-toggle-icon theme-toggle-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"/>
+                </svg>
+            </button>
+
+            <%--
                 모바일 전용 검색 토글 버튼.
                 768px 이하에서만 아이콘으로 노출되며, 클릭 시 header-search(#headerSearch)를
                 헤더 바로 아래에 펼쳐서 보여준다. 데스크톱에서는 CSS로 숨김 처리된다.
