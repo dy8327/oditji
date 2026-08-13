@@ -186,18 +186,39 @@ class MemberControllerBasicCoverageTest {
 
     @Test
     void withdrawShouldRequireLoginAndInvalidateSuccessfulSession() {
-        assertEquals(
-                "redirect:/member/login",
-                controller.withdrawMember(new MockHttpSession()));
+
+        assertEquals("redirect:/member/login",controller.withdrawMember(
+                        new MockHttpSession(),
+                        new RedirectAttributesModelMap()));
 
         MockHttpSession session = session(member(6L, "USER"));
-        String view = controller.withdrawMember(session);
+        RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
+
+        String view = controller.withdrawMember(session, redirect);
 
         assertEquals("redirect:/", view);
         verify(memberService).withdrawMember(6L);
-        assertThrows(
-                IllegalStateException.class,
-                () -> session.getAttribute("loginMember"));
+
+        assertThrows(IllegalStateException.class, () -> session.getAttribute("loginMember"));
+    }
+
+    @Test
+    void withdrawShouldRejectBusinessMember() {
+
+        MockHttpSession session = session(member(7L, "BUSINESS"));
+        RedirectAttributesModelMap redirect = new RedirectAttributesModelMap();
+
+        String view = controller.withdrawMember(session, redirect);
+
+        assertEquals("redirect:/member/mypage", view);
+
+        assertEquals(
+                "사업자 회원은 판매·주문·정산 데이터 보존을 위해 일반 회원탈퇴를 할 수 없습니다.",
+                redirect.getFlashAttributes().get("errorMessage"));
+
+        verify(memberService, never()).withdrawMember(7L);
+
+        assertEquals(7L, ((MemberVO) session.getAttribute("loginMember")).getMemberNo());
     }
 
     @Test
