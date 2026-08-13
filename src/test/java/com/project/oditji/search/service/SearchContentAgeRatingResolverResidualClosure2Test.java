@@ -1,7 +1,7 @@
 package com.project.oditji.search.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.json.JSONArray;
@@ -64,7 +64,7 @@ class SearchContentAgeRatingResolverResidualClosure2Test {
                 releases,
                 "NC17");
 
-        assertFalse(Boolean.TRUE.equals(result));
+        assertNotEquals(Boolean.TRUE, result);
     }
 
     @Test
