@@ -764,20 +764,28 @@ public class MemberController {
         }
 
         @PostMapping("/withdraw")
-        public String withdrawMember(HttpSession session) {
+        public String withdrawMember(
+                HttpSession session,
+                RedirectAttributes redirectAttributes) {
 
-                MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
-                if (loginMember == null || loginMember.getMemberNo() == null) {
+        MemberVO loginMember = (MemberVO) session.getAttribute(SESSION_LOGIN_MEMBER);
 
-                        return REDIRECT_MEMBER_LOGIN;
-                }
-
-                memberService.withdrawMember(loginMember.getMemberNo());
-                session.invalidate();
-
-                return REDIRECT_HOME;
+        if (loginMember == null || loginMember.getMemberNo() == null) {
+                return REDIRECT_MEMBER_LOGIN;
         }
 
+        if ("BUSINESS".equals(loginMember.getRole())) {
+                redirectAttributes.addFlashAttribute(
+                        ATTRIBUTE_ERROR_MESSAGE,
+                        "사업자 회원은 판매·주문·정산 데이터 보존을 위해 일반 회원탈퇴를 할 수 없습니다.");
+                return REDIRECT_MEMBER_MYPAGE;
+        }
+
+        memberService.withdrawMember(loginMember.getMemberNo());
+        session.invalidate();
+
+        return REDIRECT_HOME;
+        }
         private String redirectWithError(RedirectAttributes redirectAttributes, String message) {
 
                 redirectAttributes.addFlashAttribute(ATTRIBUTE_ERROR_MESSAGE, message);

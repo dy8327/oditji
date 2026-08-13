@@ -499,7 +499,7 @@ class MemberControllerRemainingCoverageTest {
         assertEquals(
                 "redirect:/member/login",
                 controller.updateOtt(List.of("1"), noNumberSession, new RedirectAttributesModelMap()));
-        assertEquals("redirect:/member/login", controller.withdrawMember(noNumberSession));
+        assertEquals("redirect:/member/login", controller.withdrawMember(noNumberSession, new RedirectAttributesModelMap()));
 
         MemberVO normal = member(104L, "USER", "회원", "닉");
         MockHttpSession normalSession = session(normal);
