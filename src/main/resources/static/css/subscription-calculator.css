@@ -1,0 +1,741 @@
+/* =========================================================
+   ODITJI OTT 구독 조합 계산기
+   - ott-discount.css와 동일한 사이트 공통 토큰 기반 다크 톤을 사용한다.
+========================================================= */
+
+.sub-calc-section {
+  --sc-bg-card: #1c1c30;
+  --sc-bg-card-hover: #22223a;
+  --sc-bg-card-border: #2f2f48;
+  --sc-bg-hero-start: #23233c;
+  --sc-bg-hero-end: #121220;
+
+  --sc-text-dim: #a9acc0;
+  --sc-accent: #35e0a1;
+  --sc-accent-hover: #4ff2b4;
+
+  --sc-radius: var(--radius, 14px);
+  --sc-radius-sm: 8px;
+  --sc-transition: var(--transition, 0.25s ease);
+
+  --sc-shadow-card: 0 2px 10px rgba(0, 0, 0, 0.25);
+
+  width: 100%;
+  max-width: 1120px;
+  margin: 60px auto 96px;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* 카드 내부 요소가 padding/border 때문에 부모 폭을 넘어가지 않도록
+   섹션 전체에 border-box를 강제한다. (input/button 폭 계산 오류 방지) */
+.sub-calc-section,
+.sub-calc-section *,
+.sub-calc-section *::before,
+.sub-calc-section *::after {
+  box-sizing: border-box;
+}
+
+.sub-calc-section :is(button, a, input, select):focus-visible {
+  outline: 2px solid var(--color-point, #5ea3ff);
+  outline-offset: 2px;
+  border-radius: var(--sc-radius-sm);
+}
+
+/* =========================
+   HERO
+========================= */
+
+.sub-calc-hero {
+  text-align: center;
+  background: linear-gradient(135deg, var(--sc-bg-hero-start) 0%, var(--sc-bg-hero-end) 100%);
+  border-radius: 20px;
+  padding: 48px 32px;
+  margin-bottom: 32px;
+}
+
+.sub-calc-hero__eyebrow {
+  color: var(--sc-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+}
+
+.sub-calc-hero__title {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.sub-calc-hero__desc {
+  color: var(--sc-text-dim);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 480px;
+}
+
+/* =========================
+   FILTER
+========================= */
+
+.sub-calc-filter-panel {
+  background: var(--sc-bg-card);
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius);
+  box-shadow: var(--sc-shadow-card);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.sub-calc-filter-panel__title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+.sub-calc-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.sub-calc-filter-row + .sub-calc-filter-row {
+  border-top: 1px solid var(--sc-bg-card-border);
+}
+
+.sub-calc-filter-row__label {
+  flex: 0 0 64px;
+  color: var(--sc-text-dim);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sub-calc-filter-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.sub-calc-filter-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sub-calc-filter-radio input {
+  accent-color: var(--sc-accent);
+}
+
+.sub-calc-filter-select {
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  color: #fff;
+  font-size: 14px;
+  padding: 8px 12px;
+  min-width: 220px;
+}
+
+.sub-calc-filter-panel__hint {
+  color: var(--sc-text-dim);
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+
+@media (max-width: 560px) {
+  .sub-calc-filter-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sub-calc-filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.sub-calc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .sub-calc-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sub-calc-search-panel,
+.sub-calc-result-panel {
+  background: var(--sc-bg-card);
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius);
+  box-shadow: var(--sc-shadow-card);
+  padding: 24px;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.sub-calc-search-label {
+  display: block;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.sub-calc-search-box {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.sub-calc-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  color: #fff;
+  font-size: 14px;
+  padding: 12px 14px;
+}
+
+.sub-calc-search-input:focus {
+  border-color: var(--sc-accent);
+}
+
+.sub-calc-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  background: #16162550;
+  background: #16162a;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: var(--sc-shadow-card);
+}
+
+.sub-calc-search-empty {
+  color: var(--sc-text-dim);
+  font-size: 13px;
+  padding: 14px;
+  margin: 0;
+}
+
+.sub-calc-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--sc-bg-card-border);
+  color: #fff;
+  text-align: left;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background var(--sc-transition);
+}
+
+.sub-calc-search-item:last-child {
+  border-bottom: none;
+}
+
+.sub-calc-search-item:hover:not(:disabled) {
+  background: var(--sc-bg-card-hover);
+}
+
+.sub-calc-search-item:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sub-calc-search-item__poster {
+  width: 32px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #2a2a40;
+  flex-shrink: 0;
+}
+
+.sub-calc-search-item__title {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-calc-search-item__add {
+  font-size: 12px;
+  color: var(--sc-accent);
+  flex-shrink: 0;
+}
+
+.sub-calc-search-item__added {
+  font-size: 12px;
+  color: var(--sc-text-dim);
+  flex-shrink: 0;
+}
+
+/* =========================
+   WISHLIST
+========================= */
+
+.sub-calc-wishlist-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.sub-calc-wishlist-count {
+  background: var(--sc-accent);
+  color: #0c1f16;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+
+.sub-calc-wishlist {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sub-calc-wishlist__empty {
+  color: var(--sc-text-dim);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+.sub-calc-wishlist__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 8px 10px;
+}
+
+.sub-calc-wishlist__poster {
+  width: 30px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #2a2a40;
+  flex-shrink: 0;
+}
+
+.sub-calc-wishlist__title {
+  flex: 1;
+  color: #fff;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-calc-wishlist__remove {
+  background: none;
+  border: none;
+  color: var(--sc-text-dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.sub-calc-wishlist__remove:hover {
+  color: #ff4d5e;
+}
+
+.sub-calc-calculate-btn {
+  width: 100%;
+  background: var(--sc-accent);
+  color: #0c1f16;
+  font-weight: 800;
+  font-size: 15px;
+  border: none;
+  border-radius: var(--sc-radius-sm);
+  padding: 14px;
+  cursor: pointer;
+  transition: background var(--sc-transition);
+}
+
+.sub-calc-calculate-btn:hover:not(:disabled) {
+  background: var(--sc-accent-hover);
+}
+
+.sub-calc-calculate-btn:disabled {
+  background: #35415a;
+  color: var(--sc-text-dim);
+  cursor: not-allowed;
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.sub-calc-result-panel {
+  min-height: 320px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 결과가 없을 때만 안내 문구를 패널 중앙에 놓는다.
+   패널 자체를 항상 flex 중앙정렬로 두면 결과가 채워진 뒤
+   내부 버튼/인풋의 가로폭 계산이 꼬여 레이아웃이 깨지므로,
+   중앙정렬은 placeholder 자신의 auto margin으로만 처리한다. */
+.sub-calc-result-placeholder {
+  color: var(--sc-text-dim);
+  font-size: 14px;
+  text-align: center;
+  margin: auto;
+  padding: 24px;
+}
+
+.sub-calc-result {
+  width: 100%;
+  min-width: 0;
+}
+
+.sub-calc-result__eyebrow {
+  color: var(--sc-accent);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+.sub-calc-result-platform-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-calc-result-platform {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.sub-calc-result-platform__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-calc-result-platform__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-calc-result-platform__price {
+  color: var(--sc-accent);
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sub-calc-result-platform__regular {
+  color: var(--sc-text-dim);
+  font-size: 12px;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.sub-calc-result-platform__rate {
+  color: var(--sc-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sub-calc-result-platform__source {
+  color: var(--sc-text-dim);
+  font-size: 12px;
+}
+
+.sub-calc-result-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--sc-text-dim);
+  font-size: 13px;
+  padding-top: 8px;
+}
+
+.sub-calc-result-total span:first-child {
+  min-width: 0;
+}
+
+.sub-calc-result-total span:last-child,
+.sub-calc-result-total strong {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sub-calc-result-total--main {
+  color: #fff;
+  font-size: 15px;
+  border-top: 1px solid var(--sc-bg-card-border);
+  margin-top: 6px;
+  padding-top: 14px;
+}
+
+.sub-calc-result-total strong {
+  font-size: 22px;
+}
+
+.sub-calc-result-total--main strong {
+  color: var(--sc-accent);
+}
+
+.sub-calc-result-savings {
+  color: var(--sc-accent);
+  font-size: 13px;
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+.sub-calc-result-unresolved {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sc-bg-card-border);
+}
+
+.sub-calc-result-unresolved__title {
+  color: var(--sc-text-dim);
+  font-size: 12px;
+  margin: 0 0 6px;
+}
+
+.sub-calc-result-unresolved ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--sc-text-dim);
+  font-size: 13px;
+}
+
+/* =========================
+   RESULT ACTIONS (저장 / 공유)
+========================= */
+
+a.sub-calc-calculate-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sub-calc-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sc-bg-card-border);
+}
+
+.sub-calc-save-btn {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: var(--sc-accent);
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--sc-accent);
+  border-radius: var(--sc-radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+  transition: background var(--sc-transition), color var(--sc-transition);
+}
+
+.sub-calc-save-btn:hover:not(:disabled) {
+  background: var(--sc-accent);
+  color: #0c1f16;
+}
+
+.sub-calc-save-btn:disabled {
+  border-color: var(--sc-bg-card-border);
+  color: var(--sc-text-dim);
+  cursor: not-allowed;
+}
+
+.sub-calc-share-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.sub-calc-share-input {
+  flex: 1 1 160px;
+  min-width: 0;
+  width: 100%;
+  background: #14141f;
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.sub-calc-copy-btn {
+  flex-shrink: 0;
+  background: var(--sc-accent);
+  color: #0c1f16;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  border-radius: var(--sc-radius-sm);
+  padding: 0 16px;
+  min-height: 38px;
+  cursor: pointer;
+  transition: background var(--sc-transition);
+  white-space: nowrap;
+}
+
+.sub-calc-copy-btn:hover {
+  background: var(--sc-accent-hover);
+}
+
+/* =========================
+   RESPONSIVE (모바일 전반)
+========================= */
+
+@media (max-width: 860px) {
+  .sub-calc-search-panel,
+  .sub-calc-result-panel {
+    padding: 20px;
+  }
+
+  .sub-calc-hero {
+    padding: 36px 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sub-calc-section {
+    margin: 32px auto 64px;
+    padding: 0 16px;
+  }
+
+  .sub-calc-hero {
+    padding: 28px 16px;
+    border-radius: 16px;
+  }
+
+  .sub-calc-hero__title {
+    font-size: 22px;
+  }
+
+  .sub-calc-hero__desc {
+    font-size: 13px;
+  }
+
+  .sub-calc-filter-panel,
+  .sub-calc-search-panel,
+  .sub-calc-result-panel {
+    padding: 16px;
+  }
+
+  .sub-calc-search-item__title,
+  .sub-calc-wishlist__title {
+    font-size: 12px;
+  }
+
+  .sub-calc-result-platform {
+    font-size: 13px;
+  }
+
+  .sub-calc-result-total strong {
+    font-size: 19px;
+  }
+
+  /* 좁은 화면에서는 저장 버튼과 복사 영역을 세로로 쌓는다 */
+  .sub-calc-result-actions {
+    flex-direction: column;
+  }
+
+  .sub-calc-share-box {
+    flex-direction: column;
+  }
+
+  .sub-calc-share-input {
+    flex-basis: auto;
+  }
+
+  .sub-calc-copy-btn {
+    width: 100%;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sub-calc-wishlist-count {
+    font-size: 11px;
+  }
+
+  .sub-calc-search-item__poster,
+  .sub-calc-wishlist__poster {
+    width: 26px;
+    height: 38px;
+  }
+
+  .sub-calc-result-total {
+    font-size: 12px;
+  }
+
+  .sub-calc-result-total strong {
+    font-size: 17px;
+  }
+}

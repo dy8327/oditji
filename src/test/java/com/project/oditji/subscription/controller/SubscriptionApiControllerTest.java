@@ -1,0 +1,190 @@
+package com.project.oditji.subscription.controller;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.project.oditji.member.vo.MemberVO;
+import com.project.oditji.search.service.SearchContentPageCacheService;
+import com.project.oditji.search.vo.SearchResultPageVO;
+import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.subscription.service.SubscriptionCalculatorService;
+import com.project.oditji.subscription.vo.ContentWishItemVO;
+import com.project.oditji.subscription.vo.SubscriptionCalculateRequestVO;
+import com.project.oditji.subscription.vo.SubscriptionCalculationResultVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
+
+import jakarta.servlet.http.HttpSession;
+
+/** 구독 계산기 검색·계산 API의 입력 정규화와 매핑을 검증합니다. */
+@ExtendWith(MockitoExtension.class)
+class SubscriptionApiControllerTest {
+
+    @Mock
+    private SearchContentPageCacheService searchContentPageCacheService;
+
+    @Mock
+    private SubscriptionCalculatorService subscriptionCalculatorService;
+
+    @Mock
+    private HttpSession session;
+
+    private SubscriptionApiController controller;
+
+    @BeforeEach
+    void setUp() {
+        controller = new SubscriptionApiController(
+                searchContentPageCacheService,
+                subscriptionCalculatorService);
+    }
+
+    @Test
+    void blankKeywordShouldReturnEmptyListWithoutQuerying() {
+        List<ContentWishItemVO> result = controller.searchContent("   ");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void nullKeywordShouldReturnEmptyListWithoutQuerying() {
+        List<ContentWishItemVO> result = controller.searchContent(null);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void searchShouldMapContentAndPlatformNamesFromPageResult() {
+        SearchResultVO content = new SearchResultVO();
+        content.setTmdbId(100L);
+        content.setContentType("MOVIE");
+        content.setTitle("테스트 영화");
+        content.setPosterPath("/poster.jpg");
+
+        OttPlatformVO netflix = new OttPlatformVO();
+        netflix.setPlatformName("Netflix");
+        OttPlatformVO tving = new OttPlatformVO();
+        tving.setPlatformName("TVING");
+        content.setPlatformList(List.of(netflix, tving));
+
+        SearchResultPageVO page = new SearchResultPageVO();
+        page.setResultList(List.of(content));
+
+        when(searchContentPageCacheService.getContentPage(
+                "인터스텔라",
+                1,
+                8,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()))
+                .thenReturn(page);
+
+        List<ContentWishItemVO> result = controller.searchContent("인터스텔라");
+
+        assertEquals(1, result.size());
+        ContentWishItemVO wishItem = result.get(0);
+        assertEquals(100L, wishItem.getTmdbId());
+        assertEquals("MOVIE", wishItem.getContentType());
+        assertEquals("테스트 영화", wishItem.getTitle());
+        assertEquals("/poster.jpg", wishItem.getPosterPath());
+        assertEquals(List.of("Netflix", "TVING"), wishItem.getPlatformNameList());
+    }
+
+    @Test
+    void nullPageResultShouldReturnEmptyList() {
+        when(searchContentPageCacheService.getContentPage(
+                "없는검색어",
+                1,
+                8,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()))
+                .thenReturn(null);
+
+        List<ContentWishItemVO> result = controller.searchContent("없는검색어");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void calculateShouldDelegateToServiceWithFilterConditions() {
+        List<ContentWishItemVO> wishItemList = List.of(new ContentWishItemVO());
+        SubscriptionCalculateRequestVO request = new SubscriptionCalculateRequestVO();
+        request.setWishItemList(wishItemList);
+        request.setTelecomCode("KT");
+        request.setCardCompany("현대카드");
+        request.setMembershipName("네이버");
+
+        SubscriptionCalculationResultVO expected = new SubscriptionCalculationResultVO();
+        when(subscriptionCalculatorService.calculate(
+                wishItemList, "KT", "현대카드", "네이버"))
+                .thenReturn(expected);
+
+        SubscriptionCalculationResultVO result = controller.calculate(request);
+
+        assertSame(expected, result);
+        verify(subscriptionCalculatorService).calculate(
+                wishItemList, "KT", "현대카드", "네이버");
+    }
+
+    /* ---------- 결과 저장 ---------- */
+
+    @Test
+    void saveShouldMapLoginMemberNoAndReturnResultId() {
+        MemberVO loginMember = new MemberVO();
+        loginMember.setMemberNo(5L);
+        when(session.getAttribute("loginMember")).thenReturn(loginMember);
+
+        SubscriptionCalculationResultVO result = new SubscriptionCalculationResultVO();
+        when(subscriptionCalculatorService.saveResult(result, 5L))
+                .thenReturn("SUBS_ABC");
+
+        ResponseEntity<Map<String, Object>> response = controller.save(result, session);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("SUBS_ABC", response.getBody().get("resultId"));
+    }
+
+    @Test
+    void saveShouldAllowGuestWhenNoLoginMemberInSession() {
+        when(session.getAttribute("loginMember")).thenReturn(null);
+
+        SubscriptionCalculationResultVO result = new SubscriptionCalculationResultVO();
+        when(subscriptionCalculatorService.saveResult(eq(result), isNull()))
+                .thenReturn("SUBS_GUEST");
+
+        ResponseEntity<Map<String, Object>> response = controller.save(result, session);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("SUBS_GUEST", response.getBody().get("resultId"));
+    }
+
+    @Test
+    void saveShouldReturnBadRequestWhenServiceRejectsResult() {
+        when(session.getAttribute("loginMember")).thenReturn(null);
+
+        SubscriptionCalculationResultVO result = new SubscriptionCalculationResultVO();
+        when(subscriptionCalculatorService.saveResult(eq(result), isNull()))
+                .thenThrow(new IllegalArgumentException("저장할 계산 결과가 없습니다."));
+
+        ResponseEntity<Map<String, Object>> response = controller.save(result, session);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("저장할 계산 결과가 없습니다.", response.getBody().get("message"));
+    }
+}

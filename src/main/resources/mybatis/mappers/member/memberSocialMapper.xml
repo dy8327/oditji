@@ -21,6 +21,10 @@
         )
     </insert>
 
+    <!--
+        SNS(카카오 등) 연동 회원 조회
+        - 탈퇴 회원 복구 시 "복구 가능 기한"을 계산해야 하므로 M.WITHDRAWN_AT을 함께 조회한다.
+    -->
     <select id="selectMemberBySocial" resultType="com.project.oditji.member.vo.MemberSocialJoinVO">
         SELECT
             M.MEMBER_NO              AS memberNo,
@@ -32,6 +36,7 @@
             M.PROFILE_IMAGE          AS profileImage,
             M.ROLE                   AS role,
             M.STATUS                 AS status,
+            M.WITHDRAWN_AT           AS withdrawnAt,
             MS.SOCIAL_NO             AS socialNo,
             MS.PROVIDER              AS provider,
             MS.PROVIDER_USER_ID      AS providerUserId,

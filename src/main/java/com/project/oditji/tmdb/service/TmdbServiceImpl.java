@@ -1,14 +1,14 @@
 package com.project.oditji.tmdb.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -19,39 +19,78 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import com.project.oditji.common.util.TmdbGenreUtil;
 import com.project.oditji.content.vo.ContentVO;
-import com.project.oditji.search.vo.SearchResultVO;
+import com.project.oditji.content.vo.FilmographyVO;
+import com.project.oditji.content.vo.PersonFilmographyVO;
 import com.project.oditji.tmdb.dao.TmdbDAO;
+import com.project.oditji.tmdb.vo.ActorVO;
+import com.project.oditji.tmdb.vo.DirectorVO;
 import com.project.oditji.tmdb.vo.TmdbVO;
 
 @Service
 public class TmdbServiceImpl implements TmdbService {
 
-    private static final int TV_GENRE_ANIMATION = 16;
-    private static final int TV_GENRE_DOCUMENTARY = 99;
-    private static final int TV_GENRE_REALITY = 10764;
-    private static final int TV_GENRE_TALK = 10767;
+    private static final int MOVIE_LOAD_PAGE_COUNT = 10;
+    private static final int TV_LOAD_PAGE_COUNT = 15;
+    private static final int CAST_SAVE_LIMIT = 5;
 
-    private static final int MOVIE_GENRE_ACTION = 28;
-    private static final int MOVIE_GENRE_COMEDY = 35;
-    private static final int MOVIE_GENRE_THRILLER = 53;
-    private static final int MOVIE_GENRE_ROMANCE = 10749;
-    private static final int MOVIE_GENRE_CRIME = 80;
-    private static final int MOVIE_GENRE_FANTASY = 14;
-    private static final int MOVIE_GENRE_HORROR = 27;
-    private static final int MOVIE_GENRE_MYSTERY = 9648;
-    private static final int MOVIE_GENRE_SF = 878;
-    private static final int MOVIE_GENRE_DRAMA = 18;
+    private static final String API_TYPE_MOVIE = "movie";
+    private static final String CONTENT_TYPE_MOVIE = "MOVIE";
+    private static final String QUERY_LANGUAGE = "?language=";
+    private static final String JSON_RESULTS = "results";
+    private static final String JSON_TITLE = "title";
+    private static final String JSON_ORIGINAL_TITLE = "original_title";
+    private static final String JSON_RELEASE_DATE = "release_date";
+    private static final String JSON_ORIGINAL_NAME = "original_name";
+    private static final String JSON_FIRST_AIR_DATE = "first_air_date";
+    private static final String JSON_OVERVIEW = "overview";
+    private static final String JSON_POSTER_PATH = "poster_path";
+    private static final String JSON_BACKDROP_PATH = "backdrop_path";
+    private static final String JSON_VOTE_AVERAGE = "vote_average";
+    private static final String JSON_GENRES = "genres";
+    private static final String JSON_CREDITS = "credits";
+    private static final String JSON_CREATED_BY = "created_by";
+    private static final String JSON_PROFILE_PATH = "profile_path";
+    private static final String JSON_CHARACTER = "character";
+    private static final String JSON_MEDIA_TYPE = "media_type";
+    private static final String JOB_DIRECTOR = "Director";
+    private static final String ROLE_DIRECTOR = "DIRECTOR";
+    private static final String AGE_RATING_UNKNOWN = "UNKNOWN";
+    private static final String PLATFORM_KEY_NETFLIX = "netflix";
+    private static final String PLATFORM_KEY_TVING = "tving";
+    private static final String PLATFORM_KEY_WAVVE = "wavve";
+    private static final String PLATFORM_KEY_DISNEY = "disney";
+    private static final String PLATFORM_KEY_WATCHA = "watcha";
+    private static final String PLATFORM_KEY_COUPANG = "coupang";
 
-    private static final int TV_GENRE_ACTION_ADVENTURE = 10759;
-    private static final int TV_GENRE_COMEDY = 35;
-    private static final int TV_GENRE_CRIME = 80;
-    private static final int TV_GENRE_DRAMA = 18;
-    private static final int TV_GENRE_MYSTERY = 9648;
-    private static final int TV_GENRE_SF_FANTASY = 10765;
-    private static final int TV_GENRE_SOAP = 10766;
+    private static final Map<Integer, String> MOVIE_GENRES =
+            TmdbGenreUtil.movieGenres();
+
+    private static final Map<Integer, String> TV_GENRES =
+            TmdbGenreUtil.tvGenres();
+
+    /* 미국 연령 등급 변환표를 공통 조회 방식으로 관리합니다. */
+    private static final Map<String, String> US_TV_AGE_RATINGS = Map.of(
+            "TVY", "ALL",
+            "TVY7", "ALL",
+            "TVG", "ALL",
+            "TVPG", "12",
+            "TV14", "15",
+            "TVMA", "18");
+
+    private static final Map<String, String> US_MOVIE_AGE_RATINGS = Map.of(
+            "G", "ALL",
+            "PG", "12",
+            "PG13", "15",
+            "R", "18",
+            "NC17", "18");
+
+    private final TmdbDAO tmdbDAO;
+    private final RestTemplate restTemplate;
+    private final JsonMapper jsonMapper;
 
     @Value("${tmdb.api.token}")
     private String token;
@@ -62,1462 +101,1106 @@ public class TmdbServiceImpl implements TmdbService {
     @Value("${tmdb.api.language:ko-KR}")
     private String tmdbApiLanguage;
 
-    private final TmdbDAO tmdbDAO;
+    @Value("${tmdb.api.region:KR}")
+    private String tmdbApiRegion;
 
-    TmdbServiceImpl(TmdbDAO tmdbDAO) {
+    public TmdbServiceImpl(
+            TmdbDAO tmdbDAO,
+            JsonMapper jsonMapper) {
         this.tmdbDAO = tmdbDAO;
+        this.restTemplate = new RestTemplate();
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
     public int loadMovieData() {
+        return loadBasicData(
+                API_TYPE_MOVIE,
+                CONTENT_TYPE_MOVIE,
+                MOVIE_LOAD_PAGE_COUNT);
+    }
+
+    @Override
+    public int loadTvData() {
+        return loadBasicData(
+                "tv",
+                "TV",
+                TV_LOAD_PAGE_COUNT);
+    }
+
+    private int loadBasicData(
+            String apiType,
+            String contentType,
+            int loadPageCount) {
 
         int saveCount = 0;
+        String providerIds = getSupportedProviderIdText(apiType, null);
 
-        try {
-
-            RestTemplate restTemplate = new RestTemplate();
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-            String providerIdText =
-                    getSupportedProviderIdText(
-                            restTemplate,
-                            objectMapper,
-                            entity,
-                            null);
-
-            if (providerIdText == null || providerIdText.isBlank()) {
-                System.out.println("지원 OTT Provider ID 조회 실패");
-                return 0;
-            }
-
-            for (int page = 1; page <= 10; page++) {
-
-                String url =
-                        tmdbApiBaseUrl
-                        + "/discover/movie"
-                        + "?language=ko-KR"
-                        + "&region=KR"
-                        + "&watch_region=KR"
-                        + "&with_watch_monetization_types=flatrate"
-                        + "&with_watch_providers=" + providerIdText
-                        + "&sort_by=popularity.desc"
-                        + "&page=" + page;
-
-                ResponseEntity<String> response =
-                        restTemplate.exchange(
-                                url,
-                                HttpMethod.GET,
-                                entity,
-                                String.class);
-
-                JsonNode root = objectMapper.readTree(response.getBody());
-
-                JsonNode results = root.get("results");
-
-                if (results == null || !results.isArray()) {
-                    continue;
-                }
-
-                Iterator<JsonNode> iterator = results.iterator();
-
-                while (iterator.hasNext()) {
-
-                    JsonNode movie = iterator.next();
-
-                    Long tmdbId = movie.path("id").asLong();
-
-                    if (tmdbId == null || tmdbId == 0) {
-                        continue;
-                    }
-
-                    if (tmdbDAO.existsContent(tmdbId, "MOVIE") > 0) {
-                        continue;
-                    }
-
-                    TmdbVO vo = new TmdbVO();
-
-                    vo.setTmdbId(tmdbId);
-                    vo.setContentType("MOVIE");
-
-                    String title = movie.path("title").asText();
-                    String originalTitle = movie.path("original_title").asText();
-
-                    if (title == null || title.isBlank()) {
-                        title = originalTitle;
-                    }
-
-                    vo.setTitle(title);
-                    vo.setOriginalTitle(originalTitle);
-                    vo.setOverview(movie.path("overview").asText());
-                    vo.setPosterPath(movie.path("poster_path").asText());
-                    vo.setBackdropPath(movie.path("backdrop_path").asText());
-
-                    String releaseDate = movie.path("release_date").asText();
-
-                    if (releaseDate != null && !releaseDate.isBlank()) {
-                        vo.setReleaseDate(LocalDate.parse(releaseDate));
-                    }
-
-                    vo.setTmdbScore(movie.path("vote_average").asDouble());
-
-                    tmdbDAO.insertContent(vo);
-
-                    saveCount++;
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (providerIds.isBlank()) {
+            return 0;
         }
 
-        System.out.println("영화 기본 데이터 적재 완료 : " + saveCount + "건");
+        for (int page = 1; page <= loadPageCount; page++) {
+
+            String url = tmdbApiBaseUrl
+                    + "/discover/" + apiType
+                    + QUERY_LANGUAGE + tmdbApiLanguage
+                    + "&region=" + tmdbApiRegion
+                    + "&watch_region=" + tmdbApiRegion
+                    + "&include_adult=false"
+                    + (API_TYPE_MOVIE.equals(apiType) ? "&include_video=false" : "")
+                    + "&with_watch_monetization_types=flatrate"
+                    + "&with_watch_providers=" + providerIds
+                    + "&sort_by=popularity.desc"
+                    + "&page=" + page;
+
+            JsonNode results = callTmdbApi(url).path(JSON_RESULTS);
+
+            if (results.isArray()) {
+                for (JsonNode item : results) {
+
+                    long tmdbId = item.path("id").asLong();
+
+                    if (!shouldExcludeContent(item)
+                            && tmdbId > 0
+                            && tmdbDAO.existsContent(
+                                    tmdbId,
+                                    contentType
+                            ) == 0) {
+
+                        TmdbVO vo =
+                                createBasicTmdbVO(
+                                        item,
+                                        contentType
+                                );
+                        tmdbDAO.insertContent(vo);
+                        saveCount++;
+                    }
+                }
+            }
+        }
 
         return saveCount;
     }
 
+    private TmdbVO createBasicTmdbVO(JsonNode item, String contentType) {
+
+        TmdbVO vo = new TmdbVO();
+        vo.setTmdbId(item.path("id").asLong());
+        vo.setContentType(contentType);
+
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
+            vo.setTitle(firstNonBlank(
+                    item.path(JSON_TITLE).asString(null),
+                    item.path(JSON_ORIGINAL_TITLE).asString(null)));
+            vo.setOriginalTitle(item.path(JSON_ORIGINAL_TITLE).asString(null));
+            vo.setReleaseDate(parseDate(
+                    item.path(JSON_RELEASE_DATE).asString(null)));
+        } else {
+            vo.setTitle(firstNonBlank(
+                    item.path("name").asString(null),
+                    item.path(JSON_ORIGINAL_NAME).asString(null)));
+            vo.setOriginalTitle(item.path(JSON_ORIGINAL_NAME).asString(null));
+            vo.setReleaseDate(parseDate(
+                    item.path(JSON_FIRST_AIR_DATE).asString(null)));
+        }
+
+        vo.setOverview(item.path(JSON_OVERVIEW).asString(null));
+        vo.setPosterPath(item.path(JSON_POSTER_PATH).asString(null));
+        vo.setBackdropPath(item.path(JSON_BACKDROP_PATH).asString(null));
+        vo.setGenreText(convertGenreIdsToText(
+                item.path("genre_ids"), contentType));
+        vo.setTmdbScore(nullableDouble(item.path(JSON_VOTE_AVERAGE)));
+
+        return vo;
+    }
+
     @Override
     public int updateMovieDetailData() {
+        return updateDetailData(CONTENT_TYPE_MOVIE);
+    }
+
+    @Override
+    public int updateTvDetailData() {
+        return updateDetailData("TV");
+    }
+
+    private int updateDetailData(String contentType) {
 
         int updateCount = 0;
 
-        try {
+        for (TmdbVO vo : tmdbDAO.selectContentList()) {
 
-            RestTemplate restTemplate = new RestTemplate();
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-            for (TmdbVO vo : tmdbDAO.selectContentList()) {
-
-                if (!"MOVIE".equals(vo.getContentType())) {
-                    continue;
-                }
-
-                String url =
-                        tmdbApiBaseUrl
-                        + "/movie/"
-                        + vo.getTmdbId()
-                        + "?language=ko-KR"
-                        + "&append_to_response=credits,release_dates";
-
-                ResponseEntity<String> response =
-                        restTemplate.exchange(
-                                url,
-                                HttpMethod.GET,
-                                entity,
-                                String.class);
-
-                JsonNode root = objectMapper.readTree(response.getBody());
-
-                vo.setGenreText(parseGenreText(root.path("genres")));
-
-                if (!root.path("runtime").isMissingNode()
-                        && !root.path("runtime").isNull()) {
-
-                    vo.setRuntime(root.path("runtime").asInt());
-                }
-
-                vo.setDirector(parseDirector(root.path("credits").path("crew")));
-                vo.setCastNames(parseCastNames(root.path("credits").path("cast")));
-                vo.setAgeRating(extractAgeRating(root));
-
-                tmdbDAO.updateContentDetail(vo);
-
-                updateCount++;
+            if (!contentType.equals(vo.getContentType())) {
+                continue;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            JsonNode root = getDetailRoot(
+                    vo.getTmdbId(), contentType, true);
 
-        System.out.println("영화 상세 정보 보강 완료 : " + updateCount + "건");
+            if (CONTENT_TYPE_MOVIE.equals(contentType)) {
+                fillMovieDetail(vo, root);
+            } else {
+                fillTvDetail(vo, root);
+            }
+
+            tmdbDAO.updateContentDetail(vo);
+
+            Integer contentNo = tmdbDAO.findContentNo(
+                    vo.getTmdbId(), contentType);
+
+            if (contentNo != null) {
+                savePeople(contentNo, contentType, root);
+            }
+
+            updateCount++;
+        }
 
         return updateCount;
     }
 
+    private void fillMovieDetail(TmdbVO vo, JsonNode root) {
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
+        vo.setRuntime(nullableInt(root.path("runtime")));
+        vo.setEpisodeCount(null);
+        vo.setDirector(limitLength(
+                parseDirector(root.path(JSON_CREDITS).path("crew")), 100));
+        vo.setCastNames(limitLength(
+                parseCastNames(root.path(JSON_CREDITS).path("cast")), 500));
+        vo.setAgeRating(extractMovieAgeRating(root));
+    }
+
+    private void fillTvDetail(TmdbVO vo, JsonNode root) {
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
+        vo.setRuntime(parseTvRuntime(root.path("episode_run_time")));
+        vo.setEpisodeCount(nullableInt(root.path("number_of_episodes")));
+        vo.setDirector(limitLength(
+                parseTvCreator(root.path(JSON_CREATED_BY)), 100));
+        vo.setCastNames(limitLength(
+                parseCastNames(root.path(JSON_CREDITS).path("cast")), 500));
+        vo.setAgeRating(extractTvAgeRating(root));
+    }
+
     @Override
     public int loadMoviePlatformData() {
+        return loadPlatformData(CONTENT_TYPE_MOVIE);
+    }
+
+    @Override
+    public int loadTvPlatformData() {
+        return loadPlatformData("TV");
+    }
+
+    private int loadPlatformData(String contentType) {
 
         int saveCount = 0;
 
-        try {
+        for (TmdbVO vo : tmdbDAO.selectContentList()) {
 
-            for (TmdbVO vo : tmdbDAO.selectContentList()) {
+            if (contentType.equals(vo.getContentType())) {
+                Integer contentNo = tmdbDAO.findContentNo(
+                        vo.getTmdbId(), contentType);
 
-                if (!"MOVIE".equals(vo.getContentType())) {
-                    continue;
+                if (contentNo != null) {
+                    saveCount += savePlatformRelations(
+                            contentNo,
+                            vo.getTmdbId(),
+                            contentType);
                 }
-
-                Integer contentNo =
-                        tmdbDAO.findContentNo(
-                                vo.getTmdbId(),
-                                vo.getContentType());
-
-                if (contentNo == null) {
-                    continue;
-                }
-
-                ContentVO content = new ContentVO();
-
-                content.setContentNo(contentNo);
-                content.setTmdbId(vo.getTmdbId());
-                content.setContentType(vo.getContentType());
-                content.setTitle(vo.getTitle());
-
-                saveContentPlatform(content);
-
-                saveCount++;
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-        System.out.println("영화 OTT 매핑 시도 완료 : " + saveCount + "건");
 
         return saveCount;
     }
 
     @Override
     public int loadMovieFullData() {
-
-        int movieCount = loadMovieData();
-
-        int detailCount = updateMovieDetailData();
-
-        int platformCount = loadMoviePlatformData();
-
-        return movieCount + detailCount + platformCount;
+        return loadMovieData()
+                + updateMovieDetailData()
+                + loadMoviePlatformData();
     }
 
     @Override
-    public int loadTvData() {
-
-        System.out.println("TV 데이터 적재는 아직 미구현 상태입니다.");
-
-        return 0;
+    public int loadTvFullData() {
+        return loadTvData()
+                + updateTvDetailData()
+                + loadTvPlatformData();
     }
 
     @Override
     public int loadAllData() {
-
-        int movieCount = loadMovieFullData();
-        int tvCount = loadTvData();
-
-        return movieCount + tvCount;
+        return loadMovieFullData() + loadTvFullData();
     }
 
     @Override
-    public List<SearchResultVO> searchMulti(
-            String keyword,
-            int page,
-            List<String> platformList,
-            List<String> categoryList,
-            List<String> genreList) {
-
-        List<SearchResultVO> resultList = new ArrayList<SearchResultVO>();
-
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return resultList;
-        }
-
-        if (page <= 0) {
-            page = 1;
-        }
-
-        List<String> selectedPlatformList =
-                normalizeSelectedPlatformList(platformList);
-
-        List<String> selectedCategoryList =
-                normalizeSelectedCategoryList(categoryList);
-
-        List<String> selectedGenreList =
-                normalizeSelectedGenreList(genreList);
-
-        try {
-
-            String encodedKeyword =
-                    URLEncoder.encode(
-                            keyword.trim(),
-                            StandardCharsets.UTF_8);
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/search/multi"
-                    + "?query=" + encodedKeyword
-                    + "&language=" + tmdbApiLanguage
-                    + "&page=" + page
-                    + "&include_adult=false";
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode results = root.path("results");
-
-            if (!results.isArray()) {
-                return resultList;
-            }
-
-            for (JsonNode item : results) {
-
-                String mediaType = item.path("media_type").asText();
-
-                if (!"movie".equals(mediaType) && !"tv".equals(mediaType)) {
-                    continue;
-                }
-
-                Long tmdbId = item.path("id").asLong();
-
-                if (tmdbId == null || tmdbId == 0) {
-                    continue;
-                }
-
-                JsonNode genreIdsNode = item.path("genre_ids");
-
-                if (!matchesCategory(
-                        mediaType,
-                        genreIdsNode,
-                        selectedCategoryList)) {
-
-                    continue;
-                }
-
-                if (!matchesGenre(
-                        mediaType,
-                        genreIdsNode,
-                        selectedGenreList)) {
-
-                    continue;
-                }
-
-                List<String> supportedPlatformNameList =
-                        getSupportedKrPlatformNameList(
-                                tmdbId,
-                                mediaType);
-
-                if (!hasMatchedPlatform(
-                        supportedPlatformNameList,
-                        selectedPlatformList)) {
-
-                    continue;
-                }
-
-                SearchResultVO vo =
-                        createSearchResultVOFromSearchItem(
-                                item,
-                                mediaType,
-                                tmdbId);
-
-                resultList.add(vo);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return resultList;
-    }
-
-    @Override
-    public List<SearchResultVO> getPopularKrOttContent(
-            int page,
-            List<String> platformList,
-            List<String> categoryList,
-            List<String> genreList) {
-
-        List<SearchResultVO> resultList = new ArrayList<SearchResultVO>();
-
-        if (page <= 0) {
-            page = 1;
-        }
-
-        List<String> selectedPlatformList =
-                normalizeSelectedPlatformList(platformList);
-
-        List<String> selectedCategoryList =
-                normalizeSelectedCategoryList(categoryList);
-
-        List<String> selectedGenreList =
-                normalizeSelectedGenreList(genreList);
-
-        try {
-
-            if (shouldIncludeMovieCategory(selectedCategoryList)) {
-
-                List<SearchResultVO> movieList =
-                        getPopularMovieList(
-                                page,
-                                selectedPlatformList,
-                                selectedCategoryList,
-                                selectedGenreList);
-
-                resultList.addAll(movieList);
-            }
-
-            if (shouldIncludeTvCategory(selectedCategoryList)) {
-
-                List<SearchResultVO> tvList =
-                        getPopularTvList(
-                                page,
-                                selectedPlatformList,
-                                selectedCategoryList,
-                                selectedGenreList);
-
-                resultList.addAll(tvList);
-            }
-
-            Collections.sort(
-                    resultList,
-                    new Comparator<SearchResultVO>() {
-
-                        @Override
-                        public int compare(SearchResultVO o1, SearchResultVO o2) {
-
-                            Double p1 = o1.getPopularity();
-                            Double p2 = o2.getPopularity();
-
-                            if (p1 == null) {
-                                p1 = 0.0;
-                            }
-
-                            if (p2 == null) {
-                                p2 = 0.0;
-                            }
-
-                            return Double.compare(p2, p1);
-                        }
-                    });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return resultList;
-    }
-
-    @Override
-    public ContentVO getDetailForSave(Long tmdbId, String contentType) {
+    public ContentVO getDetailForSave(
+            Long tmdbId,
+            String contentType) {
 
         if (tmdbId == null) {
-            throw new IllegalArgumentException("TMDB ID가 없습니다.");
+            throw new IllegalArgumentException(
+                    "TMDB ID가 없습니다.");
         }
 
-        if (contentType == null || contentType.trim().isEmpty()) {
-            throw new IllegalArgumentException("콘텐츠 타입이 없습니다.");
-        }
+        String normalizedType = contentType == null
+                ? ""
+                : contentType.trim().toUpperCase(Locale.ROOT);
 
-        String normalizedType = contentType.trim().toUpperCase();
-
-        if ("MOVIE".equals(normalizedType)) {
-            return getMovieDetailForSave(tmdbId);
+        if (CONTENT_TYPE_MOVIE.equals(normalizedType)) {
+            return createMovieContentVO(tmdbId);
         }
 
         if ("TV".equals(normalizedType)) {
-            return getTvDetailForSave(tmdbId);
+            return createTvContentVO(tmdbId);
         }
 
-        throw new IllegalArgumentException("지원하지 않는 콘텐츠 타입입니다: " + contentType);
+        throw new IllegalArgumentException(
+                "지원하지 않는 콘텐츠 타입입니다: "
+                + contentType);
     }
 
+    /**
+     * 기존 호출부와 초기 적재 로직을 유지하기 위한 호환 메서드입니다.
+     * 플랫폼 키가 전달되지 않으므로 기존 TMDB watch/providers API를 사용합니다.
+     */
     @Override
     public void saveContentPlatform(ContentVO content) {
 
-        if (content == null) {
-            return;
-        }
+        saveContentPlatform(
+                content,
+                Collections.emptyList()
+        );
+    }
 
-        if (content.getContentNo() <= 0
+    /**
+     * 상세페이지 진입 시 검색 JSON 캐시의 platformKeys를 우선 사용하여
+     * CONTENT_PLATFORM 관계를 저장합니다.
+     *
+     * JSON 캐시는 검색·목록 화면에 실제 노출된 OTT 정보를 이미 보유하므로,
+     * 상세 진입 시 TMDB watch/providers를 다시 호출했을 때 발생할 수 있는
+     * 제공자 응답 시점 차이와 Wavve 누락 문제를 방지할 수 있습니다.
+     *
+     * platformKeys가 null이거나 비어 있는 콘텐츠만 기존 TMDB API 방식으로
+     * 대체하여 초기 적재 및 다른 기존 호출부의 동작을 유지합니다.
+     */
+    @Override
+    public void saveContentPlatform(
+            ContentVO content,
+            List<String> platformKeys) {
+
+        if (content == null
+                || content.getContentNo() <= 0
                 || content.getTmdbId() == null
                 || content.getContentType() == null) {
+            return;
+        }
+
+        List<String> safePlatformKeys =
+                platformKeys == null
+                        ? Collections.emptyList()
+                        : platformKeys;
+
+        if (!safePlatformKeys.isEmpty()) {
+
+            savePlatformRelationsFromKeys(
+                    content.getContentNo(),
+                    safePlatformKeys
+            );
 
             return;
         }
 
-        try {
-
-            String apiType = null;
-
-            if ("MOVIE".equals(content.getContentType())) {
-                apiType = "movie";
-            } else if ("TV".equals(content.getContentType())) {
-                apiType = "tv";
-            } else {
-                return;
-            }
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/"
-                    + apiType
-                    + "/"
-                    + content.getTmdbId()
-                    + "/watch/providers";
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode kr =
-                    root.path("results")
-                        .path("KR");
-
-            if (kr.isMissingNode() || kr.isNull()) {
-                return;
-            }
-
-            JsonNode flatrate = kr.path("flatrate");
-
-            if (!flatrate.isArray()) {
-                return;
-            }
-
-            for (JsonNode provider : flatrate) {
-
-                String tmdbProviderName =
-                        provider.path("provider_name").asText(null);
-
-                String platformName =
-                        convertTmdbProviderName(tmdbProviderName);
-
-                if (platformName == null) {
-                    continue;
-                }
-
-                Integer platformNo =
-                        tmdbDAO.findPlatformNo(platformName);
-
-                if (platformNo == null) {
-                    continue;
-                }
-
-                if (tmdbDAO.existsContentPlatform(
-                        content.getContentNo(),
-                        platformNo) > 0) {
-
-                    continue;
-                }
-
-                String watchUrl =
-                        createPlatformSearchUrl(
-                                platformName,
-                                content.getTitle());
-
-                tmdbDAO.insertContentPlatform(
-                        content.getContentNo(),
-                        platformNo,
-                        watchUrl);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        savePlatformRelations(
+                content.getContentNo(),
+                content.getTmdbId(),
+                content.getContentType()
+        );
     }
 
-    private List<SearchResultVO> getPopularMovieList(
-            int page,
-            List<String> selectedPlatformList,
-            List<String> selectedCategoryList,
-            List<String> selectedGenreList) {
+    /**
+     * JSON 캐시에서 전달된 내부 플랫폼 키를 DB 플랫폼명으로 변환하고,
+     * 기존 관계가 없는 OTT만 CONTENT_PLATFORM에 추가합니다.
+     *
+     * 지원 키:
+     * netflix, tving, wavve, disney, watcha, coupang
+     */
+    private int savePlatformRelationsFromKeys(
+            Integer contentNo,
+            List<String> platformKeys) {
 
-        List<SearchResultVO> movieList = new ArrayList<SearchResultVO>();
+        if (contentNo == null
+                || contentNo <= 0
+                || platformKeys == null
+                || platformKeys.isEmpty()) {
 
-        if (!matchesCategory(
-                "movie",
-                null,
-                selectedCategoryList)) {
-
-            return movieList;
+            return 0;
         }
 
-        try {
+        Set<String> normalizedKeys =
+                new LinkedHashSet<String>();
 
-            String providerIdText =
-                    getSupportedProviderIdTextForApi(selectedPlatformList);
+        for (String platformKey : platformKeys) {
 
-            if (providerIdText == null || providerIdText.isBlank()) {
-                return movieList;
+            String normalizedKey =
+                    normalizePlatformKey(platformKey);
+
+            if (!normalizedKey.isEmpty()) {
+                normalizedKeys.add(normalizedKey);
             }
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/discover/movie"
-                    + "?language=" + tmdbApiLanguage
-                    + "&region=KR"
-                    + "&watch_region=KR"
-                    + "&with_watch_monetization_types=flatrate"
-                    + "&with_watch_providers=" + providerIdText
-                    + "&sort_by=popularity.desc"
-                    + "&page=" + page;
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode results = root.path("results");
-
-            if (!results.isArray()) {
-                return movieList;
-            }
-
-            for (JsonNode item : results) {
-
-                Long tmdbId = item.path("id").asLong();
-
-                if (tmdbId == null || tmdbId == 0) {
-                    continue;
-                }
-
-                if (!matchesGenre(
-                        "movie",
-                        item.path("genre_ids"),
-                        selectedGenreList)) {
-
-                    continue;
-                }
-
-                SearchResultVO vo =
-                        createSearchResultVOFromDiscoverItem(
-                                item,
-                                "MOVIE",
-                                tmdbId);
-
-                movieList.add(vo);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        return movieList;
+        int saveCount = 0;
+
+        for (String normalizedKey : normalizedKeys) {
+            saveCount += savePlatformRelationFromKey(
+                    contentNo,
+                    normalizedKey
+            );
+        }
+
+        return saveCount;
     }
 
-    private List<SearchResultVO> getPopularTvList(
-            int page,
-            List<String> selectedPlatformList,
-            List<String> selectedCategoryList,
-            List<String> selectedGenreList) {
 
-        List<SearchResultVO> tvList = new ArrayList<SearchResultVO>();
-
-        try {
-
-            String providerIdText =
-                    getSupportedProviderIdTextForApi(selectedPlatformList);
-
-            if (providerIdText == null || providerIdText.isBlank()) {
-                return tvList;
-            }
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/discover/tv"
-                    + "?language=" + tmdbApiLanguage
-                    + "&watch_region=KR"
-                    + "&with_watch_monetization_types=flatrate"
-                    + "&with_watch_providers=" + providerIdText
-                    + "&sort_by=popularity.desc"
-                    + "&page=" + page;
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode results = root.path("results");
-
-            if (!results.isArray()) {
-                return tvList;
-            }
-
-            for (JsonNode item : results) {
-
-                Long tmdbId = item.path("id").asLong();
-
-                if (tmdbId == null || tmdbId == 0) {
-                    continue;
-                }
-
-                JsonNode genreIdsNode = item.path("genre_ids");
-
-                if (!matchesCategory(
-                        "tv",
-                        genreIdsNode,
-                        selectedCategoryList)) {
-
-                    continue;
-                }
-
-                if (!matchesGenre(
-                        "tv",
-                        genreIdsNode,
-                        selectedGenreList)) {
-
-                    continue;
-                }
-
-                SearchResultVO vo =
-                        createSearchResultVOFromDiscoverItem(
-                                item,
-                                "TV",
-                                tmdbId);
-
-                tvList.add(vo);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return tvList;
-    }
-
-    private boolean matchesCategory(
-            String mediaType,
-            JsonNode genreIdsNode,
-            List<String> selectedCategoryList) {
-
-        if (selectedCategoryList == null || selectedCategoryList.isEmpty()) {
-            return true;
-        }
-
-        if ("movie".equals(mediaType)) {
-            return selectedCategoryList.contains("MOVIE");
-        }
-
-        if (!"tv".equals(mediaType)) {
-            return false;
-        }
-
-        String tvCategory =
-                resolveTvCategory(genreIdsNode);
-
-        return selectedCategoryList.contains(tvCategory);
-    }
-
-    private String resolveTvCategory(JsonNode genreIdsNode) {
-
-        if (containsGenreId(genreIdsNode, TV_GENRE_ANIMATION)) {
-            return "ANIMATION";
-        }
-
-        if (containsGenreId(genreIdsNode, TV_GENRE_REALITY)
-                || containsGenreId(genreIdsNode, TV_GENRE_TALK)) {
-
-            return "ENTERTAINMENT";
-        }
-
-        if (containsGenreId(genreIdsNode, TV_GENRE_DOCUMENTARY)) {
-            return "DOCUMENTARY";
-        }
-
-        return "DRAMA";
-    }
-
-    private boolean matchesGenre(
-            String mediaType,
-            JsonNode genreIdsNode,
-            List<String> selectedGenreList) {
-
-        if (selectedGenreList == null || selectedGenreList.isEmpty()) {
-            return true;
-        }
-
-        if (genreIdsNode == null || !genreIdsNode.isArray()) {
-            return false;
-        }
-
-        for (String selectedGenre : selectedGenreList) {
-
-            if (matchesSingleGenre(
-                    mediaType,
-                    genreIdsNode,
-                    selectedGenre)) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean matchesSingleGenre(
-            String mediaType,
-            JsonNode genreIdsNode,
-            String selectedGenre) {
-
-        if (selectedGenre == null) {
-            return false;
-        }
-
-        if ("movie".equals(mediaType)) {
-            return matchesMovieGenre(genreIdsNode, selectedGenre);
-        }
-
-        if ("tv".equals(mediaType)) {
-            return matchesTvGenre(genreIdsNode, selectedGenre);
-        }
-
-        return false;
-    }
-
-    private boolean matchesMovieGenre(
-            JsonNode genreIdsNode,
-            String selectedGenre) {
-
-        if ("ACTION".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_ACTION);
-        }
-
-        if ("COMEDY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_COMEDY);
-        }
-
-        if ("THRILLER".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_THRILLER);
-        }
-
-        if ("ROMANCE".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_ROMANCE);
-        }
-
-        if ("CRIME".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_CRIME);
-        }
-
-        if ("FANTASY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_FANTASY);
-        }
-
-        if ("HORROR".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_HORROR);
-        }
-
-        if ("MYSTERY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_MYSTERY);
-        }
-
-        if ("SF".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_SF);
-        }
-
-        if ("DRAMA".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, MOVIE_GENRE_DRAMA);
-        }
-
-        return false;
-    }
-
-    private boolean matchesTvGenre(
-            JsonNode genreIdsNode,
-            String selectedGenre) {
-
-        if ("ACTION".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_ACTION_ADVENTURE);
-        }
-
-        if ("COMEDY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_COMEDY);
-        }
-
-        if ("THRILLER".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_MYSTERY)
-                    || containsGenreId(genreIdsNode, TV_GENRE_CRIME)
-                    || containsGenreId(genreIdsNode, TV_GENRE_SF_FANTASY);
-        }
-
-        if ("ROMANCE".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_DRAMA)
-                    || containsGenreId(genreIdsNode, TV_GENRE_SOAP);
-        }
-
-        if ("CRIME".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_CRIME);
-        }
-
-        if ("FANTASY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_SF_FANTASY);
-        }
-
-        if ("HORROR".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_MYSTERY)
-                    || containsGenreId(genreIdsNode, TV_GENRE_SF_FANTASY);
-        }
-
-        if ("MYSTERY".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_MYSTERY);
-        }
-
-        if ("SF".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_SF_FANTASY);
-        }
-
-        if ("DRAMA".equals(selectedGenre)) {
-            return containsGenreId(genreIdsNode, TV_GENRE_DRAMA)
-                    || containsGenreId(genreIdsNode, TV_GENRE_SOAP);
-        }
-
-        return false;
-    }
-
-    private boolean containsGenreId(
-            JsonNode genreIdsNode,
-            int genreId) {
-
-        if (genreIdsNode == null || !genreIdsNode.isArray()) {
-            return false;
-        }
-
-        for (JsonNode genreNode : genreIdsNode) {
-
-            if (genreNode.asInt() == genreId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean shouldIncludeMovieCategory(
-            List<String> selectedCategoryList) {
-
-        if (selectedCategoryList == null || selectedCategoryList.isEmpty()) {
-            return true;
-        }
-
-        return selectedCategoryList.contains("MOVIE");
-    }
-
-    private boolean shouldIncludeTvCategory(
-            List<String> selectedCategoryList) {
-
-        if (selectedCategoryList == null || selectedCategoryList.isEmpty()) {
-            return true;
-        }
-
-        if (selectedCategoryList.contains("DRAMA")) {
-            return true;
-        }
-
-        if (selectedCategoryList.contains("ANIMATION")) {
-            return true;
-        }
-
-        if (selectedCategoryList.contains("ENTERTAINMENT")) {
-            return true;
-        }
-
-        if (selectedCategoryList.contains("DOCUMENTARY")) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private SearchResultVO createSearchResultVOFromSearchItem(
-            JsonNode item,
-            String mediaType,
-            Long tmdbId) {
-
-        SearchResultVO vo = new SearchResultVO();
-
-        vo.setTmdbId(tmdbId);
-
-        if ("movie".equals(mediaType)) {
-
-            vo.setContentType("MOVIE");
-
-            String title = item.path("title").asText(null);
-            String originalTitle = item.path("original_title").asText(null);
-
-            if (title == null || title.isBlank()) {
-                title = originalTitle;
-            }
-
-            vo.setTitle(title);
-            vo.setReleaseDate(item.path("release_date").asText(null));
-
-        } else {
-
-            vo.setContentType("TV");
-
-            String title = item.path("name").asText(null);
-            String originalTitle = item.path("original_name").asText(null);
-
-            if (title == null || title.isBlank()) {
-                title = originalTitle;
-            }
-
-            vo.setTitle(title);
-            vo.setReleaseDate(item.path("first_air_date").asText(null));
-        }
-
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
-
-        if (!item.path("vote_average").isMissingNode()
-                && !item.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(item.path("vote_average").asDouble());
-        }
-
-        if (!item.path("popularity").isMissingNode()
-                && !item.path("popularity").isNull()) {
-
-            vo.setPopularity(item.path("popularity").asDouble());
-        }
-
-        return vo;
-    }
-
-    private SearchResultVO createSearchResultVOFromDiscoverItem(
-            JsonNode item,
-            String contentType,
-            Long tmdbId) {
-
-        SearchResultVO vo = new SearchResultVO();
-
-        vo.setTmdbId(tmdbId);
-        vo.setContentType(contentType);
-
-        if ("MOVIE".equals(contentType)) {
-
-            String title = item.path("title").asText(null);
-            String originalTitle = item.path("original_title").asText(null);
-
-            if (title == null || title.isBlank()) {
-                title = originalTitle;
-            }
-
-            vo.setTitle(title);
-            vo.setReleaseDate(item.path("release_date").asText(null));
-
-        } else {
-
-            String title = item.path("name").asText(null);
-            String originalTitle = item.path("original_name").asText(null);
-
-            if (title == null || title.isBlank()) {
-                title = originalTitle;
-            }
-
-            vo.setTitle(title);
-            vo.setReleaseDate(item.path("first_air_date").asText(null));
-        }
-
-        vo.setOverview(item.path("overview").asText(null));
-        vo.setPosterPath(item.path("poster_path").asText(null));
-
-        if (!item.path("vote_average").isMissingNode()
-                && !item.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(item.path("vote_average").asDouble());
-        }
-
-        if (!item.path("popularity").isMissingNode()
-                && !item.path("popularity").isNull()) {
-
-            vo.setPopularity(item.path("popularity").asDouble());
-        }
-
-        return vo;
-    }
-
-    private boolean hasMatchedPlatform(
-            List<String> supportedPlatformNameList,
-            List<String> selectedPlatformList) {
-
-        if (supportedPlatformNameList == null
-                || supportedPlatformNameList.isEmpty()) {
-
-            return false;
-        }
-
-        if (selectedPlatformList == null
-                || selectedPlatformList.isEmpty()) {
-
-            return true;
-        }
-
-        for (String selectedPlatform : selectedPlatformList) {
-
-            if (supportedPlatformNameList.contains(selectedPlatform)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private List<String> getSupportedKrPlatformNameList(
-            Long tmdbId,
-            String mediaType) {
-
-        List<String> platformNameList = new ArrayList<String>();
-
-        if (tmdbId == null || tmdbId == 0) {
-            return platformNameList;
-        }
-
-        if (!"movie".equals(mediaType) && !"tv".equals(mediaType)) {
-            return platformNameList;
-        }
-
-        try {
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/"
-                    + mediaType
-                    + "/"
-                    + tmdbId
-                    + "/watch/providers";
-
-            JsonNode root = callTmdbApi(url);
-
-            JsonNode kr =
-                    root.path("results")
-                        .path("KR");
-
-            if (kr.isMissingNode() || kr.isNull()) {
-                return platformNameList;
-            }
-
-            JsonNode flatrate = kr.path("flatrate");
-
-            if (!flatrate.isArray()) {
-                return platformNameList;
-            }
-
-            for (JsonNode provider : flatrate) {
-
-                String tmdbProviderName =
-                        provider.path("provider_name").asText(null);
-
-                String platformName =
-                        convertTmdbProviderName(tmdbProviderName);
-
-                if (platformName == null) {
-                    continue;
-                }
-
-                if (!platformNameList.contains(platformName)) {
-                    platformNameList.add(platformName);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return platformNameList;
-    }
-
-    private String getSupportedProviderIdTextForApi(
-            List<String> selectedPlatformList) {
-
-        String providerIdText = "";
-
-        try {
-
-            RestTemplate restTemplate = new RestTemplate();
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-            providerIdText =
-                    getSupportedProviderIdText(
-                            restTemplate,
-                            objectMapper,
-                            entity,
-                            selectedPlatformList);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return providerIdText;
-    }
-
-    private String getSupportedProviderIdText(
-            RestTemplate restTemplate,
-            ObjectMapper objectMapper,
-            HttpEntity<String> entity,
-            List<String> selectedPlatformList) {
-
-        Set<String> providerIdSet = new LinkedHashSet<String>();
-
-        try {
-
-            String url =
-                    tmdbApiBaseUrl
-                    + "/watch/providers/movie"
-                    + "?language=ko-KR"
-                    + "&watch_region=KR";
-
-            ResponseEntity<String> response =
-                    restTemplate.exchange(
-                            url,
-                            HttpMethod.GET,
-                            entity,
-                            String.class);
-
-            JsonNode root = objectMapper.readTree(response.getBody());
-
-            JsonNode results = root.path("results");
-
-            if (!results.isArray()) {
-                return "";
-            }
-
-            for (JsonNode provider : results) {
-
-                String providerName =
-                        provider.path("provider_name").asText();
-
-                int providerId =
-                        provider.path("provider_id").asInt();
-
-                String platformName =
-                        convertTmdbProviderName(providerName);
-
-                if (platformName == null) {
-                    continue;
-                }
-
-                if (selectedPlatformList != null
-                        && !selectedPlatformList.isEmpty()
-                        && !selectedPlatformList.contains(platformName)) {
-
-                    continue;
-                }
-
-                if (providerId > 0) {
-                    providerIdSet.add(String.valueOf(providerId));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return String.join("|", providerIdSet);
-    }
-
-    private List<String> normalizeSelectedPlatformList(
-            List<String> platformList) {
-
-        List<String> selectedPlatformList = new ArrayList<String>();
-
-        if (platformList == null || platformList.isEmpty()) {
-            return selectedPlatformList;
-        }
-
-        for (String platform : platformList) {
-
-            String normalizedPlatform = normalizePlatformName(platform);
-
-            if (normalizedPlatform == null) {
-                continue;
-            }
-
-            if (!selectedPlatformList.contains(normalizedPlatform)) {
-                selectedPlatformList.add(normalizedPlatform);
-            }
-        }
-
-        return selectedPlatformList;
-    }
-
-    private String normalizePlatformName(String platformName) {
+    private int savePlatformRelationFromKey(
+            Integer contentNo,
+            String normalizedKey) {
+
+        String platformName =
+                convertPlatformKeyToDbName(
+                        normalizedKey
+                );
 
         if (platformName == null) {
-            return null;
+            return 0;
         }
 
-        String name = platformName.trim();
+        Integer platformNo =
+                tmdbDAO.findPlatformNo(
+                        platformName
+                );
 
-        if ("Netflix".equalsIgnoreCase(name)) {
+        if (platformNo == null
+                || tmdbDAO.existsContentPlatform(
+                        contentNo,
+                        platformNo
+                ) > 0) {
+
+            return 0;
+        }
+
+        tmdbDAO.insertContentPlatform(
+                contentNo,
+                platformNo
+        );
+
+        return 1;
+    }
+
+    /**
+     * JSON 플랫폼 키의 대소문자, 공백, 특수문자 차이를 제거합니다.
+     */
+    private String normalizePlatformKey(
+            String platformKey) {
+
+        if (platformKey == null) {
+            return "";
+        }
+
+        String normalized =
+                platformKey.trim()
+                        .toLowerCase(Locale.ROOT)
+                        .replaceAll("[^a-z0-9]", "");
+
+        if (normalized.contains(PLATFORM_KEY_NETFLIX)) {
+            return PLATFORM_KEY_NETFLIX;
+        }
+
+        if (normalized.contains(PLATFORM_KEY_TVING)) {
+            return PLATFORM_KEY_TVING;
+        }
+
+        if (normalized.contains(PLATFORM_KEY_WAVVE)) {
+            return PLATFORM_KEY_WAVVE;
+        }
+
+        if (normalized.contains(PLATFORM_KEY_DISNEY)) {
+            return PLATFORM_KEY_DISNEY;
+        }
+
+        if (normalized.contains(PLATFORM_KEY_WATCHA)) {
+            return PLATFORM_KEY_WATCHA;
+        }
+
+        if (normalized.contains(PLATFORM_KEY_COUPANG)) {
+            return PLATFORM_KEY_COUPANG;
+        }
+
+        return "";
+    }
+
+    /**
+     * 검색 JSON 내부 키를 현재 OTT_PLATFORM 테이블의 플랫폼명으로 변환합니다.
+     * Mapper에서도 대소문자를 무시하므로 DB 표기 변경에도 안전하게 조회됩니다.
+     */
+    private String convertPlatformKeyToDbName(
+            String platformKey) {
+
+        if (PLATFORM_KEY_NETFLIX.equals(platformKey)) {
             return "Netflix";
         }
 
-        if ("TVING".equalsIgnoreCase(name)) {
+        if (PLATFORM_KEY_TVING.equals(platformKey)) {
             return "TVING";
         }
 
-        if ("wavve".equalsIgnoreCase(name)) {
-            return "wavve";
+        if (PLATFORM_KEY_WAVVE.equals(platformKey)) {
+            return PLATFORM_KEY_WAVVE;
         }
 
-        if ("Disney Plus".equalsIgnoreCase(name)
-                || "Disney+".equalsIgnoreCase(name)
-                || "DisneyPlus".equalsIgnoreCase(name)) {
-
+        if (PLATFORM_KEY_DISNEY.equals(platformKey)) {
             return "Disney Plus";
         }
 
-        if ("Watcha".equalsIgnoreCase(name)
-                || "WATCHA".equalsIgnoreCase(name)) {
-
+        if (PLATFORM_KEY_WATCHA.equals(platformKey)) {
             return "Watcha";
         }
 
+        if (PLATFORM_KEY_COUPANG.equals(platformKey)) {
+            return "Coupangplay";
+        }
+
         return null;
     }
 
-    private List<String> normalizeSelectedCategoryList(
-            List<String> categoryList) {
+    private int savePlatformRelations(
+            Integer contentNo,
+            Long tmdbId,
+            String contentType) {
 
-        List<String> selectedCategoryList = new ArrayList<String>();
+        String apiType =
+                CONTENT_TYPE_MOVIE.equals(contentType) ? API_TYPE_MOVIE : "tv";
 
-        if (categoryList == null || categoryList.isEmpty()) {
-            return selectedCategoryList;
+        JsonNode flatrate = callTmdbApi(
+                tmdbApiBaseUrl
+                + "/" + apiType
+                + "/" + tmdbId
+                + "/watch/providers")
+                .path(JSON_RESULTS)
+                .path(tmdbApiRegion)
+                .path("flatrate");
+
+        if (!flatrate.isArray()) {
+            return 0;
         }
 
-        for (String category : categoryList) {
+        int saveCount = 0;
 
-            String normalizedCategory = normalizeCategoryName(category);
+        for (JsonNode provider : flatrate) {
+            saveCount += saveProviderRelation(
+                    contentNo,
+                    provider
+            );
+        }
 
-            if (normalizedCategory == null) {
+        return saveCount;
+    }
+
+
+    private int saveProviderRelation(
+            Integer contentNo,
+            JsonNode provider) {
+
+        String platformName =
+                convertTmdbProviderName(
+                        provider.path("provider_name")
+                                .asString(null)
+                );
+
+        if (platformName == null) {
+            return 0;
+        }
+
+        Integer platformNo =
+                tmdbDAO.findPlatformNo(
+                        platformName
+                );
+
+        if (platformNo == null
+                || tmdbDAO.existsContentPlatform(
+                        contentNo,
+                        platformNo
+                ) > 0) {
+
+            return 0;
+        }
+
+        tmdbDAO.insertContentPlatform(
+                contentNo,
+                platformNo
+        );
+
+        return 1;
+    }
+
+    /**
+     * 상품 등록 화면에서 DB 저장 전에 표시할 출연 배우를 TMDB에서 조회합니다.
+     * 실제 저장 제한과 동일하게 상위 CAST_SAVE_LIMIT명만 반환합니다.
+     */
+    @Override
+    public List<ActorVO> getContentActorPreview(
+            Long tmdbId,
+            String contentType) {
+
+        if (tmdbId == null
+                || tmdbId <= 0
+                || contentType == null
+                || contentType.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "배우 조회에 필요한 콘텐츠 정보가 없습니다."
+            );
+        }
+
+        String normalizedType =
+                contentType.trim()
+                        .toUpperCase(Locale.ROOT);
+
+        if (!CONTENT_TYPE_MOVIE.equals(normalizedType)
+                && !"TV".equals(normalizedType)) {
+
+            throw new IllegalArgumentException(
+                    "지원하지 않는 콘텐츠 타입입니다."
+            );
+        }
+
+        JsonNode castNode =
+                getDetailRoot(
+                        tmdbId,
+                        normalizedType,
+                        true
+                ).path(JSON_CREDITS).path("cast");
+
+        if (!castNode.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<ActorVO> actorList =
+                new ArrayList<ActorVO>();
+
+        int displayOrder = 1;
+
+        for (JsonNode cast : castNode) {
+
+            long tmdbActorId = cast.path("id").asLong();
+            String actorName = cast.path("name").asString(null);
+
+            if (displayOrder <= CAST_SAVE_LIMIT
+                    && tmdbActorId > 0
+                    && actorName != null
+                    && !actorName.isBlank()) {
+
+                ActorVO actor = new ActorVO();
+                actor.setTmdbActorId(tmdbActorId);
+                actor.setActorName(limitLength(actorName, 100));
+                actor.setProfilePath(
+                        cast.path(JSON_PROFILE_PATH).asString(null)
+                );
+                actor.setCharacterName(
+                        limitLength(
+                                cast.path(JSON_CHARACTER).asString(null),
+                                100
+                        )
+                );
+                actor.setDisplayOrder(displayOrder);
+
+                actorList.add(actor);
+                displayOrder++;
+            }
+        }
+
+        return actorList;
+    }
+
+    @Override
+    public void saveContentPeople(ContentVO content) {
+
+        if (content == null
+                || content.getContentNo() <= 0
+                || content.getTmdbId() == null
+                || content.getContentType() == null) {
+            return;
+        }
+
+        String contentType =
+                content.getContentType()
+                        .trim()
+                        .toUpperCase(Locale.ROOT);
+
+        JsonNode root = getDetailRoot(
+                content.getTmdbId(),
+                contentType,
+                true);
+
+        savePeople(
+                content.getContentNo(),
+                contentType,
+                root);
+    }
+
+    private void savePeople(
+            Integer contentNo,
+            String contentType,
+            JsonNode root) {
+
+        saveActorData(
+                contentNo,
+                root.path(JSON_CREDITS).path("cast"));
+
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
+            saveMovieDirectorData(
+                    contentNo,
+                    root.path(JSON_CREDITS).path("crew"));
+        } else {
+            saveTvCreatorData(
+                    contentNo,
+                    root.path(JSON_CREATED_BY));
+
+            saveMovieDirectorData(
+                    contentNo,
+                    root.path(JSON_CREDITS).path("crew"));
+        }
+    }
+
+    private ContentVO createMovieContentVO(Long tmdbId) {
+        return createContentVO(tmdbId, CONTENT_TYPE_MOVIE);
+    }
+
+    private ContentVO createTvContentVO(Long tmdbId) {
+        return createContentVO(tmdbId, "TV");
+    }
+
+    private ContentVO createContentVO(
+            Long tmdbId,
+            String contentType) {
+
+        boolean movie = CONTENT_TYPE_MOVIE.equals(contentType);
+        JsonNode root = getDetailRoot(tmdbId, contentType, true);
+
+        String titleKey = movie ? JSON_TITLE : "name";
+        String originalTitleKey = movie
+                ? JSON_ORIGINAL_TITLE
+                : JSON_ORIGINAL_NAME;
+        String releaseDateKey = movie
+                ? JSON_RELEASE_DATE
+                : JSON_FIRST_AIR_DATE;
+
+        ContentVO vo = new ContentVO();
+        vo.setTmdbId(root.path("id").asLong());
+        vo.setContentType(contentType);
+        vo.setTitle(firstNonBlank(
+                root.path(titleKey).asString(null),
+                root.path(originalTitleKey).asString(null)));
+        vo.setOriginalTitle(root.path(originalTitleKey).asString(null));
+        vo.setOverview(root.path(JSON_OVERVIEW).asString(null));
+        vo.setPosterPath(root.path(JSON_POSTER_PATH).asString(null));
+        vo.setBackdropPath(root.path(JSON_BACKDROP_PATH).asString(null));
+        vo.setReleaseDate(parseDate(
+                root.path(releaseDateKey).asString(null)));
+        vo.setGenreText(parseGenreText(root.path(JSON_GENRES)));
+        vo.setCastNames(limitLength(
+                parseCastNames(root.path(JSON_CREDITS).path("cast")),
+                500));
+        vo.setTmdbScore(nullableDouble(
+                root.path(JSON_VOTE_AVERAGE)));
+
+        if (movie) {
+            fillMovieSpecificContent(vo, root);
+        } else {
+            fillTvSpecificContent(vo, root);
+        }
+
+        return vo;
+    }
+
+    private void fillMovieSpecificContent(
+            ContentVO vo,
+            JsonNode root) {
+
+        vo.setRuntime(nullableInt(root.path("runtime")));
+        vo.setEpisodeCount(null);
+        vo.setDirector(limitLength(
+                parseDirector(root.path(JSON_CREDITS).path("crew")),
+                100));
+        vo.setAgeRating(extractMovieAgeRating(root));
+    }
+
+    private void fillTvSpecificContent(
+            ContentVO vo,
+            JsonNode root) {
+
+        vo.setRuntime(parseTvRuntime(root.path("episode_run_time")));
+        vo.setEpisodeCount(nullableInt(root.path("number_of_episodes")));
+        vo.setDirector(limitLength(
+                parseTvCreator(root.path(JSON_CREATED_BY)),
+                100));
+        vo.setAgeRating(extractTvAgeRating(root));
+    }
+
+    private JsonNode getDetailRoot(
+            Long tmdbId,
+            String contentType,
+            boolean includeCredits) {
+
+        if (CONTENT_TYPE_MOVIE.equals(contentType)) {
+            return callTmdbApi(
+                    tmdbApiBaseUrl
+                    + "/movie/" + tmdbId
+                    + QUERY_LANGUAGE + tmdbApiLanguage
+                    + (includeCredits
+                            ? "&append_to_response=credits,release_dates"
+                            : ""));
+        }
+
+        return callTmdbApi(
+                tmdbApiBaseUrl
+                + "/tv/" + tmdbId
+                + QUERY_LANGUAGE + tmdbApiLanguage
+                + (includeCredits
+                        ? "&append_to_response=credits,content_ratings"
+                        : ""));
+    }
+
+    private void saveActorData(
+            Integer contentNo,
+            JsonNode castNode) {
+
+        if (castNode == null || !castNode.isArray()) {
+            return;
+        }
+
+        int displayOrder = 1;
+
+        for (JsonNode cast : castNode) {
+
+            long tmdbActorId = cast.path("id").asLong();
+            String actorName = cast.path("name").asString(null);
+
+            if (displayOrder <= CAST_SAVE_LIMIT
+                    && tmdbActorId > 0
+                    && actorName != null
+                    && !actorName.isBlank()) {
+
+                Integer actorNo =
+                        tmdbDAO.findActorNoByTmdbId(tmdbActorId);
+
+                if (actorNo == null) {
+                    ActorVO actor = new ActorVO();
+                    actor.setTmdbActorId(tmdbActorId);
+                    actor.setActorName(
+                            limitLength(actorName, 100));
+                    actor.setProfilePath(
+                            cast.path(JSON_PROFILE_PATH).asString(null));
+                    tmdbDAO.insertActor(actor);
+                    actorNo =
+                            tmdbDAO.findActorNoByTmdbId(tmdbActorId);
+                }
+
+                if (actorNo != null
+                        && tmdbDAO.existsContentActor(
+                                contentNo, actorNo) == 0) {
+                    tmdbDAO.insertContentActor(
+                            contentNo,
+                            actorNo,
+                            limitLength(
+                                    cast.path(JSON_CHARACTER).asString(null),
+                                    100),
+                            displayOrder);
+                }
+
+                displayOrder++;
+            }
+        }
+    }
+
+    private void saveMovieDirectorData(
+            Integer contentNo,
+            JsonNode crewNode) {
+
+        if (crewNode == null || !crewNode.isArray()) {
+            return;
+        }
+
+        int displayOrder = 1;
+
+        for (JsonNode crew : crewNode) {
+
+            if (!JOB_DIRECTOR.equals(
+                    crew.path("job").asString(null))) {
                 continue;
             }
 
-            if (!selectedCategoryList.contains(normalizedCategory)) {
-                selectedCategoryList.add(normalizedCategory);
+            saveDirectorRelation(
+                    contentNo,
+                    crew,
+                    ROLE_DIRECTOR,
+                    displayOrder++);
+        }
+    }
+
+    private void saveTvCreatorData(
+            Integer contentNo,
+            JsonNode createdByNode) {
+
+        if (createdByNode == null
+                || !createdByNode.isArray()) {
+            return;
+        }
+
+        int displayOrder = 1;
+
+        for (JsonNode creator : createdByNode) {
+            saveDirectorRelation(
+                    contentNo,
+                    creator,
+                    "CREATOR",
+                    displayOrder++);
+        }
+    }
+
+    private void saveDirectorRelation(
+            Integer contentNo,
+            JsonNode personNode,
+            String directorType,
+            Integer displayOrder) {
+
+        long tmdbDirectorId =
+                personNode.path("id").asLong();
+
+        String directorName =
+                personNode.path("name").asString(null);
+
+        if (tmdbDirectorId <= 0
+                || directorName == null
+                || directorName.isBlank()) {
+            return;
+        }
+
+        Integer directorNo =
+                tmdbDAO.findDirectorNoByTmdbId(
+                        tmdbDirectorId);
+
+        if (directorNo == null) {
+            DirectorVO director = new DirectorVO();
+            director.setTmdbDirectorId(tmdbDirectorId);
+            director.setDirectorName(
+                    limitLength(directorName, 100));
+            director.setProfilePath(
+                    personNode.path(JSON_PROFILE_PATH)
+                            .asString(null));
+            tmdbDAO.insertDirector(director);
+
+            directorNo =
+                    tmdbDAO.findDirectorNoByTmdbId(
+                            tmdbDirectorId);
+        }
+
+        if (directorNo != null
+                && tmdbDAO.existsContentDirector(
+                        contentNo, directorNo) == 0) {
+            tmdbDAO.insertContentDirector(
+                    contentNo,
+                    directorNo,
+                    directorType,
+                    displayOrder);
+        }
+    }
+
+    private String getSupportedProviderIdText(
+            String apiType,
+            List<String> selectedPlatforms) {
+
+        Set<String> ids = new LinkedHashSet<String>();
+
+        JsonNode results = callTmdbApi(
+                tmdbApiBaseUrl
+                + "/watch/providers/" + apiType
+                + QUERY_LANGUAGE + tmdbApiLanguage
+                + "&watch_region=" + tmdbApiRegion)
+                .path(JSON_RESULTS);
+
+        if (!results.isArray()) {
+            return "";
+        }
+
+        for (JsonNode provider : results) {
+
+            String platformName =
+                    convertTmdbProviderName(
+                            provider.path("provider_name")
+                                    .asString(null));
+
+            int providerId =
+                    provider.path("provider_id").asInt();
+
+            if (platformName != null
+                    && providerId > 0
+                    && (selectedPlatforms == null
+                            || selectedPlatforms.isEmpty()
+                            || selectedPlatforms.contains(
+                                    platformName))) {
+
+                ids.add(String.valueOf(providerId));
             }
         }
 
-        return selectedCategoryList;
+        return String.join("|", ids);
     }
 
-    private String normalizeCategoryName(String categoryName) {
+    private String convertTmdbProviderName(String name) {
 
-        if (categoryName == null) {
-            return null;
+    if (name == null) {
+        return null;
+    }
+
+    String normalized = name.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("_", "")
+                .replace("-", "")
+                .replace("+", "");
+
+        if (normalized.contains(PLATFORM_KEY_NETFLIX)) {
+            return "Netflix";
         }
 
-        String name = categoryName.trim();
-
-        if ("MOVIE".equalsIgnoreCase(name)) {
-            return "MOVIE";
+        if (normalized.contains(PLATFORM_KEY_TVING)) {
+            return "TVING";
         }
 
-        if ("DRAMA".equalsIgnoreCase(name)) {
-            return "DRAMA";
+        if (normalized.contains(PLATFORM_KEY_WAVVE)) {
+            return "Wavve";
         }
 
-        if ("ANIMATION".equalsIgnoreCase(name)) {
-            return "ANIMATION";
+        if (normalized.contains(PLATFORM_KEY_DISNEY)) {
+            return "Disney Plus";
         }
 
-        if ("ENTERTAINMENT".equalsIgnoreCase(name)
-                || "REALITY".equalsIgnoreCase(name)
-                || "VARIETY".equalsIgnoreCase(name)) {
-
-            return "ENTERTAINMENT";
+        if (normalized.contains(PLATFORM_KEY_WATCHA)) {
+            return "Watcha";
         }
 
-        if ("DOCUMENTARY".equalsIgnoreCase(name)
-                || "DOCU".equalsIgnoreCase(name)) {
-
-            return "DOCUMENTARY";
+        if (normalized.contains(PLATFORM_KEY_COUPANG)) {
+            return "Coupangplay";
         }
 
         return null;
     }
 
-    private List<String> normalizeSelectedGenreList(
-            List<String> genreList) {
+    private boolean shouldExcludeContent(JsonNode item) {
 
-        List<String> selectedGenreList = new ArrayList<String>();
-
-        if (genreList == null || genreList.isEmpty()) {
-            return selectedGenreList;
+        if (item == null || item.isNull()) {
+            return true;
         }
 
-        for (String genre : genreList) {
+        if (item.path("adult").asBoolean(false)) {
+            return true;
+        }
 
-            String normalizedGenre = normalizeGenreName(genre);
+        String title = firstNonBlank(
+                item.path(JSON_TITLE).asString(null),
+                item.path("name").asString(null));
 
-            if (normalizedGenre == null) {
-                continue;
-            }
+        String originalTitle = firstNonBlank(
+                item.path(JSON_ORIGINAL_TITLE).asString(null),
+                item.path(JSON_ORIGINAL_NAME).asString(null));
 
-            if (!selectedGenreList.contains(normalizedGenre)) {
-                selectedGenreList.add(normalizedGenre);
+        String overview = item.path(JSON_OVERVIEW).asString("");
+
+        String checkText = normalizeBlockedText(
+                (title == null ? "" : title)
+                + " "
+                + (originalTitle == null ? "" : originalTitle)
+                + " "
+                + overview);
+
+        String[] blockedKeywords = {
+                "성인영화",
+                "에로영화",
+                "에로틱",
+                "포르노",
+                "porn",
+                "porno",
+                "adultmovie",
+                "섹스무비",
+                "무삭제판",
+                "19금에로",
+                "바람난형수님",
+                "형수님참교육"
+        };
+
+        for (String keyword : blockedKeywords) {
+            if (checkText.contains(normalizeBlockedText(keyword))) {
+                return true;
             }
         }
 
-        return selectedGenreList;
+        return false;
     }
 
-    private String normalizeGenreName(String genreName) {
+    private String normalizeBlockedText(String value) {
 
-        if (genreName == null) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]", "");
+    }
+
+    private String convertGenreIdsToText(
+            JsonNode genreIds,
+            String contentType) {
+
+        if (genreIds == null || !genreIds.isArray()) {
             return null;
         }
 
-        String name = genreName.trim();
+        List<String> names = new ArrayList<String>();
 
-        if ("ACTION".equalsIgnoreCase(name)) {
-            return "ACTION";
+        for (JsonNode idNode : genreIds) {
+
+            String name = resolveGenreName(
+                    idNode.asInt(), contentType);
+
+            if (name != null && !names.contains(name)) {
+                names.add(name);
+            }
         }
 
-        if ("COMEDY".equalsIgnoreCase(name)) {
-            return "COMEDY";
-        }
-
-        if ("THRILLER".equalsIgnoreCase(name)) {
-            return "THRILLER";
-        }
-
-        if ("ROMANCE".equalsIgnoreCase(name)) {
-            return "ROMANCE";
-        }
-
-        if ("CRIME".equalsIgnoreCase(name)) {
-            return "CRIME";
-        }
-
-        if ("FANTASY".equalsIgnoreCase(name)) {
-            return "FANTASY";
-        }
-
-        if ("HORROR".equalsIgnoreCase(name)) {
-            return "HORROR";
-        }
-
-        if ("MYSTERY".equalsIgnoreCase(name)) {
-            return "MYSTERY";
-        }
-
-        if ("SF".equalsIgnoreCase(name)
-                || "SCIENCE_FICTION".equalsIgnoreCase(name)
-                || "SCIENCEFICTION".equalsIgnoreCase(name)) {
-
-            return "SF";
-        }
-
-        if ("DRAMA".equalsIgnoreCase(name)) {
-            return "DRAMA";
-        }
-
-        return null;
+        return names.isEmpty()
+                ? null
+                : String.join(", ", names);
     }
+
+    private String resolveGenreName(
+            int genreId,
+            String contentType) {
+
+        return CONTENT_TYPE_MOVIE.equals(contentType)
+                ? MOVIE_GENRES.get(genreId)
+                : TV_GENRES.get(genreId);
+    }
+
 
     private JsonNode callTmdbApi(String url) {
 
         try {
-
-            RestTemplate restTemplate = new RestTemplate();
-            ObjectMapper objectMapper = new ObjectMapper();
-
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
 
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
+            HttpEntity<String> entity =
+                    new HttpEntity<String>(headers);
 
             ResponseEntity<String> response =
                     restTemplate.exchange(
@@ -1526,127 +1209,23 @@ public class TmdbServiceImpl implements TmdbService {
                             entity,
                             String.class);
 
-            return objectMapper.readTree(response.getBody());
+            return jsonMapper.readTree(
+                    response.getBody());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException(
+                    "TMDB API 호출 실패: " + url, e);
         }
-
-        throw new IllegalStateException("TMDB API 호출에 실패했습니다. URL=" + url);
     }
 
-    private ContentVO getMovieDetailForSave(Long tmdbId) {
+    private LocalDate parseDate(String text) {
 
-        String url =
-                tmdbApiBaseUrl
-                + "/movie/"
-                + tmdbId
-                + "?language="
-                + tmdbApiLanguage
-                + "&append_to_response=credits,release_dates";
-
-        JsonNode root = callTmdbApi(url);
-
-        ContentVO vo = new ContentVO();
-
-        vo.setTmdbId(root.path("id").asLong());
-        vo.setContentType("MOVIE");
-
-        String title = root.path("title").asText(null);
-        String originalTitle = root.path("original_title").asText(null);
-
-        if (title == null || title.isBlank()) {
-            title = originalTitle;
-        }
-
-        vo.setTitle(title);
-        vo.setOriginalTitle(originalTitle);
-        vo.setOverview(root.path("overview").asText(null));
-        vo.setPosterPath(root.path("poster_path").asText(null));
-        vo.setBackdropPath(root.path("backdrop_path").asText(null));
-        vo.setReleaseDate(parseDate(root.path("release_date").asText(null)));
-        vo.setGenreText(parseGenreText(root.path("genres")));
-
-        if (!root.path("runtime").isMissingNode()
-                && !root.path("runtime").isNull()) {
-
-            vo.setRuntime(root.path("runtime").asInt());
-        }
-
-        vo.setEpisodeCount(null);
-        vo.setDirector(parseDirector(root.path("credits").path("crew")));
-        vo.setCastNames(parseCastNames(root.path("credits").path("cast")));
-        vo.setAgeRating(extractAgeRating(root));
-
-        if (!root.path("vote_average").isMissingNode()
-                && !root.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(root.path("vote_average").asDouble());
-        }
-
-        return vo;
-    }
-
-    private ContentVO getTvDetailForSave(Long tmdbId) {
-
-        String url =
-                tmdbApiBaseUrl
-                + "/tv/"
-                + tmdbId
-                + "?language="
-                + tmdbApiLanguage
-                + "&append_to_response=credits,content_ratings";
-
-        JsonNode root = callTmdbApi(url);
-
-        ContentVO vo = new ContentVO();
-
-        vo.setTmdbId(root.path("id").asLong());
-        vo.setContentType("TV");
-
-        String title = root.path("name").asText(null);
-        String originalTitle = root.path("original_name").asText(null);
-
-        if (title == null || title.isBlank()) {
-            title = originalTitle;
-        }
-
-        vo.setTitle(title);
-        vo.setOriginalTitle(originalTitle);
-        vo.setOverview(root.path("overview").asText(null));
-        vo.setPosterPath(root.path("poster_path").asText(null));
-        vo.setBackdropPath(root.path("backdrop_path").asText(null));
-        vo.setReleaseDate(parseDate(root.path("first_air_date").asText(null)));
-        vo.setGenreText(parseGenreText(root.path("genres")));
-        vo.setRuntime(parseTvRuntime(root.path("episode_run_time")));
-
-        if (!root.path("number_of_episodes").isMissingNode()
-                && !root.path("number_of_episodes").isNull()) {
-
-            vo.setEpisodeCount(root.path("number_of_episodes").asInt());
-        }
-
-        vo.setDirector(parseTvCreator(root.path("created_by")));
-        vo.setCastNames(parseCastNames(root.path("credits").path("cast")));
-        vo.setAgeRating(extractTvAgeRating(root));
-
-        if (!root.path("vote_average").isMissingNode()
-                && !root.path("vote_average").isNull()) {
-
-            vo.setTmdbScore(root.path("vote_average").asDouble());
-        }
-
-        return vo;
-    }
-
-    private LocalDate parseDate(String dateText) {
-
-        if (dateText == null || dateText.trim().isEmpty()) {
+        if (text == null || text.isBlank()) {
             return null;
         }
 
         try {
-            return LocalDate.parse(dateText);
+            return LocalDate.parse(text);
         } catch (Exception e) {
             return null;
         }
@@ -1658,28 +1237,19 @@ public class TmdbServiceImpl implements TmdbService {
             return null;
         }
 
-        StringBuilder sb = new StringBuilder();
+        List<String> names = new ArrayList<String>();
 
         for (JsonNode genre : genresNode) {
+            String name = genre.path("name").asString(null);
 
-            String genreName = genre.path("name").asText(null);
-
-            if (genreName == null || genreName.trim().isEmpty()) {
-                continue;
+            if (name != null && !name.isBlank()) {
+                names.add(name);
             }
-
-            if (sb.length() > 0) {
-                sb.append(",");
-            }
-
-            sb.append(genreName);
         }
 
-        if (sb.length() == 0) {
-            return null;
-        }
-
-        return sb.toString();
+        return names.isEmpty()
+                ? null
+                : String.join(", ", names);
     }
 
     private String parseDirector(JsonNode crewNode) {
@@ -1688,536 +1258,710 @@ public class TmdbServiceImpl implements TmdbService {
             return null;
         }
 
+        List<String> names = new ArrayList<String>();
+
         for (JsonNode crew : crewNode) {
 
-            String job = crew.path("job").asText();
-
-            if ("Director".equals(job)) {
-                return crew.path("name").asText(null);
+            if (!JOB_DIRECTOR.equals(
+                    crew.path("job").asString(null))) {
+                continue;
             }
+
+            addUniqueName(names, crew);
         }
 
-        return null;
+        return joinNames(names);
     }
 
     private String parseTvCreator(JsonNode createdByNode) {
-
-        if (createdByNode == null || !createdByNode.isArray()) {
-            return null;
-        }
-
-        StringBuilder sb = new StringBuilder();
-
-        for (JsonNode creator : createdByNode) {
-
-            String name = creator.path("name").asText(null);
-
-            if (name == null || name.trim().isEmpty()) {
-                continue;
-            }
-
-            if (sb.length() > 0) {
-                sb.append(",");
-            }
-
-            sb.append(name);
-        }
-
-        if (sb.length() == 0) {
-            return null;
-        }
-
-        return sb.toString();
+        return parseNameList(createdByNode, Integer.MAX_VALUE);
     }
 
     private String parseCastNames(JsonNode castNode) {
+        return parseNameList(castNode, CAST_SAVE_LIMIT);
+    }
 
-        if (castNode == null || !castNode.isArray()) {
+    private String parseNameList(
+            JsonNode sourceNode,
+            int limit) {
+
+        if (sourceNode == null || !sourceNode.isArray()) {
             return null;
         }
 
-        StringBuilder sb = new StringBuilder();
-        int castCount = 0;
+        List<String> names = new ArrayList<String>();
 
-        for (JsonNode cast : castNode) {
-
-            if (castCount >= 5) {
+        for (JsonNode item : sourceNode) {
+            if (names.size() >= limit) {
                 break;
             }
 
-            String castName = cast.path("name").asText(null);
-
-            if (castName == null || castName.trim().isEmpty()) {
-                continue;
-            }
-
-            if (sb.length() > 0) {
-                sb.append(",");
-            }
-
-            sb.append(castName);
-            castCount++;
+            addUniqueName(names, item);
         }
 
-        if (sb.length() == 0) {
-            return null;
-        }
-
-        return sb.toString();
+        return joinNames(names);
     }
 
-    private Integer parseTvRuntime(JsonNode episodeRunTimeNode) {
+    /** 중복되지 않은 TMDB 인물 이름만 목록에 추가합니다. */
+    private void addUniqueName(List<String> names, JsonNode item) {
 
-        if (episodeRunTimeNode == null
-                || !episodeRunTimeNode.isArray()
-                || episodeRunTimeNode.size() == 0) {
+        String name = item.path("name").asString(null);
 
-            return null;
+        if (name != null
+                && !name.isBlank()
+                && !names.contains(name)) {
+            names.add(name);
         }
-
-        JsonNode firstRuntime = episodeRunTimeNode.get(0);
-
-        if (firstRuntime == null || firstRuntime.isNull()) {
-            return null;
-        }
-
-        int runtime = firstRuntime.asInt();
-
-        if (runtime <= 0) {
-            return null;
-        }
-
-        return runtime;
     }
 
-    private String convertTmdbProviderName(String tmdbProviderName) {
+    /** 이름 목록을 DB 저장 형식으로 변환합니다. */
+    private String joinNames(List<String> names) {
+        return names.isEmpty()
+                ? null
+                : String.join(", ", names);
+    }
 
-        if (tmdbProviderName == null) {
+    private Integer parseTvRuntime(JsonNode runtimeNode) {
+
+        if (runtimeNode == null
+                || !runtimeNode.isArray()
+                || runtimeNode.isEmpty()) {
             return null;
         }
 
-        String name = tmdbProviderName.trim();
-
-        String normalized =
-                name.toLowerCase()
-                        .replace(" ", "")
-                        .replace("_", "")
-                        .replace("-", "")
-                        .replace("+", "");
-
-        if (normalized.contains("netflix")
-                || name.contains("넷플릭스")) {
-
-            return "Netflix";
-        }
-
-        if (normalized.contains("tving")
-                || name.contains("티빙")) {
-
-            return "TVING";
-        }
-
-        if (normalized.contains("wavve")
-                || name.contains("웨이브")) {
-
-            return "wavve";
-        }
-
-        if (normalized.contains("disney")
-                || name.contains("디즈니")) {
-
-            return "Disney Plus";
-        }
-
-        if (normalized.contains("watcha")
-                || name.contains("왓챠")) {
-
-            return "Watcha";
-        }
-
-        return null;
+        return nullableInt(runtimeNode.get(0));
     }
 
-    private String extractAgeRating(JsonNode root) {
+    private String extractMovieAgeRating(JsonNode root) {
 
         JsonNode results =
-                root.path("release_dates")
-                    .path("results");
+                root.path("release_dates").path(JSON_RESULTS);
 
-        if (!results.isArray()) {
-            return "UNKNOWN";
-        }
-
-        String usRating = null;
-
-        for (JsonNode country : results) {
-
-            String countryCode =
-                    country.path("iso_3166_1").asText();
-
-            if (!"KR".equals(countryCode)
-                    && !"US".equals(countryCode)) {
-
-                continue;
-            }
-
-            JsonNode releaseDates =
-                    country.path("release_dates");
-
-            if (!releaseDates.isArray()) {
-                continue;
-            }
-
-            for (JsonNode releaseDate : releaseDates) {
-
-                String certification =
-                        releaseDate.path("certification").asText();
-
-                String normalizedRating =
-                        normalizeAgeRatingByCountry(
-                                countryCode,
-                                certification);
-
-                if (normalizedRating == null) {
-                    continue;
-                }
-
-                if ("KR".equals(countryCode)) {
-                    return normalizedRating;
-                }
-
-                if ("US".equals(countryCode)
-                        && usRating == null) {
-
-                    usRating = normalizedRating;
-                }
-            }
-        }
-
-        if (usRating != null) {
-            return usRating;
-        }
-
-        return "UNKNOWN";
-    }
-
-    private String normalizeAgeRatingByCountry(
-            String countryCode,
-            String certification) {
-
-        if (certification == null) {
-            return null;
-        }
-
-        String rating = certification.trim();
-
-        if (rating.isBlank()) {
-            return null;
-        }
-
-        String normalized =
-                rating.toUpperCase()
-                        .replace(" ", "")
-                        .replace("-", "")
-                        .replace("_", "");
-
-        if ("KR".equals(countryCode)) {
-
-            if ("ALL".equals(normalized)
-                    || "전체관람가".equals(rating)
-                    || "전체".equals(rating)) {
-
-                return "ALL";
-            }
-
-            if ("12".equals(normalized)
-                    || "12세".equals(rating)
-                    || "12세이상관람가".equals(rating)
-                    || "12세관람가".equals(rating)) {
-
-                return "12";
-            }
-
-            if ("15".equals(normalized)
-                    || "15세".equals(rating)
-                    || "15세이상관람가".equals(rating)
-                    || "15세관람가".equals(rating)) {
-
-                return "15";
-            }
-
-            if ("18".equals(normalized)
-                    || "19".equals(normalized)
-                    || "18세".equals(rating)
-                    || "19세".equals(rating)
-                    || "18세이상관람가".equals(rating)
-                    || "19세이상".equals(rating)
-                    || "청소년관람불가".equals(rating)) {
-
-                return "18";
-            }
-
-            if (rating.contains("청소년")) {
-                return "18";
-            }
-
-            if ("NR".equals(normalized)
-                    || "UNKNOWN".equals(normalized)) {
-
-                return "UNKNOWN";
-            }
-
-            return null;
-        }
-
-        if ("US".equals(countryCode)) {
-
-            if ("G".equals(normalized)) {
-                return "ALL";
-            }
-
-            if ("PG".equals(normalized)) {
-                return "12";
-            }
-
-            if ("PG13".equals(normalized)) {
-                return "15";
-            }
-
-            if ("R".equals(normalized)
-                    || "NC17".equals(normalized)) {
-
-                return "18";
-            }
-
-            if ("NR".equals(normalized)
-                    || "UNRATED".equals(normalized)
-                    || "NOTRATED".equals(normalized)) {
-
-                return "UNKNOWN";
-            }
-
-            return null;
-        }
-
-        return null;
+        return extractPreferredCountryAgeRating(
+                results,
+                this::extractSupportedMovieCountryAgeRating);
     }
 
     private String extractTvAgeRating(JsonNode root) {
 
         JsonNode results =
-                root.path("content_ratings")
-                    .path("results");
+                root.path("content_ratings").path(JSON_RESULTS);
+
+        return extractPreferredCountryAgeRating(
+                results,
+                this::extractSupportedTvCountryAgeRating);
+    }
+
+    private String extractPreferredCountryAgeRating(
+            JsonNode results,
+            CountryAgeRatingExtractor ratingExtractor) {
 
         if (!results.isArray()) {
-            return "UNKNOWN";
+            return AGE_RATING_UNKNOWN;
         }
 
         String usRating = null;
 
         for (JsonNode country : results) {
-
             String countryCode =
-                    country.path("iso_3166_1").asText();
+                    country.path("iso_3166_1").asString(null);
+            String converted = ratingExtractor.extract(
+                    country, countryCode);
 
-            if (!"KR".equals(countryCode)
-                    && !"US".equals(countryCode)) {
-
-                continue;
+            if ("KR".equals(countryCode) && converted != null) {
+                return converted;
             }
 
-            String rating =
-                    country.path("rating").asText();
-
-            String normalizedRating =
-                    normalizeTvAgeRatingByCountry(
-                            countryCode,
-                            rating);
-
-            if (normalizedRating == null) {
-                continue;
-            }
-
-            if ("KR".equals(countryCode)) {
-                return normalizedRating;
-            }
-
-            if ("US".equals(countryCode)
-                    && usRating == null) {
-
-                usRating = normalizedRating;
+            if ("US".equals(countryCode) && usRating == null) {
+                usRating = converted;
             }
         }
 
-        if (usRating != null) {
-            return usRating;
-        }
-
-        return "UNKNOWN";
+        return usRating == null
+                ? AGE_RATING_UNKNOWN
+                : usRating;
     }
 
-    private String normalizeTvAgeRatingByCountry(
-            String countryCode,
-            String certification) {
+    private String extractSupportedMovieCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
 
-        if (certification == null) {
+        if (!isSupportedAgeRatingCountry(countryCode)) {
             return null;
         }
 
-        String rating = certification.trim();
+        return extractMovieCountryAgeRating(country, countryCode);
+    }
 
-        if (rating.isBlank()) {
+    private String extractSupportedTvCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
+
+        if (!isSupportedAgeRatingCountry(countryCode)) {
             return null;
         }
 
-        String normalized =
-                rating.toUpperCase()
-                        .replace(" ", "")
-                        .replace("-", "")
-                        .replace("_", "");
+        return convertAgeRating(
+                countryCode,
+                country.path("rating").asString(null),
+                true);
+    }
 
-        if ("KR".equals(countryCode)) {
+    private boolean isSupportedAgeRatingCountry(
+            String countryCode) {
 
-            if ("ALL".equals(normalized)
-                    || "전체".equals(rating)
-                    || "전체관람가".equals(rating)
-                    || "전체이용가".equals(rating)) {
+        return "KR".equals(countryCode)
+                || "US".equals(countryCode);
+    }
 
-                return "ALL";
-            }
+    private String extractMovieCountryAgeRating(
+            JsonNode country,
+            String countryCode) {
 
-            if ("7".equals(normalized)
-                    || "7세".equals(rating)
-                    || "7세이상".equals(rating)) {
+        JsonNode dates = country.path("release_dates");
 
-                return "ALL";
-            }
-
-            if ("12".equals(normalized)
-                    || "12세".equals(rating)
-                    || "12세이상".equals(rating)
-                    || "12세이상관람가".equals(rating)) {
-
-                return "12";
-            }
-
-            if ("15".equals(normalized)
-                    || "15세".equals(rating)
-                    || "15세이상".equals(rating)
-                    || "15세이상관람가".equals(rating)) {
-
-                return "15";
-            }
-
-            if ("18".equals(normalized)
-                    || "19".equals(normalized)
-                    || "18세".equals(rating)
-                    || "19세".equals(rating)
-                    || "18세이상".equals(rating)
-                    || "19세이상".equals(rating)
-                    || "청소년관람불가".equals(rating)) {
-
-                return "18";
-            }
-
-            if (rating.contains("청소년")) {
-                return "18";
-            }
-
-            if ("NR".equals(normalized)
-                    || "UNKNOWN".equals(normalized)) {
-
-                return "UNKNOWN";
-            }
-
+        if (!dates.isArray()) {
             return null;
         }
 
-        if ("US".equals(countryCode)) {
+        for (JsonNode item : dates) {
+            String converted = convertAgeRating(
+                    countryCode,
+                    item.path("certification").asString(null),
+                    false);
 
-            if ("TVY".equals(normalized)
-                    || "TVY7".equals(normalized)
-                    || "TVG".equals(normalized)) {
-
-                return "ALL";
+            if (converted != null) {
+                return converted;
             }
-
-            if ("TVPG".equals(normalized)) {
-                return "12";
-            }
-
-            if ("TV14".equals(normalized)) {
-                return "15";
-            }
-
-            if ("TVMA".equals(normalized)) {
-                return "18";
-            }
-
-            if ("NR".equals(normalized)
-                    || "UNRATED".equals(normalized)
-                    || "NOTRATED".equals(normalized)) {
-
-                return "UNKNOWN";
-            }
-
-            return null;
         }
 
         return null;
     }
 
-    private String createPlatformSearchUrl(
-            String platformName,
-            String title) {
+    @FunctionalInterface
+    private interface CountryAgeRatingExtractor {
+        String extract(JsonNode country, String countryCode);
+    }
 
-        String keyword = "";
+    private String convertAgeRating(
+            String countryCode,
+            String certification,
+            boolean tv) {
 
-        if (title != null) {
-            keyword =
-                    URLEncoder.encode(
-                            title,
-                            StandardCharsets.UTF_8);
+        if (certification == null
+                || certification.isBlank()) {
+            return null;
         }
 
-        if ("Netflix".equals(platformName)) {
-            return "https://www.netflix.com/search?q=" + keyword;
+        String value = certification.trim()
+                .toUpperCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("_", "");
+
+        if ("KR".equals(countryCode)) {
+            return convertKoreanAgeRating(value);
         }
 
-        if ("TVING".equals(platformName)) {
-            return "https://www.tving.com/search?keyword=" + keyword;
+        if (!"US".equals(countryCode)) {
+            return null;
         }
 
-        if ("wavve".equals(platformName)) {
-            return "https://www.wavve.com/search?searchWord=" + keyword;
+        return tv
+                ? convertUsTvAgeRating(value)
+                : convertUsMovieAgeRating(value);
+    }
+
+    private String convertKoreanAgeRating(
+            String value) {
+
+        if (value.contains("ALL")
+                || value.contains("전체")
+                || "7".equals(value)
+                || value.contains("7세")) {
+            return "ALL";
         }
 
-        if ("Disney Plus".equals(platformName)) {
-            return "https://www.disneyplus.com/search/" + keyword;
+        if (value.contains("12")) {
+            return "12";
         }
 
-        if ("Watcha".equals(platformName)) {
-            return "https://watcha.com/search?query=" + keyword;
+        if (value.contains("15")) {
+            return "15";
         }
 
-        return "";
+        if (value.contains("18")
+                || value.contains("19")
+                || value.contains("청소년")) {
+            return "18";
+        }
+
+        return AGE_RATING_UNKNOWN;
+    }
+
+    private String convertUsTvAgeRating(
+            String value) {
+        return getMappedAgeRating(US_TV_AGE_RATINGS, value);
+    }
+
+    private String convertUsMovieAgeRating(
+            String value) {
+        return getMappedAgeRating(US_MOVIE_AGE_RATINGS, value);
+    }
+
+    /** 미국 등급 변환표에 없는 값은 기존과 같이 UNKNOWN으로 처리합니다. */
+    private String getMappedAgeRating(
+            Map<String, String> ageRatingMap,
+            String value) {
+        return ageRatingMap.getOrDefault(value, AGE_RATING_UNKNOWN);
+    }
+
+    private String firstNonBlank(
+            String first,
+            String second) {
+
+        return first != null && !first.isBlank()
+                ? first
+                : second;
+    }
+
+    private Integer nullableInt(JsonNode node) {
+
+        if (node == null
+                || node.isMissingNode()
+                || node.isNull()) {
+            return null;
+        }
+
+        int value = node.asInt();
+
+        return value <= 0 ? null : value;
+    }
+
+    private Double nullableDouble(JsonNode node) {
+
+        if (node == null
+                || node.isMissingNode()
+                || node.isNull()) {
+            return null;
+        }
+
+        return node.asDouble();
+    }
+
+    private String limitLength(
+            String value,
+            int maxLength) {
+
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+
+        return trimmed.length() <= maxLength
+                ? trimmed
+                : trimmed.substring(0, maxLength);
     }
 
     @Override
-    public int updateTvDetailData() {
-        
-        throw new UnsupportedOperationException("Unimplemented method 'updateTvDetailData'");
+    public PersonFilmographyVO getPersonFilmography(
+            Long tmdbPersonId,
+            String role) {
+
+        if (tmdbPersonId == null || tmdbPersonId <= 0) {
+            throw new IllegalArgumentException(
+                    "유효한 TMDB 인물 ID가 필요합니다.");
+        }
+
+        String normalizedRole = role == null
+                ? "ACTOR"
+                : role.trim().toUpperCase(Locale.ROOT);
+
+        if (!"ACTOR".equals(normalizedRole)
+                && !ROLE_DIRECTOR.equals(normalizedRole)
+                && !"CREATOR".equals(normalizedRole)) {
+            throw new IllegalArgumentException(
+                    "지원하지 않는 인물 역할입니다: " + role);
+        }
+
+        String url = tmdbApiBaseUrl
+                + "/person/" + tmdbPersonId
+                + QUERY_LANGUAGE + tmdbApiLanguage
+                + "&append_to_response=combined_credits";
+
+        JsonNode root = callTmdbApi(url);
+
+        PersonFilmographyVO person = new PersonFilmographyVO();
+        person.setTmdbPersonId(tmdbPersonId);
+        person.setPersonName(root.path("name").asString(null));
+        person.setProfilePath(root.path(JSON_PROFILE_PATH).asString(null));
+        person.setBiography(root.path("biography").asString(null));
+        person.setBirthday(root.path("birthday").asString(null));
+        person.setPlaceOfBirth(root.path("place_of_birth").asString(null));
+        person.setRole(normalizedRole);
+
+        JsonNode credits = root.path("combined_credits");
+
+        person.setCastList(createCastFilmographyList(
+                credits.path("cast")));
+
+        person.setDirectorList(createCrewFilmographyList(
+                credits.path("crew"),
+                ROLE_DIRECTOR));
+
+        person.setProductionList(createCrewFilmographyList(
+                credits.path("crew"),
+                "PRODUCTION"));
+
+        return person;
     }
 
-    @Override
-    public int loadTvPlatformData() {
-        
-        throw new UnsupportedOperationException("Unimplemented method 'loadTvPlatformData'");
+    private List<FilmographyVO> createCastFilmographyList(
+            JsonNode castItems) {
+
+        Map<String, FilmographyVO> uniqueMap =
+                new LinkedHashMap<String, FilmographyVO>();
+
+        if (castItems == null || !castItems.isArray()) {
+            return new ArrayList<FilmographyVO>();
+        }
+
+        for (JsonNode item : castItems) {
+
+            FilmographyVO filmography =
+                    createFilmographyVO(item);
+
+            if (filmography == null) {
+                continue;
+            }
+
+            filmography.setParticipationCategory("CAST");
+            filmography.setParticipationName(
+                    item.path(JSON_CHARACTER).asString(null));
+
+            putFilmographyWithPriority(
+                    uniqueMap,
+                    item.path(JSON_MEDIA_TYPE).asString(),
+                    filmography);
+        }
+
+        return sortFilmographyList(uniqueMap);
     }
 
-    @Override
-    public int loadTvFullData() {
-        
-        throw new UnsupportedOperationException("Unimplemented method 'loadTvFullData'");
+    private List<FilmographyVO> createCrewFilmographyList(
+            JsonNode crewItems,
+            String category) {
+
+        Map<String, FilmographyVO> uniqueMap =
+                new LinkedHashMap<String, FilmographyVO>();
+
+        if (crewItems == null || !crewItems.isArray()) {
+            return new ArrayList<FilmographyVO>();
+        }
+
+        for (JsonNode item : crewItems) {
+
+            String job = item.path("job").asString("");
+            String department =
+                    item.path("department").asString("");
+
+            boolean matches;
+
+            if (ROLE_DIRECTOR.equals(category)) {
+                matches = JOB_DIRECTOR.equalsIgnoreCase(job);
+            } else {
+                matches = isProductionParticipation(
+                        job, department);
+            }
+
+            if (matches) {
+                FilmographyVO filmography =
+                        createFilmographyVO(item);
+
+                if (filmography != null) {
+                    filmography.setParticipationCategory(category);
+                    filmography.setParticipationName(
+                            convertParticipationName(job, department));
+
+                    putFilmographyWithPriority(
+                            uniqueMap,
+                            item.path(JSON_MEDIA_TYPE).asString(),
+                            filmography);
+                }
+            }
+        }
+
+        return sortFilmographyList(uniqueMap);
     }
+
+    private FilmographyVO createFilmographyVO(
+            JsonNode item) {
+
+        if (item == null || item.isNull()
+                || shouldExcludeContent(item)) {
+            return null;
+        }
+
+        String mediaType =
+                item.path(JSON_MEDIA_TYPE).asString(null);
+
+        if (!API_TYPE_MOVIE.equals(mediaType)
+                && !"tv".equals(mediaType)) {
+            return null;
+        }
+
+        long tmdbId = item.path("id").asLong();
+
+        if (tmdbId <= 0) {
+            return null;
+        }
+
+        FilmographyVO filmography =
+                new FilmographyVO();
+
+        filmography.setTmdbId(tmdbId);
+        filmography.setContentType(
+                API_TYPE_MOVIE.equals(mediaType)
+                        ? CONTENT_TYPE_MOVIE
+                        : "TV");
+
+        filmography.setTitle(firstNonBlank(
+                item.path(JSON_TITLE).asString(null),
+                item.path("name").asString(null)));
+
+        filmography.setOriginalTitle(firstNonBlank(
+                item.path(JSON_ORIGINAL_TITLE).asString(null),
+                item.path(JSON_ORIGINAL_NAME).asString(null)));
+
+        filmography.setPosterPath(
+                item.path(JSON_POSTER_PATH).asString(null));
+
+        filmography.setReleaseDate(firstNonBlank(
+                item.path(JSON_RELEASE_DATE).asString(null),
+                item.path(JSON_FIRST_AIR_DATE).asString(null)));
+
+        filmography.setTmdbScore(
+                nullableDouble(item.path(JSON_VOTE_AVERAGE)));
+
+        filmography.setPopularity(
+                nullableDouble(item.path("popularity")));
+
+        return filmography;
+    }
+
+    private void putFilmographyWithPriority(
+            Map<String, FilmographyVO> uniqueMap,
+            String mediaType,
+            FilmographyVO filmography) {
+
+        String key = mediaType + "-"
+                + filmography.getTmdbId();
+
+        FilmographyVO existing = uniqueMap.get(key);
+
+        if (existing == null) {
+            uniqueMap.put(key, filmography);
+            return;
+        }
+
+        String mergedParticipation =
+                mergeParticipationNames(
+                        existing.getParticipationName(),
+                        filmography.getParticipationName());
+
+        if (compareFilmographyPriority(
+                filmography, existing) < 0) {
+
+            filmography.setParticipationName(
+                    mergedParticipation);
+
+            uniqueMap.put(key, filmography);
+
+        } else {
+
+            existing.setParticipationName(
+                    mergedParticipation);
+        }
+    }
+
+    private List<FilmographyVO> sortFilmographyList(
+            Map<String, FilmographyVO> uniqueMap) {
+
+        List<FilmographyVO> list =
+                new ArrayList<FilmographyVO>(
+                        uniqueMap.values());
+
+        list.sort((first, second) -> {
+
+            String firstDate = first.getReleaseDate();
+            String secondDate = second.getReleaseDate();
+
+            boolean firstDateEmpty =
+                    firstDate == null || firstDate.isBlank();
+
+            boolean secondDateEmpty =
+                    secondDate == null || secondDate.isBlank();
+
+            if (firstDateEmpty && secondDateEmpty) {
+                return compareNullableDoubleDescending(
+                        first.getPopularity(),
+                        second.getPopularity());
+            }
+
+            if (firstDateEmpty) {
+                return 1;
+            }
+
+            if (secondDateEmpty) {
+                return -1;
+            }
+
+            int dateCompare =
+                    secondDate.compareTo(firstDate);
+
+            if (dateCompare != 0) {
+                return dateCompare;
+            }
+
+            return compareNullableDoubleDescending(
+                    first.getPopularity(),
+                    second.getPopularity());
+        });
+
+        return list;
+    }
+
+    private boolean isProductionParticipation(
+            String job,
+            String department) {
+
+        if (JOB_DIRECTOR.equalsIgnoreCase(job)) {
+            return false;
+        }
+
+        return "Creator".equalsIgnoreCase(job)
+                || "Executive Producer".equalsIgnoreCase(job)
+                || "Producer".equalsIgnoreCase(job)
+                || "Co-Producer".equalsIgnoreCase(job)
+                || "Associate Producer".equalsIgnoreCase(job)
+                || "Writer".equalsIgnoreCase(job)
+                || "Screenplay".equalsIgnoreCase(job)
+                || "Story".equalsIgnoreCase(job)
+                || "Novel".equalsIgnoreCase(job)
+                || "Original Story".equalsIgnoreCase(job)
+                || "Original Music Composer".equalsIgnoreCase(job)
+                || "Writing".equalsIgnoreCase(department)
+                || "Production".equalsIgnoreCase(department);
+    }
+
+    private String convertParticipationName(
+            String job,
+            String department) {
+
+        if (job == null || job.isBlank()) {
+            return department;
+        }
+
+        if (JOB_DIRECTOR.equalsIgnoreCase(job)) {
+            return "감독";
+        }
+        if ("Creator".equalsIgnoreCase(job)) {
+            return "크리에이터";
+        }
+        if ("Executive Producer".equalsIgnoreCase(job)) {
+            return "책임 프로듀서";
+        }
+        if ("Producer".equalsIgnoreCase(job)) {
+            return "프로듀서";
+        }
+        if ("Co-Producer".equalsIgnoreCase(job)) {
+            return "공동 프로듀서";
+        }
+        if ("Associate Producer".equalsIgnoreCase(job)) {
+            return "협력 프로듀서";
+        }
+        if ("Writer".equalsIgnoreCase(job)) {
+            return "각본";
+        }
+        if ("Screenplay".equalsIgnoreCase(job)) {
+            return "각색";
+        }
+        if ("Story".equalsIgnoreCase(job)
+                || "Original Story".equalsIgnoreCase(job)) {
+            return "원안";
+        }
+        if ("Novel".equalsIgnoreCase(job)) {
+            return "원작";
+        }
+        if ("Original Music Composer".equalsIgnoreCase(job)) {
+            return "음악";
+        }
+
+        return job;
+    }
+
+    private String mergeParticipationNames(
+            String first,
+            String second) {
+
+        Set<String> values =
+                new LinkedHashSet<String>();
+
+        addParticipationValues(values, first);
+        addParticipationValues(values, second);
+
+        return values.isEmpty()
+                ? null
+                : String.join(", ", values);
+    }
+
+    private void addParticipationValues(
+            Set<String> values,
+            String text) {
+
+        if (text == null || text.isBlank()) {
+            return;
+        }
+
+        String[] tokens = text.split(",");
+
+        for (String participationToken : tokens) {
+
+            String value = participationToken.trim();
+
+            if (!value.isEmpty()) {
+                values.add(value);
+            }
+        }
+    }
+
+    private int compareFilmographyPriority(
+            FilmographyVO first,
+            FilmographyVO second) {
+
+        boolean firstHasPoster =
+                first.getPosterPath() != null
+                && !first.getPosterPath().isBlank();
+
+        boolean secondHasPoster =
+                second.getPosterPath() != null
+                && !second.getPosterPath().isBlank();
+
+        if (firstHasPoster != secondHasPoster) {
+            return firstHasPoster ? -1 : 1;
+        }
+
+        return compareNullableDoubleDescending(
+                first.getPopularity(),
+                second.getPopularity());
+    }
+
+    private int compareNullableDoubleDescending(
+            Double first,
+            Double second) {
+        return Comparator.nullsLast(Comparator.<Double>reverseOrder())
+                .compare(first, second);
+    }
+
 }

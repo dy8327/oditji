@@ -2,24 +2,31 @@ package com.project.oditji.verify.vo;
 
 public class IdentityVerifyLogVO {
 
-    private int verifyNo;
+    private long verifyNo;
+    private long memberNo;
     private String verifyId;
     private String verifyStatus;
-
     private String name;
     private String birthDate;
     private String phoneNumber;
     private String gender;
     private String adultYn;
-
     private String rawStatus;
 
-    public int getVerifyNo() {
+    public long getVerifyNo() {
         return verifyNo;
     }
 
-    public void setVerifyNo(int verifyNo) {
+    public void setVerifyNo(long verifyNo) {
         this.verifyNo = verifyNo;
+    }
+
+    public long getMemberNo() {
+        return memberNo;
+    }
+
+    public void setMemberNo(long memberNo) {
+        this.memberNo = memberNo;
     }
 
     public String getVerifyId() {
@@ -46,7 +53,6 @@ public class IdentityVerifyLogVO {
         this.name = name;
     }
 
-    
     public String getBirthDate() {
         return birthDate;
     }
@@ -55,7 +61,6 @@ public class IdentityVerifyLogVO {
         this.birthDate = birthDate;
     }
 
-    
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -64,7 +69,6 @@ public class IdentityVerifyLogVO {
         this.phoneNumber = phoneNumber;
     }
 
-    
     public String getGender() {
         return gender;
     }
@@ -73,7 +77,6 @@ public class IdentityVerifyLogVO {
         this.gender = gender;
     }
 
-    
     public String getAdultYn() {
         return adultYn;
     }
@@ -82,7 +85,6 @@ public class IdentityVerifyLogVO {
         this.adultYn = adultYn;
     }
 
-    
     public String getRawStatus() {
         return rawStatus;
     }

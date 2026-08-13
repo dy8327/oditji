@@ -1,0 +1,198 @@
+name: Deploy ODITJI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oditji-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build WAR
+        run: |
+          mvn -B clean package -DskipTests
+
+          WAR_FILE="$(find target -maxdepth 1 -type f -name '*.war' -print -quit)"
+
+          if [ -z "$WAR_FILE" ]; then
+            echo "WAR 파일을 찾지 못했습니다."
+            exit 1
+          fi
+
+          cp "$WAR_FILE" oditji.war
+          ls -lh oditji.war
+
+      - name: Configure SSH
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SERVER_SSH_KEY" > ~/.ssh/oditji_deploy
+          chmod 600 ~/.ssh/oditji_deploy
+
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Verify WAR contents
+        run: |
+          echo "===== WAR JSP CHECK ====="
+          jar tf oditji.war | grep "WEB-INF/views/index.jsp"
+          jar tf oditji.war | grep "WEB-INF/views/error/404.jsp"
+          jar tf oditji.war | grep "WEB-INF/views/error/500.jsp"
+          jar tf oditji.war | grep "HomeController.class"
+
+      - name: Upload WAR
+        run: |
+          scp \
+            -i ~/.ssh/oditji_deploy \
+            oditji.war \
+            "$SERVER_USER@$SERVER_HOST:/tmp/oditji.war.new"
+
+      - name: Deploy application
+        run: |
+          ssh -i ~/.ssh/oditji_deploy \
+            "$SERVER_USER@$SERVER_HOST" \
+            'bash -s' <<'REMOTE'
+          set -e
+
+          cd /opt/oditji
+
+          if [ -f app/oditji.war ]; then
+            cp app/oditji.war app/oditji.war.bak
+          fi
+
+          mv /tmp/oditji.war.new app/oditji.war
+
+          docker compose up -d --force-recreate app
+
+          sleep 20
+          docker compose restart nginx
+
+          DEPLOY_OK=false
+
+          for i in $(seq 1 24); do
+            STATUS_CODE="$(
+              curl \
+                -sS \
+                --resolve oditji.duckdns.org:443:127.0.0.1 \
+                -o /dev/null \
+                -w "%{http_code}" \
+                --max-time 20 \
+                https://oditji.duckdns.org/oditji/ || true
+            )"
+
+          if [[ "$STATUS_CODE" == 2* ]]; then
+            echo "애플리케이션 정상 응답: HTTP $STATUS_CODE"
+            DEPLOY_OK=true
+            break
+          fi
+
+            echo "애플리케이션 시작 대기 중... HTTP $STATUS_CODE ($i/24)"
+            sleep 5
+          done
+          if [ "$DEPLOY_OK" != "true" ]; then
+            echo "배포 확인 실패"
+
+            echo "===== ODITJI APP ERROR LOG ====="
+            APP_LOG_FILE="/tmp/oditji-app-deploy.log"
+
+            docker logs --since 15m --timestamps oditji-app \
+              > "$APP_LOG_FILE" 2>&1 || true
+
+            echo "===== FIRST ERROR CONTEXT ====="
+            grep -n -m 1 -B 30 -A 150 \
+              -E "StackOverflowError|Circular view path|JasperException|ServletException|BeanCreationException|UnsatisfiedDependencyException|Caused by:|ERROR" \
+              "$APP_LOG_FILE" || true
+
+            echo "===== APP LOG FIRST 200 LINES ====="
+            head -n 200 "$APP_LOG_FILE" || true
+
+            echo "===== APP LOG LAST 200 LINES ====="
+            tail -n 200 "$APP_LOG_FILE" || true
+
+            cp -f app/oditji.war app/oditji.war.failed || true
+
+            if [ -f app/oditji.war.bak ]; then
+              echo "이전 WAR 파일로 복구합니다."
+              mv -f app/oditji.war.bak app/oditji.war
+              docker compose up -d --force-recreate app
+              sleep 20
+              docker compose restart nginx
+            fi
+
+            exit 1
+          fi
+
+          echo "===== ODITJI WARM-UP START ====="
+
+          WARMUP_URLS=(
+            "https://oditji.duckdns.org/oditji/"
+            "https://oditji.duckdns.org/oditji/member/login"
+            "https://oditji.duckdns.org/oditji/member/join"
+            "https://oditji.duckdns.org/oditji/search"
+            "https://oditji.duckdns.org/oditji/content/list?type=all&page=1"
+            "https://oditji.duckdns.org/oditji/goods/list?type=all"
+          )
+
+          for pass in 1 2; do
+            echo "Warm-up pass $pass"
+
+            for url in "${WARMUP_URLS[@]}"; do
+              START_TIME=$(date +%s%3N)
+
+              STATUS_CODE="$(
+                curl \
+                  -sS \
+                  --resolve oditji.duckdns.org:443:127.0.0.1 \
+                  -o /dev/null \
+                  -w "%{http_code}" \
+                  --max-time 30 \
+                  -A "ODITJI-Deploy-Warmup/1.0" \
+                  "$url" || true
+              )"
+
+              END_TIME=$(date +%s%3N)
+              ELAPSED=$((END_TIME - START_TIME))
+
+              case "$STATUS_CODE" in
+                2*)
+                  echo "[WARM-UP OK] HTTP $STATUS_CODE / ${ELAPSED}ms / $url"
+                  ;;
+                *)
+                  echo "[WARM-UP WARN] HTTP $STATUS_CODE / ${ELAPSED}ms / $url"
+                  ;;
+              esac
+            done
+          done
+
+          echo "===== ODITJI WARM-UP END ====="
+
+          rm -f app/oditji.war.bak
+
+          echo "ODITJI 배포 완료"
+          docker compose ps
+          REMOTE

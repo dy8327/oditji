@@ -1,35 +1,50 @@
 package com.project.oditji.search.vo;
 
-public class SearchResultVO {
+import java.util.ArrayList;
+import java.util.List;
 
-    // DB 콘텐츠 번호
+import com.project.oditji.common.vo.ContentMetadataVO;
+import com.project.oditji.tmdb.vo.OttPlatformVO;
+
+/**
+ * JSONL 검색 캐시와 콘텐츠 추천 화면에서 사용하는 검색 결과입니다.
+ * 콘텐츠 공통 메타데이터는 ContentMetadataVO에서 상속합니다.
+ */
+public class SearchResultVO extends ContentMetadataVO {
+
     private Long contentNo;
-
-    // TMDB 콘텐츠 ID
-    private Long tmdbId;
-
-    // MOVIE / TV
-    private String contentType;
-
-    private String title;
-    private String originalTitle;
-    private String overview;
-    private String posterPath;
-    private String backdropPath;
-
-    // 영화 개봉일 또는 TV 첫 방영일
     private String releaseDate;
 
-    private String genreText;
-    private Double tmdbScore;
+    /**
+     * TV 콘텐츠의 최근 회차 공개일입니다.
+     * 추천 신작 영역에서 TV 카드 날짜와 정렬 기준으로 사용합니다.
+     */
+    private String lastAirDate;
+
     private Integer viewCount;
-
-    // TMDB 인기 점수
-    // RankingServiceImpl, TmdbServiceImpl에서 사용
     private Double popularity;
+    private String matchType;
+    private String matchedPersonName;
+    private String matchedPersonRole;
 
-    public SearchResultVO() {
-    }
+    /**
+     * 콘텐츠 상세 페이지의 관련 콘텐츠 카드에 표시할 추천 이유입니다.
+     */
+    private String recommendationReason;
+
+    /**
+     * JSP에서 추천 근거별 색상 클래스를 적용할 때 사용하는 유형입니다.
+     */
+    private String recommendationReasonType;
+
+    /**
+     * 메인 신규 콘텐츠, 검색 결과, 신규 콘텐츠 목록에서
+     * 오늘 이후 3일 이내 공개 예정인 콘텐츠인지 여부입니다.
+     * 화면에서 "예정작" 뱃지를 표시할 때 사용합니다.
+     */
+    private boolean upcoming;
+
+    private List<OttPlatformVO> platformList = new ArrayList<OttPlatformVO>();
 
     public Long getContentNo() {
         return contentNo;
@@ -39,64 +54,10 @@ public class SearchResultVO {
         this.contentNo = contentNo;
     }
 
-    public Long getTmdbId() {
-        return tmdbId;
-    }
-
-    public void setTmdbId(Long tmdbId) {
-        this.tmdbId = tmdbId;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
+    @Override
     public String getTitle() {
-        if (title == null || title.trim().isEmpty()) {
-            return "제목 없음";
-        }
-
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getOriginalTitle() {
-        return originalTitle;
-    }
-
-    public void setOriginalTitle(String originalTitle) {
-        this.originalTitle = originalTitle;
-    }
-
-    public String getOverview() {
-        return overview;
-    }
-
-    public void setOverview(String overview) {
-        this.overview = overview;
-    }
-
-    public String getPosterPath() {
-        return posterPath;
-    }
-
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
-    }
-
-    public String getBackdropPath() {
-        return backdropPath;
-    }
-
-    public void setBackdropPath(String backdropPath) {
-        this.backdropPath = backdropPath;
+        String title = super.getTitle();
+        return title == null || title.trim().isEmpty() ? "제목 없음" : title;
     }
 
     public String getReleaseDate() {
@@ -107,20 +68,12 @@ public class SearchResultVO {
         this.releaseDate = releaseDate;
     }
 
-    public String getGenreText() {
-        return genreText;
+    public String getLastAirDate() {
+        return lastAirDate;
     }
 
-    public void setGenreText(String genreText) {
-        this.genreText = genreText;
-    }
-
-    public Double getTmdbScore() {
-        return tmdbScore;
-    }
-
-    public void setTmdbScore(Double tmdbScore) {
-        this.tmdbScore = tmdbScore;
+    public void setLastAirDate(String lastAirDate) {
+        this.lastAirDate = lastAirDate;
     }
 
     public Integer getViewCount() {
@@ -137,5 +90,63 @@ public class SearchResultVO {
 
     public void setPopularity(Double popularity) {
         this.popularity = popularity;
+    }
+
+    public String getMatchType() {
+        return matchType;
+    }
+
+    public void setMatchType(String matchType) {
+        this.matchType = matchType;
+    }
+
+    public String getMatchedPersonName() {
+        return matchedPersonName;
+    }
+
+    public void setMatchedPersonName(String matchedPersonName) {
+        this.matchedPersonName = matchedPersonName;
+    }
+
+    public String getMatchedPersonRole() {
+        return matchedPersonRole;
+    }
+
+    public void setMatchedPersonRole(String matchedPersonRole) {
+        this.matchedPersonRole = matchedPersonRole;
+    }
+
+    public String getRecommendationReason() {
+        return recommendationReason;
+    }
+
+    public void setRecommendationReason(String recommendationReason) {
+        this.recommendationReason = recommendationReason;
+    }
+
+    public String getRecommendationReasonType() {
+        return recommendationReasonType;
+    }
+
+    public void setRecommendationReasonType(String recommendationReasonType) {
+        this.recommendationReasonType = recommendationReasonType;
+    }
+
+    public boolean isUpcoming() {
+        return upcoming;
+    }
+
+    public void setUpcoming(boolean upcoming) {
+        this.upcoming = upcoming;
+    }
+
+    public List<OttPlatformVO> getPlatformList() {
+        return platformList;
+    }
+
+    public void setPlatformList(List<OttPlatformVO> platformList) {
+        this.platformList = platformList == null
+                ? new ArrayList<OttPlatformVO>()
+                : platformList;
     }
 }

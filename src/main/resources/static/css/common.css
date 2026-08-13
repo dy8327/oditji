@@ -2,563 +2,1154 @@
    ODITJI Header
 ========================================================= */
 
-:root{
+:root {
+  --color-bg: #1f1f23;
+  --color-bg2: #26282c;
+  --color-bg3: #30333a;
 
-    --color-bg:#1F1F23;
-    --color-bg2:#26282C;
-    --color-bg3:#30333A;
+  --color-border: #3d4148;
 
-    --color-border:#3D4148;
+  --color-white: #ffffff;
+  --color-gray: #c5c8ce;
+  --color-gray2: #8c919b;
 
-    --color-white:#FFFFFF;
-    --color-gray:#C5C8CE;
-    --color-gray2:#8C919B;
+  --color-point: #5ea3ff;
 
-    --color-point:#5EA3FF;
+  /* [수정] --color-point(#5ea3ff)는 테두리·링크 등 용도로는 대비가 충분하지만,
+     흰 글자를 얹는 "꽉 찬 배경"(버튼/active 상태)에서는 흰색 텍스트와의
+     대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
+     이런 채워진 배경 전용으로 더 진한 톤을 별도로 둔다. (대비 약 4.6:1) */
+  --color-point-strong: #2f6fe4;
+  --color-point-strong-hover: #2559c4;
 
-    --header-height:80px;
+  --header-height: 80px;
 
-    --radius:14px;
+  --radius: 14px;
 
-    --transition:.3s ease;
-
+  --transition: 0.3s ease;
 }
-
-
 
 /* =========================================================
    Header
 ========================================================= */
-
-.header{
-
-    position:sticky;
-
-    top:0;
-
-    left:0;
-
-    width:100%;
-
-    height:var(--header-height);
-
-    background:rgba(31,31,35,.95);
-
-    backdrop-filter:blur(18px);
-
-    border-bottom:1px solid var(--color-border);
-
-    z-index:9999;
-
-    transition:var(--transition);
-
+/* 본문 바로가기 */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10000;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #181818;
+  font-weight: 700;
+  transform: translateY(-150%);
+  transition: transform 0.2s ease;
 }
 
-
-.header.scrolled{
-
-    box-shadow:
-
-        0 10px 35px rgba(0,0,0,.35);
-
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid #5ea3ff;
+  outline-offset: 2px;
 }
 
+.header {
+  position: sticky;
+
+  top: 0;
+
+  left: 0;
+
+  width: 100%;
+
+  height: var(--header-height);
+
+  background: rgba(31, 31, 35, 0.95);
+
+  backdrop-filter: blur(18px);
+
+  border-bottom: 1px solid var(--color-border);
+
+  z-index: 9999;
+
+  transition: var(--transition);
+}
+
+.header.scrolled {
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+}
+
+/* =========================================================
+   Mobile Overlay
+   (모바일 전체 메뉴 / 검색창이 펼쳐졌을 때 뒤 배경을 어둡게
+   눌러주어 지금 열려 있는 영역에 시선이 집중되도록 하고,
+   실수로 뒤쪽 콘텐츠를 누르는 것을 막아줍니다.
+   common.js의 syncHeaderOverlay()가 open 클래스를 토글합니다.)
+========================================================= */
+.header-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  background: rgba(8, 8, 10, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+}
+
+.header-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (min-width: 993px) {
+  .header-overlay {
+    display: none;
+  }
+}
 
 /* =========================================================
    Container
 ========================================================= */
 
-.header-container{
+.header-container {
+  width: min(1600px, 95%);
 
-    width:min(1600px,95%);
+  height: 100%;
 
-    height:100%;
+  margin: auto;
 
-    margin:auto;
+  display: flex;
 
-    display:flex;
+  align-items: center;
 
-    align-items:center;
+  justify-content: space-between;
 
-    justify-content:space-between;
-
+  /* [추가] 노치/펀치홀 등 세이프 에어리어가 있는 기기에서
+     좌우 콘텐츠가 잘리지 않도록 여백을 더해줍니다. */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
-
 
 /* =========================================================
    Left
 ========================================================= */
 
-.header-left{
+.header-left {
+  display: flex;
 
-    display:flex;
-
-    align-items:center;
-
+  align-items: center;
 }
-
 
 /* =========================================================
    Logo
 ========================================================= */
 
-.logo{
+.logo {
+  display: flex;
 
-    display:flex;
+  flex-direction: column;
 
-    flex-direction:column;
-
-    gap:2px;
-
+  gap: 2px;
 }
 
-.logo-main{
+.logo-main {
+  font-size: 28px;
 
-    font-size:28px;
+  font-weight: 800;
 
-    font-weight:800;
+  color: var(--color-white);
 
-    color:var(--color-white);
-
-    letter-spacing:1px;
-
+  letter-spacing: 1px;
 }
 
-.logo:hover .logo-main{
-
-    color:var(--color-point);
-
+.logo:hover .logo-main {
+  color: var(--color-point);
 }
-
 
 /* =========================================================
    Navigation
 ========================================================= */
 
-.header-nav{
-
-    margin-left:55px;
-
+.header-nav {
+  margin-left: 46px;
 }
 
-.header-nav ul{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:35px;
-
+.header-nav-list {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.header-nav li{
-
-    position:relative;
-
+.header-nav-item {
+  position: relative;
 }
 
-.header-nav a{
+.header-nav-link {
+  position: relative;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: var(--color-gray);
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
 
-    color:var(--color-gray);
+/* [수정] OTT 사이트(웨이브/티빙 등) 나브처럼 꽉 찬 pill 배경 대신
+   은은한 배경 + 아래쪽에서 자라나는 밑줄로 호버/활성 상태를 표현합니다. */
+.header-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-point);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    font-size:16px;
+.header-nav-link:hover,
+.header-nav-link:focus-visible,
+.header-nav-dropdown.open > .header-nav-trigger {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-white);
+}
 
-    font-weight:500;
+.header-nav-link:hover::after,
+.header-nav-link:focus-visible::after,
+.header-nav-dropdown.open > .header-nav-trigger::after {
+  transform: scaleX(1);
+}
 
-    transition:var(--transition);
+.header-nav-arrow {
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
 
+.header-nav-dropdown.open .header-nav-arrow,
+.header-nav-dropdown:hover .header-nav-arrow {
+  transform: rotate(180deg);
+}
+
+.header-submenu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  width: 230px;
+  padding: 10px;
+  background: #2a2d32;
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-point-strong);
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 10px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
+  z-index: 10050;
+}
+
+.header-submenu::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 14px;
+}
+
+.header-nav-dropdown:hover .header-submenu,
+.header-nav-dropdown:focus-within .header-submenu,
+.header-nav-dropdown.open .header-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.header-submenu-heading {
+  padding: 6px 10px 10px;
+  color: var(--color-gray2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.header-submenu a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 10px 9px 18px;
+  border-radius: 9px;
+  color: var(--color-gray);
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+/* [추가] 항목 왼쪽에 숨어 있다가 호버/활성 시 나타나는 점(•) 인디케이터.
+   OTT 서비스 드롭다운에서 흔히 쓰는, 배경을 꽉 채우지 않는 절제된 강조 방식입니다. */
+.header-submenu > a::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-point);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* 수정: 1단 메뉴의 바로 아래 링크에만 적용 */
+.header-submenu > a:hover,
+.header-submenu > a:focus-visible,
+.header-submenu > a.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-white);
+  padding-left: 22px;
+}
+
+.header-submenu > a:hover::before,
+.header-submenu > a:focus-visible::before,
+.header-submenu > a.active::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* [추가] 신규/랭킹 등 일부 메뉴 항목 옆에 붙는 작은 뱃지 */
+.header-submenu-badge {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(94, 163, 255, 0.15);
+  color: var(--color-point);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.header-submenu-badge--hot {
+  background: rgba(255, 112, 82, 0.16);
+  color: #ff8f6b;
+}
+
+/* =========================================================
+   [추가] GOODS CATEGORY SECOND-LEVEL MENU
+   - hover: 임시 표시
+   - .pinned: 클릭 고정
+========================================================= */
+.header-category-menu {
+  position: relative;
+}
+
+.header-category-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-gray);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.header-category-trigger:hover,
+.header-category-trigger:focus-visible,
+.header-category-menu.pinned > .header-category-trigger {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-white);
+}
+
+.header-category-arrow {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.header-category-menu:hover .header-category-arrow,
+.header-category-menu:focus-within .header-category-arrow,
+.header-category-menu.pinned .header-category-arrow {
+  transform: translateX(2px);
+}
+
+.header-category-submenu {
+  position: absolute;
+  top: -12px;
+  left: calc(100% + 12px);
+  width: 160px;
+  padding: 10px;
+  background: #2a2d32;
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-point-strong);
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-8px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
+  z-index: 10060;
+}
+
+.header-category-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -14px;
+  width: 14px;
+}
+
+.header-category-menu:hover .header-category-submenu,
+.header-category-menu:focus-within .header-category-submenu,
+.header-category-menu.pinned .header-category-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.header-category-submenu a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 10px 9px 18px;
+  border-radius: 9px;
+  color: var(--color-gray);
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+.header-category-submenu a::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-point);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* 수정: 마우스를 올린 세부 카테고리만 색상 변경 */
+.header-category-submenu a:hover,
+.header-category-submenu a:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-white);
+  padding-left: 22px;
+}
+
+.header-category-submenu a:hover::before,
+.header-category-submenu a:focus-visible::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.header-nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 10px;
+  color: var(--color-white);
+  transition: var(--transition);
+}
+
+.header-nav-toggle:hover {
+  background: var(--color-bg3);
+}
+
+.header-nav-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 999px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+/* [추가] 메뉴가 열리면 삼선 아이콘이 X 모양으로 전환되어
+   현재 상태(열림/닫힘)를 시각적으로 명확히 전달합니다. */
+.header-nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.header-nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.header-nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* =========================================================
    Search
 ========================================================= */
 
-.header-search{
+.header-search {
+  position: relative;
 
-    flex:1;
+  flex: 1;
 
-    display:flex;
+  display: flex;
 
-    justify-content:center;
-
+  justify-content: center;
 }
 
+.header-search form {
+  width: 430px;
 
-.header-search form{
+  height: 46px;
 
-    width:430px;
+  display: flex;
 
-    height:46px;
+  align-items: center;
 
-    display:flex;
+  background: var(--color-bg3);
 
-    align-items:center;
+  border: 1px solid transparent;
 
-    background:var(--color-bg3);
+  border-radius: 999px;
 
-    border:1px solid transparent;
+  overflow: hidden;
 
-    border-radius:999px;
-
-    overflow:hidden;
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-
-.header-search form:hover{
-
-    border-color:var(--color-border);
-
+.header-search form:hover {
+  border-color: var(--color-border);
 }
 
+.header-search form:focus-within {
+  border-color: var(--color-point);
 
-.header-search form:focus-within{
-
-    border-color:var(--color-point);
-
-    box-shadow:
-
-        0 0 18px rgba(94,163,255,.25);
-
+  box-shadow: 0 0 18px rgba(94, 163, 255, 0.25);
 }
 
+.header-search input {
+  flex: 1;
 
-.header-search input{
+  height: 100%;
 
-    flex:1;
+  padding: 0 20px;
 
-    height:100%;
+  background: none;
 
-    padding:0 20px;
+  border: none;
 
-    background:none;
+  color: var(--color-white);
 
-    border:none;
-
-    color:var(--color-white);
-
-    font-size:15px;
-
+  font-size: 15px;
 }
 
-
-.header-search input::placeholder{
-
-    color:var(--color-gray2);
-
+.header-search input::placeholder {
+  color: var(--color-gray2);
 }
 
+.header-search button {
+  width: 54px;
 
-.header-search button{
+  height: 46px;
 
-    width:54px;
+  display: flex;
 
-    height:46px;
+  justify-content: center;
 
-    display:flex;
+  align-items: center;
 
-    justify-content:center;
+  color: var(--color-gray);
 
-    align-items:center;
-
-    color:var(--color-gray);
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
+.header-search button:hover {
+  color: var(--color-point);
+}
 
-.header-search button:hover{
+/* =========================================================
+   Header Search Suggestions
+   (검색어 자동완성 + 최근 검색어 드롭다운)
+========================================================= */
 
-    color:var(--color-point);
+.header-search-dropdown {
+  position: absolute;
 
+  top: calc(100% + 8px);
+
+  /* [수정] left:0은 검색폼(430px, 가운데 정렬)이 아니라 훨씬 넓은
+     .header-search 컨테이너의 왼쪽 끝을 기준으로 붙어서, 드롭다운이
+     실제 검색창보다 한참 왼쪽으로 밀려나 보이는 문제가 있었다.
+     검색폼과 같은 축(가운데)으로 정렬되도록 left:50% + translateX로 고정한다. */
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+
+  width: 430px;
+
+  max-height: 420px;
+
+  overflow-y: auto;
+
+  background: var(--color-bg2);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius, 14px);
+
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
+
+  z-index: 60;
+
+  display: block;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+
+.header-search-dropdown.open {
+  opacity: 1;
+
+  visibility: visible;
+
+  pointer-events: auto;
+
+  transform: translateX(-50%) translateY(0);
+}
+
+.header-search-dropdown-section + .header-search-dropdown-section {
+  border-top: 1px solid var(--color-border);
+}
+
+.header-search-dropdown-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 12px 16px 6px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.02em;
+
+  color: var(--color-gray2);
+}
+
+.header-search-dropdown-clear {
+  color: var(--color-gray2);
+
+  font-size: 12px;
+
+  text-decoration: underline;
+
+  text-underline-offset: 2px;
+
+  transition: color 0.15s ease;
+}
+
+.header-search-dropdown-clear:hover {
+  color: var(--color-point);
+}
+
+.header-search-recent-list {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  padding: 6px 16px 16px;
+}
+
+.header-search-recent-chip {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  padding: 6px 8px 6px 14px;
+
+  max-width: 100%;
+
+  background: var(--color-bg3);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 999px;
+
+  color: var(--color-gray);
+
+  font-size: 13px;
+
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.header-search-recent-chip:hover {
+  border-color: var(--color-point);
+
+  background: var(--color-bg2);
+
+  color: var(--color-white);
+}
+
+.header-search-recent-chip-keyword {
+  overflow: hidden;
+
+  max-width: 220px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.header-search-recent-chip-remove {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 18px;
+
+  height: 18px;
+
+  border-radius: 50%;
+
+  color: var(--color-gray2);
+
+  font-size: 11px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.header-search-recent-chip-remove:hover {
+  background: var(--color-bg1, rgba(255, 255, 255, 0.1));
+
+  color: var(--color-point);
+}
+
+.header-search-result-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 8px 16px;
+
+  cursor: pointer;
+}
+
+.header-search-result-item:hover,
+.header-search-result-item.is-active {
+  background: var(--color-bg3);
+}
+
+.header-search-result-poster {
+  flex-shrink: 0;
+
+  width: 36px;
+
+  height: 52px;
+
+  border-radius: 6px;
+
+  overflow: hidden;
+
+  background: var(--color-bg3);
+}
+
+.header-search-result-poster img {
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.header-search-result-text {
+  min-width: 0;
+}
+
+.header-search-result-title {
+  color: var(--color-white);
+
+  font-size: 14px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.header-search-result-meta {
+  margin-top: 2px;
+
+  color: var(--color-gray2);
+
+  font-size: 12px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.header-search-dropdown-empty {
+  padding: 16px;
+
+  color: var(--color-gray2);
+
+  font-size: 13px;
+
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .header-search-dropdown {
+    left: 0;
+    width: 100%;
+    transform: translateY(-6px);
+  }
+
+  .header-search-dropdown.open {
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   Mobile Search Toggle
+   (768px 이하에서만 아이콘 버튼으로 노출되며,
+   클릭 시 .header-search가 헤더 아래로 펼쳐진다)
+========================================================= */
+
+/* [수정] .icon-btn(display:flex)과 클래스 우선순위가 같아서 소스 순서상
+   .icon-btn에 덮어써지던 문제 → 클래스 두 개를 함께 지정해 우선순위를
+   .icon-btn보다 높여서 확실히 숨긴다. */
+.icon-btn.header-search-toggle {
+  display: none;
 }
 
 /* =========================================================
    Right Area
 ========================================================= */
 
-.header-right{
+.header-right {
+  display: flex;
 
-    display:flex;
+  align-items: center;
 
-    align-items:center;
+  gap: 16px;
 
-    gap:16px;
-
-    margin-left:35px;
-
+  margin-left: 35px;
 }
 
 /* =========================================================
    Login / Join Button
 ========================================================= */
 
-.join-btn{
+.join-btn {
+  color: var(--color-gray);
 
-    color:var(--color-gray);
+  font-size: 15px;
 
-    font-size:15px;
+  font-weight: 500;
 
-    font-weight:500;
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-.join-btn:hover{
-
-    color:var(--color-white);
-
+.join-btn:hover {
+  color: var(--color-white);
 }
 
-.login-btn{
+.login-btn {
+  display: flex;
 
-    display:flex;
+  justify-content: center;
 
-    justify-content:center;
+  align-items: center;
 
-    align-items:center;
+  width: 92px;
 
-    width:92px;
+  height: 40px;
 
-    height:40px;
+  border-radius: 999px;
 
-    border-radius:999px;
+  /* [수정] --color-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --color-point-strong으로 교체 */
+  background: var(--color-point-strong);
 
-    background:var(--color-point);
+  color: #fff;
 
-    color:#FFF;
+  font-weight: 700;
 
-    font-weight:700;
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-.login-btn:hover{
+.login-btn:hover {
+  transform: translateY(-2px);
 
-    transform:translateY(-2px);
-
-    box-shadow:
-
-        0 10px 25px rgba(94,163,255,.35);
-
+  box-shadow: 0 10px 25px rgba(94, 163, 255, 0.35);
 }
 
 /* =========================================================
    Icon Button
 ========================================================= */
 
-.icon-btn{
+.icon-btn {
+  width: 42px;
 
-    width:42px;
+  height: 42px;
 
-    height:42px;
+  display: flex;
 
-    display:flex;
+  justify-content: center;
 
-    justify-content:center;
+  align-items: center;
 
-    align-items:center;
+  border-radius: 50%;
 
-    border-radius:50%;
+  background: transparent;
 
-    background:transparent;
+  color: var(--color-gray);
 
-    color:var(--color-gray);
+  font-size: 20px;
 
-    font-size:20px;
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-.icon-btn:hover{
+.icon-btn:hover {
+  background: var(--color-bg3);
 
-    background:var(--color-bg3);
+  color: var(--color-white);
 
-    color:var(--color-white);
-
-    transform:translateY(-2px);
-
+  transform: translateY(-2px);
 }
 
 /* =========================================================
    Profile
 ========================================================= */
 
-.profile-menu{
-
-    position:relative;
-
+.profile-menu {
+  position: relative;
 }
 
-.profile-btn{
+.profile-btn {
+  display: flex;
 
-    display:flex;
+  align-items: center;
 
-    align-items:center;
+  gap: 10px;
 
-    gap:10px;
+  padding: 8px 15px;
 
-    padding:8px 15px;
+  border-radius: 999px;
 
-    border-radius:999px;
+  background: var(--color-bg3);
 
-    background:var(--color-bg3);
+  color: var(--color-white);
 
-    color:var(--color-white);
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-.profile-btn:hover{
-
-    background:#3A3E46;
-
+.profile-btn:hover {
+  background: #3a3e46;
 }
 
-.profile-btn span{
+.profile-btn-avatar {
+  width: 26px;
+  height: 26px;
 
-    font-size:14px;
+  border-radius: 50%;
 
-    font-weight:600;
+  object-fit: cover;
 
+  flex-shrink: 0;
+}
+
+.profile-btn span {
+  font-size: 14px;
+
+  font-weight: 600;
 }
 
 /* =========================================================
    Dropdown
 ========================================================= */
 
-.profile-dropdown{
+.profile-dropdown {
+  position: absolute;
 
-    position:absolute;
+  top: 62px;
 
-    top:62px;
+  right: 0;
 
-    right:0;
+  width: 220px;
 
-    width:220px;
+  background: #2a2d32;
 
-    background:#2A2D32;
+  border: 1px solid var(--color-border);
 
-    border:1px solid var(--color-border);
+  border-radius: 14px;
 
-    border-radius:14px;
+  overflow: hidden;
 
-    overflow:hidden;
+  opacity: 0;
 
-    opacity:0;
+  visibility: hidden;
 
-    visibility:hidden;
+  transform: translateY(10px);
 
-    transform:translateY(10px);
+  transition: var(--transition);
 
-    transition:var(--transition);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
 
-    box-shadow:
-
-        0 20px 45px rgba(0,0,0,.35);
-
-    z-index:999;
-
+  z-index: 999;
 }
 
 /* JS에서 open 클래스 추가 */
 
-.profile-dropdown.open{
+.profile-dropdown.open {
+  opacity: 1;
 
-    opacity:1;
+  visibility: visible;
 
-    visibility:visible;
+  transform: translateY(0);
 
-    transform:translateY(0);
-
+  animation: fadeUp 0.25s ease;
 }
 
-.profile-dropdown a{
+.profile-dropdown a {
+  display: block;
 
-    display:block;
+  padding: 14px 20px;
 
-    padding:14px 20px;
+  color: var(--color-gray);
 
-    color:var(--color-gray);
+  font-size: 15px;
 
-    font-size:15px;
-
-    transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-.profile-dropdown a:hover{
+.profile-dropdown a:hover {
+  background: #383c42;
 
-    background:#383C42;
-
-    color:#FFF;
-
+  color: #fff;
 }
 
-.profile-dropdown hr{
+.profile-dropdown hr {
+  border: none;
 
-    border:none;
-
-    border-top:1px solid var(--color-border);
-
+  border-top: 1px solid var(--color-border);
 }
 
-.logout-link{
-
-    color:#FF7C7C !important;
-
+.logout-link {
+  color: #ff7c7c !important;
 }
 
-.logout-link:hover{
+.logout-link:hover {
+  background: #4a2d2d !important;
 
-    background:#4A2D2D !important;
-
-    color:#FFB3B3 !important;
-
+  color: #ffb3b3 !important;
 }
 
 /* =========================================================
    Scroll Effect
 ========================================================= */
 
-.header.hide{
-
-    transform:translateY(-100%);
-
+.header.hide {
+  transform: translateY(-100%);
 }
 
-.header.show{
-
-    transform:translateY(0);
-
+.header.show {
+  transform: translateY(0);
 }
-
 
 /* =========================================================
    Active Menu
 ========================================================= */
 
-.header-nav a.active{
+.header-nav-link.active,
+.header-nav-trigger.active {
+  color: var(--color-white);
 
-    color:var(--color-white);
-
-    font-weight:700;
-
+  font-weight: 700;
 }
 
-.header-nav li:has(a.active)::after{
-
-    width:100%;
-
+.header-nav-link.active::after,
+.header-nav-trigger.active::after {
+  background: var(--color-white);
+  transform: scaleX(1);
 }
-
 
 /* =========================================================
    Focus
@@ -568,235 +1159,433 @@
 .join-btn:focus-visible,
 .login-btn:focus-visible,
 .icon-btn:focus-visible,
-.profile-btn:focus-visible{
+.header-nav-toggle:focus-visible,
+.profile-btn:focus-visible {
+  outline: 2px solid var(--color-point);
 
-    outline:2px solid var(--color-point);
-
-    outline-offset:3px;
-
+  outline-offset: 3px;
 }
 
-.header-search input:focus-visible{
-
-    outline:none;
-
+.header-search input:focus-visible {
+  outline: none;
 }
-
 
 /* =========================================================
    Responsive
 ========================================================= */
 
-@media (max-width:1400px){
+@media (max-width: 1400px) {
+  .header-nav {
+    margin-left: 30px;
+  }
 
-    .header-nav{
+  .header-nav ul {
+    gap: 24px;
+  }
 
-        margin-left:30px;
-
-    }
-
-    .header-nav ul{
-
-        gap:24px;
-
-    }
-
-    .header-search form{
-
-        width:360px;
-
-    }
-
+  .header-search form {
+    width: 360px;
+  }
 }
 
+@media (max-width: 1200px) {
+  .header-container {
+    width: 96%;
+  }
 
-@media (max-width:1200px){
+  .header-search {
+    margin: 0 20px;
+  }
 
-    .header-container{
-
-        width:96%;
-
-    }
-
-    .header-search{
-
-        margin:0 20px;
-
-    }
-
-    .header-search form{
-
-        width:300px;
-
-    }
-
+  .header-search form {
+    width: 300px;
+  }
 }
 
+@media (max-width: 992px) {
+  .header-container {
+    position: relative;
+  }
 
-@media (max-width:992px){
+  /* [수정] 모바일에서 삼선 버튼 → 로고 → 나머지(검색/알림/장바구니/프로필) 순서로 배치 */
+  .header-nav-toggle {
+    display: flex;
+    order: -2;
+    margin-left: 0;
+    margin-right: 12px;
+  }
 
-    .header-nav{
+  .header-left {
+    order: -1;
+  }
 
-        display:none;
+  .header-nav {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 2%;
+    right: 2%;
+    margin-left: 0;
+    padding: 12px;
+    background: #23262b;
+    border: 1px solid var(--color-border);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.36);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: var(--transition);
+  }
 
-    }
+  .header-nav.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
 
-    .header-search{
+  .header-nav-list {
+    display: block;
+  }
 
-        flex:1;
+  .header-nav-item + .header-nav-item {
+    margin-top: 4px;
+  }
 
-        margin-left:20px;
+  .header-nav-link {
+    width: 100%;
+    justify-content: space-between;
+  }
 
-    }
+  .header-submenu {
+    position: static;
+    width: 100%;
+    margin-top: 4px;
+    padding: 0 8px;
+    max-height: 0;
+    overflow: hidden;
+    border: none;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    background: #1f2227;
+    transition:
+      max-height 0.25s ease,
+      padding 0.25s ease;
+  }
 
-    .header-search form{
+  .header-nav-dropdown:hover .header-submenu,
+  .header-nav-dropdown:focus-within .header-submenu {
+    transform: none;
+  }
 
-        width:100%;
+  .header-nav-dropdown.open .header-submenu {
+    max-height: 360px;
+    padding: 8px;
+  }
 
-        max-width:380px;
+  .header-submenu::before {
+    display: none;
+  }
 
-    }
+  /* [추가] 모바일에서는 2단 메뉴를 오른쪽 플라이아웃이 아닌 내부 목록으로 표시합니다. */
+  .header-category-submenu {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 0 8px;
+    max-height: 0;
+    overflow: hidden;
+    border: none;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    background: #191c20;
+    transition:
+      max-height 0.25s ease,
+      padding 0.25s ease;
+  }
 
+  .header-category-menu:hover .header-category-submenu,
+  .header-category-menu:focus-within .header-category-submenu {
+    max-height: 220px;
+    padding: 8px;
+    transform: none;
+  }
+
+  .header-category-menu.pinned .header-category-submenu {
+    max-height: 220px;
+    padding: 8px;
+  }
+
+  .header-category-submenu::before {
+    display: none;
+  }
+
+  .header-search {
+    flex: 1;
+    margin-left: 18px;
+  }
+
+  .header-search form {
+    width: 100%;
+    max-width: 330px;
+  }
 }
 
+@media (max-width: 768px) {
+  .header {
+    height: 70px;
+  }
 
-@media (max-width:768px){
+  .header-container {
+    gap: 15px;
+  }
 
-    .header{
+  /* [추가] 모바일 검색 input의 글자 크기가 16px 미만이면
+     iOS Safari가 포커스 시 화면을 자동으로 확대해 레이아웃이
+     깨진 것처럼 보입니다. 16px로 올려 확대를 막습니다. */
+  .header-search input {
+    font-size: 16px;
+  }
 
-        height:70px;
+  /* 모바일에서는 좌측 삼선 버튼 폭과 우측 아이콘/로그인 버튼 폭이
+     서로 달라 로고가 가운데가 아닌 삼선 버튼 바로 옆에 붙어
+     보였습니다. 로고를 절대 위치로 헤더 중앙에 고정해 좌/우
+     버튼 폭과 무관하게 항상 가운데 정렬되도록 합니다.
+     (데스크톱/태블릿 레이아웃은 그대로 유지) */
+  .header-left {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
 
-    }
+  /* 로그인 상태에서 장바구니 아이콘까지 뜨면 아이콘 개수가 늘어나
+     로고가 가운데에서 밀리며 레이아웃이 깨졌습니다. 장바구니는
+     모바일에서는 아예 숨기고(마이페이지에서 접근 가능),
+     데스크톱에는 영향 없습니다.
+     채팅 아이콘도 같은 이유로 모바일에서는 숨깁니다
+     (관리자/사업자는 대시보드에서 채팅에 접근할 수 있습니다). */
+  .cart-btn {
+    display: none;
+  }
 
-    .header-container{
+  .chat-menu {
+    display: none;
+  }
 
-        gap:15px;
+  /* 검색/알림 아이콘이 로고 바로 옆에 붙어 보이던 문제 →
+     header-right를 항상 오른쪽 끝으로 밀착시키고, 화면 가장
+     자리와는 약간의 여백만 남도록 합니다. 로고는 그대로 두고
+     검색/알림 아이콘만 프로필 쪽으로 더 붙입니다(간격 축소). */
+  .header-right {
+    margin-left: auto;
+    margin-right: 4px;
+    gap: 6px;
+  }
 
-    }
+  /* 모바일 검색 토글 버튼: 768px 이하에서만 노출 */
+  .icon-btn.header-search-toggle {
+    display: flex;
+  }
 
-    .header-search{
+  /* 헤더 아래로 펼쳐지는 모바일 검색창.
+     display:none 대신 opacity/visibility로 숨겨야
+     .open 클래스가 붙었을 때 JS 토글이 정상 동작한다. */
+  .header-search {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 2%;
+    right: 2%;
+    z-index: 10040;
+    margin: 0;
+    padding: 12px;
+    background: #23262b;
+    border: 1px solid var(--color-border);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.36);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: var(--transition);
+  }
 
-        display:none;
+  .header-search.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 
-    }
+  .header-search form {
+    width: 100%;
+    max-width: none;
+  }
 
-    .profile-btn span{
+  .profile-btn span {
+    display: none;
+  }
 
-        display:none;
+  /* 모바일에서는 버튼의 둥근 배경(pill)을 없애고
+     프로필 사진만 아이콘처럼 보이도록 합니다. */
+  .profile-btn {
+    padding: 0;
+    background: none;
+    gap: 0;
+  }
 
-    }
+  .profile-btn:hover {
+    background: none;
+  }
 
-    .join-btn{
+  .profile-btn-avatar {
+    width: 32px;
+    height: 32px;
+  }
 
-        display:none;
+  .join-btn {
+    display: none;
+  }
 
-    }
-
-    .login-btn{
-
-        width:76px;
-
-        height:36px;
-
-        font-size:14px;
-
-    }
-
+  .login-btn {
+    width: 76px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
 
+@media (max-width: 576px) {
+  .icon-btn {
+    width: 38px;
 
-@media (max-width:576px){
+    height: 38px;
 
-    .icon-btn{
+    font-size: 18px;
+  }
 
-        width:38px;
+  .logo-main {
+    font-size: 22px;
+  }
 
-        height:38px;
-
-        font-size:18px;
-
-    }
-
-    .logo-main{
-
-        font-size:22px;
-
-    }
-
+  /* [추가] 프로필 드롭다운도 알림 드롭다운과 동일하게 화면 폭 기준으로
+     펼쳐지도록 하여, 좁은 화면에서 고정폭(220px) 드롭다운이 화면
+     가장자리에 답답하게 붙거나 넘치는 문제를 방지합니다. */
+  .profile-dropdown {
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
 }
 
+/* [추가] 초소형 화면(400px 이하)에서 헤더 우측 아이콘들이
+   서로 붙어 눌리는 문제를 막기 위한 추가 간격/크기 보정 */
+@media (max-width: 400px) {
+  .header-right {
+    gap: 4px;
+
+    margin-right: 2px;
+  }
+
+  .header-nav-toggle {
+    margin-right: 8px;
+  }
+
+  .login-btn {
+    width: 68px;
+    height: 34px;
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   Touch Feedback
+   (:hover가 사실상 동작하지 않는 터치 기기에서도
+   버튼을 눌렀을 때 즉각적인 시각 피드백을 주기 위한 규칙)
+========================================================= */
+@media (hover: none) and (pointer: coarse) {
+  .icon-btn:active,
+  .header-nav-toggle:active {
+    background: var(--color-bg3);
+    color: var(--color-white);
+    transform: scale(0.94);
+  }
+
+  .login-btn:active {
+    transform: scale(0.96);
+  }
+
+  .join-btn:active {
+    opacity: 0.7;
+  }
+
+  .header-nav-link:active,
+  .header-submenu a:active,
+  .header-category-submenu a:active,
+  .header-category-trigger:active {
+    background: #383c42;
+    color: var(--color-white);
+  }
+
+  .profile-btn:active {
+    background: #3a3e46;
+  }
+}
 
 /* =========================================================
    Animation
 ========================================================= */
 
-@keyframes fadeUp{
+@keyframes fadeUp {
+  from {
+    opacity: 0;
 
-    from{
+    transform: translateY(10px);
+  }
 
-        opacity:0;
+  to {
+    opacity: 1;
 
-        transform:translateY(10px);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:translateY(0);
-
-    }
-
+    transform: translateY(0);
+  }
 }
-
-.profile-dropdown.open{
-
-    animation:fadeUp .25s ease;
-
-}
-
 
 /* =========================================================
    Scrollbar
 ========================================================= */
 
-.profile-dropdown::-webkit-scrollbar{
-
-    width:6px;
-
+.profile-dropdown::-webkit-scrollbar {
+  width: 6px;
 }
 
-.profile-dropdown::-webkit-scrollbar-thumb{
+.profile-dropdown::-webkit-scrollbar-thumb {
+  background: #50545b;
 
-    background:#50545B;
-
-    border-radius:20px;
-
+  border-radius: 20px;
 }
-
 
 /* =========================================================
    Selection
 ========================================================= */
 
-::selection{
+::selection {
+  background: rgba(94, 163, 255, 0.35);
 
-    background:rgba(94,163,255,.35);
-
-    color:#FFF;
-
+  color: #fff;
 }
-
 
 /* =========================================================
    Smooth
 ========================================================= */
 
-html{
-
-    scroll-behavior:smooth;
-
+html {
+  scroll-behavior: smooth;
 }
 
 /* =========================================================
@@ -804,41 +1593,533 @@ html{
 ========================================================= */
 
 .footer {
-    width: 100%;
-    background-color: rgba(28, 28, 28, 1);
-    border-top: 1px solid #2a2a2a;
-    padding: 16px 0;
-    font-size: 13px;
-    color: #b5b5b5;
+  width: 100%;
+  background-color: rgba(28, 28, 28, 1);
+  border-top: 1px solid #2a2a2a;
+  padding: 16px 0;
+  font-size: 13px;
+  color: #b5b5b5;
 }
 
 .footer-container {
-    width: 1200px;
-    margin: 0 auto;
+  width: 1200px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .footer-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .footer-left {
-    flex: 1;
-    text-align: left;
-    font-weight: 600;
-    color: #d0d0d0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+.footer-logo {
+  font-weight: 600;
+  color: #d0d0d0;
+}
+
+.footer-contact {
+  font-size: 12.5px;
+  color: #9a9a9a;
+}
+
+.footer-contact-number {
+  color: #d0d0d0;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-contact-number:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .footer-center {
-    flex: 2;
-    text-align: center;
-    color: #9a9a9a;
-    line-height: 1.4;
+  flex: 2;
+  text-align: center;
+  color: #9a9a9a;
+  line-height: 1.4;
 }
 
 .footer-right {
+  flex: 1;
+  text-align: right;
+  color: #7f7f7f;
+}
+
+/* =========================================================
+   Event Period Navigation
+========================================================= */
+
+.event-list-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.section-description {
+  margin-top: 8px;
+  color: var(--color-gray2);
+}
+
+.event-period-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  background: var(--color-bg2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.event-period-links a {
+  min-width: 72px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  text-align: center;
+  color: var(--color-gray);
+  font-size: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.event-period-links a:hover,
+.event-period-links a.active {
+  /* [수정] --color-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --color-point-strong으로 교체 */
+  background: var(--color-point-strong);
+  color: var(--color-white);
+}
+
+@media (max-width: 768px) {
+  .event-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .event-period-links {
+    width: 100%;
+  }
+
+  .event-period-links a {
     flex: 1;
-    text-align: right;
-    color: #7f7f7f;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   Notification Bell / Dropdown
+========================================================= */
+
+.notification-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.notification-btn {
+  position: relative;
+  border: 0;
+  cursor: pointer;
+}
+
+.notification-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 2px solid var(--color-bg);
+  border-radius: 999px;
+  /* [수정] 흰 글자 on #e53935는 대비 약 4.23:1로 부족해 더 진한 톤으로 교체 */
+  background: #e32a26;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(229, 57, 53, 0.35);
+}
+
+.notification-badge[hidden] {
+  display: none !important;
+}
+
+/* 헤더 채팅 아이콘(.chat-btn) 우측 상단에 미읽음 배지를 올리기 위한 기준 위치.
+   배지 자체는 .notification-badge 스타일을 그대로 재사용한다(header-notification.js).
+   드롭다운(.chat-unread-dropdown)도 .notification-dropdown과 같은 규칙으로 이 래퍼를
+   기준(position:absolute)으로 펼쳐지므로 .notification-menu와 동일하게 relative를 준다. */
+.chat-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.chat-btn {
+  position: relative;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 62px;
+  right: 0;
+  z-index: 1000;
+  width: 350px;
+  max-height: 470px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: #2a2d32;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: var(--transition);
+}
+
+.notification-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  animation: fadeUp 0.25s ease;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 18px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notification-dropdown-header strong {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.notification-dropdown-header span {
+  color: var(--color-gray2);
+  font-size: 12px;
+}
+
+.notification-list {
+  max-height: 342px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: block;
+  padding: 15px 18px;
+  border-bottom: 1px solid rgba(61, 65, 72, 0.82);
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover,
+.notification-item:focus-visible {
+  background: #383c42;
+}
+
+.notification-item:focus-visible {
+  outline: 2px solid var(--color-point);
+  outline-offset: -2px;
+}
+
+.notification-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notification-item-title {
+  min-width: 0;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-item-type {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #3b4654;
+  color: #bcd8ff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.notification-item-message {
+  margin: 7px 0 0;
+  color: var(--color-gray);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.notification-empty {
+  padding: 42px 20px;
+  color: var(--color-gray2);
+  font-size: 13px;
+  text-align: center;
+}
+
+.notification-dropdown-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.notification-clear-all-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ec8ff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.notification-clear-all-btn:hover,
+.notification-clear-all-btn:focus-visible {
+  background: #383c42;
+  color: #ffffff;
+}
+
+.notification-clear-all-btn:focus-visible {
+  outline: 2px solid var(--color-point);
+  outline-offset: 1px;
+}
+
+.notification-clear-all-btn:disabled {
+  color: var(--color-gray2);
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.notification-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #4b5058;
+}
+
+@media (max-width: 768px) {
+  .footer-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    text-align: center;
+    flex: none;
+    width: 100%;
+  }
+
+  .footer-left {
+    align-items: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .notification-dropdown {
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  .notification-icon {
+    width: 23px;
+    height: 23px;
+  }
+}
+
+/* =========================================================
+   Back to Top Button
+   (스크롤 중 헤더가 숨겨질 때 우측 하단에 노출되는
+   맨 위로 이동 버튼. js/common.js의 initHeaderScroll 참고)
+========================================================= */
+
+.back-to-top-btn {
+  position: fixed;
+
+  right: calc(24px + env(safe-area-inset-right, 0px));
+
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+
+  z-index: 9998;
+
+  width: 48px;
+
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--color-bg3);
+
+  border: 1px solid var(--color-border);
+
+  color: var(--color-white);
+
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  transform: translateY(12px);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0.25s ease,
+    background 0.2s ease;
+}
+
+.back-to-top-btn.show {
+  opacity: 1;
+
+  visibility: visible;
+
+  transform: translateY(0);
+}
+
+.back-to-top-btn:hover {
+  background: var(--color-point);
+
+  border-color: var(--color-point);
+}
+
+@media (max-width: 576px) {
+  .back-to-top-btn {
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* =========================================================
+   [수정] 이벤트 기간 탭 디자인 통일
+   - 내 리뷰 페이지의 캡슐형 탭 스타일과 동일하게 적용
+   - 진행 중/예정/종료 이동 기능과 링크 경로는 그대로 유지
+========================================================= */
+
+.event-period-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  flex-shrink: 0;
+  width: auto;
+  gap: 10px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.event-period-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+  padding: 0 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.event-period-links a:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.event-period-links a.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+/* [수정] 기존 기간별 빨강·파랑·회색 활성 배경을 동일한 탭 색상으로 덮어쓰기 */
+.event-period-link--ongoing.active,
+.event-period-link--upcoming.active,
+.event-period-link--ended.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  color: #111216;
+}
+
+.event-period-links a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .event-period-links {
+    gap: 8px;
+  }
+
+  .event-period-links a {
+    min-height: 40px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
 }

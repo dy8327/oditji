@@ -1,5 +1,349 @@
 package com.project.oditji.business.vo;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.project.oditji.goods.vo.ProductOptionVO;
+
 public class GoodsManageVO {
-    
+
+    // PRODUCT
+    private long productNo;
+    private long businessNo;
+    private long contentNo;
+
+    /*
+     * JSONL 콘텐츠 검색 결과를 상품 등록 요청까지 유지하기 위한 값입니다.
+     * 실제 PRODUCT 저장 전 ContentService가 CONTENT_NO를 준비합니다.
+     */
+    private Long tmdbId;
+    private String contentType;
+    private Long tmdbActorId;
+
+    // PRODUCT.ACTOR_NO는 NULL 허용
+    private Long actorNo;
+
+    private String productName;
+    private String productType;
+    private long price;
+    private int discountRate;
+    private int stock;
+    private String description;
+    private String status;
+    private LocalDateTime createdAt;
+
+    /*
+     * [상품 수정일 추가]
+     * 상품의 마지막 수정 일시입니다.
+     * 한 번도 수정되지 않은 상품은 null입니다.
+     */
+    private LocalDateTime updatedAt;
+
+    // 조회용
+    private String contentTitle;
+    private String actorName;
+    private String businessName;
+
+    // PRODUCT_IMAGE
+    private long imageNo;
+    private String imagePath;
+    private String isMain;
+
+    /*
+     * [상품 세부 이미지 수정]
+     * 상품에 등록된 세부 이미지 경로 목록입니다.
+     */
+    private List<String> detailImagePathList = new ArrayList<String>();
+
+    // 인기 상품 조회용
+    private int clickCount;
+
+    // [상품 옵션 기능 추가] 의상/신발의 색상-사이즈별 재고 목록
+    private List<ProductOptionVO> optionList = new ArrayList<ProductOptionVO>();
+
+    public long getProductNo() {
+        return productNo;
+    }
+
+    public void setProductNo(long productNo) {
+        this.productNo = productNo;
+    }
+
+    public long getBusinessNo() {
+        return businessNo;
+    }
+
+    public void setBusinessNo(long businessNo) {
+        this.businessNo = businessNo;
+    }
+
+    public long getContentNo() {
+        return contentNo;
+    }
+
+    public void setContentNo(long contentNo) {
+        this.contentNo = contentNo;
+    }
+
+    public Long getTmdbId() {
+        return tmdbId;
+    }
+
+    public void setTmdbId(Long tmdbId) {
+        this.tmdbId = tmdbId;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getTmdbActorId() {
+        return tmdbActorId;
+    }
+
+    public void setTmdbActorId(Long tmdbActorId) {
+        this.tmdbActorId = tmdbActorId;
+    }
+
+    public Long getActorNo() {
+        return actorNo;
+    }
+
+    public void setActorNo(Long actorNo) {
+        this.actorNo = actorNo;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
+
+    public long getPrice() {
+        return price;
+    }
+
+    public void setPrice(long price) {
+        this.price = price;
+    }
+
+    public int getDiscountRate() {
+        return discountRate;
+    }
+
+    public void setDiscountRate(int discountRate) {
+        this.discountRate = discountRate;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /*
+     * [상품 수정일 추가]
+     * 상품의 마지막 수정 일시를 반환합니다.
+     */
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getContentTitle() {
+        return contentTitle;
+    }
+
+    public void setContentTitle(String contentTitle) {
+        this.contentTitle = contentTitle;
+    }
+
+    public String getActorName() {
+        return actorName;
+    }
+
+    public void setActorName(String actorName) {
+        this.actorName = actorName;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
+    public long getImageNo() {
+        return imageNo;
+    }
+
+    public void setImageNo(long imageNo) {
+        this.imageNo = imageNo;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public String getIsMain() {
+        return isMain;
+    }
+
+    public void setIsMain(String isMain) {
+        this.isMain = isMain;
+    }
+
+    public int getClickCount() {
+        return clickCount;
+    }
+
+    public void setClickCount(int clickCount) {
+        this.clickCount = clickCount;
+    }
+
+    public List<ProductOptionVO> getOptionList() {
+        return optionList;
+    }
+
+    public void setOptionList(List<ProductOptionVO> optionList) {
+        this.optionList = optionList == null ? new ArrayList<ProductOptionVO>() : optionList;
+    }
+
+    public List<String> getDetailImagePathList() {
+        return detailImagePathList;
+    }
+
+    public void setDetailImagePathList(
+            List<String> detailImagePathList) {
+
+        this.detailImagePathList = detailImagePathList == null
+                ? new ArrayList<String>()
+                : detailImagePathList;
+    }
+
+    /*
+     * =========================================================
+     * [상품 세부 이미지 수정]
+     *
+     * productList.jsp의 data-detail-images 속성에 넣을 JSON 배열 문자열입니다.
+     *
+     * 현재 프로젝트의 상품 이미지 경로는 서버에서 생성한 UUID 파일명으로
+     * 구성되므로 별도의 Jackson ObjectMapper를 추가하지 않고 현재 VO에서
+     * 안전하게 JSON 문자열로 변환합니다.
+     * =========================================================
+     */
+    public String getDetailImagesJson() {
+
+        if (detailImagePathList == null
+                || detailImagePathList.isEmpty()) {
+
+            return "[]";
+        }
+
+        StringBuilder jsonBuilder = new StringBuilder("[");
+
+        for (int i = 0; i < detailImagePathList.size(); i++) {
+
+            if (i > 0) {
+                jsonBuilder.append(",");
+            }
+
+            /* [SonarQube] 필드 imagePath와 이름이 겹치지 않도록 지역 변수명을 명확히 구분합니다. */
+            String detailImagePath = detailImagePathList.get(i);
+
+            String escapedImagePath = detailImagePath == null
+                    ? ""
+                    : detailImagePath
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            .replace("\r", "\\r")
+                            .replace("\n", "\\n");
+
+            jsonBuilder
+                    .append("\"")
+                    .append(escapedImagePath)
+                    .append("\"");
+        }
+
+        jsonBuilder.append("]");
+
+        return jsonBuilder.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "GoodsManageVO{" +
+                "productNo=" + productNo +
+                ", businessNo=" + businessNo +
+                ", contentNo=" + contentNo +
+                ", tmdbId=" + tmdbId +
+                ", contentType='" + contentType + '\'' +
+                ", tmdbActorId=" + tmdbActorId +
+                ", actorNo=" + actorNo +
+                ", productName='" + productName + '\'' +
+                ", productType='" + productType + '\'' +
+                ", price=" + price +
+                ", discountRate=" + discountRate +
+                ", stock=" + stock +
+                ", description='" + description + '\'' +
+                ", status='" + status + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", contentTitle='" + contentTitle + '\'' +
+                ", actorName='" + actorName + '\'' +
+                ", businessName='" + businessName + '\'' +
+                ", imageNo=" + imageNo +
+                ", imagePath='" + imagePath + '\'' +
+                ", isMain='" + isMain + '\'' +
+                '}';
+    }
 }

@@ -1,0 +1,69 @@
+/* =========================================================
+   [공통 페이지네이션]
+   콘텐츠 목록 페이지와 동일한 크기·간격·활성 색상을 모든 사용자 목록에 적용합니다.
+========================================================= */
+.oditji-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  width: 100%;
+  margin: 36px 0 10px;
+}
+
+.oditji-page-link,
+.oditji-page-current {
+  display: inline-flex;
+  min-width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.oditji-page-link {
+  background: #202226;
+  color: #c7cbd2;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.oditji-page-link:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #2a2d32;
+  color: #fff;
+}
+
+.oditji-page-current {
+  border-color: #fff;
+  background: #fff;
+  color: #111216;
+  font-weight: 800;
+}
+
+.oditji-page-edge {
+  color: #8e949e;
+}
+
+@media (max-width: 640px) {
+  .oditji-pagination {
+    gap: 5px;
+    margin-top: 28px;
+  }
+  .oditji-page-link,
+  .oditji-page-current {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+  }
+}

@@ -1,38 +1,160 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.oditji.member.dao.MemberPlatformDAO">
 
-    <select id="selectPlatformList" resultType="com.project.oditji.member.vo.PlatformVO">
+    <resultMap id="platformResultMap"
+               type="com.project.oditji.member.vo.PlatformVO">
+
+        <id property="platformNo"
+            column="PLATFORM_NO"/>
+
+        <result property="platformName"
+                column="PLATFORM_NAME"/>
+
+        <result property="logoImage"
+                column="LOGO_IMAGE"/>
+
+        <result property="siteUrl"
+                column="SITE_URL"/>
+
+        <result property="isActive"
+                column="IS_ACTIVE"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+        <result property="updatedAt"
+                column="UPDATED_AT"/>
+
+    </resultMap>
+
+
+    <resultMap id="memberPlatformResultMap"
+               type="com.project.oditji.member.vo.MemberPlatformVO">
+
+        <id property="memberPlatformNo"
+            column="MEMBER_PLATFORM_NO"/>
+
+        <result property="memberNo"
+                column="MEMBER_NO"/>
+
+        <result property="platformNo"
+                column="PLATFORM_NO"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+    </resultMap>
+
+
+    <!-- 활성화된 전체 OTT 플랫폼 목록 -->
+    <select id="findPlatformList"
+            resultMap="platformResultMap">
+
         SELECT
             PLATFORM_NO,
             PLATFORM_NAME,
-            LOGO_IMAGE
+            LOGO_IMAGE,
+            SITE_URL,
+            IS_ACTIVE,
+            CREATED_AT,
+            UPDATED_AT
+
         FROM OTT_PLATFORM
+
         WHERE IS_ACTIVE = 'Y'
-        ORDER BY PLATFORM_NO
+
+        ORDER BY PLATFORM_NO ASC
+
     </select>
 
+
+    <!-- 회원의 MEMBER_PLATFORM 원본 목록 -->
+    <select id="selectMemberPlatformList"
+            resultMap="memberPlatformResultMap">
+
+        SELECT
+            MEMBER_PLATFORM_NO,
+            MEMBER_NO,
+            PLATFORM_NO,
+            CREATED_AT
+
+        FROM MEMBER_PLATFORM
+
+        WHERE MEMBER_NO = #{memberNo}
+
+        ORDER BY MEMBER_PLATFORM_NO ASC
+
+    </select>
+
+
+    <!-- 회원이 선택한 활성 OTT 상세 목록 -->
+    <select id="selectMemberSelectedPlatformList"
+            resultMap="platformResultMap">
+
+        SELECT
+            OP.PLATFORM_NO,
+            OP.PLATFORM_NAME,
+            OP.LOGO_IMAGE,
+            OP.SITE_URL,
+            OP.IS_ACTIVE,
+            OP.CREATED_AT,
+            OP.UPDATED_AT
+
+        FROM MEMBER_PLATFORM MP
+
+        INNER JOIN OTT_PLATFORM OP
+            ON OP.PLATFORM_NO = MP.PLATFORM_NO
+
+        WHERE MP.MEMBER_NO = #{memberNo}
+          AND OP.IS_ACTIVE = 'Y'
+
+        ORDER BY OP.PLATFORM_NO ASC
+
+    </select>
+
+
+    <!-- 회원이 선택한 OTT 개수 -->
+    <select id="countMemberPlatform"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM MEMBER_PLATFORM
+
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+
+    <!-- 회원 OTT 저장 -->
     <insert id="insertMemberPlatform">
+
         INSERT INTO MEMBER_PLATFORM (
             MEMBER_PLATFORM_NO,
             MEMBER_NO,
             PLATFORM_NO,
             CREATED_AT
         ) VALUES (
-            SEQ_MEMBER_PLATFORM.NEXTVAL,
+            SEQ_MEMBER_PLATFORM_NO.NEXTVAL,
             #{memberNo},
             #{platformNo},
             SYSDATE
         )
+
     </insert>
 
-    <select id="countMemberPlatform" resultType="int">
-        SELECT COUNT(*)
-        FROM MEMBER_PLATFORM
+
+    <!-- 회원 OTT 전체 삭제 -->
+    <delete id="deleteMemberPlatforms">
+
+        DELETE FROM MEMBER_PLATFORM
+
         WHERE MEMBER_NO = #{memberNo}
-    </select>
+
+    </delete>
 
 </mapper>

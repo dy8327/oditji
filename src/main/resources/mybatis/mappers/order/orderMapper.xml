@@ -1,0 +1,1169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.order.dao.OrderDAO">
+
+    <!-- =====================================================
+         주문서 작성용 상품 정보 매핑
+         (selectProductForOrder / selectCartItemsForOrder 공용)
+    ====================================================== -->
+    <resultMap id="orderSheetItemResultMap"
+               type="com.project.oditji.order.vo.OrderSheetItemVO">
+
+        <result property="productNo" column="PRODUCT_NO"/>
+
+        <result property="productNo" column="PRODUCT_NO"/>
+
+        <!-- [상품 옵션 정보 매핑] 사용자가 선택한 색상·사이즈 옵션 -->
+        <result property="optionNo" column="OPTION_NO"/>
+
+        <result property="colorName"
+                column="COLOR_NAME"/>
+
+        <result property="sizeName"
+                column="SIZE_NAME"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="cartItemNo"
+                column="CART_ITEM_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <!-- [추가] 주문내역 취소/환불 버튼 판단용 배송 상태 -->
+        <result property="deliveryStatus"
+                column="DELIVERY_STATUS"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         주문(ORDERS) 매핑
+    ====================================================== -->
+    <resultMap id="orderResultMap"
+               type="com.project.oditji.order.vo.OrderVO">
+
+        <id property="orderNo"
+            column="ORDER_NO"/>
+
+        <result property="memberNo"
+                column="MEMBER_NO"/>
+
+        <result property="totalAmount"
+                column="TOTAL_AMOUNT"/>
+
+        <result property="orderStatus"
+                column="ORDER_STATUS"/>
+
+        <result property="receiverName"
+                column="RECEIVER_NAME"/>
+
+        <result property="receiverPhone"
+                column="RECEIVER_PHONE"/>
+
+        <result property="address"
+                column="ADDRESS"/>
+
+        <result property="createdAt"
+                column="CREATED_AT"/>
+
+        <!-- =====================================================
+             [결제수단별 부분 취소 제한 표시용 매핑]
+             PAYMENT 테이블과 조인하여 결제 수단 및 PG사 정보 매핑
+        ====================================================== -->
+        <result property="payMethod"
+                column="PAY_METHOD"/>
+
+        <result property="pgProvider"
+                column="PG_PROVIDER"/>
+
+        <!-- =====================================================
+             [주문 전체 취소 상태 및 반려 사유 매핑]
+             CANCEL_REQUEST 테이블 기반 전체 취소 상태 및 사유 매핑
+        ====================================================== -->
+        <result property="fullCancelStatus"
+                column="FULL_CANCEL_STATUS"/>
+
+        <result property="fullCancelRejectReason"
+                column="FULL_CANCEL_REJECT_REASON"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         주문 상세(ORDER_ITEM) 매핑
+    ====================================================== -->
+    <resultMap id="orderItemResultMap"
+               type="com.project.oditji.order.vo.OrderItemVO">
+
+        <id property="orderItemNo"
+            column="ORDER_ITEM_NO"/>
+
+        <result property="orderNo"
+                column="ORDER_NO"/>
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <!--
+            =========================================================
+            [상품 옵션 정보 매핑 추가]
+
+            ORDER_ITEM에 저장된 옵션 번호와
+            PRODUCT_OPTION에서 조회한 색상·사이즈를
+            OrderItemVO에 매핑한다.
+            =========================================================
+        -->
+        <result property="optionNo"
+                column="OPTION_NO"/>
+
+        <result property="colorName"
+                column="COLOR_NAME"/>
+
+        <result property="sizeName"
+                column="SIZE_NAME"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="productPrice"
+                column="PRODUCT_PRICE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <!-- [추가] 주문내역 취소/환불 버튼 판단용 배송 상태 -->
+        <result property="deliveryStatus"
+                column="DELIVERY_STATUS"/>
+
+        <!-- [환불 가능 기간 추가] 배송 완료 시점부터 7일 이내 여부 -->
+        <result property="refundEligible"
+                column="REFUND_ELIGIBLE"/>
+
+        <!-- =====================================================
+             [부분 취소 요청 상태 및 반려 사유 표시용 매핑]
+             가장 최근 진행된 PARTIAL 요청 한 건의 상태/타입/사유 매핑
+        ====================================================== -->
+        <result property="cancelRequestStatus"
+                column="CANCEL_REQUEST_STATUS"/>
+
+        <result property="cancelType"
+                column="CANCEL_TYPE"/>
+
+        <result property="cancelRejectReason"
+                column="CANCEL_REJECT_REASON"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         [배송 조회 화면 추가]
+         사용자 배송 조회(DeliveryVO) 매핑
+         business.vo.DeliveryManageVO와 동일한 컬럼 구성에
+         상품 이미지(MAIN_IMAGE) 컬럼만 추가했다.
+    ====================================================== -->
+    <resultMap id="deliveryResultMap"
+               type="com.project.oditji.order.vo.DeliveryVO">
+
+        <id property="orderItemNo"
+            column="ORDER_ITEM_NO"/>
+
+        <result property="deliveryNo"
+                column="DELIVERY_NO"/>
+
+        <result property="orderNo"
+                column="ORDER_NO"/>
+
+        <result property="productNo"
+                column="PRODUCT_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+        <result property="productPrice"
+                column="PRODUCT_PRICE"/>
+
+        <result property="quantity"
+                column="QUANTITY"/>
+
+        <result property="receiverName"
+                column="RECEIVER_NAME"/>
+
+        <result property="receiverPhone"
+                column="RECEIVER_PHONE"/>
+
+        <result property="address"
+                column="ADDRESS"/>
+
+        <result property="trackingNumber"
+                column="TRACKING_NUMBER"/>
+
+        <result property="courier"
+                column="COURIER"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="orderCreatedAt"
+                column="ORDER_CREATED_AT"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         상품 대표 이미지 조인 (goodsMapper / cartMapper와 동일 패턴)
+    ====================================================== -->
+    <sql id="mainImageJoin">
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+            FROM PRODUCT_IMAGE
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
+    <!-- 진행 중인 이벤트 할인율 조회 -->
+    <sql id="activeEventDiscountJoin">
+        LEFT JOIN (
+            SELECT EP.PRODUCT_NO, MAX(EP.EVENT_DISCOUNT_RATE) AS ACTIVE_EVENT_DISCOUNT_RATE
+            FROM EVENT_PRODUCT EP
+            INNER JOIN EVENT E ON E.EVENT_NO = EP.EVENT_NO
+            WHERE E.STATUS = 'APPROVED'
+            AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+            GROUP BY EP.PRODUCT_NO
+        ) AED ON AED.PRODUCT_NO = P.PRODUCT_NO
+    </sql>
+
+
+    <!-- =====================================================
+         바로 구매용 상품 단건 조회
+    ====================================================== -->
+    <select id="selectProductForOrder"
+            resultMap="orderSheetItemResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) AS DISCOUNT_RATE,
+            <!-- [수정] 옵션 없는 상품의 null 파라미터 타입 지정 -->
+            CASE WHEN #{optionNo, jdbcType=NUMERIC} IS NULL THEN NVL(P.STOCK, 0) ELSE NVL(PO.STOCK, 0) END AS STOCK,
+            PO.OPTION_NO, PO.COLOR_NAME, PO.SIZE_NAME,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+        <!-- [수정] 옵션 없는 상품의 null 파라미터 Oracle 타입 오류 방지 -->
+        LEFT JOIN PRODUCT_OPTION PO ON PO.PRODUCT_NO = P.PRODUCT_NO AND PO.OPTION_NO = #{optionNo, jdbcType=NUMERIC}
+
+        <include refid="mainImageJoin"/>
+        <include refid="activeEventDiscountJoin"/>
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND (#{optionNo, jdbcType=NUMERIC} IS NULL OR PO.OPTION_NO IS NOT NULL)
+
+    </select>
+
+
+    <!-- =====================================================
+         장바구니 선택 상품 주문서 작성용 조회
+         (로그인 회원 소유의 장바구니 상품만 조회)
+    ====================================================== -->
+    <select id="selectCartItemsForOrder"
+        resultMap="orderSheetItemResultMap">
+
+        SELECT
+            CI.CART_ITEM_NO,
+            CI.OPTION_NO,
+            PO.COLOR_NAME,
+            PO.SIZE_NAME,
+            CI.QUANTITY,
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(
+                AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                NVL(P.DISCOUNT_RATE, 0)
+            ) AS DISCOUNT_RATE,
+            NVL(PO.STOCK, NVL(P.STOCK, 0)) AS STOCK,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+
+        FROM CART_ITEM CI
+
+        INNER JOIN CART C
+            ON C.CART_NO = CI.CART_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = CI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <!--
+            [상품 옵션 조회 조건 보완]
+            사용자가 장바구니에 담은 상품과 동일한 상품의 옵션만 조회한다.
+        -->
+        LEFT JOIN PRODUCT_OPTION PO
+            ON PO.OPTION_NO = CI.OPTION_NO
+        AND PO.PRODUCT_NO = CI.PRODUCT_NO
+
+        <include refid="mainImageJoin"/>
+        <include refid="activeEventDiscountJoin"/>
+
+        WHERE C.MEMBER_NO = #{memberNo}
+
+        AND CI.CART_ITEM_NO IN
+
+        <foreach collection="cartItemNos"
+                item="cartItemNo"
+                open="("
+                separator=","
+                close=")">
+
+            #{cartItemNo}
+
+        </foreach>
+
+    </select>
+
+
+    <!-- =====================================================
+         주문 생성
+    ====================================================== -->
+    <insert id="insertOrder"
+            parameterType="com.project.oditji.order.vo.OrderVO">
+
+        <selectKey keyProperty="orderNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_ORDER_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO ORDERS (
+            ORDER_NO,
+            MEMBER_NO,
+            TOTAL_AMOUNT,
+            ORDER_STATUS,
+            RECEIVER_NAME,
+            RECEIVER_PHONE,
+            ADDRESS,
+            CREATED_AT
+        )
+        VALUES (
+            #{orderNo},
+            #{memberNo},
+            #{totalAmount},
+            #{orderStatus},
+            #{receiverName},
+            #{receiverPhone},
+            #{address},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         주문 상세 생성
+    ====================================================== -->
+    <insert id="insertOrderItem"
+            parameterType="com.project.oditji.order.vo.OrderItemVO">
+
+        <selectKey keyProperty="orderItemNo"
+                   resultType="long"
+                   order="BEFORE">
+
+            SELECT SEQ_ORDER_ITEM_NO.NEXTVAL
+            FROM DUAL
+
+        </selectKey>
+
+        INSERT INTO ORDER_ITEM (
+            ORDER_ITEM_NO,
+            ORDER_NO,
+            PRODUCT_NO,
+            OPTION_NO,
+            BUSINESS_NO,
+            PRODUCT_PRICE,
+            QUANTITY,
+            STATUS
+        )
+        VALUES (
+            #{orderItemNo},
+            #{orderNo},
+            #{productNo},
+            #{optionNo, jdbcType=NUMERIC},
+            #{businessNo},
+            #{productPrice},
+            #{quantity},
+            #{status}
+        )
+
+    </insert>
+
+
+    <!-- =====================================================
+         [결제 완료 주문상품 정산 예정 데이터 생성 추가]
+
+         주문상품 1건마다 SETTLEMENT 데이터를 생성한다.
+         BUSINESS.CUSTOM_RATE가 있으면 개별 수수료율을 우선하고,
+         없으면 GRADE_POLICY.COMMISSION_RATE를 사용한다.
+
+         동일 주문상품의 정산 중복 생성을 NOT EXISTS로 방지한다.
+    ====================================================== -->
+    <insert id="insertWaitingSettlement">
+
+        INSERT INTO SETTLEMENT (
+            SETTLEMENT_NO,
+            BUSINESS_NO,
+            ORDER_ITEM_NO,
+            TOTAL_AMOUNT,
+            APPLIED_GRADE,
+            APPLIED_RATE,
+            FEE_AMOUNT,
+            SETTLED_AMOUNT,
+            STATUS,
+            SETTLED_AT,
+            CREATED_AT
+        )
+        SELECT
+            SEQ_SETTLEMENT_NO.NEXTVAL,
+            OI.BUSINESS_NO,
+            OI.ORDER_ITEM_NO,
+            OI.PRODUCT_PRICE * OI.QUANTITY,
+            B.GRADE_NAME,
+            NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE),
+            /*
+             * [수정] 주문상품별 수수료는 여기서 원 단위 반올림하지 않는다.
+             * NUMBER 컬럼에 소수 계산값을 그대로 보존한 뒤,
+             * 사업자/정산월 단위로 합산할 때 마지막 한 번만 ROUND한다.
+             */
+            (OI.PRODUCT_PRICE * OI.QUANTITY)
+            * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)
+            / 100,
+            /*
+             * [수정] 주문상품별 판매대금도 정확한 수수료 계산값을 차감해 저장한다.
+             * 최종 지급·표시 금액은 월 합계 조회 시 원 단위로 반올림한다.
+             */
+            (OI.PRODUCT_PRICE * OI.QUANTITY)
+            - (
+                (OI.PRODUCT_PRICE * OI.QUANTITY)
+                * NVL(B.CUSTOM_RATE, GP.COMMISSION_RATE)
+                / 100
+            ),
+            'WAITING',
+            NULL,
+            SYSDATE
+        FROM ORDER_ITEM OI
+        JOIN BUSINESS B
+          ON B.BUSINESS_NO = OI.BUSINESS_NO
+        JOIN GRADE_POLICY GP
+          ON GP.GRADE_NAME = B.GRADE_NAME
+        WHERE OI.ORDER_ITEM_NO = #{orderItemNo}
+          AND OI.STATUS = 'PAID'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM SETTLEMENT S
+              WHERE S.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+          )
+
+    </insert>
+
+
+    <!-- [상품 옵션 기능 추가] 선택 옵션 재고 조건부 차감 -->
+    <update id="decreaseProductOptionStock">
+        UPDATE PRODUCT_OPTION SET STOCK = STOCK - #{quantity}
+        WHERE OPTION_NO = #{optionNo} AND STOCK >= #{quantity}
+    </update>
+
+    <!-- =====================================================
+         주문 확정 시 재고 차감
+         WHERE 절에 재고 조건(STOCK >= #{quantity})을 포함해
+         동시성 문제로 인한 재고 초과 차감(음수 재고)을 방지한다.
+    ====================================================== -->
+    <update id="decreaseProductStock">
+
+        UPDATE PRODUCT
+
+        SET STOCK = STOCK - #{quantity}
+
+        WHERE PRODUCT_NO = #{productNo}
+          AND STOCK >= #{quantity}
+
+    </update>
+
+
+    <!-- =====================================================
+         해당 주문의 배송 시작 여부 확인
+
+         DELIVERY 행이 없거나 PREPARING 상태이면 취소 가능.
+         SHIPPING 또는 DELIVERED 상태가 하나라도 존재하면 취소 불가.
+    ====================================================== -->
+    <select id="countStartedDeliveryByOrderNo"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM DELIVERY D
+
+        INNER JOIN ORDER_ITEM OI
+            ON OI.ORDER_ITEM_NO = D.ORDER_ITEM_NO
+
+        WHERE OI.ORDER_NO = #{orderNo}
+
+          AND D.STATUS IN (
+              'SHIPPING',
+              'DELIVERED'
+          )
+
+    </select>
+
+
+    <!-- =====================================================
+         결제 취소 시 상품 재고 복구
+
+         주문상품 상태가 PAID일 때만 복구한다.
+         동일 주문의 동일 상품이 여러 행이면 수량을 합산한다.
+    ====================================================== -->
+    <!-- [상품 옵션 기능 추가] 취소 대상 PAID 주문상품의 옵션 재고 복구 -->
+    <update id="restoreProductOptionStockByOrderNo">
+        MERGE INTO PRODUCT_OPTION PO
+        USING (
+            SELECT OI.OPTION_NO, SUM(OI.QUANTITY) AS RESTORE_QUANTITY
+            FROM ORDER_ITEM OI
+            WHERE OI.ORDER_NO = #{orderNo}
+              AND OI.STATUS = 'PAID'
+              AND OI.OPTION_NO IS NOT NULL
+            GROUP BY OI.OPTION_NO
+        ) R
+        ON (PO.OPTION_NO = R.OPTION_NO)
+        WHEN MATCHED THEN UPDATE SET PO.STOCK = PO.STOCK + R.RESTORE_QUANTITY
+    </update>
+
+    <update id="restoreProductStockByOrderNo">
+
+        MERGE INTO PRODUCT P
+
+        USING (
+            SELECT
+                PRODUCT_NO,
+                SUM(QUANTITY) AS RESTORE_QUANTITY
+            FROM ORDER_ITEM
+            WHERE ORDER_NO = #{orderNo}
+              AND STATUS = 'PAID'
+            GROUP BY PRODUCT_NO
+        ) CANCELED_ITEM
+
+        ON (
+            P.PRODUCT_NO = CANCELED_ITEM.PRODUCT_NO
+        )
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+                P.STOCK =
+                    NVL(P.STOCK, 0)
+                    + CANCELED_ITEM.RESTORE_QUANTITY
+
+    </update>
+
+
+    <!-- =====================================================
+         주문상품 취소 상태 변경
+    ====================================================== -->
+    <update id="updateOrderItemsCanceled">
+
+        UPDATE ORDER_ITEM
+
+        SET STATUS = 'CANCELED'
+
+        WHERE ORDER_NO = #{orderNo}
+          AND STATUS = 'PAID'
+
+    </update>
+
+
+    <!-- =====================================================
+         주문 취소 상태 변경
+
+         로그인 회원 소유 검증과 PAID 상태 검증을
+         UPDATE 조건에서 한 번 더 수행한다.
+    ====================================================== -->
+    <update id="updateOrderCanceled">
+
+        UPDATE ORDERS
+
+        SET ORDER_STATUS = 'CANCELED'
+
+        WHERE ORDER_NO = #{orderNo}
+          AND MEMBER_NO = #{memberNo}
+          AND ORDER_STATUS = 'PAID'
+
+    </update>
+
+
+    <!-- =====================================================
+         [사용자 즉시 전액 취소 정산 제외 추가]
+         결제 취소가 완료된 주문의 WAITING 정산을 REJECTED로 변경한다.
+    ====================================================== -->
+    <update id="rejectSettlementsByOrderNo">
+
+        UPDATE SETTLEMENT S
+        SET S.STATUS = 'REJECTED'
+        WHERE S.STATUS = 'WAITING'
+          AND EXISTS (
+              SELECT 1
+              FROM ORDER_ITEM OI
+              WHERE OI.ORDER_ITEM_NO = S.ORDER_ITEM_NO
+                AND OI.ORDER_NO = #{orderNo}
+          )
+
+    </update>
+
+
+    <!-- =====================================================
+         로그인 회원의 주문 목록 (헤더 및 취소 요청 상태 포함 페이징 조회)
+    ====================================================== -->
+    <select id="selectOrderListByMember"
+            resultMap="orderResultMap">
+
+        SELECT
+            ORDER_PAGE.ORDER_NO,
+            ORDER_PAGE.MEMBER_NO,
+            ORDER_PAGE.TOTAL_AMOUNT,
+            ORDER_PAGE.ORDER_STATUS,
+            ORDER_PAGE.RECEIVER_NAME,
+            ORDER_PAGE.RECEIVER_PHONE,
+            ORDER_PAGE.ADDRESS,
+            ORDER_PAGE.CREATED_AT,
+            ORDER_PAGE.PAY_METHOD,
+            ORDER_PAGE.PG_PROVIDER,
+            ORDER_PAGE.FULL_CANCEL_STATUS,
+            ORDER_PAGE.FULL_CANCEL_REJECT_REASON
+        FROM (
+            SELECT
+                ORDER_DATA.*,
+                ROW_NUMBER() OVER (
+                    ORDER BY ORDER_DATA.CREATED_AT DESC,
+                             ORDER_DATA.ORDER_NO DESC
+                ) AS RN
+            FROM (
+                SELECT
+                    O.ORDER_NO,
+                    O.MEMBER_NO,
+                    O.TOTAL_AMOUNT,
+                    O.ORDER_STATUS,
+                    O.RECEIVER_NAME,
+                    O.RECEIVER_PHONE,
+                    O.ADDRESS,
+                    O.CREATED_AT,
+                    P.PAY_METHOD,
+                    P.PG_PROVIDER,
+
+                     /* =====================================================
+                        [최근 주문 전체 취소 그룹 상태 조회 추가]
+
+                        하나의 전체 취소 요청은 주문상품별 여러 행으로
+                        저장되므로 가장 최근 CANCEL_GROUP_NO를 기준으로
+                        그룹 상태를 계산한다.
+                        ====================================================== */
+
+                    (
+                        SELECT
+                            CASE
+                                WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
+                                    THEN 'REJECTED'
+                                WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
+                                    THEN 'WAITING'
+                                WHEN COUNT(*) > 0
+                                     AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
+                                    THEN 'APPROVED'
+                                ELSE NULL
+                            END
+                        FROM CANCEL_REQUEST CR
+                        WHERE CR.ORDER_NO = O.ORDER_NO
+                          AND CR.CANCEL_TYPE = 'FULL'
+                          AND CR.CANCEL_GROUP_NO = (
+                              SELECT MAX(CR2.CANCEL_GROUP_NO)
+                              FROM CANCEL_REQUEST CR2
+                              WHERE CR2.ORDER_NO = O.ORDER_NO
+                                AND CR2.CANCEL_TYPE = 'FULL'
+                          )
+                    ) AS FULL_CANCEL_STATUS,
+
+                    (
+                        SELECT MAX(CR.REJECT_REASON)
+                        FROM CANCEL_REQUEST CR
+                        WHERE CR.ORDER_NO = O.ORDER_NO
+                          AND CR.CANCEL_TYPE = 'FULL'
+                          AND CR.STATUS = 'REJECTED'
+                          AND CR.CANCEL_GROUP_NO = (
+                              SELECT MAX(CR2.CANCEL_GROUP_NO)
+                              FROM CANCEL_REQUEST CR2
+                              WHERE CR2.ORDER_NO = O.ORDER_NO
+                                AND CR2.CANCEL_TYPE = 'FULL'
+                          )
+                    ) AS FULL_CANCEL_REJECT_REASON
+                FROM ORDERS O
+
+                LEFT JOIN PAYMENT P
+                  ON P.ORDER_NO = O.ORDER_NO
+
+                WHERE O.MEMBER_NO = #{memberNo}
+            ) ORDER_DATA
+        ) ORDER_PAGE
+        WHERE ORDER_PAGE.RN BETWEEN #{startRow} AND #{endRow}
+        ORDER BY ORDER_PAGE.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         로그인 회원의 전체 주문 건수
+    ====================================================== -->
+    <select id="countOrderListByMember"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM ORDERS
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         로그인 회원의 전체 주문 상세 목록
+         (서비스 계층에서 ORDER_NO 기준으로 그룹핑)
+    ====================================================== -->
+    <select id="selectOrderItemListByMember"
+            resultMap="orderItemResultMap">
+
+        SELECT
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            OI.OPTION_NO,
+            PO.COLOR_NAME, PO.SIZE_NAME,
+            OI.BUSINESS_NO,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            OI.STATUS,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE,
+            /* [추가] DELIVERY 미등록 결제 상품은 주문 확인중으로 처리 */
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+            ) AS DELIVERY_STATUS,
+
+            /*
+             * =====================================================
+             * [환불 가능 기간 추가]
+             * 배송 완료 시점을 DELIVERY.DELIVERED_AT으로 고정하고
+             * 기존 데이터는 UPDATED_AT을 보조값으로 사용한다.
+             * 배송 완료 후 7일(168시간) 이내인 경우에만 1을 반환한다.
+             * =====================================================
+             */
+            CASE
+                WHEN OI.STATUS = 'DELIVERED'
+                 AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED'
+                 AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL
+                 AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7
+                    THEN 1
+                ELSE 0
+            END AS REFUND_ELIGIBLE,
+
+            /* =====================================================
+               [최근 부분 취소 요청 상태 및 반려 사유 조회]
+
+               반려 후 주문상품 상태가 PAID로 복구되더라도
+               사용자 화면에서 반려 사유를 확인할 수 있도록
+               가장 최근 PARTIAL 요청 한 건을 조회한다.
+            ====================================================== */
+            (
+                SELECT CR.STATUS
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_REQUEST_STATUS,
+
+            (
+                SELECT CR.CANCEL_TYPE
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_TYPE,
+
+            (
+                SELECT CR.REJECT_REASON
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_REJECT_REASON
+        FROM ORDER_ITEM OI
+
+        INNER JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+
+        <!--
+            =========================================================
+            [주문상품 옵션 조회 조건 보완]
+
+            주문상품에 저장된 옵션이 동일 상품에 속한 옵션인지
+            상품 번호까지 함께 비교한다.
+            =========================================================
+        -->
+        LEFT JOIN PRODUCT_OPTION PO
+            ON PO.OPTION_NO = OI.OPTION_NO
+        AND PO.PRODUCT_NO = OI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = OI.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        /* [추가] 사용자 버튼 노출 판단을 위한 배송 상태 조인 */
+        LEFT JOIN DELIVERY D
+          ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+        WHERE O.MEMBER_NO = #{memberNo}
+
+        ORDER BY
+            OI.ORDER_NO DESC,
+            OI.ORDER_ITEM_NO ASC
+
+    </select>
+
+
+    <!-- =====================================================
+         주문 단건 조회 (로그인 회원 소유 검증 포함)
+    ====================================================== -->
+    <select id="selectOrderByMember"
+            resultMap="orderResultMap">
+
+        SELECT
+            O.ORDER_NO,
+            O.MEMBER_NO,
+            O.TOTAL_AMOUNT,
+            O.ORDER_STATUS,
+            O.RECEIVER_NAME,
+            O.RECEIVER_PHONE,
+            O.ADDRESS,
+            O.CREATED_AT,
+            P.PAY_METHOD,
+            P.PG_PROVIDER,
+
+            /* =====================================================
+               [주문 단건 조회의 전체 취소 상태 및 반려 사유 조회]
+            ====================================================== */
+            (
+                SELECT
+                    CASE
+                        WHEN SUM(CASE WHEN CR.STATUS = 'REJECTED' THEN 1 ELSE 0 END) > 0
+                            THEN 'REJECTED'
+                        WHEN SUM(CASE WHEN CR.STATUS = 'WAITING' THEN 1 ELSE 0 END) > 0
+                            THEN 'WAITING'
+                        WHEN COUNT(*) > 0
+                             AND SUM(CASE WHEN CR.STATUS = 'APPROVED' THEN 1 ELSE 0 END) = COUNT(*)
+                            THEN 'APPROVED'
+                        ELSE NULL
+                    END
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_STATUS,
+
+            (
+                SELECT MAX(CR.REJECT_REASON)
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_NO = O.ORDER_NO
+                  AND CR.CANCEL_TYPE = 'FULL'
+                  AND CR.STATUS = 'REJECTED'
+                  AND CR.CANCEL_GROUP_NO = (
+                      SELECT MAX(CR2.CANCEL_GROUP_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_NO = O.ORDER_NO
+                        AND CR2.CANCEL_TYPE = 'FULL'
+                  )
+            ) AS FULL_CANCEL_REJECT_REASON
+        FROM ORDERS O
+
+        LEFT JOIN PAYMENT P
+          ON P.ORDER_NO = O.ORDER_NO
+
+        WHERE O.MEMBER_NO = #{memberNo}
+          AND O.ORDER_NO = #{orderNo}
+
+    </select>
+
+
+    <!-- =====================================================
+         특정 주문의 주문 상세 목록
+    ====================================================== -->
+    <select id="selectOrderItemListByOrderNo"
+            resultMap="orderItemResultMap">
+
+        SELECT
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            OI.OPTION_NO,
+            PO.COLOR_NAME, PO.SIZE_NAME,
+            OI.BUSINESS_NO,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            OI.STATUS,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE,
+            /* [추가] DELIVERY 미등록 결제 상품은 주문 확인중으로 처리 */
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+            ) AS DELIVERY_STATUS,
+
+            /*
+             * =====================================================
+             * [환불 가능 기간 추가]
+             * 배송 완료 시점을 DELIVERY.DELIVERED_AT으로 고정하고
+             * 기존 데이터는 UPDATED_AT을 보조값으로 사용한다.
+             * 배송 완료 후 7일(168시간) 이내인 경우에만 1을 반환한다.
+             * =====================================================
+             */
+            CASE
+                WHEN OI.STATUS = 'DELIVERED'
+                 AND NVL(D.STATUS, 'DELIVERED') = 'DELIVERED'
+                 AND NVL(D.DELIVERED_AT, D.UPDATED_AT) IS NOT NULL
+                 AND SYSDATE <![CDATA[ <= ]]> NVL(D.DELIVERED_AT, D.UPDATED_AT) + 7
+                    THEN 1
+                ELSE 0
+            END AS REFUND_ELIGIBLE,
+
+            /* =====================================================
+               [최근 부분 취소 요청 상태 및 반려 사유 조회]
+
+               반려 후 주문상품 상태가 PAID로 복구되더라도
+               사용자 화면에서 반려 사유를 확인할 수 있도록
+               가장 최근 PARTIAL 요청 한 건을 조회한다.
+            ====================================================== */
+            (
+                SELECT CR.STATUS
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_REQUEST_STATUS,
+
+            (
+                SELECT CR.CANCEL_TYPE
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_TYPE,
+
+            (
+                SELECT CR.REJECT_REASON
+                FROM CANCEL_REQUEST CR
+                WHERE CR.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                  AND CR.CANCEL_TYPE = 'PARTIAL'
+                  AND CR.CANCEL_NO = (
+                      SELECT MAX(CR2.CANCEL_NO)
+                      FROM CANCEL_REQUEST CR2
+                      WHERE CR2.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+                        AND CR2.CANCEL_TYPE = 'PARTIAL'
+                  )
+            ) AS CANCEL_REJECT_REASON
+        FROM ORDER_ITEM OI
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+
+        <!--
+            [상품 옵션 조회 조건 보완]
+            주문상품에 저장된 옵션이 해당 상품의 옵션인지 함께 확인한다.
+        -->
+        LEFT JOIN PRODUCT_OPTION PO
+            ON PO.OPTION_NO = OI.OPTION_NO
+        AND PO.PRODUCT_NO = OI.PRODUCT_NO
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = OI.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        /* [추가] 주문 상세에서도 배송 상태를 함께 조회 */
+        LEFT JOIN DELIVERY D
+          ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+        WHERE OI.ORDER_NO = #{orderNo}
+
+        ORDER BY OI.ORDER_ITEM_NO ASC
+
+    </select>
+
+
+    <!-- =====================================================
+         [배송 조회 화면 추가]
+         로그인 회원 소유의 주문상품 배송 조회 단건.
+
+         DELIVERY 행이 아직 없으면(배송 준비 단계) NVL로
+         business의 selectBusinessDeliveryList와 동일하게
+         PREPARING/SHIPPING/DELIVERED 상태를 계산해서 내려준다.
+    ====================================================== -->
+    <select id="selectDeliveryDetailByMember"
+            resultMap="deliveryResultMap">
+
+        SELECT
+            D.DELIVERY_NO,
+            OI.ORDER_ITEM_NO,
+            OI.ORDER_NO,
+            OI.PRODUCT_NO,
+            P.PRODUCT_NAME,
+            OI.PRODUCT_PRICE,
+            OI.QUANTITY,
+            O.RECEIVER_NAME,
+            O.RECEIVER_PHONE,
+            O.ADDRESS,
+            D.TRACKING_NUMBER,
+            D.COURIER,
+            NVL(D.STATUS,
+                CASE
+                    WHEN OI.STATUS IN ('SHIPPING', 'DELIVERED') THEN OI.STATUS
+                    ELSE 'CONFIRMED'
+                END
+            ) AS STATUS,
+            O.CREATED_AT AS ORDER_CREATED_AT
+        FROM ORDER_ITEM OI
+
+        INNER JOIN ORDERS O
+            ON O.ORDER_NO = OI.ORDER_NO
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = OI.PRODUCT_NO
+        LEFT JOIN PRODUCT_OPTION PO ON PO.OPTION_NO = OI.OPTION_NO
+
+        LEFT JOIN DELIVERY D
+            ON D.ORDER_ITEM_NO = OI.ORDER_ITEM_NO
+
+
+
+        WHERE O.MEMBER_NO = #{memberNo}
+          AND OI.ORDER_ITEM_NO = #{orderItemNo}
+
+    </select>
+
+</mapper>

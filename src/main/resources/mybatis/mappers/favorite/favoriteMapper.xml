@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.favorite.dao.FavoriteDAO">
+
+    <!-- 찜 여부 확인 -->
+    <select id="countFavorite"
+            parameterType="com.project.oditji.favorite.vo.FavoriteVO"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM FAVORITE
+        WHERE MEMBER_NO = #{memberNo}
+          AND CONTENT_NO = #{contentNo}
+
+    </select>
+
+
+    <!-- TMDB ID + 콘텐츠 유형으로 찜 여부 확인
+         CONTENT가 DB에 없는 경우에는 0을 반환하며 저장하지 않는다. -->
+    <select id="countFavoriteByTmdb"
+            parameterType="com.project.oditji.favorite.vo.FavoriteVO"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM FAVORITE F
+        JOIN CONTENT C
+          ON C.CONTENT_NO = F.CONTENT_NO
+        WHERE F.MEMBER_NO = #{memberNo}
+          AND C.TMDB_ID = #{tmdbId}
+          AND UPPER(C.CONTENT_TYPE) = UPPER(#{contentType})
+
+    </select>
+
+
+    <!-- 찜 추가 -->
+    <insert id="insertFavorite"
+            parameterType="com.project.oditji.favorite.vo.FavoriteVO">
+
+        INSERT INTO FAVORITE (
+            FAVORITE_NO,
+            MEMBER_NO,
+            CONTENT_NO,
+            CREATED_AT
+        )
+        VALUES (
+            SEQ_FAVORITE_NO.NEXTVAL,
+            #{memberNo},
+            #{contentNo},
+            SYSDATE
+        )
+
+    </insert>
+
+
+    <!-- 찜 삭제 -->
+    <delete id="deleteFavorite"
+            parameterType="com.project.oditji.favorite.vo.FavoriteVO">
+
+        DELETE
+        FROM FAVORITE
+        WHERE MEMBER_NO = #{memberNo}
+          AND CONTENT_NO = #{contentNo}
+
+    </delete>
+
+    <!-- 회원의 콘텐츠 찜 개수 -->
+    <select id="countFavoriteByMemberNo"
+            parameterType="long"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM FAVORITE
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+    <!-- 내 찜 목록 -->
+    <select id="selectFavoriteList"
+            parameterType="long"
+            resultType="com.project.oditji.content.vo.ContentVO">
+
+        SELECT
+            C.CONTENT_NO,
+            C.TMDB_ID,
+            C.CONTENT_TYPE,
+            C.TITLE,
+            C.ORIGINAL_TITLE,
+            C.OVERVIEW,
+            C.POSTER_PATH,
+            C.BACKDROP_PATH,
+            C.RELEASE_DATE,
+            C.GENRE_TEXT,
+            C.RUNTIME,
+            C.EPISODE_COUNT,
+            C.DIRECTOR,
+            C.CAST_NAMES,
+            C.AGE_RATING,
+            C.TMDB_SCORE,
+            C.VIEW_COUNT,
+            C.CREATED_AT,
+            C.UPDATED_AT
+        FROM FAVORITE F
+        JOIN CONTENT C
+        ON F.CONTENT_NO = C.CONTENT_NO
+        WHERE F.MEMBER_NO = #{memberNo}
+        ORDER BY F.CREATED_AT DESC
+
+    </select>
+
+    <!--
+        오늘 또는 내일 개봉·공개하는 콘텐츠를 찜한 회원 목록을 조회합니다.
+        출시 알림 캘린더/스케줄러에서 사용합니다.
+
+        DAYS_UNTIL_RELEASE = 0 이면 오늘 공개, 1이면 내일(하루 전) 공개를 의미하며,
+        FavoriteServiceImpl에서 이 값에 따라 알림 문구를 다르게 생성합니다.
+    -->
+    <select id="selectFavoriteReleaseTargetList"
+            resultType="com.project.oditji.favorite.vo.FavoriteReleaseTargetVO">
+
+        SELECT
+            F.MEMBER_NO,
+            C.CONTENT_NO,
+            C.TMDB_ID,
+            C.CONTENT_TYPE,
+            C.TITLE,
+            TRUNC(C.RELEASE_DATE) - TRUNC(SYSDATE) AS DAYS_UNTIL_RELEASE
+        FROM FAVORITE F
+        JOIN CONTENT C
+          ON F.CONTENT_NO = C.CONTENT_NO
+        WHERE TRUNC(C.RELEASE_DATE) IN (TRUNC(SYSDATE), TRUNC(SYSDATE) + 1)
+
+    </select>
+
+</mapper>

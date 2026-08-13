@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.oditji.subscription.dao.SubscriptionDAO">
+
+    <resultMap id="subscriptionShareResultMap" type="com.project.oditji.subscription.vo.SubscriptionShareVO">
+        <id property="resultId" column="RESULT_ID" />
+        <result property="memberNo" column="MEMBER_NO" />
+        <result property="totalPrice" column="TOTAL_PRICE" />
+        <result property="discountPrice" column="DISCOUNT_PRICE" />
+        <result property="finalPrice" column="FINAL_PRICE" />
+        <result property="selectedServicesJson" column="SELECTED_SERVICES" />
+        <result property="expiresAt" column="EXPIRES_AT" />
+        <result property="createdAt" column="CREATED_AT" />
+    </resultMap>
+
+    <insert id="insertResult" parameterType="com.project.oditji.subscription.vo.SubscriptionShareVO">
+        INSERT INTO SUBSCRIPTION_RESULT (
+            RESULT_ID,
+            MEMBER_NO,
+            TOTAL_PRICE,
+            DISCOUNT_PRICE,
+            FINAL_PRICE,
+            SELECTED_SERVICES,
+            EXPIRES_AT
+        ) VALUES (
+            #{resultId},
+            #{memberNo, jdbcType=NUMERIC},
+            #{totalPrice},
+            #{discountPrice},
+            #{finalPrice},
+            #{selectedServicesJson},
+            #{expiresAt, jdbcType=DATE}
+        )
+    </insert>
+
+    <!--
+        [비회원 공유 링크 임시 보관 추가]
+        EXPIRES_AT이 지난 결과는 존재하지 않는 것처럼 취급한다.
+        회원 결과는 EXPIRES_AT이 NULL이라 항상 조회된다.
+    -->
+    <select id="selectResultById" resultMap="subscriptionShareResultMap">
+        SELECT
+            RESULT_ID,
+            MEMBER_NO,
+            TOTAL_PRICE,
+            DISCOUNT_PRICE,
+            FINAL_PRICE,
+            SELECTED_SERVICES,
+            EXPIRES_AT,
+            CREATED_AT
+        FROM SUBSCRIPTION_RESULT
+        WHERE RESULT_ID = #{resultId}
+          AND (EXPIRES_AT IS NULL OR EXPIRES_AT > SYSDATE)
+    </select>
+
+    <!-- [비회원 공유 링크 임시 보관 추가] 만료된 비회원 결과를 정리한다. -->
+    <delete id="deleteExpiredResults">
+        DELETE FROM SUBSCRIPTION_RESULT
+        WHERE EXPIRES_AT IS NOT NULL
+          AND EXPIRES_AT &lt; SYSDATE
+    </delete>
+
+    <!-- [마이페이지 구독 계산 결과 모달 연동 추가] 회원별 저장 결과 최신순 조회 -->
+    <select id="selectResultsByMember" resultMap="subscriptionShareResultMap">
+        SELECT
+            RESULT_ID,
+            MEMBER_NO,
+            TOTAL_PRICE,
+            DISCOUNT_PRICE,
+            FINAL_PRICE,
+            SELECTED_SERVICES,
+            EXPIRES_AT,
+            CREATED_AT
+        FROM SUBSCRIPTION_RESULT
+        WHERE MEMBER_NO = #{memberNo}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <!-- [마이페이지 구독 계산 결과 모달 연동 추가] 본인 소유 결과만 삭제 -->
+    <delete id="deleteResultByIdAndMember">
+        DELETE FROM SUBSCRIPTION_RESULT
+        WHERE RESULT_ID = #{resultId}
+          AND MEMBER_NO = #{memberNo}
+    </delete>
+
+</mapper>

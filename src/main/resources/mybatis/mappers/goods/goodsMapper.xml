@@ -1,0 +1,869 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.goods.dao.GoodsDAO">
+
+    <!-- =====================================================
+         상품 조회 결과 매핑
+    ====================================================== -->
+    <resultMap id="goodsResultMap"
+               type="com.project.oditji.goods.vo.GoodsVO">
+
+        <id property="productNo"
+            column="PRODUCT_NO"/>
+
+        <result property="businessNo"
+                column="BUSINESS_NO"/>
+
+        <result property="contentNo"
+                column="CONTENT_NO"/>
+
+        <result property="actorNo"
+                column="ACTOR_NO"/>
+
+        <result property="productName"
+                column="PRODUCT_NAME"/>
+
+        <result property="productType"
+                column="PRODUCT_TYPE"/>
+
+        <result property="price"
+                column="PRICE"/>
+
+        <result property="discountRate"
+                column="DISCOUNT_RATE"/>
+
+        <result property="stock"
+                column="STOCK"/>
+
+        <result property="description"
+                column="DESCRIPTION"/>
+
+        <result property="status"
+                column="STATUS"/>
+
+        <result property="businessName"
+                column="BUSINESS_NAME"/>
+
+        <result property="mainImage"
+                column="MAIN_IMAGE"/>
+
+    </resultMap>
+
+
+    <!-- =====================================================
+         상품 대표 이미지 조인
+
+         IS_MAIN = 'Y' 이미지를 우선 사용하고,
+         대표 이미지가 없으면 가장 먼저 등록된 이미지를 사용한다.
+    ====================================================== -->
+    <sql id="mainImageJoin">
+
+        LEFT JOIN (
+            SELECT
+                PRODUCT_NO,
+
+                MAX(IMAGE_PATH)
+                    KEEP (
+                        DENSE_RANK FIRST
+                        ORDER BY
+                            CASE
+                                WHEN IS_MAIN = 'Y' THEN 0
+                                ELSE 1
+                            END,
+                            IMAGE_NO
+                    ) AS MAIN_IMAGE
+
+            FROM PRODUCT_IMAGE
+
+            GROUP BY PRODUCT_NO
+        ) PI
+            ON PI.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
+
+    <!-- =====================================================
+         진행 중인 이벤트 할인율 조인
+
+         STATUS = 'APPROVED'이고 SYSDATE가 START_DATE ~ END_DATE
+         사이인 이벤트에 연결된 상품에 한해서만 이벤트 할인율을 적용한다.
+
+         승인 시점이 아니라 조회 시점(SYSDATE) 기준으로 매번 계산하므로
+         START_DATE가 되어야 할인이 노출되고 END_DATE가 지나면
+         별도 배치 없이 자동으로 할인이 사라진다.
+
+         하나의 상품이 여러 이벤트에 동시에 연결될 수 있으므로
+         할인율이 가장 큰 값을 사용한다.
+    ====================================================== -->
+    <sql id="activeEventDiscountJoin">
+
+        LEFT JOIN (
+            SELECT
+                EP.PRODUCT_NO,
+                MAX(EP.EVENT_DISCOUNT_RATE) AS ACTIVE_EVENT_DISCOUNT_RATE
+
+            FROM EVENT_PRODUCT EP
+
+            JOIN EVENT E
+                ON E.EVENT_NO = EP.EVENT_NO
+
+            WHERE E.STATUS = 'APPROVED'
+              AND TRUNC(SYSDATE) BETWEEN TRUNC(E.START_DATE) AND TRUNC(E.END_DATE)
+
+            GROUP BY EP.PRODUCT_NO
+        ) AED
+            ON AED.PRODUCT_NO = P.PRODUCT_NO
+
+    </sql>
+
+
+    <!-- =====================================================
+         할인 반영 실판매가 계산식
+
+         "지금 노출되는 실제 할인율"(진행 중 이벤트 할인율 우선,
+         없으면 상품 기본 할인율) 기준으로 계산한다.
+         minPrice/maxPrice, priceRanges 조건에서 공통으로 사용한다.
+    ====================================================== -->
+    <sql id="effectivePriceExpr">
+
+        FLOOR(
+            P.PRICE
+            * (
+                100
+                - NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0))
+            )
+            / 100
+        )
+
+    </sql>
+
+
+    <!-- =====================================================
+         사용자 상품 검색 공통 조건
+
+         관리자 승인 완료 상태인 APPROVED 상품만 공개한다.
+
+         가격 범위 / 할인 상품 필터는 상품 자체 할인율이 아니라
+         "지금 노출되는 실제 할인율"(진행 중 이벤트 할인율 우선,
+         없으면 상품 기본 할인율) 기준으로 계산해야
+         목록 화면(selectSearchGoods)과 동일한 기준으로 필터링된다.
+    ====================================================== -->
+    <sql id="searchGoodsFilterCondition">
+
+        WHERE P.STATUS = 'APPROVED'
+
+        <if test="keyword != null and keyword != ''">
+
+            AND (
+                LOWER(P.PRODUCT_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR LOWER(B.BUSINESS_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR LOWER(C.TITLE)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+
+                OR LOWER(A.ACTOR_NAME)
+                    LIKE '%' || LOWER(#{keyword}) || '%'
+            )
+
+        </if>
+
+
+        <if test="productTypes != null
+                  and productTypes.size() > 0">
+
+            AND P.PRODUCT_TYPE IN
+
+            <foreach collection="productTypes"
+                     item="productType"
+                     open="("
+                     separator=","
+                     close=")">
+
+                #{productType}
+
+            </foreach>
+
+        </if>
+
+
+        <if test="minPrice != null">
+
+            AND <include refid="effectivePriceExpr"/>
+                <![CDATA[ >= ]]> #{minPrice}
+
+        </if>
+
+
+        <if test="maxPrice != null">
+
+            AND <include refid="effectivePriceExpr"/>
+                <![CDATA[ <= ]]> #{maxPrice}
+
+        </if>
+
+
+        <if test="discountOnly">
+
+            AND NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) > 0
+
+        </if>
+
+
+        <if test="inStockOnly">
+
+            AND NVL(P.STOCK, 0) > 0
+
+        </if>
+
+
+        <!--
+            가격대 다중 선택 필터.
+            좌측 사이드바 체크박스는 여러 가격대를 동시에 선택할 수 있으므로
+            선택된 가격대들을 OR로 묶는다.
+        -->
+        <if test="priceRanges != null and priceRanges.size() > 0">
+
+            AND (
+                <foreach collection="priceRanges"
+                         item="priceRange"
+                         separator=" OR ">
+
+                    <choose>
+
+                        <when test="priceRange == 'UNDER_10000'">
+                            ( <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 10000 )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_10000_30000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 10000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 30000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_30000_50000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 30000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 50000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'RANGE_50000_100000'">
+                            (
+                                <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 50000
+                                AND <include refid="effectivePriceExpr"/> <![CDATA[ < ]]> 100000
+                            )
+                        </when>
+
+                        <when test="priceRange == 'OVER_100000'">
+                            ( <include refid="effectivePriceExpr"/> <![CDATA[ >= ]]> 100000 )
+                        </when>
+
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+
+                    </choose>
+
+                </foreach>
+            )
+
+        </if>
+
+
+        <!--
+            재고 상태 다중 선택 필터.
+            "판매중"과 "품절 포함"을 동시에 선택하면 전체 상품을 의미하므로
+            선택된 상태들을 OR로 묶는다.
+        -->
+        <if test="stockStatus != null and stockStatus.size() > 0">
+
+            AND (
+                <foreach collection="stockStatus"
+                         item="status"
+                         separator=" OR ">
+
+                    <choose>
+
+                        <when test="status == 'IN_STOCK'">
+                            NVL(P.STOCK, 0) > 0
+                        </when>
+
+                        <when test="status == 'SOLD_OUT'">
+                            NVL(P.STOCK, 0) <![CDATA[ <= ]]> 0
+                        </when>
+
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+
+                    </choose>
+
+                </foreach>
+            )
+
+        </if>
+
+    </sql>
+
+
+    <!-- =====================================================
+         사용자 상품 목록 조회
+    ====================================================== -->
+    <select id="selectSearchGoods"
+            resultMap="goodsResultMap">
+
+        SELECT
+            PAGED.PRODUCT_NO,
+            PAGED.BUSINESS_NO,
+            PAGED.CONTENT_NO,
+            PAGED.ACTOR_NO,
+            PAGED.PRODUCT_NAME,
+            PAGED.PRODUCT_TYPE,
+            PAGED.PRICE,
+            PAGED.DISCOUNT_RATE,
+            PAGED.STOCK,
+            PAGED.DESCRIPTION,
+            PAGED.STATUS,
+            PAGED.BUSINESS_NAME,
+            PAGED.MAIN_IMAGE
+
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        <choose>
+                            <!-- 낮은 가격순: 실제 노출 판매가(이벤트 할인 우선 적용) 기준 오름차순 -->
+                            <when test="sort == 'price_asc'">
+                                <include refid="effectivePriceExpr"/> ASC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 높은 가격순: 실제 노출 판매가 기준 내림차순 -->
+                            <when test="sort == 'price_desc'">
+                                <include refid="effectivePriceExpr"/> DESC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 가나다순 -->
+                            <when test="sort == 'title'">
+                                P.PRODUCT_NAME ASC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 최신순 -->
+                            <when test="sort == 'latest'">
+                                P.CREATED_AT DESC,
+                                P.PRODUCT_NO DESC
+                            </when>
+
+                            <!-- 인기순(기본값): 재고 있는 상품 우선, 할인율 높은 순, 최신순 -->
+                            <otherwise>
+                                CASE
+                                    WHEN NVL(P.STOCK, 0) > 0
+                                    THEN 0
+                                    ELSE 1
+                                END,
+                                NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                                P.CREATED_AT DESC,
+                                P.PRODUCT_NO DESC
+                            </otherwise>
+                        </choose>
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            INNER JOIN CONTENT C
+                ON C.CONTENT_NO = P.CONTENT_NO
+
+            LEFT JOIN ACTOR A
+                ON A.ACTOR_NO = P.ACTOR_NO
+
+            <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
+
+            <include refid="searchGoodsFilterCondition"/>
+
+        ) PAGED
+
+        WHERE PAGED.RN BETWEEN
+            #{startRow}
+            AND #{endRow}
+
+        ORDER BY PAGED.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         사용자 상품 검색 결과 개수
+    ====================================================== -->
+    <select id="countSearchGoods"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = P.CONTENT_NO
+
+        LEFT JOIN ACTOR A
+            ON A.ACTOR_NO = P.ACTOR_NO
+
+        <include refid="activeEventDiscountJoin"/>
+
+        <include refid="searchGoodsFilterCondition"/>
+
+    </select>
+
+
+    <!-- =====================================================
+         추천 상품 조회
+    ====================================================== -->
+    <select id="selectRecommendedGoods"
+            resultMap="goodsResultMap">
+
+        SELECT
+            RECOMMENDED.PRODUCT_NO,
+            RECOMMENDED.BUSINESS_NO,
+            RECOMMENDED.CONTENT_NO,
+            RECOMMENDED.ACTOR_NO,
+            RECOMMENDED.PRODUCT_NAME,
+            RECOMMENDED.PRODUCT_TYPE,
+            RECOMMENDED.PRICE,
+            RECOMMENDED.DISCOUNT_RATE,
+            RECOMMENDED.STOCK,
+            RECOMMENDED.DESCRIPTION,
+            RECOMMENDED.STATUS,
+            RECOMMENDED.BUSINESS_NAME,
+            RECOMMENDED.MAIN_IMAGE
+
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        CASE
+                            WHEN NVL(P.STOCK, 0) > 0
+                            THEN 0
+                            ELSE 1
+                        END,
+                        NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
+
+            WHERE P.STATUS = 'APPROVED'
+
+        ) RECOMMENDED
+
+        WHERE RECOMMENDED.RN BETWEEN
+            1 AND #{limit}
+
+        ORDER BY RECOMMENDED.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         콘텐츠 상세페이지 - 관련 상품 조회
+
+         해당 CONTENT_NO에 연결된 APPROVED 상품만 조회한다.
+         재고 있는 상품, 할인율 높은 순, 최신 등록순으로 정렬한다.
+    ====================================================== -->
+    <select id="selectGoodsByContentNo"
+            resultMap="goodsResultMap">
+
+        SELECT
+            RELATED.PRODUCT_NO,
+            RELATED.BUSINESS_NO,
+            RELATED.CONTENT_NO,
+            RELATED.ACTOR_NO,
+            RELATED.PRODUCT_NAME,
+            RELATED.PRODUCT_TYPE,
+            RELATED.PRICE,
+            RELATED.DISCOUNT_RATE,
+            RELATED.STOCK,
+            RELATED.DESCRIPTION,
+            RELATED.STATUS,
+            RELATED.BUSINESS_NAME,
+            RELATED.MAIN_IMAGE
+
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        CASE
+                            WHEN NVL(P.STOCK, 0) > 0
+                            THEN 0
+                            ELSE 1
+                        END,
+                        NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
+
+            WHERE P.STATUS = 'APPROVED'
+              AND P.CONTENT_NO = #{contentNo}
+
+        ) RELATED
+
+        WHERE RELATED.RN BETWEEN
+            1 AND #{limit}
+
+        ORDER BY RELATED.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         인물 필모그래피 페이지 - 관련 상품 조회
+
+         해당 TMDB_ACTOR_ID(=TMDB 인물 ID)로 등록된 배우와
+         연결된 APPROVED 상품만 조회한다.
+         재고 있는 상품, 할인율 높은 순, 최신 등록순으로 정렬한다.
+    ====================================================== -->
+    <select id="selectGoodsByTmdbActorId"
+            resultMap="goodsResultMap">
+
+        SELECT
+            RELATED.PRODUCT_NO,
+            RELATED.BUSINESS_NO,
+            RELATED.CONTENT_NO,
+            RELATED.ACTOR_NO,
+            RELATED.PRODUCT_NAME,
+            RELATED.PRODUCT_TYPE,
+            RELATED.PRICE,
+            RELATED.DISCOUNT_RATE,
+            RELATED.STOCK,
+            RELATED.DESCRIPTION,
+            RELATED.STATUS,
+            RELATED.BUSINESS_NAME,
+            RELATED.MAIN_IMAGE
+
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        CASE
+                            WHEN NVL(P.STOCK, 0) > 0
+                            THEN 0
+                            ELSE 1
+                        END,
+                        NVL(AED.ACTIVE_EVENT_DISCOUNT_RATE, NVL(P.DISCOUNT_RATE, 0)) DESC,
+                        P.CREATED_AT DESC,
+                        P.PRODUCT_NO DESC
+                ) AS RN,
+
+                P.PRODUCT_NO,
+                P.BUSINESS_NO,
+                P.CONTENT_NO,
+                P.ACTOR_NO,
+                P.PRODUCT_NAME,
+                P.PRODUCT_TYPE,
+                P.PRICE,
+                NVL(
+                    AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                    NVL(P.DISCOUNT_RATE, 0)
+                ) AS DISCOUNT_RATE,
+                NVL(
+                    P.STOCK,
+                    0
+                ) AS STOCK,
+                P.DESCRIPTION,
+                P.STATUS,
+                B.BUSINESS_NAME,
+                PI.MAIN_IMAGE
+
+            FROM PRODUCT P
+
+            INNER JOIN ACTOR A
+                ON A.ACTOR_NO = P.ACTOR_NO
+
+            INNER JOIN BUSINESS B
+                ON B.BUSINESS_NO = P.BUSINESS_NO
+
+            <include refid="mainImageJoin"/>
+
+            <include refid="activeEventDiscountJoin"/>
+
+            WHERE P.STATUS = 'APPROVED'
+              AND A.TMDB_ACTOR_ID = #{tmdbActorId}
+
+        ) RELATED
+
+        WHERE RELATED.RN BETWEEN
+            1 AND #{limit}
+
+        ORDER BY RELATED.RN
+
+    </select>
+
+
+    <!-- =====================================================
+         사용자 검색 필터용 상품 종류
+    ====================================================== -->
+    <select id="selectSearchProductTypes"
+            resultType="string">
+
+        SELECT DISTINCT
+            P.PRODUCT_TYPE
+
+        FROM PRODUCT P
+
+        WHERE P.STATUS = 'APPROVED'
+          AND P.PRODUCT_TYPE IS NOT NULL
+
+        ORDER BY P.PRODUCT_TYPE
+
+    </select>
+
+
+    <!-- =====================================================
+         사용자 상품 상세 조회
+
+         승인 완료된 상품만 접근할 수 있다.
+    ====================================================== -->
+    <select id="selectGoodsDetail"
+            resultMap="goodsResultMap">
+
+        SELECT
+            P.PRODUCT_NO,
+            P.BUSINESS_NO,
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            P.PRODUCT_NAME,
+            P.PRODUCT_TYPE,
+            P.PRICE,
+            NVL(
+                AED.ACTIVE_EVENT_DISCOUNT_RATE,
+                NVL(P.DISCOUNT_RATE, 0)
+            ) AS DISCOUNT_RATE,
+            NVL(
+                P.STOCK,
+                0
+            ) AS STOCK,
+            P.DESCRIPTION,
+            P.STATUS,
+            B.BUSINESS_NAME,
+            PI.MAIN_IMAGE
+
+        FROM PRODUCT P
+
+        INNER JOIN BUSINESS B
+            ON B.BUSINESS_NO = P.BUSINESS_NO
+
+        <include refid="mainImageJoin"/>
+
+        <include refid="activeEventDiscountJoin"/>
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'APPROVED'
+
+    </select>
+
+
+    <!-- =====================================================
+         상품 상세 이미지 목록
+
+         승인된 상품의 이미지만 조회한다.
+    ====================================================== -->
+    <select id="selectGoodsImageList"
+            resultType="map">
+
+        SELECT
+            PI.IMAGE_NO AS "imageNo",
+            PI.PRODUCT_NO AS "productNo",
+            PI.IMAGE_PATH AS "imagePath",
+            PI.IS_MAIN AS "isMain"
+
+        FROM PRODUCT_IMAGE PI
+
+        INNER JOIN PRODUCT P
+            ON P.PRODUCT_NO = PI.PRODUCT_NO
+
+        WHERE PI.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'APPROVED'
+
+        ORDER BY
+            CASE
+                WHEN PI.IS_MAIN = 'Y'
+                THEN 0
+                ELSE 1
+            END,
+            PI.IMAGE_NO
+
+    </select>
+
+
+    <!-- =====================================================
+         상품과 연결된 콘텐츠 조회
+    ====================================================== -->
+    <select id="selectGoodsContent"
+            resultType="map">
+
+        SELECT
+            C.CONTENT_NO AS "contentNo",
+            C.TITLE AS "title",
+            C.POSTER_PATH AS "posterPath",
+            C.CONTENT_TYPE AS "contentType",
+            C.TMDB_SCORE AS "tmdbScore"
+
+        FROM PRODUCT P
+
+        INNER JOIN CONTENT C
+            ON C.CONTENT_NO = P.CONTENT_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+          AND P.STATUS = 'APPROVED'
+
+    </select>
+
+
+    <!-- =====================================================
+         상품과 연결된 배우 조회
+    ====================================================== -->
+    <select id="selectGoodsActor"
+            resultType="map">
+
+        SELECT
+            A.ACTOR_NO AS "actorNo",
+            A.TMDB_ACTOR_ID AS "tmdbActorId",
+            A.ACTOR_NAME AS "actorName",
+            A.PROFILE_PATH AS "profilePath"
+
+        FROM PRODUCT P
+
+        INNER JOIN ACTOR A
+            ON A.ACTOR_NO = P.ACTOR_NO
+
+        WHERE P.PRODUCT_NO = #{productNo}
+        AND P.STATUS = 'APPROVED'
+        AND P.ACTOR_NO IS NOT NULL
+
+    </select>
+
+    <!-- 상품 상세 클릭 로그 저장 -->
+    <insert id="insertProductClickLog">
+
+        INSERT INTO PRODUCT_CLICK_LOG (
+            LOG_NO,
+            PRODUCT_NO,
+            MEMBER_NO,
+            CONTENT_NO,
+            ACTOR_NO,
+            CLICKED_AT
+        )
+        SELECT
+            SEQ_CLICK_LOG_NO.NEXTVAL,
+            P.PRODUCT_NO,
+            #{memberNo, jdbcType=NUMERIC},
+            P.CONTENT_NO,
+            P.ACTOR_NO,
+            SYSDATE
+        FROM PRODUCT P
+        WHERE P.PRODUCT_NO = #{productNo}
+
+    </insert>
+
+    <!-- [상품 옵션 기능 추가] 상품 상세 색상-사이즈별 재고 -->
+    <select id="selectProductOptionList" resultType="com.project.oditji.goods.vo.ProductOptionVO">
+        SELECT OPTION_NO, PRODUCT_NO, COLOR_NAME, SIZE_NAME, STOCK
+        FROM PRODUCT_OPTION
+        WHERE PRODUCT_NO = #{productNo}
+        ORDER BY COLOR_NAME, OPTION_NO
+    </select>
+
+</mapper>

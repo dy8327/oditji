@@ -1,0 +1,2545 @@
+/* =====================================================
+   ODITJI ADMIN COMMON CSS
+   ===================================================== */
+
+/*
+ * [수정] --adm-* 변수를 .admin-wrap 안에서 정의하면 .admin-wrap의 "자손"
+ * 요소에서만 상속된다. 팝업(.modal-overlay)이 admin-wrap 바깥에 형제
+ * (sibling)로 렌더링되는 구조라, 셀렉터에서 .admin-wrap 스코프를 없애도
+ * 이 변수들 자체가 비어 있어 색상이 깨진다. 페이지 전역에서 쓰이는
+ * 디자인 토큰이므로 :root로 옮겨 전역에서 상속되게 한다.
+ */
+:root {
+  /* ---- Surface (배경 단계) ---- */
+  --adm-surface-1: var(--color-bg2, #202020); /* 패널/히어로 등 상승된 표면 */
+  --adm-surface-2: var(--color-bg, #181818); /* 카드/인풋 등 기본 표면 */
+  --adm-surface-3: #101012; /* 썸네일 등 눌린(inset) 표면 */
+
+  /* ---- Border / Text ---- */
+  --adm-border: var(--color-border, #2b2b2b);
+  --adm-border-soft: rgba(255, 255, 255, 0.08);
+  --adm-text: var(--color-white, #fff);
+  --adm-text-sub: var(--color-gray, #c5c8ce);
+  --adm-text-dim: var(--color-gray2, #8c919b);
+
+  /* ---- Accent / Status ---- */
+  --adm-point: var(--color-point, #5ea3ff);
+  /* [수정] --adm-point는 테두리·링크·포커스링 등 "강조선" 용도로는 대비가 충분하지만,
+     흰 글자를 그 위에 얹는 "꽉 찬 배경"(버튼/뱃지/active 탭·페이지네이션)에서는
+     흰색 텍스트와의 대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
+     이런 채워진 배경 전용으로 더 진한 톤을 별도로 둔다. (대비 약 4.6:1) */
+  --adm-point-strong: #2f6fe4;
+  --adm-point-strong-hover: #2559c4;
+  --adm-point-bg: rgba(94, 163, 255, 0.15);
+  --adm-success: #4ade80;
+  --adm-success-bg: rgba(74, 222, 128, 0.12);
+  --adm-warning: #facc15;
+  --adm-warning-bg: rgba(250, 204, 21, 0.12);
+  --adm-danger: #ff6b6b;
+  --adm-danger-bg: rgba(255, 107, 107, 0.12);
+
+  /* ---- Radius / Motion ---- */
+  --adm-radius-sm: 8px;
+  --adm-radius-md: 12px;
+  --adm-radius-lg: 16px;
+  --adm-radius-pill: 999px;
+  --adm-transition: var(--transition, 0.2s ease);
+}
+
+/* =====================================================
+   Accessibility
+   ===================================================== */
+
+/*
+ * 화면에는 표시하지 않지만 스크린 리더에는 읽히는 요소다.
+ * 검색 input의 접근 가능한 label을 제공할 때 사용한다.
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-wrap {
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(100vh - var(--header-height, 80px) - 80px);
+  background: var(--color-bg, #181818);
+}
+
+/* =====================================================
+   Sidebar
+   ===================================================== */
+
+.admin-wrap .admin-sidebar {
+  flex-shrink: 0;
+  width: 260px;
+
+  background: var(--adm-surface-1);
+  border-right: 1px solid var(--adm-border);
+}
+
+.admin-wrap .sidebar-logo {
+  padding: 28px 24px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--adm-text);
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.admin-wrap .sidebar-mobile-toggle {
+  display: none;
+}
+
+.admin-wrap .sidebar-menu {
+  padding: 20px 16px;
+}
+
+.admin-wrap .menu-group {
+  margin-bottom: 28px;
+}
+
+.admin-wrap .menu-group h3 {
+  margin-bottom: 12px;
+  padding-left: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adm-text-dim);
+}
+
+.admin-wrap .menu-group a {
+  display: block;
+  margin-bottom: 2px;
+  padding: 11px 16px;
+  border-left: 3px solid transparent;
+  border-radius: var(--adm-radius-sm);
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  /*
+   * [수정] 평소 상태 색(--adm-text-sub, #c5c8ce)이 흰색에 가까워 선택된
+   * 메뉴(--adm-text, #fff)와 거의 구분이 안 됐다. 비활성 메뉴를 더 낮춰
+   * 지금 어디에 있는지 한눈에 보이게 한다.
+   */
+  color: var(--adm-text-dim);
+  transition: var(--adm-transition);
+}
+
+.admin-wrap .menu-group a:hover,
+.admin-wrap .menu-group a.active {
+  background: var(--adm-surface-1);
+  border-left-color: var(--adm-point);
+  color: var(--adm-text);
+}
+
+/* =====================================================
+   Layout
+   ===================================================== */
+
+.admin-wrap .main-content {
+  flex: 1;
+  padding: 40px;
+  min-width: 0;
+}
+
+.admin-wrap .admin-page-header {
+  margin-bottom: 32px;
+}
+
+.admin-wrap .back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--adm-text-dim);
+  font-size: 14px;
+  transition: var(--adm-transition);
+}
+
+.admin-wrap .back-link:hover {
+  color: var(--adm-text);
+}
+
+.admin-wrap .admin-page-title,
+.admin-wrap .page-title {
+  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--adm-text);
+}
+
+.admin-wrap .admin-page-desc {
+  font-size: 14px;
+  color: var(--adm-text-dim);
+}
+
+/* =====================================================
+   Panel
+   ===================================================== */
+
+.admin-wrap .admin-content-box {
+  padding: 32px;
+  background: var(--adm-surface-1);
+  border-radius: var(--adm-radius-md);
+  border: 1px solid var(--adm-border);
+}
+
+/* =====================================================
+   Dashboard Hero / Stat Grid (adminMain, monitoring)
+   ===================================================== */
+
+.admin-wrap .admin-hero {
+  padding: 40px;
+  margin-bottom: 40px;
+
+  background: var(--adm-surface-1);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+}
+
+.admin-wrap .admin-hero h1 {
+  margin-bottom: 10px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.admin-wrap .admin-hero p {
+  color: var(--adm-text-sub);
+}
+
+.admin-wrap .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.admin-wrap .stat-card {
+  padding: 28px 24px;
+
+  background: var(--adm-surface-2);
+
+  border-radius: var(--adm-radius-md);
+  border: 1px solid var(--adm-border);
+  transition: var(--adm-transition);
+}
+
+.admin-wrap a.stat-card:hover {
+  border-color: var(--adm-point);
+  transform: translateY(-2px);
+}
+
+/* 이벤트 관리 등, 통계 카드를 상태 필터로도 쓰는 화면에서 현재 선택된 카드 강조 */
+.admin-wrap a.stat-card.active {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 1px var(--adm-point);
+}
+
+.admin-wrap .stat-card span {
+  font-size: 14px;
+  color: var(--adm-text-dim);
+}
+
+.admin-wrap .stat-card strong {
+  display: block;
+  margin-top: 14px;
+
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+
+  color: var(--adm-text);
+}
+
+/* 회원 관리 등, .admin-hero 밖에서 쓰는 4열 통계 카드 그리드 */
+.admin-wrap .member-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+
+  margin-bottom: 28px;
+}
+
+/*
+ * [수정] .stat-card 기본 배경(--adm-surface-2, #181818)이 .admin-wrap
+ * 페이지 배경과 완전히 같은 색이었다. .admin-hero(surface-1) 안에서 쓰일 때는
+ * 문제 없지만, member-stat-grid는 페이지 배경 위에 바로 놓여서 카드가
+ * 테두리 1px 말고는 안 보였다. 회원/상품/이벤트/정산/업체/리뷰/주문 관리 등
+ * 8개 목록 페이지 전부 상단에 쓰이는 요소라 영향이 컸던 부분.
+ */
+.admin-wrap .member-stat-grid .stat-card {
+  background: var(--adm-surface-1);
+}
+
+/* 처리 결과 안내 (정지/복구/삭제 등 redirect 후 flash message) */
+.admin-wrap .admin-flash-message {
+  padding: 14px 18px;
+  margin-bottom: 20px;
+
+  /* [수정] 위와 같은 이유로 페이지 배경과 같은 색이라 눈에 안 띄었다.
+     정지/복구/삭제 등 처리 직후 결과를 알려주는 중요한 메시지라 더 눈에
+     띄어야 하므로 한 단계 밝은 톤으로 분리한다. */
+  background: var(--adm-surface-1);
+  border: 1px solid var(--adm-border);
+  border-left: 3px solid var(--adm-point);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text-sub);
+  font-size: 14px;
+}
+
+/* =====================================================
+   Toolbar
+   ===================================================== */
+
+.admin-wrap .toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  margin-bottom: 28px;
+}
+
+.admin-wrap .toolbar form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  /* [수정] 10px는 필터 셀렉트·검색창·검색 버튼이 서로 거의 붙어 보였다.
+     요소 각각이 독립된 컨트롤로 보이도록 여백을 넓힌다. */
+  gap: 12px;
+
+  width: 100%;
+}
+
+/* 상태 / 검색기준 필터 드롭다운. 검색어 입력창(.page-search)과 달리 폭을 고정하지 않는다 */
+.admin-wrap .filter-select {
+  min-width: 130px;
+  padding: 12px 14px;
+
+  background: var(--adm-surface-2);
+
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.admin-wrap .filter-select:focus {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+}
+
+.admin-wrap .search-btn {
+  padding: 12px 16px;
+}
+
+.admin-wrap .page-search {
+  width: 320px;
+
+  padding: 12px 16px;
+
+  background: var(--adm-surface-2);
+
+  border: 1px solid var(--adm-border);
+
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 14px;
+  transition: var(--adm-transition);
+}
+
+.admin-wrap .page-search::placeholder {
+  /* [수정] placeholder가 지정 색 없이 브라우저 기본값(거의 흰색)을 따라가
+     입력값과 구분이 안 됐다. 힌트 텍스트임을 알 수 있게 낮춘다. */
+  color: var(--adm-text-dim);
+}
+
+.admin-wrap .page-search:focus {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+}
+
+.admin-wrap .toolbar select.page-search {
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+/* =====================================================
+   Button
+   ===================================================== */
+
+.btn {
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  padding: 10px 20px;
+
+  border: 1px solid transparent;
+  border-radius: var(--adm-radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+  /* [수정] 표 안 작은 버튼("내용보기", "리뷰 삭제" 등)들이 글자가 다닥다닥 붙어
+     보여 답답한 느낌이었다. 살짝의 자간으로 가독성과 여백감을 더한다. */
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.btn-primary {
+  /*
+   * [수정] 기존에는 --adm-point(#5ea3ff) 위에 흰 글자를 올려 대비가 약 2.6:1로
+   * 낮았다. 버튼처럼 채워진 배경에서는 --adm-point-strong을 사용해 대비를
+   * 4.6:1 이상으로 끌어올린다. --adm-point 자체는 테두리/링크 등에서 계속 사용한다.
+   */
+  background: var(--adm-point-strong);
+  color: #fff;
+
+  box-shadow: 0 4px 12px rgba(47, 111, 228, 0.3);
+}
+
+.btn-primary:hover {
+  /* 기존에는 hover 시 더 밝은 파랑(#7bb5ff)으로 바뀌어 대비가 더 나빠졌다.
+     대비를 지키면서 눌림 피드백을 주기 위해 더 어둡게 바꾼다. */
+  background: var(--adm-point-strong-hover);
+}
+
+.btn-dark {
+  /*
+   * [수정] "검색" 버튼 등에 쓰이는데, 대부분 admin-content-box(surface-1) 안에
+   * 놓여서 배경색이 패널과 완전히 같았다. 테두리 1px만으로 버튼임을 알아채야
+   * 했던 문제라 패널보다 한 단계 어두운 톤으로 분리해 버튼임이 바로 보이게 한다.
+   */
+  background: var(--adm-surface-2);
+  border-color: var(--adm-border);
+  color: var(--adm-text);
+}
+
+.btn-dark:hover {
+  background: var(--adm-surface-3);
+  border-color: var(--adm-point);
+}
+
+.btn-danger {
+  background: var(--adm-danger-bg);
+  color: var(--adm-danger);
+}
+
+.btn-danger:hover {
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.btn-success {
+  background: var(--adm-success-bg);
+  color: var(--adm-success);
+}
+
+.btn-success:hover {
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.btn-secondary {
+  background: var(--adm-warning-bg);
+  color: var(--adm-warning);
+}
+
+.btn-secondary:hover {
+  background: rgba(250, 204, 21, 0.2);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--adm-border);
+  color: var(--adm-text-sub);
+}
+
+.btn-outline:hover {
+  border-color: var(--adm-point);
+  color: var(--adm-text);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--adm-point);
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   Table
+   ===================================================== */
+
+/* 체크박스로 선택한 항목을 정지/복구/삭제 등으로 한 번에 처리하는 바 */
+.admin-wrap .bulk-action-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  padding: 14px 18px;
+  margin-top: 20px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+}
+
+.admin-wrap .bulk-action-bar .bulk-label {
+  margin-right: auto;
+
+  color: var(--adm-text-sub);
+  font-size: 14px;
+}
+
+.admin-wrap .bulk-action-bar .bulk-label strong {
+  color: var(--adm-point);
+}
+
+.admin-wrap .bulk-action-bar .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/*
+ * [수정] 기존에는 .data-table 관련 스타일이 .admin-wrap 안에서만 적용됐다.
+ * 그런데 이벤트 상세 팝업(적용 상품 표)처럼 .modal-overlay가 .admin-wrap의
+ * 형제(sibling)로 렌더링되는 곳에서 쓰이는 .data-table에는 이 스타일이
+ * 전혀 먹지 않아, 테두리·패딩·색상 없이 브라우저 기본 표 모양(굵은 흰 글자,
+ * 좁은 간격)으로만 보였다. .data-table은 admin-wrap 안팎에서 공통으로 쓰는
+ * 컴포넌트이므로 스코프를 없애 어디서든 동일하게 적용되게 한다.
+ */
+.data-table {
+  width: 100%;
+  margin-top: 20px;
+
+  border-collapse: collapse;
+}
+
+.data-table th.checkbox-col,
+.data-table td.checkbox-col {
+  width: 44px;
+}
+
+.data-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+
+  accent-color: var(--adm-point);
+  cursor: pointer;
+}
+
+.data-table th,
+.data-table td {
+  padding: 16px;
+
+  text-align: center;
+
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.data-table th {
+  color: var(--adm-text-dim);
+
+  /*
+   * [수정] 헤더가 본문(td, 14px)과 크기가 같고 밝기 차이도 크지 않아
+   * "표 전체가 다 흰 글자"처럼 보이는 원인 중 하나였다. 헤더는 한 단계 작게,
+   * 자간을 넓혀 라벨(제목행)임을 시각적으로 분리한다.
+   */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.data-table td {
+  color: var(--adm-text-sub);
+
+  font-size: 14px;
+  letter-spacing: 0.1px;
+}
+
+/*
+ * reviewManage.jsp / productReviewManage.jsp - 리뷰 내용 열이 길어도
+ * 표 레이아웃이 무너지지 않도록 2줄까지만 보여주고 넘치는 부분은 자른다.
+ * 전체 내용은 "내용보기" 버튼(.review-content-full 모달)으로 확인한다.
+ */
+.admin-wrap .table-text-clamp {
+  max-width: 320px;
+  margin: 0 auto;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+
+  text-align: left;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.data-table tbody tr:hover {
+  background: var(--adm-surface-2);
+}
+
+/* =====================================================
+   Status / Badge
+   ===================================================== */
+
+.admin-wrap .status,
+.admin-wrap [class^="status-"] {
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  min-width: 76px;
+
+  padding: 6px 14px;
+
+  border-radius: var(--adm-radius-pill);
+
+  font-size: 13px;
+  font-weight: 600;
+  /* [수정] 뱃지 안 글자가 배경색만 있고 자간이 없어 밋밋했다.
+     살짝의 자간으로 알약(pill) 형태 안에서 글자가 또렷하게 보이게 한다. */
+  letter-spacing: 0.3px;
+}
+
+.admin-wrap .status.ok,
+.admin-wrap .status-ok {
+  color: var(--adm-success);
+  background: var(--adm-success-bg);
+}
+
+.admin-wrap .status.waiting,
+.admin-wrap .status-waiting {
+  color: var(--adm-warning);
+  background: var(--adm-warning-bg);
+}
+
+.admin-wrap .status.reject,
+.admin-wrap .status-reject,
+.admin-wrap .status:not(.ok):not(.waiting):not(.end) {
+  color: var(--adm-danger);
+  background: var(--adm-danger-bg);
+}
+
+/*
+ * 종료(END)는 반려(REJECTED)와 의미가 다르므로 빨간색 대신 중립 색상을 쓴다.
+ * [수정] 배경을 --adm-surface-3(#101012, 거의 검정)로 뒀더니 승인/대기/반려가
+ * 전부 "연한 색 틴트" 배경인 것과 달리 이 뱃지만 딱딱한 검은 칩처럼 튀어
+ * 보였다. 같은 톤(연한 반투명 배경)으로 맞추되 색상만 무채색으로 유지한다.
+ */
+.admin-wrap .status.end,
+.admin-wrap .status-end {
+  color: var(--adm-text-dim);
+  background: var(--adm-border-soft);
+}
+
+/*
+ * [신규] eventManage.jsp의 "현재상태"(진행중/예정/종료) 뱃지.
+ * "승인상태"(대기/승인/반려) 뱃지와 나란히 쓰이므로 색이 겹치지 않게 한다.
+ * 진행중은 포인트색(파란색)으로 눈에 띄게, 예정은 기존 warning(노랑) 톤을
+ * 재사용하되 별도 컬럼이라 대기 뱃지와 혼동되지 않는다. 종료는 상태와
+ * 무관하게 항상 같은 중립색(status-end와 동일 톤)을 쓴다.
+ */
+.admin-wrap .status-progress-ongoing {
+  color: var(--adm-point);
+  background: var(--adm-point-bg);
+}
+
+.admin-wrap .status-progress-upcoming {
+  color: var(--adm-warning);
+  background: var(--adm-warning-bg);
+}
+
+.admin-wrap .status-progress-ended {
+  color: var(--adm-text-dim);
+  background: var(--adm-border-soft);
+}
+
+/* 승인되지 않아(대기/반려) 현재상태 자체가 없는 이벤트는 뱃지 없이 옅은 대시(-)만 보여준다 */
+.admin-wrap .progress-status-none {
+  color: var(--adm-text-dim);
+}
+
+.admin-wrap .badge {
+  display: inline-flex;
+  align-items: center;
+  /* [수정] 4px 10px는 .status 계열 뱃지보다 눈에 띄게 작아서 같은 화면 안에서
+     뱃지 크기가 들쭉날쭉해 보였다. .status와 톤을 맞추되 살짝 더 작은
+     "보조 뱃지" 크기로 통일한다. */
+  padding: 5px 11px;
+  border-radius: var(--adm-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+/*
+ * [수정] badge-blue/yellow가 각각 --adm-point 원색, #f59e0b 하드코딩 색을
+ * 흰 글자와 함께 꽉 채운 배경으로 써서 대비가 낮고(약 2.1~2.6:1), 위쪽의
+ * .status(ok/waiting/reject) 뱃지와 톤도 어긋났다. 같은 의미(진행중/대기/기본)를
+ * 나타내는 .status 뱃지와 동일하게 "연한 배경 + 진한 글자" 톤으로 통일해
+ * 대비도 확보하고 관리자 화면 전체의 뱃지 톤을 맞춘다.
+ */
+.admin-wrap .badge-blue {
+  background-color: var(--adm-point-bg);
+  color: var(--adm-point);
+}
+.admin-wrap .badge-gray {
+  background-color: var(--adm-border-soft);
+  color: var(--adm-text-dim);
+}
+.admin-wrap .badge-yellow {
+  background-color: var(--adm-warning-bg);
+  color: var(--adm-warning);
+}
+
+/* =====================================================
+   Tab Menu
+   ===================================================== */
+
+.admin-wrap .tab-menu {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--adm-border);
+  padding-bottom: 10px;
+  margin-bottom: 24px;
+}
+
+.admin-wrap .tab-menu a,
+.admin-wrap .tab-menu button {
+  padding: 9px 18px;
+  color: var(--adm-text-dim);
+  background: transparent;
+  border: none;
+  border-radius: var(--adm-radius-sm);
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.admin-wrap .tab-menu a.active,
+.admin-wrap .tab-menu button.active {
+  /* [수정] --adm-point 원색은 흰 글자와 대비가 낮아 --adm-point-strong으로 교체 */
+  background: var(--adm-point-strong);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* =====================================================
+   Card List
+   ===================================================== */
+
+.admin-wrap .card-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.admin-wrap .item-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 20px 24px;
+
+  background: var(--adm-surface-2);
+
+  border-radius: var(--adm-radius-md);
+  border: 1px solid var(--adm-border);
+}
+
+.admin-wrap .item-card.empty {
+  justify-content: center;
+  color: var(--adm-text-dim);
+}
+
+.admin-wrap .thumb {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+
+  background: var(--adm-surface-3);
+
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text-dim);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.admin-wrap .thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-wrap .item-info {
+  flex: 1;
+  margin-left: 4px;
+}
+
+.admin-wrap .item-info h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--adm-text);
+}
+
+.admin-wrap .meta {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
+/*
+ * [수정] item-actions는 원래 카드형 리스트(.item-card)용으로 만든 버튼 묶음인데,
+ * 실제로는 회원/정산/리뷰/주문 관리의 표(.data-table) "관리" 컬럼 안에서만 쓰이고
+ * 있다. display:flex는 블록 레벨이라 셀(td) 전체 폭을 차지하고, 자식 버튼은
+ * 기본값(justify-content:flex-start)대로 왼쪽에 붙어버려 "관리" 컬럼이 넓을수록
+ * 버튼 묶음이 왼쪽으로 쏠려 보였다. inline-flex로 바꿔 내용 폭만큼만 차지하게
+ * 하면 td의 text-align:center에 의해 컬럼 안에서 항상 가운데 정렬된다.
+ */
+.admin-wrap .item-actions {
+  display: inline-flex;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.admin-wrap .item-actions form {
+  display: inline-block;
+}
+
+/* =====================================================
+   Form
+   ===================================================== */
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-label {
+  display: block;
+
+  margin-bottom: 10px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  color: var(--adm-text-sub);
+}
+
+.form-textarea {
+  width: 100%;
+
+  padding: 14px 16px;
+
+  background: var(--adm-surface-2);
+
+  border: 1px solid var(--adm-border);
+
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  transition: var(--adm-transition);
+}
+
+.form-textarea:focus {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+}
+
+.form-textarea {
+  min-height: 140px;
+
+  resize: vertical;
+}
+
+.form-textarea[readonly] {
+  color: var(--adm-text-sub);
+  background: var(--adm-surface-3);
+}
+
+/*
+ * [추가] discountManage.jsp(OTT 할인 등록/수정 모달)처럼 한 줄짜리 입력값
+ * (제목, URL 등)이나 select가 필요한 폼에서, .form-textarea와 같은 톤의
+ * 입력창이 없었다. 기존 .form-textarea와 배경/테두리/포커스 스타일을
+ * 그대로 맞추되 한 줄 높이로 쓰는 공용 클래스를 추가한다.
+ */
+.form-input,
+.form-select {
+  width: 100%;
+
+  padding: 14px 16px;
+
+  background: var(--adm-surface-2);
+
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 14px;
+  font-family: inherit;
+
+  transition: var(--adm-transition);
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--adm-point);
+  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+}
+
+/* 시작일/종료일처럼 한 form-group 안에 입력 2개를 나란히 두는 레이아웃 */
+.form-row {
+  display: flex;
+  gap: 14px;
+
+  /* [수정] 다음 입력 항목과 다른 form-group과 동일한 간격 유지 */
+  margin-bottom: 22px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.radio-group {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--adm-text-sub);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 회원/사업자 등급 변경 선택 목록 */
+.grade-select-box {
+  /* [수정] modal-box 배경(adm-surface-1 상당)과 거의 같은 톤이라 팝업 안에서
+     패널이 구분되지 않았다. .thumb과 같은 "눌린(inset) 표면" 톤(adm-surface-3)으로
+     바꿔 모달 배경과 뚜렷하게 구분되는 패널로 보이게 한다. */
+  padding: 18px;
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+}
+
+.grade-select-box .grade-select-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text-sub);
+}
+
+.grade-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * [수정] 라디오 버튼 + 텍스트만 나열돼 있어 팝업에서 가장 허전해 보이는
+ * 영역이었다. 옵션 하나하나를 카드형 행으로 감싸고, hover/선택 상태를
+ * 명확히 구분해 실제로 "고를 수 있는 목록"처럼 보이게 한다.
+ */
+.grade-option-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text-sub);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.grade-option-list label:hover {
+  border-color: var(--adm-point);
+  color: var(--adm-text);
+}
+
+.grade-option-list input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--adm-point);
+  cursor: pointer;
+}
+
+/* 현재 선택된 등급 행을 배경/테두리/굵기로 뚜렷하게 강조한다 */
+.grade-option-list label:has(input:checked) {
+  background: var(--adm-point-bg);
+  border-color: var(--adm-point);
+  color: var(--adm-text);
+  font-weight: 700;
+}
+
+/*
+ * 등급명 앞에 등급을 상징하는 색상 점을 붙여 목록에 생기를 준다.
+ * (JSP의 <span class="grade-dot grade-dot-*">가 라디오와 텍스트 사이에 위치)
+ */
+.grade-dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.grade-dot-bronze {
+  background: #c98a4b;
+}
+
+.grade-dot-silver {
+  background: #b9c1cc;
+}
+
+.grade-dot-gold {
+  background: var(--adm-warning);
+}
+
+.grade-dot-platinum {
+  background: var(--adm-point);
+}
+
+.grade-dot-vip {
+  background: #b083f0;
+}
+
+/*
+ * 상세 팝업 상단 대표 이미지 (상품 상세 / 이벤트 상세 공용).
+ * .thumb(목록용 80px 썸네일)과 톤은 같지만, 팝업에서는 더 크게 보여준다.
+ */
+.detail-image-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 220px;
+
+  margin-bottom: 20px;
+
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  overflow: hidden;
+}
+
+.detail-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-image-box .detail-image-empty {
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
+/* 대상 정보 요약 (팝업 상단) */
+.target-info-box {
+  /* [수정] modal-box 배경과 톤이 거의 같아 패널이 눈에 안 띄었다.
+     grade-select-box와 같은 눌린 표면 톤(adm-surface-3)으로 통일. */
+  margin-bottom: 20px;
+  padding: 18px 20px;
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+}
+
+.target-info-box p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* [수정] 6px → 10px: 항목 사이 간격이 좁아 촘촘해 보이던 것을 넓힘 */
+  padding: 10px 0;
+  font-size: 14px;
+
+  /*
+   * [수정] 라벨(span)이 값(strong, --adm-text 흰색)과 거의 구분되지 않는
+   * --adm-text-sub(#c5c8ce, 흰색에 가까움)였다. 더 어두운 --adm-text-dim으로
+   * 낮춰 "라벨은 흐리게, 값은 또렷하게" 위계를 분명히 한다.
+   */
+  color: var(--adm-text-dim);
+}
+
+/* 항목 사이를 옅은 구분선으로 나눠 표처럼 읽히게 한다 */
+.target-info-box p + p {
+  border-top: 1px solid var(--adm-border-soft);
+}
+
+.target-info-box p strong {
+  color: var(--adm-text);
+  font-weight: 600;
+}
+
+/*
+ * 리뷰 상세 팝업(reviewContentModal) - 표에서 2줄로 잘린 리뷰 내용을
+ * 줄바꿈까지 그대로 살려서 전체 보여준다. 아주 긴 리뷰는 내부 스크롤로 처리한다.
+ */
+.review-content-full {
+  max-height: 40vh;
+  overflow-y: auto;
+
+  padding: 14px 16px;
+
+  /* [수정] modal-box와 거의 같은 톤(adm-surface-2)이라 패널이 묻혀 보였다.
+     같은 성격의 target-info-box/grade-select-box와 통일해 눌린 표면 톤으로 변경 */
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 14px;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/*
+ * 신고 사유 목록(reviewReportReasonBody). 서버에서 "사유 - 상세내용"이
+ * " / "로 이어붙여 내려오는 문자열을 신고 1건 단위로 나눠, 뱃지(사유)와
+ * 상세내용을 하나의 카드 안에 함께 담는다. 신고가 여러 건이어도 어느
+ * 뱃지가 어느 내용인지 카드 단위로 명확히 짝지어 보이고, 뱃지는 카드
+ * 좌상단에 붙여 라벨처럼 읽히게 한다.
+ */
+.report-reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.report-reason-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+
+  padding: 12px 14px;
+
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+}
+
+.report-reason-tag {
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 10px;
+
+  border-radius: var(--adm-radius-pill);
+
+  background-color: var(--adm-warning-bg);
+  color: var(--adm-warning);
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.report-reason-detail {
+  width: 100%;
+
+  color: var(--adm-text);
+  font-size: 14px;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.report-reason-detail:empty::before {
+  content: "상세 내용 없음";
+  color: var(--adm-text-dim);
+}
+
+.report-reason-empty {
+  color: var(--adm-text-dim);
+  font-size: 14px;
+}
+
+/* =====================================================
+   Pagination
+   ===================================================== */
+
+.admin-wrap .pagination {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 36px;
+}
+
+/* =====================================================
+   Page Button
+   ===================================================== */
+
+.admin-wrap .pagination a {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 8px;
+
+  /*
+   * [수정] admin-content-box(surface-1) 안에 놓이는데 평소 배경이 같은
+   * surface-1이라 hover 하기 전까지는 버튼 칩처럼 안 보였다. 한 단계
+   * 어두운 톤으로 분리해 평소에도 버튼임이 보이게 한다.
+   */
+  background: var(--adm-surface-2);
+
+  border: 1px solid transparent;
+
+  color: var(--adm-text-dim);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* =====================================================
+   Hover
+   ===================================================== */
+
+.admin-wrap .pagination a:hover {
+  /* 평소 상태가 surface-2로 바뀌어서 hover는 그보다 한 단계 더 진한 톤으로 */
+  background: var(--adm-surface-3);
+
+  border-color: rgba(255, 255, 255, 0.08);
+
+  color: var(--adm-text);
+
+  transform: translateY(-2px);
+}
+
+/* =====================================================
+   Active Page
+   ===================================================== */
+
+.admin-wrap .pagination a.active {
+  /* [수정] --adm-point 원색은 흰 글자와 대비가 낮아 --adm-point-strong으로 교체 */
+  background: var(--adm-point-strong);
+
+  border-color: var(--adm-point-strong);
+
+  color: #fff;
+
+  font-weight: 700;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* =====================================================
+   Navigation Button
+   << < > >>
+   ===================================================== */
+
+.admin-wrap .pagination a:first-child,
+.admin-wrap .pagination a:nth-child(2),
+.admin-wrap .pagination a:nth-last-child(1),
+.admin-wrap .pagination a:nth-last-child(2) {
+  background: transparent;
+
+  color: var(--adm-text-dim);
+
+  font-size: 18px;
+
+  font-weight: 700;
+}
+
+/* 이동 버튼 hover */
+
+.admin-wrap .pagination a:first-child:hover,
+.admin-wrap .pagination a:nth-child(2):hover,
+.admin-wrap .pagination a:nth-last-child(1):hover,
+.admin-wrap .pagination a:nth-last-child(2):hover {
+  background: var(--adm-surface-2);
+
+  color: var(--adm-point);
+}
+
+/* =====================================================
+   Disabled
+   ===================================================== */
+
+.admin-wrap .pagination a.disabled {
+  background: transparent;
+
+  color: var(--adm-text-muted);
+
+  opacity: 0.3;
+
+  pointer-events: none;
+
+  transform: none;
+}
+
+/* =====================================================
+   Modal (팝업 - 등급 관리 / 승인 / 등록·수정 등)
+   ===================================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  /*
+   * [수정] 모달 하단이 화면 밖으로 잘리는 현상 수정
+   * <dialog>는 기본적으로 height: fit-content라서, height를 명시하지
+   * 않으면 오버레이가 모달 내용물 높이만큼만 생겨 하단이 잘려 보인다.
+   * width처럼 height도 100%로 고정해 항상 뷰포트 전체를 덮게 한다.
+   */
+  width: auto;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+
+  background: rgba(10, 10, 12, 0.6);
+  backdrop-filter: blur(4px);
+
+  z-index: 1000;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 440px;
+  max-height: 88vh;
+  overflow-y: auto;
+
+  padding: 32px;
+
+  background: var(--color-bg2, #202020);
+  border: 1px solid var(--color-border, #2b2b2b);
+  border-radius: 16px;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+
+  /* Firefox: 스크롤바를 팝업 톤에 맞춰 얇고 어둡게 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--adm-border, #2b2b2b) transparent;
+}
+
+/* Chrome / Edge / Safari 스크롤바 커스텀 */
+.modal-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-box::-webkit-scrollbar-thumb {
+  background-color: var(--adm-border, #2b2b2b);
+  border-radius: 8px;
+  border: 2px solid var(--color-bg2, #202020);
+}
+
+.modal-box::-webkit-scrollbar-thumb:hover {
+  background-color: var(--adm-point, #5ea3ff);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 22px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--color-white, #fff);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /*
+   * span에서 button으로 변경한 뒤에도 기존 디자인이 유지되도록
+   * 브라우저의 기본 버튼 배경, 테두리, 여백을 제거한다.
+   */
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  border-radius: 50%;
+  color: var(--color-gray2, #8c919b);
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--color-bg3, #30333a);
+  color: #fff;
+}
+
+/*
+ * 키보드 Tab으로 닫기 버튼에 접근했을 때
+ * 현재 포커스 위치를 시각적으로 확인할 수 있게 한다.
+ */
+.modal-close:focus-visible {
+  outline: 2px solid var(--adm-point);
+  outline-offset: 2px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.modal-footer .btn {
+  flex: 1;
+}
+
+/*
+ * 적용 상품 표처럼 담을 내용이 많은 상세보기 팝업에서
+ * 기본 모달(440px)이 좁게 느껴질 때 이 클래스를 추가해 폭을 넓힌다.
+ * (eventManage.jsp 이벤트 상세 팝업 등)
+ */
+.modal-box.modal-box-lg {
+  max-width: 720px;
+}
+
+/* 모달 안에서 "이벤트 정보", "적용 상품"처럼 표/박스 위에 붙는 소제목 */
+.detail-section-title {
+  /*
+   * [수정] 라벨과 같은 --adm-text-sub 톤이라 소제목과 본문 라벨의 위계가
+   * 구분되지 않았다. 포인트 컬러 마커 + 밝은 텍스트로 "이 아래는 하나의
+   * 묶음이다"가 한눈에 보이는 섹션 헤더로 바꾼다.
+   */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.detail-section-title::before {
+  content: "";
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--adm-point);
+}
+
+.detail-section-title + .data-table {
+  margin-bottom: 20px;
+}
+
+/*
+ * 이미 승인/반려 처리된 요청은 다시 승인·반려할 수 없어 버튼 대신 보여주는 안내 문구.
+ * (eventManage.jsp 이벤트 상세 팝업)
+ */
+.modal-readonly-note {
+  margin-top: 26px;
+  padding: 12px 14px;
+  /* [수정] target-info-box 등과 같은 눌린 표면 톤으로 통일 */
+  background: var(--adm-surface-3);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  color: var(--adm-text-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* =====================================================
+   이벤트 상세 팝업 - 적용 상품 표 가독성
+   ===================================================== */
+
+/*
+ * [수정] 다른 관리자 화면 표는 전부 가운데 정렬인데 이 표만 상품명은 왼쪽,
+ * 가격은 오른쪽으로 따로 정렬돼 있어 통일감이 없어 보였다. 헤더는 표
+ * 공통 규칙(.data-table th) 그대로 두고, 값 쪽을 다른 표와 똑같이
+ * 가운데 정렬로 맞춘다.
+ */
+
+#reqProductTableBody .ep-name {
+  color: var(--adm-text);
+  font-weight: 600;
+}
+
+#reqProductTableBody .ep-seller {
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
+#reqProductTableBody .ep-price {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 할인 전 원가: 할인이 있는 상품만 취소선 처리해 할인 여부를 한눈에 구분되게 한다 */
+#reqProductTableBody .ep-price-original {
+  color: var(--adm-text-dim);
+  text-decoration: line-through;
+}
+
+/* 할인 적용가: 강조 색상 + 살짝 큰 글씨로 시선이 먼저 가도록 한다 */
+#reqProductTableBody .ep-price-final strong {
+  color: var(--adm-point);
+  font-size: 15px;
+}
+
+/* 할인율은 상태 배지와 같은 톤(경고색 pill)으로 표시해 표 안에서 바로 눈에 띄게 한다 */
+#reqProductTableBody .ep-rate-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: 4px 10px;
+  border-radius: var(--adm-radius-pill);
+  color: var(--adm-warning);
+  background: var(--adm-warning-bg);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#reqProductTableBody .ep-rate-none {
+  color: var(--adm-text-dim);
+}
+
+#reqProductTableBody .ep-empty {
+  color: var(--adm-text-dim);
+}
+
+/* =====================================================
+   모니터링 차트 영역
+   ===================================================== */
+
+.admin-wrap .chart-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.admin-wrap .chart-box {
+  flex: 1 1 360px;
+  min-width: 300px;
+
+  padding: 28px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+}
+
+.admin-wrap .chart-box-title {
+  margin: 0 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--adm-text-sub);
+}
+
+.admin-wrap .chart-box canvas {
+  max-width: 100%;
+}
+
+.admin-wrap .chart-box.empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 260px;
+
+  border-style: dashed;
+
+  color: var(--adm-text-dim);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* =====================================================
+   [모바일 리팩토링] 관리자 목록 표 - 모바일 행 축약 + 상세보기 모달
+   (공통 패턴: memberManage / businessManage / eventManage / productManage /
+    orderManage / reviewManage / productReviewManage / settlementManage /
+    monitoring 등 .data-table 을 쓰는 모든 관리자 목록 화면이 공유한다)
+
+   구조:
+   - 데스크톱(768px 초과)에서는 기존 표 그대로 노출된다.
+   - 768px 이하에서는 th/td 중 class="col-mobile-hide"가 붙은 컬럼을 숨기고,
+     "관리" 컬럼 안의 기존 버튼(.item-actions 자식들)도 숨긴 뒤 .row-detail-trigger
+     버튼(상세보기)만 남긴다. 이 버튼을 누르면 같은 화면에 있는 상세보기 모달이 열리고,
+     숨겨졌던 컬럼 값과 관리 액션 버튼을 모달 안에서 그대로 확인/실행할 수 있다.
+   - 체크박스 열(.checkbox-col)은 col-mobile-hide를 붙이지 않아 모바일에서도
+     다중 선택 기능이 그대로 유지된다.
+   - .row-detail-trigger는 "관리" 컬럼 폭을 꽉 채우지 않는 최소화된 버튼이다
+     (width:auto). ".data-table td .btn" 규칙이 모바일에서 모든 표 버튼을 한 단계
+     작게 만들고 줄바꿈을 허용하므로, businessManage/eventManage처럼 .row-detail-
+     trigger 없이 버튼이 하나뿐인 화면도 같은 방식으로 화면 밖 넘침 없이 보인다.
+   - .id-status-active/.id-status-blocked/.id-status-withdrawn은 상태 컬럼을
+     숨기는 화면(memberManage)에서 아이디 글자색으로 상태를 대신 표현할 때 쓴다.
+   ===================================================== */
+
+/* 상세보기 트리거 버튼은 데스크톱에서는 필요 없다 (기존 관리 버튼을 그대로 쓴다) */
+.data-table .row-detail-trigger {
+  display: none;
+}
+
+/*
+ * [수정] discountManage.jsp 전용 예외.
+ * 다른 화면의 row-detail-trigger는 "상세보기"만 담당하고 실제 관리 버튼은
+ * 데스크톱에서 별도로 노출되지만, OTT 할인 관리의 "수정" 버튼은 그 자체가
+ * 유일한 수정 진입점이라 데스크톱에서도 항상 보여야 한다. 위 규칙보다
+ * 선택자 특이도를 높여 덮어쓴다.
+ */
+.data-table td .item-actions .discount-edit-trigger {
+  display: inline-flex;
+}
+
+/*
+ * 상세보기 모달 안에서 쓰는 라벨-값 리스트. businessManage.jsp 등에서 쓰던
+ * .target-info-box보다 항목 수가 많은 화면(회원/상품/주문 등)에서도 쓸 수 있도록
+ * 표의 컬럼 전체를 감쌀 수 있는 범용 컴포넌트로 둔다.
+ */
+.row-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.row-detail-list .row-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--adm-border-soft);
+}
+
+.row-detail-list .row-detail-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.row-detail-list .row-detail-label {
+  flex-shrink: 0;
+  min-width: 88px;
+
+  color: var(--adm-text-dim);
+  font-size: 13px;
+}
+
+.row-detail-list .row-detail-value {
+  flex: 1;
+  text-align: right;
+
+  color: var(--adm-text);
+  font-size: 14px;
+  word-break: break-word;
+}
+
+/* 모달 안에서 재사용하는 관리 액션 버튼 묶음 (기존 .item-actions 버튼과 동일한 동작을 한다) */
+.row-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.row-detail-actions > * {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+/*
+ * [수정] memberManage.jsp 모바일 아이디 표시 방식 변경.
+ * 기존에는 SNS 로그인 회원의 아이디를 모바일에서 provider 로고 아이콘으로 대체해
+ * 보여줬으나(.id-sns-icon), 아이디를 직접 보고 구분하고 싶다는 요청에 따라
+ * 모바일에서도 데스크톱과 동일하게 아이디 문자열을 그대로 보여주는 방식으로 되돌린다.
+ * 대신 "상태" 컬럼 자체를 모바일에서 숨기고(.col-mobile-hide), 그 정보를 아이디
+ * 글자 색으로 대신 표현한다 — 아래 .id-status-* 클래스는 768px 이하에서만 적용되며
+ * 데스크톱의 상태 뱃지 컬럼(.status-ok 등)은 그대로 유지된다.
+ */
+.data-table .id-status-active,
+.data-table .id-status-blocked,
+.data-table .id-status-withdrawn {
+  font-weight: 600;
+}
+
+/* =====================================================
+   Responsive
+   ===================================================== */
+
+@media (max-width: 1100px) {
+  .admin-wrap .stat-grid,
+  .admin-wrap .member-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-wrap .main-content {
+    padding: 24px;
+  }
+
+  .admin-wrap .admin-sidebar {
+    width: 220px;
+  }
+}
+
+/*
+ * [신규] 회원 아이디(.member-id-text) 데스크톱 기본 노출 규칙.
+ * 말줄임(...)과 펼치기 동작은 아래 768px 이하 미디어쿼리에서만 정의되므로,
+ * 그 바깥(데스크톱)에서는 이 컴포넌트가 항상 잘리지 않고 전체 문자열이
+ * 그대로 보이도록 기본값을 명시적으로 고정해 둔다.
+ */
+.member-id-cell {
+  overflow: visible;
+}
+
+.member-id-text {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-all;
+}
+
+/*
+ * [신규] monitoring.jsp - 아이디(.member-id-text) 아래에 닉네임을 보조 정보로
+ * 함께 보여준다. 아이디가 SNS 원본 값이라 낯설 수 있어, 관리자가 누구인지
+ * 바로 알아볼 수 있도록 닉네임을 작고 옅은 글자로 그 밑에 덧붙인다.
+ */
+/*
+ * [수정] monitoring.jsp - 데스크톱에서는 닉네임이 별도 컬럼(td.col-mobile-hide)으로
+ * 분리되어 나오므로, 아이디 아래 보조 텍스트는 중복되지 않도록 데스크톱에서 숨긴다.
+ * 모바일에서는 그 닉네임 컬럼 자체가 숨겨지므로(.col-mobile-hide), 기존과 동일하게
+ * 이 보조 텍스트로만 닉네임을 보여준다(아래 768px 미디어쿼리에서 다시 노출).
+ */
+.monitoring-nickname {
+  display: none;
+
+  margin-top: 4px;
+
+  color: var(--adm-text-dim);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+@media (max-width: 768px) {
+  .admin-wrap {
+    flex-direction: column;
+    /*
+     * [수정] admin-wrap의 align-items: flex-start는 데스크톱(가로 배치)에서
+     * 사이드바/본문 높이를 각자 콘텐츠에 맞게 정렬하기 위한 값인데,
+     * 768px 이하에서 flex-direction이 column으로 바뀌면 교차축이 세로->가로로
+     * 바뀌면서 main-content가 화면 너비를 채우지 않고 내부 콘텐츠(표/그리드)의
+     * 실제 필요 너비만큼 늘어나 버렸다. 이게 전체 화면이 가로로 잘려 보이고
+     * 가로 스크롤이 생기던 원인. stretch로 재정의해 항상 100% 너비를 채우게 한다.
+     */
+    align-items: stretch;
+  }
+
+  .admin-wrap .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--adm-border);
+  }
+
+  .admin-wrap .sidebar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: var(--adm-text);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .admin-wrap .sidebar-mobile-toggle-arrow {
+    font-size: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .admin-wrap .admin-sidebar.is-open .sidebar-mobile-toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .admin-wrap .sidebar-menu {
+    overflow: hidden;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .admin-wrap .admin-sidebar.is-open .sidebar-menu {
+    max-height: 2000px;
+    padding-top: 4px;
+    padding-bottom: 20px;
+  }
+
+  .admin-wrap .main-content {
+    padding: 20px 16px 48px;
+  }
+
+  .admin-wrap .admin-hero {
+    padding: 22px;
+    margin-bottom: 24px;
+  }
+
+  .admin-wrap .admin-hero h1 {
+    font-size: 21px;
+  }
+
+  .admin-wrap .admin-page-header {
+    margin-bottom: 20px;
+  }
+
+  .admin-wrap .admin-page-title,
+  .admin-wrap .page-title {
+    font-size: 20px;
+  }
+
+  .admin-wrap .admin-content-box {
+    padding: 18px;
+  }
+
+  /*
+   * [수정] 탭 메뉴(.tab-menu)가 flex-wrap으로만 처리되어 있어서
+   * "전체 유저"처럼 짧은 라벨과 "SNS 로그인 유저"처럼 긴 라벨이 섞이면
+   * 버튼 너비가 제각각이라 줄바꿈 시 정렬이 들쭉날쭉해 보였다.
+   * 모바일에서는 2열 그리드로 고정해 라벨 길이와 무관하게 항상 가지런히
+   * 정렬되도록 한다.
+   */
+  .admin-wrap .tab-menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .admin-wrap .tab-menu a,
+  .admin-wrap .tab-menu button {
+    text-align: center;
+  }
+
+  .admin-wrap .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-wrap .toolbar form,
+  .admin-wrap .filter-select,
+  .admin-wrap .toolbar .page-search {
+    width: 100%;
+  }
+
+  /*
+   * [모바일 리팩토링] 기존에는 표를 그대로 두고 overflow-x:auto로 가로 스크롤을
+   * 시켜서 보여줬다(768px~600px 구간에서 표가 컨테이너 밖으로 잘려 보이던 문제도
+   * 이 스크롤 처리로 막았었다). 컬럼 수가 많은 관리자 목록 표를 모바일에서 옆으로
+   * 밀어 봐야 하는 불편이 커서, 가로 스크롤 대신 "필수 컬럼만 남기고 나머지는
+   * 상세보기 모달로 이동" 방식으로 바꾼다. col-mobile-hide가 붙은 컬럼을 실제로
+   * DOM에서 숨기므로 남은 컬럼만으로 표 너비가 자연스럽게 줄어들어 가로 스크롤이
+   * 더 이상 필요 없다.
+   */
+  .data-table {
+    display: table;
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  /* 식별에 필요한 최소 컬럼(번호/아이디/이름 등)과 상태만 남기고 나머지는 숨긴다.
+     어떤 컬럼을 남길지는 화면마다 다르므로 각 JSP의 <th>/<td>에 이 클래스를 붙여 지정한다. */
+  .data-table th.col-mobile-hide,
+  .data-table td.col-mobile-hide {
+    display: none;
+  }
+
+  /*
+   * [버그 수정] businessManage/eventManage처럼 "관리" 컬럼에 버튼이 하나뿐이라
+   * .item-actions/.row-detail-trigger를 쓰지 않는 화면들에서, 좁은 화면에 남은
+   * 컬럼 수와 상관없이 .btn의 기본 white-space:nowrap 때문에 "상세보기"/"등급 관리"
+   * 같은 버튼 글자가 줄바꿈되지 않고 표를 옆으로 밀어내 화면 밖으로 잘려 보이던
+   * 문제가 있었다(기존 가로 스크롤을 없애면서 더 이상 스크롤로 따라갈 수도 없었다).
+   * .data-table 안의 모든 버튼을 모바일에서 한 단계 작게 만들고 줄바꿈을 허용해
+   * 어떤 화면이든(이미 완료된 화면 포함) 표 폭이 화면을 넘지 않게 한다.
+   */
+  .data-table td .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.3;
+  }
+
+  /* "관리" 컬럼 안의 기존 관리 버튼들은 숨기고, 상세보기 트리거만 남긴다.
+     상세보기 모달 안에 같은 관리 버튼을 다시 두어 그대로 사용할 수 있게 한다. */
+  .data-table td .item-actions > *:not(.row-detail-trigger) {
+    display: none;
+  }
+
+  /*
+   * [수정] 상세보기 트리거를 "관리" 컬럼 전체 폭을 채우는 버튼(width:100%)에서
+   * 내용 크기만큼만 차지하는 최소화된 버튼으로 축소한다. 회원 목록처럼 상태 컬럼을
+   * 걷어내 컬럼 수 자체를 줄인 화면에서는 이 정도 크기로도 충분히 누르기 쉽고,
+   * 표 전체 폭도 더 좁아져 좁은 기기에서 안정적으로 들어간다.
+   */
+  .data-table .row-detail-trigger {
+    display: inline-flex;
+    width: auto;
+    min-width: 0;
+    padding: 7px 14px;
+  }
+
+  /*
+   * [수정] memberManage.jsp 상태 컬럼 대체.
+   * "상태" 컬럼(<th class="col-mobile-hide">)을 모바일에서 숨기는 대신, 아이디
+   * 글자 색으로 정상/정지/탈퇴 상태를 표현한다. 데스크톱 상태 뱃지 컬럼은 그대로
+   * 유지되므로 이 규칙은 768px 이하에서만 적용한다.
+   */
+  .data-table .id-status-active {
+    color: var(--adm-success);
+  }
+
+  .data-table .id-status-blocked {
+    color: var(--adm-danger);
+  }
+
+  .data-table .id-status-withdrawn {
+    color: var(--adm-warning);
+  }
+
+  /*
+   * [리팩토링] 배경/테두리가 있던 "칩(뱃지)" 형태를 걷어내고, 일반 텍스트에
+   * 말줄임(...)만 적용한다. 잘린 아이디는 더 이상 같은 자리에 펼쳐지는
+   * 말풍선(popover)이 아니라 모달 팝업(#memberIdModal, admin.js의
+   * openMemberIdModal 참고)으로 전체 값을 보여주고 닫기 버튼으로 닫는다.
+   */
+  .member-id-cell {
+    width: 100px;
+    max-width: 100px;
+  }
+
+  /* [수정] monitoring.jsp 전용: 데스크톱에서 숨긴 닉네임 보조 텍스트를
+     모바일에서는 기존과 동일하게 아이디 아래에 다시 노출한다. */
+  .monitoring-nickname {
+    display: block;
+  }
+
+  .member-id-text {
+    display: inline-block;
+    max-width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+
+    font-size: 13px;
+
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--adm-border);
+
+    transition: color var(--adm-transition);
+  }
+
+  .member-id-text:hover,
+  .member-id-text:focus-visible {
+    color: var(--adm-point);
+    text-decoration-color: var(--adm-point);
+  }
+
+  .member-id-text:focus-visible {
+    outline: 2px solid var(--adm-point);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * [모바일 리팩토링] 이벤트 상세 팝업의 "적용 상품" 표(.product-detail-table).
+ *
+ * 기존에는 다른 관리자 목록 표처럼 컬럼을 숨기는 방식을 쓰지 않아, 좁은 화면에서
+ * 상품명/판매자/기존가격/할인율/적용가격 5개 컬럼이 그대로 눌린 채 표시되면서
+ * 글자가 칸 폭에 맞춰 제멋대로 줄바꿈됐다. 이 표는 항상 좁은 모달(.modal-box-lg)
+ * 안에서만 쓰이는 전용 표라 다른 화면과 공유하지 않으므로, 가로 표 대신 상품 1개당
+ * 카드 1장으로 세로로 쌓는 레이아웃으로 바꾼다. 헤더(thead)는 숨기고, 각 셀은
+ * 라벨(nth-of-type 기준 고정 순서: 상품명·판매자·기존가격·할인율·적용가격) +
+ * 값을 한 줄에 나란히 보여준다.
+ *
+ * [수정] 위쪽의 공통 @media (max-width: 768px) 블록이 .data-table에
+ * display:table / padding 등을 지정하는데, 이 블록을 그보다 앞에 두면 소스
+ * 순서상 나중에 나오는 공통 규칙이 동일 우선순위에서 덮어써 버려 세로 카드
+ * 레이아웃이 다시 가로 표로 돌아가 버린다. 그래서 이 블록을 공통 768px
+ * 블록보다 뒤에 둔다.
+ */
+@media (max-width: 640px) {
+  .product-detail-table thead {
+    display: none;
+  }
+
+  .product-detail-table,
+  .product-detail-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .product-detail-table tr {
+    display: block;
+
+    margin-top: 0;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+
+    background: var(--adm-surface-2);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius-sm);
+  }
+
+  .product-detail-table tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .product-detail-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 7px 0;
+
+    text-align: right;
+    white-space: normal;
+    word-break: break-word;
+
+    border-bottom: none;
+  }
+
+  /* 라벨(셀이 무엇을 뜻하는지)은 컬럼 순서가 항상 고정이므로 nth-of-type로 붙인다 */
+  .product-detail-table td::before {
+    content: "";
+
+    flex-shrink: 0;
+
+    color: var(--adm-text-dim);
+    font-size: 12px;
+    font-weight: 600;
+
+    text-align: left;
+  }
+
+  .product-detail-table td:nth-of-type(1)::before {
+    content: "상품명";
+  }
+  .product-detail-table td:nth-of-type(2)::before {
+    content: "판매자";
+  }
+  .product-detail-table td:nth-of-type(3)::before {
+    content: "기존가격";
+  }
+  .product-detail-table td:nth-of-type(4)::before {
+    content: "할인율";
+  }
+  .product-detail-table td:nth-of-type(5)::before {
+    content: "적용가격";
+  }
+
+  /* 상품명은 카드 제목처럼 라벨 없이 굵게, 아래쪽에 구분선을 두어 나머지 정보와 분리한다 */
+  .product-detail-table td.ep-name {
+    padding-top: 0;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+
+    font-size: 15px;
+
+    text-align: left;
+    justify-content: flex-start;
+
+    border-bottom: 1px solid var(--adm-border);
+  }
+
+  .product-detail-table td.ep-name::before {
+    content: none;
+  }
+
+  /* "연결된 상품이 없습니다" 빈 상태(colspan=5, td 1개뿐)는 라벨 없이 가운데 정렬로 보여준다 */
+  .product-detail-table td.ep-empty {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .product-detail-table td.ep-empty::before {
+    content: none;
+  }
+}
+
+/*
+ * [신규] 아이디 전체보기 모달(#memberIdModal) 안 콘텐츠.
+ * memberManage.jsp / monitoring.jsp가 공유하는 작은 모달로, 기존
+ * .modal-overlay/.modal-box 컴포넌트를 그대로 재사용한다.
+ */
+.member-id-modal-value {
+  padding: 14px 16px;
+
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+
+  color: var(--adm-text);
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.member-id-modal-nickname {
+  margin-top: 10px;
+
+  color: var(--adm-text-dim);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+@media (max-width: 600px) {
+  .admin-wrap .stat-grid,
+  .admin-wrap .member-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .admin-wrap .stat-card {
+    padding: 16px 14px;
+  }
+
+  .admin-wrap .stat-card strong {
+    font-size: 20px;
+  }
+
+  .admin-wrap .item-card,
+  .admin-wrap .chart-row {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .admin-wrap .bulk-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-wrap .bulk-action-bar .bulk-label {
+    margin-right: 0;
+  }
+
+  .admin-wrap .item-actions {
+    flex-wrap: wrap;
+  }
+
+  .admin-wrap .table-text-clamp {
+    white-space: normal;
+  }
+}
+
+/* =====================================================
+   [리팩터링 추가] admin-message
+   admin/goods/productManage.jsp 에서 사용 중이었으나
+   CSS 정의가 없어 스타일이 적용되지 않던 클래스 (rule 5)
+   ===================================================== */
+.admin-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--adm-danger-bg);
+  color: var(--adm-danger);
+}
+
+/* =====================================================
+   [모바일 리팩토링] 좁은 화면(480px 이하)에서 히어로/패널/카드를
+   한 번 더 축소해 스크롤 길이를 줄인다.
+   ===================================================== */
+@media (max-width: 480px) {
+  .admin-wrap .main-content {
+    padding: 16px 14px 40px;
+  }
+
+  .admin-wrap .admin-hero {
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .admin-wrap .admin-hero h1 {
+    font-size: 19px;
+  }
+
+  .admin-wrap .admin-content-box {
+    padding: 14px;
+  }
+
+  .admin-wrap .stat-grid,
+  .admin-wrap .member-stat-grid {
+    gap: 10px;
+  }
+
+  .admin-wrap .stat-card {
+    padding: 14px 12px;
+  }
+
+  .admin-wrap .stat-card span {
+    font-size: 12px;
+  }
+
+  .admin-wrap .stat-card strong {
+    font-size: 18px;
+  }
+
+  .admin-wrap .item-card {
+    padding: 14px 16px;
+    gap: 14px;
+  }
+
+  .admin-wrap .thumb {
+    width: 60px;
+    height: 60px;
+  }
+
+  .admin-wrap .item-info h3 {
+    font-size: 14px;
+  }
+
+  .admin-wrap .modal-box {
+    padding: 20px;
+  }
+}
+
+/* =====================================================
+   이벤트 관리 모바일 제목 상태 색상
+   ===================================================== */
+
+.mobile-event-title {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pc-event-title {
+    display: none;
+  }
+
+  .mobile-event-title {
+    display: block;
+  }
+
+  .event-title-cell {
+    max-width: 180px;
+  }
+
+  .event-title-text {
+    display: inline-block;
+
+    max-width: 130px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-weight: 600;
+  }
+
+  /*
+   * [리팩토링] 승인상태(대기/승인/반려) 뱃지 색상 기준으로만 칠한다.
+   * 예전에는 EVENT.STATUS 원본값(WAITING/APPROVED/REJECTED/END) 4가지를
+   * 그대로 나눠 END를 별도 회색으로 표시했는데, 승인상태 관점에서 END는
+   * 여전히 "승인"이라(EventManageVO.getApprovalStatus() 참고) 데스크톱
+   * 승인상태 뱃지(.status-ok/.status-reject/.status-waiting)와 색이
+   * 어긋났었다. req.approvalStatus 기준 3색으로 맞춘다.
+   */
+
+  .event-title-approved {
+    color: var(--adm-success);
+  }
+
+  .event-title-rejected {
+    color: var(--adm-danger);
+  }
+
+  .event-title-waiting {
+    color: var(--adm-warning);
+  }
+}
+/* =====================================================
+   [모바일 리팩토링] 승인 상태별 이름/상품명 색상 (범용)
+   businessManage.jsp(이름) / productManage.jsp(상품명)처럼 상태 뱃지 컬럼을
+   모바일에서 숨기는 화면들이 공통으로 쓰는 컴포넌트다. eventManage.jsp의
+   .pc-event-title / .mobile-event-title 과 동일한 구조로, 데스크톱에서는
+   상태 뱃지 컬럼이 그대로 보이고 768px 이하에서만 식별 컬럼(이름/상품명)
+   글자 색으로 승인 상태를 대신 표현한다.
+   ===================================================== */
+
+.mobile-approval-name {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pc-approval-name {
+    display: none;
+  }
+
+  .mobile-approval-name {
+    display: block;
+  }
+
+  .approval-name-cell {
+    max-width: 140px;
+  }
+
+  .approval-name-text {
+    display: inline-block;
+
+    max-width: 130px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-weight: 600;
+  }
+
+  /* 기존 상태 뱃지 색상 기준 적용 (status-ok / status-reject / status-waiting) */
+
+  .approval-name-approved {
+    color: var(--adm-success);
+  }
+
+  .approval-name-rejected {
+    color: var(--adm-danger);
+  }
+
+  .approval-name-waiting {
+    color: var(--adm-warning);
+  }
+
+  .approval-name-end {
+    color: var(--adm-text-dim);
+  }
+}
+
+/* =====================================================
+   [모바일 리팩토링] 모니터링 - 최근 접속일 모바일 축약 표시
+   monitoring.jsp의 "최근 접속일"이 데스크톱에서는 yyyy-MM-dd 그대로,
+   768px 이하에서는 yyMMdd(예: 260730)로 짧게 표시된다.
+   .pc-event-title / .mobile-event-title 과 동일한 구조.
+   ===================================================== */
+
+.mobile-access-date {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pc-access-date {
+    display: none;
+  }
+
+  .mobile-access-date {
+    display: inline;
+  }
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 수정 모달 상태 변경 버튼]
+   PC에서는 목록의 상태 변경 버튼을 사용하므로
+   수정 모달 내부 비활성화/재활성화 버튼은 숨긴다.
+   ========================================================= */
+#discountStatusActions {
+  display: none !important;
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 모바일 전용 보정]
+   상태 변경 버튼 표시 + 날짜 입력 영역 보정
+   ========================================================= */
+@media (max-width: 768px) {
+  /* 모바일에서는 수정 모달 내부 상태 변경 버튼 표시 */
+  #discountStatusActions {
+    display: flex !important;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--adm-border);
+    width: 100%;
+  }
+
+  #discountStatusActions form {
+    width: 100%;
+    margin: 0;
+  }
+
+  #discountStatusActions .btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* =========================================================
+     [OTT 할인 관리 - 모바일 날짜 입력 영역 보정]
+     시작일/종료일을 모달 내부에서 정확히 동일한 크기로 배치
+     ========================================================= */
+
+  /* 실제 OTT 할인 등록/수정 모달 ID는 discountFormModal */
+  #discountFormModal .form-row {
+    display: flex;
+    width: 100%;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  /* 시작일 / 종료일 영역을 정확히 1:1로 분배 */
+  #discountFormModal .form-row .form-group {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* 날짜 입력창이 모바일 브라우저별 기본 크기 때문에 잘리지 않도록 보정 */
+  #discountFormModal .form-row input[type="date"].form-input {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+
+    height: 48px;
+
+    /* 좁은 모바일에서 날짜 + 달력 아이콘 공간 확보 */
+    padding: 0 8px;
+
+    box-sizing: border-box;
+
+    /* 일부 모바일 기기에서 14px은 날짜 문자열이 꽉 차므로 약간 축소 */
+    font-size: 13px;
+
+    font-family: inherit;
+  }
+}
+
+/* =========================================================
+   [OTT 할인 관리 - 초소형 모바일 날짜 입력 보정]
+   360px 이하에서도 시작일/종료일이 잘리지 않도록 처리
+   ========================================================= */
+@media (max-width: 380px) {
+  #discountFormModal .form-row {
+    gap: 10px;
+  }
+
+  #discountFormModal .form-row input[type="date"].form-input {
+    padding-left: 6px;
+    padding-right: 4px;
+    font-size: 12px;
+  }
+}

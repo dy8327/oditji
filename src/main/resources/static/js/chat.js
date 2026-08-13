@@ -1,177 +1,241 @@
-import { db } from "./firebase-config.js";
+import { db, ensureFirebaseChatAuth } from "./firebase-config.js?v=2";
 
 import {
     collection,
     addDoc,
+    doc,
+    deleteDoc,
+    updateDoc,
     query,
     orderBy,
     onSnapshot,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-
 /**
- * 메시지 전송
+ * Firestore에 채팅 메시지를 저장합니다.
+ *
+ * 기존 senderBusinessNo는 과거 메시지 및 화면 권한 호환을 위해 유지하고,
+ * 읽음 처리와 향후 사용자 유형 확장을 위해 senderMemberNo와 senderRole을 추가합니다.
  */
 export async function sendMessage(
     roomId,
+    memberNo,
     businessNo,
     senderName,
-    message
+    message,
+    roomType,
+    role,
+    isAdmin
 ) {
 
     if (!message || message.trim() === "") {
-        return;
+        return false;
+    }
+
+    if (message.trim().length > 2000) {
+        await showAlert("메시지는 2,000자 이내로 입력해주세요.", "warning");
+        return false;
+    }
+
+    const noticeRoom = roomType === "NOTICE";
+
+    if (noticeRoom && !isAdmin) {
+        await showAlert("공지방에서는 관리자만 메시지를 작성할 수 있습니다.", "warning");
+        return false;
     }
 
     try {
 
+        await ensureFirebaseChatAuth();
+
         await addDoc(
-
             collection(db, "chatRooms", roomId, "messages"),
-
             {
-
-                senderBusinessNo: businessNo,
-
+                senderMemberNo: Number(memberNo),
+                senderBusinessNo: Number(businessNo),
                 senderName: senderName,
-
+                senderRole: role || (isAdmin ? "ADMIN" : "BUSINESS"),
                 message: message.trim(),
-
                 sendTime: serverTimestamp(),
-
-                type: "CHAT"
-
+                type: noticeRoom ? "NOTICE" : "CHAT",
+                edited: false
             }
-
         );
 
-    } catch (e) {
+        return true;
 
-        console.error(e);
+    } catch (error) {
 
-        alert("메시지 전송 실패");
-
+        console.error("메시지 전송 실패:", error);
+        await showAlert("메시지 전송에 실패했습니다.", "error");
+        return false;
     }
-
 }
 
-
 /**
- * 시스템 메시지
+ * Firestore의 특정 채팅 메시지 내용을 수정합니다.
+ *
+ * sendTime은 변경하지 않기 때문에 기존 시간순 정렬 및
+ * 같은 시간 메시지 묶음 기준은 그대로 유지됩니다.
+ * 수정 여부를 화면에 계속 표시할 수 있도록 edited와 editedAt을 저장합니다.
  */
-export async function sendSystemMessage(
-    roomId,
-    message
-) {
+export async function updateMessage(roomId, messageId, newMessage) {
+
+    if (!roomId || !roomId.trim() || !messageId || !messageId.trim()) {
+        await showAlert("수정할 메시지 정보를 확인할 수 없습니다.", "warning");
+        return false;
+    }
+
+    if (!newMessage || newMessage.trim() === "") {
+        await showAlert("메시지 내용을 입력해주세요.", "warning");
+        return false;
+    }
+
+    if (newMessage.trim().length > 2000) {
+        await showAlert("메시지는 2,000자 이내로 입력해주세요.", "warning");
+        return false;
+    }
 
     try {
 
-        await addDoc(
+        await ensureFirebaseChatAuth();
 
-            collection(db, "chatRooms", roomId, "messages"),
-
+        await updateDoc(
+            doc(db, "chatRooms", roomId, "messages", messageId),
             {
-
-                senderBusinessNo: 0,
-
-                senderName: "SYSTEM",
-
-                message: message,
-
-                sendTime: serverTimestamp(),
-
-                type: "SYSTEM"
-
+                message: newMessage.trim(),
+                edited: true,
+                editedAt: serverTimestamp()
             }
-
         );
 
-    } catch (e) {
+        return true;
 
-        console.error(e);
+    } catch (error) {
 
+        console.error("메시지 수정 실패:", error);
+        await showAlert("메시지 수정에 실패했습니다.", "error");
+        return false;
     }
-
 }
 
+/**
+ * Firestore에서 특정 채팅 메시지를 완전히 삭제합니다.
+ */
+export async function deleteMessage(roomId, messageId) {
+
+    if (!roomId || !roomId.trim() || !messageId || !messageId.trim()) {
+        await showAlert("삭제할 메시지 정보를 확인할 수 없습니다.", "warning");
+        return false;
+    }
+
+    try {
+
+        await ensureFirebaseChatAuth();
+
+        await deleteDoc(
+            doc(db, "chatRooms", roomId, "messages", messageId)
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error("메시지 삭제 실패:", error);
+        await showAlert("메시지 삭제에 실패했습니다.", "error");
+        return false;
+    }
+}
 
 /**
- * 실시간 메시지 수신
+ * 방의 전체 메시지를 시간순으로 실시간 수신합니다.
  */
-export function listenMessages(
-    roomId,
-    callback
-) {
+export function listenMessages(roomId, callback) {
 
-    const q = query(
+    let unsubscribe = null;
+    let cancelled = false;
 
-        collection(db, "chatRooms", roomId, "messages"),
+    ensureFirebaseChatAuth()
+        .then(function() {
 
-        orderBy("sendTime", "asc")
+            if (cancelled) {
+                return;
+            }
 
-    );
+            const messageQuery = query(
+                collection(db, "chatRooms", roomId, "messages"),
+                orderBy("sendTime", "asc")
+            );
 
-    return onSnapshot(q, (snapshot) => {
+            unsubscribe = onSnapshot(
+                messageQuery,
+                snapshot => {
 
-        const messageList = [];
+                    const messageList = [];
 
-        snapshot.forEach((doc) => {
+                    snapshot.forEach(documentSnapshot => {
+                        messageList.push({
+                            id: documentSnapshot.id,
+                            ...documentSnapshot.data()
+                        });
+                    });
 
-            messageList.push({
-
-                id: doc.id,
-
-                ...doc.data()
-
-            });
-
+                    callback(messageList);
+                },
+                error => {
+                    console.error("메시지 실시간 조회 실패:", error);
+                }
+            );
+        })
+        .catch(function(error) {
+            console.error("Firebase 채팅 인증 실패:", error);
         });
 
-        callback(messageList);
+    return function() {
+        cancelled = true;
 
-    });
-
+        if (typeof unsubscribe === "function") {
+            unsubscribe();
+        }
+    };
 }
 
+/**
+ * Firestore Timestamp를 epoch millisecond로 변환합니다.
+ */
+export function getTimestampMillis(timestamp) {
+
+    if (!timestamp || typeof timestamp.toMillis !== "function") {
+        return 0;
+    }
+
+    return timestamp.toMillis();
+}
 
 /**
- * 날짜 포맷
+ * 메시지 시간을 시:분 형식으로 표시합니다.
  */
 export function formatTime(timestamp) {
 
-    if (!timestamp) {
-
+    if (!timestamp || typeof timestamp.toDate !== "function") {
         return "";
-
     }
 
-    const date = timestamp.toDate();
-
-    return date.toLocaleTimeString("ko-KR", {
-
+    return timestamp.toDate().toLocaleTimeString("ko-KR", {
         hour: "2-digit",
-
         minute: "2-digit"
-
     });
-
 }
 
-
 /**
- * 날짜 포맷 (년월일)
+ * 메시지 날짜를 연월일 형식으로 표시합니다.
  */
 export function formatDate(timestamp) {
 
-    if (!timestamp) {
-
+    if (!timestamp || typeof timestamp.toDate !== "function") {
         return "";
-
     }
 
-    const date = timestamp.toDate();
-
-    return date.toLocaleDateString("ko-KR");
-
+    return timestamp.toDate().toLocaleDateString("ko-KR");
 }

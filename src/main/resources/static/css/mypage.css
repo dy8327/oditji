@@ -1,743 +1,1813 @@
 /* =========================================================
-   MyPage
+   [마이페이지 디자인 수정]
+   - Bootstrap 및 외부 아이콘 라이브러리 없이 순수 CSS로 구성
+   - 기존 모달/폼 기능은 하단 원본 스타일을 그대로 유지
 ========================================================= */
 
-.mypage-container{
+.mypage-container {
+  width: min(1480px, calc(100% - 64px));
+  margin: 32px auto 54px;
+  color: #f7f9ff;
+}
 
-    width:1200px;
+.mypage-dashboard {
+  display: grid;
+  grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
 
-    margin:60px auto 80px;
-
-    color:#F5F5F5;
-
+.mypage-content-column {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 16px;
+  min-width: 0;
 }
 
 /* =========================================================
-   Common
+   [마이페이지 디자인 수정] 공통 패널
 ========================================================= */
-
-.mypage-section-header{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:flex-end;
-
-    margin-bottom:25px;
-
+.mypage-panel,
+.mypage-hero,
+.mypage-withdraw {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(133, 157, 194, 0.2);
+  background: radial-gradient(circle at 92% 10%, rgba(28, 89, 191, 0.11), transparent 35%), linear-gradient(145deg, rgba(8, 16, 31, 0.98), rgba(5, 12, 24, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 16px 44px rgba(0, 0, 0, 0.24);
 }
 
-.mypage-section-header h2{
-
-    font-size:28px;
-
-    color:#FFFFFF;
-
-    margin-bottom:8px;
-
+.mypage-panel {
+  border-radius: 22px;
+  padding: 26px 28px;
 }
 
-.mypage-section-header p{
-
-    color:#9CA3AF;
-
-    font-size:15px;
-
+.mypage-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 0 72%, rgba(22, 97, 255, 0.035));
 }
 
-.mypage-more{
-
-    color:#4F8CFF;
-
-    font-size:14px;
-
-    transition:.2s;
-
+.mypage-panel-heading {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 23px;
 }
 
-.mypage-more:hover{
+.mypage-panel-heading-inline {
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
 
-    color:#7DB2FF;
+.mypage-panel-heading h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
 
+.mypage-panel-heading p {
+  margin: 1px 0 0 5px;
+  color: #80899b;
+  font-size: 13px;
+}
+
+.mypage-heading-icon {
+  width: 24px;
+  height: 24px;
+  color: #4d9cff;
+  flex: 0 0 auto;
+}
+
+.mypage-heading-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mypage-action-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-width: 180px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid #1769f8;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(12, 36, 72, 0.92), rgba(7, 22, 47, 0.96));
+  box-shadow:
+    inset 0 0 18px rgba(30, 113, 255, 0.11),
+    0 0 0 1px rgba(51, 133, 255, 0.06);
+  color: #dfeaff;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mypage-action-btn span {
+  color: #9fd1ff;
+  font-size: 29px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.mypage-action-btn:hover {
+  transform: translateY(-2px);
+  border-color: #4a98ff;
+  box-shadow:
+    inset 0 0 22px rgba(30, 113, 255, 0.16),
+    0 8px 24px rgba(0, 67, 180, 0.18);
 }
 
 /* =========================================================
-   Welcome
+   [마이페이지 디자인 수정] 좌측 영화 테마 비주얼
 ========================================================= */
-
-.mypage-welcome{
-
-    margin-bottom:50px;
-
+.mypage-hero {
+  min-height: 642px;
+  border-radius: 22px;
+  padding: 38px 30px;
+  isolation: isolate;
+  /* [마이페이지 배경 이미지 수정]
+     텍스트 없는 왼쪽 카드 전용 배경을 적용합니다.
+     context-path가 /oditji인 현재 프로젝트 기준 경로입니다. */
+  background-color: #040a14;
+  /* [마이페이지 해당 부분만 수정]
+     사용자가 선택한 시안에서 텍스트만 제거한 배경 전용 이미지를 적용합니다. */
+  background-image: linear-gradient(90deg, rgba(2, 8, 20, 0.1), rgba(2, 8, 20, 0)), url("/oditji/images/mypage-left-bg.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 100%;
 }
 
-.mypage-greeting{
-
-    color:#9CA3AF;
-
-    font-size:18px;
-
-    margin-bottom:10px;
-
+.mypage-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  /* [마이페이지 배경 이미지 수정] 배경 이미지 위의 격자 효과는 제거 */
+  opacity: 0;
 }
 
-.mypage-welcome h1{
-
-    font-size:42px;
-
-    font-weight:700;
-
-    margin-bottom:15px;
-
-    color:#FFFFFF;
-
+.mypage-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 60%, rgba(2, 7, 15, 0.2));
 }
 
-.mypage-message{
+.mypage-hero-badge {
+  position: relative;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 15px;
+  border: 1px solid #0f65d8;
+  border-radius: 999px;
+  color: #3596ff;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
 
-    color:#CFCFCF;
+.mypage-hero-copy {
+  position: relative;
+  z-index: 6;
+  margin-top: 38px;
+}
 
-    font-size:17px;
+.mypage-hero-copy > p:first-child {
+  margin: 0 0 4px;
+  color: #e7e9ef;
+  font-size: 23px;
+  font-weight: 400;
+}
 
+.mypage-hero-copy h1 {
+  display: inline-block;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(38px, 4vw, 53px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+}
+
+.mypage-hero-spark {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-left: 12px;
+  border: 1px solid rgba(37, 112, 255, 0.65);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(27, 105, 255, 0.45), rgba(5, 18, 42, 0.8) 66%);
+  box-shadow: 0 0 22px rgba(22, 103, 255, 0.42);
+  color: #d6ecff;
+  vertical-align: 9px;
+}
+
+.mypage-hero-line {
+  width: 154px;
+  height: 2px;
+  margin: 30px 0 26px;
+  background: linear-gradient(90deg, transparent, #1476ff 38%, #9dd2ff 52%, transparent);
+  box-shadow: 0 0 12px #1d74ff;
+}
+
+.mypage-hero-message {
+  margin: 0;
+  color: #c6cbd5;
+  font-size: 17px;
+  line-height: 1.75;
 }
 
 /* =========================================================
-   Profile
+   [마이페이지 배경 이미지 수정]
+   기존 CSS 도형 장식은 삭제했습니다.
+   영화 포스터·필름·팝콘 장식은 mypage-left-bg.png 한 장으로 표시합니다.
 ========================================================= */
 
-.mypage-profile{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    background:#232323;
-
-    border:1px solid #343434;
-
-    border-radius:18px;
-
-    padding:35px 40px;
-
-    margin-bottom:35px;
-
+/* =========================================================
+   [마이페이지 디자인 수정] 프로필
+========================================================= */
+.mypage-profile-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.mypage-profile-left{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:25px;
-
+.mypage-profile-left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
 }
 
-.mypage-profile-image img{
-
-    width:110px;
-
-    height:110px;
-
-    object-fit:cover;
-
-    border-radius:50%;
-
-    border:4px solid #4F8CFF;
-
+/* [알림 수신 설정 위치 변경] 회원정보 수정 버튼 아래에 알림 수신 설정 버튼을 배치 */
+.mypage-profile-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
-.mypage-profile-info h2{
-
-    font-size:30px;
-
-    color:#FFFFFF;
-
-    margin-bottom:10px;
-
+.mypage-profile-actions .mypage-action-btn {
+  width: 100%;
 }
 
-.mypage-profile-info p{
-
-    color:#A5A5A5;
-
-    margin-bottom:15px;
-
+/* 알림 수신 설정 모달 설명 문구 */
+.modal-box .modal-desc {
+  margin: -10px 0 18px;
+  color: #9aa4b5;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.mypage-member-type{
-
-    display:inline-block;
-
-    padding:8px 18px;
-
-    border-radius:30px;
-
-    background:#2D3E5F;
-
-    color:#7EB1FF;
-
-    font-size:14px;
-
-    font-weight:600;
-
+.mypage-profile-image {
+  flex: 0 0 auto;
+  padding: 3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6ab5ff, #1a63ff 57%, #d8eaff);
+  box-shadow: 0 0 24px rgba(29, 111, 255, 0.35);
 }
 
-.mypage-profile-right button{
-
-    width:170px;
-
-    height:48px;
-
-    border-radius:10px;
-
-    background:#4F8CFF;
-
-    color:white;
-
-    font-size:15px;
-
-    font-weight:600;
-
-    transition:.25s;
-
+.mypage-profile-image img {
+  display: block;
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border: 3px solid #edf4ff;
+  border-radius: 50%;
+  background: #e5e8ee;
 }
 
-.mypage-profile-right button:hover{
+.mypage-profile-info {
+  min-width: 0;
+}
 
-    background:#3D79F4;
+.mypage-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
 
+.mypage-name-row h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 31px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.mypage-member-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(43, 101, 200, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 39, 79, 0.55);
+  color: #82b5ff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mypage-profile-email {
+  margin: 7px 0 9px;
+  overflow: hidden;
+  color: #727d90;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-created-at {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #838c9b;
+  font-size: 14px;
 }
 
 /* =========================================================
-   OTT
+   [마이페이지 디자인 수정] OTT
 ========================================================= */
-
-.mypage-ott{
-
-    background:#232323;
-
-    border:1px solid #343434;
-
-    border-radius:18px;
-
-    padding:35px 40px;
-
-    margin-bottom:50px;
-
+.mypage-ott {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 145px;
 }
 
-.mypage-ott button{
-
-    width:160px;
-
-    height:45px;
-
-    border-radius:10px;
-
-    background:#4F8CFF;
-
-    color:white;
-
-    font-weight:600;
-
+/* [마이페이지 배경 이미지 수정]
+   내 OTT 카드 오른쪽에 텍스트 없는 배경 이미지를 표시합니다. */
+.mypage-ott::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(90deg, rgba(7, 16, 31, 1) 0%, rgba(7, 16, 31, 0.97) 39%, rgba(7, 16, 31, 0.7) 61%, rgba(7, 16, 31, 0.18) 100%), url("/oditji/images/mypage-ott-bg.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
-.mypage-ott-list{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:15px;
-
+.mypage-ott-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
 
-.mypage-ott-chip{
-
-    padding:11px 22px;
-
-    border-radius:30px;
-
-    background:#313131;
-
-    border:1px solid #454545;
-
-    color:#F5F5F5;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    transition:.2s;
-
+.mypage-ott-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.mypage-ott-chip:hover{
-
-    background:#4F8CFF;
-
-    border-color:#4F8CFF;
-
+.mypage-ott-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(119, 144, 183, 0.2);
+  border-radius: 999px;
+  background: rgba(5, 10, 20, 0.74);
+  color: #f2f5fb;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
-.mypage-empty{
+.mypage-ott-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(52, 126, 255, 0.65);
+  background: rgba(12, 29, 60, 0.88);
+}
 
-    color:#8A8A8A;
+.mypage-ott-chip-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 5px;
+}
 
+.mypage-empty {
+  color: #778397;
+  font-size: 14px;
 }
 
 /* =========================================================
-   Activity
+   [마이페이지 디자인 수정] 활동 카드
 ========================================================= */
-
-.mypage-activity{
-
-    margin-bottom:60px;
-
+.mypage-activity {
+  padding-bottom: 24px;
 }
 
-.mypage-activity-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(4,1fr);
-
-    gap:20px;
-
+.mypage-activity-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
 }
 
-.mypage-activity-card{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-    text-align:center;
-
-    padding:35px 20px;
-
-    background:#232323;
-
-    border:1px solid #343434;
-
-    border-radius:18px;
-
-    transition:.25s;
-
+.mypage-activity-card {
+  display: grid;
+  grid-template-columns: 62px auto;
+  grid-template-rows: 1fr 1fr;
+  column-gap: 14px;
+  align-items: center;
+  min-height: 116px;
+  padding: 16px 18px;
+  border: 1px solid rgba(137, 157, 190, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  /* [마이페이지 구독 계산 결과 모달 연동 추가] 5번째 카드는 <button>으로 만들어서 기본 버튼 스타일을 초기화한다 */
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
-.mypage-activity-card:hover{
-
-    background:#2B2B2B;
-
-    border-color:#4F8CFF;
-
-    transform:translateY(-6px);
-
+.mypage-activity-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(61, 130, 255, 0.5);
+  background: linear-gradient(145deg, rgba(23, 38, 65, 0.98), rgba(9, 18, 34, 0.98));
 }
 
-.mypage-activity-icon{
-
-    font-size:34px;
-
-    margin-bottom:18px;
-
+.mypage-activity-icon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+  font-size: 27px;
+  box-shadow:
+    inset 0 0 18px rgba(255, 255, 255, 0.025),
+    0 0 22px rgba(0, 0, 0, 0.16);
 }
 
-.mypage-activity-count{
-
-    font-size:36px;
-
-    font-weight:700;
-
-    color:#FFFFFF;
-
-    margin-bottom:12px;
-
+.mypage-activity-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.mypage-activity-title{
+.mypage-activity-count {
+  align-self: end;
+  color: #fff;
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1;
+}
 
-    font-size:15px;
+.mypage-activity-title {
+  align-self: start;
+  color: #858d9c;
+  font-size: 13px;
+  line-height: 1.35;
+}
 
-    color:#AFAFAF;
-
+.activity-favorite .mypage-activity-icon {
+  color: #ff3347;
+}
+.activity-cart .mypage-activity-icon {
+  color: #46a0ff;
+}
+.activity-order .mypage-activity-icon {
+  color: #d8a33a;
+}
+.activity-review .mypage-activity-icon {
+  color: #ffc34a;
+}
+.activity-subscription .mypage-activity-icon {
+  color: #7ad1c4;
 }
 
 /* =========================================================
-   Review
+   [알림 수신 설정 추가] 알림 수신 설정 토글
 ========================================================= */
-
-.mypage-review{
-
-    margin-bottom:60px;
-
+.mypage-notification-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.mypage-review-list{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:18px;
-
+.mypage-notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(137, 157, 190, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
 }
 
-.mypage-review-card{
-
-    background:#232323;
-
-    border:1px solid #343434;
-
-    border-radius:18px;
-
-    padding:24px;
-
-    transition:.25s;
-
+.mypage-notification-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.mypage-review-card:hover{
-
-    border-color:#4F8CFF;
-
-    background:#2B2B2B;
-
+.mypage-notification-item-label {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.mypage-review-top{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:flex-start;
-
-    margin-bottom:16px;
-
+.mypage-notification-item-desc {
+  color: #858d9c;
+  font-size: 12.5px;
+  line-height: 1.4;
 }
 
-.mypage-review-top h3{
-
-    font-size:20px;
-
-    color:#FFFFFF;
-
-    margin-bottom:6px;
-
+.mypage-toggle-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 25px;
 }
 
-.mypage-review-top span{
-
-    color:#8C8C8C;
-
-    font-size:13px;
-
+.mypage-toggle-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.mypage-review-score{
-
-    color:#FFD54A;
-
-    font-weight:700;
-
+.mypage-toggle-switch-track {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 999px;
+  background: rgba(137, 157, 190, 0.28);
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.mypage-review-content{
-
-    color:#D3D3D3;
-
-    line-height:1.8;
-
+.mypage-toggle-switch-track::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
 }
 
-.mypage-empty-box{
-
-    background:#232323;
-
-    border:2px dashed #404040;
-
-    border-radius:18px;
-
-    padding:60px;
-
-    text-align:center;
-
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
+  background: #3d82ff;
 }
 
-.mypage-empty-icon{
-
-    font-size:48px;
-
-    margin-bottom:20px;
-
-}
-
-.mypage-empty-box h3{
-
-    color:#FFFFFF;
-
-    margin-bottom:15px;
-
-}
-
-.mypage-empty-box p{
-
-    color:#A5A5A5;
-
-    margin-bottom:30px;
-
-}
-
-.mypage-empty-box button{
-
-    width:180px;
-
-    height:48px;
-
-    background:#4F8CFF;
-
-    color:white;
-
-    border-radius:10px;
-
-    font-weight:600;
-
-}
-
-.mypage-empty-box button:hover{
-
-    background:#3D79F4;
-
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
+  transform: translateX(19px);
 }
 
 /* =========================================================
-   Business
+   [마이페이지 구독 계산 결과 모달 연동 추가]
 ========================================================= */
-
-.mypage-business{
-
-    margin-bottom:60px;
-
+.mypage-subresult-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
 }
 
-.mypage-business-banner{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    padding:35px 40px;
-
-    border-radius:18px;
-
-    background:linear-gradient(135deg,#262626,#1F1F1F);
-
-    border:1px solid #3A3A3A;
-
+.mypage-subresult-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(137, 157, 190, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(18, 28, 46, 0.96), rgba(9, 16, 29, 0.96));
 }
 
-.mypage-business-info{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:25px;
-
+.mypage-subresult-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.mypage-business-icon{
-
-    font-size:54px;
-
+.mypage-subresult-item-date {
+  color: #858d9c;
+  font-size: 12.5px;
 }
 
-.mypage-business-info h3{
-
-    color:#FFFFFF;
-
-    margin-bottom:10px;
-
+.mypage-subresult-item-platforms {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.mypage-business-info p{
-
-    color:#B0B0B0;
-
-    line-height:1.7;
-
+.mypage-subresult-item-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.mypage-business-btn{
-
-    width:190px;
-
-    height:50px;
-
-    border-radius:12px;
-
-    background:#F59E0B;
-
-    color:#222;
-
-    font-weight:700;
-
-    transition:.25s;
-
+.mypage-subresult-item-price-detail {
+  color: #858d9c;
+  font-size: 12.5px;
 }
 
-.mypage-business-btn:hover{
+.mypage-subresult-item-final-price {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-    background:#FFB020;
+.mypage-subresult-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
 
-    transform:translateY(-3px);
+.mypage-subresult-detail-btn,
+.mypage-subresult-copy-btn,
+.mypage-subresult-delete-btn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
 
+/* 상세보기: 목록에서 가장 자주 쓰는 주 행동이므로 밝은 톤으로 시각적 우선순위를 준다 */
+.mypage-subresult-detail-btn {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: #e5e7eb;
+  color: #14161a;
+}
+
+.mypage-subresult-detail-btn:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+/* 공유링크 복사: 보조 행동이므로 테두리만 있는 고스트 버튼으로 한 단계 낮춘다 */
+.mypage-subresult-copy-btn {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: #d7d9de;
+}
+
+.mypage-subresult-copy-btn:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* 삭제: 위험 행동이므로 색으로 구분하되, 흑백 테마와 어울리도록 톤을 낮춘 반투명 레드 */
+.mypage-subresult-delete-btn {
+  border: 1px solid rgba(220, 90, 90, 0.45);
+  background: rgba(122, 46, 46, 0.35);
+  color: #ff9d9d;
+}
+
+.mypage-subresult-delete-btn:hover {
+  border-color: rgba(220, 90, 90, 0.75);
+  background: rgba(122, 46, 46, 0.55);
+  color: #ffc2c2;
+}
+
+.mypage-subresult-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mypage-toggle-switch input:disabled + .mypage-toggle-switch-track {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* =========================================================
-   Account
+   [마이페이지 디자인 수정] 회원탈퇴
 ========================================================= */
+/* =========================================================
+   [마이페이지 디자인 수정] 회원탈퇴
+   - 텍스트는 JSP 출력 유지
+   - 디자인/레이아웃만 참고 이미지와 동일하게 조정
+========================================================= */
+.mypage-withdraw {
+  position: relative;
+  overflow: hidden;
 
-.mypage-account{
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 150px;
+  align-items: center;
+  column-gap: 18px;
 
-    margin-bottom:80px;
+  min-height: 74px;
+  margin-top: 16px;
+  padding: 12px 22px 12px 18px;
 
+  border: 1px solid rgba(233, 39, 56, 0.88);
+  border-radius: 18px;
+
+  background: radial-gradient(circle at 82% 50%, rgba(255, 24, 46, 0.08), transparent 18%), linear-gradient(90deg, #07111f 0%, #090d18 58%, #120914 100%);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
-.mypage-account-grid{
+/* 우측 점 패턴 */
+.mypage-withdraw::after {
+  content: "";
+  position: absolute;
+  right: 176px;
+  top: 50%;
+  width: 118px;
+  height: 40px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.18;
 
-    display:grid;
-
-    grid-template-columns:repeat(3,1fr);
-
-    gap:20px;
-
+  background-image: radial-gradient(rgba(255, 54, 76, 0.9) 1px, transparent 1px);
+  background-size: 6px 6px;
 }
 
-.mypage-account-card{
+/* 아이콘 */
+.mypage-withdraw-icon {
+  position: relative;
+  z-index: 1;
 
-    background:#232323;
+  width: 38px;
+  height: 44px;
 
-    border:1px solid #343434;
+  display: grid;
+  place-items: center;
 
-    border-radius:18px;
+  border: 3px solid #ff213b;
+  clip-path: polygon(50% 0%, 92% 18%, 86% 72%, 50% 100%, 14% 72%, 8% 18%);
 
-    padding:28px;
-
-    text-align:center;
-
+  color: #ff243d;
+  box-sizing: border-box;
 }
 
-.mypage-account-card h4{
-
-    color:#A0A0A0;
-
-    font-size:14px;
-
-    margin-bottom:15px;
-
+.mypage-withdraw-icon-mark {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
-.mypage-account-card p{
+/* 텍스트 영역 */
+.mypage-withdraw-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
 
-    color:#FFFFFF;
+.mypage-withdraw-copy h2 {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
 
-    font-size:20px;
+.mypage-withdraw-copy p {
+  margin: 0;
+  color: #7f8694;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 
-    font-weight:600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+/* 버튼 */
+.mypage-withdraw-btn {
+  position: relative;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+
+  width: 128px;
+  height: 48px;
+
+  border: 1px solid #ef263f;
+  border-radius: 10px;
+
+  background: rgba(23, 7, 13, 0.32);
+  color: #ff2f47;
+
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mypage-withdraw-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(37, 10, 18, 0.5);
+  box-shadow: 0 0 14px rgba(255, 34, 60, 0.08);
+}
+
+.mypage-withdraw-btn-text {
+  line-height: 1;
+}
+
+.mypage-withdraw-btn-arrow {
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 /* =========================================================
-   Responsive
+   [마이페이지 디자인 수정] 반응형
 ========================================================= */
+@media (max-width: 1180px) {
+  .mypage-container {
+    width: min(100% - 40px, 1040px);
+  }
 
-@media(max-width:1024px){
+  .mypage-dashboard {
+    grid-template-columns: 330px minmax(0, 1fr);
+  }
 
-    .mypage-container{
+  .mypage-hero {
+    min-height: 620px;
+  }
 
-        width:95%;
+  .mypage-activity-card {
+    grid-template-columns: 50px auto;
+    padding: 14px 12px;
+  }
 
-    }
+  .mypage-activity-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 22px;
+  }
 
-    .mypage-activity-grid{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
-    .mypage-account-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
+  .mypage-activity-count {
+    font-size: 26px;
+  }
 }
 
-@media(max-width:768px){
+@media (max-width: 940px) {
+  .mypage-dashboard {
+    grid-template-columns: 1fr;
+  }
 
-    .mypage-profile{
+  .mypage-hero {
+    min-height: 410px;
+    /* [마이페이지 배경 이미지 수정] 태블릿에서는 우측 장식이 잘 보이도록 위치 조정 */
+    background-position: center 58%;
+  }
 
-        flex-direction:column;
+  .mypage-content-column {
+    grid-template-rows: auto;
+  }
+}
 
-        gap:25px;
+@media (max-width: 720px) {
+  .mypage-container {
+    width: calc(100% - 28px);
+    margin-top: 20px;
+  }
 
-        align-items:flex-start;
+  .mypage-hero {
+    min-height: 390px;
+    padding: 28px 22px;
+    /* [마이페이지 배경 이미지 수정] 모바일에서는 텍스트 영역을 어둡게 유지 */
+    background-position: 58% center;
+  }
 
-    }
+  .mypage-hero-copy {
+    margin-top: 28px;
+  }
 
-    .mypage-profile-left{
+  .mypage-hero-copy h1 {
+    font-size: 38px;
+  }
 
-        flex-direction:column;
+  .mypage-panel {
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
 
-        text-align:center;
+  .mypage-profile-body,
+  .mypage-ott {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-        width:100%;
+  .mypage-profile-left {
+    gap: 17px;
+  }
 
-    }
+  .mypage-profile-image img {
+    width: 84px;
+    height: 84px;
+  }
 
-    .mypage-business-banner{
+  .mypage-name-row h3 {
+    font-size: 25px;
+  }
 
-        flex-direction:column;
+  .mypage-action-btn {
+    width: 100%;
+  }
 
-        gap:25px;
+  .mypage-activity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-        align-items:flex-start;
+  .mypage-withdraw {
+    grid-template-columns: 44px 1fr;
+    row-gap: 14px;
+    padding: 18px 16px;
+  }
 
-    }
+  .mypage-withdraw::after {
+    display: none;
+  }
 
-    .mypage-business-info{
+  .mypage-withdraw-copy p {
+    white-space: normal;
+  }
 
-        flex-direction:column;
+  .mypage-withdraw-btn {
+    grid-column: 1 / 3;
+    width: 100%;
+  }
+}
 
-        align-items:flex-start;
+@media (max-width: 460px) {
+  .mypage-profile-left {
+    align-items: flex-start;
+  }
 
-    }
+  .mypage-profile-image img {
+    width: 70px;
+    height: 70px;
+  }
 
-    .mypage-activity-grid{
+  .mypage-member-type {
+    margin-top: 4px;
+  }
 
-        grid-template-columns:1fr;
+  .mypage-activity-grid {
+    grid-template-columns: 1fr;
+  }
 
-    }
+  .mypage-activity-card {
+    min-height: 94px;
+  }
 
-    .mypage-review-top{
+  .mypage-panel-heading p {
+    flex-basis: 100%;
+    margin-left: 35px;
+  }
+}
 
-        flex-direction:column;
+/* =========================
+   MODAL OVERLAY (공통)
+========================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
 
-        gap:10px;
+  width: 100%;
+  height: 100%;
 
-    }
+  background: rgba(0, 0, 0, 0.7);
 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+
+  padding: 20px;
+}
+
+/* =========================
+   MODAL BOX (공통)
+========================= */
+.modal-box {
+  width: 560px;
+  max-width: calc(100vw - 40px);
+
+  background: #1f1f1f;
+  color: #f5f5f5;
+
+  border-radius: 14px;
+
+  padding: 28px 30px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+
+  animation: modalPop 0.18s ease-out;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes modalPop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   HIDDEN (JS 토글용)
+========================= */
+.hidden {
+  display: none !important;
+}
+
+/* =========================
+   TITLE
+========================= */
+.modal-box h2 {
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+
+/* =========================
+   FORM GROUP
+========================= */
+.modal-box .form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.modal-box label {
+  font-size: 13px;
+  color: #bbb;
+}
+
+/* =========================
+   INPUT STYLE
+========================= */
+.modal-box input[type="text"],
+.modal-box input[type="password"],
+.modal-box input[type="email"],
+.modal-box input[type="file"] {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 13px;
+
+  border-radius: 8px;
+  border: 1px solid #333;
+
+  background: #111;
+  color: #fff;
+}
+
+/* =========================
+   중복확인 입력 행
+========================= */
+.modal-box .duplicate-check-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.modal-box .duplicate-check-row input {
+  width: 100%;
+  min-width: 0;
+}
+
+.modal-box .duplicate-check-btn {
+  width: 96px;
+  min-width: 96px;
+  height: 46px;
+  padding: 0 10px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.modal-box .duplicate-check-btn:hover {
+  background: #444;
+  border-color: #555;
+}
+
+.modal-box .input-message {
+  min-height: 16px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.modal-box .input-message.valid {
+  color: #65c86e;
+}
+
+.modal-box .input-message.invalid {
+  color: #ff7b7b;
+}
+
+/* =========================
+   비밀번호 입력 행
+========================= */
+.modal-box .password-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.modal-box .password-input-row input {
+  width: 100%;
+  min-width: 0;
+}
+
+.modal-box .password-toggle-btn {
+  /* 수정: member.css의 absolute 위치 설정을 초기화한다. */
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+
+  width: 64px;
+  min-width: 64px;
+  height: 46px;
+  padding: 0;
+
+  border: 1px solid #444;
+  border-radius: 8px;
+
+  background: #333;
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-box .password-toggle-btn:hover {
+  background: #444;
+  border-color: #555;
+}
+
+.modal-box input[type="file"] {
+  height: auto;
+  min-height: 46px;
+  padding: 8px 10px;
+}
+
+/* =========================
+   DANGER TEXT (탈퇴용)
+========================= */
+.danger-text {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* =========================
+   BUTTON AREA
+========================= */
+.modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+/* 기본 버튼 */
+.modal-btns button {
+  padding: 8px 14px;
+
+  border-radius: 8px;
+  cursor: pointer;
+
+  font-size: 14px;
+}
+
+/* 저장 버튼 */
+.modal-btns button[type="submit"] {
+  /* [수정] 흰 글자 on #4caf50는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
+  background: #3a853d;
+  color: white;
+}
+
+/* 취소 버튼 */
+.modal-btns button[type="button"] {
+  background: #444;
+  color: white;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    padding: 22px 18px;
+    margin: auto 0;
+  }
+
+  .modal-box .duplicate-check-row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .modal-box .duplicate-check-btn {
+    width: 88px;
+    min-width: 88px;
+  }
+
+  .modal-box .password-input-row {
+    grid-template-columns: minmax(0, 1fr) 58px;
+  }
+
+  .modal-box .password-toggle-btn {
+    width: 58px;
+    min-width: 58px;
+  }
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+/* =========================================================
+   [마이페이지 흑백 시네마 테마 수정 - 2026-08-05]
+   - 헤더, 푸터, body 기본 배경은 수정하지 않습니다.
+   - 마이페이지 내부 패널만 새 흑백 배경 이미지와 어울리도록 재정의합니다.
+   - 기존 클래스와 기능용 ID는 그대로 유지합니다.
+========================================================= */
+.mypage-dashboard .mypage-panel,
+.mypage-dashboard .mypage-hero {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.055), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+.mypage-dashboard .mypage-panel::before {
+  background: linear-gradient(112deg, transparent 0 68%, rgba(255, 255, 255, 0.025));
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 좌측 배경은 원본 배치를 유지한 흑백 파일 사용 */
+.mypage-hero {
+  background-color: #050505;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.02)), url("/oditji/images/mypage-left-bg.png");
+}
+
+.mypage-hero-badge {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.32);
+  color: #f2f2f2;
+}
+
+.mypage-hero-spark {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(10, 10, 10, 0.88) 68%);
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.mypage-hero-line {
+  background: linear-gradient(90deg, transparent, #777 34%, #fff 52%, transparent);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.38);
+}
+
+.mypage-heading-icon {
+  color: #d9dde5;
+}
+
+.mypage-panel-heading p,
+.mypage-profile-email,
+.mypage-created-at,
+.mypage-activity-title,
+.mypage-empty {
+  color: #8f949d;
+}
+
+.mypage-member-type {
+  border-color: rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.055);
+  color: #d7dbe2;
+}
+
+.mypage-profile-image {
+  background: linear-gradient(135deg, #f4f4f4, #777 58%, #fff);
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.16);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 공통 버튼 색상만 무채색으로 변경 */
+.mypage-action-btn {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: linear-gradient(180deg, rgba(42, 44, 49, 0.9), rgba(13, 14, 17, 0.96));
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.035);
+  color: #f2f3f5;
+}
+
+.mypage-action-btn span {
+  color: #d9dce2;
+}
+
+.mypage-action-btn:hover {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 0 20px rgba(255, 255, 255, 0.075),
+    0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] OTT 배경도 동일한 무채색 계열로 연결 */
+.mypage-ott::after {
+  background-image: linear-gradient(90deg, rgba(9, 10, 12, 1) 0%, rgba(9, 10, 12, 0.97) 38%, rgba(9, 10, 12, 0.7) 61%, rgba(9, 10, 12, 0.2) 100%), url("/oditji/images/mypage-ott-bg.png");
+}
+
+.mypage-ott-chip {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(4, 4, 5, 0.78);
+}
+
+.mypage-ott-chip:hover {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(35, 36, 40, 0.9);
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 활동 카드 전체를 검정·회색 유리 패널로 통일 */
+.mypage-activity-card {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+}
+
+.mypage-activity-card:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: linear-gradient(145deg, rgba(48, 50, 56, 0.96), rgba(14, 15, 18, 0.99));
+}
+
+.mypage-activity-icon,
+.activity-favorite .mypage-activity-icon,
+.activity-cart .mypage-activity-icon,
+.activity-order .mypage-activity-icon,
+.activity-review .mypage-activity-icon,
+.activity-subscription .mypage-activity-icon {
+  color: #e5e7eb;
+}
+
+/* [마이페이지 흑백 시네마 테마 수정] 알림 수신 설정 카드도 동일한 무채색 유리 패널로 통일 */
+.mypage-notification-item,
+.mypage-subresult-item {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(34, 36, 41, 0.92), rgba(11, 12, 15, 0.98));
+}
+
+.mypage-notification-item-desc {
+  color: #8f949d;
+}
+
+.mypage-toggle-switch-track {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
+  background: #e5e7eb;
+}
+
+.mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
+  background: #0b0c0f;
+}
+
+/* =========================================================
+   [회원탈퇴 영역 디자인 수정 - 2026-08-05]
+   - 기존 탈퇴 버튼 ID와 문구는 유지합니다.
+   - 과도한 빨간 배경을 줄이고 흑백 카드 안에 경고색을 포인트로만 사용합니다.
+========================================================= */
+.mypage-withdraw {
+  grid-template-columns: 58px minmax(0, 1fr) 154px;
+  min-height: 88px;
+  padding: 14px 20px;
+  border-color: rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  background: radial-gradient(circle at 86% 50%, rgba(255, 66, 82, 0.08), transparent 20%), linear-gradient(100deg, rgba(19, 20, 24, 0.98), rgba(7, 8, 10, 0.99));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 34px rgba(0, 0, 0, 0.3);
+}
+
+.mypage-withdraw::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 45%);
+}
+
+.mypage-withdraw::after {
+  right: 188px;
+  width: 132px;
+  opacity: 0.12;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px);
+}
+
+.mypage-withdraw-icon {
+  width: 44px;
+  height: 48px;
+  border-color: #c6c8cd;
+  color: #f2f2f3;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+.mypage-withdraw-copy h2 {
+  font-size: 16px;
+}
+
+.mypage-withdraw-copy p {
+  color: #8e929a;
+  font-size: 12.5px;
+}
+
+.mypage-withdraw-btn {
+  width: 140px;
+  border-color: rgba(255, 78, 95, 0.72);
+  background: rgba(52, 12, 19, 0.22);
+  color: #ff6474;
+}
+
+.mypage-withdraw-btn:hover {
+  border-color: #ff6b7a;
+  background: rgba(70, 15, 24, 0.42);
+  box-shadow: 0 0 18px rgba(255, 49, 71, 0.12);
+}
+
+/* =========================================================
+   [최종 추가 수정 - 2026-08-05]
+   요청사항:
+   1) 기존 코드와 기능은 그대로 유지
+   2) 회원탈퇴 왼쪽 경고 아이콘 및 우측 점 장식 제거
+   3) 회원탈퇴 영역을 다른 마이페이지 패널과 동일한 배경으로 통일
+   4) 회원탈퇴 버튼은 기본 투명 배경 + 빨간 테두리,
+      hover/focus 시에만 빨간색으로 채움
+   5) 모바일 OTT 항목을 같은 크기로 정렬
+      - 일반 모바일: 한 줄 3개
+      - 작은 모바일: 한 줄 2개
+   6) 모바일 회원탈퇴 제목 → 안내 문구 → 버튼 순으로 중앙 정렬
+   7) 내가 작성한 리뷰 카드는 내용 길이에 맞춰 자동 높이 적용
+
+   ※ 기존 선택자와 JSP 기능용 ID는 수정하지 않고
+      CSS 하단 재정의 방식으로 필요한 부분만 덮어씁니다.
+========================================================= */
+
+/* ---------------------------------------------------------
+   [수정] 회원탈퇴 영역
+   - 왼쪽 경고 표시와 오른쪽 점 패턴 제거
+   - 다른 마이페이지 영역과 동일한 흑백 패널 배경 적용
+--------------------------------------------------------- */
+.mypage-withdraw {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 154px;
+  align-items: center;
+  column-gap: 24px;
+
+  min-height: 88px;
+  margin-top: 16px;
+  padding: 16px 20px 16px 26px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+
+  background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.045), transparent 32%), linear-gradient(145deg, rgba(15, 16, 19, 0.98), rgba(6, 7, 9, 0.99));
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 34px rgba(0, 0, 0, 0.3);
+}
+
+/* [수정] 회원탈퇴 영역의 왼쪽 경고 아이콘 제거 */
+.mypage-withdraw-icon {
+  display: none;
+}
+
+/* [수정] 회원탈퇴 영역의 우측 점 패턴 및 추가 장식 제거 */
+.mypage-withdraw::before,
+.mypage-withdraw::after {
+  display: none;
+  content: none;
+}
+
+/* [수정] 회원탈퇴 텍스트가 남은 영역 전체를 사용하도록 설정 */
+.mypage-withdraw-copy {
+  min-width: 0;
+}
+
+.mypage-withdraw-copy h2 {
+  margin: 0 0 5px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mypage-withdraw-copy p {
+  margin: 0;
+  color: #8e929a;
+  font-size: 12.5px;
+  line-height: 1.6;
+
+  /* [수정] PC에서도 화면이 좁아질 때 문장이 잘리지 않도록 변경 */
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------
+   [수정] 회원탈퇴 버튼
+   - 기본: 영역 배경이 보이는 투명 상태 + 빨간 테두리
+   - hover/focus: 빨간색 배경으로 채움
+--------------------------------------------------------- */
+.mypage-withdraw-btn {
+  justify-self: end;
+
+  width: 140px;
+  min-height: 48px;
+
+  border: 1px solid #ef334b;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #ff5668;
+
+  box-shadow: none;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mypage-withdraw-btn:hover,
+.mypage-withdraw-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: #ef334b;
+  background: #e92740;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(233, 39, 64, 0.22);
+  outline: none;
+}
+
+/* ---------------------------------------------------------
+   [수정] 태블릿 및 모바일 OTT 영역
+   - OTT 칩 크기를 모두 동일하게 유지
+   - 버튼도 카드 폭에 맞게 출력
+--------------------------------------------------------- */
+@media (max-width: 720px) {
+  .mypage-ott {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 18px;
+    min-height: auto;
+  }
+
+  .mypage-ott-content {
+    width: 100%;
+  }
+
+  /* [수정] 모바일에서는 OTT 항목을 한 줄에 최대 3개씩 표시 */
+  .mypage-ott-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* [수정] OTT 이름 길이와 상관없이 모든 항목 크기를 동일하게 유지 */
+  .mypage-ott-chip {
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0 14px;
+    box-sizing: border-box;
+  }
+
+  .mypage-ott-chip-logo {
+    flex: 0 0 24px;
+  }
+
+  /* [수정] OTT 정보 수정 버튼을 모바일 카드 전체 폭으로 출력 */
+  .mypage-ott > .mypage-action-btn,
+  .mypage-ott .mypage-action-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 52px;
+  }
+
+  /* -------------------------------------------------------
+     [수정] 모바일 회원탈퇴 정렬
+     제목 → 안내 문구 → 버튼 순서로 모두 중앙 배치
+  ------------------------------------------------------- */
+  .mypage-withdraw {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+    min-height: auto;
+    padding: 24px 20px;
+
+    text-align: center;
+  }
+
+  .mypage-withdraw-copy {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mypage-withdraw-copy h2 {
+    margin-bottom: 7px;
+  }
+
+  .mypage-withdraw-copy p {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+
+    line-height: 1.65;
+    text-align: center;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .mypage-withdraw-btn {
+    justify-self: auto;
+    width: min(100%, 220px);
+    margin: 0 auto;
+  }
+}
+
+/* [수정] 폭이 작은 모바일은 OTT 항목을 한 줄에 2개씩 표시 */
+@media (max-width: 480px) {
+  .mypage-ott-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mypage-ott-chip {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+}
+
+/* ---------------------------------------------------------
+   [수정] 내가 작성한 리뷰 카드 높이
+   - 기존 고정 높이 또는 과도한 최소 높이를 해제
+   - 리뷰 내용 줄 수에 따라 카드가 자연스럽게 늘어나거나 줄어듦
+
+   ※ 리뷰 페이지가 review.css만 불러오는 구조라면,
+      아래 블록만 review.css의 가장 아래에도 동일하게 붙여넣습니다.
+--------------------------------------------------------- */
+.mypage-review-card,
+.my-review-card,
+.review-list-card {
+  height: auto;
+  min-height: 0;
+}
+
+.mypage-review-clickable,
+.my-review-card-link,
+.review-card-link {
+  height: auto;
+  min-height: 0;
+}
+
+.mypage-review-content,
+.my-review-content,
+.review-card-content {
+  height: auto;
+  min-height: 0;
+  margin-bottom: 0;
+
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* [수정] 리뷰 카드 내부가 grid/flex일 때 남는 세로 공간 방지 */
+.mypage-review-card,
+.my-review-card,
+.review-list-card {
+  align-content: start;
+}
+
+.mypage-review-card > *,
+.my-review-card > *,
+.review-list-card > * {
+  min-height: 0;
 }

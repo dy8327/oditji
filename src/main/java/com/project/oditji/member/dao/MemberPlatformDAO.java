@@ -5,17 +5,27 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.project.oditji.member.vo.MemberPlatformVO;
 import com.project.oditji.member.vo.PlatformVO;
 
 @Mapper
 public interface MemberPlatformDAO {
 
-    List<PlatformVO> selectPlatformList();
+    List<PlatformVO> findPlatformList();
 
-    Long insertMemberPlatform(
+    int countMemberPlatform(
+            @Param("memberNo") Long memberNo);
+
+    List<MemberPlatformVO> selectMemberPlatformList(
+            @Param("memberNo") Long memberNo);
+
+    List<PlatformVO> selectMemberSelectedPlatformList(
+            @Param("memberNo") Long memberNo);
+
+    int insertMemberPlatform(
             @Param("memberNo") Long memberNo,
-            @Param("platformNo") Long platformNo
-    );
+            @Param("platformNo") Long platformNo);
 
-    int countMemberPlatform(@Param("memberNo") Long memberNo);
+    int deleteMemberPlatforms(
+            @Param("memberNo") Long memberNo);
 }

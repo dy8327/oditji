@@ -1,19 +1,21 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>404 - ODITJI</title>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/error.css">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
 
 <body class="error-page">
 
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<div class="error-wrap">
+<div id="mainContent" class="error-wrap">
 
     <div class="error-card">
 
@@ -24,7 +26,10 @@
         </div>
 
         <div class="error-sub">
-            요청하신 페이지가 존재하지 않거나 이동되었습니다.
+            <c:choose>
+                <c:when test="${not empty errorMessage}"><c:out value="${errorMessage}"/></c:when>
+                <c:otherwise>요청하신 페이지가 존재하지 않거나 이동되었습니다.</c:otherwise>
+            </c:choose>
         </div>
 
         <div class="error-btns">

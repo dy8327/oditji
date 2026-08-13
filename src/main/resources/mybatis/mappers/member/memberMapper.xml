@@ -69,11 +69,19 @@
         <result property="adultVerified" column="ADULT_VERIFIED"/>
         <result property="createdAt" column="CREATED_AT"/>
         <result property="updatedAt" column="UPDATED_AT"/>
+        <result property="withdrawnAt" column="WITHDRAWN_AT"/>
     </resultMap>
 
+    <!--
+        로그인 조회
+        - 정지(BLOCKED)/탈퇴(WITHDRAWN) 여부는 서비스 레이어에서 STATUS로 판단하므로
+          WHERE절에 STATUS 조건을 걸지 않는다.
+        - 탈퇴 회원 복구 화면에서 "복구 가능 기한"을 보여주기 위해 WITHDRAWN_AT을 반드시 조회한다.
+    -->
     <select id="loginMember"
         parameterType="com.project.oditji.member.vo.MemberVO"
         resultMap="memberResultMap">
+
         SELECT
             MEMBER_NO,
             MEMBER_ID,
@@ -87,11 +95,11 @@
             STATUS,
             ADULT_VERIFIED,
             CREATED_AT,
-            UPDATED_AT
+            UPDATED_AT,
+            WITHDRAWN_AT
         FROM MEMBER
         WHERE MEMBER_ID = #{memberId}
-        AND MEMBER_PW = #{memberPw}
-        AND STATUS = 'ACTIVE'
+        
     </select>
 
     <select id="countByMemberId" parameterType="string" resultType="int">
@@ -121,8 +129,7 @@
     <insert id="insertKakaoMember" parameterType="com.project.oditji.member.vo.MemberVO">
 
         <selectKey keyProperty="memberNo" resultType="long" order="BEFORE">
-            SELECT SEQ_MEMBER_NO.NEXTVAL
-            FROM DUAL
+            SELECT SEQ_MEMBER_NO.NEXTVAL FROM DUAL
         </selectKey>
 
         INSERT INTO MEMBER (
@@ -153,5 +160,152 @@
             SYSDATE
         )
     </insert>
+
+    <delete id="deleteMemberPlatform" parameterType="long">
+        DELETE FROM MEMBER_PLATFORM
+        WHERE MEMBER_NO = #{memberNo}
+    </delete>
+
+    <!--
+        회원 마이페이지 자진 탈퇴 처리
+        - 즉시 삭제하지 않고 STATUS만 WITHDRAWN으로 변경, WITHDRAWN_AT을 기록한다.
+        - 실제 삭제는 MemberDeleteScheduler -> AdminService.deleteExpiredWithdrawMembers()가
+          WITHDRAWN_AT 기준 7일 경과 후 처리한다.
+    -->
+    <update id="withdrawMember" parameterType="long">
+        UPDATE MEMBER
+        SET STATUS = 'WITHDRAWN',
+            WITHDRAWN_AT = SYSDATE,
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+    </update>
+
+    <!--
+        탈퇴 회원 복구 처리
+        - STATUS가 WITHDRAWN이고, WITHDRAWN_AT 기준 7일 이내인 경우에만 ACTIVE로 되돌린다.
+        - 7일 조건은 MemberDeleteScheduler의 하드 삭제와의 레이스 컨디션을 막기 위한
+          방어적 이중 체크이다 (서비스 레이어에서도 별도 검증하지 않고 이 쿼리의 갱신 row 수로 판단한다).
+        - 비밀번호는 재확인하지 않는다. 이 쿼리를 호출하는 시점(MemberServiceImpl.restoreMember)은
+          이미 로그인/카카오 콜백에서 본인 인증이 끝난 뒤이다.
+    -->
+    <update id="restoreMember" parameterType="long">
+        UPDATE MEMBER
+        SET STATUS = 'ACTIVE',
+            WITHDRAWN_AT = NULL,
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+          AND STATUS = 'WITHDRAWN'
+          AND WITHDRAWN_AT >= SYSDATE - 7
+    </update>
+
+    <select id="selectPasswordByMemberNo" resultType="string">
+        SELECT MEMBER_PW
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+    </select>
+
+    <select id="getMemberByNo"
+            parameterType="long"
+            resultMap="memberResultMap">
+
+        SELECT
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_PW,
+            MEMBER_NAME,
+            NICKNAME,
+            EMAIL,
+            PHONE,
+            PROFILE_IMAGE,
+            ROLE,
+            STATUS,
+            ADULT_VERIFIED,
+            CREATED_AT,
+            UPDATED_AT,
+            WITHDRAWN_AT
+        FROM MEMBER
+        WHERE MEMBER_NO = #{memberNo}
+
+    </select>
+
+    <select id="countByNicknameExceptMe" resultType="int">
+
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE NICKNAME = #{nickname}
+        AND MEMBER_NO != #{memberNo}
+
+    </select>
+
+    <select id="countByEmailExceptMe" resultType="int">
+
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE EMAIL = #{email}
+        AND MEMBER_NO != #{memberNo}
+
+    </select>
+
+    <update id="updateMember"
+            parameterType="com.project.oditji.member.vo.MemberVO">
+
+        UPDATE MEMBER
+        SET
+            NICKNAME = #{nickname},
+            EMAIL = NVL(#{email, jdbcType=VARCHAR}, EMAIL),
+            PHONE = #{phone},
+            MEMBER_PW = NVL(#{memberPw, jdbcType=VARCHAR}, MEMBER_PW),
+            PROFILE_IMAGE = NVL(#{profileImage, jdbcType=VARCHAR}, PROFILE_IMAGE),
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+
+    </update>
+
+    <select id="findId" resultType="com.project.oditji.member.vo.MemberVO">
+
+        SELECT MEMBER_ID
+        FROM MEMBER
+        WHERE MEMBER_NAME = #{memberName}
+        AND EMAIL = #{email}
+
+    </select>
+
+    <select id="findPw" resultType="com.project.oditji.member.vo.MemberVO">
+
+        SELECT
+            MEMBER_NO,
+            MEMBER_ID,
+            MEMBER_NAME,
+            EMAIL
+
+        FROM MEMBER
+
+        WHERE MEMBER_ID = #{memberId}
+        AND MEMBER_NAME = #{memberName}
+        AND EMAIL = #{email}
+
+    </select>
+
+    <update id="updatePassword">
+
+        UPDATE MEMBER
+
+        SET MEMBER_PW = #{password},
+            UPDATED_AT = SYSDATE
+
+        WHERE MEMBER_NO = #{memberNo}
+
+    </update>
+
+    <!--
+        SNS(카카오) 자동가입 회원 이메일 등록/수정
+        - 카카오 가입 시 EMAIL이 NULL로 저장되므로 OTT 선택 화면에서 입력받아 채워 넣는다.
+    -->
+    <update id="updateMemberEmail">
+        UPDATE MEMBER
+        SET EMAIL = #{email},
+            UPDATED_AT = SYSDATE
+        WHERE MEMBER_NO = #{memberNo}
+    </update>
 
 </mapper>

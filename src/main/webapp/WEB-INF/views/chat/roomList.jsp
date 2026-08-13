@@ -1,324 +1,326 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-
-<html>
-
+<html lang="ko">
 <head>
-
 <meta charset="UTF-8">
-
-<title>채팅방 목록</title>
-
-<style>
-
-* {
-    box-sizing: border-box;
-    font-family: 맑은 고딕;
-}
-
-body {
-    margin: 0;
-    background: #f5f5f5;
-}
-
-.container {
-    width: 1000px;
-    margin: 40px auto;
-}
-
-.page-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.page-title h2 {
-    margin: 0;
-    color: #263238;
-}
-
-.create-btn {
-    padding: 10px 16px;
-    border: none;
-    background: #1565C0;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.room-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.room-card {
-    background: white;
-    border-radius: 10px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-
-.room-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.room-title {
-    margin: 0;
-    font-size: 20px;
-    color: #263238;
-}
-
-.room-type {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    background: #eceff1;
-    color: #455a64;
-}
-
-.default-badge {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    background: #fff3e0;
-    color: #ef6c00;
-}
-
-.room-desc {
-    margin: 8px 0 12px 0;
-    color: #666;
-    line-height: 1.5;
-}
-
-.room-info {
-    font-size: 13px;
-    color: #607d8b;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.last-message-box {
-    margin-top: 14px;
-    padding: 12px;
-    background: #f7f9fa;
-    border-radius: 8px;
-    color: #455a64;
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.last-message {
-    flex: 1;
-    font-size: 14px;
-    color: #37474f;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.last-time {
-    font-size: 13px;
-    color: #78909c;
-    white-space: nowrap;
-}
-
-.room-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.room-buttons button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-}
-
-.enter-btn {
-    background: #455a64;
-}
-
-.join-btn {
-    background: #2e7d32;
-}
-
-.empty-room {
-    background: white;
-    border-radius: 10px;
-    padding: 40px;
-    text-align: center;
-    color: #777;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-
-</style>
-
+<title>
+    <c:choose>
+        <c:when test="${isAdmin}">관리자 공지 채팅방</c:when>
+        <c:otherwise>사업자 채팅방</c:otherwise>
+    </c:choose>
+</title>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=3">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-room-list.css?v=5">
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
+<body class="chat-dashboard-page chat-room-list-page">
 
-<body>
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
-<div class="container">
+<%-- 대시보드로 돌아가는 링크는 관리자/사업자 메인 대시보드로 각각 연결한다. --%>
+<c:choose>
+    <c:when test="${isAdmin}">
+        <c:url var="dashboardUrl" value="/admin/main" />
+    </c:when>
+    <c:otherwise>
+        <c:url var="dashboardUrl" value="/business/main" />
+    </c:otherwise>
+</c:choose>
 
-    <div class="page-title">
+<%--
+    3단 대시보드 셸.
+    데스크톱(>1024px): Left(방 목록) | Middle(채팅방) | Right(방 생성) splitview.
+    모바일(<=768px): panel-middle / panel-right 는 CSS에서 숨겨지고,
+    방 목록 자체가 카카오톡 앱 홈 화면처럼 전체 화면을 채운다.
+--%>
+<div id="mainContent" class="chat-dashboard right-collapsed">
 
-        <h2>사업자 채팅방</h2>
+    <section class="dashboard-panel panel-left">
+        <div class="room-list-root">
 
-        <button type="button"
-                class="create-btn"
-                onclick="location.href='${pageContext.request.contextPath}/chat/create'">
-            채팅방 생성
-        </button>
+            <div class="room-list-header">
+                <h2>
+                    <c:choose>
+                        <c:when test="${isAdmin}">관리자 공지 채팅방</c:when>
+                        <c:otherwise>사업자 채팅방</c:otherwise>
+                    </c:choose>
+                </h2>
+                <p>
+                    <c:choose>
+                        <c:when test="${isAdmin}">
+                            공지방을 확인하고 사업자에게 전달할 공지를 작성할 수 있습니다.
+                        </c:when>
+                        <c:otherwise>
+                            공지사항을 확인하고 자유방에서 다른 사업자와 대화할 수 있습니다.
+                        </c:otherwise>
+                    </c:choose>
+                </p>
+                <button type="button" class="create-btn" id="createRoomBtn">
+                    <c:choose>
+                        <c:when test="${isAdmin}">공지방 생성</c:when>
+                        <c:otherwise>자유방 생성</c:otherwise>
+                    </c:choose>
+                </button>
+            </div>
 
-    </div>
+            <div class="room-list-scroll">
 
-    <div class="room-list">
-
-        <c:choose>
-
-            <c:when test="${empty roomList}">
-
-                <div class="empty-room">
-                    생성된 채팅방이 없습니다.
-                </div>
-
-            </c:when>
-
-            <c:otherwise>
-
-                <c:forEach var="room" items="${roomList}">
-
-                    <div class="room-card"
-                         data-room-id="${room.roomId}">
-
-                        <div class="room-top">
-
-                            <div>
-
-                                <h3 class="room-title">
-
-                                    <c:out value="${room.roomName}" />
-
-                                    <span class="room-type">
-                                        <c:out value="${room.roomType}" />
-                                    </span>
-
-                                    <c:if test="${room.isDefault eq 'Y'}">
-                                        <span class="default-badge">
-                                            기본방
-                                        </span>
-                                    </c:if>
-
-                                </h3>
-
-                            </div>
-
-                            <div class="room-buttons">
-
-                                <button type="button"
-                                        class="join-btn"
-                                        data-room-id="${room.roomId}">
-                                    참가
-                                </button>
-
-                                <button type="button"
-                                        class="enter-btn"
-                                        data-room-id="${room.roomId}">
-                                    입장
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                        <p class="room-desc">
-                            <c:choose>
-                                <c:when test="${empty room.roomDescription}">
-                                    채팅방 설명이 없습니다.
-                                </c:when>
-                                <c:otherwise>
-                                    <c:out value="${room.roomDescription}" />
-                                </c:otherwise>
-                            </c:choose>
-                        </p>
-
-                        <div class="room-info">
-
-                            <span>
-                                생성자 :
-                                <c:out value="${room.creatorName}" />
-                            </span>
-
-                            <span>
-                                참여 인원 :
-                                <c:out value="${room.memberCount}" />
-                                /
-                                <c:out value="${room.maxMember}" />
-                            </span>
-
-                            <span>
-                                ROOM ID :
-                                <c:out value="${room.roomId}" />
-                            </span>
-
-                        </div>
-
-                        <div class="last-message-box">
-
-                            <div class="last-message"
-                                 id="lastMessage-${room.roomId}">
-                                마지막 메시지가 없습니다.
-                            </div>
-
-                            <div class="last-time"
-                                 id="lastTime-${room.roomId}">
-                            </div>
-
-                        </div>
-
+                <section class="room-section notice-section">
+                    <div class="section-title-area">
+                        <h3>공지방</h3>
+                        <span>관리자 작성 · 사업자 전체 열람</span>
                     </div>
 
-                </c:forEach>
+                    <div class="room-list">
 
-            </c:otherwise>
+                        <c:set var="noticeCount" value="0" />
 
-        </c:choose>
+                        <c:forEach var="room" items="${roomList}">
+                            <c:if test="${room.roomType eq 'NOTICE'}">
 
+                                <c:set var="noticeCount" value="${noticeCount + 1}" />
+
+                                <div class="room-card notice-card"
+                                     data-room-id="${room.roomId}"
+                                     data-firestore-readable="true">
+
+                                    <div class="room-top">
+                                        <div>
+                                            <h4 class="room-title">
+                                                <c:out value="${room.roomName}" />
+                                                <span class="room-type notice-badge">공지방</span>
+                                            </h4>
+                                        </div>
+
+                                        <div class="room-buttons">
+                                            <button type="button"
+                                                    class="room-action-btn notice-enter-btn"
+                                                    data-room-id="${room.roomId}"
+                                                    data-room-type="NOTICE">
+                                                <c:choose>
+                                                    <c:when test="${isAdmin}">공지 작성</c:when>
+                                                    <c:otherwise>공지 보기</c:otherwise>
+                                                </c:choose>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p class="room-desc">
+                                        <c:choose>
+                                            <c:when test="${empty room.roomDescription}">
+                                                관리자 공지 전용 채팅방입니다.
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:out value="${room.roomDescription}" />
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </p>
+
+                                    <div class="room-info">
+                                        <span>작성자: <c:out value="${room.creatorName}" /></span>
+                                    </div>
+
+                                    <div class="last-message-box notice-last-message-box">
+                                        <div class="last-message"
+                                             id="lastMessage-${room.roomId}">
+                                            마지막 공지가 없습니다.
+                                        </div>
+                                        <div class="last-time"
+                                             id="lastTime-${room.roomId}"></div>
+                                    </div>
+
+                                </div>
+
+                            </c:if>
+                        </c:forEach>
+
+                        <c:if test="${noticeCount eq 0}">
+                            <div class="empty-room">
+                                등록된 공지방이 없습니다.
+                            </div>
+                        </c:if>
+
+                    </div>
+                </section>
+
+                <%-- 관리자는 공지방만 확인하므로 자유방 영역 자체를 출력하지 않는다. --%>
+                <c:if test="${not isAdmin}">
+
+                    <section class="room-section public-section">
+                        <div class="section-title-area">
+                            <h3>자유방</h3>
+                            <span>사업자 생성 · 참가자 자유 채팅</span>
+                        </div>
+
+                        <div class="room-list">
+
+                            <c:set var="publicCount" value="0" />
+
+                            <c:forEach var="room" items="${roomList}">
+                                <c:if test="${room.roomType eq 'PUBLIC'}">
+
+                                    <c:set var="publicCount" value="${publicCount + 1}" />
+
+                                    <div class="room-card public-card"
+                                         data-room-id="${room.roomId}"
+                                         data-firestore-readable="${room.joined}">
+
+                                        <div class="room-top">
+                                            <div>
+                                                <h4 class="room-title">
+                                                    <c:out value="${room.roomName}" />
+                                                    <span class="room-type public-badge">자유방</span>
+                                                </h4>
+                                            </div>
+
+                                            <div class="room-buttons">
+                                                <button type="button"
+                                                        class="room-action-btn public-enter-btn"
+                                                        data-room-id="${room.roomId}"
+                                                        data-room-type="PUBLIC"
+                                                        data-joined="${room.joined}">
+                                                    <c:choose>
+                                                        <c:when test="${room.joined}">입장</c:when>
+                                                        <c:otherwise>참가/입장</c:otherwise>
+                                                    </c:choose>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <p class="room-desc">
+                                            <c:choose>
+                                                <c:when test="${empty room.roomDescription}">
+                                                    채팅방 설명이 없습니다.
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:out value="${room.roomDescription}" />
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
+
+                                        <div class="room-info">
+                                            <span>생성자: <c:out value="${room.creatorName}" /></span>
+                                            <span>
+                                                <c:out value="${room.memberCount}" />/<c:out value="${room.maxMember}" />명
+                                            </span>
+                                        </div>
+
+                                        <div class="last-message-box">
+                                            <div class="last-message"
+                                                 id="lastMessage-${room.roomId}">
+                                                <c:choose>
+                                                    <c:when test="${room.joined}">
+                                                        마지막 메시지가 없습니다.
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        참가 후 최근 메시지를 확인할 수 있습니다.
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <div class="last-time"
+                                                 id="lastTime-${room.roomId}"></div>
+                                        </div>
+
+                                    </div>
+
+                                </c:if>
+                            </c:forEach>
+
+                            <c:if test="${publicCount eq 0}">
+                                <div class="empty-room">
+                                    생성된 자유방이 없습니다.
+                                </div>
+                            </c:if>
+
+                        </div>
+                    </section>
+
+                </c:if>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-panel panel-middle" id="middlePanel">
+        <div class="panel-placeholder" id="roomPlaceholder">
+            <div class="placeholder-icon">💬</div>
+            <p>왼쪽 목록에서 채팅방을 선택하세요.</p>
+            <a href="${dashboardUrl}" class="dashboard-link-btn">대시보드로 이동</a>
+        </div>
+        <iframe class="panel-frame"
+                id="roomFrame"
+                title="채팅방"
+                style="display:none;"></iframe>
+
+        <%-- 채팅 화면 어디서든 대시보드로 바로 이동할 수 있는 플로팅 버튼 --%>
+        <a href="${dashboardUrl}" class="dashboard-fab" aria-label="대시보드로 이동">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+                <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+                <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+                <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+            </svg>
+        </a>
+    </section>
+
+    <section class="dashboard-panel panel-right" id="rightPanel">
+        <button type="button"
+                class="panel-right-toggle"
+                id="rightPanelToggle"
+                aria-expanded="false"
+                aria-controls="rightPanelBody">
+            <span class="panel-right-toggle-icon" aria-hidden="true">›</span>
+            <span class="panel-right-toggle-label">
+                <c:choose>
+                    <c:when test="${isAdmin}">공지방 생성</c:when>
+                    <c:otherwise>자유방 생성</c:otherwise>
+                </c:choose>
+            </span>
+        </button>
+        <div class="panel-right-body" id="rightPanelBody">
+            <iframe class="panel-frame"
+                    id="createFrameDesktop"
+                    title="채팅방 생성"
+                    data-src="${pageContext.request.contextPath}/chat/create?embed=1"></iframe>
+        </div>
+    </section>
+
+</div>
+
+<%-- 모바일 전용: FAB(+) 로 방 생성 모달을 연다. --%>
+<button type="button" class="mobile-fab" id="mobileCreateBtn" aria-label="채팅방 생성">+</button>
+
+<div class="mobile-modal-overlay" id="mobileCreateModal">
+    <div class="mobile-modal-sheet">
+        <div class="mobile-modal-head">
+            <span>
+                <c:choose>
+                    <c:when test="${isAdmin}">공지방 생성</c:when>
+                    <c:otherwise>자유방 생성</c:otherwise>
+                </c:choose>
+            </span>
+            <button type="button" class="mobile-modal-close" id="mobileCreateClose" aria-label="닫기">×</button>
+        </div>
+        <iframe class="panel-frame"
+                id="createFrameMobile"
+                title="채팅방 생성"
+                data-src="${pageContext.request.contextPath}/chat/create?embed=1"></iframe>
     </div>
-
 </div>
 
 <input type="hidden"
        id="contextPath"
        value="${pageContext.request.contextPath}">
 
-<input type="hidden"
-       id="businessNo"
-       value="${businessNo}">
-
-<input type="hidden"
-       id="businessName"
-       value="${businessName}">
-
 <script type="module"
-        src="${pageContext.request.contextPath}/js/roomList.js">
-</script>
+        src="${pageContext.request.contextPath}/js/roomList.js?v=7"></script>
 
 </body>
-
 </html>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.search.dao.SearchKeywordHistoryDAO">
+
+    <!--
+        로그인 회원의 검색어 이력을 저장합니다.
+
+        같은 회원이 이미 검색한 검색어(대소문자 무시)가 있으면:
+        - SEARCH_COUNT 증가
+        - LAST_SEARCHED_AT 갱신
+        (검색어 표기는 최초 검색 당시 대소문자를 그대로 유지합니다.)
+
+        처음 검색하는 검색어면:
+        - 새로운 행 등록
+    -->
+    <update id="mergeSearchKeywordHistory"
+            parameterType="com.project.oditji.search.vo.SearchKeywordHistoryVO">
+
+        MERGE INTO SEARCH_KEYWORD_HISTORY TARGET
+        USING (
+            SELECT
+                #{memberNo} AS MEMBER_NO,
+                #{keyword} AS KEYWORD
+            FROM DUAL
+        ) SOURCE
+        ON (
+            TARGET.MEMBER_NO = SOURCE.MEMBER_NO
+            AND UPPER(TARGET.KEYWORD) = UPPER(SOURCE.KEYWORD)
+        )
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                TARGET.SEARCH_COUNT =
+                    TARGET.SEARCH_COUNT + 1,
+                TARGET.LAST_SEARCHED_AT =
+                    SYSDATE
+
+        WHEN NOT MATCHED THEN
+            INSERT (
+                SEARCH_HISTORY_NO,
+                MEMBER_NO,
+                KEYWORD,
+                SEARCH_COUNT,
+                FIRST_SEARCHED_AT,
+                LAST_SEARCHED_AT
+            )
+            VALUES (
+                SEQ_SEARCH_KEYWORD_HISTORY_NO.NEXTVAL,
+                SOURCE.MEMBER_NO,
+                SOURCE.KEYWORD,
+                1,
+                SYSDATE,
+                SYSDATE
+            )
+
+    </update>
+
+
+    <!--
+        회원별로 최근 검색어 keepCount건만 남기고
+        그보다 오래된(LAST_SEARCHED_AT 기준) 검색어 이력을 삭제합니다.
+
+        검색어 이력은 콘텐츠 조회 이력과 달리 기간 만료 대신
+        회원당 보관 개수 제한으로 무한정 쌓이지 않도록 합니다.
+    -->
+    <delete id="deleteSearchKeywordHistoryBeyondLimit"
+            parameterType="map">
+
+        DELETE FROM SEARCH_KEYWORD_HISTORY
+        WHERE MEMBER_NO = #{memberNo}
+          AND SEARCH_HISTORY_NO NOT IN (
+              SELECT SEARCH_HISTORY_NO
+              FROM (
+                  SELECT SEARCH_HISTORY_NO
+                  FROM SEARCH_KEYWORD_HISTORY
+                  WHERE MEMBER_NO = #{memberNo}
+                  ORDER BY LAST_SEARCHED_AT DESC
+              )
+              WHERE ROWNUM &lt;= #{keepCount}
+          )
+
+    </delete>
+
+
+    <!--
+        로그인 회원의 최근 검색어를
+        마지막 검색 시각(LAST_SEARCHED_AT) 내림차순으로 조회합니다.
+    -->
+    <select id="selectRecentSearchKeywordList"
+            parameterType="map"
+            resultType="com.project.oditji.search.vo.SearchKeywordHistoryVO">
+
+        SELECT *
+        FROM (
+            SELECT
+                SEARCH_HISTORY_NO AS searchHistoryNo,
+                MEMBER_NO AS memberNo,
+                KEYWORD AS keyword,
+                SEARCH_COUNT AS searchCount,
+                FIRST_SEARCHED_AT AS firstSearchedAt,
+                LAST_SEARCHED_AT AS lastSearchedAt
+            FROM SEARCH_KEYWORD_HISTORY
+            WHERE MEMBER_NO = #{memberNo}
+            ORDER BY LAST_SEARCHED_AT DESC
+        )
+        WHERE ROWNUM &lt;= #{limit}
+
+    </select>
+
+
+    <!-- 검색어 이력 한 건 삭제 -->
+    <delete id="deleteSearchKeywordHistory"
+            parameterType="com.project.oditji.search.vo.SearchKeywordHistoryVO">
+
+        DELETE FROM SEARCH_KEYWORD_HISTORY
+        WHERE MEMBER_NO = #{memberNo}
+          AND UPPER(KEYWORD) = UPPER(#{keyword})
+
+    </delete>
+
+
+    <!-- 회원의 검색어 이력 전체 삭제 -->
+    <delete id="deleteAllSearchKeywordHistory"
+            parameterType="long">
+
+        DELETE FROM SEARCH_KEYWORD_HISTORY
+        WHERE MEMBER_NO = #{memberNo}
+
+    </delete>
+
+</mapper>

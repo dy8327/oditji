@@ -1,0 +1,259 @@
+/*
+ * 채팅방 목록 화면 (좌측 패널)
+ * 공지방과 자유방을 별도 섹션으로 구분해 표시한다.
+ * chat-common.css 의 --kakao-* 토큰을 사용하는 카카오톡 다크테마.
+ * 데스크톱에서는 .panel-left 안에서 스크롤되는 리스트로 동작하고,
+ * 모바일(<=768px)에서는 이 화면 자체가 카카오톡 앱의 홈 화면 역할을 한다.
+ */
+
+.chat-room-list-page {
+    margin: 0;
+    background: var(--kakao-bg-0, #121212);
+    color: var(--kakao-text-primary, #ffffff);
+}
+
+.panel-left .room-list-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.room-list-header {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--kakao-border, #3a3a3a);
+    flex: 0 0 auto;
+}
+
+.room-list-header h2 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    color: var(--kakao-text-primary, #ffffff);
+}
+
+.room-list-header p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--kakao-text-secondary, #ababab);
+}
+
+.room-list-header .create-btn {
+    display: none; /* 데스크톱에서는 우측 생성 패널이 항상 열려 있어 중복 버튼을 숨긴다 */
+}
+
+.room-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 10px 90px;
+}
+
+.room-section {
+    margin-bottom: 18px;
+}
+
+.section-title-area {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 8px 8px;
+}
+
+.section-title-area h3 {
+    margin: 0;
+    color: var(--kakao-text-primary, #ffffff);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.section-title-area span {
+    color: var(--kakao-text-tertiary, #7a7a7a);
+    font-size: 11.5px;
+}
+
+.room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/*
+ * 카카오톡 채팅목록 리스트 아이템 형태의 방 카드.
+ * 클릭 가능한 하나의 행처럼 보이도록 하고, 실제 입장/참가 버튼은
+ * 카드 우측에 작게 배치하거나 카드 전체 클릭으로 대체한다.
+ */
+.room-card {
+    position: relative;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--kakao-radius, 12px);
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.room-card:hover {
+    background: var(--kakao-bg-3, #2b2b2b);
+}
+
+.room-card.active {
+    background: var(--kakao-bg-3, #2b2b2b);
+    border-color: rgba(254, 229, 0, 0.35);
+}
+
+.notice-card {
+    border-left: 3px solid var(--kakao-yellow, #FEE500);
+}
+
+.public-card {
+    border-left: 3px solid #5ea3ff;
+}
+
+.room-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.room-title {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--kakao-text-primary, #ffffff);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.room-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.notice-badge {
+    background: rgba(254, 229, 0, 0.16);
+    color: var(--kakao-yellow-dark, #F2C94C);
+}
+
+.public-badge {
+    background: rgba(94, 163, 255, 0.16);
+    color: #5ea3ff;
+}
+
+.room-buttons {
+    flex: 0 0 auto;
+}
+
+.room-action-btn {
+    padding: 6px 11px;
+    border: none;
+    border-radius: 999px;
+    color: #201d00;
+    background: var(--kakao-yellow, #FEE500);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 11.5px;
+    transition: filter 0.15s ease;
+    white-space: nowrap;
+}
+
+.room-action-btn:hover {
+    filter: brightness(1.06);
+}
+
+.room-action-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+    filter: none;
+}
+
+.notice-enter-btn {
+    background: var(--kakao-yellow-dark, #F2C94C);
+    color: #241d00;
+}
+
+.public-enter-btn {
+    background: var(--kakao-yellow, #FEE500);
+}
+
+.room-desc {
+    margin: 4px 0 6px;
+    color: var(--kakao-text-secondary, #ababab);
+    font-size: 12px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.room-info {
+    font-size: 11px;
+    color: var(--kakao-text-tertiary, #7a7a7a);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.last-message-box {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.last-message {
+    flex: 1;
+    min-width: 0;
+    font-size: 12.5px;
+    color: var(--kakao-text-secondary, #ababab);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.last-time {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: var(--kakao-text-tertiary, #7a7a7a);
+    white-space: nowrap;
+}
+
+.empty-room {
+    background: transparent;
+    border: 1px dashed var(--kakao-border, #3a3a3a);
+    border-radius: var(--kakao-radius, 12px);
+    padding: 22px;
+    text-align: center;
+    color: var(--kakao-text-tertiary, #7a7a7a);
+    font-size: 12.5px;
+    margin: 6px 4px;
+}
+
+/* ===================== 모바일: 카카오톡 앱 홈 화면처럼 전체 폭 ===================== */
+@media (max-width: 768px) {
+
+    .chat-dashboard .panel-left {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+    }
+
+    .room-list-header .create-btn {
+        display: none; /* 모바일은 FAB(+ 버튼)로 생성 진입 */
+    }
+
+    .room-card {
+        padding: 14px 12px;
+    }
+
+    .room-title {
+        font-size: 15px;
+    }
+}

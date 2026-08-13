@@ -1,8 +1,21 @@
 package com.project.oditji.member.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.io.Serial;
+import java.io.Serializable;
 
-public class MemberVO {
+/**
+ * 회원 정보를 전달하는 VO 클래스입니다.
+ *
+ * 로그인한 회원 객체가 HttpSession에 저장되며,
+ * 인터셉터와 여러 컨트롤러에서 재사용되므로
+ * 세션 직렬화를 지원하기 위해 Serializable을 구현합니다.
+ */
+
+public class MemberVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private Long memberNo;
     private String memberId;
@@ -15,8 +28,9 @@ public class MemberVO {
     private String role;
     private String status;
     private String adultVerified;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime withdrawnAt;
 
     public Long getMemberNo() {
         return memberNo;
@@ -106,19 +120,27 @@ public class MemberVO {
         this.adultVerified = adultVerified;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getWithdrawnAt() {
+        return withdrawnAt;
+    }
+
+    public void setWithdrawnAt(LocalDateTime withdrawnAt) {
+        this.withdrawnAt = withdrawnAt;
     }
 }

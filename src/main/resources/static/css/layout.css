@@ -13,6 +13,36 @@
 html{
 
     scroll-behavior:smooth;
+    overflow-x:hidden;
+    scrollbar-color:#4b5058 #141414;
+    scrollbar-width:thin;
+
+}
+
+/* 크로미움 계열 브라우저용 스크롤바 (Firefox는 위 scrollbar-color/width로 처리) */
+html::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+html::-webkit-scrollbar-track{
+
+    background:#141414;
+
+}
+
+html::-webkit-scrollbar-thumb{
+
+    border:2px solid #141414;
+    border-radius:999px;
+    background:#4b5058;
+
+}
+
+html::-webkit-scrollbar-thumb:hover{
+
+    background:#5c626b;
 
 }
 
@@ -22,6 +52,7 @@ body{
     color:#F5F5F5;
     font-family:"Pretendard","Noto Sans KR",sans-serif;
     line-height:1.5;
+    overflow-x:hidden;
 
 }
 
@@ -60,5 +91,22 @@ img{
 
     display:block;
     max-width:100%;
+
+}
+
+/* =========================================================
+   Responsive - Mobile Safe Defaults
+   (모바일 320~768px 기준: 입력창 자동 확대 방지 등 전역 안전장치)
+========================================================= */
+
+@media (max-width:768px){
+
+    input,
+    textarea,
+    select{
+
+        font-size:16px;
+
+    }
 
 }

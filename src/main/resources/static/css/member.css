@@ -2,503 +2,1226 @@
    AUTH LAYOUT (LOGIN / JOIN)
 ========================================================= */
 
-.auth-container{
+.auth-container {
+  width: 100%;
+  min-height: calc(100vh - 140px);
 
-    width:100%;
-    min-height:calc(100vh - 140px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
+  padding: 80px 20px;
 
-    padding:80px 20px;
-
-    background:linear-gradient(
-        180deg,
-        #181818 0%,
-        #1F1F1F 100%
-    );
+  background: linear-gradient(180deg, #181818 0%, #1f1f1f 100%);
 }
 
 /* =========================================================
    AUTH CARD
 ========================================================= */
 
-.auth-box{
+.auth-box {
+  width: 420px;
 
-    width:420px;
+  padding: 34px;
 
-    padding:34px;
+  border-radius: 16px;
 
-    border-radius:16px;
+  background: #2a2a2a;
 
-    background:#2A2A2A;
+  border: 1px solid #3f3f3f;
 
-    border:1px solid #3F3F3F;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
 
-    box-shadow:0 18px 45px rgba(0,0,0,.55);
-
-    color:#F5F5F5;
-
+  color: #f5f5f5;
 }
 
-.auth-box.large{
-
-    width:560px;
-
+.auth-box.large {
+  width: 560px;
 }
 
 /* =========================================================
    TITLE
 ========================================================= */
 
-h2{
+.auth-box h2 {
+  text-align: center;
 
-    text-align:center;
+  margin-bottom: 26px;
 
-    margin-bottom:26px;
+  font-size: 22px;
 
-    font-size:22px;
+  font-weight: 700;
 
-    font-weight:700;
+  color: #ffffff;
 
-    color:#FFFFFF;
-
-    letter-spacing:-0.3px;
-
+  letter-spacing: -0.3px;
 }
 
 /* =========================================================
    FORM
 ========================================================= */
 
-.form-group{
+.form-group {
+  display: flex;
+  flex-direction: column;
 
-    display:flex;
-    flex-direction:column;
-
-    margin-bottom:16px;
-
+  margin-bottom: 16px;
 }
 
-.form-group label{
+.form-group label {
+  font-size: 13px;
 
-    font-size:13px;
+  margin-bottom: 6px;
 
-    margin-bottom:6px;
-
-    color:#CFCFCF;
-
+  color: #cfcfcf;
 }
 
 /* INPUT */
 
-.form-group input{
+.form-group input:not([type="checkbox"]) {
+  padding: 12px 14px;
 
-    padding:12px 14px;
+  background: #343434;
 
-    background:#343434;
+  border: 1px solid #4a4a4a;
 
-    border:1px solid #4A4A4A;
+  border-radius: 10px;
 
-    border-radius:10px;
+  color: #ffffff;
 
-    color:#FFFFFF;
+  font-size: 14px;
 
-    font-size:14px;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.form-group input::placeholder{
-
-    color:#8A8A8A;
-
+.form-group input:not([type="checkbox"])::placeholder {
+  color: #8a8a8a;
 }
 
 /* FOCUS */
 
-.form-group input:focus{
+.form-group input:focus {
+  border-color: #3b82f6;
 
-    border-color:#3B82F6;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.15);
-
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* =========================================================
    ROW (ID / NICK CHECK)
 ========================================================= */
 
-.row{
-
-    display:flex;
-    gap:10px;
-
+.row {
+  display: flex;
+  gap: 10px;
 }
 
-.row input{
-
-    flex:1;
-
+.row input {
+  flex: 1;
 }
 
-.row button{
+.row button {
+  padding: 11px 14px;
 
-    padding:11px 14px;
+  border-radius: 10px;
 
-    border-radius:10px;
+  background: #3a3a3a;
 
-    background:#3A3A3A;
+  border: 1px solid #4a4a4a;
 
-    border:1px solid #4A4A4A;
+  color: #ededed;
 
-    color:#EDEDED;
+  font-size: 12px;
 
-    font-size:12px;
+  cursor: pointer;
 
-    cursor:pointer;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.row button:hover{
-
-    background:#4A4A4A;
-
+.row button:hover {
+  background: #4a4a4a;
 }
 
 /* =========================================================
    PRIMARY BUTTON
 ========================================================= */
 
-.btn-primary{
+.btn-primary {
+  width: 100%;
 
-    width:100%;
+  padding: 13px;
 
-    padding:13px;
+  margin-top: 10px;
 
-    margin-top:10px;
+  border-radius: 12px;
 
-    border-radius:12px;
+  border: none;
 
-    border:none;
+  cursor: pointer;
 
-    cursor:pointer;
+  background: #1e6ff5;
 
-    background:#3B82F6;
+  color: white;
 
-    color:white;
+  font-size: 15px;
 
-    font-size:15px;
+  font-weight: 600;
 
-    font-weight:600;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.btn-primary:hover{
-
-    background:#2563EB;
-
+.btn-primary:hover {
+  background: #2563eb;
 }
 
 /* =========================================================
    OTT CHECKBOX
 ========================================================= */
 
-.ott-box{
+.ott-box {
+  display: grid;
 
-    display:grid;
+  grid-template-columns: repeat(3, 1fr);
 
-    grid-template-columns:repeat(3,1fr);
+  gap: 10px;
 
-    gap:10px;
+  padding: 14px;
 
-    padding:14px;
+  background: #262626;
 
-    border-radius:12px;
+  border: 1px solid #3a3a3a;
 
-    background:#262626;
-
-    border:1px solid #3A3A3A;
-
+  border-radius: 12px;
 }
 
-.ott-box label{
+.ott-box label {
+  display: flex;
 
-    font-size:13px;
+  align-items: center;
 
-    color:#D1D1D1;
+  justify-content: center;
 
-    display:flex;
+  height: 42px;
 
-    align-items:center;
+  gap: 8px;
 
-    gap:6px;
+  border-radius: 8px;
 
+  background: #333;
+
+  color: #d1d1d1;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.ott-box input[type="checkbox"] {
+  width: 16px;
+
+  height: 16px;
+
+  padding: 0;
+
+  margin: 0;
+
+  accent-color: #e50914;
+}
+
+.ott-box label:hover {
+  background: #444;
+}
+
+.ott-box label:has(input:checked) {
+  background: #e50914;
+
+  color: #fff;
+
+  font-weight: 600;
+}
+
+.ott-box label:has(input:checked):hover {
+  background: #b20710;
+}
+
+.ott-box-logo {
+  width: 20px;
+
+  height: 20px;
+
+  object-fit: contain;
+
+  border-radius: 4px;
+
+  background: #ffffff;
+
+  padding: 2px;
+
+  flex-shrink: 0;
+}
+
+.ott-box-none {
+  grid-column: 1 / -1;
+
+  justify-content: center;
+}
+
+/* =========================================================
+   SNS 로그인 후 최초 OTT 선택 화면
+   기존 회원가입 .ott-box와 충돌 방지
+========================================================= */
+
+.sns-ott-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #262626 0%, #181818 65%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.sns-ott-container {
+  width: 460px;
+  padding: 40px 36px;
+  background: #232323;
+  border: 1px solid #343434;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+}
+
+/* 브랜드 로고 / 스텝 표시 */
+
+.sns-ott-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.sns-ott-logo {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  background: #1e6ff5;
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.sns-ott-eyebrow {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #6ea8ff;
+  margin-bottom: 8px;
+}
+
+.sns-ott-title {
+  text-align: center;
+  font-size: 23px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  letter-spacing: -0.3px;
+}
+
+.sns-ott-desc {
+  text-align: center;
+  color: #b8b8b8;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.sns-ott-error {
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  color: #ff9b9b;
+  font-size: 13px;
+}
+
+/* 이메일 입력 */
+
+.sns-ott-email-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22px;
+}
+
+.sns-ott-email-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cfcfcf;
+  margin-bottom: 7px;
+}
+
+.sns-ott-email-input {
+  padding: 13px 14px;
+  background: #2c2c2c;
+  border: 1px solid #454545;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.sns-ott-email-input::placeholder {
+  color: #7d7d7d;
+}
+
+.sns-ott-email-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* 이메일 중복확인 */
+
+.sns-ott-email-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sns-ott-email-row .sns-ott-email-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.sns-ott-check-btn {
+  flex-shrink: 0;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #343434;
+  border: 1px solid #4a4a4a;
+  color: #ededed;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sns-ott-check-btn:hover {
+  background: #454545;
+}
+
+.sns-ott-check-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* OTT 선택 영역 헤더 */
+
+.sns-ott-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sns-ott-section-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cfcfcf;
+}
+
+.sns-ott-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ea8ff;
+}
+
+/* OTT 카드 리스트 */
+
+.sns-ott-option-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #1e1e1e;
+  border: 1px solid #343434;
+}
+
+.sns-ott-option {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  color: #d1d1d1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 66px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  background: #2b2b2b;
+  border: 1px solid #3a3a3a;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.sns-ott-option:hover {
+  background: #333333;
+  border-color: #4a4a4a;
+}
+
+.sns-ott-option:has(input:checked) {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.sns-ott-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sns-ott-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 4px;
+}
+
+.sns-ott-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #5a5a5a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.15s ease;
+}
+
+.sns-ott-mark::after {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translateY(-1px);
+  opacity: 0;
+  transition: 0.15s ease;
+}
+
+.sns-ott-option:has(input:checked) .sns-ott-mark {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.sns-ott-option:has(input:checked) .sns-ott-mark::after {
+  opacity: 1;
+}
+
+.sns-ott-option span {
+  white-space: nowrap;
+}
+
+/* OTT 없음 옵션 */
+
+.sns-ott-option--none {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  min-height: 46px;
+  border-style: dashed;
+}
+
+.sns-ott-option.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sns-ott-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #8a8a8a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 제출 버튼 */
+
+.sns-ott-submit-btn {
+  width: 100%;
+  height: 50px;
+  margin-top: 28px;
+  border: none;
+  border-radius: 12px;
+  background: #1e6ff5;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sns-ott-submit-btn:hover {
+  background: #2563eb;
+}
+
+.sns-ott-footnote {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11.5px;
+  color: #757575;
+}
+
+@media (max-width: 520px) {
+  .sns-ott-container {
+    width: 100%;
+    padding: 30px 22px;
+  }
+
+  /* [수정] 모바일에서도 2열이 아닌 3열 유지, 카드 크기만 축소 */
+  .sns-ott-option-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .sns-ott-option {
+    gap: 4px;
+    min-height: 58px;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .sns-ott-logo-img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sns-ott-mark {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* =========================================================
    SNS LOGIN
 ========================================================= */
 
-.sns-login-box{
+.sns-login-box {
+  margin-top: 18px;
 
-    margin-top:18px;
+  padding-top: 14px;
 
-    padding-top:14px;
+  border-top: 1px solid #3a3a3a;
 
-    border-top:1px solid #3A3A3A;
-
-    text-align:center;
-
+  text-align: center;
 }
 
-.sns-title{
+.sns-title {
+  font-size: 12px;
 
-    font-size:12px;
+  color: #9a9a9a;
 
-    color:#9A9A9A;
-
-    margin-bottom:12px;
-
+  margin-bottom: 12px;
 }
 
-.sns-icon-row{
+.sns-icon-row {
+  display: flex;
 
-    display:flex;
+  justify-content: center;
 
-    justify-content:center;
-
-    gap:14px;
-
+  gap: 14px;
 }
 
-.sns-icon{
+.sns-icon {
+  width: 36px;
+  height: 36px;
 
-    width:36px;
-    height:36px;
+  border-radius: 50%;
 
-    border-radius:50%;
+  display: inline-block;
 
-    display:inline-block;
+  border: 1px solid #4a4a4a;
 
-    border:1px solid #4A4A4A;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.sns-icon:hover{
-
-    transform:scale(1.08);
-
+.sns-icon:hover {
+  transform: scale(1.08);
 }
 
 /* =========================================================
    LINKS (FIND ID / PW)
 ========================================================= */
 
-.auth-links{
+.auth-links {
+  margin-top: 18px;
 
-    margin-top:18px;
+  text-align: center;
 
-    text-align:center;
+  font-size: 13px;
 
-    font-size:13px;
-
-    color:#B8B8B8;
-
+  color: #b8b8b8;
 }
 
-.auth-links a{
+.auth-links a {
+  color: #b8b8b8;
 
-    color:#B8B8B8;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.auth-links a:hover{
-
-    color:#FFFFFF;
-
+.auth-links a:hover {
+  color: #ffffff;
 }
 
-.auth-links span{
+.auth-links span {
+  margin: 0 10px;
 
-    margin:0 10px;
-
-    color:#5A5A5A;
-
+  color: #5a5a5a;
 }
 
 /* =========================================================
    CTA
 ========================================================= */
 
-.auth-cta{
+.auth-cta {
+  margin-top: 16px;
 
-    margin-top:16px;
+  padding-top: 14px;
 
-    padding-top:14px;
+  border-top: 1px solid #3a3a3a;
 
-    border-top:1px solid #3A3A3A;
-
-    text-align:center;
-
+  text-align: center;
 }
 
-.cta-item{
+.cta-item {
+  font-size: 13px;
 
-    font-size:13px;
+  color: #b8b8b8;
 
-    color:#B8B8B8;
-
-    margin-bottom:10px;
-
+  margin-bottom: 10px;
 }
 
-.cta-btn{
+.cta-btn {
+  display: inline-block;
 
-    display:inline-block;
+  padding: 8px 14px;
 
-    padding:8px 14px;
+  border-radius: 10px;
 
-    border-radius:10px;
+  border: 1px solid #4a4a4a;
 
-    border:1px solid #4A4A4A;
+  background: #2f2f2f;
 
-    background:#2F2F2F;
+  color: #ffffff;
 
-    color:#FFFFFF;
+  font-size: 13px;
 
-    font-size:13px;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.cta-btn:hover{
-
-    background:#3A3A3A;
-
+.cta-btn:hover {
+  background: #3a3a3a;
 }
 
 /* =========================================================
    ERROR
 ========================================================= */
 
-.error-text{
+.error-text {
+  font-size: 12px;
 
-    font-size:12px;
+  color: #ef4444;
 
-    color:#EF4444;
-
-    margin-top:6px;
-
+  margin-top: 6px;
 }
 
 /* =========================================================
    RESPONSIVE
 ========================================================= */
 
-@media (max-width:600px){
+@media (max-width: 600px) {
+  .auth-box,
+  .auth-box.large {
+    width: 100%;
 
-    .auth-box,
-    .auth-box.large{
+    padding: 24px;
+  }
 
-        width:100%;
-
-        padding:24px;
-
-    }
-
-    .ott-box{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
+  .ott-box {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* =========================
    FILE UPLOAD CUSTOM
 ========================= */
 
-.file-box{
+.file-box {
+  display: flex;
+  align-items: center;
 
-    display:flex;
-    align-items:center;
+  gap: 12px;
 
-    gap:12px;
+  padding: 10px 12px;
 
-    padding:10px 12px;
+  background: #343434;
+  border: 1px solid #4a4a4a;
 
-    background:#343434;
-    border:1px solid #4A4A4A;
+  border-radius: 10px;
 
-    border-radius:10px;
-
-    line-height:1;
-
+  line-height: 1;
 }
 
-.file-box input[type="file"]{
-    display:none;
+.file-box input[type="file"] {
+  display: none;
 }
 
-.file-label{
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  height: 34px;
 
-    height:34px;
+  padding: 0 14px;
 
-    padding:0 14px;
+  border-radius: 10px;
 
-    border-radius:10px;
+  background: #3a3a3a;
+  border: 1px solid #4a4a4a;
 
-    background:#3A3A3A;
-    border:1px solid #4A4A4A;
+  color: #ededed;
 
-    color:#EDEDED;
+  font-size: 13px;
+  font-weight: 500;
 
-    font-size:13px;
-    font-weight:500;
+  cursor: pointer;
 
-    cursor:pointer;
+  line-height: 1;
 
-    line-height:1;
-
-    transition:.2s;
-
+  transition: 0.2s;
 }
 
-.file-label:hover{
-    background:#4A4A4A;
+.file-label:hover {
+  background: #4a4a4a;
 }
 
-.file-name{
+.file-name {
+  display: flex;
+  align-items: center;
 
-    display:flex;
-    align-items:center;
+  height: 34px;
 
-    height:34px;
+  font-size: 13px;
 
-    font-size:13px;
+  color: #b8b8b8;
 
-    color:#B8B8B8;
+  line-height: 1;
 
-    line-height:1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+.join-tab-menu {
+  display: flex;
+  margin-bottom: 24px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+.join-tab-btn {
+  flex: 1;
+  padding: 14px 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.55);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.join-tab-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.join-tab-btn.active {
+  color: #f0c419;
+  border-bottom: 2px solid #f0c419;
+}
 
+/* =========================================================
+   [회원가입 필수 입력 안내 추가]
+   기본 정보 / 사업자 정보 제목 우측에
+   "*는 필수 입력 정보입니다." 안내 문구를 표시한다.
+   ========================================================= */
+.join-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 28px 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.join-section-title.no-border {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* =========================================================
+   [회원가입 필수 입력 안내 추가]
+   기본 정보 / 사업자 정보에만 좌우 정렬을 적용한다.
+   사용 중인 OTT 등의 기존 제목에는 영향을 주지 않는다.
+   ========================================================= */
+.join-section-title.required-info-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.join-section-title .required-info {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.join-section-title .required-info .required-mark {
+  margin-left: 0;
+}
+
+.business-only-fields,
+.user-only-fields {
+  display: none;
+}
+.business-only-fields.active,
+.user-only-fields.active {
+  display: block;
+}
+.form-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.oditji-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.oditji-modal-overlay.active {
+  display: flex;
+}
+
+.oditji-modal-box {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 320px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.oditji-modal-box h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+
+.oditji-modal-box p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.oditji-modal-box input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.oditji-modal-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.oditji-modal-btn-row button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.oditji-btn-cancel {
+  background: #eee;
+  color: #333;
+}
+
+.oditji-btn-restore {
+  background: #cfcfcf;
+  /* [수정] 흰 글자 on #cfcfcf 는 대비 약 1.56:1로 매우 부족해 어두운 글자로 교체 */
+  color: #575757;
+  cursor: not-allowed;
+}
+
+.oditji-btn-restore.enabled {
+  background: #333;
+  cursor: pointer;
+}
+
+/* =========================================================
+   회원가입 필수/선택 항목 표시
+========================================================= */
+.required-mark {
+  margin-left: 3px;
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.optional-mark {
+  margin-left: 4px;
+  color: #9d9d9d;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* =========================================================
+   비밀번호 표시/숨김 버튼
+
+   기존 입력창의 크기와 디자인은 유지하고
+   입력창 오른쪽에 버튼만 배치한다.
+========================================================= */
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrap input:not([type="checkbox"]) {
+  width: 100%;
+  padding-right: 62px;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+
+  min-width: 42px;
+  padding: 5px 7px;
+
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+
+  color: #bdbdbd;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.password-toggle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+/* =========================================================
+   PASSWORD VERIFICATION NOTICE
+   [수정] 비밀번호 찾기 인증번호 발송 안내 영역
+========================================================= */
+
+.verification-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  margin-bottom: 22px;
+  padding: 16px;
+
+  background: #242a35;
+  border: 1px solid #36527d;
+  border-radius: 12px;
+}
+
+.verification-notice-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #1e6ff5;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.verification-notice-content {
+  min-width: 0;
+}
+
+.verification-notice-title {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.verification-notice-description {
+  margin: 0 0 5px;
+
+  color: #d9e6ff;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.verification-notice-description strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.verification-notice-help {
+  display: block;
+
+  color: #9aa7ba;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* [수정] 일반 성공 메시지가 필요한 다른 단계에서 사용할 스타일 */
+.success-text {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+
+  border-radius: 10px;
+  background: rgba(30, 111, 245, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+
+  color: #cfe0ff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   FIND ID RESULT
+   [수정] 아이디 찾기 조회 결과 안내 영역
+========================================================= */
+
+.find-id-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  margin-top: 18px;
+  padding: 16px;
+
+  background: #242a35;
+  border: 1px solid #36527d;
+  border-radius: 12px;
+}
+
+.find-id-result-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #1e6ff5;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.find-id-result-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.find-id-result-title {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.find-id-result-description {
+  margin: 0 0 10px;
+
+  color: #d9e6ff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* [수정] 조회된 회원 아이디 강조 표시 */
+.find-id-result-id {
+  display: block;
+  width: 100%;
+
+  margin-bottom: 8px;
+  padding: 10px 12px;
+
+  border-radius: 9px;
+  background: rgba(30, 111, 245, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.38);
+
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  word-break: break-all;
+}
+
+.find-id-result-help {
+  display: block;
+
+  color: #9aa7ba;
+  font-size: 12px;
+  line-height: 1.5;
 }

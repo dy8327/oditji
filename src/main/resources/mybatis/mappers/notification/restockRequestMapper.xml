@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.oditji.notification.dao.RestockRequestDAO">
+
+    <!-- [재입고 알림 신청 추가] 현재 상품 전체 재고 조회 -->
+    <select id="selectProductStock" resultType="int">
+        SELECT STOCK
+        FROM PRODUCT
+        WHERE PRODUCT_NO = #{productNo}
+    </select>
+
+
+    <!-- =========================================================
+        [옵션별 재입고 알림 추가]
+        현재 선택한 상품 옵션의 재고를 조회합니다.
+    ========================================================= -->
+    <select id="selectOptionStock" resultType="int">
+        SELECT STOCK
+        FROM PRODUCT_OPTION
+        WHERE OPTION_NO = #{optionNo}
+        AND PRODUCT_NO = #{productNo}
+    </select>
+
+
+    <!-- =========================================================
+        [상품 전체 재입고 알림 신청 여부 확인]
+        OPTION_NO가 NULL인 경우만 조회합니다.
+    ========================================================= -->
+    <select id="countActiveProductRequest" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT_RESTOCK_REQUEST
+        WHERE MEMBER_NO = #{memberNo}
+        AND PRODUCT_NO = #{productNo}
+        AND OPTION_NO IS NULL
+        AND STATUS = 'WAITING'
+    </select>
+
+
+    <!-- =========================================================
+        [옵션별 재입고 알림 신청 여부 확인]
+        특정 OPTION_NO에 대한 신청만 조회합니다.
+    ========================================================= -->
+    <select id="countActiveOptionRequest" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT_RESTOCK_REQUEST
+        WHERE MEMBER_NO = #{memberNo}
+        AND PRODUCT_NO = #{productNo}
+        AND OPTION_NO = #{optionNo}
+        AND STATUS = 'WAITING'
+    </select>
+
+
+    <!-- =========================================================
+        [재입고 알림 신청 추가]
+        OPTION_NO가 NULL이면 상품 전체 재입고 신청,
+        값이 있으면 특정 옵션 재입고 신청으로 저장합니다.
+    ========================================================= -->
+    <insert id="insertRestockRequest"
+            parameterType="com.project.oditji.notification.vo.RestockRequestVO">
+
+        <selectKey keyProperty="restockRequestNo"
+                resultType="long"
+                order="BEFORE">
+            SELECT SEQ_PRODUCT_RESTOCK_REQUEST_NO.NEXTVAL
+            FROM DUAL
+        </selectKey>
+
+        INSERT INTO PRODUCT_RESTOCK_REQUEST (
+            REQUEST_NO,
+            MEMBER_NO,
+            PRODUCT_NO,
+            OPTION_NO,
+            STATUS,
+            CREATED_AT
+        ) VALUES (
+            #{restockRequestNo},
+            #{memberNo},
+            #{productNo},
+            #{optionNo, jdbcType=NUMERIC},
+            #{status},
+            SYSDATE
+        )
+    </insert>
+
+
+    <!-- =========================================================
+        [상품 전체 재입고 알림 신청 취소]
+        OPTION_NO가 NULL인 상품 전체 신청만 취소합니다.
+    ========================================================= -->
+    <update id="cancelProductRestockRequest">
+        UPDATE PRODUCT_RESTOCK_REQUEST
+        SET STATUS = 'CANCELED'
+        WHERE MEMBER_NO = #{memberNo}
+        AND PRODUCT_NO = #{productNo}
+        AND OPTION_NO IS NULL
+        AND STATUS = 'WAITING'
+    </update>
+
+
+    <!-- =========================================================
+        [옵션별 재입고 알림 신청 취소]
+        해당 OPTION_NO 신청만 취소합니다.
+    ========================================================= -->
+    <update id="cancelOptionRestockRequest">
+        UPDATE PRODUCT_RESTOCK_REQUEST
+        SET STATUS = 'CANCELED'
+        WHERE MEMBER_NO = #{memberNo}
+        AND PRODUCT_NO = #{productNo}
+        AND OPTION_NO = #{optionNo}
+        AND STATUS = 'WAITING'
+    </update>
+
+        <!-- =========================================================
+        [사업자 재입고 신청 알림 추가]
+        알림 제목/메시지에 표시할 상품명을 조회합니다.
+    ========================================================= -->
+    <select id="selectProductName"
+            resultType="string">
+
+        SELECT PRODUCT_NAME
+        FROM PRODUCT
+        WHERE PRODUCT_NO = #{productNo}
+
+    </select>
+
+
+    <!-- =========================================================
+        [사업자 옵션 재입고 신청 알림 추가]
+        선택 옵션의 색상명을 조회합니다.
+    ========================================================= -->
+    <select id="selectOptionColorName"
+            resultType="string">
+
+        SELECT COLOR_NAME
+        FROM PRODUCT_OPTION
+        WHERE PRODUCT_NO = #{productNo}
+        AND OPTION_NO = #{optionNo}
+
+    </select>
+
+
+    <!-- =========================================================
+        선택 옵션의 사이즈명을 조회합니다.
+    ========================================================= -->
+    <select id="selectOptionSizeName"
+            resultType="string">
+
+        SELECT SIZE_NAME
+        FROM PRODUCT_OPTION
+        WHERE PRODUCT_NO = #{productNo}
+        AND OPTION_NO = #{optionNo}
+
+    </select>
+
+
+    <!-- =========================================================
+        [상품 전체 재입고 대기 인원]
+        OPTION_NO가 NULL이고 WAITING 상태인 신청 수를 조회합니다.
+    ========================================================= -->
+    <select id="countWaitingProductRequests"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PRODUCT_RESTOCK_REQUEST
+        WHERE PRODUCT_NO = #{productNo}
+        AND OPTION_NO IS NULL
+        AND STATUS = 'WAITING'
+
+    </select>
+
+
+    <!-- =========================================================
+        [옵션별 재입고 대기 인원]
+        해당 옵션을 기다리는 WAITING 신청 수를 조회합니다.
+    ========================================================= -->
+    <select id="countWaitingOptionRequests"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM PRODUCT_RESTOCK_REQUEST
+        WHERE PRODUCT_NO = #{productNo}
+        AND OPTION_NO = #{optionNo}
+        AND STATUS = 'WAITING'
+
+    </select>
+
+</mapper>

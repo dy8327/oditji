@@ -1,0 +1,246 @@
+/* component.css
+ * content.css / goods.css / favorite.css 에 완전히 동일한 내용으로 중복 정의되어 있던
+ * 카드/리스트/페이지네이션 공용 컴포넌트 스타일을 이 파일로 통합했습니다.
+ * (리팩터링 시 자동 추출 - 기존 스타일 값 변경 없음)
+ */
+
+.list-header {    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:20px;}
+
+.list-title {    font-size:22px;
+    font-weight:700;}
+
+.result-count {    font-size:14px;
+    color:#A0A0A0;}
+
+.card-list {    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:22px;
+    margin-top:30px;}
+
+.card-item {    position:relative;
+    background:#1E1E1E;
+    border-radius:14px;
+    overflow:hidden;
+
+    transition:transform .25s ease, box-shadow .25s ease;}
+
+.card-item:hover {    transform:translateY(-6px);
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);}
+
+.card-link {    display:block;
+    color:inherit;}
+
+.no-img {    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:12px;
+    /* [수정] #666 on #0F0F0F는 대비 약 3.3:1로 부족해 더 밝게 교체 */
+    color:#7b7b7b;
+    background:#0F0F0F;}
+
+.card-info {    padding:12px 14px;}
+
+.card-sub {    margin-top:6px;
+    font-size:12px;
+    color:#777;}
+
+.fav-btn {
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .2s ease;
+}
+
+.fav-btn:hover {    background:rgba(255,255,255,0.15);
+    transform:scale(1.05);}
+
+.detail-header {    display:flex;
+    gap:40px;
+    margin-bottom:50px;}
+
+.detail-poster {    width:280px;
+    flex-shrink:0;
+    border-radius:14px;
+    overflow:hidden;}
+
+.detail-info {    flex:1;}
+
+.detail-title {    font-size:28px;
+    font-weight:800;}
+
+.pagination {    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:30px;}
+
+.page-btn {    padding:6px 12px;
+    background:#222;
+    border-radius:6px;
+    color:#fff;}
+
+.page-now {    padding:6px 12px;
+    font-weight:600;}
+
+.empty-state {    padding:80px 0;
+    text-align:center;
+    color:#777;
+    font-size:14px;}
+
+.review-list {    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 20px;}
+
+.price-original {    color:#777;
+    font-size:12px;
+    text-decoration:line-through;}
+
+/* =========================
+   REVIEW ITEM CARD
+   content.css / goods.css 에 서로 다르게 중복 정의되어 있던
+   리뷰 카드 스타일을 통합 (contentDetail.jsp / goodsDetail.jsp 공용)
+========================= */
+
+.review-item {
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #1e1e1e;
+}
+
+.review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+    color: #a9a9a9;
+    font-size: 12px;
+}
+
+.review-meta .writer {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.review-meta .rating {
+    color: #ffd54a;
+    font-weight: 700;
+}
+
+.review-meta .date {
+    color: #8f8f8f;
+}
+
+.review-item .review-content {
+    display: block;
+    margin: 0;
+    color: #f2f2f2 !important;
+    font-size: 14px;
+    line-height: 1.7;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-text-fill-color: #f2f2f2;
+}
+
+/* =========================
+   SCORE BOX (평점 요약)
+   goods.css 에만 있던 스타일을 기준으로 통합.
+   contentDetail.jsp 는 score-tmdb / score-divider 를 추가로 쓰므로 함께 정의.
+   (contentDetail.jsp 헤더, goodsDetail.jsp 리뷰 섹션 양쪽 공용)
+========================= */
+
+.score-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #DADADA;
+}
+
+.score-box .score-tmdb {
+    color: #DADADA;
+}
+
+.score-box .score-user {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.score-box .score-divider {
+    color: #555555;
+}
+
+@media (max-width:1024px) {
+  .card-list {
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+}
+
+@media (max-width:768px) {
+  .card-list {
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+
+  .card-info {
+    padding:8px 9px;
+  }
+
+  .card-sub {
+    margin-top:4px;
+    font-size:11px;
+  }
+
+  .list-header {
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .detail-header {        flex-direction:column;
+    }
+
+  .detail-poster {        width:100%;
+        max-width:280px;
+        margin:0 auto;
+    }
+
+  .detail-title {
+    font-size:22px;
+  }
+
+  .pagination {
+    gap:6px;
+    flex-wrap:wrap;
+  }
+}
+
+@media (max-width:400px) {
+  .card-list {
+    grid-template-columns:repeat(3, 1fr);
+    gap:7px;
+  }
+
+  .card-info {
+    padding:7px 8px;
+  }
+}

@@ -1,7 +1,10 @@
 package com.project.oditji.chat.controller;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,144 +15,267 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.project.oditji.chat.service.ChatService;
+import com.project.oditji.chat.service.FirebaseChatService;
+import com.project.oditji.chat.support.ChatSessionSupport;
 import com.project.oditji.chat.vo.ChatRoomVO;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/chat")
 public class ChatController {
 
+    private static final String ROOM_TYPE_PUBLIC = "PUBLIC";
+    private static final String REDIRECT_MEMBER_LOGIN = "redirect:/member/login";
+    private static final String REDIRECT_CHAT_LIST = "redirect:/chat/list";
+
     private final ChatService chatService;
+    private final FirebaseChatService firebaseChatService;
 
-    /*
-     * 임시 로그인 사업자 정보
-     * 나중에 로그인/세션 기능이 완성되면 이 부분을 제거하고
-     * HttpSession에서 로그인 사용자의 businessNo, businessName을 가져오면 됩니다.
-     */
-    private static final int TEMP_BUSINESS_NO = 1;
-    private static final String TEMP_BUSINESS_NAME = "테스트사업자";
+    @Autowired
+    public ChatController(
+            ChatService chatService,
+            FirebaseChatService firebaseChatService) {
 
-    public ChatController(ChatService chatService) {
         this.chatService = chatService;
+        this.firebaseChatService = firebaseChatService;
+    }
+
+    /* 기존 단위 테스트의 직접 생성 방식을 유지합니다. */
+    ChatController(ChatService chatService) {
+        this(chatService, null);
     }
 
     /**
-     * 전체 채팅방 목록
+     * 채팅방 목록 화면입니다.
+     *
+     * 관리자는 공지방만 조회하고,
+     * 승인된 사업자는 공지방과 자유방 전체를 조회합니다.
      */
     @GetMapping("/list")
-    public String roomList(Model model) {
+    public String roomList(HttpSession session, Model model) {
 
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        boolean admin = ChatSessionSupport.isAdmin(session);
         List<ChatRoomVO> roomList = chatService.getChatRoomList();
 
-        model.addAttribute("roomList", roomList);
+        if (admin) {
+            roomList = ChatSessionSupport.filterNoticeRooms(roomList);
+        } else {
+            Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
+            markJoinedRooms(
+                    roomList,
+                    chatService.getMyChatRoomList(businessNo));
+        }
 
-        /*
-         * roomList.jsp에서 AJAX 참가, 채팅방 입장 시 사용할 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
+        ChatSessionSupport.addLoginChatAttributes(session, model);
+        model.addAttribute("roomList", roomList);
 
         return "chat/roomList";
     }
 
     /**
-     * 내가 참여한 채팅방 목록
+     * 현재 로그인 사업자가 참여 중인 자유방 목록입니다.
      *
-     * 현재는 임시 사업자 번호 사용
-     * 나중에 로그인 세션에서 businessNo를 가져오도록 변경 예정
+     * 관리자는 자유방을 이용하지 않으므로 공지방 목록으로 이동합니다.
      */
     @GetMapping("/my")
-    public String myRoomList(Model model) {
+    public String myRoomList(HttpSession session, Model model) {
 
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        if (ChatSessionSupport.isAdmin(session)) {
+            return REDIRECT_CHAT_LIST;
+        }
+
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
         List<ChatRoomVO> roomList =
-                chatService.getMyChatRoomList(TEMP_BUSINESS_NO);
+                chatService.getMyChatRoomList(businessNo);
 
+        markJoinedRooms(roomList, roomList);
+
+        ChatSessionSupport.addLoginChatAttributes(session, model);
         model.addAttribute("roomList", roomList);
-
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
 
         return "chat/roomList";
     }
 
     /**
-     * 채팅방 상세 화면
+     * 채팅방 상세 화면입니다.
+     *
+     * 관리자는 공지방에만 입장할 수 있습니다.
+     * 사업자는 공지방을 열람할 수 있고,
+     * 자유방은 참가 기록이 있는 경우에만 입장할 수 있습니다.
      */
     @GetMapping("/room/{roomId}")
     public String room(
             @PathVariable("roomId") String roomId,
+            HttpSession session,
             Model model) {
+
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
+        }
 
         ChatRoomVO room = chatService.getChatRoom(roomId);
 
         if (room == null) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
         }
 
-        model.addAttribute("room", room);
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        boolean noticeRoom = ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType());
 
-        /*
-         * room.jsp에서 Firebase 메시지 전송 시 사용할 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
+        /* 관리자는 직접 URL로 접근해도 자유방에 들어갈 수 없습니다. */
+        if (admin && !noticeRoom) {
+            return REDIRECT_CHAT_LIST;
+        }
+
+        boolean joined = false;
+
+        if (!admin && !noticeRoom) {
+            Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
+            joined = chatService.isChatRoomMember(roomId, businessNo);
+
+            if (!joined) {
+                return REDIRECT_CHAT_LIST;
+            }
+        }
+
+        ChatSessionSupport.addLoginChatAttributes(session, model);
+        model.addAttribute("room", room);
+        model.addAttribute("isNoticeRoom", noticeRoom);
+        model.addAttribute("isJoined", joined);
 
         return "chat/room";
     }
 
     /**
-     * 채팅방 생성 화면
+     * 채팅방 생성 화면입니다.
+     *
+     * 관리자는 공지방만 생성하고,
+     * 사업자는 자유방만 생성합니다.
      */
     @GetMapping("/create")
-    public String createForm(Model model) {
+    public String createForm(HttpSession session, Model model) {
 
-        /*
-         * createRoom.jsp에서 필요할 수 있는 임시 사업자 정보
-         */
-        model.addAttribute("businessNo", TEMP_BUSINESS_NO);
-        model.addAttribute("businessName", TEMP_BUSINESS_NAME);
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        ChatSessionSupport.addLoginChatAttributes(session, model);
 
         return "chat/createRoom";
     }
 
     /**
-     * 채팅방 생성
+     * 채팅방을 생성합니다.
+     *
+     * 클라이언트가 전달한 방 종류와 생성자 번호를 신뢰하지 않고,
+     * 로그인 권한에 따라 관리자는 공지방, 사업자는 자유방으로 강제합니다.
      */
     @PostMapping("/create")
-    public String create(ChatRoomVO chatRoom) {
+    public String create(
+            ChatRoomVO chatRoom,
+            HttpSession session) {
 
-        /*
-         * 현재는 로그인 기능이 없으므로 임시 사업자 번호를 생성자로 지정
-         * 나중에 Session에서 가져온 businessNo로 교체하면 됩니다.
-         */
-        chatRoom.setCreatedBy(TEMP_BUSINESS_NO);
-
-        if (chatRoom.getRoomType() == null || chatRoom.getRoomType().trim().equals("")) {
-            chatRoom.setRoomType("PUBLIC");
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
         }
 
-        if (chatRoom.getMaxMember() <= 0) {
-            chatRoom.setMaxMember(100);
-        }
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        Integer chatBusinessNo = ChatSessionSupport.getChatBusinessNo(session);
 
-        if (chatRoom.getIsDefault() == null || chatRoom.getIsDefault().trim().equals("")) {
+        chatRoom.setCreatedBy(chatBusinessNo);
+
+        if (admin) {
+            chatRoom.setRoomType(ChatSessionSupport.ROOM_TYPE_NOTICE);
+            chatRoom.setIsDefault("Y");
+            chatRoom.setMaxMember(9999);
+        } else {
+            chatRoom.setRoomType(ROOM_TYPE_PUBLIC);
             chatRoom.setIsDefault("N");
+
+            if (chatRoom.getMaxMember() <= 0) {
+                chatRoom.setMaxMember(100);
+            }
         }
 
         String roomId = chatService.createChatRoom(chatRoom);
 
         if (roomId == null) {
-            return "redirect:/chat/list";
+            return REDIRECT_CHAT_LIST;
+        }
+
+        if (isFirebaseChatEnabled()) {
+            try {
+                firebaseChatService.synchronizeRoom(chatRoom);
+
+                if (!admin) {
+                    Long memberNo = ChatSessionSupport.getSessionMemberNo(session);
+
+                    firebaseChatService.addRoomMember(
+                            roomId,
+                            memberNo,
+                            chatBusinessNo,
+                            ChatSessionSupport.getSessionRole(session),
+                            ChatSessionSupport.getChatDisplayName(session));
+                }
+            } catch (IllegalStateException exception) {
+                /*
+                 * Oracle에는 방이 생성되었으므로 목록으로 이동합니다.
+                 * 다음 Firebase 토큰 발급 시 활성 방과 참가 정보가 다시 동기화됩니다.
+                 */
+                return REDIRECT_CHAT_LIST;
+            }
         }
 
         return "redirect:/chat/room/" + roomId;
     }
 
     /**
-     * 채팅방 삭제
+     * 채팅방을 비활성화합니다.
+     *
+     * 관리자는 공지방만, 사업자는 자신이 만든 자유방만 처리할 수 있습니다.
+     * 기본 공지방 삭제는 서비스에서 한 번 더 차단합니다.
      */
     @PostMapping("/delete")
     public String delete(
-            @RequestParam("roomId") String roomId) {
+            @RequestParam("roomId") String roomId,
+            HttpSession session) {
+
+        if (!ChatSessionSupport.hasChatAccess(session)) {
+            return REDIRECT_MEMBER_LOGIN;
+        }
+
+        ChatRoomVO room = chatService.getChatRoom(roomId);
+
+        if (room == null) {
+            return REDIRECT_CHAT_LIST;
+        }
+
+        boolean admin = ChatSessionSupport.isAdmin(session);
+        boolean noticeRoom = ChatSessionSupport.ROOM_TYPE_NOTICE.equals(room.getRoomType());
+        Integer businessNo = ChatSessionSupport.getSessionBusinessNo(session);
+
+        boolean canDelete = admin
+                ? noticeRoom
+                : !noticeRoom
+                        && businessNo != null
+                        && room.getCreatedBy() == businessNo;
+
+        if (!canDelete) {
+            return REDIRECT_CHAT_LIST;
+        }
+
+        if (isFirebaseChatEnabled()) {
+            firebaseChatService.deactivateRoom(roomId);
+        }
 
         boolean result = chatService.deleteChatRoom(roomId);
 
@@ -157,7 +283,41 @@ public class ChatController {
             return "redirect:/chat/room/" + roomId;
         }
 
-        return "redirect:/chat/list";
+        return REDIRECT_CHAT_LIST;
+    }
+
+    private boolean isFirebaseChatEnabled() {
+        return firebaseChatService != null
+                && firebaseChatService.isEnabled();
+    }
+
+    /**
+     * 자유방 목록에 현재 로그인 사업자의 참가 여부를 표시합니다.
+     * 참가하지 않은 자유방은 Firestore 보안 규칙상 최근 메시지도 조회하지 않습니다.
+     */
+    private void markJoinedRooms(
+            List<ChatRoomVO> roomList,
+            List<ChatRoomVO> joinedRoomList) {
+
+        Set<String> joinedRoomIds = new HashSet<>();
+
+        if (joinedRoomList != null) {
+            for (ChatRoomVO joinedRoom : joinedRoomList) {
+                if (joinedRoom != null && joinedRoom.getRoomId() != null) {
+                    joinedRoomIds.add(joinedRoom.getRoomId());
+                }
+            }
+        }
+
+        if (roomList == null) {
+            return;
+        }
+
+        for (ChatRoomVO room : roomList) {
+            if (room != null) {
+                room.setJoined(joinedRoomIds.contains(room.getRoomId()));
+            }
+        }
     }
 
     @GetMapping("/test")
@@ -165,4 +325,6 @@ public class ChatController {
     public String test() {
         return "chat controller ok";
     }
+
+
 }

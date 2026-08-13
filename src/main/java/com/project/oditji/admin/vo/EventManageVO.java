@@ -1,5 +1,151 @@
 package com.project.oditji.admin.vo;
 
-public class EventManageVO {
-    
+import java.time.LocalDate;
+
+import com.project.oditji.common.util.DateTimeUtil;
+import com.project.oditji.common.vo.EventBaseVO;
+
+/**
+ * 이벤트 관리 VO (EVENT + EVENT_PRODUCT + PRODUCT + BUSINESS 조회 결과).
+ */
+public class EventManageVO extends EventBaseVO {
+
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
+
+    private String businessName;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Long productNo;
+    private String productName;
+    private Long price;
+    private Integer eventDiscountRate;
+    private String productDetail;
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public Long getProductNo() {
+        return productNo;
+    }
+
+    public void setProductNo(Long productNo) {
+        this.productNo = productNo;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public Long getPrice() {
+        return price;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public Integer getEventDiscountRate() {
+        return eventDiscountRate;
+    }
+
+    public void setEventDiscountRate(Integer eventDiscountRate) {
+        this.eventDiscountRate = eventDiscountRate;
+    }
+
+    public String getProductDetail() {
+        return productDetail;
+    }
+
+    public void setProductDetail(String productDetail) {
+        this.productDetail = productDetail;
+    }
+
+    public Long getDiscountedPrice() {
+        if (price == null || eventDiscountRate == null) {
+            return null;
+        }
+
+        return Math.round(price * (100 - eventDiscountRate) / 100.0);
+    }
+
+    public String getApprovalStatus() {
+        String status = getStatus();
+
+        if (STATUS_REJECTED.equals(status)) {
+            return STATUS_REJECTED;
+        }
+
+        if (STATUS_APPROVED.equals(status) || "END".equals(status)) {
+            return STATUS_APPROVED;
+        }
+
+        return "WAITING";
+    }
+
+    public String getApprovalStatusLabel() {
+        return switch (getApprovalStatus()) {
+            case STATUS_APPROVED -> "승인";
+            case STATUS_REJECTED -> "반려";
+            default -> "대기";
+        };
+    }
+
+    public String getProgressStatus() {
+        if (!STATUS_APPROVED.equals(getApprovalStatus()) || startDate == null || endDate == null) {
+            return null;
+        }
+
+        LocalDate today = LocalDate.now(DateTimeUtil.KOREA_ZONE);
+
+        if (today.isBefore(startDate)) {
+            return "UPCOMING";
+        }
+
+        if (today.isAfter(endDate)) {
+            return "ENDED";
+        }
+
+        return "ONGOING";
+    }
+
+    public String getProgressStatusLabel() {
+        String progress = getProgressStatus();
+
+        if (progress == null) {
+            return "-";
+        }
+
+        return switch (progress) {
+            case "ONGOING" -> "진행중";
+            case "UPCOMING" -> "예정";
+            default -> "종료";
+        };
+    }
+
 }

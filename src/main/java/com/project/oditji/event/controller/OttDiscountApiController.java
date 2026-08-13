@@ -1,0 +1,165 @@
+package com.project.oditji.event.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.project.oditji.common.util.PaginationUtil;
+import com.project.oditji.common.vo.PageVO;
+import com.project.oditji.event.service.OttDiscountService;
+import com.project.oditji.event.vo.OttDiscountVO;
+
+@RestController
+@RequestMapping("/api/discount")
+public class OttDiscountApiController {
+
+    /** [수정] ottDiscount.jsp와 동일하게 8개 단위 페이징 */
+    private static final int DISCOUNT_PAGE_SIZE = 8;
+
+    /* [SonarQube] API 응답 키/상태 문자열의 중복 리터럴을 상수로 통합합니다. */
+    private static final String RESPONSE_STATUS = "status";
+    private static final String RESPONSE_MESSAGE = "message";
+    private static final String STATUS_SUCCESS = "success";
+    private static final String STATUS_ERROR = "error";
+
+    private final OttDiscountService ottDiscountService;
+
+    public OttDiscountApiController(OttDiscountService ottDiscountService) {
+        this.ottDiscountService = ottDiscountService;
+    }
+
+    /**
+     * 1. 할인 정보 목록 조회 (GET)
+     * URL: /api/discount?platform=NETFLIX&category=CARD&page=1
+     * [수정] 플랫폼/카테고리 필터를 AJAX로 바꿀 때도 서버와 동일한 8개 단위 페이징을
+     * 적용해야 하므로 page 파라미터를 추가하고, 프론트에서 페이지네이션 내비게이션을
+     * 다시 그릴 수 있도록 currentPage/totalPage/totalCount를 응답에 함께 내려준다.
+     */
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getDiscountList(
+            @RequestParam(value = "platform", required = false, defaultValue = "ALL") String platform,
+            @RequestParam(value = "category", required = false, defaultValue = "ALL") String category,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page) {
+
+        Map<String, Object> response = new HashMap<String, Object>();
+
+        int totalCount = ottDiscountService.getDiscountListCount(platform, category);
+        PageVO pagination = PaginationUtil.createPage(page, DISCOUNT_PAGE_SIZE, totalCount);
+
+        List<OttDiscountVO> list =
+                ottDiscountService.getDiscountList(platform, category, pagination.getCurrentPage(), DISCOUNT_PAGE_SIZE);
+
+        /* [수정] 히어로 배너 실시간 갱신: 기존에는 최초 페이지 로드시 서버가 렌더링한
+           heroItem이 필터를 바꿔도 그대로 남아있어(=새로고침 전까지 첫 진입 값 고정)
+           "넷플릭스 탭을 눌러도 위 배너가 안 바뀌는" 문제가 있었다. AJAX 필터 응답에도
+           동일한 로직(ottDiscountService.getHeroDiscount)으로 조회한 heroItem을 함께
+           내려주고, 프론트(ottDiscount.js)가 이 값으로 히어로 배너를 다시 그리게 한다. */
+        OttDiscountVO heroItem = ottDiscountService.getHeroDiscount(platform, category);
+
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+        response.put("count", list.size());
+        response.put("data", list);
+        response.put("heroItem", heroItem);
+        response.put("currentPage", pagination.getCurrentPage());
+        response.put("totalPage", pagination.getTotalPage());
+        response.put("totalCount", pagination.getTotalCount());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 2. 할인 정보 단건 상세 조회 (GET)
+     * URL: /api/discount/1
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getDiscountDetail(@PathVariable("id") Long id) {
+        Map<String, Object> response = new HashMap<String, Object>();
+        OttDiscountVO discount = ottDiscountService.getDiscountDetail(id);
+
+        if (discount == null) {
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "해당 할인 정보를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+        response.put("data", discount);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 3. 할인 정보 신규 등록 (POST)
+     * URL: /api/discount
+     */
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createDiscount(@RequestBody OttDiscountVO discountVO) {
+        Map<String, Object> response = new HashMap<String, Object>();
+
+        boolean result = ottDiscountService.createDiscount(discountVO);
+        if (result) {
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 정상적으로 등록되었습니다.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } else {
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "등록에 실패했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * 4. 할인 정보 수정 (PUT)
+     * URL: /api/discount/1
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateDiscount(
+            @PathVariable("id") Long id,
+            @RequestBody OttDiscountVO discountVO) {
+
+        Map<String, Object> response = new HashMap<String, Object>();
+        discountVO.setDiscountId(id);
+
+        boolean result = ottDiscountService.updateDiscount(discountVO);
+        if (result) {
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 수정되었습니다.");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "수정에 실패했거나 대상을 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    /**
+     * 5. 할인 정보 삭제 (DELETE)
+     * URL: /api/discount/1
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deleteDiscount(@PathVariable("id") Long id) {
+        Map<String, Object> response = new HashMap<String, Object>();
+
+        boolean result = ottDiscountService.deleteDiscount(id);
+        if (result) {
+            response.put(RESPONSE_STATUS, STATUS_SUCCESS);
+            response.put(RESPONSE_MESSAGE, "할인 정보가 비활성화(삭제)되었습니다.");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put(RESPONSE_STATUS, STATUS_ERROR);
+            response.put(RESPONSE_MESSAGE, "삭제 대상을 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+}

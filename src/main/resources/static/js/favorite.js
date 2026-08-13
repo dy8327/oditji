@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
 
     // ================= TAB =================
@@ -15,55 +14,10 @@ document.addEventListener("DOMContentLoaded", () => {
             tab.classList.add("active");
 
             contents.forEach(c => c.classList.remove("active"));
-            document.getElementById(target + "-tab")
-                .classList.add("active");
 
-        });
-
-    });
-
-
-    // ================= FAVORITE TOGGLE =================
-    const buttons = document.querySelectorAll(".fav-btn");
-
-    buttons.forEach(btn => {
-
-        let loading = false;
-
-        btn.addEventListener("click", async () => {
-
-            if (loading) return;
-            loading = true;
-
-            const contentNo = btn.dataset.contentNo;
-
-            try {
-
-                const res = await fetch("/favorite/toggle", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ contentNo })
-                });
-
-                const data = await res.json();
-
-                if (data.result === "added") {
-                    btn.classList.add("active");
-                    btn.innerText = "♥";
-                    updateCount(+1);
-                } else {
-                    btn.classList.remove("active");
-                    btn.innerText = "♡";
-                    updateCount(-1);
-                    btn.closest(".favorite-card").remove();
-                }
-
-            } catch (err) {
-                console.error(err);
-            } finally {
-                loading = false;
+            const targetTab = document.getElementById(target + "-tab");
+            if (targetTab) {
+                targetTab.classList.add("active");
             }
 
         });
@@ -71,20 +25,175 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // ================= COUNT UPDATE =================
-    function updateCount(diff) {
+    // ================= FAVORITE / WISH =================
+    document.addEventListener("click", async (e) => {
 
-        const badge = document.getElementById("favCount");
+        const btn = e.target.closest(".fav-btn");
+        if (!btn) return;
 
-        if (!badge) return;
+        if (btn.dataset.loading === "true") return;
+        btn.dataset.loading = "true";
 
-        let count = parseInt(badge.innerText || "0");
+        const type = btn.dataset.type;
 
-        count += diff;
+        const endpoint =
+            (type === "goods")
+                ? `${contextPath}/wish/toggle`
+                : `${contextPath}/favorite/toggle`;
 
-        if (count < 0) count = 0;
+        const body =
+            (type === "goods")
+                ? {
+                    productNo: btn.dataset.productNo
+                }
+                : {
+                    contentNo: btn.dataset.contentNo
+                };
 
-        badge.innerText = count;
+        try {
+
+            const res = await fetch(endpoint, {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(body)
+
+            });
+
+            if (res.status === 401) {
+
+                const moveLogin = await showConfirm(
+                    "찜 기능은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?",
+                    "info"
+                );
+
+                if (moveLogin) {
+
+                    const currentUrl =
+                        window.location.pathname
+                        + window.location.search;
+
+                    window.location.href =
+                        `${contextPath}/member/login`
+                        + `?returnUrl=${encodeURIComponent(currentUrl)}`;
+                }
+
+                return;
+
+            }
+
+            // 성공/실패 응답 모두 JSON을 먼저 읽어
+            // 서버에서 내려준 상세 안내 문구를 사용할 수 있게 합니다.
+            const data = await res.json()
+                .catch(() => ({}));
+
+            if (!res.ok) {
+                throw new Error(
+                    data.message
+                    || "찜 처리 중 오류가 발생했습니다."
+                );
+            }
+
+            if (data.active) {
+
+                btn.classList.add("active");
+                setFavIcon(btn, "♥");
+
+                updateCount(type, 1);
+
+            } else {
+
+                btn.classList.remove("active");
+                setFavIcon(btn, "♡");
+
+                updateCount(type, -1);
+
+                // 마이페이지에서는 카드 제거
+                const card = btn.closest(".favorite-card");
+
+                if (card) {
+
+                    const grid = card.parentElement;
+
+                    card.remove();
+
+                    if (grid &&
+                        grid.querySelectorAll(".favorite-card").length === 0) {
+
+                        const empty = document.createElement("div");
+
+                        empty.className = "empty-state";
+
+                        empty.textContent =
+                            type === "goods"
+                                ? "찜한 상품이 없습니다."
+                                : "찜한 콘텐츠가 없습니다.";
+
+                        grid.parentElement.insertBefore(empty, grid);
+                    }
+                }
+            }
+
+        } catch (err) {
+
+            console.error(err);
+            await showAlert("찜 처리 중 오류가 발생했습니다.", "error");
+
+        } finally {
+
+            btn.dataset.loading = "false";
+
+        }
+
+    });
+
+
+    // 버튼 안에 아이콘 전용 span(.fav-icon)이 있으면 그 부분만 바꾸고,
+    // 없으면 (favoriteList.jsp 카드처럼 아이콘이 버튼 텍스트 전부인 경우) 버튼 전체 텍스트를 바꾼다.
+    function setFavIcon(btn, icon) {
+
+        const iconEl = btn.querySelector(".fav-icon");
+
+        if (iconEl) {
+            iconEl.textContent = icon;
+        } else {
+            btn.textContent = icon;
+        }
+
+    }
+
+
+    // ================= COUNT =================
+    function updateCount(type, diff) {
+
+        const tabCountId =
+            type === "goods"
+                ? "goodsTabCount"
+                : "contentTabCount";
+
+        const tabCount = document.getElementById(tabCountId);
+        const totalCount = document.getElementById("favCount");
+
+        [tabCount, totalCount].forEach(el => {
+
+            if (!el) return;
+
+            let count = parseInt(el.textContent || "0", 10);
+
+            count += diff;
+
+            if (count < 0) {
+                count = 0;
+            }
+
+            el.textContent = count;
+
+        });
+
     }
 
 });

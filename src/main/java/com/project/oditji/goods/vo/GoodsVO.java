@@ -1,25 +1,48 @@
 package com.project.oditji.goods.vo;
 
-public class GoodsVO {
+import com.project.oditji.common.vo.ProductSaleInfoVO;
 
-    private int goodsId;
-    private String goodsName;
-    private String imageUrl;
-    private int price;
-    private int stock;
+/**
+ * 상품 검색, 추천, 상세, 찜 목록에서 사용하는 상품 VO입니다.
+ */
+public class GoodsVO extends ProductSaleInfoVO {
 
-    public int getGoodsId() { return goodsId; }
-    public void setGoodsId(int goodsId) { this.goodsId = goodsId; }
+    private static final long serialVersionUID = 1L;
 
-    public String getGoodsName() { return goodsName; }
-    public void setGoodsName(String goodsName) { this.goodsName = goodsName; }
+    private Integer businessNo;
+    private Integer contentNo;
+    private Integer actorNo;
+    private String description;
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Integer getBusinessNo() {
+        return businessNo;
+    }
 
-    public int getPrice() { return price; }
-    public void setPrice(int price) { this.price = price; }
+    public void setBusinessNo(Integer businessNo) {
+        this.businessNo = businessNo;
+    }
 
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    public Integer getContentNo() {
+        return contentNo;
+    }
+
+    public void setContentNo(Integer contentNo) {
+        this.contentNo = contentNo;
+    }
+
+    public Integer getActorNo() {
+        return actorNo;
+    }
+
+    public void setActorNo(Integer actorNo) {
+        this.actorNo = actorNo;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }

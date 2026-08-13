@@ -5,7 +5,6 @@ target/
 !**/src/test/**/target/
 
 # Local config / secret files
-src/main/resources/static/js/firebase-config.js
 src/main/resources/application.properties
 
 ### STS ###
@@ -36,4 +35,20 @@ build/
 ### VS Code ###
 .vscode/
 
-.application.properties
+# 검색 콘텐츠 캐시
+/cache/
+/uploads/
+
+# Firebase 서비스 계정 개인키는 저장소에 올리지 않습니다.
+firebase-service-account*.json
+**/firebase-service-account*.json
+*-firebase-adminsdk-*.json
+**/*-firebase-adminsdk-*.json
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+serviceAccountKey.json
+application-local.properties

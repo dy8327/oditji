@@ -1,75 +1,3650 @@
+:root {
+  /* ---- surface & text ---- */
+  --oditji-bg: #121214;
+  --oditji-surface: #1e1e1e;
+  --oditji-surface-raised: #262629;
+  --oditji-border: #313136;
+  --oditji-text: #f3f3f3;
+  --oditji-text-muted: #a6a6ab;
+  /* [수정] #6f6f75는 --oditji-surface-raised(#262629) 위에서 대비 약 3.0:1로
+     부족해 모든 사용처(썸네일 placeholder, 비활성 버튼 등)에 공통 적용되는
+     이 토큰 자체를 밝게 조정 (가장 밝은 표면 기준으로도 4.5:1 이상 확보) */
+  --oditji-text-faint: #8d8d93;
+
+  /* ---- accent ---- */
+  --oditji-accent: #4caf50;
+  --oditji-accent-strong: #3f9942;
+  --oditji-accent-soft: rgba(76, 175, 80, 0.14);
+  --oditji-danger: #e2585d;
+  --oditji-danger-soft: rgba(226, 88, 93, 0.12);
+
+  /* ---- shape & motion ---- */
+  --oditji-radius-lg: 12px;
+  --oditji-radius-sm: 8px;
+  --oditji-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* ---- type ---- */
+  --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* =====================================================
+   PAGE SHELLS
+====================================================== */
+
+.order-container,
 .order-list-container,
-.order-complete-container{
-    padding:40px;
+.order-complete-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  color: var(--oditji-text);
+  font-family: var(--font-body);
 }
 
-/* =========================
-   ORDER CARD
-========================= */
-.order-card{
-    background:#1e1e1e;
-    border-radius:12px;
-    padding:20px;
-    margin-bottom:20px;
+.order-container h1,
+.order-list-container h1,
+.complete-box h1 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* HEADER */
-.order-card-header{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:15px;
-    color:#aaa;
+/* 빈 주문 내역 */
+.empty-box {
+  padding: 60px 20px;
+  border: 1px dashed var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+  color: var(--oditji-text-muted);
+  text-align: center;
 }
 
-/* ITEMS */
-.order-item{
-    display:flex;
-    gap:15px;
-    margin-bottom:10px;
+/* 이미지가 없는 상품 썸네일 공용 */
+.no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-faint);
+  font-size: 11px;
+  letter-spacing: 0.05em;
 }
 
-.order-item img{
-    width:60px;
-    height:60px;
-    object-fit:cover;
+/* =====================================================
+   TICKET DIVIDER
+====================================================== */
+
+.ticket-divider {
+  position: relative;
+
+  height: 1px;
+  margin: 20px -20px;
+
+  background-image: repeating-linear-gradient(to right, var(--oditji-border) 0 10px, transparent 10px 18px);
 }
 
-/* TOTAL */
-.order-total{
-    text-align:right;
-    font-weight:700;
-    margin-top:10px;
+.ticket-divider::before,
+.ticket-divider::after {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+  background: var(--oditji-bg);
+
+  transform: translateY(-50%);
 }
 
-/* =========================
-   COMPLETE PAGE
-========================= */
-.complete-box{
-    text-align:center;
-    background:#1e1e1e;
-    padding:40px;
-    border-radius:12px;
+.ticket-divider::before {
+  left: -10px;
 }
 
-.complete-info{
-    margin-top:20px;
+.ticket-divider::after {
+  right: -10px;
 }
 
-.complete-info div{
-    margin-bottom:10px;
+/* =====================================================
+   ORDER SHEET
+   order.jsp
+====================================================== */
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-bottom: 24px;
 }
 
-.complete-actions{
-    margin-top:20px;
-    display:flex;
-    justify-content:center;
-    gap:10px;
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 16px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
 }
 
-.complete-actions a{
-    padding:10px 15px;
-    background:#4caf50;
-    color:#fff;
-    border-radius:8px;
-    text-decoration:none;
+.order-img {
+  flex: none;
+
+  width: 64px;
+  height: 64px;
+
+  border-radius: var(--oditji-radius-sm);
+  overflow: hidden;
+}
+
+.order-img img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-info h3 {
+  margin: 0 0 4px;
+
+  overflow: hidden;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-info p {
+  margin: 2px 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.order-item-business {
+  color: var(--oditji-accent) !important;
+  font-weight: 500;
+}
+
+/* =====================================================
+   [상품 옵션 정보 표시 추가]
+   주문서에서 사용자가 선택한 색상·사이즈를 구분하여 표시한다.
+====================================================== */
+.order-item-option {
+  display: inline-block;
+
+  margin: 4px 0 !important;
+  padding: 4px 8px;
+
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+.order-subtotal {
+  flex: none;
+
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   배송 정보 입력
+====================================================== */
+
+.order-form {
+  margin-bottom: 24px;
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+}
+
+.order-form h2 {
+  margin: 0 0 14px;
+
+  color: var(--oditji-text-muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.order-form input[type="text"] {
+  display: block;
+
+  box-sizing: border-box;
+  width: 100%;
+
+  margin-bottom: 10px;
+  padding: 12px 14px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    background-color 0.15s var(--oditji-ease);
+}
+
+.order-form input[type="text"]:last-child {
+  margin-bottom: 0;
+}
+
+.order-form input[type="text"]::placeholder {
+  color: var(--oditji-text-faint);
+}
+
+.order-form input[type="text"]:hover {
+  border-color: var(--oditji-text-faint);
+}
+
+.order-form input[type="text"]:focus-visible {
+  outline: none;
+
+  border-color: var(--oditji-accent);
+  background: var(--oditji-surface);
+
+  box-shadow: 0 0 0 3px var(--oditji-accent-soft);
+}
+
+/* =====================================================
+   배송지 주소 검색 영역
+====================================================== */
+
+.address-search-row {
+  display: flex;
+  align-items: stretch;
+
+  width: 100%;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.order-form .address-search-row input[type="text"] {
+  flex: 1;
+
+  width: auto;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.address-search-btn {
+  flex: none;
+
+  box-sizing: border-box;
+  width: 112px;
+  padding: 0 14px;
+
+  border: 1px solid var(--oditji-accent);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    border-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.address-search-btn:hover {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+
+  color: #0d1f0e;
+}
+
+.address-search-btn:active {
+  transform: scale(0.98);
+}
+
+.address-search-btn:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+.address-search-btn:disabled {
+  border-color: var(--oditji-border);
+  background: var(--oditji-surface-raised);
+
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+.order-form input[type="text"][readonly] {
+  color: var(--oditji-text-muted);
+  cursor: default;
+}
+
+.order-form input[type="text"][readonly]:hover {
+  border-color: var(--oditji-border);
+}
+
+.order-form input[type="text"][readonly]:focus-visible {
+  border-color: var(--oditji-border);
+  background: var(--oditji-surface-raised);
+
+  box-shadow: none;
+}
+
+#zipcode,
+#address1 {
+  color: var(--oditji-text-muted);
+}
+
+/* =====================================================
+   결제 요약
+====================================================== */
+
+.order-summary {
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+}
+
+.order-summary > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  padding: 6px 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+}
+
+.order-summary > div span:last-child {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.order-summary .final {
+  margin-top: 4px;
+  padding-top: 16px;
+
+  border-top: 1px dashed var(--oditji-border);
+
+  color: var(--oditji-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-summary .final span:last-child {
+  color: var(--oditji-accent);
+  font-size: 20px;
+}
+
+.order-error {
+  display: none;
+
+  margin: 14px 0 0;
+  padding: 10px 14px;
+
+  border: 1px solid var(--oditji-danger);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-danger-soft);
+
+  color: var(--oditji-danger);
+  font-size: 13px;
+}
+
+#orderBtn {
+  display: block;
+
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-accent);
+
+  color: #0d1f0e;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+#orderBtn:hover {
+  background: var(--oditji-accent-strong);
+}
+
+#orderBtn:active {
+  transform: scale(0.99);
+}
+
+#orderBtn:disabled {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+#orderBtn:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+#cancelBtn {
+  display: block;
+
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+
+  /* 🔴 1. 배경색을 빨간색으로 변경 */
+  background: #ff4d4d;
+
+  /* ⚪ 2. 빨간 배경에서 가독성을 높이기 위해 글자색을 흰색으로 변경 */
+  color: #0d1f0e;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+#cancelBtn:hover {
+  /* 🔴 3. 마우스 올렸을 때 더 진한 빨간색 */
+  background: #d93636;
+}
+
+#cancelBtn:active {
+  transform: scale(0.99);
+}
+
+#cancelBtn:disabled {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-faint);
+
+  cursor: not-allowed;
+}
+
+#cancelBtn:focus-visible {
+  /* 🔴 4. 키보드 포커스 테두리도 빨간색으로 변경 */
+  outline: 2px solid #ff4d4d;
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   ORDER LIST
+   orderList.jsp
+====================================================== */
+
+.order-card {
+  position: relative;
+
+  margin-bottom: 20px;
+  padding: 20px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+
+  overflow: hidden;
+}
+
+/* 주문번호, 주문일시, 주문상태 */
+.order-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+  margin-bottom: 4px;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.order-card-header strong {
+  margin-right: 6px;
+
+  color: var(--oditji-text-faint);
+  font-weight: 500;
+}
+
+.order-card-header > div:first-child span {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+}
+
+.order-status {
+  flex: none;
+
+  padding: 4px 10px;
+
+  border-radius: 999px;
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 주문 상품 목록 */
+.order-card .order-items {
+  gap: 10px;
+
+  margin: 16px 0 0;
+}
+
+/*
+ * orderList.jsp 구조:
+ *
+ * .order-item
+ *   ├─ a
+ *   │   ├─ img 또는 .no-image
+ *   │   └─ .order-item-info
+ *   └─ .review-btn
+ */
+.order-card .order-item {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+  padding: 14px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: rgba(18, 18, 20, 0.28);
+}
+
+.order-card .order-item + .order-item {
+  margin-top: 0;
+}
+
+.order-card .order-item > a {
+  display: flex;
+  flex: 1;
+  align-items: center;
+
+  min-width: 0;
+  gap: 14px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition: opacity 0.15s var(--oditji-ease);
+}
+
+.order-card .order-item > a:hover {
+  opacity: 0.8;
+}
+
+.order-card .order-item > a:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 4px;
+
+  border-radius: var(--oditji-radius-sm);
+}
+
+/* 상품 이미지 */
+.order-card .order-item > a > img,
+.order-card .order-item > a > .no-image {
+  flex: none;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  object-fit: cover;
+}
+
+.order-card .order-item > a > img {
+  display: block;
+
+  background: var(--oditji-surface-raised);
+}
+
+/* 상품 이름, 수량, 가격 */
+.order-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-item-info > div:first-child {
+  margin-bottom: 5px;
+
+  overflow: hidden;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-item-info > div {
+  margin-top: 2px;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.order-item-info > div:last-child {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   주문 카드 내부 주문 정보
+====================================================== */
+
+.order-info-section {
+  margin-top: 22px;
+  padding: 22px 4px 2px;
+
+  border-top: 1px solid var(--oditji-border);
+}
+
+.order-info-title {
+  margin: 0 0 14px;
+
+  color: var(--oditji-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.order-info-list {
+  width: 100%;
+}
+
+.order-info-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  align-items: start;
+
+  gap: 20px;
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+}
+
+.order-info-row:last-child {
+  border-bottom: none;
+}
+
+.order-info-label {
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.order-info-value {
+  min-width: 0;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.order-info-price {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-info-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 27px;
+  padding: 3px 12px;
+
+  border-radius: 999px;
+  background: var(--oditji-accent-soft);
+
+  color: var(--oditji-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 주문 카드 내부 티켓 구분선 */
+.order-card .ticket-divider {
+  margin: 18px -20px 14px;
+}
+
+/* 총 결제금액 */
+.order-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+  margin-top: 0;
+  padding: 0;
+
+  border-top: none;
+
+  color: var(--oditji-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.order-total-price {
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =====================================================
+   REVIEW BUTTON
+====================================================== */
+
+.review-btn {
+  flex: none;
+
+  width: auto;
+  min-width: 90px;
+  height: 36px;
+
+  margin: 0;
+  padding: 0 18px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+  background: #7eb1ff;
+
+  color: #181818;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.review-btn:hover {
+  background: #9ac4ff;
+}
+
+.review-btn:active {
+  transform: scale(0.97);
+}
+
+.review-btn:focus-visible {
+  outline: 2px solid #9ac4ff;
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   ORDER COMPLETE
+   orderComplete.jsp
+====================================================== */
+
+.complete-box {
+  padding: 48px 32px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+
+  text-align: center;
+}
+
+.complete-box > p {
+  margin: 0 0 4px;
+
+  color: var(--oditji-text-muted);
+}
+
+.complete-box .ticket-divider {
+  margin: 24px -32px;
+}
+
+.complete-info {
+  margin-top: 24px;
+
+  text-align: left;
+}
+
+.complete-info div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 8px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+}
+
+.complete-info div:last-child {
+  border-bottom: none;
+}
+
+.complete-info div > span {
+  flex: none;
+}
+
+.complete-info strong {
+  min-width: 0;
+
+  color: var(--oditji-text);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.complete-items {
+  margin-top: 8px;
+
+  text-align: left;
+}
+
+.complete-item {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--oditji-border);
+}
+
+.complete-item:last-child {
+  border-bottom: none;
+}
+
+.complete-item img,
+.complete-item .no-image {
+  flex: none;
+
+  width: 52px;
+  height: 52px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  object-fit: cover;
+}
+
+.complete-item-info {
+  flex: 1;
+  min-width: 0;
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+}
+
+.complete-item-info > div:first-child {
+  margin-bottom: 2px;
+
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.complete-item-info > div:last-child {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.complete-actions {
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.complete-actions a {
+  padding: 12px 18px;
+
+  border-radius: var(--oditji-radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    opacity 0.15s var(--oditji-ease);
+}
+
+.complete-actions a:first-child {
+  background: var(--oditji-accent);
+  color: #0d1f0e;
+}
+
+.complete-actions a:first-child:hover {
+  background: var(--oditji-accent-strong);
+}
+
+.complete-actions a:last-child {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text);
+}
+
+.complete-actions a:last-child:hover {
+  opacity: 0.8;
+}
+
+.complete-actions a:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   RESPONSIVE
+====================================================== */
+
+@media (max-width: 640px) {
+  .order-info-row {
+    grid-template-columns: 1fr;
+
+    gap: 5px;
+  }
+
+  .order-info-label {
+    font-size: 12px;
+  }
+
+  .order-total {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 560px) {
+  .order-container,
+  .order-list-container,
+  .order-complete-container {
+    padding: 24px 16px 60px;
+  }
+
+  .order-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .order-subtotal {
+    width: 100%;
+
+    text-align: right;
+  }
+
+  .order-card-header {
+    flex-wrap: wrap;
+
+    row-gap: 6px;
+  }
+
+  .order-card .order-item {
+    align-items: center;
+
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .order-card .order-item > a {
+    width: 100%;
+  }
+
+  .order-card .order-item > a > img,
+  .order-card .order-item > a > .no-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .review-btn {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .order-info-section {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .complete-box {
+    padding: 32px 20px;
+  }
+
+  .complete-box .ticket-divider {
+    margin: 24px -20px;
+  }
+
+  .complete-actions {
+    flex-direction: column;
+  }
+
+  .complete-actions a {
+    text-align: center;
+  }
+
+  .complete-info div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .complete-info strong {
+    text-align: left;
+  }
+
+  .address-search-row {
+    gap: 8px;
+  }
+
+  .address-search-btn {
+    width: 96px;
+    padding: 0 10px;
+
+    font-size: 13px;
+  }
+}
+
+/* =====================================================
+   REDUCED MOTION
+====================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  #orderBtn,
+  .order-form input[type="text"],
+  .address-search-btn,
+  .order-card .order-item > a,
+  .review-btn,
+  .complete-actions a {
+    transition: none;
+  }
+}
+
+/* =====================================================
+   [상품별 부분 취소 기능 추가]
+
+   기존 주문 카드 및 상품 카드 레이아웃은 유지하고,
+   부분 취소 버튼과 상태 문구에 필요한 스타일만 추가한다.
+====================================================== */
+.item-cancel-btn {
+  min-width: 118px;
+  padding: 9px 12px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: transparent;
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease);
+}
+
+.item-cancel-btn:hover {
+  border-color: var(--oditji-danger, #ef6b6b);
+  color: var(--oditji-danger, #ef6b6b);
+}
+
+.item-cancel-state {
+  min-width: 118px;
+  padding: 9px 12px;
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.item-cancel-state.canceled {
+  opacity: 0.75;
+}
+
+@media (max-width: 560px) {
+  .item-cancel-btn,
+  .item-cancel-state {
+    width: 100%;
+  }
+}
+
+/* =====================================================
+   [부분 취소 반려 사유 표시 추가]
+
+   기존 주문상품 카드 레이아웃은 유지하고, 반려 상태와
+   반려 사유 문구에 필요한 스타일만 추가한다.
+====================================================== */
+.item-cancel-reject-box {
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.item-cancel-state.rejected {
+  color: var(--oditji-danger, #ef6b6b);
+}
+
+.item-cancel-reject-reason {
+  max-width: 260px;
+  margin: 0;
+  color: var(--oditji-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .item-cancel-reject-box {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .item-cancel-reject-reason {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+/* =====================================================
+   [주문 전체 취소 상태 및 반려 사유 표시 추가]
+
+   기존 주문 정보 영역의 레이아웃은 유지하면서
+   전체 취소 승인 대기, 반려, 완료 상태만 표시한다.
+====================================================== */
+.full-cancel-status-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface-raised);
+}
+
+.full-cancel-status-title {
+  display: block;
+  color: var(--oditji-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.full-cancel-status-message {
+  margin: 7px 0 0;
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.full-cancel-status-box.waiting {
+  border-color: rgba(255, 193, 7, 0.45);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+.full-cancel-status-box.waiting .full-cancel-status-title {
+  color: #f0c75e;
+}
+
+.full-cancel-status-box.rejected {
+  border-color: var(--oditji-danger);
+  background: var(--oditji-danger-soft);
+}
+
+.full-cancel-status-box.rejected .full-cancel-status-title {
+  color: var(--oditji-danger);
+}
+
+.full-cancel-status-box.approved {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+}
+
+.full-cancel-status-box.approved .full-cancel-status-title {
+  color: var(--oditji-accent);
+}
+
+/* =====================================================
+   [주문 전체 취소 반려 사유 라벨 보완]
+
+   기존 전체 취소 상태 박스 디자인은 유지하면서
+   반려 사유 라벨만 구분하여 가독성을 높인다.
+====================================================== */
+.full-cancel-reject-label {
+  margin-right: 4px;
+  color: var(--oditji-danger);
+  font-weight: 700;
+}
+
+/* =====================================================
+   [주문 전체 취소 버튼 영역 정렬 유지]
+
+   기존 주문 정보 영역의 우측 정렬을 유지한다.
+====================================================== */
+.order-cancel-action {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 18px;
+}
+
+/* =====================================================
+   [모바일 전체 취소 상태 영역 보완]
+====================================================== */
+@media (max-width: 560px) {
+  .full-cancel-status-box {
+    padding: 13px 14px;
+  }
+
+  .full-cancel-status-message {
+    font-size: 12px;
+  }
+
+  .order-cancel-action {
+    justify-content: stretch;
+  }
+
+  .order-cancel-action .order-select-cancel-btn {
+    width: 100%;
+  }
+}
+
+/* =====================================================
+   ORDER LIST LAYOUT UPDATE
+   - 주문 카드 좌우 2단 구성
+   - 주문 상태는 오른쪽 주문 정보에서만 표시
+   - 주문 전체 취소 결과는 카드 공통 영역에 표시
+   - 주문 3건 단위 페이지 번호
+====================================================== */
+
+.order-card-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  align-items: stretch;
+  gap: 24px;
+}
+
+.order-product-section {
+  min-width: 0;
+}
+
+.order-card-header {
+  justify-content: flex-start;
+  gap: 18px;
+  min-height: 28px;
+  margin-bottom: 16px;
+}
+
+.order-card-header > div:last-child {
+  margin-left: auto;
+}
+
+.order-card .order-items {
+  margin-top: 0;
+}
+
+.order-card .order-item {
+  align-items: stretch;
+}
+
+.order-item-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 118px;
+  gap: 9px;
+}
+
+.order-item-actions .review-btn,
+.order-item-actions .item-cancel-btn,
+.order-item-actions .delivery-detail-btn {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.order-item-actions .item-cancel-state {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.order-info-section {
+  min-width: 0;
+  margin-top: 0;
+  padding: 20px;
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: rgba(18, 18, 20, 0.28);
+}
+
+.order-info-title {
+  margin-bottom: 16px;
+}
+
+.order-info-row {
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding: 13px 0;
+}
+
+.full-cancel-status-box {
+  margin-top: 20px;
+}
+
+.order-card .ticket-divider {
+  margin-top: 20px;
+}
+
+.order-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.order-card-footer .order-total {
+  margin-right: auto;
+}
+
+.order-card-footer .order-cancel-action {
+  margin: 0;
+}
+
+.order-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 30px 0 10px;
+}
+
+.order-page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--oditji-border);
+  border-radius: 10px;
+  background: var(--oditji-surface);
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    background-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.order-page-link:hover {
+  border-color: var(--oditji-accent);
+  color: var(--oditji-text);
+}
+
+.order-page-link:active {
+  transform: scale(0.96);
+}
+
+.order-page-link:focus-visible {
+  outline: 2px solid var(--oditji-accent);
+  outline-offset: 2px;
+}
+
+.order-page-link.active {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+  color: #181818;
+  cursor: default;
+}
+
+.order-page-arrow {
+  font-size: 22px;
+  line-height: 1;
+}
+
+@media (max-width: 1100px) {
+  .order-card-main {
+    grid-template-columns: 1fr;
+  }
+
+  .order-info-section {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .order-card .order-item {
+    flex-direction: column;
+  }
+
+  /* [수정] 배송조회/리뷰 버튼 영역이 데스크톱용 고정 폭(118px)을
+     그대로 물려받아 모바일에서 두 버튼이 매우 좁은 폭에 욱여넣어져
+     글자가 세로로 깨져 보이던 문제를 해결한다. flex 대신 grid로
+     바꿔 버튼 개수(1개 또는 2개)에 관계없이 항상 카드 폭 전체를
+     균등하게 나눠 갖도록 한다. */
+  .order-item-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    width: 100%;
+  }
+
+  .order-item-actions .review-btn,
+  .order-item-actions .item-cancel-btn,
+  .order-item-actions .item-cancel-state,
+  .order-item-actions .delivery-detail-btn {
+    width: 100%;
+    min-width: 0;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .order-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-card-footer .order-total {
+    justify-content: space-between;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .order-card-footer .order-cancel-action,
+  .order-card-footer .order-select-cancel-btn {
+    width: 100%;
+  }
+}
+
+/* =====================================================
+   ORDER LIST WIDTH REFINEMENT
+   - 주문내역 전용 화면 폭 확장
+   - 제목과 주문 카드의 왼쪽 기준선 통일
+   - 상품 영역이 눌리지 않도록 좌우 비율 조정
+====================================================== */
+
+/* =====================================================
+   [마이페이지 영역 크기 통일]
+   구매내역 페이지의 바깥 영역을 마이페이지와 동일한
+   최대 너비와 좌우 여백으로 맞춘다.
+====================================================== */
+.order-list-container {
+  width: min(1480px, calc(100% - 64px));
+  max-width: none;
+  box-sizing: border-box;
+  margin: 32px auto 54px;
+  padding: 16px 28px 54px;
+}
+
+.order-list-container > h1 {
+  margin: 0 0 26px;
+  text-align: left;
+}
+
+.order-list-container .order-card {
+  padding: 24px;
+}
+
+.order-list-container .order-card-main {
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 28px;
+}
+
+.order-list-container .order-product-section {
+  min-width: 0;
+}
+
+.order-list-container .order-card .order-item {
+  gap: 18px;
+  padding: 16px;
+}
+
+.order-list-container .order-card .order-item > a {
+  gap: 16px;
+}
+
+.order-list-container .order-card .order-item > a > img,
+.order-list-container .order-card .order-item > a > .no-image {
+  width: 84px;
+  height: 84px;
+}
+
+.order-list-container .order-item-info > div:first-child {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.order-list-container .order-info-row {
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+
+.order-list-container .order-card .ticket-divider {
+  margin-right: -24px;
+  margin-left: -24px;
+}
+
+.order-list-container .order-card-footer .order-total {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  /* [마이페이지 영역 크기 통일]
+     태블릿에서도 컨테이너가 760px로 강제 축소되지 않도록 수정한다. */
+  .order-list-container {
+    width: calc(100% - 40px);
+  }
+
+  .order-list-container .order-card-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  /* [마이페이지 영역 크기 통일]
+     모바일 페이지 좌우 여백과 상하 간격을 통일한다. */
+  .order-list-container {
+    width: calc(100% - 28px);
+    margin: 24px auto 44px;
+    padding: 0 0 44px;
+  }
+
+  .order-list-container .order-card {
+    padding: 18px;
+  }
+
+  .order-list-container .order-card .ticket-divider {
+    margin-right: -18px;
+    margin-left: -18px;
+  }
+}
+
+/*
+* SonarQube 접근성 이슈 대응:
+* 리뷰 작성 textarea의 label은 화면 배치에 영향을 주지 않으면서
+* 스크린 리더에는 입력 목적을 전달한다.
+*/
+.review-accessibility-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================
+   DELIVERY DETAIL
+   deliveryDetail.jsp - 사용자가 보는 배송 조회 화면
+   order-card / order-info-row / ticket-divider 등 기존
+   주문 화면 컴포넌트와 톤을 맞춰 새로 추가했다.
+====================================================== */
+
+/* 배송 진행 단계 (상품 준비 중 → 배송 중 → 배송 완료) */
+.delivery-track {
+  display: flex;
+  justify-content: space-between;
+
+  margin-bottom: 24px;
+  padding: 24px 16px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+}
+
+.delivery-step {
+  position: relative;
+
+  flex: 1;
+  text-align: center;
+
+  color: var(--oditji-text-faint);
+}
+
+.delivery-step:not(:last-child)::after {
+  content: "";
+
+  position: absolute;
+  top: 9px;
+  left: 55%;
+
+  width: 90%;
+  height: 2px;
+
+  background: var(--oditji-border);
+}
+
+.delivery-step.done:not(:last-child)::after {
+  background: var(--oditji-accent);
+}
+
+.delivery-step .dot {
+  width: 18px;
+  height: 18px;
+  margin: 0 auto 10px;
+
+  border-radius: 50%;
+  background: var(--oditji-border);
+
+  position: relative;
+}
+
+.delivery-step.done .dot,
+.delivery-step.current .dot {
+  background: var(--oditji-accent);
+}
+
+.delivery-step .label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.delivery-step.done .label,
+.delivery-step.current .label {
+  color: var(--oditji-text);
+  font-weight: 700;
+}
+
+/* 운송장 번호 + 복사 버튼 */
+.tracking-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-family: var(--font-mono);
+}
+
+.tracking-copy-btn {
+  flex: none;
+
+  height: 26px;
+  padding: 0 10px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: transparent;
+
+  color: var(--oditji-text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
+}
+
+.tracking-copy-btn:hover {
+  border-color: var(--oditji-accent);
+  color: var(--oditji-accent);
+}
+
+/* 운송장 번호 미등록 안내 */
+.delivery-empty-note {
+  padding: 10px 0 0;
+
+  color: var(--oditji-text-faint);
+  font-size: 13px;
+}
+
+/* =====================================================
+   [배송조회 모달]
+   orderList.jsp - 주문 목록의 "배송조회" 버튼을 누르면
+   화면 전환 없이 모달로 배송 정보를 보여주기 위한 UI.
+
+   [리팩터링]
+   기존에는 이 모달 하나에 대한 스타일이 파일 여러 군데
+   (구 버전의 "진행바+트럭" 디자인, 그 위에 덧붙여진 두 번의
+   "#deliveryDetailModal" 보완 패치)로 흩어져 있었고, 서로 다른
+   시점에 만들어진 트럭 아이콘 규칙들이 충돌하면서 아이콘이
+   깨져 보이고, 헤더(z-index: 9999)보다 모달(z-index: 1000)이
+   낮아 모달 상단(제목/닫기 버튼)이 헤더에 가려 화면을 침범하는
+   것처럼 보이는 문제가 있었다. 모든 규칙을 이 한 곳으로 모으고
+   중복/충돌하던 부분을 정리했다.
+====================================================== */
+
+.delivery-detail-modal {
+  display: none;
+
+  position: fixed;
+  inset: 0;
+  /* 헤더(.header)가 z-index: 9999 이므로 모달이 그 뒤로 가려지지
+     않도록 항상 더 높은 값을 사용한다. */
+  z-index: 10000;
+  /* [수정] <dialog>는 브라우저 기본 스타일로 width/height가
+     fit-content로 지정되어 있다. width만 auto로 덮어쓰고 height를
+     그대로 두면, 오버레이 높이가 뷰포트가 아니라 모달 내용물
+     높이만큼만 생겨서(= 모달 박스 바로 아래부터 오버레이가 사라져)
+     하단이 잘린 것처럼 보인다. width/height 모두 명시적으로
+     100%를 줘서 항상 뷰포트 전체를 덮도록 고정한다. */
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px 16px;
+
+  background: rgba(8, 8, 9, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.delivery-detail-modal.open {
+  display: flex;
+}
+
+.delivery-detail-modal-content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 440px;
+  /* 뷰포트가 아무리 작아도 모달이 화면 밖으로 넘치지 않도록
+     상하 여백을 감안한 높이로 제한하고, 넘치는 내용은 모달
+     내부에서만 스크롤되게 한다. */
+  max-height: min(85vh, 720px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  padding: 26px 24px 24px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: 18px;
+  background: var(--oditji-surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  animation: oditji-modal-pop 0.22s var(--oditji-ease);
+}
+
+@keyframes oditji-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.delivery-detail-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+
+  border-bottom: 1px solid var(--oditji-border);
+}
+
+.delivery-detail-modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--oditji-text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.delivery-detail-modal-header h2::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234caf50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.delivery-detail-modal-close {
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+
+  color: var(--oditji-text-muted);
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
+}
+
+.delivery-detail-modal-close:hover {
+  background: var(--oditji-surface-raised);
+  color: var(--oditji-text);
+}
+
+.delivery-detail-modal .empty-box {
+  margin: 0;
+}
+
+/* -----------------------------------------------------
+   배송 진행 단계 (주문 확인중 → 배송 준비 중 → 배송 중 → 배송 완료)
+   원형 인디케이터 + 연결선으로 구성된 스텝퍼 형태이며, 각 원마다
+   해당 단계를 나타내는 아이콘 하나만 사용한다(완료/진행중일 때는
+   흰 아이콘 + 색이 있는 원, 아직 오지 않은 단계는 회색 아이콘).
+------------------------------------------------------ */
+.delivery-progress {
+  --oditji-info: #4dabf7;
+  --oditji-info-soft: rgba(77, 171, 247, 0.18);
+
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 22px 16px 18px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface-raised);
+}
+
+.delivery-progress-labels {
+  display: flex;
+}
+
+.delivery-progress-label {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 2px;
+
+  color: var(--oditji-text-faint);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 원형 아이콘 (기본값 = 아직 오지 않은 단계, 회색) */
+.delivery-progress-label::before {
+  content: "";
+  z-index: 2;
+  flex: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 999px;
+  border: 2px solid var(--oditji-border);
+  background-color: var(--oditji-surface);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+
+  transition:
+    background-color 0.25s var(--oditji-ease),
+    border-color 0.25s var(--oditji-ease);
+}
+
+/* 원과 원 사이 연결선: 각 칸(flex:1)의 중심에서 다음 칸 중심까지
+   그려서 라벨 글자 길이가 달라도 항상 원끼리 정확히 이어진다 */
+.delivery-progress-label::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 11px;
+  left: 50%;
+
+  width: 100%;
+  height: 2px;
+
+  background: var(--oditji-border);
+  transform: translateY(-50%);
+}
+
+.delivery-progress-label:last-child::after {
+  display: none;
+}
+
+/* 단계별 기본 아이콘 (회색: 주문서 / 박스 / 트럭 / 집) */
+.delivery-progress-label[data-step="CONFIRMED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8h12l-1 12H7L6 8z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="PREPARING"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="SHIPPING"]::before {
+  background-size: 15px 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='7' cy='17' r='2'/%3E%3Ccircle cx='17' cy='17' r='2'/%3E%3Cpath d='M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5'/%3E%3Cline x1='3' y1='9' x2='7' y2='9'/%3E%3C/svg%3E");
+}
+
+.delivery-progress-label[data-step="DELIVERED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E");
+}
+
+/* 지나온 단계(완료) = 초록 원 + 흰 아이콘 */
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"],
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"] {
+  color: var(--oditji-text);
+}
+
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"]::before {
+  border-color: var(--oditji-accent);
+  background-color: var(--oditji-accent);
+}
+
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::after,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::after {
+  background: var(--oditji-accent);
+}
+
+/* 지금 진행 중인 단계(배송완료 전) = 파란 원 + 흰 아이콘 + 펄스 */
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"],
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"],
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"] {
+  color: var(--oditji-info);
+  font-weight: 700;
+}
+
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"]::before {
+  border-color: var(--oditji-info);
+  background-color: var(--oditji-info);
+  box-shadow: 0 0 0 4px var(--oditji-info-soft);
+  animation: oditji-step-pulse 1.6s ease-out infinite;
+}
+
+/* 완료/진행중 단계는 단계별 아이콘을 흰색으로 다시 그린다 */
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="CONFIRMED"]::before,
+.delivery-progress[data-status="CONFIRMED"] .delivery-progress-label[data-step="CONFIRMED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8h12l-1 12H7L6 8z'/%3E%3Cpath d='M9 8V6a3 3 0 0 1 6 0v2'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="PREPARING"]::before,
+.delivery-progress[data-status="PREPARING"] .delivery-progress-label[data-step="PREPARING"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="SHIPPING"]::before,
+.delivery-progress[data-status="SHIPPING"] .delivery-progress-label[data-step="SHIPPING"]::before {
+  background-size: 15px 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='7' cy='17' r='2'/%3E%3Ccircle cx='17' cy='17' r='2'/%3E%3Cpath d='M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5'/%3E%3Cline x1='3' y1='9' x2='7' y2='9'/%3E%3C/svg%3E");
+}
+
+.delivery-progress[data-status="DELIVERED"] .delivery-progress-label[data-step="DELIVERED"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E");
+}
+
+@keyframes oditji-step-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--oditji-info-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(77, 171, 247, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(77, 171, 247, 0);
+  }
+}
+
+/* -----------------------------------------------------
+   상품 정보 카드 (모달에서는 상품 이미지를 표시하지 않는다)
+------------------------------------------------------ */
+.delivery-product {
+  margin-bottom: 14px;
+}
+
+.delivery-product-info {
+  padding: 16px 18px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+}
+
+/* 모달 하단 고정 닫기 버튼 */
+.delivery-detail-modal-footer {
+  margin-top: 20px;
+}
+
+.delivery-detail-modal-footer-close {
+  width: 100%;
+  padding: 13px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: transparent;
+
+  color: var(--oditji-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
+}
+
+.delivery-detail-modal-footer-close:hover {
+  border-color: var(--oditji-accent);
+  color: var(--oditji-accent);
+}
+
+/* -----------------------------------------------------
+   배송 정보 영역 (order-info-row 등은 주문 카드에서도 재사용되는
+   공통 클래스이므로, 모달 전용 보정은 #deliveryDetailModal로 한정)
+------------------------------------------------------ */
+#deliveryDetailModal .ticket-divider {
+  display: none;
+}
+
+#deliveryDetailModal .order-info-section {
+  margin-top: 0;
+  padding: 18px;
+
+  border-top: none;
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface-raised);
+}
+
+#deliveryDetailModal .order-info-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 12px;
+
+  color: var(--oditji-text-muted);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+#deliveryDetailModal .order-info-title::before {
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5z'/%3E%3Cpath d='M3 8v8l9 5 9-5V8'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+#deliveryDetailModal .order-info-row {
+  padding: 11px 0;
+}
+
+#deliveryDetailModal .order-info-label {
+  font-size: 13px;
+}
+
+#deliveryDetailModal .order-info-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#deliveryDetailModal .tracking-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#deliveryDetailModal .tracking-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-surface);
+
+  color: transparent;
+  font-size: 0;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    background 0.2s var(--oditji-ease);
+}
+
+#deliveryDetailModal .tracking-copy-btn::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6a6ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='11' height='11' rx='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+#deliveryDetailModal .tracking-copy-btn:hover {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+}
+
+#deliveryDetailModal .delivery-empty-note {
+  color: var(--oditji-text-faint);
+  font-weight: 500;
+}
+
+/* -----------------------------------------------------
+   모바일
+------------------------------------------------------ */
+@media (max-width: 480px) {
+  .delivery-detail-modal-content {
+    padding: 22px 18px 20px;
+    border-radius: 16px;
+  }
+
+  .delivery-progress {
+    padding: 18px 12px 14px;
+  }
+
+  .delivery-progress-label {
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .delivery-progress-label::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  #deliveryDetailModal .order-info-section,
+  #deliveryDetailModal .delivery-product-info {
+    padding: 14px;
+  }
+}
+
+/* 배송조회 버튼을 상품 부분 취소 버튼과 동일한 톤으로
+   보이도록 review-btn 스타일을 상속받아 맞춘다. */
+.order-item-actions .delivery-detail-btn {
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-sm);
+  background: transparent;
+
+  color: var(--oditji-text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+
+  padding: 6px 10px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s var(--oditji-ease),
+    color 0.2s var(--oditji-ease);
+}
+
+.order-item-actions .delivery-detail-btn:hover {
+  border-color: var(--oditji-accent);
+  color: var(--oditji-accent);
+}
+
+/* =====================================================
+   [관리자 주문/환불 화면 개편 - UI 전용]
+   orderList.jsp
+
+   - 주문 내역 / 환불 내역 탭 UI
+   - 상품 선택 체크박스 + 선택 상품 일괄 액션 버튼
+   - 주문 상태별 버튼(주문 취소 / 환불 신청) 톤 통일
+   - 환불 내역 표 및 상태 Badge
+
+   실제 데이터 처리/전송 로직은 포함하지 않으며, 기존
+   .order-card, .order-item, .item-cancel-btn 등 기존 화면
+   컴포넌트와 색상/여백 톤을 맞춰 작성했다.
+====================================================== */
+
+/* -----------------------------------------------------
+   탭 (주문 내역 / 환불 내역)
+------------------------------------------------------ */
+.order-tabs {
+  display: flex;
+  gap: 6px;
+
+  margin: 0 0 22px;
+  padding: 4px;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: var(--oditji-surface);
+
+  width: fit-content;
+}
+
+.order-tab-btn {
+  min-width: 120px;
+  padding: 10px 20px;
+
+  border: none;
+  border-radius: var(--oditji-radius-sm);
+  background: transparent;
+
+  color: var(--oditji-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease);
+}
+
+.order-tab-btn:hover {
+  color: var(--oditji-text);
+}
+
+.order-tab-btn.active {
+  background: var(--oditji-accent);
+  color: #0f150f;
+}
+
+.order-tab-panel {
+  display: none;
+}
+
+.order-tab-panel.active {
+  display: block;
+}
+
+@media (max-width: 560px) {
+  .order-tabs,
+  .order-list-container .order-tabs {
+    width: 100%;
+  }
+
+  /* [수정] .order-list-container .order-tab-btn(min-width:132px)이
+     클래스 2개짜리라 우선순위가 더 높아서, 아래 min-width:0이
+     실제로는 적용되지 않던 문제를 같은 우선순위로 맞춰서 고친다. */
+  .order-tab-btn,
+  .order-list-container .order-tab-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* -----------------------------------------------------
+   선택 상품 일괄 액션 버튼 (주문 취소 / 환불)
+------------------------------------------------------ */
+.order-bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin: 0 0 16px;
+}
+
+.bulk-action-btn {
+  padding: 11px 20px;
+
+  border: 1px solid var(--oditji-danger, #ef6b6b);
+  border-radius: var(--oditji-radius-sm);
+  background: var(--oditji-danger-soft);
+
+  color: var(--oditji-danger, #ef6b6b);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s var(--oditji-ease),
+    transform 0.1s var(--oditji-ease);
+}
+
+.bulk-action-btn:hover {
+  background: rgba(226, 88, 93, 0.22);
+}
+
+.bulk-action-btn:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 560px) {
+  .order-bulk-actions {
+    justify-content: stretch;
+  }
+
+  .bulk-action-btn {
+    width: 100%;
+  }
+}
+
+/* -----------------------------------------------------
+   상품 선택 체크박스
+------------------------------------------------------ */
+.order-card .order-item {
+  position: relative;
+}
+
+.order-item-select-label {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+
+  width: 20px;
+  margin-right: 2px;
+
+  cursor: pointer;
+}
+
+.order-item-select {
+  width: 18px;
+  height: 18px;
+
+  accent-color: var(--oditji-accent);
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .order-item-select-label {
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+}
+
+/* -----------------------------------------------------
+   환불 내역 표
+------------------------------------------------------ */
+.refund-table-wrap {
+  overflow-x: auto;
+
+  border: 1px solid var(--oditji-border);
+  border-radius: var(--oditji-radius-lg);
+  background: rgba(18, 18, 20, 0.28);
+}
+
+.refund-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.refund-table thead th {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--oditji-border);
+
+  color: var(--oditji-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.refund-table tbody td {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--oditji-border);
+
+  color: var(--oditji-text);
+  vertical-align: middle;
+}
+
+.refund-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.refund-table tbody tr:hover {
+  background: var(--oditji-surface-raised);
+}
+
+.refund-select-label {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.refund-select {
+  width: 18px;
+  height: 18px;
+
+  accent-color: var(--oditji-accent);
+  cursor: pointer;
+}
+
+/* 환불 상태 Badge */
+.refund-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.refund-badge.waiting {
+  background: rgba(255, 193, 7, 0.14);
+  color: #f0c75e;
+}
+
+.refund-badge.rejected {
+  background: var(--oditji-danger-soft);
+  color: var(--oditji-danger);
+}
+
+.refund-badge.completed {
+  background: var(--oditji-accent-soft);
+  color: var(--oditji-accent);
+}
+
+/* 승인 완료(사업자 승인만 완료되고 환불 처리는 대기 중인 경우)를
+   위해 함께 정의해 둔 톤. 현재 데이터에서는 승인=환불 완료로
+   처리되어 기본적으로는 .completed를 사용한다. */
+.refund-badge.approved {
+  background: rgba(126, 177, 255, 0.16);
+  color: #7eb1ff;
+}
+
+@media (max-width: 720px) {
+  .refund-table thead {
+    display: none;
+  }
+
+  .refund-table,
+  .refund-table tbody,
+  .refund-table tbody tr,
+  .refund-table tbody td {
+    display: block;
+    width: 100%;
+  }
+
+  .refund-table tbody tr {
+    padding: 14px 16px;
+  }
+
+  .refund-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 6px 0;
+    border-bottom: none;
+  }
+
+  .refund-table tbody td::before {
+    content: attr(data-label);
+
+    color: var(--oditji-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .refund-table tbody tr + tr {
+    border-top: 1px solid var(--oditji-border);
+  }
+}
+
+/*
+ * SonarQube 접근성 이슈 대응:
+ * 화면 디자인은 유지하면서 label을 보조 기술에 제공한다.
+ */
+.order-accessibility-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================================
+   [추가] 취소/환불 내역 조회 조건
+   최초 제공된 주문내역 화면의 흰색 카드/회색 테두리 디자인 유지
+========================================================= */
+.cancel-refund-filter-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  background: #fff;
+}
+.cancel-refund-filter-box label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+.cancel-refund-filter-box select,
+.cancel-refund-filter-box input {
+  min-width: 145px;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  background: #fff;
+}
+.cancel-refund-filter-box button {
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid #222;
+  border-radius: 6px;
+  background: #222;
+  color: #fff;
+  cursor: pointer;
+}
+.cancel-refund-filter-box #historyResetBtn {
+  background: #fff;
+  color: #222;
+}
+
+/* =========================================================
+   [추가] 전체 주문 취소/환불 버튼 및 조회 조건 디자인
+   기존 주문 카드 색상 구조는 유지하고 전체 버튼만 구분색을 적용한다.
+========================================================= */
+.full-order-cancel-btn {
+  background: #b94a48;
+  border-color: #b94a48;
+  color: #fff;
+}
+.full-order-refund-btn {
+  background: #4b67a1;
+  border-color: #4b67a1;
+  color: #fff;
+}
+.selected-refund-btn {
+  border-color: #4b67a1;
+  color: #4b67a1;
+  background: #fff;
+}
+.refund-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background: #fff;
+}
+.refund-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.refund-search-field label {
+  font-weight: 700;
+  font-size: 14px;
+}
+.refund-search-field select,
+.refund-search-field input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d7d7d7;
+  border-radius: 8px;
+  background: #fff;
+}
+.refund-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.refund-search-actions {
+  display: flex;
+  gap: 8px;
+}
+.history-search-btn,
+.history-reset-btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid #222;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.history-search-btn {
+  background: #222;
+  color: #fff;
+}
+.history-reset-btn {
+  background: #fff;
+  color: #222;
+}
+.refund-type-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.refund-type-badge.cancel {
+  background: #fff1e8;
+  color: #a64b12;
+}
+.refund-type-badge.refund {
+  background: #eaf0ff;
+  color: #37558e;
+}
+@media (max-width: 760px) {
+  .refund-search-form,
+  .refund-date-range {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .refund-search-field,
+  .refund-search-actions {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   [수정] 구매내역·취소/환불 내역 화면 디자인 정리
+   - 기존 ODITJI 다크 테마와 녹색 포인트 컬러를 그대로 유지한다.
+   - 기존 JSP 구조와 조회/취소/환불 기능은 변경하지 않고 CSS만 보완한다.
+   - 주문 카드의 과도한 빈 공간을 줄이고, 검색 영역의 흰색 배경을
+     다크 테마 카드 형태로 통일한다.
+========================================================= */
+
+/* [수정] 탭과 제목 사이 간격 및 페이지 상단 정렬을 통일한다. */
+.order-list-container .order-tabs {
+  margin-bottom: 28px;
+  padding: 5px;
+  border-color: #38383e;
+  background: #1b1b1e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.order-list-container .order-tab-btn {
+  min-width: 132px;
+  min-height: 42px;
+  padding: 10px 22px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.order-list-container .order-tab-btn.active {
+  background: linear-gradient(135deg, #52bc58, #45a94a);
+  color: #0d160e;
+  box-shadow: 0 5px 14px rgba(76, 175, 80, 0.2);
+}
+
+.order-list-container .order-tab-panel > h1 {
+  margin-bottom: 24px;
+  font-size: 25px;
+  letter-spacing: -0.035em;
+}
+
+/* [수정] 구매내역 카드가 내용보다 지나치게 높아지지 않도록 정렬한다. */
+.order-list-container .order-card {
+  margin-bottom: 24px;
+  padding: 24px;
+  border-color: #34343a;
+  background: #1a1a1d;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
+}
+
+.order-list-container .order-card-main {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 28px;
+}
+
+.order-list-container .order-product-section,
+.order-list-container .order-info-section {
+  align-self: start;
+}
+
+/* [수정] 주문번호와 주문일시를 한 줄에서 더 선명하게 구분한다. */
+.order-list-container .order-card-header {
+  min-height: auto;
+  margin-bottom: 14px;
+  padding: 0 2px;
+  color: #aeb0b7;
+}
+
+.order-list-container .order-card-header strong {
+  color: #7f8189;
+  font-weight: 600;
+}
+
+.order-list-container .order-card-header > div:first-child span {
+  margin-left: 6px;
+  color: #f3f3f4;
+  font-weight: 700;
+}
+
+/* [수정] 상품 행의 썸네일·정보·버튼 간격을 정돈한다. */
+.order-list-container .order-card .order-item {
+  min-height: 112px;
+  padding: 16px 16px 16px 14px;
+  border-color: #35353b;
+  background: #19191c;
+  transition:
+    border-color 0.18s var(--oditji-ease),
+    background-color 0.18s var(--oditji-ease);
+}
+
+.order-list-container .order-card .order-item:hover {
+  border-color: #44454c;
+  background: #1d1d20;
+}
+
+.order-list-container .order-card .order-item > a > img,
+.order-list-container .order-card .order-item > a > .no-image {
+  width: 86px;
+  height: 86px;
+  border-radius: 10px;
+}
+
+.order-list-container .order-item-info > div:first-child {
+  margin-bottom: 7px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.order-list-container .order-item-info > div {
+  margin-top: 4px;
+  color: #a8a9af;
+}
+
+/* [수정] 배송조회·리뷰 버튼을 카드 톤에 맞게 정리한다.
+   (너비/간격은 .order-item-actions 기본 규칙과 모바일
+   미디어쿼리에서 일괄 관리하므로 여기서는 지정하지 않는다 -
+   이전에는 이 선택자의 우선순위가 더 높아 모바일 미디어쿼리의
+   width:100%를 항상 덮어써 버튼 영역이 좁게 고정되는 문제가
+   있었다.) */
+.order-list-container .order-item-actions button,
+.order-list-container .order-item-actions a {
+  min-height: 38px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* [수정] 우측 주문 정보 영역을 독립 카드처럼 표현한다. */
+.order-list-container .order-info-section {
+  padding: 22px 20px;
+  border-color: #37373d;
+  background: #18181b;
+}
+
+.order-list-container .order-info-title {
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+  font-size: 17px;
+}
+
+.order-list-container .order-info-row {
+  grid-template-columns: 106px minmax(0, 1fr);
+  gap: 16px;
+  padding: 13px 0;
+}
+
+.order-list-container .order-info-label {
+  color: #9a9ca4;
+}
+
+.order-list-container .order-info-value {
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* [수정] 카드 하단 금액과 주문 취소/환불 버튼 영역을 명확하게 분리한다. */
+.order-list-container .order-card .ticket-divider {
+  margin-top: 22px;
+  margin-bottom: 16px;
+}
+
+.order-list-container .order-card-footer {
+  min-height: 48px;
+  gap: 12px;
+}
+
+.order-list-container .order-total {
+  gap: 10px;
+  font-size: 16px;
+}
+
+.order-list-container .order-total-price {
+  font-size: 17px;
+}
+
+.order-list-container .order-cancel-action {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.order-list-container .bulk-action-btn {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+}
+
+/* [수정] 전체/선택 주문 취소 버튼 공통 디자인
+   두 버튼의 크기와 외곽선 형태를 동일하게 유지한다. */
+.order-list-container .full-order-cancel-btn,
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn) {
+  min-width: 160px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  background-color: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* [수정] 전체 상품 주문 취소 버튼은 초록색 외곽선 스타일로 표시한다. */
+.order-list-container .full-order-cancel-btn {
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+/* [추가] 전체 상품 주문 취소 버튼 마우스 오버 효과 */
+.order-list-container .full-order-cancel-btn:hover {
+  /* [수정] 흰 글자 on #4caf50는 대비 약 2.8:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #3a853d;
+  border-color: #3a853d;
+  color: #ffffff;
+}
+
+/* [수정] 선택 상품 주문 취소 버튼은 기존 빨간색 외곽선 스타일을 유지한다. */
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn) {
+  color: #ef5350;
+  border: 1px solid #ef5350;
+}
+
+/* [추가] 선택 상품 주문 취소 버튼 마우스 오버 효과 */
+.order-list-container .order-select-cancel-btn:not(.selected-refund-btn):hover {
+  /* [수정] 흰 글자 on #ef5350는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
+  background-color: #ea1a16;
+  border-color: #ea1a16;
+  color: #ffffff;
+}
+
+/* [수정] 전체/선택 환불 버튼은 취소 버튼과 다른 파란 계열로 구분한다. */
+.order-list-container .full-order-refund-btn {
+  /* [수정] 흰 글자 on #6286d9는 대비 약 3.5:1로 부족해 더 진한 톤으로 교체 */
+  border-color: #4972d3;
+  background: #4972d3;
+  color: #fff;
+}
+
+.order-list-container .selected-refund-btn {
+  border-color: #6f93e6;
+  background: rgba(98, 134, 217, 0.1);
+  color: #87a8f0;
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 검색 영역
+   흰색 배경과 밝은 입력창을 제거하고 ODITJI 다크 카드로 통일한다.
+========================================================= */
+.order-list-container .refund-search-form {
+  display: grid;
+  grid-template-columns: 160px 180px minmax(420px, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 22px;
+  border: 1px solid #34343a;
+  border-radius: 12px;
+  background: #1a1a1d;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.order-list-container .refund-search-field {
+  min-width: 0;
+  gap: 9px;
+}
+
+.order-list-container .refund-search-field > label {
+  color: #b6b7bd;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.order-list-container .refund-search-field select,
+.order-list-container .refund-search-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #3a3a41;
+  border-radius: 8px;
+  outline: none;
+  background-color: #151517;
+  color: #f2f2f3;
+  font-family: var(--font-body);
+  font-size: 14px;
+  transition:
+    border-color 0.18s var(--oditji-ease),
+    box-shadow 0.18s var(--oditji-ease);
+  color-scheme: dark;
+}
+
+.order-list-container .refund-search-field select:focus,
+.order-list-container .refund-search-field input:focus {
+  border-color: var(--oditji-accent);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+/* =========================================================
+   [추가] 취소/환불 내역 조회 기간 빠른 선택 버튼
+   실제 쇼핑몰 주문내역 화면처럼 기간 프리셋을 눌러 즉시
+   조회할 수 있게 한다. 기존 날짜 입력창 스타일은 유지한다.
+========================================================= */
+.order-list-container .refund-quick-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 9px;
+  padding: 0;
+  min-width: 0;
+  border: 0;
+}
+
+.order-list-container .refund-quick-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #3a3a41;
+  border-radius: 999px;
+  background: #151517;
+  color: #c9cad0;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--oditji-ease),
+    background-color 0.15s var(--oditji-ease),
+    color 0.15s var(--oditji-ease);
+}
+
+.order-list-container .refund-quick-btn:hover {
+  border-color: #606169;
+  color: #fff;
+}
+
+.order-list-container .refund-quick-btn.active {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent-soft);
+  color: var(--oditji-accent);
+}
+
+.order-list-container .refund-date-range {
+  display: grid;
+  grid-template-columns: minmax(155px, 1fr) auto minmax(155px, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.order-list-container .refund-date-range > span {
+  color: #777981;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.order-list-container .refund-search-actions {
+  align-items: center;
+  gap: 9px;
+}
+
+.order-list-container .history-search-btn,
+.order-list-container .history-reset-btn {
+  min-width: 76px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.order-list-container .history-search-btn {
+  border-color: var(--oditji-accent);
+  background: var(--oditji-accent);
+  color: #101610;
+}
+
+.order-list-container .history-search-btn:hover {
+  border-color: #5ac25f;
+  background: #5ac25f;
+}
+
+.order-list-container .history-reset-btn {
+  border-color: #46464d;
+  background: transparent;
+  color: #c9cad0;
+}
+
+.order-list-container .history-reset-btn:hover {
+  border-color: #606169;
+  background: #242428;
+  color: #fff;
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 표
+   헤더·행·상태 배지의 대비를 높이고 기존 테이블 구조는 유지한다.
+========================================================= */
+.order-list-container .refund-table-wrap {
+  border-color: #34343a;
+  background: #19191c;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.order-list-container .refund-table {
+  table-layout: fixed;
+}
+
+.order-list-container .refund-table thead {
+  background: #1e1e22;
+}
+
+.order-list-container .refund-table thead th {
+  padding: 16px 18px;
+  border-bottom-color: #36363c;
+  color: #aeb0b7;
+  font-size: 13px;
+
+  /* [추가] 취소/환불 내역 테이블 헤더 가운데 정렬 */
+  text-align: center;
+}
+
+.order-list-container .refund-table tbody td {
+  padding: 17px 18px;
+  border-bottom-color: #303036;
+  color: #ececef;
+  line-height: 1.5;
+
+  /* [추가] 각 컬럼 값도 헤더와 동일하게 가운데 정렬 */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.order-list-container .refund-table tbody tr {
+  transition: background-color 0.16s var(--oditji-ease);
+}
+
+.order-list-container .refund-table tbody tr:hover {
+  background: #202024;
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 각 열 너비
+   신청일시/처리일시에 시:분:초가 추가되어 충분한 너비를 확보한다.
+========================================================= */
+
+.order-list-container .refund-table th:nth-child(1),
+.order-list-container .refund-table td:nth-child(1) {
+  width: 90px;
+}
+
+.order-list-container .refund-table th:nth-child(2),
+.order-list-container .refund-table td:nth-child(2) {
+  width: 100px;
+}
+
+/* 상품명은 남는 공간 사용 */
+
+/* 신청일시 */
+.order-list-container .refund-table th:nth-child(4),
+.order-list-container .refund-table td:nth-child(4) {
+  width: 175px;
+  white-space: nowrap;
+}
+
+/* [추가] 처리일시 */
+.order-list-container .refund-table th:nth-child(5),
+.order-list-container .refund-table td:nth-child(5) {
+  width: 175px;
+  white-space: nowrap;
+}
+
+/* 금액 */
+.order-list-container .refund-table th:nth-child(6),
+.order-list-container .refund-table td:nth-child(6) {
+  width: 125px;
+  white-space: nowrap;
+}
+
+/* 처리 상태 */
+.order-list-container .refund-table th:nth-child(7),
+.order-list-container .refund-table td:nth-child(7) {
+  width: 125px;
+}
+
+/* 반려 사유 */
+.order-list-container .refund-table th:nth-child(8),
+.order-list-container .refund-table td:nth-child(8) {
+  width: 140px;
+}
+
+.order-list-container .refund-type-badge,
+.order-list-container .refund-badge {
+  min-width: 54px;
+  box-sizing: border-box;
+  padding: 6px 11px;
+  text-align: center;
+}
+
+.order-list-container .refund-type-badge.cancel {
+  background: rgba(232, 148, 86, 0.14);
+  color: #f1a66d;
+}
+
+.order-list-container .refund-type-badge.refund {
+  background: rgba(98, 134, 217, 0.16);
+  color: #8eacf0;
+}
+
+/* [수정] 태블릿 이하에서는 카드·검색 폼을 한 열로 자연스럽게 배치한다. */
+@media (max-width: 1100px) {
+  .order-list-container .order-card-main {
+    grid-template-columns: 1fr;
+  }
+
+  .order-list-container .refund-search-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .order-list-container .refund-date-field,
+  .order-list-container .refund-search-actions {
+    grid-column: 1 / -1;
+  }
+
+  .order-list-container .refund-search-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* [수정] 모바일에서는 기존 기능을 유지하면서 버튼과 입력창을 전체 너비로 표시한다. */
+@media (max-width: 720px) {
+  .order-list-container .order-tabs {
+    margin-bottom: 22px;
+  }
+
+  .order-list-container .order-tab-panel > h1 {
+    font-size: 22px;
+  }
+
+  .order-list-container .order-card {
+    padding: 18px;
+  }
+
+  .order-list-container .order-card .ticket-divider {
+    margin-right: -18px;
+    margin-left: -18px;
+  }
+
+  .order-list-container .order-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .order-list-container .order-card-header > div:last-child {
+    margin-left: 0;
+  }
+
+  .order-list-container .order-card .order-item {
+    min-height: 0;
+  }
+
+  .order-list-container .order-cancel-action,
+  .order-list-container .bulk-action-btn {
+    width: 100%;
+  }
+
+  .order-list-container .refund-search-form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    padding: 18px;
+  }
+
+  .order-list-container .refund-date-range {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .order-list-container .refund-date-range > span {
+    display: none;
+  }
+
+  .order-list-container .refund-search-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* [수정] .order-list-container .refund-table 의 table-layout:fixed 와
+     열별 고정폭(nth-child) 규칙이 일반 모바일 카드형 규칙보다 상세도가 높아
+     좁은 고정폭 안에서 라벨/값이 줄바꿈되어 겹쳐 보이던 문제를 해결한다. */
+  .order-list-container .refund-table {
+    table-layout: auto;
+  }
+
+  .order-list-container .refund-table th:nth-child(1),
+  .order-list-container .refund-table td:nth-child(1),
+  .order-list-container .refund-table th:nth-child(2),
+  .order-list-container .refund-table td:nth-child(2),
+  .order-list-container .refund-table th:nth-child(4),
+  .order-list-container .refund-table td:nth-child(4),
+  .order-list-container .refund-table th:nth-child(5),
+  .order-list-container .refund-table td:nth-child(5),
+  .order-list-container .refund-table th:nth-child(6),
+  .order-list-container .refund-table td:nth-child(6),
+  .order-list-container .refund-table th:nth-child(7),
+  .order-list-container .refund-table td:nth-child(7),
+  .order-list-container .refund-table th:nth-child(8),
+  .order-list-container .refund-table td:nth-child(8) {
+    width: 100%;
+  }
+
+  .order-list-container .refund-table thead {
+    display: none;
+  }
+
+  .order-list-container .refund-table,
+  .order-list-container .refund-table tbody,
+  .order-list-container .refund-table tbody tr,
+  .order-list-container .refund-table tbody td {
+    display: block;
+    width: 100%;
+  }
+
+  .order-list-container .refund-table tbody tr {
+    padding: 14px 16px;
+  }
+
+  .order-list-container .refund-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: none;
+  }
+
+  .order-list-container .refund-table tbody td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--oditji-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .order-list-container .refund-table tbody tr + tr {
+    border-top: 1px solid #303036;
+  }
+}
+
+/* =========================================================
+   [수정] 나의 주문내역 탭 디자인 통일
+   - 내가 작성한 리뷰 페이지의 캡슐형 탭 디자인과 통일합니다.
+   - 기존 구매내역/취소·환불 내역 전환 기능은 유지합니다.
+   - 기존 녹색 활성 탭 스타일보다 우선 적용되도록 파일 끝에 둡니다.
+========================================================= */
+
+.order-list-container .order-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  width: auto;
+  gap: 10px;
+
+  margin: 0 0 28px;
+  padding: 0 0 20px;
+
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.order-list-container .order-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: none;
+  width: auto;
+  min-width: 0;
+  min-height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow: none;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.order-list-container .order-tab-btn:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.order-list-container .order-tab-btn.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+.order-list-container .order-tab-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+/* [수정] 모바일에서도 버튼을 억지로 전체 너비로 늘리지 않고
+   리뷰 페이지와 같은 캡슐형 크기를 유지합니다. */
+@media (max-width: 560px) {
+  .order-list-container .order-tabs {
+    width: auto;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+  }
+
+  .order-list-container .order-tab-btn {
+    flex: none;
+    width: auto;
+    min-width: 0;
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   [수정] 취소/환불 내역 조회 버튼 배경색만 변경
+   - 기존 크기, 여백, 테두리 형태는 유지합니다.
+========================================================= */
+.order-list-container .history-search-btn {
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: rgba(255, 255, 255, 0.62);
+  color: #111216;
+}
+
+/* [수정] 마우스를 올려도 기존 초록색으로 돌아가지 않도록 유지 */
+.order-list-container .history-search-btn:hover {
+  background: linear-gradient(180deg, #ffffff, #d4d5d8);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #111216;
+}
+
+/* =========================================================
+   [배송 완료 후 7일 환불 안내 추가]
+   주문내역의 총 결제금액 아래에서만 사용하며 다른 카드에는 영향 없음.
+
+   - 데스크톱: 안내 문구 길이에 맞춰 박스 너비 자동 확장
+   - 모바일: 화면 너비를 넘지 않도록 자동 줄바꿈
+   ========================================================= */
+.order-list-container .order-total-group {
+  display: flex;
+
+  /* [수정] 부모 flex 영역에서 내용보다 작게 강제로 줄어들지 않도록 설정 */
+  flex: 0 0 auto;
+
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+
+  /* [수정] 안내 문구 길이를 기준으로 필요한 너비 확보 */
+  width: auto;
+  min-width: max-content;
+}
+
+/* =========================================================
+   [환불 가능 기간 안내]
+   문구의 실제 길이에 맞춰 초록색 안내 박스도 자동으로 늘어납니다.
+   ========================================================= */
+.order-list-container .refund-period-notice {
+  display: inline-flex;
+
+  /* [수정] flex 레이아웃에 의해 안내 박스가 강제로 축소되지 않도록 설정 */
+  flex: 0 0 auto;
+
+  align-items: center;
+  gap: 8px;
+
+  /* [수정] 내용 길이에 따라 박스 너비 자동 결정 */
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+
+  box-sizing: border-box;
+
+  padding: 9px 12px;
+
+  border: 1px solid rgba(76, 175, 80, 0.38);
+  border-radius: 8px;
+
+  background: rgba(76, 175, 80, 0.08);
+
+  color: #a9d9ad;
+  font-size: 12px;
+  line-height: 1.45;
+
+  /* [수정] 데스크톱에서는 안내 문구를 한 줄로 유지 */
+  white-space: nowrap;
+}
+
+/* =========================================================
+   [환불 가능 기간 만료]
+   환불 가능 기간이 지난 경우 기존 안내 박스 구조는 유지하고
+   회색 계열로만 구분하여 표시합니다.
+   ========================================================= */
+.order-list-container .refund-period-notice.expired {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(148, 163, 184, 0.06);
+  color: #8d98aa;
+}
+
+/* =========================================================
+   [환불 안내 아이콘]
+   문구 길이가 변하거나 부모 영역이 좁아져도
+   아이콘 크기가 줄어들지 않도록 고정합니다.
+   ========================================================= */
+.order-list-container .refund-period-notice-icon {
+  flex: 0 0 auto;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   [모바일 환불 안내 보완]
+   모바일에서는 데스크톱의 max-content 고정 너비를 해제하여
+   안내 박스가 화면 밖으로 튀어나가지 않도록 처리합니다.
+   ========================================================= */
+@media (max-width: 720px) {
+  /* [수정] 모바일에서는 주문 총액 그룹이 사용 가능한 전체 너비 사용 */
+  .order-list-container .order-total-group {
+    flex: 1 1 auto;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* [수정] 모바일에서는 화면 폭까지만 박스를 확장하고
+     긴 안내 문구는 자연스럽게 줄바꿈 */
+  .order-list-container .refund-period-notice {
+    flex: 0 1 auto;
+
+    width: fit-content;
+    min-width: 0;
+    max-width: 100%;
+
+    white-space: normal;
+    word-break: keep-all;
+  }
 }

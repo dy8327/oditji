@@ -1,92 +1,369 @@
+/* [리팩터링] no-img, fav-btn:hover, empty-state, price-original 등 공용 스타일은
+   css/component.css 에 있습니다.
 
-/* CONTAINER */
-.favorite-container{
-    max-width:1200px;
-    margin:0 auto;
-    padding:40px;
+   [2026-08 업데이트] 찜 목록의 카드 디자인을 콘텐츠리스트 / 굿즈리스트와
+   통일하기 위해, 이 파일에서 자체 정의하던 카드(.favorite-card 등) 스타일을
+   모두 제거했습니다. 이제 카드 마크업은
+     - 콘텐츠 탭: content-list-modern.css 의 .content-list-card 계열
+     - 상품 탭:  goods.css / component.css 의 .card-item 계열
+   클래스를 그대로 재사용합니다 (콘텐츠/상품 목록 화면과 동일한 카드 UI).
+   .favorite-card 클래스는 favorite.js가 찜 해제 시 카드를 찾아 제거하기
+   위한 식별용 마커로만 남겨두고 별도 스타일은 주지 않습니다. */
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+/* =========================================================
+   [마이페이지 영역 크기 통일]
+   마이페이지와 동일한 최대 너비와 좌우 여백을 사용한다.
+========================================================= */
+.favorite-container {
+  width: min(1480px, calc(100% - 64px));
+  max-width: none;
+  box-sizing: border-box;
+  margin: 32px auto 54px;
+  padding: 16px 28px 54px;
 }
 
-/* HEADER */
-.favorite-header h1{
-    font-size:24px;
-    display:flex;
-    align-items:center;
-    gap:10px;
+/* =========================================================
+   HEADER
+   - 실제 OTT 서비스의 "찜한 콘텐츠" 화면처럼 상단에 작은 eyebrow
+     라벨(MY LIST)을 두고, 제목과 총 개수를 절제된 톤으로 배치합니다.
+   - eyebrow는 마크업 변경 없이 ::before로 생성합니다.
+========================================================= */
+
+.favorite-header {
+  margin-bottom: 4px;
 }
 
-/* COUNT BADGE */
-.fav-count-badge{
-    background:red;
-    color:#fff;
-    padding:3px 8px;
-    border-radius:20px;
-    font-size:12px;
+.favorite-header::before {
+  content: "MY LIST";
+  display: block;
+  margin-bottom: 10px;
+
+  color: #838b9a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
 }
 
-/* TAB */
-.favorite-tab{
-    display:flex;
-    gap:10px;
-    margin:20px 0;
+.favorite-header h1 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  margin: 0;
+
+  color: #ffffff;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
-.tab-btn{
-    padding:10px 16px;
-    background:#2a2a2a;
-    color:#fff;
-    border-radius:8px;
-    cursor:pointer;
+/* COUNT BADGE
+   - 꽉 찬 빨간 원형 배지 대신, 콘텐츠리스트의 결과 카운트와 같은 톤의
+     은은한 아웃라인 필 형태로 바꿔 화면 전체 톤과 맞춥니다. */
+.fav-count-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+
+  color: #a7adba;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
-.tab-btn.active{
-    background:#fff;
-    color:#000;
+.fav-count-badge::before {
+  content: "총 ";
+}
+.fav-count-badge::after {
+  content: "개";
 }
 
-/* CONTENT */
-.tab-content{ display:none; }
-.tab-content.active{ display:block; }
+/* =========================================================
+   TAB
+   - 검색결과 상단 탭(search-result-tabs / search-result-tab, search.css)과
+     동일한 톤: 테두리 있는 캡슐형 박스 안에 탭이 들어가고, 활성 탭은
+     흰색 필로, 개수는 항상 어두운 원형 배지로 표시합니다.
+========================================================= */
 
-/* GRID */
-.favorite-grid{
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:20px;
+.favorite-tab {
+  display: flex;
+  width: fit-content;
+  gap: 8px;
+
+  margin: 32px 0 34px;
+  padding: 6px;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: #17191b;
 }
 
-/* CARD */
-.favorite-card{
-    background:#222;
-    border-radius:10px;
-    overflow:hidden;
-    position:relative;
+.tab-btn {
+  display: inline-flex;
+  min-width: 104px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #7d848c;
+
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    color 0.16s ease;
 }
 
-.favorite-card img{
-    width:100%;
-    height:200px;
-    object-fit:cover;
+.tab-btn:hover {
+  background: transparent;
+  color: #ffffff;
 }
 
-/* BUTTON */
-.fav-btn{
-    position:absolute;
-    top:10px;
-    right:10px;
-    width:30px;
-    height:30px;
-    border-radius:50%;
-    background:#000;
-    color:#fff;
+.tab-btn.active {
+  background: #ffffff;
+  color: #111315;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
 }
 
-.fav-btn.active{
-    color:red;
+.tab-btn b {
+  display: inline-flex;
+  min-width: 23px;
+  height: 21px;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
 }
 
-/* EMPTY */
-.empty-state{
-    text-align:center;
-    padding:60px;
-    color:#aaa;
+.tab-btn.active b {
+  background: #17191b;
+  color: #ffffff;
+}
+
+/* =========================================================
+   TAB CONTENT
+========================================================= */
+
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+
+/* 콘텐츠 탭 카드 그리드(content-list-card-grid)는 자체 margin-top이 없어
+   상품 탭 카드 그리드(card-list, margin-top:30px)와 위치가 어긋나므로
+   맞춰줍니다. */
+#content-tab .content-list-card-grid {
+  margin-top: 30px;
+}
+
+/* =========================================================
+   FAVORITE BUTTON
+   - 상품 탭: 굿즈리스트와 동일한 카드 우상단 오버레이 버튼
+     (.card-item .card-favorite-btn, goods.css)을 그대로 재사용합니다.
+   - 기본 스타일(.fav-btn)은 component.css에 있고, 활성(찜됨) 색상은
+     여기서 지정합니다.
+========================================================= */
+
+.fav-btn.active {
+  color: #e63946;
+}
+
+/* [2026-08 업데이트] 콘텐츠 탭 카드의 찜 버튼을 콘텐츠리스트/검색결과와
+   동일하게 카드 하단 바(.content-list-card-bottom)에 배치된 원형 버튼
+   (.content-list-favorite-btn, content-list-modern.css)으로 통일했습니다.
+   버튼 클릭/해제 동작 자체는 기존과 동일하게 contentNo 기반 공용
+   .fav-btn 처리(favorite.js)를 그대로 사용하고, 여기서는 찜된 상태의
+   색상만 콘텐츠리스트의 .is-active와 동일하게 맞춰줍니다. */
+.content-list-card .content-list-favorite-btn.active {
+  border-color: rgba(255, 99, 121, 0.64);
+  background: rgba(92, 22, 34, 0.92);
+  color: #ff6379;
+}
+
+/* 찜 목록 카드에는 OTT 플랫폼 목록이 없어 하단 바에 찜 버튼만 남으므로,
+   space-between 대신 항상 오른쪽 끝에 붙도록 고정합니다. */
+.favorite-container .content-list-favorite-btn {
+  margin-left: auto;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  /* [마이페이지 영역 크기 통일]
+       모바일에서는 화면 좌우에 20px 여백을 둔다. */
+  .favorite-container {
+    width: calc(100% - 40px);
+    margin: 24px auto 44px;
+    padding: 0 0 44px;
+  }
+
+  .favorite-header::before {
+    font-size: 10px;
+  }
+
+  /* 좁은 화면에서는 탭이 줄바꿈되지 않고, 검색결과 탭과 동일하게
+       가로 스크롤 + 균등폭으로 표시합니다. */
+  .favorite-tab {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .favorite-tab::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    min-width: 96px;
+    flex: 1 0 auto;
+  }
+}
+
+/* =========================================================
+   [수정] 나의 찜목록 탭 디자인 통일
+   - 내가 작성한 리뷰 페이지의 캡슐형 탭 디자인과 통일합니다.
+   - 기존 콘텐츠/상품 탭 전환 기능과 개수 출력은 유지합니다.
+========================================================= */
+
+.favorite-container .favorite-tab {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  width: auto;
+  gap: 10px;
+
+  margin: 32px 0 34px;
+  padding: 0 0 20px;
+
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.favorite-container .favorite-tab .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  width: auto;
+  min-width: 0;
+  min-height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+
+  color: #979ca5;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.favorite-container .favorite-tab .tab-btn:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.favorite-container .favorite-tab .tab-btn.active {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+
+  color: #111216;
+
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+/* [수정] 기존 원형 개수 배지를 제거하고 리뷰 탭처럼 괄호로 표시합니다. */
+.favorite-container .favorite-tab .tab-btn b {
+  display: inline;
+
+  min-width: 0;
+  height: auto;
+  padding: 0;
+
+  border-radius: 0;
+  background: transparent;
+
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.favorite-container .favorite-tab .tab-btn b::before {
+  content: "(";
+}
+
+.favorite-container .favorite-tab .tab-btn b::after {
+  content: ")";
+}
+
+.favorite-container .favorite-tab .tab-btn.active b {
+  background: transparent;
+  color: inherit;
+}
+
+/* [수정] 키보드 이용 시 현재 포커스 위치가 보이도록 처리합니다. */
+.favorite-container .favorite-tab .tab-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 3px;
+}
+
+/* [수정] 모바일에서도 캡슐 버튼 형태를 유지합니다. */
+@media (max-width: 560px) {
+  .favorite-container .favorite-tab {
+    gap: 8px;
+    margin-top: 26px;
+    padding-bottom: 16px;
+  }
+
+  .favorite-container .favorite-tab .tab-btn {
+    min-height: 40px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
 }

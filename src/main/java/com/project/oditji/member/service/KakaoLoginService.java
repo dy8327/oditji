@@ -1,10 +1,10 @@
 package com.project.oditji.member.service;
 
-import com.project.oditji.member.vo.KakaoLoginResultVO;
+import com.project.oditji.member.vo.SocialLoginResultVO;
 
 public interface KakaoLoginService {
 
     String getKakaoLoginUrl();
 
-    KakaoLoginResultVO kakaoLogin(String code);
+    SocialLoginResultVO kakaoLogin(String code);
 }

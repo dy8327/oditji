@@ -2,207 +2,143 @@
     contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<%-- roomList.jsp 의 우측 패널(desktop) / 모바일 생성 모달에서는 embed=1 로 로드된다. --%>
+<c:set var="isEmbedded" value="${param.embed eq '1'}" />
+
 <!DOCTYPE html>
-
-<html>
-
+<html lang="ko">
 <head>
-
 <meta charset="UTF-8">
-
 <title>채팅방 생성</title>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-create-room.css?v=3">
 
-<style>
-
-body{
-
-    font-family: Arial;
-
-    width:700px;
-
-    margin:50px auto;
-
-}
-
-table{
-
-    width:100%;
-
-    border-collapse:collapse;
-
-}
-
-td{
-
-    padding:10px;
-
-}
-
-input[type=text]{
-
-    width:100%;
-
-    height:35px;
-
-}
-
-textarea{
-
-    width:100%;
-
-    height:120px;
-
-    resize:none;
-
-}
-
-select{
-
-    width:200px;
-
-    height:35px;
-
-}
-
-button{
-
-    width:120px;
-
-    height:40px;
-
-    cursor:pointer;
-
-}
-
-</style>
-
+<%-- head-assets.jsp(CSS/공통 스크립트/CSRF meta/viewport)는 header.jsp가 body 안에서
+     include하는 대신, embed 여부와 무관하게 항상 head 레벨에서 로드합니다.
+     embed 모드에서는 header.jsp(내비게이션 바) 자체를 생략하더라도
+     CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는 폼 제출에 필수이므로
+     항상 필요합니다. --%>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
+<body class="chat-create-page ${isEmbedded ? 'embedded' : ''}">
 
-<body>
+<c:if test="${not isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+</c:if>
 
-<h2>채팅방 생성</h2>
+<div id="mainContent" class="create-room-container">
 
-<form action="${pageContext.request.contextPath}/chat/create"
-      method="post">
+    <div class="create-room-header">
+        <h2>
+            <c:choose>
+                <c:when test="${isAdmin}">공지방 생성</c:when>
+                <c:otherwise>자유방 생성</c:otherwise>
+            </c:choose>
+        </h2>
 
-    <!-- 테스트용 -->
-    <!-- 로그인 적용 후 삭제 -->
+        <p>
+            <c:choose>
+                <c:when test="${isAdmin}">
+                    관리자는 사업자 전체가 열람할 공지방만 생성할 수 있습니다.
+                </c:when>
+                <c:otherwise>
+                    사업자는 다른 사업자와 대화할 자유방만 생성할 수 있습니다.
+                </c:otherwise>
+            </c:choose>
+        </p>
+    </div>
 
-    <input type="hidden"
-           name="createdBy"
-           value="1">
+    <form action="${pageContext.request.contextPath}/chat/create"
+          method="post"
+          class="create-room-form"
+          id="createRoomForm"
+          data-embedded="${isEmbedded}">
 
-    <table border="1">
+        <div class="form-group">
+            <label for="roomName">채팅방 이름</label>
+            <input type="text"
+                   id="roomName"
+                   name="roomName"
+                   maxlength="100"
+                   required>
+        </div>
 
-        <tr>
+        <div class="form-group">
+            <label for="roomDescription">방 설명</label>
+            <textarea id="roomDescription"
+                      name="roomDescription"
+                      maxlength="500"
+                      placeholder="채팅방의 목적을 입력하세요."></textarea>
+        </div>
 
-            <td width="180">
+        <div class="form-group">
+            <label for="roomType">채팅방 종류</label>
 
-                채팅방 이름
+            <select id="roomType"
+                    name="roomType">
 
-            </td>
+                <c:choose>
+                    <c:when test="${isAdmin}">
+                        <option value="NOTICE">
+                            공지방
+                        </option>
+                    </c:when>
+                    <c:otherwise>
+                        <option value="PUBLIC">
+                            자유방
+                        </option>
+                    </c:otherwise>
+                </c:choose>
 
-            <td>
+            </select>
 
-                <input type="text"
-                       name="roomName"
-                       maxlength="100"
-                       required>
+            <p id="roomTypeHelp"
+               class="form-help">
+                <c:choose>
+                    <c:when test="${isAdmin}">
+                        공지방은 관리자만 메시지를 작성하고 모든 사업자가 열람합니다.
+                    </c:when>
+                    <c:otherwise>
+                        자유방은 사업자들이 참가하여 자유롭게 대화하는 공간입니다.
+                    </c:otherwise>
+                </c:choose>
+            </p>
+        </div>
 
-            </td>
+        <div class="form-group"
+             id="maxMemberGroup">
+            <label for="maxMember">최대 참여 인원</label>
+            <input type="number"
+                   id="maxMember"
+                   name="maxMember"
+                   value="100"
+                   min="2"
+                   max="9999">
+        </div>
 
-        </tr>
+        <div class="button-area">
+            <button type="submit"
+                    class="submit-btn">
+                생성
+            </button>
 
-        <tr>
+            <button type="button"
+                    class="cancel-btn"
+                    id="cancelBtn">
+                취소
+            </button>
+        </div>
 
-            <td>
+    </form>
 
-                방 설명
+</div>
 
-            </td>
-
-            <td>
-
-                <textarea
-                    name="roomDescription"></textarea>
-
-            </td>
-
-        </tr>
-
-        <tr>
-
-            <td>
-
-                채팅방 종류
-
-            </td>
-
-            <td>
-
-                <select name="roomType">
-
-                    <option value="PUBLIC">
-
-                        공개
-
-                    </option>
-
-                    <option value="PRIVATE">
-
-                        비공개
-
-                    </option>
-
-                    <option value="NOTICE">
-
-                        공지방
-
-                    </option>
-
-                </select>
-
-            </td>
-
-        </tr>
-
-        <tr>
-
-            <td>
-
-                최대 인원
-
-            </td>
-
-            <td>
-
-                <input type="text"
-                       name="maxMember"
-                       value="100">
-
-            </td>
-
-        </tr>
-
-    </table>
-
-    <br>
-
-    <button type="submit">
-
-        생성
-
-    </button>
-
-    <button type="button"
-            onclick="history.back()">
-
-        취소
-
-    </button>
-
-</form>
+<script type="module"
+        src="${pageContext.request.contextPath}/js/createRoom.js"></script>
 
 </body>
-
 </html>

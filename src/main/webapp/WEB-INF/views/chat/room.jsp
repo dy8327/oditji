@@ -1,445 +1,166 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<%--
+    embed=1 로 접근하면 roomList.jsp 의 중앙 패널(iframe) 안에서 렌더링된다.
+    이 페이지 자체는 독립 URL(/chat/room/{roomId})로도 그대로 동작해야 하므로
+    embed 여부는 요청 파라미터로만 판단하고 컨트롤러/서비스는 건드리지 않는다.
+--%>
+<c:set var="isEmbedded" value="${param.embed eq '1'}" />
+
 <!DOCTYPE html>
-
-<html>
-
+<html lang="ko">
 <head>
-
 <meta charset="UTF-8">
-
 <title>${room.roomName}</title>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=4">
 
-<style>
-
-* {
-    box-sizing: border-box;
-    font-family: 맑은 고딕;
-}
-
-body {
-    margin: 0;
-    background: #f5f5f5;
-}
-
-.chat-container {
-    width: 900px;
-    height: 90vh;
-    margin: 30px auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.chat-header {
-    padding: 20px;
-    background: #263238;
-    color: white;
-}
-
-.chat-header h2 {
-    margin: 0 0 8px 0;
-}
-
-.chat-header p {
-    margin: 0;
-    color: #cfd8dc;
-}
-
-.chat-info {
-    padding: 12px 20px;
-    background: #eceff1;
-    color: #455a64;
-    font-size: 14px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.message-area {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background: #fafafa;
-}
-
-.message-row {
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
-}
-
-.message-row.mine {
-    align-items: flex-end;
-}
-
-.message-row.other {
-    align-items: flex-start;
-}
-
-.sender {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 4px;
-}
-
-.bubble {
-    max-width: 60%;
-    padding: 10px 14px;
-    border-radius: 14px;
-    line-height: 1.5;
-    word-break: break-word;
-}
-
-.mine .bubble {
-    background: #1565C0;
-    color: white;
-    border-bottom-right-radius: 2px;
-}
-
-.other .bubble {
-    background: #eeeeee;
-    color: #222;
-    border-bottom-left-radius: 2px;
-}
-
-.time {
-    font-size: 12px;
-    color: #888;
-    margin-top: 4px;
-}
-
-.system-message {
-    text-align: center;
-    color: #78909c;
-    font-size: 13px;
-    margin: 15px 0;
-}
-
-.input-area {
-    padding: 15px;
-    border-top: 1px solid #ddd;
-    display: flex;
-    gap: 10px;
-    background: white;
-}
-
-.input-area textarea {
-    flex: 1;
-    height: 48px;
-    resize: none;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-}
-
-.input-area button {
-    width: 90px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-}
-
-.send-btn {
-    background: #1565C0;
-}
-
-.leave-btn {
-    background: #d32f2f;
-}
-
-.top-btn-area {
-    margin-top: 12px;
-}
-
-.top-btn-area button {
-    background: #607d8b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 7px 12px;
-    cursor: pointer;
-}
-
-.empty-message {
-    text-align: center;
-    color: #999;
-    margin-top: 120px;
-}
-
-</style>
-
+<%-- head-assets.jsp(CSS/공통 스크립트/CSRF meta/viewport)는 header.jsp가 body 안에서
+     include하는 대신, embed 여부와 무관하게 항상 head 레벨에서 로드합니다.
+     embed 모드에서는 header.jsp(내비게이션 바) 자체를 생략하더라도
+     CSRF 토큰과 common.js(CSRF 자동 첨부, showAlert)는
+     /chat/api/read, /chat/api/leave fetch 요청에 필수이므로 항상 필요합니다. --%>
+<jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
 </head>
+<body class="chat-page ${isEmbedded ? 'embedded' : ''}">
 
-<body>
+<c:if test="${not isEmbedded}">
+    <jsp:include page="/WEB-INF/views/common/header.jsp"/>
+</c:if>
 
-<div class="chat-container">
+<div id="chatPageData"
+     data-context-path="${pageContext.request.contextPath}"
+     data-room-id="${room.roomId}"
+     data-room-type="${room.roomType}"
+     data-member-no="${memberNo}"
+     data-business-no="${businessNo}"
+     data-business-name="${businessName}"
+     data-role="${role}"
+     data-admin="${isAdmin}"
+     data-embedded="${isEmbedded}">
+</div>
 
-    <div class="chat-header">
+<div id="mainContent" class="chat-container ${isNoticeRoom ? 'notice-room-container' : ''}">
 
-        <h2>${room.roomName}</h2>
+    <div class="chat-header ${isNoticeRoom ? 'notice-header' : ''}">
 
-        <p>${room.roomDescription}</p>
+        <div class="chat-title-line">
+            <h2><c:out value="${room.roomName}" /></h2>
 
+            <span class="header-room-badge">
+                <c:choose>
+                    <c:when test="${isNoticeRoom}">공지방</c:when>
+                    <c:otherwise>자유방</c:otherwise>
+                </c:choose>
+            </span>
+        </div>
+
+        <p>
+            <c:choose>
+                <c:when test="${empty room.roomDescription}">
+                    <c:choose>
+                        <c:when test="${isNoticeRoom}">
+                            관리자 공지 전용 채팅방입니다.
+                        </c:when>
+                        <c:otherwise>
+                            자유롭게 대화할 수 있는 사업자 채팅방입니다.
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
+                <c:otherwise>
+                    <c:out value="${room.roomDescription}" />
+                </c:otherwise>
+            </c:choose>
+        </p>
+
+        <%-- embed 모드(데스크톱 중앙 패널)에서는 좌측 목록이 항상 보이므로
+             이 버튼은 CSS(body.chat-page.embedded #roomListBtn)에서 숨긴다.
+             모바일 전체화면 진입 시에는 그대로 노출되어 뒤로 가기 역할을 한다. --%>
         <div class="top-btn-area">
-
             <button type="button"
-                    onclick="location.href='${pageContext.request.contextPath}/chat/list'">
+                    id="roomListBtn">
                 목록으로
             </button>
-
         </div>
 
     </div>
 
     <div class="chat-info">
-
-        <span>
-            참여 사업자 :
-            ${businessName}
-        </span>
-
-        <span>
-            ROOM ID :
-            ${room.roomId}
-        </span>
-
+        <span>접속 사용자: <c:out value="${businessName}" /></span>
+        <span>ROOM ID: <c:out value="${room.roomId}" /></span>
     </div>
+
+    <c:if test="${isNoticeRoom and not isAdmin}">
+        <div class="readonly-notice">
+            이 방은 관리자 공지 전용입니다. 사업자는 공지를 읽을 수만 있습니다.
+        </div>
+    </c:if>
 
     <div id="messageArea"
          class="message-area">
-
         <div id="emptyMessage"
              class="empty-message">
-
             아직 메시지가 없습니다.
-
         </div>
-
     </div>
 
-    <div class="input-area">
+    <c:choose>
 
-        <textarea id="messageInput"
-                  placeholder="메시지를 입력하세요."></textarea>
+        <c:when test="${isNoticeRoom and not isAdmin}">
+            <div class="readonly-footer">
+                관리자만 공지 메시지를 작성할 수 있습니다.
+            </div>
+        </c:when>
 
-        <button type="button"
-                class="send-btn"
-                id="sendBtn">
+        <c:otherwise>
+            <div class="input-area">
 
-            전송
+                <label for="messageInput"
+                       style="position:absolute;
+                              width:1px;
+                              height:1px;
+                              padding:0;
+                              margin:-1px;
+                              overflow:hidden;
+                              clip:rect(0, 0, 0, 0);
+                              white-space:nowrap;
+                              border:0;">
+                    채팅 메시지 또는 공지 내용 입력
+                </label>
 
-        </button>
+                <textarea id="messageInput"
+                          maxlength="2000"
+                          placeholder="${isNoticeRoom ? '공지 내용을 입력하세요.' : '메시지를 입력하세요.'}"></textarea>
 
-        <button type="button"
-                class="leave-btn"
-                id="leaveBtn">
+                <button type="button"
+                        class="send-btn"
+                        id="sendBtn">
+                    전송
+                </button>
 
-            나가기
+                <c:if test="${not isNoticeRoom}">
+                    <button type="button"
+                            class="leave-btn"
+                            id="leaveBtn">
+                        나가기
+                    </button>
+                </c:if>
 
-        </button>
+            </div>
+        </c:otherwise>
 
-    </div>
+    </c:choose>
 
 </div>
 
-
-<script type="module">
-
-import {
-    sendMessage,
-    listenMessages,
-    formatTime
-} from "${pageContext.request.contextPath}/js/chat.js";
-
-const contextPath = "${pageContext.request.contextPath}";
-
-const roomId = "${room.roomId}";
-
-const businessNo = Number("${businessNo}");
-
-const businessName = "${businessName}";
-
-const messageArea = document.getElementById("messageArea");
-
-const emptyMessage = document.getElementById("emptyMessage");
-
-const messageInput = document.getElementById("messageInput");
-
-const sendBtn = document.getElementById("sendBtn");
-
-const leaveBtn = document.getElementById("leaveBtn");
-
-
-/*
-    메시지 전송
-*/
-async function handleSendMessage() {
-
-    const message = messageInput.value;
-
-    if (!message || message.trim() === "") {
-        return;
-    }
-
-    await sendMessage(
-        roomId,
-        businessNo,
-        businessName,
-        message
-    );
-
-    messageInput.value = "";
-    messageInput.focus();
-
-}
-
-
-/*
-    메시지 화면 출력
-*/
-function renderMessages(messageList) {
-
-    messageArea.innerHTML = "";
-
-    if (!messageList || messageList.length === 0) {
-
-        messageArea.appendChild(emptyMessage);
-        return;
-
-    }
-
-    messageList.forEach(message => {
-
-        if (message.type === "SYSTEM") {
-
-            const systemDiv = document.createElement("div");
-            systemDiv.className = "system-message";
-            systemDiv.textContent = message.message;
-
-            messageArea.appendChild(systemDiv);
-
-            return;
-
-        }
-
-        const isMine =
-            Number(message.senderBusinessNo) === businessNo;
-
-        const row = document.createElement("div");
-        row.className = isMine
-            ? "message-row mine"
-            : "message-row other";
-
-        const sender = document.createElement("div");
-        sender.className = "sender";
-        sender.textContent = message.senderName;
-
-        const bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = message.message;
-
-        const time = document.createElement("div");
-        time.className = "time";
-        time.textContent = formatTime(message.sendTime);
-
-        row.appendChild(sender);
-        row.appendChild(bubble);
-        row.appendChild(time);
-
-        messageArea.appendChild(row);
-
-    });
-
-    scrollToBottom();
-
-}
-
-
-/*
-    스크롤 맨 아래로 이동
-*/
-function scrollToBottom() {
-
-    messageArea.scrollTop = messageArea.scrollHeight;
-
-}
-
-
-/*
-    채팅방 나가기
-*/
-function leaveRoom() {
-
-    if (!confirm("채팅방에서 나가시겠습니까?")) {
-        return;
-    }
-
-    fetch(contextPath + "/chat/api/leave", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body:
-            "roomId=" + encodeURIComponent(roomId) +
-            "&businessNo=" + encodeURIComponent(businessNo)
-    })
-    .then(response => response.json())
-    .then(data => {
-
-        if (data.message) {
-            alert(data.message);
-        } else {
-            alert("채팅방 나가기 처리가 완료되었습니다.");
-        }
-
-        if (data.success) {
-            location.href = contextPath + "/chat/list";
-        }
-
-    })
-    .catch(error => {
-
-        console.error(error);
-        alert("채팅방 나가기 중 오류가 발생했습니다.");
-
-    });
-
-}
-
-
-/*
-    이벤트 연결
-*/
-sendBtn.addEventListener("click", handleSendMessage);
-
-messageInput.addEventListener("keydown", function(event) {
-
-    if (event.key === "Enter" && !event.shiftKey) {
-
-        event.preventDefault();
-        handleSendMessage();
-
-    }
-
-});
-
-leaveBtn.addEventListener("click", leaveRoom);
-
-
-/*
-    Firebase 실시간 메시지 수신 시작
-*/
-listenMessages(roomId, renderMessages);
-
-</script>
+<script type="module"
+        src="${pageContext.request.contextPath}/js/room.js?v=7"></script>
 
 </body>
-
 </html>

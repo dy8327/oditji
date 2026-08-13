@@ -1,6 +1,6 @@
 package com.project.oditji.chat.vo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ChatRoomVO {
 
@@ -13,7 +13,7 @@ public class ChatRoomVO {
     private String roomType;
     private String roomDescription;
     private int createdBy;
-    private Date createdAt;
+    private LocalDateTime createdAt;
     private String status;
 
     /* ==========================
@@ -30,41 +30,16 @@ public class ChatRoomVO {
     private String lastMessage;
 
     // 최근 메시지 시간
-    private Date lastMessageTime;
+    private LocalDateTime lastMessageTime;
 
     //최대 참여 인원 수
     private int maxMember;
 
     private String isDefault;
+
+    // 현재 로그인 사업자의 자유방 참가 여부
+    private boolean joined;
     
-    public ChatRoomVO() {
-
-    }
-
-    public ChatRoomVO(String roomId,
-                      String roomName,
-                      String roomDescription,
-                      String roomType,
-                      int createdBy,
-                      Date createdAt,
-                      String status,
-                      String creatorName,
-                      int memberCount,
-                      String lastMessage,
-                      Date lastMessageTime) {
-
-        this.roomId = roomId;
-        this.roomName = roomName;
-        this.roomDescription = roomDescription;
-        this.roomType = roomType;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.status = status;
-        this.creatorName = creatorName;
-        this.memberCount = memberCount;
-        this.lastMessage = lastMessage;
-        this.lastMessageTime = lastMessageTime;
-    }
 
     public String getRoomId() {
         return roomId;
@@ -106,11 +81,11 @@ public class ChatRoomVO {
         this.createdBy = createdBy;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -146,11 +121,11 @@ public class ChatRoomVO {
         this.lastMessage = lastMessage;
     }
 
-    public Date getLastMessageTime() {
+    public LocalDateTime getLastMessageTime() {
         return lastMessageTime;
     }
 
-    public void setLastMessageTime(Date lastMessageTime) {
+    public void setLastMessageTime(LocalDateTime lastMessageTime) {
         this.lastMessageTime = lastMessageTime;
     }
 
@@ -168,6 +143,14 @@ public class ChatRoomVO {
 
     public void setIsDefault(String isDefault) {
         this.isDefault = isDefault;
+    }
+
+    public boolean isJoined() {
+        return joined;
+    }
+
+    public void setJoined(boolean joined) {
+        this.joined = joined;
     }
 
     @Override
