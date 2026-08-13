@@ -1,132 +1,275 @@
+/* =========================================================
+   ODITJI 공통 에러 페이지
+   403 / 404 / 500 / 기타 공통 오류 화면에서 사용
+   ========================================================= */
 
-:root{
-    --error-bg:#181818;
-    --error-card-bg:rgba(255,255,255,0.04);
-    --error-card-border:rgba(255,255,255,0.08);
-    --error-card-shadow:rgba(0,0,0,0.6);
-    --error-code-color:#ff4d4d;
-    --error-title-color:#fff;
-    --error-sub-color:#aaa;
-    --btn-primary-bg:#1e6ff5;
-    --btn-primary-text:#fff;
-    --btn-primary-hover-bg:#2563eb;
-    --btn-ghost-bg:rgba(255,255,255,0.06);
-    --btn-ghost-text:#fff;
-    --btn-ghost-hover-bg:rgba(255,255,255,0.12);
+:root {
+  /* =========================================================
+       [에러 페이지 기본 색상]
+       기존 error.css 변수 구조 유지
+       ========================================================= */
+  --error-bg: #181818;
+
+  --error-card-bg: rgba(255, 255, 255, 0.04);
+  --error-card-border: rgba(255, 255, 255, 0.08);
+  --error-card-shadow: rgba(0, 0, 0, 0.6);
+
+  --error-code-color: #ff4d4d;
+  --error-title-color: #ffffff;
+  --error-sub-color: #aaaaaa;
+
+  /* =========================================================
+       [에러 페이지 버튼]
+       기존 변수 유지
+       ========================================================= */
+  --btn-primary-bg: #1e6ff5;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover-bg: #2563eb;
+
+  --btn-ghost-bg: rgba(255, 255, 255, 0.06);
+  --btn-ghost-text: #ffffff;
+  --btn-ghost-hover-bg: rgba(255, 255, 255, 0.12);
+
+  /* =========================================================
+       [에러 페이지 추가 변수]
+       기존 변수로 표현되지 않던 레이아웃 값을 변수화
+       ========================================================= */
+  --error-card-width: 420px;
+  --error-card-radius: 16px;
+
+  --error-card-padding-y: 50px;
+  --error-card-padding-x: 40px;
+
+  --error-code-size: 96px;
+  --error-title-size: 20px;
+  --error-sub-size: 14px;
+
+  --error-button-radius: 10px;
+  --error-button-padding-y: 12px;
+  --error-button-padding-x: 18px;
+
+  --error-transition: 0.2s ease;
 }
 
-/* 전체 배경 */
-.error-page{
-    margin:0;
-    background:var(--error-bg);
-    font-family:"Pretendard","Noto Sans KR",sans-serif;
+/* =========================================================
+   전체 에러 페이지
+   ========================================================= */
+.error-page {
+  margin: 0;
+
+  background: var(--error-bg);
+  color: var(--error-title-color);
+
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
 }
 
-/* 가운데 정렬 핵심 */
-.error-wrap{
-    width:100%;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+/* =========================================================
+   에러 내용 가운데 정렬
+   공통 헤더가 있는 403 / 404 / 500 화면에서도
+   화면 중앙에 자연스럽게 배치되도록 구성
+   ========================================================= */
+.error-wrap {
+  width: 100%;
+
+  min-height: calc(100vh - 72px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px 20px;
 }
 
-/* 카드 */
-.error-card{
-    width:420px;
-    max-width:90%;
+/* =========================================================
+   에러 카드
+   ========================================================= */
+.error-card {
+  width: var(--error-card-width);
+  max-width: 100%;
 
-    text-align:center;
+  padding: var(--error-card-padding-y) var(--error-card-padding-x);
 
-    padding:50px 40px;
+  text-align: center;
 
-    background:var(--error-card-bg);
-    border:1px solid var(--error-card-border);
-    border-radius:16px;
+  background: var(--error-card-bg);
 
-    backdrop-filter: blur(12px);
-    box-shadow:0 20px 60px var(--error-card-shadow);
+  border: 1px solid var(--error-card-border);
+
+  border-radius: var(--error-card-radius);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow: 0 20px 60px var(--error-card-shadow);
 }
 
-/* 큰 숫자 */
-.error-code{
-    font-size:96px;
-    font-weight:800;
-    color:var(--error-code-color);
-    letter-spacing:-2px;
+/* =========================================================
+   에러 코드
+   ========================================================= */
+.error-code {
+  margin: 0;
+
+  color: var(--error-code-color);
+
+  font-size: var(--error-code-size);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
 }
 
-/* 제목 */
-.error-title{
-    font-size:20px;
-    font-weight:600;
-    margin-top:10px;
-    color:var(--error-title-color);
-.error-sub{
-    font-size:14px;
-    margin-top:8px;
-    color:var(--error-sub-color);
+/* =========================================================
+   에러 제목
+   ========================================================= */
+.error-title {
+  margin-top: 32px;
+
+  color: var(--error-title-color);
+
+  font-size: var(--error-title-size);
+  font-weight: 600;
+  line-height: 1.45;
 }
 
-/* 버튼 영역 */
-.error-btns{
-    margin-top:25px;
-    display:flex;
-    justify-content:center;
-    gap:10px;
+/* =========================================================
+   에러 설명
+   ========================================================= */
+.error-sub {
+  margin-top: 8px;
+
+  color: var(--error-sub-color);
+
+  font-size: var(--error-sub-size);
+  font-weight: 400;
+  line-height: 1.6;
+
+  word-break: keep-all;
 }
 
-/* 공통 버튼 */
-.btn{
-    padding:12px 16px;
-    border-radius:10px;
-    text-decoration:none;
-    font-size:14px;
-    transition:0.2s;
+/* =========================================================
+   버튼 영역
+   ========================================================= */
+.error-btns {
+  margin-top: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;
 }
 
-/* primary */
-.btn.primary{
-    /* [수정] 흰 글자 on #3b82f6는 대비 약 3.7:1로 부족해 더 진한 톤으로 교체 */
-    background:var(--btn-primary-bg);
-    color:var(--btn-primary-text);
+/* =========================================================
+   에러 페이지 전용 공통 버튼
+
+   프로젝트 전체에서 .btn 클래스를 사용하고 있기 때문에
+   .error-card 내부로 범위를 제한하여 다른 화면과 충돌 방지
+   ========================================================= */
+.error-card .btn {
+  min-width: 112px;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: var(--error-button-padding-y) var(--error-button-padding-x);
+
+  border: 1px solid transparent;
+  border-radius: var(--error-button-radius);
+
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--error-transition),
+    border-color var(--error-transition),
+    color var(--error-transition),
+    transform var(--error-transition);
 }
 
-.btn.primary:hover{
-    background:var(--btn-primary-hover-bg);
-    transform:translateY(-2px);
+/* =========================================================
+   홈으로 이동 버튼
+   ========================================================= */
+.error-card .btn.primary {
+  border-color: var(--btn-primary-bg);
+
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
-/* ghost 버튼 (ChatGPT 느낌 핵심) */
-.btn.ghost{
-    background:var(--btn-ghost-bg);
-    color:var(--btn-ghost-text);
+.error-card .btn.primary:hover {
+  border-color: var(--btn-primary-hover-bg);
+
+  background: var(--btn-primary-hover-bg);
+  color: var(--btn-primary-text);
+
+  transform: translateY(-2px);
 }
 
-.btn.ghost:hover{
-    background:var(--btn-ghost-hover-bg);
-    transform:translateY(-2px);
+/* =========================================================
+   이전 페이지 / 새로고침 버튼
+   ========================================================= */
+.error-card .btn.ghost {
+  border-color: var(--error-card-border);
+
+  background: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
 }
 
-@media (max-width:480px){
-    .error-card{
-        padding:36px 22px;
-    }
+.error-card .btn.ghost:hover {
+  background: var(--btn-ghost-hover-bg);
+  color: var(--btn-ghost-text);
 
-    .error-code{
-        font-size:64px;
-    }
+  transform: translateY(-2px);
+}
 
-    .error-title{
-        font-size:17px;
-    }
+/* =========================================================
+   키보드 접근성
+   ========================================================= */
+.error-card .btn:focus-visible {
+  outline: 2px solid var(--btn-primary-bg);
+  outline-offset: 3px;
+}
 
-    .error-btns{
-        flex-direction:column;
-    }
+/* =========================================================
+   모바일
+   ========================================================= */
+@media (max-width: 480px) {
+  .error-wrap {
+    min-height: calc(100vh - 64px);
 
-    .btn{
-        width:100%;
-    }
+    padding: 24px 16px;
+  }
+
+  .error-card {
+    padding: 36px 22px;
+  }
+
+  .error-code {
+    font-size: 64px;
+  }
+
+  .error-title {
+    margin-top: 24px;
+
+    font-size: 17px;
+  }
+
+  .error-sub {
+    font-size: 13px;
+  }
+
+  .error-btns {
+    flex-direction: column;
+
+    width: 100%;
+  }
+
+  .error-card .btn {
+    width: 100%;
   }
 }
