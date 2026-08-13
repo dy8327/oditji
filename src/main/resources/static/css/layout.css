@@ -2,6 +2,14 @@
    Reset
 ========================================================= */
 
+:root{
+    --layout-scrollbar-thumb:#4b5058;
+    --layout-scrollbar-track:#141414;
+    --layout-scrollbar-thumb-hover:#5c626b;
+    --layout-body-bg:#181818;
+    --layout-body-text:#F5F5F5;
+}
+
 *{
 
     margin:0;
@@ -14,7 +22,7 @@ html{
 
     scroll-behavior:smooth;
     overflow-x:hidden;
-    scrollbar-color:#4b5058 #141414;
+    scrollbar-color:var(--layout-scrollbar-thumb) var(--layout-scrollbar-track);
     scrollbar-width:thin;
 
 }
@@ -28,28 +36,28 @@ html::-webkit-scrollbar{
 
 html::-webkit-scrollbar-track{
 
-    background:#141414;
+    background:var(--layout-scrollbar-track);
 
 }
 
 html::-webkit-scrollbar-thumb{
 
-    border:2px solid #141414;
+    border:2px solid var(--layout-scrollbar-track);
     border-radius:999px;
-    background:#4b5058;
+    background:var(--layout-scrollbar-thumb);
 
 }
 
 html::-webkit-scrollbar-thumb:hover{
 
-    background:#5c626b;
+    background:var(--layout-scrollbar-thumb-hover);
 
 }
 
 body{
 
-    background:#181818;
-    color:#F5F5F5;
+    background:var(--layout-body-bg);
+    color:var(--layout-body-text);
     font-family:"Pretendard","Noto Sans KR",sans-serif;
     line-height:1.5;
     overflow-x:hidden;

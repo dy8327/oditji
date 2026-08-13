@@ -2,6 +2,17 @@
    [공통 페이지네이션]
    콘텐츠 목록 페이지와 동일한 크기·간격·활성 색상을 모든 사용자 목록에 적용합니다.
 ========================================================= */
+:root {
+  --page-border: rgba(255, 255, 255, 0.08);
+  --page-bg: #202226;
+  --page-text: #c7cbd2;
+  --page-border-hover: rgba(255, 255, 255, 0.22);
+  --page-bg-hover: #2a2d32;
+  --page-active: #fff;
+  --page-current-text: #111216;
+  --page-edge: #8e949e;
+}
+
 .oditji-pagination {
   display: flex;
   align-items: center;
@@ -21,7 +32,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--page-border);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
@@ -29,8 +40,8 @@
 }
 
 .oditji-page-link {
-  background: #202226;
-  color: #c7cbd2;
+  background: var(--page-bg);
+  color: var(--page-text);
   text-decoration: none;
   transition:
     border-color 0.2s ease,
@@ -39,20 +50,20 @@
 }
 
 .oditji-page-link:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: #2a2d32;
-  color: #fff;
+  border-color: var(--page-border-hover);
+  background: var(--page-bg-hover);
+  color: var(--page-active);
 }
 
 .oditji-page-current {
-  border-color: #fff;
-  background: #fff;
-  color: #111216;
+  border-color: var(--page-active);
+  background: var(--page-active);
+  color: var(--page-current-text);
   font-weight: 800;
 }
 
 .oditji-page-edge {
-  color: #8e949e;
+  color: var(--page-edge);
 }
 
 @media (max-width: 640px) {

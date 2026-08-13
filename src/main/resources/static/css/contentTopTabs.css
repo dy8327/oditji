@@ -2,17 +2,23 @@
    COMMON TOP CATEGORY TABS
 ========================================================= */
 
+:root {
+    --ctt-border: rgba(255, 255, 255, 0.09);
+    --ctt-tab-color: #777777;
+    --ctt-active-color: #ffffff;
+}
+
 .content-top-tabs {
     display: flex;
     gap: 8px;
     margin-bottom: 26px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    border-bottom: 1px solid var(--ctt-border);
 }
 
 .content-top-tab {
     padding: 13px 18px;
     border-bottom: 3px solid transparent;
-    color: #777777;
+    color: var(--ctt-tab-color);
     font-size: 15px;
     font-weight: 700;
     text-decoration: none;
@@ -21,11 +27,11 @@
 
 .content-top-tab:hover,
 .content-top-tab.is-active {
-    color: #ffffff;
+    color: var(--ctt-active-color);
 }
 
 .content-top-tab.is-active {
-    border-bottom-color: #ffffff;
+    border-bottom-color: var(--ctt-active-color);
 }
 
 @media (max-width: 700px) {

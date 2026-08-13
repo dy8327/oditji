@@ -6,20 +6,69 @@
  * ODITJI 메인 페이지의 다크 테마에 맞춰 화면 디자인만 재구성한다.
  */
 
+:root {
+  --verify-bg: #141414;
+  --verify-glow: rgba(229, 9, 20, 0.14);
+  --verify-text: #e5e5e5;
+  --verify-accent: #e50914;
+  --verify-accent-hover: #f3131f;
+  --verify-white: #ffffff;
+  --verify-divider: #404040;
+  --verify-card-border: #3b3b3b;
+  --verify-card-bg: rgba(28, 28, 28, 0.96);
+  --verify-card-shadow: rgba(0, 0, 0, 0.36);
+  --verify-age-border: #343434;
+  --verify-age-ring: rgba(255, 255, 255, 0.9);
+  --verify-age-shadow: rgba(229, 9, 20, 0.22);
+  --verify-muted: #777777;
+  --verify-badge-border: rgba(229, 9, 20, 0.55);
+  --verify-badge-bg: rgba(229, 9, 20, 0.12);
+  --verify-badge-text: #ff5d65;
+  --verify-desc: #b9b9b9;
+  --verify-notice-bg: #242424;
+  --verify-notice-text: #d0d0d0;
+  --verify-label: #8f8f8f;
+  --verify-input-border: #3d3d3d;
+  --verify-input-bg: #111111;
+  --verify-input-text: #dedede;
+  --verify-input-focus: #555555;
+  --verify-box-border: #383838;
+  --verify-box-bg: #202020;
+  --verify-list-text: #a9a9a9;
+  --verify-warn-border: #463c28;
+  --verify-warn-bg: #282318;
+  --verify-warn-text: #d9c28d;
+  --verify-exit-bg: #4a4a4a;
+  --verify-exit-hover: #585858;
+  --verify-continue-shadow: rgba(229, 9, 20, 0.2);
+  --verify-panel-bg: #181818;
+  --verify-btn-border: #454545;
+  --verify-btn-bg: #262626;
+  --verify-btn-text: #eeeeee;
+  --verify-btn-hover-bg: #303030;
+  --verify-back-text: #868181;
+  --verify-success-border: #246f4c;
+  --verify-success-bg: #183829;
+  --verify-success-text: #7ee2ad;
+  --verify-fail-border: #784142;
+  --verify-fail-bg: #3d2021;
+  --verify-fail-text: #ff9b9f;
+}
+
 * {
   box-sizing: border-box;
 }
 
 html {
   min-width: 320px;
-  background: #141414;
+  background: var(--verify-bg);
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(circle at 50% -20%, rgba(229, 9, 20, 0.14), transparent 34%), #141414;
-  color: #e5e5e5;
+  background: radial-gradient(circle at 50% -20%, var(--verify-glow), transparent 34%), var(--verify-bg);
+  color: var(--verify-text);
   font-family: Arial, "Noto Sans KR", sans-serif;
 }
 
@@ -47,7 +96,7 @@ input {
 }
 
 .verify-brand {
-  color: #e50914;
+  color: var(--verify-accent);
   font-size: 25px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -57,22 +106,22 @@ input {
 .verify-header-divider {
   width: 1px;
   height: 24px;
-  background: #404040;
+  background: var(--verify-divider);
 }
 
 .verify-page-title {
   margin: 0;
-  color: #ffffff;
+  color: var(--verify-white);
   font-size: 26px;
   font-weight: 800;
 }
 
 .verify-card {
   overflow: hidden;
-  border: 1px solid #3b3b3b;
+  border: 1px solid var(--verify-card-border);
   border-radius: 12px;
-  background: rgba(28, 28, 28, 0.96);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+  background: var(--verify-card-bg);
+  box-shadow: 0 24px 70px var(--verify-card-shadow);
 }
 
 .verify-card-inner {
@@ -90,7 +139,7 @@ input {
   align-items: center;
   justify-content: center;
   padding-right: 38px;
-  border-right: 1px solid #343434;
+  border-right: 1px solid var(--verify-age-border);
 }
 
 .age-symbol {
@@ -99,11 +148,11 @@ input {
   height: 158px;
   align-items: center;
   justify-content: center;
-  border: 5px solid rgba(255, 255, 255, 0.9);
+  border: 5px solid var(--verify-age-ring);
   border-radius: 50%;
-  background: #e50914;
-  color: #ffffff;
-  box-shadow: 0 16px 38px rgba(229, 9, 20, 0.22);
+  background: var(--verify-accent);
+  color: var(--verify-white);
+  box-shadow: 0 16px 38px var(--verify-age-shadow);
 }
 
 .age-symbol strong {
@@ -121,7 +170,7 @@ input {
 
 .age-symbol-wrap p {
   margin: 17px 0 0;
-  color: #777777;
+  color: var(--verify-muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.24em;
@@ -136,10 +185,10 @@ input {
   align-items: center;
   min-height: 28px;
   padding: 5px 11px;
-  border: 1px solid rgba(229, 9, 20, 0.55);
+  border: 1px solid var(--verify-badge-border);
   border-radius: 999px;
-  background: rgba(229, 9, 20, 0.12);
-  color: #ff5d65;
+  background: var(--verify-badge-bg);
+  color: var(--verify-badge-text);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -147,7 +196,7 @@ input {
 
 .verify-content h2 {
   margin: 17px 0 12px;
-  color: #ffffff;
+  color: var(--verify-white);
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.3;
   font-weight: 900;
@@ -156,7 +205,7 @@ input {
 
 .desc {
   margin: 0;
-  color: #b9b9b9;
+  color: var(--verify-desc);
   font-size: 15px;
   line-height: 1.8;
   word-break: keep-all;
@@ -168,8 +217,8 @@ input {
   gap: 12px;
   margin-top: 24px;
   padding: 15px 17px;
-  border-left: 3px solid #e50914;
-  background: #242424;
+  border-left: 3px solid var(--verify-accent);
+  background: var(--verify-notice-bg);
 }
 
 .notice-mark {
@@ -180,15 +229,15 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #e50914;
-  color: #ffffff;
+  background: var(--verify-accent);
+  color: var(--verify-white);
   font-size: 13px;
   font-weight: 900;
 }
 
 .verify-law-notice p {
   margin: 0;
-  color: #d0d0d0;
+  color: var(--verify-notice-text);
   font-size: 14px;
   line-height: 1.65;
   word-break: keep-all;
@@ -199,33 +248,33 @@ input {
 }
 
 .identity-label {
-  color: #8f8f8f !important;
+  color: var(--verify-label) !important;
   font-size: 12px;
 }
 
 .identity-input {
   height: 42px;
-  border: 1px solid #3d3d3d;
-  background: #111111 !important;
-  color: #dedede !important;
+  border: 1px solid var(--verify-input-border);
+  background: var(--verify-input-bg) !important;
+  color: var(--verify-input-text) !important;
   box-shadow: none !important;
 }
 
 .identity-input:focus {
-  border-color: #555555;
+  border-color: var(--verify-input-focus);
 }
 
 .standard-box {
   margin-bottom: 18px;
   padding: 18px 20px;
-  border: 1px solid #383838;
+  border: 1px solid var(--verify-box-border);
   border-radius: 8px;
-  background: #202020;
+  background: var(--verify-box-bg);
 }
 
 .standard-title {
   margin-bottom: 10px;
-  color: #ffffff;
+  color: var(--verify-white);
   font-size: 15px;
   font-weight: 800;
 }
@@ -233,7 +282,7 @@ input {
 .standard-list {
   margin: 0;
   padding-left: 19px;
-  color: #a9a9a9;
+  color: var(--verify-list-text);
   font-size: 13px;
   line-height: 1.8;
 }
@@ -241,10 +290,10 @@ input {
 .notice {
   margin-bottom: 24px;
   padding: 14px 16px;
-  border: 1px solid #463c28;
+  border: 1px solid var(--verify-warn-border);
   border-radius: 8px;
-  background: #282318;
-  color: #d9c28d;
+  background: var(--verify-warn-bg);
+  color: var(--verify-warn-text);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -260,7 +309,7 @@ input {
   padding: 13px 18px;
   border: 0;
   border-radius: 5px;
-  color: #ffffff;
+  color: var(--verify-white);
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
@@ -275,29 +324,29 @@ input {
 }
 
 .verify-action-exit {
-  background: #4a4a4a;
+  background: var(--verify-exit-bg);
 }
 
 .verify-action-exit:hover {
-  background: #585858;
+  background: var(--verify-exit-hover);
 }
 
 .verify-action-continue {
-  background: #e50914;
-  box-shadow: 0 10px 22px rgba(229, 9, 20, 0.2);
+  background: var(--verify-accent);
+  box-shadow: 0 10px 22px var(--verify-continue-shadow);
 }
 
 .verify-action-continue:hover {
-  background: #f3131f;
+  background: var(--verify-accent-hover);
 }
 
 .method-panel {
   display: none;
   margin-top: 22px;
   padding: 22px;
-  border: 1px solid #3b3b3b;
+  border: 1px solid var(--verify-card-border);
   border-radius: 9px;
-  background: #181818;
+  background: var(--verify-panel-bg);
 }
 
 .method-panel.show {
@@ -318,7 +367,7 @@ input {
 
 .method-title {
   margin: 0 0 7px;
-  color: #ffffff;
+  color: var(--verify-white);
   font-size: 19px;
   font-weight: 900;
   text-align: center;
@@ -326,7 +375,7 @@ input {
 
 .method-desc {
   margin: 0 0 18px;
-  color: #8f8f8f;
+  color: var(--verify-label);
   font-size: 13px;
   line-height: 1.6;
   text-align: center;
@@ -346,10 +395,10 @@ input {
   width: 100%;
   min-height: 70px;
   padding: 12px;
-  border: 1px solid #454545;
+  border: 1px solid var(--verify-btn-border);
   border-radius: 7px;
-  background: #262626;
-  color: #eeeeee;
+  background: var(--verify-btn-bg);
+  color: var(--verify-btn-text);
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -360,20 +409,20 @@ input {
 }
 
 .method-btn:hover:not(:disabled) {
-  border-color: #777777;
-  background: #303030;
+  border-color: var(--verify-muted);
+  background: var(--verify-btn-hover-bg);
   transform: translateY(-1px);
 }
 
 .method-btn-main {
-  border-color: #e50914;
-  background: #e50914;
-  color: #ffffff;
+  border-color: var(--verify-accent);
+  background: var(--verify-accent);
+  color: var(--verify-white);
 }
 
 .method-btn-main:hover:not(:disabled) {
-  border-color: #f3131f;
-  background: #f3131f;
+  border-color: var(--verify-accent-hover);
+  background: var(--verify-accent-hover);
 }
 
 .method-btn:disabled {
@@ -395,13 +444,13 @@ input {
   margin-top: 12px;
   border: 0;
   background: transparent;
-  color: #868181;
+  color: var(--verify-back-text);
   font-size: 13px;
   cursor: pointer;
 }
 
 .method-back:hover {
-  color: #ffffff;
+  color: var(--verify-white);
 }
 
 .result-message {
@@ -415,16 +464,16 @@ input {
 
 .result-message.success {
   display: block;
-  border: 1px solid #246f4c;
-  background: #183829;
-  color: #7ee2ad;
+  border: 1px solid var(--verify-success-border);
+  background: var(--verify-success-bg);
+  color: var(--verify-success-text);
 }
 
 .result-message.fail {
   display: block;
-  border: 1px solid #784142;
-  background: #3d2021;
-  color: #ff9b9f;
+  border: 1px solid var(--verify-fail-border);
+  background: var(--verify-fail-bg);
+  color: var(--verify-fail-text);
 }
 
 /* [성인인증 안내 화면 디자인 수정] 태블릿 이하 반응형 배치 */
@@ -443,7 +492,7 @@ input {
     min-height: auto;
     padding: 0 0 28px;
     border-right: 0;
-    border-bottom: 1px solid #343434;
+    border-bottom: 1px solid var(--verify-age-border);
   }
 
   .age-symbol {

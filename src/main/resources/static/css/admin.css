@@ -44,6 +44,18 @@
   --adm-radius-lg: 16px;
   --adm-radius-pill: 999px;
   --adm-transition: var(--transition, 0.2s ease);
+
+  /* ---- 마무리 리팩터링에서 추가된 잔여 하드코딩 토큰 ---- */
+  --adm-point-strong-shadow: rgba(47, 111, 228, 0.3);
+  --adm-danger-bg-hover: rgba(255, 107, 107, 0.2);
+  --adm-success-bg-hover: rgba(74, 222, 128, 0.2);
+  --adm-warning-bg-hover: rgba(250, 204, 21, 0.2);
+  --adm-grade-bronze: #c98a4b;
+  --adm-grade-silver: #b9c1cc;
+  --adm-grade-vip: #b083f0;
+  --adm-shadow-sm: rgba(0, 0, 0, 0.25);
+  --adm-overlay-bg: rgba(10, 10, 12, 0.6);
+  --adm-shadow-modal: rgba(0, 0, 0, 0.45);
 }
 
 /* =====================================================
@@ -338,7 +350,7 @@
 
 .admin-wrap .filter-select:focus {
   border-color: var(--adm-point);
-  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+  box-shadow: 0 0 0 3px var(--adm-point-bg);
 }
 
 .admin-wrap .search-btn {
@@ -369,7 +381,7 @@
 
 .admin-wrap .page-search:focus {
   border-color: var(--adm-point);
-  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+  box-shadow: 0 0 0 3px var(--adm-point-bg);
 }
 
 .admin-wrap .toolbar select.page-search {
@@ -411,9 +423,9 @@
    * 4.6:1 이상으로 끌어올린다. --adm-point 자체는 테두리/링크 등에서 계속 사용한다.
    */
   background: var(--adm-point-strong);
-  color: #fff;
+  color: var(--adm-text);
 
-  box-shadow: 0 4px 12px rgba(47, 111, 228, 0.3);
+  box-shadow: 0 4px 12px var(--adm-point-strong-shadow);
 }
 
 .btn-primary:hover {
@@ -444,7 +456,7 @@
 }
 
 .btn-danger:hover {
-  background: rgba(255, 107, 107, 0.2);
+  background: var(--adm-danger-bg-hover);
 }
 
 .btn-success {
@@ -453,7 +465,7 @@
 }
 
 .btn-success:hover {
-  background: rgba(74, 222, 128, 0.2);
+  background: var(--adm-success-bg-hover);
 }
 
 .btn-secondary {
@@ -462,7 +474,7 @@
 }
 
 .btn-secondary:hover {
-  background: rgba(250, 204, 21, 0.2);
+  background: var(--adm-warning-bg-hover);
 }
 
 .btn-outline {
@@ -743,7 +755,7 @@
 .admin-wrap .tab-menu button.active {
   /* [수정] --adm-point 원색은 흰 글자와 대비가 낮아 --adm-point-strong으로 교체 */
   background: var(--adm-point-strong);
-  color: #fff;
+  color: var(--adm-text);
   font-weight: 700;
 }
 
@@ -879,7 +891,7 @@
 
 .form-textarea:focus {
   border-color: var(--adm-point);
-  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+  box-shadow: 0 0 0 3px var(--adm-point-bg);
 }
 
 .form-textarea {
@@ -924,7 +936,7 @@
 .form-input:focus,
 .form-select:focus {
   border-color: var(--adm-point);
-  box-shadow: 0 0 0 3px rgba(94, 163, 255, 0.15);
+  box-shadow: 0 0 0 3px var(--adm-point-bg);
 }
 
 /* 시작일/종료일처럼 한 form-group 안에 입력 2개를 나란히 두는 레이아웃 */
@@ -1036,11 +1048,11 @@
 }
 
 .grade-dot-bronze {
-  background: #c98a4b;
+  background: var(--adm-grade-bronze);
 }
 
 .grade-dot-silver {
-  background: #b9c1cc;
+  background: var(--adm-grade-silver);
 }
 
 .grade-dot-gold {
@@ -1052,7 +1064,7 @@
 }
 
 .grade-dot-vip {
-  background: #b083f0;
+  background: var(--adm-grade-vip);
 }
 
 /*
@@ -1278,7 +1290,7 @@
   /* 평소 상태가 surface-2로 바뀌어서 hover는 그보다 한 단계 더 진한 톤으로 */
   background: var(--adm-surface-3);
 
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--adm-border-soft);
 
   color: var(--adm-text);
 
@@ -1295,11 +1307,11 @@
 
   border-color: var(--adm-point-strong);
 
-  color: #fff;
+  color: var(--adm-text);
 
   font-weight: 700;
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px var(--adm-shadow-sm);
 }
 
 /* =====================================================
@@ -1374,7 +1386,7 @@
 
   padding: 20px;
 
-  background: rgba(10, 10, 12, 0.6);
+  background: var(--adm-overlay-bg);
   backdrop-filter: blur(4px);
 
   z-index: 1000;
@@ -1396,7 +1408,7 @@
   border: 1px solid var(--color-border, #2b2b2b);
   border-radius: 16px;
 
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 25px 60px var(--adm-shadow-modal);
 
   /* Firefox: 스크롤바를 팝업 톤에 맞춰 얇고 어둡게 */
   scrollbar-width: thin;
@@ -1465,7 +1477,7 @@
 
 .modal-close:hover {
   background: var(--color-bg3, #30333a);
-  color: #fff;
+  color: var(--adm-text);
 }
 
 /*

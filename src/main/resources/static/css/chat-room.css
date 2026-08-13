@@ -11,6 +11,29 @@
  *    시간/안읽음 수는 말풍선 우측 하단.
  */
 
+:root {
+    --kakao-yellow-a06: rgba(254, 229, 0, 0.06);
+    --kakao-yellow-a08: rgba(254, 229, 0, 0.08);
+    --kakao-yellow-a12: rgba(254, 229, 0, 0.12);
+    --kakao-yellow-a14: rgba(254, 229, 0, 0.14);
+    --kakao-yellow-a18: rgba(254, 229, 0, 0.18);
+    --kakao-yellow-a35: rgba(254, 229, 0, 0.35);
+    --kakao-notice-gradient-start: #262110;
+    --kakao-avatar-text: #1c1c1c;
+    --kakao-avatar-1: #6FCF97;
+    --kakao-avatar-2: #56CCF2;
+    --kakao-avatar-3: #BB6BD9;
+    --kakao-avatar-4: #F2994A;
+    --kakao-avatar-5: #EB5757;
+    --kakao-white-a08: rgba(255, 255, 255, 0.08);
+    --kakao-white-a12: rgba(255, 255, 255, 0.12);
+    --kakao-menu-shadow: rgba(0, 0, 0, 0.5);
+    --kakao-disabled-text: #5b5b5b;
+    --kakao-danger-a12: rgba(255, 91, 91, 0.12);
+    --kakao-danger-a50: rgba(255, 91, 91, 0.5);
+    --kakao-focus-ring: rgba(242, 201, 76, 0.15);
+}
+
 body.chat-page {
     margin: 0;
     height: 100vh;
@@ -57,7 +80,7 @@ body.chat-page.embedded .chat-container {
 }
 
 .notice-room-container {
-    box-shadow: inset 0 0 0 1px rgba(254, 229, 0, 0.18);
+    box-shadow: inset 0 0 0 1px var(--kakao-yellow-a18, rgba(254, 229, 0, 0.18));
 }
 
 .chat-header {
@@ -69,7 +92,7 @@ body.chat-page.embedded .chat-container {
 }
 
 .notice-header {
-    background: linear-gradient(180deg, #262110, #222222 70%);
+    background: linear-gradient(180deg, var(--kakao-notice-gradient-start, #262110), var(--kakao-bg-2, #222222) 70%);
 }
 
 .chat-title-line {
@@ -95,7 +118,7 @@ body.chat-page.embedded .chat-container {
     height: 22px;
     padding: 0 9px;
     border-radius: 999px;
-    background: rgba(254, 229, 0, 0.14);
+    background: var(--kakao-yellow-a14, rgba(254, 229, 0, 0.14));
     color: var(--kakao-yellow-dark, #F2C94C);
     font-size: 11px;
     font-weight: 700;
@@ -115,9 +138,9 @@ body.chat-page.embedded .chat-container {
 
 .readonly-notice {
     padding: 10px 20px;
-    background: rgba(254, 229, 0, 0.08);
+    background: var(--kakao-yellow-a08, rgba(254, 229, 0, 0.08));
     color: var(--kakao-yellow-dark, #F2C94C);
-    border-bottom: 1px solid rgba(254, 229, 0, 0.18);
+    border-bottom: 1px solid var(--kakao-yellow-a18, rgba(254, 229, 0, 0.18));
     font-size: 12.5px;
     font-weight: 700;
     flex: 0 0 auto;
@@ -199,17 +222,17 @@ body.chat-page.embedded .chat-container {
     justify-content: center;
     font-size: 13px;
     font-weight: 700;
-    color: #1c1c1c;
+    color: var(--kakao-avatar-text, #1c1c1c);
     background: var(--kakao-yellow-dark, #F2C94C);
     user-select: none;
 }
 
-.avatar-color-0 { background: #F2C94C; }
-.avatar-color-1 { background: #6FCF97; }
-.avatar-color-2 { background: #56CCF2; }
-.avatar-color-3 { background: #BB6BD9; }
-.avatar-color-4 { background: #F2994A; }
-.avatar-color-5 { background: #EB5757; color: #fff; }
+.avatar-color-0 { background: var(--kakao-yellow-dark, #F2C94C); }
+.avatar-color-1 { background: var(--kakao-avatar-1, #6FCF97); }
+.avatar-color-2 { background: var(--kakao-avatar-2, #56CCF2); }
+.avatar-color-3 { background: var(--kakao-avatar-3, #BB6BD9); }
+.avatar-color-4 { background: var(--kakao-avatar-4, #F2994A); }
+.avatar-color-5 { background: var(--kakao-avatar-5, #EB5757); color: var(--kakao-text-primary, #ffffff); }
 
 .content-col {
     display: flex;
@@ -285,15 +308,15 @@ body.chat-page.embedded .chat-container {
 }
 
 .notice-message-row .bubble {
-    background: rgba(254, 229, 0, 0.12);
+    background: var(--kakao-yellow-a12, rgba(254, 229, 0, 0.12));
     color: var(--kakao-yellow-dark, #F2C94C);
-    border: 1px solid rgba(254, 229, 0, 0.35);
+    border: 1px solid var(--kakao-yellow-a35, rgba(254, 229, 0, 0.35));
 }
 
 .notice-message-row.mine .bubble {
     background: var(--kakao-yellow-deep, #3D3512);
     color: var(--kakao-yellow, #FEE500);
-    border-color: rgba(254, 229, 0, 0.35);
+    border-color: var(--kakao-yellow-a35, rgba(254, 229, 0, 0.35));
 }
 
 /*
@@ -371,7 +394,7 @@ body.chat-page.embedded .chat-container {
 
 .message-more-btn:hover,
 .message-more-btn[aria-expanded="true"] {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--kakao-white-a12, rgba(255, 255, 255, 0.12));
 }
 
 .message-more-btn:focus-visible {
@@ -390,7 +413,7 @@ body.chat-page.embedded .chat-container {
     border: 1px solid var(--kakao-border, #3a3a3a);
     border-radius: 8px;
     background: var(--kakao-bg-3, #2b2b2b);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 16px var(--kakao-menu-shadow, rgba(0, 0, 0, 0.5));
 }
 
 .message-action-menu.open {
@@ -413,13 +436,13 @@ body.chat-page.embedded .chat-container {
 
 .message-action-item:hover,
 .message-action-item:focus-visible {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--kakao-white-a08, rgba(255, 255, 255, 0.08));
     color: var(--kakao-text-primary, #ffffff);
 }
 
 .message-action-item:disabled {
     background: transparent;
-    color: #5b5b5b;
+    color: var(--kakao-disabled-text, #5b5b5b);
     cursor: not-allowed;
     opacity: 0.72;
 }
@@ -439,7 +462,7 @@ body.chat-page.embedded .chat-container {
 
 .message-action-delete:hover,
 .message-action-delete:focus-visible {
-    background: rgba(255, 91, 91, 0.12);
+    background: var(--kakao-danger-a12, rgba(255, 91, 91, 0.12));
     color: var(--kakao-danger, #FF5B5B);
 }
 
@@ -479,7 +502,7 @@ body.chat-page.embedded .chat-container {
 
 .input-area textarea:focus {
     border-color: var(--kakao-yellow-dark, #F2C94C);
-    box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.15);
+    box-shadow: 0 0 0 3px var(--kakao-focus-ring, rgba(242, 201, 76, 0.15));
 }
 
 .input-area button {
@@ -497,19 +520,19 @@ body.chat-page.embedded .chat-container {
 
 .send-btn {
     background: var(--kakao-yellow, #FEE500);
-    color: #201d00;
+    color: var(--kakao-mine-text, #201d00);
 }
 
 .leave-btn {
     background: transparent;
-    border: 1px solid rgba(255, 91, 91, 0.5) !important;
+    border: 1px solid var(--kakao-danger-a50, rgba(255, 91, 91, 0.5)) !important;
     color: var(--kakao-danger, #FF5B5B);
 }
 
 .readonly-footer {
     padding: 15px 20px;
-    border-top: 1px solid rgba(254, 229, 0, 0.18);
-    background: rgba(254, 229, 0, 0.06);
+    border-top: 1px solid var(--kakao-yellow-a18, rgba(254, 229, 0, 0.18));
+    background: var(--kakao-yellow-a06, rgba(254, 229, 0, 0.06));
     color: var(--kakao-yellow-dark, #F2C94C);
     text-align: center;
     font-weight: 700;
