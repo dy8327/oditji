@@ -120,12 +120,13 @@ class BusinessServiceImplResidualClosure5Test {
         assertTrue(savedPaths.isEmpty());
 
         when(businessDAO.insertProductImage(any(GoodsManageVO.class))).thenReturn(0);
+        MultipartFile failedDetailImage = image("failed-detail.png");
         assertThrows(
                 IllegalStateException.class,
                 () -> invoke(
                         "saveDetailProductImages",
                         10L,
-                        new MultipartFile[] { image("failed-detail.png") },
+                        new MultipartFile[] { failedDetailImage },
                         savedPaths));
         assertEquals(1, savedPaths.size());
         assertTrue(Files.exists(savedPaths.get(0)));
