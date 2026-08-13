@@ -1225,3 +1225,606 @@
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* =========================================================
+   [회원정보 수정 모달 디자인 변경 - 2026-08-13]
+   - 회원정보 수정(memberModal)에만 적용합니다.
+   - 알림 설정 / OTT / 회원탈퇴 등 다른 모달에는 영향을 주지 않습니다.
+   - 기존 기능용 ID, input name, 중복확인 및 비밀번호 버튼 기능은 유지합니다.
+   ========================================================= */
+
+/* =========================================================
+   [회원정보 수정 모달 - 전체 박스]
+   ========================================================= */
+#memberModal .member-update-modal {
+  width: 760px;
+  max-width: calc(100vw - 40px);
+
+  padding: 34px 38px 32px;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+
+  background: radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.045), transparent 32%), linear-gradient(145deg, rgba(24, 27, 31, 0.99), rgba(9, 11, 13, 0.99));
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 22px 60px rgba(0, 0, 0, 0.58);
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 제목]
+   ========================================================= */
+#memberModal .member-update-header {
+  margin-bottom: 30px;
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+#memberModal .member-update-header h2 {
+  margin: 0;
+
+  color: #f5f5f5;
+
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 입력 항목 공통 행]
+   아이콘 + 라벨 + 입력 영역 구조
+   ========================================================= */
+#memberModal .member-update-form-group {
+  display: grid;
+
+  grid-template-columns: 285px minmax(0, 1fr);
+
+  align-items: start;
+
+  column-gap: 22px;
+
+  margin-bottom: 22px;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 좌측 라벨 영역]
+   ========================================================= */
+#memberModal .member-update-label {
+  display: flex;
+  align-items: center;
+
+  min-height: 50px;
+
+  gap: 18px;
+}
+
+#memberModal .member-update-label label {
+  margin: 0;
+
+  color: #f0f1f2;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 원형 아이콘]
+   ========================================================= */
+#memberModal .member-update-icon {
+  display: inline-flex;
+
+  flex: 0 0 48px;
+
+  width: 48px;
+  height: 48px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+
+  background: linear-gradient(145deg, rgba(55, 58, 63, 0.78), rgba(24, 26, 29, 0.92));
+
+  color: #f4f5f5;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 7px 18px rgba(0, 0, 0, 0.18);
+}
+
+#memberModal .member-update-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 우측 입력 영역]
+   ========================================================= */
+#memberModal .member-update-field {
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 입력창]
+   기존 공통 input CSS보다 높은 우선순위로 이 모달에만 적용합니다.
+   ========================================================= */
+#memberModal .member-update-field input[type="text"],
+#memberModal .member-update-field input[type="email"],
+#memberModal .member-update-field input[type="password"] {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 9px;
+
+  outline: none;
+
+  background: rgba(5, 6, 7, 0.78);
+
+  color: #f3f4f5;
+
+  font-size: 15px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+#memberModal .member-update-field input[type="text"]:focus,
+#memberModal .member-update-field input[type="email"]:focus,
+#memberModal .member-update-field input[type="password"]:focus {
+  border-color: rgba(76, 175, 80, 0.75);
+
+  background: rgba(9, 11, 11, 0.94);
+
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#memberModal .member-update-field input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 닉네임 / 이메일 중복확인 영역]
+   ========================================================= */
+#memberModal .duplicate-check-row {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 96px;
+
+  gap: 10px;
+}
+
+#memberModal .duplicate-check-btn {
+  width: 96px;
+  min-width: 96px;
+  height: 50px;
+
+  padding: 0 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+
+  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+
+  color: #f4f4f4;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+#memberModal .duplicate-check-btn:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+
+  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+}
+
+#memberModal .duplicate-check-btn:active {
+  transform: translateY(1px);
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 유효성 메시지]
+   ========================================================= */
+#memberModal .member-update-field .input-message {
+  display: block;
+
+  min-height: 16px;
+
+  margin-top: 6px;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 비밀번호 입력 영역]
+   ========================================================= */
+#memberModal .password-input-row {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 64px;
+
+  gap: 10px;
+}
+
+#memberModal .password-toggle-btn {
+  width: 64px;
+  min-width: 64px;
+  height: 50px;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+
+  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+
+  color: #f4f4f4;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+#memberModal .password-toggle-btn:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+
+  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 소셜 로그인 안내]
+   시안의 초록색 테두리 안내 박스 형태로 변경합니다.
+   ========================================================= */
+#memberModal .member-update-info-box {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  width: 100%;
+
+  margin: 5px 0 24px;
+
+  padding: 16px 18px;
+
+  border: 1px solid rgba(76, 175, 80, 0.48);
+  border-radius: 9px;
+
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.055), rgba(76, 175, 80, 0.015));
+
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 소셜 로그인 안내 아이콘]
+   ========================================================= */
+#memberModal .member-update-info-icon {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #53b957;
+}
+
+#memberModal .member-update-info-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 프로필 이미지 파일 영역]
+   닉네임 / 전화번호와 동일한 행 레이아웃으로 구성합니다.
+   ========================================================= */
+#memberModal .member-update-profile-group {
+  margin-bottom: 8px;
+}
+
+#memberModal .member-update-file-wrap {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 50px;
+
+  padding: 6px 9px;
+
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 9px;
+
+  background: rgba(5, 6, 7, 0.78);
+
+  overflow: hidden;
+}
+
+/* 기존 브라우저 파일 input의 바깥 테두리는 제거하고
+   파일 선택 버튼만 내부에 자연스럽게 표시합니다. */
+#memberModal .member-update-file-wrap input[type="file"] {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 파일 선택 버튼]
+   Chromium 기반 브라우저 기준 기본 파일 버튼을
+   프로젝트 다크 톤과 맞게 재정의합니다.
+   ========================================================= */
+#memberModal .member-update-file-wrap input[type="file"]::file-selector-button {
+  height: 36px;
+
+  margin-right: 13px;
+
+  padding: 0 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+
+  background: linear-gradient(180deg, rgba(65, 67, 70, 0.94), rgba(42, 44, 47, 0.96));
+
+  color: #f4f4f4;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+#memberModal .member-update-file-wrap input[type="file"]::file-selector-button:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+
+  background: linear-gradient(180deg, rgba(76, 78, 82, 0.96), rgba(50, 52, 55, 0.98));
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 하단 버튼]
+   ========================================================= */
+#memberModal .member-update-buttons {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin-top: 28px;
+}
+
+#memberModal .member-update-buttons button {
+  min-width: 88px;
+  height: 46px;
+
+  padding: 0 22px;
+
+  border-radius: 9px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* 저장 버튼 */
+#memberModal .member-update-buttons #memberUpdateBtn {
+  border: 1px solid rgba(76, 175, 80, 0.5);
+
+  background: linear-gradient(180deg, #4caf50, #388e3c);
+
+  color: #ffffff;
+
+  box-shadow: 0 8px 18px rgba(76, 175, 80, 0.16);
+}
+
+#memberModal .member-update-buttons #memberUpdateBtn:hover {
+  background: linear-gradient(180deg, #58b85c, #3f9743);
+}
+
+/* 취소 버튼 */
+#memberModal .member-update-buttons #closeMemberModal {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  background: linear-gradient(180deg, rgba(67, 69, 73, 0.96), rgba(45, 47, 50, 0.98));
+
+  color: #f3f3f3;
+}
+
+#memberModal .member-update-buttons #closeMemberModal:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+
+  background: linear-gradient(180deg, rgba(78, 80, 84, 0.98), rgba(52, 54, 57, 0.98));
+}
+
+#memberModal .member-update-buttons button:active {
+  transform: translateY(1px);
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 태블릿 / 모바일]
+   PC에서는 시안처럼 좌측 라벨 + 우측 입력 영역으로 배치하고,
+   작은 화면에서는 세로 구조로 변경하여 잘림을 방지합니다.
+   ========================================================= */
+@media (max-width: 768px) {
+  #memberModal {
+    align-items: flex-start;
+
+    overflow-y: auto;
+
+    padding: 16px;
+  }
+
+  #memberModal .member-update-modal {
+    width: 100%;
+    max-width: 100%;
+
+    margin: auto 0;
+
+    padding: 24px 18px;
+  }
+
+  #memberModal .member-update-header {
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+  }
+
+  #memberModal .member-update-header h2 {
+    font-size: 22px;
+  }
+
+  #memberModal .member-update-form-group {
+    grid-template-columns: 1fr;
+
+    row-gap: 10px;
+
+    margin-bottom: 20px;
+  }
+
+  #memberModal .member-update-label {
+    min-height: 38px;
+
+    gap: 12px;
+  }
+
+  #memberModal .member-update-icon {
+    flex-basis: 38px;
+
+    width: 38px;
+    height: 38px;
+  }
+
+  #memberModal .member-update-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  #memberModal .member-update-label label {
+    font-size: 14px;
+  }
+
+  #memberModal .member-update-field input[type="text"],
+  #memberModal .member-update-field input[type="email"],
+  #memberModal .member-update-field input[type="password"] {
+    height: 46px;
+
+    font-size: 14px;
+  }
+
+  #memberModal .duplicate-check-row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  #memberModal .duplicate-check-btn {
+    width: 88px;
+    min-width: 88px;
+    height: 46px;
+  }
+
+  #memberModal .password-input-row {
+    grid-template-columns: minmax(0, 1fr) 58px;
+  }
+
+  #memberModal .password-toggle-btn {
+    width: 58px;
+    min-width: 58px;
+    height: 46px;
+  }
+
+  #memberModal .member-update-file-wrap {
+    min-height: 46px;
+  }
+
+  #memberModal .member-update-info-box {
+    margin-top: 2px;
+
+    padding: 14px 15px;
+
+    font-size: 13px;
+  }
+
+  #memberModal .member-update-buttons {
+    margin-top: 24px;
+  }
+}
+
+/* =========================================================
+   [회원정보 수정 모달 - 초소형 모바일]
+   닉네임/이메일 중복확인 버튼 영역이 좁아지는 경우를 보완합니다.
+   ========================================================= */
+@media (max-width: 420px) {
+  #memberModal .member-update-modal {
+    padding: 22px 14px;
+  }
+
+  #memberModal .duplicate-check-row {
+    grid-template-columns: minmax(0, 1fr) 78px;
+
+    gap: 8px;
+  }
+
+  #memberModal .duplicate-check-btn {
+    width: 78px;
+    min-width: 78px;
+
+    padding: 0 8px;
+
+    font-size: 12px;
+  }
+
+  #memberModal .member-update-file-wrap input[type="file"] {
+    font-size: 12px;
+  }
+
+  #memberModal .member-update-file-wrap input[type="file"]::file-selector-button {
+    margin-right: 8px;
+
+    padding: 0 11px;
+
+    font-size: 12px;
+  }
+
+  #memberModal .member-update-buttons button {
+    min-width: 76px;
+
+    padding: 0 17px;
+  }
+}
