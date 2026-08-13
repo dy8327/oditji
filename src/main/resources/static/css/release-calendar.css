@@ -2,6 +2,25 @@
    출시 알림 캘린더
 ========================================================= */
 
+:root {
+  --rc-point-06: rgba(94, 163, 255, 0.06);
+  --rc-point-08: rgba(94, 163, 255, 0.08);
+  --rc-point-14: rgba(94, 163, 255, 0.14);
+  --rc-point-40: rgba(94, 163, 255, 0.4);
+
+  --rc-holiday: #ff5a5a;
+  --rc-holiday-08: rgba(255, 90, 90, 0.08);
+  --rc-holiday-35: rgba(255, 90, 90, 0.35);
+  --rc-holiday-40: rgba(255, 90, 90, 0.4);
+
+  --rc-sun: #ff8a8a;
+  --rc-sat: #7fb2ff;
+
+  --rc-shadow-sm: rgba(0, 0, 0, 0.4);
+  --rc-shadow-popover: rgba(0, 0, 0, 0.5);
+  --rc-backdrop: rgba(0, 0, 0, 0.55);
+}
+
 .release-calendar-section {
   max-width: 1120px;
   margin: 0 auto;
@@ -92,7 +111,7 @@ body.release-calendar-no-scroll {
 .release-calendar-arrow-btn:hover {
   border-color: var(--color-point);
   color: var(--color-white);
-  background: rgba(94, 163, 255, 0.08);
+  background: var(--rc-point-08);
 }
 
 .release-calendar-arrow-btn:focus-visible,
@@ -199,7 +218,7 @@ body.release-calendar-no-scroll {
 
 /* 이 달의 공휴일 요약 문구는 다른 안내 문구와 구분되도록 포인트 컬러를 붉은 톤으로 씁니다. */
 .release-calendar-notice-item--holiday svg {
-  color: #ff5a5a;
+  color: var(--rc-holiday);
 }
 
 /* =========================================================
@@ -221,11 +240,11 @@ body.release-calendar-no-scroll {
 }
 
 .release-calendar-weekday--sun {
-  color: #ff8a8a;
+  color: var(--rc-sun);
 }
 
 .release-calendar-weekday--sat {
-  color: #7fb2ff;
+  color: var(--rc-sat);
 }
 
 /*
@@ -251,8 +270,8 @@ body.release-calendar-no-scroll {
 }
 
 .release-calendar-cell--has-content {
-  border-color: rgba(94, 163, 255, 0.4);
-  background: linear-gradient(180deg, rgba(94, 163, 255, 0.06), var(--color-bg2) 40%);
+  border-color: var(--rc-point-40);
+  background: linear-gradient(180deg, var(--rc-point-06), var(--color-bg2) 40%);
 }
 
 .release-calendar-cell--has-content:hover {
@@ -271,21 +290,21 @@ body.release-calendar-no-scroll {
 
 /* 공휴일 셀은 실제 달력처럼 옅은 붉은 톤으로 구분해 눈에 띄게 합니다. */
 .release-calendar-cell--holiday {
-  border-color: rgba(255, 90, 90, 0.35);
-  background: linear-gradient(180deg, rgba(255, 90, 90, 0.08), var(--color-bg2) 45%);
+  border-color: var(--rc-holiday-35);
+  background: linear-gradient(180deg, var(--rc-holiday-08), var(--color-bg2) 45%);
 }
 
 .release-calendar-cell--holiday.release-calendar-cell--has-content {
   background: linear-gradient(
     180deg,
-    rgba(255, 90, 90, 0.08),
-    rgba(94, 163, 255, 0.06) 55%,
+    var(--rc-holiday-08),
+    var(--rc-point-06) 55%,
     var(--color-bg2) 90%
   );
 }
 
 .release-calendar-cell--holiday.release-calendar-cell--today {
-  box-shadow: 0 0 0 1px var(--color-point), inset 0 0 0 1px rgba(255, 90, 90, 0.4);
+  box-shadow: 0 0 0 1px var(--color-point), inset 0 0 0 1px var(--rc-holiday-40);
 }
 
 /* 모바일에서만 보이는 "N개" 배지. 데스크톱에서는 숨기고
@@ -319,27 +338,27 @@ body.release-calendar-no-scroll {
 }
 
 .release-calendar-cell--sun .release-calendar-date {
-  color: #ff8a8a;
+  color: var(--rc-sun);
 }
 
 .release-calendar-cell--sat .release-calendar-date {
-  color: #7fb2ff;
+  color: var(--rc-sat);
 }
 
 /* 공휴일 날짜 숫자는 요일 색상보다 우선해 항상 빨간색으로 표시합니다. */
 .release-calendar-date--holiday {
-  color: #ff5a5a;
+  color: var(--rc-holiday);
 }
 
 .release-calendar-date--holiday .release-calendar-date-badge {
-  background: #ff5a5a;
+  background: var(--rc-holiday);
 }
 
 /* 데스크톱에서만 공휴일 이름을 날짜 옆에 짧게 보여줍니다. */
 .release-calendar-holiday-name {
   min-width: 0;
   overflow: hidden;
-  color: #ff5a5a;
+  color: var(--rc-holiday);
   font-size: 10.5px;
   font-weight: 600;
   line-height: 1.2;
@@ -392,7 +411,7 @@ body.release-calendar-no-scroll {
   object-fit: cover;
   border-radius: 3px;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 6px var(--rc-shadow-sm);
 }
 
 .release-calendar-content-noimg {
@@ -461,7 +480,7 @@ body.release-calendar-no-scroll {
   background: var(--color-bg3);
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 36px var(--rc-shadow-popover);
 }
 
 .release-calendar-popover.is-open {
@@ -474,7 +493,7 @@ body.release-calendar-no-scroll {
   position: fixed;
   inset: 0;
   z-index: 190;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--rc-backdrop);
   backdrop-filter: blur(2px);
 }
 
@@ -642,7 +661,7 @@ body.release-calendar-no-scroll {
   }
 
   .release-calendar-cell--has-content:active {
-    background: rgba(94, 163, 255, 0.14);
+    background: var(--rc-point-14);
   }
 
   .release-calendar-date {

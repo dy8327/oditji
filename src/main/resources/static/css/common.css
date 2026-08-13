@@ -27,6 +27,69 @@
   --radius: 14px;
 
   --transition: 0.3s ease;
+
+  /* [추가] 라이트/다크모드 리팩터링 — 잔여 하드코딩 색상 변수화 (19/32) */
+  --color-pure-white: #ffffff;
+  --color-skip-link-text: #181818;
+
+  --color-header-bg: rgba(31, 31, 35, 0.95);
+  --color-overlay-bg: rgba(8, 8, 10, 0.55);
+
+  --color-dropdown-bg: #2a2d32;
+  --color-nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --color-hover-surface: #383c42;
+
+  --color-point-a15: rgba(94, 163, 255, 0.15);
+  --color-point-a25: rgba(94, 163, 255, 0.25);
+  --color-point-a35: rgba(94, 163, 255, 0.35);
+
+  --color-badge-hot-bg: rgba(255, 112, 82, 0.16);
+  --color-badge-hot-text: #ff8f6b;
+  --color-badge-danger-bg: #e32a26;
+  --color-badge-danger-shadow: rgba(229, 57, 53, 0.35);
+  --color-badge-info-bg: #3b4654;
+  --color-badge-info-text: #bcd8ff;
+
+  --color-profile-btn-hover-bg: #3a3e46;
+  --color-danger-text: #ff7c7c;
+  --color-danger-hover-bg: #4a2d2d;
+  --color-danger-hover-text: #ffb3b3;
+  --color-link-soft: #9ec8ff;
+
+  --color-mobile-panel-bg: #23262b;
+  --color-mobile-submenu-bg: #1f2227;
+  --color-mobile-category-submenu-bg: #191c20;
+
+  --color-scrollbar-thumb: #50545b;
+  --color-scrollbar-thumb-alt: #4b5058;
+
+  --color-shadow-35: rgba(0, 0, 0, 0.35);
+  --color-shadow-36: rgba(0, 0, 0, 0.36);
+  --color-shadow-38: rgba(0, 0, 0, 0.38);
+  --color-shadow-40: rgba(0, 0, 0, 0.4);
+
+  --color-notification-divider: rgba(61, 65, 72, 0.82);
+
+  --color-footer-bg: rgba(28, 28, 28, 1);
+  --color-footer-border: #2a2a2a;
+  --color-footer-text: #b5b5b5;
+  --color-footer-text-strong: #d0d0d0;
+  --color-footer-text-muted: #9a9a9a;
+  --color-footer-text-faint: #7f7f7f;
+
+  /* [수정] 하단 이벤트 기간 탭(캡슐형)은 다크/라이트 배경과 무관하게
+     항상 밝은 반투명 화이트 톤으로 고정하는 디자인 의도라 자동 반전 대상이 아님 */
+  --color-period-tab-bg: rgba(255, 255, 255, 0.035);
+  --color-period-tab-border: rgba(255, 255, 255, 0.12);
+  --color-period-tab-text: #979ca5;
+  --color-period-tab-hover-bg: rgba(255, 255, 255, 0.07);
+  --color-period-tab-hover-border: rgba(255, 255, 255, 0.34);
+  --color-period-tab-active-border: rgba(255, 255, 255, 0.62);
+  --color-period-tab-active-grad-start: #f0f0f1;
+  --color-period-tab-active-grad-end: #bfc1c5;
+  --color-period-tab-active-text: #111216;
+  --color-period-tab-active-shadow: rgba(255, 255, 255, 0.08);
+  --color-period-tab-focus-ring: rgba(255, 255, 255, 0.8);
 }
 
 /* =========================================================
@@ -40,8 +103,8 @@
   z-index: 10000;
   padding: 10px 16px;
   border-radius: 8px;
-  background: #ffffff;
-  color: #181818;
+  background: var(--color-pure-white);
+  color: var(--color-skip-link-text);
   font-weight: 700;
   transform: translateY(-150%);
   transition: transform 0.2s ease;
@@ -49,7 +112,7 @@
 
 .skip-link:focus {
   transform: translateY(0);
-  outline: 3px solid #5ea3ff;
+  outline: 3px solid var(--color-point);
   outline-offset: 2px;
 }
 
@@ -64,7 +127,7 @@
 
   height: var(--header-height);
 
-  background: rgba(31, 31, 35, 0.95);
+  background: var(--color-header-bg);
 
   backdrop-filter: blur(18px);
 
@@ -76,7 +139,7 @@
 }
 
 .header.scrolled {
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 35px var(--color-shadow-35);
 }
 
 /* =========================================================
@@ -90,7 +153,7 @@
   position: fixed;
   inset: 0;
   z-index: 9990;
-  background: rgba(8, 8, 10, 0.55);
+  background: var(--color-overlay-bg);
   opacity: 0;
   visibility: hidden;
   transition:
@@ -223,7 +286,7 @@
 .header-nav-link:hover,
 .header-nav-link:focus-visible,
 .header-nav-dropdown.open > .header-nav-trigger {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-nav-hover-bg);
   color: var(--color-white);
 }
 
@@ -250,11 +313,11 @@
   left: 50%;
   width: 230px;
   padding: 10px;
-  background: #2a2d32;
+  background: var(--color-dropdown-bg);
   border: 1px solid var(--color-border);
   border-top: 2px solid var(--color-point-strong);
   border-radius: 14px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 20px 45px var(--color-shadow-38);
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, 10px);
@@ -330,7 +393,7 @@
 .header-submenu > a:hover,
 .header-submenu > a:focus-visible,
 .header-submenu > a.active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-nav-hover-bg);
   color: var(--color-white);
   padding-left: 22px;
 }
@@ -348,7 +411,7 @@
   margin-left: auto;
   padding: 1px 7px;
   border-radius: 999px;
-  background: rgba(94, 163, 255, 0.15);
+  background: var(--color-point-a15);
   color: var(--color-point);
   font-size: 10px;
   font-weight: 800;
@@ -356,8 +419,8 @@
 }
 
 .header-submenu-badge--hot {
-  background: rgba(255, 112, 82, 0.16);
-  color: #ff8f6b;
+  background: var(--color-badge-hot-bg);
+  color: var(--color-badge-hot-text);
 }
 
 /* =========================================================
@@ -391,7 +454,7 @@
 .header-category-trigger:hover,
 .header-category-trigger:focus-visible,
 .header-category-menu.pinned > .header-category-trigger {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-nav-hover-bg);
   color: var(--color-white);
 }
 
@@ -413,11 +476,11 @@
   left: calc(100% + 12px);
   width: 160px;
   padding: 10px;
-  background: #2a2d32;
+  background: var(--color-dropdown-bg);
   border: 1px solid var(--color-border);
   border-top: 2px solid var(--color-point-strong);
   border-radius: 14px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 20px 45px var(--color-shadow-38);
   opacity: 0;
   visibility: hidden;
   transform: translateX(-8px);
@@ -482,7 +545,7 @@
 /* 수정: 마우스를 올린 세부 카테고리만 색상 변경 */
 .header-category-submenu a:hover,
 .header-category-submenu a:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-nav-hover-bg);
   color: var(--color-white);
   padding-left: 22px;
 }
@@ -575,7 +638,7 @@
 .header-search form:focus-within {
   border-color: var(--color-point);
 
-  box-shadow: 0 0 18px rgba(94, 163, 255, 0.25);
+  box-shadow: 0 0 18px var(--color-point-a25);
 }
 
 .header-search input {
@@ -647,7 +710,7 @@
 
   border-radius: var(--radius, 14px);
 
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 18px 48px var(--color-shadow-40);
 
   z-index: 60;
 
@@ -948,7 +1011,7 @@
   /* [수정] --color-point 원색 + 흰 글자는 대비 약 2.6:1로 부족해 --color-point-strong으로 교체 */
   background: var(--color-point-strong);
 
-  color: #fff;
+  color: var(--color-pure-white);
 
   font-weight: 700;
 
@@ -958,7 +1021,7 @@
 .login-btn:hover {
   transform: translateY(-2px);
 
-  box-shadow: 0 10px 25px rgba(94, 163, 255, 0.35);
+  box-shadow: 0 10px 25px var(--color-point-a35);
 }
 
 /* =========================================================
@@ -1022,7 +1085,7 @@
 }
 
 .profile-btn:hover {
-  background: #3a3e46;
+  background: var(--color-profile-btn-hover-bg);
 }
 
 .profile-btn-avatar {
@@ -1055,7 +1118,7 @@
 
   width: 220px;
 
-  background: #2a2d32;
+  background: var(--color-dropdown-bg);
 
   border: 1px solid var(--color-border);
 
@@ -1071,7 +1134,7 @@
 
   transition: var(--transition);
 
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 45px var(--color-shadow-35);
 
   z-index: 999;
 }
@@ -1101,9 +1164,9 @@
 }
 
 .profile-dropdown a:hover {
-  background: #383c42;
+  background: var(--color-hover-surface);
 
-  color: #fff;
+  color: var(--color-pure-white);
 }
 
 .profile-dropdown hr {
@@ -1113,13 +1176,13 @@
 }
 
 .logout-link {
-  color: #ff7c7c !important;
+  color: var(--color-danger-text) !important;
 }
 
 .logout-link:hover {
-  background: #4a2d2d !important;
+  background: var(--color-danger-hover-bg) !important;
 
-  color: #ffb3b3 !important;
+  color: var(--color-danger-hover-text) !important;
 }
 
 /* =========================================================
@@ -1226,10 +1289,10 @@
     right: 2%;
     margin-left: 0;
     padding: 12px;
-    background: #23262b;
+    background: var(--color-mobile-panel-bg);
     border: 1px solid var(--color-border);
     border-radius: 0 0 16px 16px;
-    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.36);
+    box-shadow: 0 18px 35px var(--color-shadow-36);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -1268,7 +1331,7 @@
     visibility: visible;
     transform: none;
     pointer-events: auto;
-    background: #1f2227;
+    background: var(--color-mobile-submenu-bg);
     transition:
       max-height 0.25s ease,
       padding 0.25s ease;
@@ -1303,7 +1366,7 @@
     visibility: visible;
     transform: none;
     pointer-events: auto;
-    background: #191c20;
+    background: var(--color-mobile-category-submenu-bg);
     transition:
       max-height 0.25s ease,
       padding 0.25s ease;
@@ -1404,10 +1467,10 @@
     z-index: 10040;
     margin: 0;
     padding: 12px;
-    background: #23262b;
+    background: var(--color-mobile-panel-bg);
     border: 1px solid var(--color-border);
     border-radius: 0 0 16px 16px;
-    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.36);
+    box-shadow: 0 18px 35px var(--color-shadow-36);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -1529,12 +1592,12 @@
   .header-submenu a:active,
   .header-category-submenu a:active,
   .header-category-trigger:active {
-    background: #383c42;
+    background: var(--color-hover-surface);
     color: var(--color-white);
   }
 
   .profile-btn:active {
-    background: #3a3e46;
+    background: var(--color-profile-btn-hover-bg);
   }
 }
 
@@ -1565,7 +1628,7 @@
 }
 
 .profile-dropdown::-webkit-scrollbar-thumb {
-  background: #50545b;
+  background: var(--color-scrollbar-thumb);
 
   border-radius: 20px;
 }
@@ -1575,9 +1638,9 @@
 ========================================================= */
 
 ::selection {
-  background: rgba(94, 163, 255, 0.35);
+  background: var(--color-point-a35);
 
-  color: #fff;
+  color: var(--color-pure-white);
 }
 
 /* =========================================================
@@ -1594,11 +1657,11 @@ html {
 
 .footer {
   width: 100%;
-  background-color: rgba(28, 28, 28, 1);
-  border-top: 1px solid #2a2a2a;
+  background-color: var(--color-footer-bg);
+  border-top: 1px solid var(--color-footer-border);
   padding: 16px 0;
   font-size: 13px;
-  color: #b5b5b5;
+  color: var(--color-footer-text);
 }
 
 .footer-container {
@@ -1625,36 +1688,36 @@ html {
 
 .footer-logo {
   font-weight: 600;
-  color: #d0d0d0;
+  color: var(--color-footer-text-strong);
 }
 
 .footer-contact {
   font-size: 12.5px;
-  color: #9a9a9a;
+  color: var(--color-footer-text-muted);
 }
 
 .footer-contact-number {
-  color: #d0d0d0;
+  color: var(--color-footer-text-strong);
   font-weight: 600;
   text-decoration: none;
 }
 
 .footer-contact-number:hover {
-  color: #ffffff;
+  color: var(--color-pure-white);
   text-decoration: underline;
 }
 
 .footer-center {
   flex: 2;
   text-align: center;
-  color: #9a9a9a;
+  color: var(--color-footer-text-muted);
   line-height: 1.4;
 }
 
 .footer-right {
   flex: 1;
   text-align: right;
-  color: #7f7f7f;
+  color: var(--color-footer-text-faint);
 }
 
 /* =========================================================
@@ -1749,14 +1812,14 @@ html {
   border: 2px solid var(--color-bg);
   border-radius: 999px;
   /* [수정] 흰 글자 on #e53935는 대비 약 4.23:1로 부족해 더 진한 톤으로 교체 */
-  background: #e32a26;
-  color: #ffffff;
+  background: var(--color-badge-danger-bg);
+  color: var(--color-pure-white);
   font-size: 10px;
   font-weight: 800;
   line-height: 14px;
   text-align: center;
   white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(229, 57, 53, 0.35);
+  box-shadow: 0 4px 10px var(--color-badge-danger-shadow);
 }
 
 .notification-badge[hidden] {
@@ -1786,8 +1849,8 @@ html {
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  background: #2a2d32;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+  background: var(--color-dropdown-bg);
+  box-shadow: 0 20px 45px var(--color-shadow-38);
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
@@ -1811,7 +1874,7 @@ html {
 }
 
 .notification-dropdown-header strong {
-  color: #ffffff;
+  color: var(--color-pure-white);
   font-size: 16px;
 }
 
@@ -1828,13 +1891,13 @@ html {
 .notification-item {
   display: block;
   padding: 15px 18px;
-  border-bottom: 1px solid rgba(61, 65, 72, 0.82);
+  border-bottom: 1px solid var(--color-notification-divider);
   transition: background 0.2s ease;
 }
 
 .notification-item:hover,
 .notification-item:focus-visible {
-  background: #383c42;
+  background: var(--color-hover-surface);
 }
 
 .notification-item:focus-visible {
@@ -1852,7 +1915,7 @@ html {
 .notification-item-title {
   min-width: 0;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--color-pure-white);
   font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1862,8 +1925,8 @@ html {
   flex: 0 0 auto;
   padding: 3px 7px;
   border-radius: 999px;
-  background: #3b4654;
-  color: #bcd8ff;
+  background: var(--color-badge-info-bg);
+  color: var(--color-badge-info-text);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1893,7 +1956,7 @@ html {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #9ec8ff;
+  color: var(--color-link-soft);
   font-size: 13px;
   font-weight: 700;
   text-align: center;
@@ -1905,8 +1968,8 @@ html {
 
 .notification-clear-all-btn:hover,
 .notification-clear-all-btn:focus-visible {
-  background: #383c42;
-  color: #ffffff;
+  background: var(--color-hover-surface);
+  color: var(--color-pure-white);
 }
 
 .notification-clear-all-btn:focus-visible {
@@ -1926,7 +1989,7 @@ html {
 
 .notification-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: #4b5058;
+  background: var(--color-scrollbar-thumb-alt);
 }
 
 @media (max-width: 768px) {
@@ -1998,7 +2061,7 @@ html {
 
   color: var(--color-white);
 
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 28px var(--color-shadow-40);
 
   opacity: 0;
 
@@ -2066,11 +2129,11 @@ html {
   min-height: 42px;
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-period-tab-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--color-period-tab-bg);
 
-  color: #979ca5;
+  color: var(--color-period-tab-text);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -2084,31 +2147,31 @@ html {
 }
 
 .event-period-links a:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  border-color: var(--color-period-tab-hover-border);
+  background: var(--color-period-tab-hover-bg);
+  color: var(--color-pure-white);
 }
 
 .event-period-links a.active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: var(--color-period-tab-active-border);
+  background: linear-gradient(180deg, var(--color-period-tab-active-grad-start), var(--color-period-tab-active-grad-end));
 
-  color: #111216;
+  color: var(--color-period-tab-active-text);
 
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 18px var(--color-period-tab-active-shadow);
 }
 
 /* [수정] 기존 기간별 빨강·파랑·회색 활성 배경을 동일한 탭 색상으로 덮어쓰기 */
 .event-period-link--ongoing.active,
 .event-period-link--upcoming.active,
 .event-period-link--ended.active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
-  color: #111216;
+  border-color: var(--color-period-tab-active-border);
+  background: linear-gradient(180deg, var(--color-period-tab-active-grad-start), var(--color-period-tab-active-grad-end));
+  color: var(--color-period-tab-active-text);
 }
 
 .event-period-links a:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--color-period-tab-focus-ring);
   outline-offset: 3px;
 }
 

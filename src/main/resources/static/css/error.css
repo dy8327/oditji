@@ -1,8 +1,24 @@
 
+:root{
+    --error-bg:#181818;
+    --error-card-bg:rgba(255,255,255,0.04);
+    --error-card-border:rgba(255,255,255,0.08);
+    --error-card-shadow:rgba(0,0,0,0.6);
+    --error-code-color:#ff4d4d;
+    --error-title-color:#fff;
+    --error-sub-color:#aaa;
+    --btn-primary-bg:#1e6ff5;
+    --btn-primary-text:#fff;
+    --btn-primary-hover-bg:#2563eb;
+    --btn-ghost-bg:rgba(255,255,255,0.06);
+    --btn-ghost-text:#fff;
+    --btn-ghost-hover-bg:rgba(255,255,255,0.12);
+}
+
 /* 전체 배경 */
 .error-page{
     margin:0;
-    background:#181818;
+    background:var(--error-bg);
     font-family:"Pretendard","Noto Sans KR",sans-serif;
 }
 
@@ -24,19 +40,19 @@
 
     padding:50px 40px;
 
-    background:rgba(255,255,255,0.04);
-    border:1px solid rgba(255,255,255,0.08);
+    background:var(--error-card-bg);
+    border:1px solid var(--error-card-border);
     border-radius:16px;
 
     backdrop-filter: blur(12px);
-    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    box-shadow:0 20px 60px var(--error-card-shadow);
 }
 
 /* 큰 숫자 */
 .error-code{
     font-size:96px;
     font-weight:800;
-    color:#ff4d4d;
+    color:var(--error-code-color);
     letter-spacing:-2px;
 }
 
@@ -45,14 +61,11 @@
     font-size:20px;
     font-weight:600;
     margin-top:10px;
-    color:#fff;
-}
-
-/* 설명 */
+    color:var(--error-title-color);
 .error-sub{
     font-size:14px;
     margin-top:8px;
-    color:#aaa;
+    color:var(--error-sub-color);
 }
 
 /* 버튼 영역 */
@@ -75,23 +88,23 @@
 /* primary */
 .btn.primary{
     /* [수정] 흰 글자 on #3b82f6는 대비 약 3.7:1로 부족해 더 진한 톤으로 교체 */
-    background:#1e6ff5;
-    color:#fff;
+    background:var(--btn-primary-bg);
+    color:var(--btn-primary-text);
 }
 
 .btn.primary:hover{
-    background:#2563eb;
+    background:var(--btn-primary-hover-bg);
     transform:translateY(-2px);
 }
 
 /* ghost 버튼 (ChatGPT 느낌 핵심) */
 .btn.ghost{
-    background:rgba(255,255,255,0.06);
-    color:#fff;
+    background:var(--btn-ghost-bg);
+    color:var(--btn-ghost-text);
 }
 
 .btn.ghost:hover{
-    background:rgba(255,255,255,0.12);
+    background:var(--btn-ghost-hover-bg);
     transform:translateY(-2px);
 }
 
@@ -115,4 +128,5 @@
     .btn{
         width:100%;
     }
+  }
 }
