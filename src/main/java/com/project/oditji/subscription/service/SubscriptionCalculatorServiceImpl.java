@@ -49,6 +49,8 @@ public class SubscriptionCalculatorServiceImpl
     // [SonarQube] 저장/복원에 공통으로 쓰는 JSON 키를 상수로 관리합니다.
     private static final String JSON_KEY_DISCOUNT_SOURCE = "discountSource";
     private static final String JSON_KEY_DISCOUNT_TITLE = "discountTitle";
+    private static final String JSON_KEY_SELECTED_PLATFORM_LIST = "selectedPlatformList";
+    private static final String JSON_KEY_PLATFORM_NAME = "platformName";
 
     private final OttDiscountDAO ottDiscountDAO;
 
@@ -490,7 +492,7 @@ public class SubscriptionCalculatorServiceImpl
             JSONObject root = new JSONObject(selectedServicesJson);
 
             JSONArray platformArray =
-                    root.optJSONArray("selectedPlatformList");
+                    root.optJSONArray(JSON_KEY_SELECTED_PLATFORM_LIST);
 
             if (platformArray != null) {
 
@@ -500,7 +502,7 @@ public class SubscriptionCalculatorServiceImpl
                             platformArray.getJSONObject(i);
 
                     String platformName =
-                            platformJson.optString("platformName", null);
+                            platformJson.optString(JSON_KEY_PLATFORM_NAME, null);
 
                     if (platformName != null
                             && !platformName.trim().isEmpty()) {
@@ -568,7 +570,7 @@ public class SubscriptionCalculatorServiceImpl
             JSONObject platformJson = new JSONObject();
 
             platformJson.put("platformCode", platform.getPlatformCode());
-            platformJson.put("platformName", platform.getPlatformName());
+            platformJson.put(JSON_KEY_PLATFORM_NAME, platform.getPlatformName());
             platformJson.put("regularPrice", platform.getRegularPrice());
             platformJson.put("bestPrice", platform.getBestPrice());
             platformJson.put(JSON_KEY_DISCOUNT_SOURCE,
@@ -583,7 +585,7 @@ public class SubscriptionCalculatorServiceImpl
             platformArray.put(platformJson);
         }
 
-        root.put("selectedPlatformList", platformArray);
+        root.put(JSON_KEY_SELECTED_PLATFORM_LIST, platformArray);
 
         JSONArray unresolvedTitleArray = new JSONArray();
 
@@ -621,7 +623,7 @@ public class SubscriptionCalculatorServiceImpl
                     shareVO.getSelectedServicesJson());
 
             JSONArray platformArray =
-                    root.optJSONArray("selectedPlatformList");
+                    root.optJSONArray(JSON_KEY_SELECTED_PLATFORM_LIST);
 
             List<PlatformPriceVO> selectedList =
                     new ArrayList<PlatformPriceVO>();
@@ -638,7 +640,7 @@ public class SubscriptionCalculatorServiceImpl
                     platform.setPlatformCode(
                             platformJson.optString("platformCode", null));
                     platform.setPlatformName(
-                            platformJson.optString("platformName", null));
+                            platformJson.optString(JSON_KEY_PLATFORM_NAME, null));
                     platform.setRegularPrice(
                             optInteger(platformJson, "regularPrice"));
                     platform.setBestPrice(

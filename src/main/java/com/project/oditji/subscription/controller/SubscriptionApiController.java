@@ -147,7 +147,7 @@ public class SubscriptionApiController {
         } catch (IllegalArgumentException e) {
 
             Map<String, Object> errorResponse = new HashMap<String, Object>();
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(RESPONSE_MESSAGE, e.getMessage());
 
             return ResponseEntity
                     .badRequest()
