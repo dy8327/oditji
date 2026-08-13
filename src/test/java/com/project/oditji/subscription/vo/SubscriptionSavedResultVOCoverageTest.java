@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ class SubscriptionSavedResultVOCoverageTest {
         assertEquals(0, vo.getDiscountPrice());
         assertEquals(0, vo.getFinalPrice());
 
-        LocalDateTime createdAt = LocalDateTime.of(2026, 8, 13, 10, 20);
+        LocalDateTime createdAt = LocalDateTime.of(2026, Month.AUGUST, 13, 10, 20);
 
         vo.setResultId("SUBS_VO_1");
         vo.setCreatedAt(createdAt);

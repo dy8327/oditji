@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -75,7 +76,7 @@ class SubscriptionCalculatorServiceImplSavedResultCoverageTest {
 
     @Test
     void getSavedResultsShouldMapFieldsAndDefensivelyParseEveryJsonShape() {
-        LocalDateTime createdAt = LocalDateTime.of(2026, 8, 13, 10, 0);
+        LocalDateTime createdAt = LocalDateTime.of(2026, Month.AUGUST, 13, 10, 0);
 
         SubscriptionShareVO valid = share(
                 RESULT_ID,
