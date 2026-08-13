@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import com.project.oditji.common.util.DateTimeUtil;
 import com.project.oditji.event.dao.OttDiscountDAO;
 import com.project.oditji.subscription.dao.SubscriptionDAO;
 import com.project.oditji.subscription.util.OttPlatformCodeUtil;
@@ -370,7 +371,8 @@ public class SubscriptionCalculatorServiceImpl
          */
         shareVO.setExpiresAt(
                 memberNo == null
-                        ? LocalDateTime.now().plusDays(GUEST_RESULT_EXPIRE_DAYS)
+                        ? LocalDateTime.now(DateTimeUtil.KOREA_ZONE)
+                                .plusDays(GUEST_RESULT_EXPIRE_DAYS)
                         : null);
 
         subscriptionDAO.insertResult(shareVO);
