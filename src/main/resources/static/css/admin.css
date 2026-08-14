@@ -749,6 +749,21 @@
   color: var(--adm-warning);
 }
 
+
+/* 신고 내역의 신고 건수 뱃지는 상세 모달을 여는 버튼으로 사용한다. */
+.admin-wrap .report-count-trigger {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-wrap .report-count-trigger:hover,
+.admin-wrap .report-count-trigger:focus-visible {
+  filter: brightness(1.12);
+  outline: 2px solid var(--adm-warning);
+  outline-offset: 2px;
+}
+
 /* =====================================================
    Tab Menu
    ===================================================== */
@@ -2075,6 +2090,12 @@
 /* 상세보기 트리거 버튼은 데스크톱에서는 필요 없다 (기존 관리 버튼을 그대로 쓴다) */
 .data-table .row-detail-trigger {
   display: none;
+}
+
+/* 신고 관리에서는 승인/반려를 목록에서 제거하고 '내용 확인' 하나만 노출한다.
+   이 버튼은 데스크톱에서도 신고 처리의 유일한 진입점이므로 항상 표시한다. */
+.data-table .row-detail-trigger.report-detail-trigger {
+  display: inline-flex;
 }
 
 /*
