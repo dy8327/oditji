@@ -168,6 +168,17 @@ html[data-theme="light"] .skip-link {
   color: #181818;
 }
 
+/* [로고 이미지 적용] 라이트 모드에서는 보라색 심볼은 그대로 유지하고
+   DITJI 글자만 검은색인 투명 PNG 버전으로 교체합니다.
+   기존 theme-toggle.js가 설정하는 html[data-theme="light"] 값을 그대로 사용합니다. */
+html[data-theme="light"] .logo-image--dark {
+  display: none;
+}
+
+html[data-theme="light"] .logo-image--light {
+  display: block;
+}
+
 /* 헤더 배경(반투명 다크)을 반투명 화이트로 */
 html[data-theme="light"] .header {
   background: rgba(255, 255, 255, 0.92);
@@ -477,7 +488,7 @@ html[data-theme="light"] .ott-discount-section {
   --ott-text-white: #14181c;
   --ott-white-05: rgba(20, 24, 28, 0.05);
   --ott-white-06: rgba(20, 24, 28, 0.06);
-  --ott-white-10: rgba(20, 24, 28, 0.10);
+  --ott-white-10: rgba(20, 24, 28, 0.1);
   --ott-white-12: rgba(20, 24, 28, 0.12);
   --ott-white-14: rgba(20, 24, 28, 0.14);
   --ott-white-16: rgba(20, 24, 28, 0.16);
@@ -624,7 +635,6 @@ html[data-theme="light"] {
   --cart-option-text: #454b53;
 }
 
-
 /* =========================================================
    contentTopTabs.css 대응 (변수 재정의만)
    --ctt-tab-color(비활성 탭, #777777)는 라이트 배경에서도 대비가
@@ -635,7 +645,6 @@ html[data-theme="light"] {
   --ctt-border: rgba(13, 13, 13, 0.09);
   --ctt-active-color: #0d0d0d;
 }
-
 
 /* =========================================================
    16) release-calendar.css 대응 (--rc-*)
@@ -694,7 +703,7 @@ html[data-theme="light"] {
   --comp-noimg-bg: #eceef1;
   --comp-muted: #6b7178;
   --comp-page-bg: #f4f5f7;
-  --comp-review-border: rgba(20, 24, 28, 0.10);
+  --comp-review-border: rgba(20, 24, 28, 0.1);
   --comp-review-meta: #6b7178;
   --comp-review-writer: #14181c;
   --comp-review-date: #8a9099;
@@ -731,7 +740,7 @@ html[data-theme="light"] {
 ========================================================= */
 html[data-theme="light"] {
   --rpt-btn-text: #c23636;
-  --rpt-btn-reported-border: rgba(20, 24, 28, 0.10);
+  --rpt-btn-reported-border: rgba(20, 24, 28, 0.1);
   --rpt-btn-reported-bg: rgba(20, 24, 28, 0.04);
   --rpt-btn-reported-text: #6b7178;
   --rpt-modal-bg: #ffffff;
@@ -842,7 +851,6 @@ html[data-theme="light"] .payment-cancel-close-btn:hover {
   color: #0d0d0d;
 }
 
-
 /* =========================================================
    25) verify.css 대응 (--verify-*)
    기존 자동 변환(선택자 기반) 값을 변수 재정의로 이동, 값은 동일
@@ -937,7 +945,7 @@ html[data-theme="light"] {
   --cm-white-a055: rgba(20, 24, 28, 0.055);
   --cm-white-a015: rgba(20, 24, 28, 0.015);
   --cm-white-a035: rgba(20, 24, 28, 0.035);
-  --cm-white-a10: rgba(20, 24, 28, 0.10);
+  --cm-white-a10: rgba(20, 24, 28, 0.1);
   --cm-text-faint: #70767f;
   --cm-desc-text: #4b525c;
   --cm-count-text: #6b7178;
@@ -2517,7 +2525,8 @@ html[data-theme="light"] {
    칩 배경/테두리만 밝은 값으로 교체한다. 사진은 지우지 않고 흰 스크림을
    짙게 얹어 옅게 남긴다. */
 html[data-theme="light"] .mypage-ott::after {
-  background-image: linear-gradient(90deg, rgba(247, 248, 250, 0.96) 0%, rgba(247, 248, 250, 0.9) 39%, rgba(247, 248, 250, 0.62) 61%, rgba(247, 248, 250, 0.16) 100%), url("/oditji/images/mypage-ott-bg.png");
+  background-image:
+    linear-gradient(90deg, rgba(247, 248, 250, 0.96) 0%, rgba(247, 248, 250, 0.9) 39%, rgba(247, 248, 250, 0.62) 61%, rgba(247, 248, 250, 0.16) 100%), url("/oditji/images/mypage-ott-bg.png");
 }
 
 html[data-theme="light"] .mypage-ott-chip {
