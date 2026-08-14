@@ -33,6 +33,10 @@
     --kakao-danger: #FF5B5B;
     --kakao-success: #4CD787;
 
+    --kakao-yellow-glow: rgba(254, 229, 0, 0.35); /* 옐로우 FAB 버튼 그림자 */
+    --kakao-overlay: rgba(0, 0, 0, 0.55);         /* 모바일 모달 오버레이 */
+    --kakao-sheet-shadow: rgba(0, 0, 0, 0.5);     /* 모바일 모달 시트 그림자 */
+
     --kakao-radius-lg: 16px;
     --kakao-radius: 12px;
     --kakao-radius-sm: 8px;
@@ -221,7 +225,7 @@ body.chat-dashboard-page {
 
 .dashboard-panel .panel-placeholder .dashboard-link-btn:hover {
     background: var(--kakao-yellow);
-    color: #201d00;
+    color: var(--kakao-mine-text);
 }
 
 /* 채팅 화면(목록/방 상세) 어디서든 대시보드로 바로 이동하는 원형 플로팅 버튼.
@@ -234,11 +238,11 @@ body.chat-dashboard-page {
     height: 44px;
     border-radius: 50%;
     background: var(--kakao-yellow);
-    color: #201d00;
+    color: var(--kakao-mine-text);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 18px rgba(254, 229, 0, 0.35);
+    box-shadow: 0 6px 18px var(--kakao-yellow-glow);
     z-index: 20;
     transition: filter 0.15s ease;
 }
@@ -258,7 +262,7 @@ body.chat-dashboard-page {
     position: fixed;
     inset: 0;
     z-index: 200;
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--kakao-overlay);
     align-items: flex-end;
     justify-content: center;
 }
@@ -276,7 +280,7 @@ body.chat-dashboard-page {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 -8px 30px var(--kakao-sheet-shadow);
     animation: sheet-up 0.22s ease-out;
 }
 
@@ -348,7 +352,7 @@ body.chat-dashboard-page {
         border-radius: 50%;
         border: 0;
         background: var(--kakao-yellow);
-        color: #201d00;
+        color: var(--kakao-mine-text);
         font-size: 26px;
         line-height: 1;
         align-items: center;
@@ -359,7 +363,7 @@ body.chat-dashboard-page {
          * 아래쪽 여백을 살짝 더 줘서 글자를 위로 밀어 보정한다.
          */
         padding-bottom: 3px;
-        box-shadow: 0 6px 18px rgba(254, 229, 0, 0.35);
+        box-shadow: 0 6px 18px var(--kakao-yellow-glow);
         cursor: pointer;
         z-index: 150;
     }

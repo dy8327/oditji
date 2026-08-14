@@ -245,6 +245,11 @@ public class SubscriptionApiController {
         List<String> platformNameList =
                 new ArrayList<String>();
 
+        // [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+        // platformNameList와 인덱스를 맞춰 로고 URL도 함께 내려준다.
+        List<String> platformLogoList =
+                new ArrayList<String>();
+
         if (content.getPlatformList() != null) {
 
             for (OttPlatformVO platform : content.getPlatformList()) {
@@ -254,11 +259,15 @@ public class SubscriptionApiController {
 
                     platformNameList.add(
                             platform.getPlatformName());
+
+                    platformLogoList.add(
+                            platform.getLogoImage());
                 }
             }
         }
 
         wishItem.setPlatformNameList(platformNameList);
+        wishItem.setPlatformLogoList(platformLogoList);
 
         return wishItem;
     }

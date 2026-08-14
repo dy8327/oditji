@@ -207,7 +207,10 @@
                             <th>작성자</th>
                             <th>${reviewTargetColumnLabel}</th>
                             <th class="col-mobile-hide">별점</th>
-                            <th class="col-mobile-hide">내용</th>
+                            <th class="col-mobile-hide">리뷰내용</th>
+                            <c:if test="${currentTab == 'report'}">
+                                <th class="col-mobile-hide">신고내용</th>
+                            </c:if>
                             <th class="col-mobile-hide">작성일</th>
                             <c:if test="${currentTab == 'report'}">
                                 <th>신고 건수</th>
@@ -253,13 +256,36 @@
                                             </div>
                                         </td>
 
+                                        <%-- 신고 탭에서는 원 리뷰와 신고 내용을 목록에서 바로 비교할 수 있게
+                                             신고 사유 + 상세 내용을 별도 열로 보여준다. --%>
+                                        <c:if test="${currentTab == 'report'}">
+                                            <td class="col-mobile-hide">
+                                                <div class="table-text-clamp report-text-clamp"
+                                                     title="${fn:escapeXml(review.reportReason)}">
+                                                    <c:out value="${review.reportReason}"/>
+                                                </div>
+                                            </td>
+                                        </c:if>
+
                                         <td class="col-mobile-hide">${reviewCreatedAtStr}</td>
 
                                         <c:if test="${currentTab == 'report'}">
                                             <td>
-                                                <span class="badge badge-yellow">
+                                                <%-- 신고 건수를 누르면 해당 리뷰의 신고 상세 모달을 바로 연다.
+                                                     기존에는 단순 span이라 클릭해도 아무 동작이 없었다. --%>
+                                                <button type="button"
+                                                        class="badge badge-yellow report-count-trigger"
+                                                        aria-label="${fn:escapeXml(review.nickname)} 리뷰 신고 ${review.reportCount}건 상세보기"
+                                                        data-review-no="${review.reviewNo}"
+                                                        data-writer="${fn:escapeXml(review.nickname)}"
+                                                        data-target="${fn:escapeXml(reviewTargetName)}"
+                                                        data-rating="${review.rating}"
+                                                        data-created-at="${reviewCreatedAtStr}"
+                                                        data-content="${fn:escapeXml(review.content)}"
+                                                        data-report-reason="${fn:escapeXml(review.reportReason)}"
+                                                        onclick="openReviewContentModal(this)">
                                                     ${review.reportCount}건
-                                                </span>
+                                                </button>
                                             </td>
                                         </c:if>
 
@@ -267,77 +293,46 @@
 
                                             <div class="item-actions">
 
-                                                <%-- 리뷰 내용이 길어도 팝업으로 전체 내용을 그대로 확인할 수 있다.
-                                                     따옴표/줄바꿈이 섞여도 안전하도록 onclick 인라인 문자열이 아닌
-                                                     data-* 속성으로 값을 전달한다.
-                                                     [수정] row-detail-trigger를 붙여 모바일에서는 이 버튼만 남고
-                                                     아래 승인/반려·삭제 버튼은 숨긴다(모달 안에 동일한 처리 버튼이
-                                                     이미 폼으로 들어있어 기능 손실이 없다). memberManage와 동일하게
-                                                     최소화된 크기로 축소하고 라벨도 "내용"으로 줄인다. --%>
-                                                <button type="button"
-                                                        class="btn btn-outline row-detail-trigger"
-                                                        aria-label="${fn:escapeXml(review.nickname)} 리뷰 내용보기"
-                                                        data-review-no="${review.reviewNo}"
-                                                        data-writer="${fn:escapeXml(review.nickname)}"
-                                                        data-target="${fn:escapeXml(reviewTargetName)}"
-                                                        data-rating="${review.rating}"
-                                                        data-created-at="${reviewCreatedAtStr}"
-                                                        data-content="${fn:escapeXml(review.content)}"
-                                                        <c:if test="${currentTab == 'report'}">data-report-reason="${fn:escapeXml(review.reportReason)}"</c:if>
-                                                        onclick="openReviewContentModal(this)">
-                                                    내용
-                                                </button>
-
+                                                <%-- 신고 내역 탭에서는 목록에서 바로 승인/반려하지 않고
+                                                     '내용 확인'으로 상세 모달을 연 뒤 리뷰 내용과 신고 내용을 비교하여
+                                                     승인(리뷰 삭제) 또는 반려를 처리한다. 전체 리뷰 탭의 기존 삭제 흐름은 유지한다. --%>
                                                 <c:choose>
 
                                                     <c:when test="${currentTab == 'report'}">
-
-                                                        <form action="${pageContext.request.contextPath}${reviewBasePath}/report/approve"
-                                                              method="post"
-                                                              style="display:inline;">
-
-                                                            <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                            <input type="hidden" name="tab" value="${currentTab}">
-                                                            <input type="hidden" name="searchType" value="${currentSearchType}">
-                                                            <input type="hidden" name="keyword" value="${param.keyword}">
-                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
-
-                                                            <button type="submit"
-                                                                    class="btn btn-danger"
-                                                                    onclick="return confirmAndSubmit(event, '신고를 승인하여 리뷰를 삭제하시겠습니까?');">
-                                                                승인 (리뷰 삭제)
-                                                            </button>
-
-                                                        </form>
-
-                                                        <form action="${pageContext.request.contextPath}${reviewBasePath}/report/reject"
-                                                              method="post"
-                                                              style="display:inline;">
-
-                                                            <input type="hidden" name="reviewNo" value="${review.reviewNo}">
-                                                            <input type="hidden" name="tab" value="${currentTab}">
-                                                            <input type="hidden" name="searchType" value="${currentSearchType}">
-                                                            <input type="hidden" name="keyword" value="${param.keyword}">
-                                                            <input type="hidden" name="page" value="${pagination.currentPage}">
-
-                                                            <button type="submit"
-                                                                    class="btn btn-secondary"
-                                                                    onclick="return confirmAndSubmit(event, '신고를 반려하시겠습니까?');">
-                                                                반려
-                                                            </button>
-
-                                                        </form>
-
+                                                        <button type="button"
+                                                                class="btn btn-outline row-detail-trigger report-detail-trigger"
+                                                                aria-label="${fn:escapeXml(review.nickname)} 리뷰 신고 내용 확인"
+                                                                data-review-no="${review.reviewNo}"
+                                                                data-writer="${fn:escapeXml(review.nickname)}"
+                                                                data-target="${fn:escapeXml(reviewTargetName)}"
+                                                                data-rating="${review.rating}"
+                                                                data-created-at="${reviewCreatedAtStr}"
+                                                                data-content="${fn:escapeXml(review.content)}"
+                                                                data-report-reason="${fn:escapeXml(review.reportReason)}"
+                                                                onclick="openReviewContentModal(this)">
+                                                            내용 확인
+                                                        </button>
                                                     </c:when>
 
                                                     <c:otherwise>
+                                                        <button type="button"
+                                                                class="btn btn-outline row-detail-trigger"
+                                                                aria-label="${fn:escapeXml(review.nickname)} 리뷰 내용보기"
+                                                                data-review-no="${review.reviewNo}"
+                                                                data-writer="${fn:escapeXml(review.nickname)}"
+                                                                data-target="${fn:escapeXml(reviewTargetName)}"
+                                                                data-rating="${review.rating}"
+                                                                data-created-at="${reviewCreatedAtStr}"
+                                                                data-content="${fn:escapeXml(review.content)}"
+                                                                onclick="openReviewContentModal(this)">
+                                                            내용
+                                                        </button>
 
                                                         <button type="button"
                                                                 class="btn btn-danger"
                                                                 onclick="${reviewDeleteFunction}(${review.reviewNo})">
                                                             리뷰 삭제
                                                         </button>
-
                                                     </c:otherwise>
 
                                                 </c:choose>
@@ -355,7 +350,7 @@
                             <c:otherwise>
 
                                 <tr>
-                                    <td colspan="${currentTab == 'report' ? 9 : 8}">
+                                    <td colspan="${currentTab == 'report' ? 10 : 8}">
                                         ${currentTab == 'report'
                                             ? '신고 접수된 리뷰가 없습니다.'
                                             : '등록된 리뷰가 없습니다.'}
@@ -426,10 +421,10 @@
     <div class="modal-box modal-box-lg">
 
         <div class="modal-header">
-            <h3>리뷰 내용</h3>
+            <h3>${currentTab == 'report' ? '신고 상세' : '리뷰 내용'}</h3>
             <button type="button"
                     class="modal-close"
-                    aria-label="리뷰 내용 팝업 닫기"
+                    aria-label="${currentTab == 'report' ? '신고 상세' : '리뷰 내용'} 팝업 닫기"
                     onclick="closeModal('reviewContentModal')">
                 &times;
             </button>
@@ -442,15 +437,15 @@
             <p><span>작성일</span><strong id="reviewContentDate"></strong></p>
         </div>
 
-        <%-- 신고 내역 탭에서만 사용하는 모달이므로, 이 탭일 때만 신고 사유 섹션을 넣는다.
-             (전체 리뷰 탭에서는 review.reportReason 자체가 조회되지 않는다) --%>
-        <c:if test="${currentTab == 'report'}">
-            <div class="detail-section-title">신고 사유</div>
-            <div class="report-reason-list" id="reviewReportReasonBody"></div>
-        </c:if>
-
+        <%-- 관리자가 신고 판단 시 원문과 신고 사유를 순서대로 비교할 수 있도록
+             신고 탭에서는 '리뷰 내용'과 '신고 내용'을 명확히 분리한다. --%>
         <div class="detail-section-title">리뷰 내용</div>
         <div class="review-content-full" id="reviewContentBody"></div>
+
+        <c:if test="${currentTab == 'report'}">
+            <div class="detail-section-title">신고 내용</div>
+            <div class="report-reason-list" id="reviewReportReasonBody"></div>
+        </c:if>
 
         <%-- 내용보기 모달에서 바로 처리(삭제 / 신고 승인·반려)할 수 있도록
              폼으로 감싸고, 현재 탭에 맞는 처리 버튼만 보여준다.

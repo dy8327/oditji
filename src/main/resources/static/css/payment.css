@@ -2,6 +2,49 @@
    1. 결제 페이지 공통 및 기본 스타일
    ========================================== */
 
+:root {
+  --pay-page-bg: #f5f6f8;
+  --pay-heading-text: #111111;
+  --pay-body-text: #555555;
+  --pay-notice-text: #777777;
+  --pay-card-bg: #ffffff;
+  --pay-card-shadow: rgba(0, 0, 0, 0.08);
+  --pay-error-text: #c0392b;
+  --pay-table-border: #eeeeee;
+  --pay-table-header-bg: #fafafa;
+  --pay-price-text: #222222;
+  --pay-success-text: #0a7d32;
+
+  --pay-btn-bg: #111111;
+  --pay-btn-text: #ffffff;
+  --pay-btn-hover-bg: #333333;
+  --pay-btn-sub-bg: #555555;
+  --pay-btn-sub-hover-bg: #6b6b6b;
+
+  --pay-danger-border: #ef4444;
+  --pay-danger-text: #f87171;
+  --pay-danger-hover-border: #eb1414;
+  --pay-danger-hover-bg: #eb1414;
+  --pay-danger-focus-outline: #fca5a5;
+  --pay-danger-focus-ring: rgba(239, 68, 68, 0.15);
+  --pay-danger-active-border: #dc2626;
+  --pay-danger-active-bg: #dc2626;
+
+  --pay-modal-overlay: rgba(0, 0, 0, 0.72);
+  --pay-modal-border: #34363c;
+  --pay-modal-bg: #202124;
+  --pay-modal-text-primary: #ffffff;
+  --pay-modal-shadow: rgba(0, 0, 0, 0.4);
+  --pay-modal-desc-text: #b7bbc3;
+  --pay-modal-label-text: #d7d9de;
+  --pay-input-border: #44474f;
+  --pay-input-bg: #17181a;
+  --pay-input-placeholder: #777b84;
+  --pay-btn-outline-border: #4b4e55;
+  --pay-btn-outline-hover-border: #666a73;
+  --pay-btn-outline-hover-bg: #303236;
+}
+
 /*
  * payment.css는 주문 내역 페이지에서도 사용된다.
  *
@@ -18,7 +61,7 @@ body:has(> .container) {
   margin: 0;
   padding: 40px;
 
-  background: #f5f6f8;
+  background: var(--pay-page-bg, #f5f6f8);
 
   font-family: Arial, sans-serif;
 }
@@ -31,7 +74,7 @@ body:has(> .container) {
 .payment-box h2,
 .container h2 {
   margin-top: 0;
-  color: #111111;
+  color: var(--pay-heading-text, #111111);
 }
 
 /*
@@ -40,14 +83,14 @@ body:has(> .container) {
 .box p,
 .payment-box p,
 .container p {
-  color: #555555;
+  color: var(--pay-body-text, #555555);
 }
 
 /* 안내 문구용 */
 .notice {
   margin-top: 20px;
 
-  color: #777777;
+  color: var(--pay-notice-text, #777777);
 
   font-size: 13px;
   line-height: 1.5;
@@ -78,9 +121,9 @@ body:has(> .container) {
 
   border-radius: 16px;
 
-  background: #ffffff;
+  background: var(--pay-card-bg, #ffffff);
 
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px var(--pay-card-shadow, rgba(0, 0, 0, 0.08));
 }
 
 .box {
@@ -89,7 +132,7 @@ body:has(> .container) {
 
 /* 에러 및 경고용 제목 */
 .box h2.error-title {
-  color: #c0392b;
+  color: var(--pay-error-text, #c0392b);
 }
 
 /*
@@ -109,9 +152,9 @@ body > .container {
 
   border-radius: 16px;
 
-  background: #ffffff;
+  background: var(--pay-card-bg, #ffffff);
 
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px var(--pay-card-shadow, rgba(0, 0, 0, 0.08));
 }
 
 /* ==========================================
@@ -136,14 +179,14 @@ body > .container th,
 body > .container td {
   padding: 11px;
 
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid var(--pay-table-border, #eeeeee);
 
   text-align: left;
   vertical-align: middle;
 }
 
 body > .container th {
-  background: #fafafa;
+  background: var(--pay-table-header-bg, #fafafa);
 }
 
 body > .container .long-text {
@@ -160,7 +203,7 @@ body > .container .long-text {
 body > .container .empty {
   padding: 50px 20px;
 
-  color: #777777;
+  color: var(--pay-notice-text, #777777);
 
   text-align: center;
 }
@@ -188,7 +231,7 @@ body > .container .empty {
  */
 .payment-box .price,
 body > .container .price {
-  color: #222222;
+  color: var(--pay-price-text, #222222);
 
   font-size: 22px;
   font-weight: 700;
@@ -196,13 +239,13 @@ body > .container .price {
 
 /* 결제 완료 상태 */
 .status-paid {
-  color: #0a7d32;
+  color: var(--pay-success-text, #0a7d32);
   font-weight: 700;
 }
 
 /* 결제 취소 상태 */
 .status-canceled {
-  color: #c0392b;
+  color: var(--pay-error-text, #c0392b);
   font-weight: 700;
 }
 
@@ -226,8 +269,8 @@ body > .container > a,
 
   border-radius: 8px;
 
-  background: #111111;
-  color: #ffffff;
+  background: var(--pay-btn-bg, #111111);
+  color: var(--pay-btn-text, #ffffff);
 
   text-decoration: none;
 }
@@ -236,7 +279,7 @@ body > .container > a,
 .payment-box > a:hover,
 body > .container > a:hover,
 .action-link:hover {
-  background: #333333;
+  background: var(--pay-btn-hover-bg, #333333);
 }
 
 /* 보조 링크 */
@@ -244,14 +287,14 @@ body > .container > a:hover,
 .payment-box > a.sub-link,
 body > .container > a.sub-link,
 .sub-link {
-  background: #555555;
+  background: var(--pay-btn-sub-bg, #555555);
 }
 
 .box > a.sub-link:hover,
 .payment-box > a.sub-link:hover,
 body > .container > a.sub-link:hover,
 .sub-link:hover {
-  background: #6b6b6b;
+  background: var(--pay-btn-sub-hover-bg, #6b6b6b);
 }
 
 /*
@@ -270,8 +313,8 @@ body > .container > a.sub-link:hover,
   border: none;
   border-radius: 10px;
 
-  background: #111111;
-  color: #ffffff;
+  background: var(--pay-btn-bg, #111111);
+  color: var(--pay-btn-text, #ffffff);
 
   font-size: 16px;
 
@@ -280,7 +323,7 @@ body > .container > a.sub-link:hover,
 
 .payment-box > button:hover,
 .payment-box .payment-request-btn:hover {
-  background: #333333;
+  background: var(--pay-btn-hover-bg, #333333);
 }
 
 .payment-box > button:disabled,
@@ -327,11 +370,11 @@ body > .container > a.sub-link:hover,
 
   box-sizing: border-box;
 
-  border: 1px solid #ef4444;
+  border: 1px solid var(--pay-danger-border, #ef4444);
   border-radius: 7px;
 
   background: transparent;
-  color: #f87171;
+  color: var(--pay-danger-text, #f87171);
 
   font-family: inherit;
   font-size: 14px;
@@ -352,14 +395,14 @@ body > .container > a.sub-link:hover,
 
 .payment-cancel-btn:hover {
   /* [수정] 흰 글자 on #ef4444는 대비 약 3.76:1로 부족해 더 진한 톤으로 교체 */
-  border-color: #eb1414;
+  border-color: var(--pay-danger-hover-border, #eb1414);
 
-  background: #eb1414;
-  color: #ffffff;
+  background: var(--pay-danger-hover-bg, #eb1414);
+  color: var(--pay-modal-text-primary, #ffffff);
 }
 
 .payment-cancel-btn:focus-visible {
-  outline: 2px solid #fca5a5;
+  outline: 2px solid var(--pay-danger-focus-outline, #fca5a5);
   outline-offset: 3px;
 }
 
@@ -412,7 +455,7 @@ body.modal-open {
 
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--pay-modal-overlay, rgba(0, 0, 0, 0.72));
 }
 
 /*
@@ -442,19 +485,19 @@ body.modal-open {
 
   box-sizing: border-box;
 
-  border: 1px solid #34363c;
+  border: 1px solid var(--pay-modal-border, #34363c);
   border-radius: 12px;
 
-  background: #202124;
-  color: #ffffff;
+  background: var(--pay-modal-bg, #202124);
+  color: var(--pay-modal-text-primary, #ffffff);
 
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 18px 45px var(--pay-modal-shadow, rgba(0, 0, 0, 0.4));
 }
 
 .payment-cancel-modal-title {
   margin: 0 0 10px;
 
-  color: #ffffff;
+  color: var(--pay-modal-text-primary, #ffffff);
 
   font-size: 21px;
   font-weight: 800;
@@ -463,14 +506,14 @@ body.modal-open {
 .payment-cancel-modal-desc {
   margin: 0 0 20px;
 
-  color: #b7bbc3;
+  color: var(--pay-modal-desc-text, #b7bbc3);
 
   font-size: 14px;
   line-height: 1.6;
 }
 
 .payment-cancel-order-number {
-  color: #ffffff;
+  color: var(--pay-modal-text-primary, #ffffff);
   font-weight: 700;
 }
 
@@ -479,7 +522,7 @@ body.modal-open {
 
   margin-bottom: 8px;
 
-  color: #d7d9de;
+  color: var(--pay-modal-label-text, #d7d9de);
 
   font-size: 14px;
   font-weight: 700;
@@ -493,11 +536,11 @@ body.modal-open {
 
   box-sizing: border-box;
 
-  border: 1px solid #44474f;
+  border: 1px solid var(--pay-input-border, #44474f);
   border-radius: 8px;
 
-  background: #17181a;
-  color: #ffffff;
+  background: var(--pay-input-bg, #17181a);
+  color: var(--pay-modal-text-primary, #ffffff);
 
   font-family: inherit;
   font-size: 14px;
@@ -508,13 +551,13 @@ body.modal-open {
 }
 
 .payment-cancel-reason::placeholder {
-  color: #777b84;
+  color: var(--pay-input-placeholder, #777b84);
 }
 
 .payment-cancel-reason:focus {
-  border-color: #ef4444;
+  border-color: var(--pay-danger-border, #ef4444);
 
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 0 2px var(--pay-danger-focus-ring, rgba(239, 68, 68, 0.15));
 }
 
 .payment-cancel-error {
@@ -522,7 +565,7 @@ body.modal-open {
 
   margin: 12px 0 0;
 
-  color: #f87171;
+  color: var(--pay-danger-text, #f87171);
 
   font-size: 13px;
   line-height: 1.5;
@@ -570,36 +613,36 @@ body.modal-open {
 }
 
 .payment-cancel-close-btn {
-  border: 1px solid #4b4e55;
+  border: 1px solid var(--pay-btn-outline-border, #4b4e55);
 
   background: transparent;
-  color: #d7d9de;
+  color: var(--pay-modal-label-text, #d7d9de);
 }
 
 .payment-cancel-close-btn:hover {
-  border-color: #666a73;
+  border-color: var(--pay-btn-outline-hover-border, #666a73);
 
-  background: #303236;
-  color: #ffffff;
+  background: var(--pay-btn-outline-hover-bg, #303236);
+  color: var(--pay-modal-text-primary, #ffffff);
 }
 
 .payment-cancel-submit-btn {
   /* [수정] 흰 글자 on #ef4444는 대비 약 3.76:1로 부족해 더 진한 톤으로 교체 */
-  border: 1px solid #eb1414;
+  border: 1px solid var(--pay-danger-hover-border, #eb1414);
 
-  background: #eb1414;
-  color: #ffffff;
+  background: var(--pay-danger-hover-bg, #eb1414);
+  color: var(--pay-modal-text-primary, #ffffff);
 }
 
 .payment-cancel-submit-btn:hover {
-  border-color: #dc2626;
+  border-color: var(--pay-danger-active-border, #dc2626);
 
-  background: #dc2626;
+  background: var(--pay-danger-active-bg, #dc2626);
 }
 
 .payment-cancel-submit-btn:focus-visible,
 .payment-cancel-close-btn:focus-visible {
-  outline: 2px solid #fca5a5;
+  outline: 2px solid var(--pay-danger-focus-outline, #fca5a5);
   outline-offset: 3px;
 }
 

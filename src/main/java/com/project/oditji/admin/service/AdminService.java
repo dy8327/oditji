@@ -10,6 +10,7 @@ import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
+import com.project.oditji.admin.vo.MonitoringSummaryVO;
 import com.project.oditji.admin.vo.BusinessStatVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.OrderStatVO;
@@ -182,9 +183,35 @@ public interface AdminService {
         // 모니터링
         List<MonitoringVO> getMonitoringList();
 
+        /* [모니터링 화면 개편] 상단 요약 통계 */
+        MonitoringSummaryVO getMonitoringSummary();
+
+        /*
+         * [모니터링 방문 수 기간 연동]
+         * 선택한 기간(7일/3개월/6개월/1년)의 순 방문자 수를 조회한다.
+         * 같은 회원이 여러 번 접속해도 한 명으로 집계한다.
+         */
+        long getUniqueVisitorCountByPeriod(String period);
+
         List<VisitorTrendVO> getVisitorTrend();
 
+        /* [모니터링 화면 개편] 기간별 방문자 추이 */
+        List<VisitorTrendVO> getVisitorTrendByPeriod(String period);
+
         List<PopularClickVO> getPopularProductClicks();
+
+        /*
+         * [모니터링 공통 조회 기간]
+         * 회원 수는 전체 회원 기준으로 유지하고,
+         * 방문/주문/매출은 선택 기간 기준으로 조회한다.
+         */
+        MonitoringSummaryVO getMonitoringSummaryByPeriod(String period);
+
+        /*
+         * [모니터링 공통 조회 기간]
+         * 선택 기간 기준 상품 클릭 TOP 5를 조회한다.
+         */
+        List<PopularClickVO> getPopularProductClicksByPeriod(String period);
 
         // 콘텐츠 관리
         List<ContentManageVO> getContentList(String keyword);

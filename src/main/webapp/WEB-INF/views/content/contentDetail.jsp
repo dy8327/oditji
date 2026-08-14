@@ -1,10 +1,7 @@
-<%@ page language="java"
-         contentType="text/html; charset=UTF-8"%>
-<%@ taglib prefix="c"
-           uri="jakarta.tags.core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<%@ taglib prefix="fmt"
-           uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
@@ -347,6 +344,74 @@
                 </c:otherwise>
 
             </c:choose>
+
+            <%--
+                [OTT 구독 조합 계산기 연동 추가]
+                콘텐츠 상세에서 현재 작품을 그대로 들고 계산기 화면으로 이동합니다.
+
+                계산기 화면에서 별도 검색을 다시 하지 않아도 되도록
+                현재 콘텐츠 식별 정보와 포스터, 시청 가능한 OTT 목록을
+                GET 파라미터로 함께 전달합니다.
+
+                기존 OTT 바로가기 목록의 동작과 디자인은 변경하지 않습니다.
+            --%>
+            <c:if test="${not empty ottList}">
+                <form action="${pageContext.request.contextPath}/subscription/calculator"
+                      method="get"
+                      class="ott-subscription-calculator-form">
+
+                    <input type="hidden"
+                           name="tmdbId"
+                           value="${content.tmdbId}">
+
+                    <input type="hidden"
+                           name="contentType"
+                           value="${content.contentType}">
+
+                    <input type="hidden"
+                           name="title"
+                           value="${fn:escapeXml(content.title)}">
+
+                    <input type="hidden"
+                           name="posterPath"
+                           value="${fn:escapeXml(content.posterPath)}">
+
+                    <%--
+                        [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+                        platformName과 같은 순서로 platformLogo도 함께 전달해서
+                        계산기 화면이 초기 담기 항목에도 OTT 아이콘을 보여줄 수 있게 한다.
+                    --%>
+                    <c:forEach var="ott" items="${ottList}">
+                        <input type="hidden"
+                               name="platformName"
+                               value="${fn:escapeXml(ott.platformName)}">
+                        <input type="hidden"
+                               name="platformLogo"
+                               value="${fn:escapeXml(ott.logoImage)}">
+                    </c:forEach>
+
+                    <button type="submit"
+                            class="ott-subscription-calculator-btn"
+                            aria-label="${content.title} OTT 구독 조합 계산하기">
+                        <span>OTT 구독 조합 계산하기</span>
+                        <span class="ott-subscription-calculator-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="5" y="2.5" width="14" height="19" rx="2.5"
+                                      stroke="currentColor" stroke-width="1.7"/>
+                                <rect x="8" y="5.5" width="8" height="4" rx="1"
+                                      stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="9" cy="13" r="1" fill="currentColor"/>
+                                <circle cx="12" cy="13" r="1" fill="currentColor"/>
+                                <circle cx="15" cy="13" r="1" fill="currentColor"/>
+                                <circle cx="9" cy="17" r="1" fill="currentColor"/>
+                                <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                                <circle cx="15" cy="17" r="1" fill="currentColor"/>
+                            </svg>
+                        </span>
+                    </button>
+
+                </form>
+            </c:if>
 
         </section>
 

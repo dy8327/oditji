@@ -33,6 +33,43 @@
   --ott-shadow-card-hover: 0 14px 32px rgba(0, 0, 0, 0.38);
   --ott-shadow-hero: 0 20px 48px rgba(15, 15, 26, 0.55);
 
+  /* ---- 마무리 리팩터링에서 추가된 잔여 하드코딩 토큰 ---- */
+  --ott-text-white: #fff;
+  --ott-white-05: rgba(255, 255, 255, 0.05);
+  --ott-white-06: rgba(255, 255, 255, 0.06);
+  --ott-white-10: rgba(255, 255, 255, 0.1);
+  --ott-white-12: rgba(255, 255, 255, 0.12);
+  --ott-white-14: rgba(255, 255, 255, 0.14);
+  --ott-white-16: rgba(255, 255, 255, 0.16);
+  --ott-white-28: rgba(255, 255, 255, 0.28);
+  --ott-white-90: rgba(255, 255, 255, 0.9);
+
+  --ott-accent-summary-bg-12: rgba(53, 224, 161, 0.12);
+  --ott-accent-summary-border-35: rgba(53, 224, 161, 0.35);
+  --ott-accent-summary-shadow-30: rgba(53, 224, 161, 0.3);
+  --ott-accent-summary-shadow-20: rgba(53, 224, 161, 0.2);
+  --ott-accent-summary-text: #0f1a16;
+  --ott-accent-shadow-35: rgba(255, 77, 94, 0.35);
+
+  --ott-card-alt-bg: #181826;
+  --ott-text-muted: #c0c0d0;
+  --ott-overlay-72: rgba(24, 24, 38, 0.72);
+  --ott-tag-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --ott-badge-shadow: rgba(255, 138, 0, 0.35);
+  --ott-input-bg: #0e0e17;
+
+  --ott-platform-netflix: #e50914;
+  --ott-platform-tving: #ff153c;
+  --ott-platform-wavve: #1b53f4;
+  --ott-platform-disney: #113ccf;
+  --ott-platform-watcha: #ff2f6e;
+  --ott-platform-coupang: #00a0e9;
+
+  --ott-modal-dim: rgba(6, 6, 12, 0.88);
+  --ott-modal-bg-gradient: linear-gradient(165deg, #24243c 0%, #16161f 100%);
+  --ott-modal-shadow-1: rgba(0, 0, 0, 0.65);
+  --ott-modal-shadow-2: rgba(0, 0, 0, 0.3);
+
   width: 100%;
   max-width: 1280px;
   margin: 60px auto 96px;
@@ -58,9 +95,9 @@
   text-align: center;
   border-radius: 20px;
   margin-bottom: 36px;
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   box-shadow: var(--ott-shadow-hero);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ott-white-06, rgba(255, 255, 255, 0.06));
 }
 
 /* 배경에 은은한 스포트라이트 느낌의 원형 그라디언트 두 개를 겹쳐
@@ -99,8 +136,8 @@
   margin: 0 0 14px;
   padding: 5px 14px;
   border-radius: 999px;
-  background: rgba(53, 224, 161, 0.12);
-  border: 1px solid rgba(53, 224, 161, 0.35);
+  background: var(--ott-accent-summary-bg-12, rgba(53, 224, 161, 0.12));
+  border: 1px solid var(--ott-accent-summary-border-35, rgba(53, 224, 161, 0.35));
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -131,7 +168,7 @@
 }
 
 .ott-discount-hero__desc strong {
-  color: #fff;
+  color: var(--ott-text-white, #fff);
 }
 
 /* [수정] 히어로 배너 실시간 갱신: 플랫폼/혜택 종류 탭을 누르면 ottDiscount.js가
@@ -157,8 +194,8 @@
   padding: 22px 24px;
   border-radius: 16px;
   text-align: left;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ott-white-05, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--ott-white-12, rgba(255, 255, 255, 0.12));
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
@@ -181,7 +218,7 @@
   margin: 0 0 6px;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   line-height: 1.4;
 }
 
@@ -206,11 +243,11 @@
   padding: 11px 22px;
   border-radius: 999px;
   background: var(--ott-accent);
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 700;
-  box-shadow: 0 8px 20px rgba(255, 77, 94, 0.35);
+  box-shadow: 0 8px 20px var(--ott-accent-shadow-35, rgba(255, 77, 94, 0.35));
   transition: background-color var(--ott-transition), transform var(--ott-transition);
 }
 
@@ -234,7 +271,7 @@
   margin-bottom: 28px;
   padding: 16px 18px;
   border-radius: var(--ott-radius);
-  background: rgba(24, 24, 38, 0.72);
+  background: var(--ott-overlay-72, rgba(24, 24, 38, 0.72));
   border: 1px solid var(--ott-bg-card-border);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -263,8 +300,8 @@
   padding: 9px 18px;
   border-radius: 999px;
   border: 1px solid var(--ott-bg-card-border);
-  background: #181826;
-  color: #c0c0d0;
+  background: var(--ott-card-alt-bg, #181826);
+  color: var(--ott-text-muted, #c0c0d0);
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 600;
@@ -274,7 +311,7 @@
 
 .ott-filter-btn:hover {
   border-color: var(--ott-accent);
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   transform: translateY(-1px);
 }
 
@@ -284,9 +321,9 @@
 
 .ott-filter-btn.active {
   background: var(--ott-accent);
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   border-color: var(--ott-accent);
-  box-shadow: 0 4px 14px rgba(255, 77, 94, 0.35);
+  box-shadow: 0 4px 14px var(--ott-accent-shadow-35, rgba(255, 77, 94, 0.35));
 }
 
 .ott-filter-group--chip {
@@ -303,8 +340,8 @@
 .ott-filter-btn--chip.active {
   background: var(--ott-accent-summary);
   border-color: var(--ott-accent-summary);
-  color: #0f1a16;
-  box-shadow: 0 4px 14px rgba(53, 224, 161, 0.3);
+  color: var(--ott-accent-summary-text, #0f1a16);
+  box-shadow: 0 4px 14px var(--ott-accent-summary-shadow-30, rgba(53, 224, 161, 0.3));
 }
 
 /* =========================
@@ -325,7 +362,7 @@
   border: 1px solid var(--ott-bg-card-border);
   border-radius: var(--ott-radius);
   padding: 22px;
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   box-shadow: var(--ott-shadow-card);
   transition: transform var(--ott-transition), box-shadow var(--ott-transition),
     border-color var(--ott-transition), background-color var(--ott-transition);
@@ -334,7 +371,7 @@
 .ott-discount-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--ott-shadow-card-hover);
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--ott-white-16, rgba(255, 255, 255, 0.16));
   background: var(--ott-bg-card-hover);
 }
 
@@ -355,15 +392,15 @@
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--ott-tag-shadow, 0 2px 6px rgba(0, 0, 0, 0.25));
 }
 
-.ott-platform-tag--NETFLIX { background: #e50914; }
-.ott-platform-tag--TVING   { background: #ff153c; }
-.ott-platform-tag--WAVVE   { background: #1b53f4; }
-.ott-platform-tag--DISNEY  { background: #113ccf; }
-.ott-platform-tag--WATCHA  { background: #ff2f6e; }
-.ott-platform-tag--COUPANG { background: #00a0e9; }
+.ott-platform-tag--NETFLIX { background: var(--ott-platform-netflix, #e50914); }
+.ott-platform-tag--TVING   { background: var(--ott-platform-tving, #ff153c); }
+.ott-platform-tag--WAVVE   { background: var(--ott-platform-wavve, #1b53f4); }
+.ott-platform-tag--DISNEY  { background: var(--ott-platform-disney, #113ccf); }
+.ott-platform-tag--WATCHA  { background: var(--ott-platform-watcha, #ff2f6e); }
+.ott-platform-tag--COUPANG { background: var(--ott-platform-coupang, #00a0e9); }
 
 /* [수정] 좌측 상단 뱃지에 OTT_PLATFORM 테이블에 저장된 실제 로고 이미지를 사용한다.
    (로고가 아직 등록되지 않은 플랫폼은 .ott-platform-tag__icon 글자 아이콘으로 대체) */
@@ -373,7 +410,7 @@
   height: 17px;
   border-radius: 50%;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--ott-white-90, rgba(255, 255, 255, 0.9));
   padding: 1px;
 }
 
@@ -385,8 +422,8 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
-  color: #fff;
+  background: var(--ott-white-28, rgba(255, 255, 255, 0.28));
+  color: var(--ott-text-white, #fff);
   font-size: 0.66rem;
   font-weight: 800;
   line-height: 1;
@@ -418,7 +455,7 @@
   font-weight: 800;
   padding: 4px 12px 4px 10px;
   border-radius: 999px 0 0 999px;
-  box-shadow: 0 3px 10px rgba(255, 138, 0, 0.35);
+  box-shadow: 0 3px 10px var(--ott-badge-shadow, rgba(255, 138, 0, 0.35));
 }
 
 .ott-discount-card__title {
@@ -471,7 +508,7 @@
   padding: 9px 16px;
   border-radius: var(--ott-radius-sm);
   background: var(--ott-accent);
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 700;
@@ -545,14 +582,14 @@
 }
 
 .ott-price-discount {
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   font-weight: 800;
   font-size: 1.05rem;
 }
 
 .ott-discount-rate {
   background: var(--ott-accent);
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   font-size: 0.72rem;
   font-weight: 800;
   padding: 3px 8px;
@@ -596,7 +633,7 @@
 
 .ott-discount-card__calc-btn:hover {
   background: var(--ott-accent-summary);
-  color: #0f1a16;
+  color: var(--ott-accent-summary-text, #0f1a16);
   transform: translateY(-1px);
 }
 
@@ -621,7 +658,7 @@
 .ott-calc-modal__dim {
   position: absolute;
   inset: 0;
-  background: rgba(6, 6, 12, 0.88);
+  background: var(--ott-modal-dim, rgba(6, 6, 12, 0.88));
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   animation: ott-fade-in var(--ott-transition);
@@ -637,12 +674,12 @@
   margin: 10vh auto 0;
   /* [병합 해결] 모바일 폭 계산 안정화를 위한 box-sizing과 develop의 강화된 모달 배경을 함께 유지합니다. */
   box-sizing: border-box;
-  background: linear-gradient(165deg, #24243c 0%, #16161f 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ott-modal-bg-gradient, linear-gradient(165deg, #24243c 0%, #16161f 100%));
+  border: 1px solid var(--ott-white-12, rgba(255, 255, 255, 0.12));
   border-radius: 18px;
   padding: 30px 26px;
-  color: #fff;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.3);
+  color: var(--ott-text-white, #fff);
+  box-shadow: 0 28px 70px var(--ott-modal-shadow-1, rgba(0, 0, 0, 0.65)), 0 0 0 1px var(--ott-modal-shadow-2, rgba(0, 0, 0, 0.3));
   animation: ott-modal-in 0.25s ease;
 }
 
@@ -666,9 +703,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--ott-white-06, rgba(255, 255, 255, 0.06));
   border: none;
-  color: #fff;
+  color: var(--ott-text-white, #fff);
   font-size: 1.3rem;
   cursor: pointer;
   line-height: 1;
@@ -676,7 +713,7 @@
 }
 
 .ott-calc-modal__close:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--ott-white-14, rgba(255, 255, 255, 0.14));
 }
 
 .ott-calc-modal__title {
@@ -711,9 +748,9 @@
   width: 140px;
   padding: 9px 12px;
   border-radius: var(--ott-radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: #0e0e17;
-  color: #fff;
+  border: 1px solid var(--ott-white-16, rgba(255, 255, 255, 0.16));
+  background: var(--ott-input-bg, #0e0e17);
+  color: var(--ott-text-white, #fff);
   text-align: right;
   font-size: 0.95rem;
   transition: border-color var(--ott-transition), background-color var(--ott-transition);
@@ -746,7 +783,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--ott-accent-summary);
-  box-shadow: 0 0 0 3px rgba(53, 224, 161, 0.2);
+  box-shadow: 0 0 0 3px var(--ott-accent-summary-shadow-20, rgba(53, 224, 161, 0.2));
 }
 
 .ott-calc-result__divider {
@@ -756,8 +793,8 @@
 }
 
 .ott-calc-modal__result {
-  background: #0e0e17;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--ott-input-bg, #0e0e17);
+  border: 1px solid var(--ott-white-10, rgba(255, 255, 255, 0.1));
   border-radius: var(--ott-radius-sm);
   padding: 16px;
   font-size: 0.9rem;

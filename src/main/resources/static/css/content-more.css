@@ -1,13 +1,73 @@
 @charset "UTF-8";
 
+:root {
+    --cm-bg: #141414;
+    --cm-text: #e5e5e5;
+    --cm-white-a08: rgba(255, 255, 255, 0.08);
+    --cm-text-faint: #7f7f7f;
+    --cm-white: #ffffff;
+    --cm-desc-text: #a0a0a0;
+    --cm-count-text: #8f8f8f;
+    --cm-white-a22: rgba(255, 255, 255, 0.22);
+    --cm-badge-shadow: rgba(0, 0, 0, 0.2);
+    --cm-rating-all-bg: #2f855a;
+    --cm-rating-age7-bg: #3478b9;
+    --cm-rating-age12-bg: #b88416;
+    --cm-rating-age15-bg: #ce6428;
+    --cm-rating-adult-bg: #c53f45;
+    --cm-rating-unknown-bg: #555c66;
+    --cm-white-a07: rgba(255, 255, 255, 0.07);
+    --cm-panel-bg: #1b1b1b;
+    --cm-chip-bg: #232323;
+    --cm-chip-text: #dddddd;
+    --cm-guide-text: #b0b0b0;
+    --cm-dark-text: #111111;
+    --cm-white-a06: rgba(255, 255, 255, 0.06);
+    --cm-white-a15: rgba(255, 255, 255, 0.15);
+    --cm-card-shadow: rgba(0, 0, 0, 0.34);
+    --cm-thumb-bg: #252525;
+    --cm-muted-text: #777777;
+    --cm-type-badge-bg: rgba(0, 0, 0, 0.74);
+    --cm-type-movie-bg: rgba(73, 78, 88, 0.88);
+    --cm-type-drama-bg: rgba(89, 65, 135, 0.88);
+    --cm-type-animation-bg: rgba(37, 102, 112, 0.9);
+    --cm-type-variety-bg: rgba(133, 82, 39, 0.9);
+    --cm-type-documentary-bg: rgba(45, 74, 118, 0.9);
+    --cm-meta-text: #888888;
+    --cm-score-text: #f4cf58;
+    --cm-white-a12: rgba(255, 255, 255, 0.12);
+    --cm-platform-more-bg: #292929;
+    --cm-platform-more-text: #bcbcbc;
+    --cm-empty-text: #838383;
+    --cm-slider-btn-bg: #222222;
+    --cm-slider-btn-text: #aaaaaa;
+    --cm-slider-btn-hover-bg: #343434;
+    --cm-white-a09: rgba(255, 255, 255, 0.09);
+    --cm-white-a055: rgba(255, 255, 255, 0.055);
+    --cm-white-a015: rgba(255, 255, 255, 0.015);
+    --cm-ott-section-bg: #181818;
+    --cm-ott-kicker-text: #8e8e8e;
+    --cm-white-a035: rgba(255, 255, 255, 0.035);
+    --cm-black-a22: rgba(0, 0, 0, 0.22);
+    --cm-reasons-text: #adadad;
+    --cm-platform-card-bg: #202020;
+    --cm-white-a10: rgba(255, 255, 255, 0.1);
+    --cm-stats-dd-text: #d6d6d6;
+    --cm-empty-p-text: #a4a4a4;
+    --cm-empty-span-text: #686868;
+    --cm-caption-text: #9a9a9a;
+    --cm-content-row-span-text: #c8c8c8;
+    --cm-content-row-link-text: #d9d9d9;
+}
+
 * {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    background: #141414;
-    color: #e5e5e5;
+    background: var(--cm-bg);
+    color: var(--cm-text);
     font-family:
         Arial,
         "Noto Sans KR",
@@ -32,12 +92,12 @@ a {
     gap: 24px;
     margin-bottom: 34px;
     padding-bottom: 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--cm-white-a08);
 }
 
 .content-more-kicker {
     margin: 0 0 8px;
-    color: #7f7f7f;
+    color: var(--cm-text-faint);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.16em;
@@ -45,21 +105,21 @@ a {
 
 .content-more-hero h1 {
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 34px;
     line-height: 1.25;
 }
 
 .content-more-description {
     margin: 10px 0 0;
-    color: #a0a0a0;
+    color: var(--cm-desc-text);
     font-size: 14px;
     line-height: 1.6;
 }
 
 .content-more-count {
     flex-shrink: 0;
-    color: #8f8f8f;
+    color: var(--cm-count-text);
     font-size: 13px;
 }
 
@@ -70,56 +130,56 @@ a {
     height: 22px;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--cm-white-a22);
     border-radius: 50%;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 8.5px;
     font-weight: 900;
     line-height: 1;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 7px var(--cm-badge-shadow);
 }
 
 .content-age-rating-badge.is-all {
     width: 28px;
     border-radius: 999px;
-    background: #2f855a;
+    background: var(--cm-rating-all-bg);
     font-size: 7px;
 }
 
 .content-age-rating-badge.is-age7 {
-    background: #3478b9;
+    background: var(--cm-rating-age7-bg);
 }
 
 .content-age-rating-badge.is-age12 {
-    background: #b88416;
+    background: var(--cm-rating-age12-bg);
 }
 
 .content-age-rating-badge.is-age15 {
-    background: #ce6428;
+    background: var(--cm-rating-age15-bg);
 }
 
 .content-age-rating-badge.is-adult {
-    background: #c53f45;
+    background: var(--cm-rating-adult-bg);
 }
 
 .content-age-rating-badge.is-unknown {
     width: 28px;
     border-radius: 999px;
-    background: #555c66;
+    background: var(--cm-rating-unknown-bg);
     font-size: 7px;
 }
 
 .selected-platform-section {
     margin-bottom: 32px;
     padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--cm-white-a07);
     border-radius: 14px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
 }
 
 .selected-platform-section h2 {
     margin: 0 0 14px;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 16px;
 }
 
@@ -135,10 +195,10 @@ a {
     align-items: center;
     gap: 8px;
     padding: 7px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--cm-white-a08);
     border-radius: 999px;
-    background: #232323;
-    color: #dddddd;
+    background: var(--cm-chip-bg);
+    color: var(--cm-chip-text);
     font-size: 12px;
     white-space: nowrap;
 }
@@ -148,7 +208,7 @@ a {
     width: 20px;
     height: 20px;
     border-radius: 5px;
-    background: #ffffff;
+    background: var(--cm-white);
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -166,14 +226,14 @@ a {
     gap: 18px;
     margin-bottom: 32px;
     padding: 18px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--cm-white-a08);
     border-radius: 14px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
 }
 
 .recommend-guide p {
     margin: 0;
-    color: #b0b0b0;
+    color: var(--cm-guide-text);
     font-size: 13px;
     line-height: 1.6;
 }
@@ -182,8 +242,8 @@ a {
     flex-shrink: 0;
     padding: 9px 14px;
     border-radius: 8px;
-    background: #ffffff;
-    color: #111111;
+    background: var(--cm-white);
+    color: var(--cm-dark-text);
     font-size: 12px;
     font-weight: 700;
 }
@@ -204,9 +264,9 @@ a {
 
 .content-more-card {
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--cm-white-a06);
     border-radius: 12px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
     transition:
         transform 0.22s ease,
         border-color 0.22s ease,
@@ -214,16 +274,16 @@ a {
 }
 
 .content-more-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--cm-white-a15);
     transform: translateY(-5px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 14px 28px var(--cm-card-shadow);
 }
 
 .content-more-thumb {
     position: relative;
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    background: #252525;
+    background: var(--cm-thumb-bg);
 }
 
 .content-more-thumb > img {
@@ -244,7 +304,7 @@ a {
     height: 100%;
     align-items: center;
     justify-content: center;
-    color: #777777;
+    color: var(--cm-muted-text);
     font-size: 12px;
 }
 
@@ -254,8 +314,8 @@ a {
     left: 9px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: rgba(0, 0, 0, 0.74);
-    color: #ffffff;
+    background: var(--cm-type-badge-bg);
+    color: var(--cm-white);
     font-size: 10px;
     font-weight: 700;
 }
@@ -265,27 +325,27 @@ a {
    구분되게 한다. */
 .content-more-type.is-movie,
 .recommend-card-type.is-movie {
-    background: rgba(73, 78, 88, 0.88);
+    background: var(--cm-type-movie-bg);
 }
 
 .content-more-type.is-drama,
 .recommend-card-type.is-drama {
-    background: rgba(89, 65, 135, 0.88);
+    background: var(--cm-type-drama-bg);
 }
 
 .content-more-type.is-animation,
 .recommend-card-type.is-animation {
-    background: rgba(37, 102, 112, 0.9);
+    background: var(--cm-type-animation-bg);
 }
 
 .content-more-type.is-variety,
 .recommend-card-type.is-variety {
-    background: rgba(133, 82, 39, 0.9);
+    background: var(--cm-type-variety-bg);
 }
 
 .content-more-type.is-documentary,
 .recommend-card-type.is-documentary {
-    background: rgba(45, 74, 118, 0.9);
+    background: var(--cm-type-documentary-bg);
 }
 
 .content-more-age-rating,
@@ -304,7 +364,7 @@ a {
 .content-more-info h2 {
     overflow: hidden;
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 14px;
     line-height: 1.4;
     text-overflow: ellipsis;
@@ -317,13 +377,13 @@ a {
     justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
-    color: #888888;
+    color: var(--cm-meta-text);
     font-size: 10px;
 }
 
 .content-more-score {
     flex-shrink: 0;
-    color: #f4cf58;
+    color: var(--cm-score-text);
 }
 
 .content-more-platforms {
@@ -339,9 +399,9 @@ a {
     width: 18px;
     height: 18px;
     flex: 0 0 18px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--cm-white-a12);
     border-radius: 4px;
-    background: #ffffff;
+    background: var(--cm-white);
     object-fit: cover;
 }
 
@@ -353,8 +413,8 @@ a {
     justify-content: center;
     padding: 0 4px;
     border-radius: 4px;
-    background: #292929;
-    color: #bcbcbc;
+    background: var(--cm-platform-more-bg);
+    color: var(--cm-platform-more-text);
     font-size: 9px;
     font-weight: 700;
 }
@@ -364,11 +424,11 @@ a {
     min-height: 360px;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--cm-white-a06);
     border-radius: 14px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
     /* [수정] #777777 on #1b1b1b는 대비 약 3.85:1로 부족해 더 밝게 교체 */
-    color: #838383;
+    color: var(--cm-empty-text);
     font-size: 14px;
 }
 
@@ -390,13 +450,13 @@ a {
 
 .recommend-section-header h2 {
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 23px;
 }
 
 .recommend-section-header p {
     margin: 7px 0 0;
-    color: #888888;
+    color: var(--cm-meta-text);
     font-size: 12px;
 }
 
@@ -412,7 +472,7 @@ a {
     height: 38px;
     flex: 0 0 38px;
     border-radius: 9px;
-    background: #ffffff;
+    background: var(--cm-white);
     object-fit: cover;
 }
 
@@ -429,8 +489,8 @@ a {
     padding: 0;
     border: 0;
     border-radius: 8px;
-    background: #222222;
-    color: #aaaaaa;
+    background: var(--cm-slider-btn-bg);
+    color: var(--cm-slider-btn-text);
     font-size: 28px;
     cursor: pointer;
     transition:
@@ -439,8 +499,8 @@ a {
 }
 
 .recommend-slider-btn:hover {
-    background: #343434;
-    color: #ffffff;
+    background: var(--cm-slider-btn-hover-bg);
+    color: var(--cm-white);
 }
 
 .recommend-track {
@@ -463,9 +523,9 @@ a {
     width: 172px;
     min-width: 172px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--cm-white-a06);
     border-radius: 12px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
     transition:
         transform 0.22s ease,
         border-color 0.22s ease,
@@ -473,16 +533,16 @@ a {
 }
 
 .recommend-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--cm-white-a15);
     transform: translateY(-4px);
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 12px 26px var(--cm-card-shadow);
 }
 
 .recommend-card-thumb {
     position: relative;
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    background: #252525;
+    background: var(--cm-thumb-bg);
 }
 
 .recommend-card-thumb > img {
@@ -503,7 +563,7 @@ a {
     height: 100%;
     align-items: center;
     justify-content: center;
-    color: #777777;
+    color: var(--cm-muted-text);
     font-size: 11px;
 }
 
@@ -513,8 +573,8 @@ a {
     left: 8px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: rgba(0, 0, 0, 0.74);
-    color: #ffffff;
+    background: var(--cm-type-badge-bg);
+    color: var(--cm-white);
     font-size: 10px;
     font-weight: 700;
 }
@@ -527,7 +587,7 @@ a {
 .recommend-card-info h3 {
     overflow: hidden;
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 14px;
     line-height: 1.4;
     text-overflow: ellipsis;
@@ -540,13 +600,13 @@ a {
     justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
-    color: #888888;
+    color: var(--cm-meta-text);
     font-size: 10px;
 }
 
 .recommend-card-score {
     flex-shrink: 0;
-    color: #f4cf58;
+    color: var(--cm-score-text);
 }
 
 .recommend-card-platforms {
@@ -562,9 +622,9 @@ a {
     width: 18px;
     height: 18px;
     flex: 0 0 18px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--cm-white-a12);
     border-radius: 4px;
-    background: #ffffff;
+    background: var(--cm-white);
     object-fit: cover;
 }
 
@@ -576,8 +636,8 @@ a {
     justify-content: center;
     padding: 0 4px;
     border-radius: 4px;
-    background: #292929;
-    color: #bcbcbc;
+    background: var(--cm-platform-more-bg);
+    color: var(--cm-platform-more-text);
     font-size: 9px;
     font-weight: 700;
 }
@@ -589,9 +649,9 @@ a {
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    background: #1b1b1b;
+    background: var(--cm-panel-bg);
     /* [수정] #777777 on #1b1b1b는 대비 약 3.85:1로 부족해 더 밝게 교체 */
-    color: #838383;
+    color: var(--cm-empty-text);
     font-size: 13px;
 }
 
@@ -718,15 +778,15 @@ a {
 .ott-recommendation-section {
     margin-bottom: 34px;
     padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    border: 1px solid var(--cm-white-a09);
     border-radius: 18px;
     background:
         linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.055),
-            rgba(255, 255, 255, 0.015)
+            var(--cm-white-a055),
+            var(--cm-white-a015)
         ),
-        #181818;
+        var(--cm-ott-section-bg);
 }
 
 .ott-recommendation-heading {
@@ -739,7 +799,7 @@ a {
 
 .ott-recommendation-kicker {
     margin: 0 0 7px;
-    color: #8e8e8e;
+    color: var(--cm-ott-kicker-text);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.16em;
@@ -747,13 +807,13 @@ a {
 
 .ott-recommendation-heading h2 {
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 24px;
 }
 
 .ott-recommendation-heading > div > p:last-child {
     margin: 8px 0 0;
-    color: #8f8f8f;
+    color: var(--cm-count-text);
     font-size: 12px;
     line-height: 1.6;
 }
@@ -761,16 +821,16 @@ a {
 .ott-interest-count {
     flex-shrink: 0;
     padding: 9px 13px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--cm-white-a08);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.035);
-    color: #aaaaaa;
+    background: var(--cm-white-a035);
+    color: var(--cm-slider-btn-text);
     font-size: 11px;
 }
 
 .ott-interest-count strong {
     margin-left: 4px;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 14px;
 }
 
@@ -783,7 +843,7 @@ a {
 .ott-recommendation-summary {
     padding: 21px;
     border-radius: 14px;
-    background: rgba(0, 0, 0, 0.22);
+    background: var(--cm-black-a22);
 }
 
 .ott-recommendation-badge {
@@ -792,15 +852,15 @@ a {
     align-items: center;
     padding: 4px 9px;
     border-radius: 999px;
-    background: #ffffff;
-    color: #111111;
+    background: var(--cm-white);
+    color: var(--cm-dark-text);
     font-size: 10px;
     font-weight: 800;
 }
 
 .ott-recommendation-summary h3 {
     margin: 15px 0 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 20px;
     line-height: 1.55;
 }
@@ -816,7 +876,7 @@ a {
 .ott-recommendation-reasons li {
     position: relative;
     padding-left: 15px;
-    color: #adadad;
+    color: var(--cm-reasons-text);
     font-size: 12px;
     line-height: 1.6;
 }
@@ -828,7 +888,7 @@ a {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--cm-white);
     content: "";
 }
 
@@ -845,16 +905,16 @@ a {
     align-items: flex-start;
     gap: 15px;
     padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--cm-white-a08);
     border-radius: 14px;
-    background: #202020;
+    background: var(--cm-platform-card-bg);
 }
 
 .ott-recommendation-platform-rank {
     position: absolute;
     top: 10px;
     right: 12px;
-    color: rgba(255, 255, 255, 0.22);
+    color: var(--cm-white-a22);
     font-size: 24px;
     font-weight: 900;
 }
@@ -867,9 +927,9 @@ a {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--cm-white-a10);
     border-radius: 13px;
-    background: #ffffff;
+    background: var(--cm-white);
 }
 
 .ott-recommendation-platform-logo img {
@@ -880,7 +940,7 @@ a {
 }
 
 .ott-recommendation-platform-logo span {
-    color: #222222;
+    color: var(--cm-slider-btn-bg);
     font-size: 11px;
     font-weight: 900;
 }
@@ -894,7 +954,7 @@ a {
     overflow: hidden;
     margin: 0;
     padding-right: 25px;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 16px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -902,12 +962,12 @@ a {
 
 .ott-recommendation-score {
     margin-top: 6px;
-    color: #aaaaaa;
+    color: var(--cm-slider-btn-text);
     font-size: 11px;
 }
 
 .ott-recommendation-score strong {
-    color: #f4cf58;
+    color: var(--cm-score-text);
     font-size: 22px;
 }
 
@@ -923,13 +983,13 @@ a {
 }
 
 .ott-recommendation-stats dt {
-    color: #777777;
+    color: var(--cm-muted-text);
     font-size: 10px;
 }
 
 .ott-recommendation-stats dd {
     margin: 3px 0 0;
-    color: #d6d6d6;
+    color: var(--cm-stats-dd-text);
     font-size: 12px;
     font-weight: 700;
 }
@@ -941,7 +1001,7 @@ a {
     gap: 16px;
     padding: 20px;
     border-radius: 14px;
-    background: rgba(0, 0, 0, 0.22);
+    background: var(--cm-black-a22);
 }
 
 .ott-recommendation-empty-icon {
@@ -951,9 +1011,9 @@ a {
     flex: 0 0 46px;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--cm-white-a12);
     border-radius: 50%;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 19px;
     font-weight: 800;
 }
@@ -965,13 +1025,13 @@ a {
 
 .ott-recommendation-empty h3 {
     margin: 0;
-    color: #ffffff;
+    color: var(--cm-white);
     font-size: 16px;
 }
 
 .ott-recommendation-empty p {
     margin: 7px 0 0;
-    color: #a4a4a4;
+    color: var(--cm-empty-p-text);
     font-size: 12px;
     line-height: 1.6;
 }
@@ -979,7 +1039,7 @@ a {
 .ott-recommendation-empty span {
     display: block;
     margin-top: 7px;
-    color: #686868;
+    color: var(--cm-empty-span-text);
     font-size: 10px;
 }
 
@@ -987,8 +1047,8 @@ a {
     flex-shrink: 0;
     padding: 10px 14px;
     border-radius: 8px;
-    background: #ffffff;
-    color: #111111;
+    background: var(--cm-white);
+    color: var(--cm-dark-text);
     font-size: 12px;
     font-weight: 800;
 }
@@ -1030,7 +1090,7 @@ a {
 
 .ott-recommendation-platform-caption {
     margin: 8px 0 0;
-    color: #9a9a9a;
+    color: var(--cm-caption-text);
     font-size: 12px;
     line-height: 1.6;
 }
@@ -1051,7 +1111,7 @@ a {
     gap: 7px;
     margin-top: 12px;
     padding-top: 11px;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-top: 1px solid var(--cm-white-a07);
 }
 
 .ott-recommendation-content-row {
@@ -1063,7 +1123,7 @@ a {
 
 .ott-recommendation-content-row strong {
     flex: 0 0 72px;
-    color: #7f7f7f;
+    color: var(--cm-text-faint);
     font-size: 10px;
     font-weight: 500;
     line-height: 1.55;
@@ -1072,7 +1132,7 @@ a {
 
 .ott-recommendation-content-row span {
     min-width: 0;
-    color: #c8c8c8;
+    color: var(--cm-content-row-span-text);
     font-size: 10px;
     font-weight: 400;
     line-height: 1.55;
@@ -1081,7 +1141,7 @@ a {
 }
 
 .ott-recommendation-content-row a {
-    color: #d9d9d9;
+    color: var(--cm-content-row-link-text);
     font-size: inherit;
     font-weight: 400;
     text-decoration: none;
@@ -1089,7 +1149,7 @@ a {
 }
 
 .ott-recommendation-content-row a:hover {
-    color: #ffffff;
+    color: var(--cm-white);
     text-decoration: underline;
     text-underline-offset: 2px;
 }

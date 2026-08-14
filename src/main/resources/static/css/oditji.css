@@ -35,6 +35,93 @@
   --shadow-soft: 0 12px 40px rgba(0, 0, 0, 0.25);
 
   --max-width: 1180px;
+
+  /* [추가] 라이트/다크모드 리팩터링 — 잔여 하드코딩 색상 변수화 (20/32) */
+  --header-bg: rgba(8, 10, 12, 0.78);
+  --search-box-bg: rgba(16, 20, 24, 0.72);
+  --panel-translucent: rgba(20, 24, 28, 0.78);
+
+  --hero-scrim-1: rgba(8, 10, 12, 0.96);
+  --hero-scrim-2: rgba(8, 10, 12, 0.82);
+  --hero-scrim-3: rgba(8, 10, 12, 0.55);
+
+  --body-glow-1: rgba(255, 255, 255, 0.08);
+  --body-glow-2: rgba(255, 255, 255, 0.05);
+  --body-grad-1: #07090b;
+  --body-grad-2: #0c0f12;
+  --body-grad-3: #080a0c;
+
+  /* 흰색 오버레이(호버/배경) 알파 단계 - 여러 컴포넌트가 공유 */
+  --overlay-04: rgba(255, 255, 255, 0.04);
+  --overlay-045: rgba(255, 255, 255, 0.045);
+  --overlay-06: rgba(255, 255, 255, 0.06);
+  --overlay-07: rgba(255, 255, 255, 0.07);
+  --overlay-08: rgba(255, 255, 255, 0.08);
+  --overlay-1: rgba(255, 255, 255, 0.1);
+  --overlay-025: rgba(255, 255, 255, 0.025);
+  --overlay-035: rgba(255, 255, 255, 0.035);
+
+  --btn-primary-hover-bg: #e7e9ec;
+
+  /* OTT 브랜드 컬러 (고정 브랜드 색상) */
+  --ott-netflix: #ff3040;
+  --ott-disney: #dbe8ff;
+  --ott-tving: #ff3158;
+  --ott-wavve: #4c78ff;
+  --ott-watcha: #ff4f9a;
+
+  --text-faint: #888;
+  --text-dim: #999;
+  --text-subtle: #777;
+
+  --accent-blue: #3b82f6;
+  --accent-blue-a16: rgba(59, 130, 246, 0.16);
+  --accent-blue-a28: rgba(59, 130, 246, 0.28);
+
+  --danger-a55: rgba(255, 59, 79, 0.55);
+  --danger-a0: rgba(255, 59, 79, 0);
+
+  --poster-frame-bg: #ececec;
+  --shadow-a30: rgba(0, 0, 0, 0.3);
+  --shadow-a45: rgba(0, 0, 0, 0.45);
+  --shadow-a55: rgba(0, 0, 0, 0.55);
+
+  --poster-scrim-1: rgba(0, 0, 0, 0.75);
+  --poster-scrim-2: rgba(0, 0, 0, 0.32);
+  --poster-scrim-3: rgba(0, 0, 0, 0);
+
+  /* 랭킹 1/2/3위 금·은·동 색상 */
+  --rank-gold: #f4cf58;
+  --rank-gold-a18: rgba(244, 207, 88, 0.18);
+  --rank-gold-a26: rgba(244, 207, 88, 0.26);
+  --rank-gold-a55: rgba(244, 207, 88, 0.55);
+  --rank-gold-a75: rgba(244, 207, 88, 0.75);
+
+  --rank-silver: #cfd4da;
+  --rank-silver-a18: rgba(207, 212, 218, 0.18);
+  --rank-silver-a26: rgba(207, 212, 218, 0.26);
+  --rank-silver-a55: rgba(207, 212, 218, 0.55);
+  --rank-silver-a75: rgba(207, 212, 218, 0.75);
+
+  --rank-bronze: #d29a63;
+  --rank-bronze-a18: rgba(210, 154, 99, 0.18);
+  --rank-bronze-a26: rgba(210, 154, 99, 0.26);
+  --rank-bronze-a55: rgba(210, 154, 99, 0.55);
+  --rank-bronze-a75: rgba(210, 154, 99, 0.75);
+
+  --rank-number-fill: rgba(255, 255, 255, 0.12);
+  --rank-number-stroke: rgba(255, 255, 255, 0.7);
+  --score-gold: #ffcb4d;
+
+  /* 콘텐츠 타입 배지 배경 (장르별 고정 색상) */
+  --type-movie-bg: rgba(73, 78, 88, 0.9);
+  --type-drama-bg: rgba(89, 65, 135, 0.9);
+  --type-animation-bg: rgba(37, 102, 112, 0.92);
+  --type-variety-bg: rgba(133, 82, 39, 0.92);
+  --type-documentary-bg: rgba(45, 74, 118, 0.92);
+
+  --platform-logo-bg: #111214;
+  --empty-border: #e5e5e5;
 }
 
 /* ===== Reset ===== */
@@ -51,9 +138,9 @@ body {
   min-height: 100vh;
   color: var(--text);
   background:
-    radial-gradient(circle at 15% 0%, rgba(255,255,255,0.08), transparent 28%),
-    radial-gradient(circle at 85% 8%, rgba(255,255,255,0.05), transparent 24%),
-    linear-gradient(180deg, #07090b 0%, #0c0f12 48%, #080a0c 100%);
+    radial-gradient(circle at 15% 0%, var(--body-glow-1), transparent 28%),
+    radial-gradient(circle at 85% 8%, var(--body-glow-2), transparent 24%),
+    linear-gradient(180deg, var(--body-grad-1) 0%, var(--body-grad-2) 48%, var(--body-grad-3) 100%);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard",
                "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
 }
@@ -91,7 +178,7 @@ ul {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(8, 10, 12, 0.78);
+  background: var(--header-bg);
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--line);
 }
@@ -141,12 +228,12 @@ ul {
   border: 1px solid var(--line);
   border-radius: 50%;
   color: var(--text);
-  background: rgba(255,255,255,0.04);
+  background: var(--overlay-04);
   cursor: pointer;
 }
 
 .icon-btn:hover {
-  background: rgba(255,255,255,0.08);
+  background: var(--overlay-08);
 }
 
 /* ===== Hero ===== */
@@ -158,7 +245,7 @@ ul {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background:
-    linear-gradient(90deg, rgba(8,10,12,0.96) 0%, rgba(8,10,12,0.82) 42%, rgba(8,10,12,0.55) 100%),
+    linear-gradient(90deg, var(--hero-scrim-1) 0%, var(--hero-scrim-2) 42%, var(--hero-scrim-3) 100%),
     url("https://image.tmdb.org/t/p/w1280/5YZbUmjbMa3ClvSW1Wj3D6XGolb.jpg") center/cover no-repeat;
   box-shadow: var(--shadow);
 }
@@ -198,7 +285,7 @@ ul {
   padding: 8px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: rgba(16, 20, 24, 0.72);
+  background: var(--search-box-bg);
   backdrop-filter: blur(12px);
 }
 
@@ -250,18 +337,18 @@ ul {
   justify-content: center;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.045);
+  background: var(--overlay-045);
   color: var(--white);
   font-weight: 900;
   letter-spacing: -0.04em;
   box-shadow: var(--shadow-soft);
 }
 
-.ott-netflix { color: #ff3040; }
-.ott-disney { color: #dbe8ff; }
-.ott-tving { color: #ff3158; }
-.ott-wavve { color: #4c78ff; }
-.ott-watcha { color: #ff4f9a; }
+.ott-netflix { color: var(--ott-netflix); }
+.ott-disney { color: var(--ott-disney); }
+.ott-tving { color: var(--ott-tving); }
+.ott-wavve { color: var(--ott-wavve); }
+.ott-watcha { color: var(--ott-watcha); }
 
 /* ===== Section ===== */
 .section {
@@ -354,7 +441,7 @@ ul {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
+    linear-gradient(180deg, var(--overlay-06), var(--overlay-025));
 }
 
 .feature-icon {
@@ -403,7 +490,7 @@ ul {
 .admin-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(20, 24, 28, 0.78);
+  background: var(--panel-translucent);
   box-shadow: var(--shadow-soft);
 }
 
@@ -453,7 +540,7 @@ ul {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.035);
+  background: var(--overlay-035);
 }
 
 .result-thumb {
@@ -491,8 +578,8 @@ ul {
   place-items: center;
   padding: 0 8px;
   border-radius: 8px;
-  background: #ffffff;
-  color: #000000;
+  background: var(--white);
+  color: var(--black);
   font-size: 12px;
   font-weight: 900;
 }
@@ -557,7 +644,7 @@ ul {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--text-soft);
-  background: rgba(255,255,255,0.04);
+  background: var(--overlay-04);
   font-size: 13px;
 }
 
@@ -577,7 +664,7 @@ ul {
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.045);
+  background: var(--overlay-045);
 }
 
 .watch-card strong {
@@ -595,12 +682,12 @@ ul {
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   color: var(--white);
-  background: rgba(255,255,255,0.06);
+  background: var(--overlay-06);
   cursor: pointer;
 }
 
 .btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--overlay-1);
 }
 
 .btn-primary {
@@ -611,7 +698,7 @@ ul {
 }
 
 .btn-primary:hover {
-  background: #e7e9ec;
+  background: var(--btn-primary-hover-bg);
 }
 
 /* ===== My Page ===== */
@@ -660,7 +747,7 @@ ul {
 .side-menu a.active,
 .side-menu a:hover {
   color: var(--white);
-  background: rgba(255,255,255,0.07);
+  background: var(--overlay-07);
 }
 
 .list-card {
@@ -671,7 +758,7 @@ ul {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.035);
+  background: var(--overlay-035);
 }
 
 .list-card + .list-card {
@@ -708,7 +795,7 @@ ul {
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.04);
+  background: var(--overlay-04);
 }
 
 .stat-label {
@@ -740,7 +827,7 @@ ul {
 .table th {
   color: var(--text-muted);
   font-weight: 600;
-  background: rgba(255,255,255,0.035);
+  background: var(--overlay-035);
 }
 
 /* ===== Footer ===== */
@@ -874,7 +961,7 @@ ul {
 
 .ranking-header p {
     margin: 0;
-    color: #888;
+    color: var(--text-faint);
     font-size: 15px;
     line-height: 1.7;
 }
@@ -897,7 +984,7 @@ ul {
     padding: 12px 20px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.045);
+    background: var(--overlay-045);
     color: var(--text-soft);
     font-size: 14px;
     font-weight: 700;
@@ -917,22 +1004,22 @@ ul {
     height: 20px;
     border-radius: 5px;
     object-fit: cover;
-    background: #fff;
+    background: var(--white);
     flex-shrink: 0;
 }
 
 .ranking-tab-button:hover {
     border-color: var(--line-strong);
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--overlay-08);
     color: var(--white);
     transform: translateY(-2px);
 }
 
 .ranking-tab-button.active {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.16);
-    color: #ffffff;
-    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.28);
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-a16);
+    color: var(--white);
+    box-shadow: 0 6px 18px var(--accent-blue-a28);
 }
 
 .ranking-panel {
@@ -981,13 +1068,13 @@ ul {
 
 @keyframes sectionRankPulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 59, 79, 0.55);
+        box-shadow: 0 0 0 0 var(--danger-a55);
     }
     70% {
-        box-shadow: 0 0 0 8px rgba(255, 59, 79, 0);
+        box-shadow: 0 0 0 8px var(--danger-a0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 59, 79, 0);
+        box-shadow: 0 0 0 0 var(--danger-a0);
     }
 }
 
@@ -998,7 +1085,7 @@ ul {
 
 .ranking-panel-description {
     margin: 8px 0 0;
-    color: #888;
+    color: var(--text-faint);
     font-size: 14px;
 }
 
@@ -1037,8 +1124,8 @@ ul {
     inset: 0;
     overflow: hidden;
     border-radius: 12px;
-    background: #ececec;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background: var(--poster-frame-bg);
+    box-shadow: 0 8px 20px var(--shadow-a30);
     transition: box-shadow 0.25s ease;
 }
 
@@ -1049,7 +1136,7 @@ ul {
 }
 
 .ranking-link:hover .ranking-poster-frame {
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 16px 32px var(--shadow-a45);
 }
 
 .ranking-poster {
@@ -1072,7 +1159,7 @@ ul {
     bottom: 0;
     left: 0;
     height: 62%;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.32) 45%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(0deg, var(--poster-scrim-1) 0%, var(--poster-scrim-2) 45%, var(--poster-scrim-3) 100%);
     content: "";
     pointer-events: none;
 }
@@ -1081,40 +1168,40 @@ ul {
    전체 목록 안에서도 상위권이 한눈에 도드라지게 한다. */
 .ranking-card.is-top3 .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(244, 207, 88, 0.55),
-        0 10px 26px rgba(244, 207, 88, 0.18);
+        0 0 0 2px var(--rank-gold-a55),
+        0 10px 26px var(--rank-gold-a18);
 }
 
 .ranking-card.is-top3 .ranking-link:hover .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(244, 207, 88, 0.75),
-        0 18px 34px rgba(244, 207, 88, 0.26);
+        0 0 0 2px var(--rank-gold-a75),
+        0 18px 34px var(--rank-gold-a26);
 }
 
 /* [버그수정] 위 규칙이 1~3위 전부에 금색을 고정 적용하고 있어서,
    숫자(.ranking-number)처럼 2위=은, 3위=동으로 나뉘도록 nth-child로 덮어쓴다. */
 .ranking-card:nth-child(2).is-top3 .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(207, 212, 218, 0.55),
-        0 10px 26px rgba(207, 212, 218, 0.18);
+        0 0 0 2px var(--rank-silver-a55),
+        0 10px 26px var(--rank-silver-a18);
 }
 
 .ranking-card:nth-child(2).is-top3 .ranking-link:hover .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(207, 212, 218, 0.75),
-        0 18px 34px rgba(207, 212, 218, 0.26);
+        0 0 0 2px var(--rank-silver-a75),
+        0 18px 34px var(--rank-silver-a26);
 }
 
 .ranking-card:nth-child(3).is-top3 .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(210, 154, 99, 0.55),
-        0 10px 26px rgba(210, 154, 99, 0.18);
+        0 0 0 2px var(--rank-bronze-a55),
+        0 10px 26px var(--rank-bronze-a18);
 }
 
 .ranking-card:nth-child(3).is-top3 .ranking-link:hover .ranking-poster-frame {
     box-shadow:
-        0 0 0 2px rgba(210, 154, 99, 0.75),
-        0 18px 34px rgba(210, 154, 99, 0.26);
+        0 0 0 2px var(--rank-bronze-a75),
+        0 18px 34px var(--rank-bronze-a26);
 }
 
 .ranking-no-poster {
@@ -1125,7 +1212,7 @@ ul {
     height: 100%;
     padding: 20px;
     box-sizing: border-box;
-    color: #999;
+    color: var(--text-dim);
     font-size: 13px;
     text-align: center;
 }
@@ -1145,27 +1232,27 @@ ul {
     line-height: 1;
     font-style: italic;
     letter-spacing: -2px;
-    color: rgba(255, 255, 255, 0.12);
-    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.7);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+    color: var(--rank-number-fill);
+    -webkit-text-stroke: 1.5px var(--rank-number-stroke);
+    text-shadow: 0 2px 10px var(--shadow-a55);
     white-space: nowrap;
     pointer-events: none;
     user-select: none;
 }
 
 .ranking-card:nth-child(1) .ranking-number {
-    color: rgba(244, 207, 88, 0.18);
-    -webkit-text-stroke: 1.5px #f4cf58;
+    color: var(--rank-gold-a18);
+    -webkit-text-stroke: 1.5px var(--rank-gold);
 }
 
 .ranking-card:nth-child(2) .ranking-number {
-    color: rgba(207, 212, 218, 0.18);
-    -webkit-text-stroke: 1.5px #cfd4da;
+    color: var(--rank-silver-a18);
+    -webkit-text-stroke: 1.5px var(--rank-silver);
 }
 
 .ranking-card:nth-child(3) .ranking-number {
-    color: rgba(210, 154, 99, 0.18);
-    -webkit-text-stroke: 1.5px #d29a63;
+    color: var(--rank-bronze-a18);
+    -webkit-text-stroke: 1.5px var(--rank-bronze);
 }
 
 .ranking-info {
@@ -1187,7 +1274,7 @@ ul {
     align-items: center;
     flex-wrap: wrap;
     gap: 6px;
-    color: #777;
+    color: var(--text-subtle);
     font-size: 13px;
 }
 
@@ -1197,7 +1284,7 @@ ul {
     min-height: 22px;
     padding: 2px 8px;
     border-radius: 999px;
-    color: #ffffff;
+    color: var(--white);
     font-size: 11px;
     font-weight: 800;
 }
@@ -1205,23 +1292,23 @@ ul {
 /* [리팩터링] contentTypeBadge.tag가 판별한 종류별 색상을 다른 카드(메인/리스트/추천)와
    동일한 기준으로 맞춰서 랭킹 카드도 같은 색으로 구분되게 한다. */
 .ranking-type.is-movie {
-    background: rgba(73, 78, 88, 0.9);
+    background: var(--type-movie-bg);
 }
 
 .ranking-type.is-drama {
-    background: rgba(89, 65, 135, 0.9);
+    background: var(--type-drama-bg);
 }
 
 .ranking-type.is-animation {
-    background: rgba(37, 102, 112, 0.92);
+    background: var(--type-animation-bg);
 }
 
 .ranking-type.is-variety {
-    background: rgba(133, 82, 39, 0.92);
+    background: var(--type-variety-bg);
 }
 
 .ranking-type.is-documentary {
-    background: rgba(45, 74, 118, 0.92);
+    background: var(--type-documentary-bg);
 }
 
 .ranking-age-rating {
@@ -1247,7 +1334,7 @@ ul {
 }
 
 .ranking-score {
-    color: #ffcb4d;
+    color: var(--score-gold);
     font-weight: 700;
 }
 
@@ -1268,7 +1355,7 @@ ul {
     height: 20px;
     border: 1px solid var(--line-strong);
     border-radius: 6px;
-    background: #111214;
+    background: var(--platform-logo-bg);
     object-fit: cover;
 }
 
@@ -1280,7 +1367,7 @@ ul {
     justify-content: center;
     padding: 0 5px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--overlay-08);
     color: var(--text-soft);
     font-size: 9px;
     font-weight: 700;
@@ -1288,9 +1375,9 @@ ul {
 
 .ranking-empty {
     padding: 80px 20px;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--empty-border);
     border-radius: 16px;
-    color: #888;
+    color: var(--text-faint);
     text-align: center;
 }
 

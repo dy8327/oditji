@@ -14,11 +14,34 @@
     include해야 공통 CSS/JS와 CSRF meta, viewport가 정상적으로 로드됩니다.
 --%>
 
+<%--
+    라이트/다크 모드: 저장된 선택이 없으면 항상 "다크 모드"로 시작합니다.
+    CSS가 로드/적용되기 전에 <html data-theme="..."> 를 최대한 먼저 설정해야
+    깜빡임(다크 -> 라이트 전환되는 FOUC) 없이 곧바로 올바른 테마로 렌더링됩니다.
+    그래서 이 스크립트는 CSS <link>보다 앞에 두고, 항상 동기적으로 실행됩니다.
+--%>
+<script>
+(function () {
+    try {
+        var saved = localStorage.getItem("oditji-theme");
+        document.documentElement.setAttribute("data-theme", saved === "light" ? "light" : "dark");
+    } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+})();
+</script>
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=12">
+<%-- [로고 이미지 적용] common.css / light-mode.css의 로고 변경사항이
+     브라우저 캐시에 막히지 않도록 정적 CSS 버전만 갱신합니다. --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=14">
+<%-- 기존 다크 모드 CSS는 전혀 건드리지 않고, 라이트 모드 전용 오버라이드만
+     별도 파일로 얹습니다(html[data-theme="light"] 스코프에서만 적용). --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/light-mode.css?v=2">
 
 <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=9"></script>
+<script defer src="${pageContext.request.contextPath}/js/theme-toggle.js?v=1"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <%--
