@@ -227,6 +227,61 @@ a {
 
 }
 
+/* [QA 수정] 세로 포스터 마스크(.hero-slide-poster-img)처럼, 배너
+   전체(.hero)의 상하좌우 가장자리도 부드럽게 페이드해 뒤쪽 블러
+   배경(.hero-ambient-wrap)과 하드 엣지 없이 자연스럽게 이어지도록
+   한다. 4방향 그라디언트를 intersect(교집합)로 겹쳐 네 변을 동시에
+   페이드한다. 페이드 폭(18px)은 .hero-slide-body의 최소
+   margin-left(20px)보다 작게 잡아 텍스트/배지/버튼이 페이드 구간에
+   걸치지 않게 했다. 모바일 가로 스크롤 레이아웃(900px 이하)에서는
+   배너 구조 자체가 달라지므로 제외한다. */
+@media (min-width: 901px) {
+
+    .hero {
+        -webkit-mask-image:
+            linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%),
+            linear-gradient(to bottom, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+            linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%),
+            linear-gradient(to bottom, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);
+        mask-composite: intersect;
+    }
+
+}
+
+/* [QA 수정] 1920px 제한으로 생기는 좌우 여백을 넷플릭스처럼 같은
+   슬라이드 이미지를 블러 확장한 배경으로 채운다.
+   .hero 자신에 overflow:hidden이 걸려있어 그 안에 넣으면 1920px
+   박스 밖은 그대로 잘리므로, .hero를 감싸는 .hero-ambient-wrap에
+   ::before로 얹어 .hero보다 아래 레이어(뷰포트 전체 폭)로 깐다.
+   폭은 부모 폭이 아니라 뷰포트 자체를 기준으로 채워야 하므로,
+   부모 폭에 좌우되는 margin 트릭 대신 left:50% + translateX(-50%)
+   방식을 쓴다(이 방식은 .hero가 100vw든 1920px 고정이든 항상 실제
+   화면 전체 폭을 덮는다). 실제 배경 이미지는 JS(main.js의
+   syncActiveIndex)가 현재 활성 슬라이드에 맞춰 --hero-ambient-bg
+   변수를 갱신해 슬라이드 전환과 함께 자연스럽게 같이 바뀐다. */
+.hero-ambient-wrap {
+    position: relative;
+}
+
+.hero-ambient-wrap::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    height: 100%;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%) scale(1.15);
+    background-image: var(--hero-ambient-bg, none);
+    background-position: center 30%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(60px) saturate(1.15) brightness(0.55);
+    transition: background-image 0.6s ease;
+    pointer-events: none;
+}
+
 .hero-slides {
     position: absolute;
     inset: 0;
@@ -291,6 +346,11 @@ a {
      블러 배경과 하나로 이어지도록 하고
    - 배너 상하 전체 높이를 채워 '옆에 붙인 썸네일'이 아니라
      배경 아트워크의 연장처럼 보이게 한다. */
+/* [QA 수정] 왼쪽 가장자리만 페이드하던 마스크에 상/하 가장자리 페이드를
+   추가한다. 위아래는 하드 컷이라 블러 배경과 맞닿는 부분이 사각형
+   테두리처럼 도드라져 보였다. 두 개의 그라디언트 마스크를
+   intersect(교집합)로 겹쳐서, 왼쪽은 크게(배경과 이어지도록) · 위아래는
+   가장자리만 살짝(그림 대부분은 그대로 유지) 페이드한다. */
 .hero-slide-poster-img {
     position: absolute;
     top: 0;
@@ -300,8 +360,14 @@ a {
     aspect-ratio: 2 / 3;
     object-fit: contain;
     object-position: top center;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%);
-    mask-image: linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%);
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%),
+        linear-gradient(to bottom, transparent 0%, var(--main-black) 6%, var(--main-black) 94%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%),
+        linear-gradient(to bottom, transparent 0%, var(--main-black) 6%, var(--main-black) 94%, transparent 100%);
+    mask-composite: intersect;
 }
 
 @media (max-width: 900px) {
