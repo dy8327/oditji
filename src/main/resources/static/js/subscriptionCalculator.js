@@ -11,6 +11,7 @@
   var calculateUrl = section.dataset.calculateUrl;
   var saveUrl = section.dataset.saveUrl;
   var resultBaseUrl = section.dataset.resultBaseUrl;
+  var contentDetailUrl = section.dataset.contentDetailUrl;
   var imageBaseUrl = section.dataset.imageBaseUrl;
 
   var searchInput = document.getElementById("subCalcSearchInput");
@@ -48,13 +49,20 @@
     var contentType = (initialItemEl.dataset.contentType || "").trim();
     var title = (initialItemEl.dataset.title || "").trim();
     var posterPath = initialItemEl.dataset.posterPath || "";
+    var platformEls = initialItemEl.querySelectorAll("[data-platform-name]");
     var platformNameList = Array.prototype.map
-      .call(initialItemEl.querySelectorAll("[data-platform-name]"), function (platformEl) {
+      .call(platformEls, function (platformEl) {
         return platformEl.dataset.platformName;
       })
       .filter(function (platformName) {
         return Boolean(platformName);
       });
+
+    /* [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+       platformNameList와 인덱스를 맞춰 로고 URL 목록도 함께 읽어온다. */
+    var platformLogoList = Array.prototype.map.call(platformEls, function (platformEl) {
+      return platformEl.dataset.platformLogo || "";
+    });
 
     if (!Number.isFinite(tmdbId) || tmdbId <= 0 || !contentType || !title) {
       return;
@@ -66,6 +74,7 @@
       title: title,
       posterPath: posterPath,
       platformNameList: platformNameList,
+      platformLogoList: platformLogoList,
     });
   }
 
@@ -104,6 +113,60 @@
       return "";
     }
     return imageBaseUrl + posterPath;
+  }
+
+  /*
+   * [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+   * 담은 작품을 볼 수 있는 OTT 로고들을 작은 아이콘으로 나열한다.
+   * platformLogoList가 platformNameList와 인덱스가 맞는 경우에만 아이콘을 쓰고,
+   * 로고 URL이 없는 항목은 건너뛴다(레이아웃이 깨지지 않도록 빈 아이콘을 만들지 않음).
+   */
+  function platformLogosHtml(item) {
+    var nameList = item.platformNameList || [];
+    var logoList = item.platformLogoList || [];
+
+    if (nameList.length === 0) {
+      return "";
+    }
+
+    var iconsHtml = nameList
+      .map(function (platformName, index) {
+        var logoUrl = logoList[index];
+
+        if (!logoUrl) {
+          return "";
+        }
+
+        return (
+          '<img class="sub-calc-wishlist__platform-logo"' +
+          ' src="' +
+          escapeHtml(logoUrl) +
+          '"' +
+          ' alt="' +
+          escapeHtml(platformName) +
+          '"' +
+          ' title="' +
+          escapeHtml(platformName) +
+          '"' +
+          ' loading="lazy">'
+        );
+      })
+      .join("");
+
+    if (!iconsHtml) {
+      return "";
+    }
+
+    return '<span class="sub-calc-wishlist__platform-logos">' + iconsHtml + "</span>";
+  }
+
+  /* 담은 작품 뱃지를 눌렀을 때 이동할 상세페이지 링크를 만든다.
+     tmdbId/contentType이 없으면(방어적으로) 링크를 만들지 않는다. */
+  function contentDetailHref(item) {
+    if (!contentDetailUrl || !item.tmdbId || !item.contentType) {
+      return "";
+    }
+    return contentDetailUrl + "?tmdbId=" + encodeURIComponent(item.tmdbId) + "&contentType=" + encodeURIComponent(item.contentType);
   }
 
   function escapeHtml(value) {
@@ -268,6 +331,7 @@
           '<span class="sub-calc-wishlist__title">' +
           escapeHtml(item.title) +
           "</span>" +
+          platformLogosHtml(item) +
           '<button type="button" class="sub-calc-wishlist__remove"' +
           ' data-index="' +
           index +
@@ -357,6 +421,39 @@
 
         var sourceLine = hasDiscount ? escapeHtml(platform.discountSource) + " 적용 시" : "(기본 정가 적용)";
 
+        var platformContentList = platform.contentList || [];
+        var platformContentHtml = "";
+
+        if (platformContentList.length > 0) {
+          platformContentHtml =
+            '<ul class="sub-calc-result-platform__content-list">' +
+            platformContentList
+              .map(function (item) {
+                var posterHtml = item.posterPath
+                  ? '<img class="sub-calc-result-platform__content-poster" src="' + escapeHtml(posterUrl(item.posterPath)) + '" alt="" loading="lazy">'
+                  : "";
+                var href = contentDetailHref(item);
+                var tag = href ? "a" : "span";
+                var hrefAttr = href ? ' href="' + escapeHtml(href) + '"' : "";
+                return (
+                  '<li class="sub-calc-result-platform__content-item">' +
+                  "<" +
+                  tag +
+                  ' class="sub-calc-result-platform__content-link"' +
+                  hrefAttr +
+                  ">" +
+                  posterHtml +
+                  '<span class="sub-calc-result-platform__content-name">' +
+                  escapeHtml(item.title) +
+                  "</span></" +
+                  tag +
+                  "></li>"
+                );
+              })
+              .join("") +
+            "</ul>";
+        }
+
         return (
           '<li class="sub-calc-result-platform">' +
           '<div class="sub-calc-result-platform__head">' +
@@ -370,6 +467,7 @@
           '<span class="sub-calc-result-platform__source">' +
           sourceLine +
           "</span>" +
+          platformContentHtml +
           "</li>"
         );
       })

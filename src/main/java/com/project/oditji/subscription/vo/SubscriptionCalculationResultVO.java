@@ -27,6 +27,13 @@ public class SubscriptionCalculationResultVO {
     /** 가격 정보가 없는 플랫폼에서만 볼 수 있어 계산에서 제외된 콘텐츠 목록 */
     private List<ContentWishItemVO> unresolvedItemList = new ArrayList<ContentWishItemVO>();
 
+    /**
+     * 사용자가 이 계산에 사용한 위시리스트(담은 작품) 전체 목록입니다.
+     * unresolvedItemList와 달리 가격 계산 성공 여부와 무관하게, 계산에 사용된
+     * 모든 콘텐츠를 그대로 담아 "어떤 콘텐츠를 골라 계산했는지" 표시할 때 사용합니다.
+     */
+    private List<ContentWishItemVO> contentList = new ArrayList<ContentWishItemVO>();
+
     public List<PlatformPriceVO> getSelectedPlatformList() {
         return selectedPlatformList;
     }
@@ -71,5 +78,16 @@ public class SubscriptionCalculationResultVO {
                 unresolvedItemList == null
                         ? new ArrayList<ContentWishItemVO>()
                         : unresolvedItemList;
+    }
+
+    public List<ContentWishItemVO> getContentList() {
+        return contentList;
+    }
+
+    public void setContentList(List<ContentWishItemVO> contentList) {
+        this.contentList =
+                contentList == null
+                        ? new ArrayList<ContentWishItemVO>()
+                        : contentList;
     }
 }

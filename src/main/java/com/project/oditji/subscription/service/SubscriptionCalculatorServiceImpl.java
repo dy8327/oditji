@@ -51,6 +51,12 @@ public class SubscriptionCalculatorServiceImpl
     private static final String JSON_KEY_DISCOUNT_TITLE = "discountTitle";
     private static final String JSON_KEY_SELECTED_PLATFORM_LIST = "selectedPlatformList";
     private static final String JSON_KEY_PLATFORM_NAME = "platformName";
+    private static final String JSON_KEY_CONTENT_LIST = "contentList";
+    private static final String JSON_KEY_PLATFORM_NAME_LIST = "platformNameList";
+    private static final String JSON_KEY_TMDB_ID = "tmdbId";
+    private static final String JSON_KEY_CONTENT_TYPE = "contentType";
+    private static final String JSON_KEY_TITLE = "title";
+    private static final String JSON_KEY_POSTER_PATH = "posterPath";
 
     private final OttDiscountDAO ottDiscountDAO;
 
@@ -79,6 +85,24 @@ public class SubscriptionCalculatorServiceImpl
 
             return result;
         }
+
+        /*
+         * 계산 성공 여부와 무관하게, 이번 계산에 사용된 전체 콘텐츠 목록을
+         * 그대로 결과에 담아둔다. 마이페이지 모달과 결과 공유 화면에서
+         * "어떤 콘텐츠를 골라 계산했는지" 보여줄 때 사용한다.
+         */
+        List<ContentWishItemVO> contentList =
+                new ArrayList<ContentWishItemVO>();
+
+        for (ContentWishItemVO item : wishItemList) {
+
+            if (item != null) {
+
+                contentList.add(item);
+            }
+        }
+
+        result.setContentList(contentList);
 
         Map<String, PlatformPriceVO> priceByCode =
                 loadPriceByCode(
@@ -167,7 +191,62 @@ public class SubscriptionCalculatorServiceImpl
         result.setTotalMonthlyPrice(totalPrice);
         result.setTotalRegularMonthlyPrice(totalRegularPrice);
 
+        assignContentToPlatforms(selected, contentList);
+
         return result;
+    }
+
+    /**
+     * 선택된 플랫폼별로, 그 플랫폼에서 볼 수 있는 콘텐츠 목록을 채워 넣는다.
+     * 한 콘텐츠가 선택된 플랫폼 여러 곳에서 모두 볼 수 있으면 해당하는 모든 플랫폼에 표시한다.
+     */
+    private void assignContentToPlatforms(
+            List<PlatformPriceVO> selectedPlatformList,
+            List<ContentWishItemVO> contentList) {
+
+        if (selectedPlatformList == null
+                || selectedPlatformList.isEmpty()
+                || contentList == null
+                || contentList.isEmpty()) {
+
+            return;
+        }
+
+        for (PlatformPriceVO platform : selectedPlatformList) {
+
+            if (platform == null
+                    || platform.getPlatformCode() == null) {
+
+                continue;
+            }
+
+            List<ContentWishItemVO> matchedList =
+                    new ArrayList<ContentWishItemVO>();
+
+            for (ContentWishItemVO item : contentList) {
+
+                if (item == null) {
+
+                    continue;
+                }
+
+                for (String platformName : item.getPlatformNameList()) {
+
+                    String code =
+                            OttPlatformCodeUtil
+                                    .fromContentPlatformName(
+                                            platformName);
+
+                    if (platform.getPlatformCode().equals(code)) {
+
+                        matchedList.add(item);
+                        break;
+                    }
+                }
+            }
+
+            platform.setContentList(matchedList);
+        }
     }
 
     /** 화면에서 넘어온 빈 문자열/공백을 필터 미선택(null)으로 취급한다. */
@@ -467,8 +546,52 @@ public class SubscriptionCalculatorServiceImpl
         savedResult.setPlatformNameList(
                 extractPlatformNameList(
                         shareVO.getSelectedServicesJson()));
+        savedResult.setContentList(
+                extractContentList(
+                        shareVO.getSelectedServicesJson()));
+        savedResult.setPlatformGroupList(
+                extractPlatformGroupList(
+                        shareVO.getSelectedServicesJson()));
 
         return savedResult;
+    }
+
+    /**
+     * 저장된 SELECTED_SERVICES JSON에서 선택 플랫폼별로 그 플랫폼의 콘텐츠를 묶은 목록을 뽑아낸다.
+     * JSON이 손상됐거나 없으면 빈 목록을 반환한다.
+     */
+    private List<PlatformPriceVO> extractPlatformGroupList(
+            String selectedServicesJson) {
+
+        if (selectedServicesJson == null
+                || selectedServicesJson.trim().isEmpty()) {
+
+            return new ArrayList<PlatformPriceVO>();
+        }
+
+        try {
+
+            JSONObject root = new JSONObject(selectedServicesJson);
+
+            List<PlatformPriceVO> platformGroupList =
+                    parsePlatformList(
+                            root.optJSONArray(JSON_KEY_SELECTED_PLATFORM_LIST));
+
+            List<ContentWishItemVO> contentList =
+                    parseContentList(
+                            root.optJSONArray(JSON_KEY_CONTENT_LIST));
+
+            assignContentToPlatforms(
+                    platformGroupList,
+                    contentList);
+
+            return platformGroupList;
+
+        } catch (JSONException e) {
+
+            /* 저장된 JSON이 손상된 경우 빈 목록으로 방어적으로 대응한다. */
+            return new ArrayList<PlatformPriceVO>();
+        }
     }
 
     /**
@@ -516,6 +639,104 @@ public class SubscriptionCalculatorServiceImpl
 
             /* 저장된 JSON이 손상된 경우 빈 목록으로 방어적으로 대응한다. */
             return new ArrayList<String>();
+        }
+
+        return platformNameList;
+    }
+
+    /**
+     * 저장된 SELECTED_SERVICES JSON에서 계산에 사용된 콘텐츠(담은 작품) 목록을
+     * 방어적으로 뽑아낸다. JSON이 손상됐거나 없으면 빈 목록을 반환한다.
+     */
+    private List<ContentWishItemVO> extractContentList(
+            String selectedServicesJson) {
+
+        if (selectedServicesJson == null
+                || selectedServicesJson.trim().isEmpty()) {
+
+            return new ArrayList<ContentWishItemVO>();
+        }
+
+        try {
+
+            JSONObject root = new JSONObject(selectedServicesJson);
+
+            return parseContentList(
+                    root.optJSONArray(JSON_KEY_CONTENT_LIST));
+
+        } catch (JSONException e) {
+
+            /* 저장된 JSON이 손상된 경우 빈 목록으로 방어적으로 대응한다. */
+            return new ArrayList<ContentWishItemVO>();
+        }
+    }
+
+    /** contentList JSON 배열을 ContentWishItemVO 목록으로 변환한다. */
+    private List<ContentWishItemVO> parseContentList(
+            JSONArray contentArray) {
+
+        List<ContentWishItemVO> contentList =
+                new ArrayList<ContentWishItemVO>();
+
+        if (contentArray == null) {
+
+            return contentList;
+        }
+
+        for (int i = 0; i < contentArray.length(); i++) {
+
+            JSONObject contentJson = contentArray.getJSONObject(i);
+
+            ContentWishItemVO item = new ContentWishItemVO();
+
+            item.setTmdbId(
+                    contentJson.isNull(JSON_KEY_TMDB_ID)
+                            ? null
+                            : contentJson.optLong(JSON_KEY_TMDB_ID));
+            item.setContentType(
+                    contentJson.isNull(JSON_KEY_CONTENT_TYPE)
+                            ? null
+                            : contentJson.optString(JSON_KEY_CONTENT_TYPE, null));
+            item.setTitle(
+                    contentJson.isNull(JSON_KEY_TITLE)
+                            ? null
+                            : contentJson.optString(JSON_KEY_TITLE, null));
+            item.setPosterPath(
+                    contentJson.isNull(JSON_KEY_POSTER_PATH)
+                            ? null
+                            : contentJson.optString(JSON_KEY_POSTER_PATH, null));
+            item.setPlatformNameList(
+                    parsePlatformNameList(
+                            contentJson.optJSONArray(JSON_KEY_PLATFORM_NAME_LIST)));
+
+            contentList.add(item);
+        }
+
+        return contentList;
+    }
+
+    /** contentList JSON 항목의 platformNameList 배열을 List<String>으로 변환한다. */
+    private List<String> parsePlatformNameList(
+            JSONArray platformNameArray) {
+
+        List<String> platformNameList =
+                new ArrayList<String>();
+
+        if (platformNameArray == null) {
+
+            return platformNameList;
+        }
+
+        for (int i = 0; i < platformNameArray.length(); i++) {
+
+            String platformName =
+                    platformNameArray.optString(i, null);
+
+            if (platformName != null
+                    && !platformName.trim().isEmpty()) {
+
+                platformNameList.add(platformName);
+            }
         }
 
         return platformNameList;
@@ -601,6 +822,39 @@ public class SubscriptionCalculatorServiceImpl
         root.put("allPlatformMonthlyPrice",
                 result.getAllPlatformMonthlyPrice());
 
+        JSONArray contentArray = new JSONArray();
+
+        for (ContentWishItemVO item : result.getContentList()) {
+
+            if (item != null) {
+
+                JSONObject contentJson = new JSONObject();
+
+                contentJson.put(JSON_KEY_TMDB_ID,
+                        item.getTmdbId() == null
+                                ? JSONObject.NULL
+                                : item.getTmdbId());
+                contentJson.put(JSON_KEY_CONTENT_TYPE,
+                        item.getContentType() == null
+                                ? JSONObject.NULL
+                                : item.getContentType());
+                contentJson.put(JSON_KEY_TITLE,
+                        item.getTitle() == null
+                                ? JSONObject.NULL
+                                : item.getTitle());
+                contentJson.put(JSON_KEY_POSTER_PATH,
+                        item.getPosterPath() == null
+                                ? JSONObject.NULL
+                                : item.getPosterPath());
+                contentJson.put(JSON_KEY_PLATFORM_NAME_LIST,
+                        new JSONArray(item.getPlatformNameList()));
+
+                contentArray.put(contentJson);
+            }
+        }
+
+        root.put(JSON_KEY_CONTENT_LIST, contentArray);
+
         return root.toString();
     }
 
@@ -622,41 +876,9 @@ public class SubscriptionCalculatorServiceImpl
             JSONObject root = new JSONObject(
                     shareVO.getSelectedServicesJson());
 
-            JSONArray platformArray =
-                    root.optJSONArray(JSON_KEY_SELECTED_PLATFORM_LIST);
-
             List<PlatformPriceVO> selectedList =
-                    new ArrayList<PlatformPriceVO>();
-
-            if (platformArray != null) {
-
-                for (int i = 0; i < platformArray.length(); i++) {
-
-                    JSONObject platformJson =
-                            platformArray.getJSONObject(i);
-
-                    PlatformPriceVO platform = new PlatformPriceVO();
-
-                    platform.setPlatformCode(
-                            platformJson.optString("platformCode", null));
-                    platform.setPlatformName(
-                            platformJson.optString(JSON_KEY_PLATFORM_NAME, null));
-                    platform.setRegularPrice(
-                            optInteger(platformJson, "regularPrice"));
-                    platform.setBestPrice(
-                            optInteger(platformJson, "bestPrice"));
-                    platform.setDiscountSource(
-                            platformJson.isNull(JSON_KEY_DISCOUNT_SOURCE)
-                                    ? null
-                                    : platformJson.optString(JSON_KEY_DISCOUNT_SOURCE, null));
-                    platform.setDiscountTitle(
-                            platformJson.isNull(JSON_KEY_DISCOUNT_TITLE)
-                                    ? null
-                                    : platformJson.optString(JSON_KEY_DISCOUNT_TITLE, null));
-
-                    selectedList.add(platform);
-                }
-            }
+                    parsePlatformList(
+                            root.optJSONArray(JSON_KEY_SELECTED_PLATFORM_LIST));
 
             result.setSelectedPlatformList(selectedList);
 
@@ -681,6 +903,14 @@ public class SubscriptionCalculatorServiceImpl
             result.setAllPlatformMonthlyPrice(
                     root.optInt("allPlatformMonthlyPrice", 0));
 
+            result.setContentList(
+                    parseContentList(
+                            root.optJSONArray(JSON_KEY_CONTENT_LIST)));
+
+            assignContentToPlatforms(
+                    result.getSelectedPlatformList(),
+                    result.getContentList());
+
         } catch (JSONException e) {
 
             /* 저장된 JSON이 손상된 경우 정가/최종가만 담긴 빈 결과로 방어적으로 대응한다. */
@@ -688,6 +918,48 @@ public class SubscriptionCalculatorServiceImpl
         }
 
         return result;
+    }
+
+    /** 저장된 selectedPlatformList JSON 배열을 PlatformPriceVO 목록으로 변환한다. */
+    private List<PlatformPriceVO> parsePlatformList(
+            JSONArray platformArray) {
+
+        List<PlatformPriceVO> platformList =
+                new ArrayList<PlatformPriceVO>();
+
+        if (platformArray == null) {
+
+            return platformList;
+        }
+
+        for (int i = 0; i < platformArray.length(); i++) {
+
+            JSONObject platformJson =
+                    platformArray.getJSONObject(i);
+
+            PlatformPriceVO platform = new PlatformPriceVO();
+
+            platform.setPlatformCode(
+                    platformJson.optString("platformCode", null));
+            platform.setPlatformName(
+                    platformJson.optString(JSON_KEY_PLATFORM_NAME, null));
+            platform.setRegularPrice(
+                    optInteger(platformJson, "regularPrice"));
+            platform.setBestPrice(
+                    optInteger(platformJson, "bestPrice"));
+            platform.setDiscountSource(
+                    platformJson.isNull(JSON_KEY_DISCOUNT_SOURCE)
+                            ? null
+                            : platformJson.optString(JSON_KEY_DISCOUNT_SOURCE, null));
+            platform.setDiscountTitle(
+                    platformJson.isNull(JSON_KEY_DISCOUNT_TITLE)
+                            ? null
+                            : platformJson.optString(JSON_KEY_DISCOUNT_TITLE, null));
+
+            platformList.add(platform);
+        }
+
+        return platformList;
     }
 
     private Integer optInteger(JSONObject json, String key) {

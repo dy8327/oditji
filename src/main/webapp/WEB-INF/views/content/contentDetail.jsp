@@ -376,10 +376,18 @@
                            name="posterPath"
                            value="${fn:escapeXml(content.posterPath)}">
 
+                    <%--
+                        [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+                        platformName과 같은 순서로 platformLogo도 함께 전달해서
+                        계산기 화면이 초기 담기 항목에도 OTT 아이콘을 보여줄 수 있게 한다.
+                    --%>
                     <c:forEach var="ott" items="${ottList}">
                         <input type="hidden"
                                name="platformName"
                                value="${fn:escapeXml(ott.platformName)}">
+                        <input type="hidden"
+                               name="platformLogo"
+                               value="${fn:escapeXml(ott.logoImage)}">
                     </c:forEach>
 
                     <button type="submit"

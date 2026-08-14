@@ -67,6 +67,41 @@
                                     <c:otherwise>(기본 정가 적용)</c:otherwise>
                                 </c:choose>
                             </span>
+
+                            <c:if test="${not empty platform.contentList}">
+                                <ul class="sub-calc-result-platform__content-list">
+                                    <c:forEach var="content" items="${platform.contentList}">
+                                        <li class="sub-calc-result-platform__content-item">
+                                            <c:choose>
+                                                <c:when test="${not empty content.tmdbId && not empty content.contentType}">
+                                                    <c:url var="platformContentDetailUrl" value="/content/prepare">
+                                                        <c:param name="tmdbId" value="${content.tmdbId}"/>
+                                                        <c:param name="contentType" value="${content.contentType}"/>
+                                                    </c:url>
+                                                    <a class="sub-calc-result-platform__content-link" href="${platformContentDetailUrl}">
+                                                        <c:if test="${not empty content.posterPath}">
+                                                            <img class="sub-calc-result-platform__content-poster"
+                                                                 src="https://image.tmdb.org/t/p/w92${content.posterPath}"
+                                                                 alt="" loading="lazy">
+                                                        </c:if>
+                                                        <span class="sub-calc-result-platform__content-name">${content.title}</span>
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="sub-calc-result-platform__content-link">
+                                                        <c:if test="${not empty content.posterPath}">
+                                                            <img class="sub-calc-result-platform__content-poster"
+                                                                 src="https://image.tmdb.org/t/p/w92${content.posterPath}"
+                                                                 alt="" loading="lazy">
+                                                        </c:if>
+                                                        <span class="sub-calc-result-platform__content-name">${content.title}</span>
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </li>
+                                    </c:forEach>
+                                </ul>
+                            </c:if>
                         </li>
                     </c:forEach>
                 </ul>
