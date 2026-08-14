@@ -221,390 +221,271 @@ const contextPath =
 
                     <c:when test="${not empty productList}">
 
-                        <c:forEach var="product"
-                                   items="${productList}">
-
-                            <%--
-                                =========================================================
-                                [상품 목록 레이아웃 개선 및 반응형]
-                                PC에서는 상품 정보를 가로 한 줄로 명확하게 구분하고,
-                                화면 폭이 줄어들면 정보 그룹이 자동으로 재배치되도록 구성한다.
-                                기존 상품 수정/삭제/판매 현황 기능은 그대로 유지한다.
-                                =========================================================
-                            --%>
-                            <div class="product-item product-manage-item">
-
-                                <div class="product-thumb product-manage-thumb">
-
-                                    <c:choose>
-
-                                        <%--
-                                            Mapper의 IMAGE_PATH 별칭은
-                                            GoodsManageVO.imagePath에 매핑된다.
-
-                                            기존 product.thumbnailPath는
-                                            GoodsManageVO에 존재하지 않으므로
-                                            사용하면 PropertyNotFoundException이 발생한다.
-                                        --%>
-                                        <c:when test="${not empty product.imagePath}">
-
-                                            <img src="${pageContext.request.contextPath}${product.imagePath}"
-                                                 alt="<c:out value='${product.productName}'/>">
-
-                                        </c:when>
-
-                                        <c:otherwise>
-
-                                            <span>
-                                                상품
-                                            </span>
-
-                                        </c:otherwise>
-
-                                    </c:choose>
-
-                                </div>
-
-
-                                <%--
-                                    =========================================================
-                                    [상품 정보 가로 배치]
-                                    각 값을 독립된 정보 칸으로 분리한다.
-                                    PC에서는 한 줄, 태블릿에서는 2행,
-                                    모바일에서는 세로 카드 형태로 자동 재배치한다.
-                                    =========================================================
-                                --%>
-                                <div class="product-info product-manage-info">
-
-                                    <%-- 상품명 --%>
-                                    <div class="product-info-cell product-name-cell">
-
-                                        <span class="product-info-label">
-                                            상품명
-                                        </span>
-
-                                        <strong class="product-name"
-                                                title="<c:out value='${product.productName}'/>">
-                                            <c:out value="${product.productName}"/>
-                                        </strong>
-
-                                    </div>
-
-
-                                    <%-- 상품 종류 --%>
-                                    <div class="product-info-cell product-type-cell">
-
-                                        <span class="product-info-label">
-                                            상품 종류
-                                        </span>
-
-                                        <span class="product-info-value">
-
-                                            <c:choose>
-
-                                                <c:when test="${product.productType == 'CLOTHES'}">
-                                                    의상
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'SHOES'}">
-                                                    신발
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'PROP'}">
-                                                    소품
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'GOODS'}">
-                                                    굿즈
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'OST'}">
-                                                    OST
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'BOOK'}">
-                                                    도서
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'FIGURE'}">
-                                                    피규어
-                                                </c:when>
-
-                                                <c:when test="${product.productType == 'POSTER'}">
-                                                    포스터
-                                                </c:when>
-
-                                                <c:otherwise>
-                                                    기타
-                                                </c:otherwise>
-
-                                            </c:choose>
-
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 관련 콘텐츠 --%>
-                                    <div class="product-info-cell product-content-cell">
-
-                                        <span class="product-info-label">
-                                            관련 콘텐츠
-                                        </span>
-
-                                        <span class="product-info-value product-info-ellipsis"
-                                              title="<c:out value='${product.contentTitle}'/>">
-                                            <c:out value="${product.contentTitle}"/>
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 관련 배우 --%>
-                                    <div class="product-info-cell product-actor-cell">
-
-                                        <span class="product-info-label">
-                                            관련 배우
-                                        </span>
-
-                                        <span class="product-info-value product-info-ellipsis"
-                                              title="<c:out value='${product.actorName}'/>">
-
-                                            <c:choose>
-
-                                                <c:when test="${not empty product.actorName}">
-                                                    <c:out value="${product.actorName}"/>
-                                                </c:when>
-
-                                                <c:otherwise>
-                                                    -
-                                                </c:otherwise>
-
-                                            </c:choose>
-
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 수량 --%>
-                                    <div class="product-info-cell product-stock-cell">
-
-                                        <span class="product-info-label">
-                                            수량
-                                        </span>
-
-                                        <span class="product-info-value">
-                                            <c:out value="${product.stock}"/>개
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 가격 --%>
-                                    <div class="product-info-cell product-price-cell">
-
-                                        <span class="product-info-label">
-                                            가격
-                                        </span>
-
-                                        <span class="product-info-value">
-                                            <c:out value="${product.price}"/>원
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 할인율 --%>
-                                    <div class="product-info-cell product-discount-cell">
-
-                                        <span class="product-info-label">
-                                            할인율
-                                        </span>
-
-                                        <span class="product-info-value">
-
-                                            <c:choose>
-
-                                                <c:when test="${product.discountRate > 0}">
-                                                    <c:out value="${product.discountRate}"/>%
-                                                </c:when>
-
-                                                <c:otherwise>
-                                                    -
-                                                </c:otherwise>
-
-                                            </c:choose>
-
-                                        </span>
-
-                                    </div>
-
-
-                                    <%-- 승인 상태 --%>
-                                    <div class="product-info-cell product-status-cell">
-
-                                        <span class="product-info-label">
-                                            승인 상태
-                                        </span>
-
-                                        <div class="product-status-value">
-
-                                            <c:choose>
-
-                                                <c:when test="${product.status == 'APPROVED'}">
-
-                                                    <span class="status-ok">
-                                                        승인 완료
-                                                    </span>
-
-                                                </c:when>
-
-                                                <c:when test="${product.status == 'WAITING'}">
-
-                                                    <span class="status-waiting">
-                                                        승인 대기
-                                                    </span>
-
-                                                </c:when>
-
-                                                <c:when test="${product.status == 'REJECTED'}">
-
-                                                    <span class="status-reject">
-                                                        반려
-                                                    </span>
-
-                                                </c:when>
-
-                                                <c:otherwise>
-
-                                                    <span class="status-reject">
-                                                        <c:out value="${product.status}"/>
-                                                    </span>
-
-                                                </c:otherwise>
-
-                                            </c:choose>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <%--
-                                        =========================================================
-                                        [상품 등록일/수정일 추가]
-                                        등록일과 마지막 수정일을 하나의 날짜 그룹으로 묶어
-                                        PC 가로 공간을 절약한다.
-                                        수정 이력이 없는 경우 수정일은 "-"로 표시한다.
-                                        =========================================================
-                                    --%>
-                                    <div class="product-info-cell product-date-cell">
-
-                                        <span class="product-info-label">
-                                            등록일 / 수정일
-                                        </span>
-
-                                        <div class="product-date-values">
-
-                                            <span class="product-date-row">
-                                                <span class="product-date-caption">등록</span>
-
+                        <%--
+                            =========================================================
+                            [상품 관리 목록 - 전용 토큰]
+                            각 상품 카드마다 반복하던 항목명을 제거하고,
+                            목록 상단에 공통 칼럼 헤더를 한 번만 표시한다.
+
+                            칼럼 순서:
+                            상품 이미지 → 상품명 → 상품 종류 → 관련 콘텐츠 → 관련 배우
+                            → 수량 → 가격 → 할인율 → 승인 상태 → 등록일 / 수정일 → 관리
+
+                            모든 헤더와 값은 같은 칼럼 기준으로 가운데 정렬하며,
+                            기존 수정 요청 / 삭제 요청 / 판매 현황 기능은 그대로 유지한다.
+                            =========================================================
+                        --%>
+                        <div class="product-manage-table-scroll">
+
+                            <table class="product-manage-table">
+
+                                <colgroup>
+                                    <col class="product-col-image">
+                                    <col class="product-col-name">
+                                    <col class="product-col-type">
+                                    <col class="product-col-content">
+                                    <col class="product-col-actor">
+                                    <col class="product-col-stock">
+                                    <col class="product-col-price">
+                                    <col class="product-col-discount">
+                                    <col class="product-col-status">
+                                    <col class="product-col-date">
+                                    <col class="product-col-actions">
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <th scope="col">상품 이미지</th>
+                                        <th scope="col">상품명</th>
+                                        <th scope="col">상품 종류</th>
+                                        <th scope="col">관련 콘텐츠</th>
+                                        <th scope="col">관련 배우</th>
+                                        <th scope="col">수량</th>
+                                        <th scope="col">가격</th>
+                                        <th scope="col">할인율</th>
+                                        <th scope="col">승인 상태</th>
+                                        <th scope="col">등록일 / 수정일</th>
+                                        <th scope="col">관리</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    <c:forEach var="product"
+                                               items="${productList}">
+
+                                        <tr>
+
+                                            <%-- 상품 이미지 --%>
+                                            <td class="product-table-image-cell">
+                                                <div class="product-table-thumb">
+
+                                                    <c:choose>
+                                                        <%--
+                                                            Mapper의 IMAGE_PATH 별칭은
+                                                            GoodsManageVO.imagePath에 매핑된다.
+                                                        --%>
+                                                        <c:when test="${not empty product.imagePath}">
+                                                            <img src="${pageContext.request.contextPath}${product.imagePath}"
+                                                                 alt="<c:out value='${product.productName}'/>"
+                                                                 loading="lazy">
+                                                        </c:when>
+
+                                                        <c:otherwise>
+                                                            <span>상품</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+
+                                                </div>
+                                            </td>
+
+                                            <%-- 상품명 --%>
+                                            <td class="product-table-name-cell">
+                                                <strong class="product-table-primary-text"
+                                                        title="<c:out value='${product.productName}'/>">
+                                                    <c:out value="${product.productName}"/>
+                                                </strong>
+                                            </td>
+
+                                            <%-- 상품 종류 --%>
+                                            <td>
+                                                <span class="product-table-text">
+                                                    <c:choose>
+                                                        <c:when test="${product.productType == 'CLOTHES'}">의상</c:when>
+                                                        <c:when test="${product.productType == 'SHOES'}">신발</c:when>
+                                                        <c:when test="${product.productType == 'PROP'}">소품</c:when>
+                                                        <c:when test="${product.productType == 'GOODS'}">굿즈</c:when>
+                                                        <c:when test="${product.productType == 'OST'}">OST</c:when>
+                                                        <c:when test="${product.productType == 'BOOK'}">도서</c:when>
+                                                        <c:when test="${product.productType == 'FIGURE'}">피규어</c:when>
+                                                        <c:when test="${product.productType == 'POSTER'}">포스터</c:when>
+                                                        <c:otherwise>기타</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </td>
+
+                                            <%-- 관련 콘텐츠 --%>
+                                            <td>
+                                                <span class="product-table-text product-table-ellipsis"
+                                                      title="<c:out value='${product.contentTitle}'/>">
+                                                    <c:out value="${product.contentTitle}"/>
+                                                </span>
+                                            </td>
+
+                                            <%-- 관련 배우 --%>
+                                            <td>
+                                                <span class="product-table-text product-table-ellipsis"
+                                                      title="<c:out value='${product.actorName}'/>">
+                                                    <c:choose>
+                                                        <c:when test="${not empty product.actorName}">
+                                                            <c:out value="${product.actorName}"/>
+                                                        </c:when>
+                                                        <c:otherwise>-</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </td>
+
+                                            <%-- 수량 --%>
+                                            <td>
+                                                <span class="product-table-text">
+                                                    <c:out value="${product.stock}"/>개
+                                                </span>
+                                            </td>
+
+                                            <%-- 가격 --%>
+                                            <td>
+                                                <span class="product-table-text">
+                                                    <c:out value="${product.price}"/>원
+                                                </span>
+                                            </td>
+
+                                            <%-- 할인율 --%>
+                                            <td class="product-table-discount-cell">
+                                                <span class="product-table-text">
+                                                    <c:choose>
+                                                        <c:when test="${product.discountRate > 0}">
+                                                            <c:out value="${product.discountRate}"/>%
+                                                        </c:when>
+                                                        <c:otherwise>-</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </td>
+
+                                            <%-- 승인 상태 --%>
+                                            <td class="product-table-status-cell">
                                                 <c:choose>
-
-                                                    <c:when test="${not empty product.createdAt}">
-                                                        <c:out value="${fn:substring(product.createdAt.toString(), 0, 10)}"/>
+                                                    <c:when test="${product.status == 'APPROVED'}">
+                                                        <span class="status-ok">승인 완료</span>
                                                     </c:when>
-
-                                                    <c:otherwise>
-                                                        -
-                                                    </c:otherwise>
-
-                                                </c:choose>
-                                            </span>
-
-                                            <span class="product-date-row">
-                                                <span class="product-date-caption">수정</span>
-
-                                                <c:choose>
-
-                                                    <c:when test="${not empty product.updatedAt}">
-                                                        <c:out value="${fn:substring(product.updatedAt.toString(), 0, 10)}"/>
+                                                    <c:when test="${product.status == 'WAITING'}">
+                                                        <span class="status-waiting">승인 대기</span>
                                                     </c:when>
-
+                                                    <c:when test="${product.status == 'REJECTED'}">
+                                                        <span class="status-reject">반려</span>
+                                                    </c:when>
                                                     <c:otherwise>
-                                                        -
+                                                        <span class="status-reject">
+                                                            <c:out value="${product.status}"/>
+                                                        </span>
                                                     </c:otherwise>
-
                                                 </c:choose>
-                                            </span>
+                                            </td>
 
-                                        </div>
+                                            <%--
+                                                등록일 / 수정일은 하나의 공통 칼럼 안에서
+                                                두 줄로 표시한다. 수정 이력이 없으면 '-'를 표시한다.
+                                            --%>
+                                            <td class="product-table-date-cell">
+                                                <div class="product-table-date-values">
+                                                    <span class="product-table-date-row">
+                                                        <span class="product-table-date-caption">등록</span>
+                                                        <span>
+                                                            <c:choose>
+                                                                <c:when test="${not empty product.createdAt}">
+                                                                    <c:out value="${fn:substring(product.createdAt.toString(), 0, 10)}"/>
+                                                                </c:when>
+                                                                <c:otherwise>-</c:otherwise>
+                                                            </c:choose>
+                                                        </span>
+                                                    </span>
 
-                                    </div>
+                                                    <span class="product-table-date-row">
+                                                        <span class="product-table-date-caption">수정</span>
+                                                        <span>
+                                                            <c:choose>
+                                                                <c:when test="${not empty product.updatedAt}">
+                                                                    <c:out value="${fn:substring(product.updatedAt.toString(), 0, 10)}"/>
+                                                                </c:when>
+                                                                <c:otherwise>-</c:otherwise>
+                                                            </c:choose>
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </td>
 
+                                            <%-- 관리 버튼: 기존 기능과 data-* 값은 그대로 유지한다. --%>
+                                            <td class="product-table-actions-cell">
+                                                <div class="product-actions product-manage-actions">
 
-                                    <div class="product-actions product-manage-actions">
+                                                    <%--
+                                                        [리팩터링] 페이지 이동 대신 공용 수정 모달(#productUpdateModal)을
+                                                        연다. 상품마다 모달을 새로 만들지 않고, 이미 화면에 내려온 이
+                                                        product 값을 data-* 속성으로 실어 openProductUpdateModal(this)가
+                                                        JS로 폼에 채워 넣는다.
+                                                    --%>
+                                                    <button type="button"
+                                                            class="product-action-btn"
+                                                            data-product-no="${product.productNo}"
+                                                            data-product-name="${fn:escapeXml(product.productName)}"
+                                                            data-product-type="${product.productType}"
+                                                            data-price="${product.price}"
+                                                            data-discount-rate="${product.discountRate}"
+                                                            data-stock="${product.stock}"
+                                                            data-content-no="${product.contentNo}"
+                                                            data-content-title="${fn:escapeXml(product.contentTitle)}"
+                                                            data-actor-no="${product.actorNo}"
+                                                            data-description="${fn:escapeXml(product.description)}"
+                                                            data-image-path="${fn:escapeXml(product.imagePath)}"
+                                                            data-detail-images="${fn:escapeXml(product.detailImagesJson)}"
+                                                            onclick="openProductUpdateModal(this)">
+                                                        수정 요청
+                                                    </button>
 
-                                        <%--
-                                            [리팩터링] 페이지 이동 대신 공용 수정 모달(#productUpdateModal)을
-                                            연다. 상품마다 모달을 새로 만들지 않고, 이미 화면에 내려온 이
-                                            product 값을 data-* 속성으로 실어 openProductUpdateModal(this)가
-                                            JS로 폼에 채워 넣는다(관리자 상세보기 팝업과 같은 방식, 다만 이
-                                            폼은 읽기 전용이 아니라 그대로 수정 가능한 입력 폼이다).
-                                        --%>
-                                        <button type="button"
-                                                class="product-action-btn"
-                                                data-product-no="${product.productNo}"
-                                                data-product-name="${fn:escapeXml(product.productName)}"
-                                                data-product-type="${product.productType}"
-                                                data-price="${product.price}"
-                                                data-discount-rate="${product.discountRate}"
-                                                data-stock="${product.stock}"
-                                                data-content-no="${product.contentNo}"
-                                                data-content-title="${fn:escapeXml(product.contentTitle)}"
-                                                data-actor-no="${product.actorNo}"
-                                                data-description="${fn:escapeXml(product.description)}"
-                                                data-image-path="${fn:escapeXml(product.imagePath)}"
-                                                data-detail-images="${fn:escapeXml(product.detailImagesJson)}"
-                                                onclick="openProductUpdateModal(this)">
-                                            수정 요청
-                                        </button>
+                                                    <%-- [리팩터링] 페이지 이동 대신 이 상품 전용 삭제 모달을 연다. --%>
+                                                    <button type="button"
+                                                            class="product-action-btn delete"
+                                                            onclick="openModal('productDeleteModal_${product.productNo}')">
+                                                        삭제 요청
+                                                    </button>
 
-                                        <%-- [리팩터링] 페이지 이동 대신 이 상품 전용 삭제 모달을 연다. --%>
-                                        <button type="button"
-                                                class="product-action-btn delete"
-                                                onclick="openModal('productDeleteModal_${product.productNo}')">
-                                            삭제 요청
-                                        </button>
+                                                    <button type="button"
+                                                            class="product-action-btn"
+                                                            onclick="location.href='${pageContext.request.contextPath}/business/settlement/sales?productNo=${product.productNo}'">
+                                                        판매 현황
+                                                    </button>
 
-                                        <button type="button"
-                                                class="product-action-btn"
-                                                onclick="location.href='${pageContext.request.contextPath}/business/settlement/sales?productNo=${product.productNo}'">
-                                            판매 현황
-                                        </button>
+                                                </div>
+                                            </td>
 
-                                    </div>
+                                        </tr>
 
-                                </div>
+                                    </c:forEach>
 
-                            </div>
+                                </tbody>
 
-                        </c:forEach>
+                            </table>
+
+                        </div>
 
                     </c:when>
 
-
                     <c:otherwise>
-
                         <div class="product-item product-list-empty">
                             등록된 상품이 없습니다.
                         </div>
-
                     </c:otherwise>
 
                 </c:choose>
-
 
                 <c:if test="${not empty pagination
                     and pagination.totalPage > 0}">
