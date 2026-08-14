@@ -14,6 +14,13 @@
    기본값은 다크 모드이며(js/theme-toggle.js 참고), 사용자가 헤더의
    토글 버튼을 눌러야만 이 파일의 규칙이 적용됩니다.
 
+   [2026-08-14 QA 수정] cart.css의 --cart-info-label/--cart-info-value
+   (판매자/상품명/상품분류/재고 등 장바구니 각 행의 라벨·값 텍스트)이
+   23번 섹션에 아예 빠져 있었다. 다크값 그대로 상속되면 --cart-info-value
+   (#e8e8e8, 다크 배경 위 강조 텍스트)가 라이트 모드의 --cart-item-bg
+   (#e4e4e4)와 명도 차가 거의 없어 상품명/판매자/가격 등 핵심 텍스트가
+   실질적으로 안 보이는 상태였다. 23번 섹션에 두 변수를 추가해 수정.
+
    ---------------------------------------------------------
    작성 규칙 (여러 명이 이어서 작업하므로 반드시 지킬 것)
    ---------------------------------------------------------
@@ -622,6 +629,14 @@ html[data-theme="light"] {
   --cart-checkout-disabled-text: #636363;
   --cart-empty-link-text: #eeeeee;
   --cart-option-text: #454b53;
+  /* [2026-08-14 QA 수정] 판매자/상품명/상품분류/재고 등 "라벨-값" 구조의
+     라벨(--cart-info-label)과 값(--cart-info-value)이 이 섹션에서
+     누락되어 다크값을 그대로 상속하고 있었다. --cart-info-value(#e8e8e8)는
+     다크 배경 위 강조 텍스트라 라이트 배경(카드 --cart-item-bg #e4e4e4)
+     위에서는 거의 안 보여서, --cart-white(강조 텍스트)와 동일하게
+     본문 잉크색으로 반전한다. */
+  --cart-info-label: #767c86;
+  --cart-info-value: #14181c;
 }
 
 
@@ -1983,6 +1998,27 @@ html[data-theme="light"] .order-item-business {
    연한 파란 틴트 위 글자인 승인 배지만 진한 파랑으로 교체 (제안값) */
 html[data-theme="light"] .refund-badge.approved {
   color: #1b5fd6;
+}
+
+/* [2026-08-14 QA 수정] .order-item-actions는 --oditji-well-bg(은은한 패널)
+   위에 얹히는데, 그 안의 배송조회 버튼(투명 배경 + var(--oditji-border)
+   테두리)과 취소 승인 대기 배지(var(--oditji-surface-raised) 배경)가
+   라이트 모드에서는 세 톤(well-bg/border/surface-raised)이 서로 거의
+   같은 밝기라 테두리와 배지 배경이 안 보여 버튼·배지가 통째로 사라져
+   보였다. 공용 라이트 톤의 "칩/버튼 배경 #eceef1 · hover #e3e6ea"를 채워
+   윤곽을 살린다. */
+html[data-theme="light"] .order-item-actions .delivery-detail-btn {
+  border-color: #c7ccd3;
+  background: #eceef1;
+}
+
+html[data-theme="light"] .order-item-actions .delivery-detail-btn:hover {
+  background: #e3e6ea;
+}
+
+html[data-theme="light"] .item-cancel-state {
+  border: 1px solid #dde1e6;
+  background: #eceef1;
 }
 
 /* =========================================================
