@@ -1,6 +1,4 @@
-<%@ page language="java"
-    contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -186,18 +184,44 @@
 
                             </a>
 
+                            <%--
+                                =========================================================
+                                [장바구니 상품 정보 표시 개선]
+
+                                기존에 값만 세로로 나열되던 상품 정보를
+                                "라벨 - 값" 구조로 변경하여 판매자, 상품명,
+                                상품분류, 정가, 판매가, 재고를 명확하게 표시한다.
+
+                                기존 상품 상세 링크, 옵션 정보, 할인 계산,
+                                판매 가능 상태 안내 로직은 그대로 유지한다.
+                                =========================================================
+                            --%>
                             <div class="cart-item-info">
 
-                                <p class="cart-item-business">
-                                    ${item.businessName}
-                                </p>
+                                <div class="cart-info-row">
+                                    <span class="cart-info-label">판매자</span>
+                                    <span class="cart-info-value cart-item-business">
+                                        <c:out value="${item.businessName}"/>
+                                    </span>
+                                </div>
 
-                                <a class="cart-item-name"
-                                   href="${pageContext.request.contextPath}/goods/goodsDetail/${item.productNo}">
+                                <div class="cart-info-row cart-info-row-name">
+                                    <span class="cart-info-label">상품명</span>
 
-                                    ${item.productName}
+                                    <a class="cart-info-value cart-item-name"
+                                       href="${pageContext.request.contextPath}/goods/goodsDetail/${item.productNo}">
 
-                                </a>
+                                        <c:out value="${item.productName}"/>
+
+                                    </a>
+                                </div>
+
+                                <div class="cart-info-row">
+                                    <span class="cart-info-label">상품분류</span>
+                                    <span class="cart-info-value cart-item-type">
+                                        <c:out value="${item.productType}"/>
+                                    </span>
+                                </div>
 
                                 <%--
                                     =========================================================
@@ -208,61 +232,91 @@
                                     =========================================================
                                 --%>
                                 <c:if test="${not empty item.optionNo}">
-                                    <p class="cart-item-option">
+                                    <div class="cart-info-row cart-info-row-option">
+                                        <span class="cart-info-label">상품옵션</span>
 
-                                        <span class="option-label">옵션</span>
+                                        <p class="cart-item-option">
 
-                                        <c:if test="${not empty item.colorName}">
-                                            <span>
-                                                색상:
-                                                <c:out value="${item.colorName}"/>
-                                            </span>
-                                        </c:if>
+                                            <c:if test="${not empty item.colorName}">
+                                                <span>
+                                                    색상:
+                                                    <c:out value="${item.colorName}"/>
+                                                </span>
+                                            </c:if>
 
-                                        <c:if test="${not empty item.sizeName}">
-                                            <span>
-                                                사이즈:
-                                                <c:out value="${item.sizeName}"/>
-                                            </span>
-                                        </c:if>
+                                            <c:if test="${not empty item.sizeName}">
+                                                <span>
+                                                    사이즈:
+                                                    <c:out value="${item.sizeName}"/>
+                                                </span>
+                                            </c:if>
 
-                                    </p>
+                                        </p>
+                                    </div>
                                 </c:if>
 
-                                <p class="cart-item-type">
-                                    ${item.productType}
-                                </p>
+                                <div class="cart-info-row">
+                                    <span class="cart-info-label">정가</span>
 
-                                <c:if test="${item.discountRate > 0}">
-
-                                    <div class="cart-original-price">
+                                    <span class="cart-info-value cart-original-price
+                                        ${item.discountRate <= 0 ? 'is-current-price' : ''}">
 
                                         <fmt:formatNumber
                                             value="${item.price}"
                                             pattern="#,###"/>원
 
+                                    </span>
+                                </div>
+
+                                <div class="cart-info-row">
+                                    <span class="cart-info-label">판매가</span>
+
+                                    <div class="cart-info-value cart-sale-price">
+
+                                        <c:if test="${item.discountRate > 0}">
+
+                                            <span class="cart-discount-rate">
+                                                ${item.discountRate}%
+                                            </span>
+
+                                        </c:if>
+
+                                        <strong>
+
+                                            <fmt:formatNumber
+                                                value="${item.discountPrice}"
+                                                pattern="#,###"/>원
+
+                                        </strong>
+
                                     </div>
+                                </div>
 
-                                </c:if>
+                                <%--
+                                    [장바구니 상품 정보 표시 개선]
+                                    재고는 부족할 때만 안내하지 않고 항상 표시한다.
+                                    옵션 상품은 기존 조회 로직에서 옵션 재고가 item.stock에
+                                    들어오므로 동일한 출력 구조를 그대로 사용할 수 있다.
+                                --%>
+                                <div class="cart-info-row cart-info-row-stock">
+                                    <span class="cart-info-label">재고</span>
 
-                                <div class="cart-sale-price">
+                                    <c:choose>
 
-                                    <c:if test="${item.discountRate > 0}">
+                                        <c:when test="${item.stock <= 0}">
+                                            <span class="cart-info-value cart-stock-value error">
+                                                품절
+                                            </span>
+                                        </c:when>
 
-                                        <span class="cart-discount-rate">
-                                            ${item.discountRate}%
-                                        </span>
+                                        <c:otherwise>
+                                            <span class="cart-info-value cart-stock-value
+                                                ${item.stock <= 5 ? 'warning' : ''}">
+                                                ${item.stock}개 남음
+                                            </span>
+                                        </c:otherwise>
 
-                                    </c:if>
-
-                                    <strong>
-
-                                        <fmt:formatNumber
-                                            value="${item.discountPrice}"
-                                            pattern="#,###"/>원
-
-                                    </strong>
-
+                                    </c:choose>
                                 </div>
 
                                 <c:choose>
@@ -291,21 +345,22 @@
 
                                     </c:when>
 
-                                    <c:when test="${item.stock <= 5}">
-
-                                        <p class="cart-status-message warning">
-                                            재고 ${item.stock}개 남음
-                                        </p>
-
-                                    </c:when>
-
                                 </c:choose>
 
                             </div>
 
                             <div class="cart-item-actions">
 
-                                <div class="cart-quantity">
+                                <%--
+                                    [장바구니 상품 정보 표시 개선]
+                                    수량 조절 영역의 의미를 PC/모바일 모두에서
+                                    바로 알 수 있도록 화면에 보이는 라벨을 추가한다.
+                                --%>
+                                <div class="cart-quantity-group">
+
+                                    <span class="cart-action-label">수량</span>
+
+                                    <div class="cart-quantity">
 
                                     <button type="button"
                                             class="quantity-btn minus"
@@ -351,6 +406,8 @@
                                         ＋
 
                                     </button>
+
+                                    </div>
 
                                 </div>
 

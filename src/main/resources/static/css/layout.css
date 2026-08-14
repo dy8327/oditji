@@ -2,104 +2,94 @@
    Reset
 ========================================================= */
 
-:root{
-    --layout-scrollbar-thumb:#4b5058;
-    --layout-scrollbar-track:#141414;
-    --layout-scrollbar-thumb-hover:#5c626b;
-    --layout-body-bg:#181818;
-    --layout-body-text:#F5F5F5;
+:root {
+  --layout-scrollbar-thumb: #4b5058;
+  --layout-scrollbar-track: #141414;
+  --layout-scrollbar-thumb-hover: #5c626b;
+  --layout-body-bg: #181818;
+  --layout-body-text: #f5f5f5;
 }
 
-*{
-
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html{
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  scrollbar-color: var(--layout-scrollbar-thumb) var(--layout-scrollbar-track);
+  scrollbar-width: thin;
 
-    scroll-behavior:smooth;
-    overflow-x:hidden;
-    scrollbar-color:var(--layout-scrollbar-thumb) var(--layout-scrollbar-track);
-    scrollbar-width:thin;
-
+  /* =========================================================
+       [페이지 하단 배경색 보정]
+       콘텐츠 높이가 화면보다 짧을 때 html 기본 흰색 배경이
+       노출되지 않도록 body와 동일한 배경색을 적용한다.
+    ========================================================= */
+  min-height: 100%;
+  background: var(--layout-body-bg);
 }
 
 /* 크로미움 계열 브라우저용 스크롤바 (Firefox는 위 scrollbar-color/width로 처리) */
-html::-webkit-scrollbar{
-
-    width:10px;
-
+html::-webkit-scrollbar {
+  width: 10px;
 }
 
-html::-webkit-scrollbar-track{
-
-    background:var(--layout-scrollbar-track);
-
+html::-webkit-scrollbar-track {
+  background: var(--layout-scrollbar-track);
 }
 
-html::-webkit-scrollbar-thumb{
-
-    border:2px solid var(--layout-scrollbar-track);
-    border-radius:999px;
-    background:var(--layout-scrollbar-thumb);
-
+html::-webkit-scrollbar-thumb {
+  border: 2px solid var(--layout-scrollbar-track);
+  border-radius: 999px;
+  background: var(--layout-scrollbar-thumb);
 }
 
-html::-webkit-scrollbar-thumb:hover{
-
-    background:var(--layout-scrollbar-thumb-hover);
-
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--layout-scrollbar-thumb-hover);
 }
 
-body{
+body {
+  /* =========================================================
+       [페이지 하단 배경색 보정]
+       콘텐츠가 짧은 페이지에서도 최소 화면 높이를 확보한다.
+    ========================================================= */
+  min-height: 100vh;
 
-    background:var(--layout-body-bg);
-    color:var(--layout-body-text);
-    font-family:"Pretendard","Noto Sans KR",sans-serif;
-    line-height:1.5;
-    overflow-x:hidden;
-
+  background: var(--layout-body-bg);
+  color: var(--layout-body-text);
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
 }
 
-a{
-
-    text-decoration:none;
-    color:inherit;
-
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
-ul{
-
-    list-style:none;
-
+ul {
+  list-style: none;
 }
 
-button{
-
-    border:none;
-    background:none;
-    cursor:pointer;
-    font:inherit;
-
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
 }
 
 input,
 textarea,
-select{
-
-    outline:none;
-    font:inherit;
-
+select {
+  outline: none;
+  font: inherit;
 }
 
-img{
-
-    display:block;
-    max-width:100%;
-
+img {
+  display: block;
+  max-width: 100%;
 }
 
 /* =========================================================
@@ -107,14 +97,10 @@ img{
    (모바일 320~768px 기준: 입력창 자동 확대 방지 등 전역 안전장치)
 ========================================================= */
 
-@media (max-width:768px){
-
-    input,
-    textarea,
-    select{
-
-        font-size:16px;
-
-    }
-
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }

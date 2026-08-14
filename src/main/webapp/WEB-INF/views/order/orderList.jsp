@@ -186,54 +186,67 @@
 
                                     </c:choose>
 
+                                    <%--
+                                        =========================================================
+                                        [구매내역 상품 정보 레이아웃 수정 - 모바일 반응형]
+
+                                        상품명 / 상품 옵션 / 수량 / 상품 가격을 명확한
+                                        라벨-값 구조로 표시한다. 옵션이 없는 상품도
+                                        동일한 레이아웃을 유지할 수 있도록 '-'를 출력한다.
+                                        =========================================================
+                                    --%>
                                     <div class="order-item-info">
 
-                                        <div>
-                                            <c:out value="${i.productName}"/>
+                                        <div class="order-item-detail-row order-item-name-row">
+                                            <span class="order-item-detail-label">상품명</span>
+                                            <span class="order-item-detail-value order-item-name">
+                                                <c:out value="${i.productName}"/>
+                                            </span>
                                         </div>
 
-                                        <%--
-                                            =========================================================
-                                            [상품 옵션 정보 표시 추가]
+                                        <div class="order-item-detail-row">
+                                            <span class="order-item-detail-label">상품 옵션</span>
+                                            <span class="order-item-detail-value order-item-option-value">
+                                                <c:choose>
+                                                    <c:when test="${not empty i.optionNo}">
+                                                        <c:if test="${not empty i.colorName}">
+                                                            색상: <c:out value="${i.colorName}"/>
+                                                        </c:if>
 
-                                            구매 당시 선택한 상품 옵션이 존재하는 경우에만
-                                            색상과 사이즈 정보를 주문 내역에 표시한다.
-                                            =========================================================
-                                        --%>
-                                        <c:if test="${not empty i.optionNo}">
-                                            <div class="order-item-option">
+                                                        <c:if test="${not empty i.colorName and not empty i.sizeName}">
+                                                            <span class="order-item-option-separator" aria-hidden="true">/</span>
+                                                        </c:if>
 
-                                                <span class="option-label">옵션</span>
+                                                        <c:if test="${not empty i.sizeName}">
+                                                            사이즈: <c:out value="${i.sizeName}"/>
+                                                        </c:if>
 
-                                                <c:if test="${not empty i.colorName}">
-                                                    <span>
-                                                        색상:
-                                                        <c:out value="${i.colorName}"/>
-                                                    </span>
-                                                </c:if>
-
-                                                <c:if test="${not empty i.sizeName}">
-                                                    <span>
-                                                        사이즈:
-                                                        <c:out value="${i.sizeName}"/>
-                                                    </span>
-                                                </c:if>
-
-                                            </div>
-                                        </c:if>
-
-                                        <div>
-                                            수량: ${i.quantity}
+                                                        <c:if test="${empty i.colorName and empty i.sizeName}">
+                                                            -
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        -
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
                                         </div>
 
-                                        <div>
+                                        <div class="order-item-detail-row">
+                                            <span class="order-item-detail-label">수량</span>
+                                            <span class="order-item-detail-value">
+                                                ${i.quantity}
+                                            </span>
+                                        </div>
 
-                                            ₩
-
-                                            <fmt:formatNumber
-                                                value="${i.itemTotalPrice}"
-                                                pattern="#,###"/>
-
+                                        <div class="order-item-detail-row order-item-price-row">
+                                            <span class="order-item-detail-label">상품 가격</span>
+                                            <span class="order-item-detail-value order-item-price">
+                                                ₩
+                                                <fmt:formatNumber
+                                                    value="${i.itemTotalPrice}"
+                                                    pattern="#,###"/>
+                                            </span>
                                         </div>
 
                                     </div>

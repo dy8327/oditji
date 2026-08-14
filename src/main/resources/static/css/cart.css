@@ -35,6 +35,8 @@
   --cart-checkout-disabled-text: #9c9c9c;
   --cart-empty-link-text: #111111;
   --cart-option-text: #c9c9c9;
+  --cart-info-label: #8f8f8f;
+  --cart-info-value: #e8e8e8;
 }
 
 /* =========================================================
@@ -686,5 +688,199 @@
 
   .cart-item-name {
     font-size: 14px;
+  }
+}
+
+/* =========================================================
+   [장바구니 상품 정보 표시 개선 - 라벨/값 구조]
+   기존 장바구니 디자인 톤은 유지하면서 상품 정보를
+   "라벨 - 값" 구조로 정리한다.
+
+   기존에 선언된 색상 변수는 그대로 재사용하고,
+   기존 변수만으로 의미가 명확하지 않은 라벨 색상만
+   별도 변수로 추가하여 사용한다.
+========================================================= */
+
+.cart-item {
+  grid-template-columns:
+    28px
+    130px
+    minmax(280px, 1fr)
+    220px;
+  gap: 20px;
+  padding: 20px;
+}
+
+.cart-item-image {
+  width: 130px;
+  height: 130px;
+}
+
+.cart-item-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cart-info-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.cart-info-label,
+.cart-action-label {
+  color: var(--cart-info-label);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.cart-info-value {
+  min-width: 0;
+  color: var(--cart-info-value);
+}
+
+.cart-item-business {
+  margin: 0;
+  color: var(--cart-info-value);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cart-item-name {
+  font-size: 15px;
+}
+
+.cart-item-type {
+  margin: 0;
+  color: var(--cart-info-value);
+  font-size: 13px;
+}
+
+.cart-original-price {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cart-original-price.is-current-price {
+  color: var(--cart-info-value);
+  text-decoration: none;
+}
+
+.cart-sale-price {
+  min-width: 0;
+}
+
+.cart-sale-price strong {
+  font-size: 15px;
+}
+
+.cart-info-row-option {
+  align-items: start;
+}
+
+.cart-item-option {
+  margin: 0;
+}
+
+.cart-stock-value {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cart-stock-value.warning {
+  color: var(--cart-warning);
+}
+
+.cart-stock-value.error {
+  color: var(--cart-error);
+}
+
+.cart-status-message {
+  margin: 2px 0 0 82px;
+}
+
+.cart-quantity-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* =========================================================
+   [장바구니 상품 정보 표시 개선 - 반응형]
+   화면 폭이 줄어도 라벨과 값이 겹치지 않도록 기존
+   반응형 레이아웃을 보완한다.
+========================================================= */
+@media (max-width: 1050px) {
+  .cart-item {
+    grid-template-columns:
+      28px
+      118px
+      minmax(250px, 1fr)
+      190px;
+  }
+
+  .cart-item-image {
+    width: 118px;
+    height: 118px;
+  }
+}
+
+@media (max-width: 760px) {
+  .cart-item {
+    grid-template-columns: 26px 96px minmax(0, 1fr);
+  }
+
+  .cart-item-image {
+    width: 96px;
+    height: 96px;
+  }
+
+  .cart-info-row {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .cart-status-message {
+    margin-left: 74px;
+  }
+
+  .cart-quantity-group {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-item {
+    grid-template-columns: 24px 78px minmax(0, 1fr);
+  }
+
+  .cart-item-image {
+    width: 78px;
+    height: 78px;
+  }
+
+  .cart-info-row {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .cart-info-label,
+  .cart-action-label {
+    font-size: 11px;
+  }
+
+  .cart-item-business,
+  .cart-item-type {
+    font-size: 12px;
+  }
+
+  .cart-status-message {
+    margin-left: 65px;
   }
 }
