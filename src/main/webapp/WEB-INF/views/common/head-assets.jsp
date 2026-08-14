@@ -32,10 +32,12 @@
 </script>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=12">
+<%-- [로고 이미지 적용] common.css / light-mode.css의 로고 변경사항이
+     브라우저 캐시에 막히지 않도록 정적 CSS 버전만 갱신합니다. --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css?v=14">
 <%-- 기존 다크 모드 CSS는 전혀 건드리지 않고, 라이트 모드 전용 오버라이드만
      별도 파일로 얹습니다(html[data-theme="light"] 스코프에서만 적용). --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/light-mode.css?v=1">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/light-mode.css?v=2">
 
 <script src="${pageContext.request.contextPath}/js/vendor/sweetalert2.all.min.js"></script>
 <script defer src="${pageContext.request.contextPath}/js/common.js?v=9"></script>

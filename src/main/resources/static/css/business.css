@@ -47,18 +47,14 @@
   --biz-transition: var(--transition, 0.2s ease);
 
   /* =====================================================
-     [상품 관리 목록 - 디자인 3 전용 크기 토큰]
-     기존 공통 색상/테두리 변수는 그대로 사용하고,
-     목록 레이아웃에 필요한 크기 값만 별도 변수로 관리한다.
+     [상품 관리 목록 - 전용 토큰]
+     색상은 기존 공통 --biz-* 변수를 재사용하고,
+     테이블 레이아웃에 필요한 크기 값만 별도 변수로 관리한다.
      ===================================================== */
-  --biz-product-thumb-size: 112px;
-  --biz-product-thumb-size-tablet: 96px;
-  --biz-product-thumb-size-mobile: 84px;
-  --biz-product-card-padding: 20px;
-  --biz-product-card-gap: 20px;
-  --biz-product-cell-gap: 6px;
-  --biz-product-label-size: 12px;
-  --biz-product-value-size: 14px;
+  --biz-product-table-min-width: 1420px;
+  --biz-product-table-thumb-size: 72px;
+  --biz-product-table-cell-padding: 14px 10px;
+  --biz-product-table-head-height: 48px;
 
   /* =====================================================
      Light/Dark 리팩터링 (2026-08-13) — 잔여 하드코딩 254곳을
@@ -6146,388 +6142,265 @@
 }
 
 /* =========================================================
-   [상품 관리 목록 레이아웃 개선 - 디자인 3]
-   적용 범위를 .product-list-frame 내부로 제한하여
-   다른 사업자 카드/상품 선택 모달의 기존 레이아웃에는 영향을 주지 않는다.
+   [상품 관리 목록 레이아웃 개선 - 디자인 1]
+   상품별 카드 안에서 반복하던 라벨을 제거하고,
+   공통 thead + tbody 구조의 관리 테이블로 변경한다.
 
-   - 넓은 PC: 이미지 + 전체 정보를 한 줄로 표시
-   - 좁은 PC/노트북: 한 줄 유지 + 컬럼 폭/간격 축소
-   - 태블릿: 정보 그룹을 2행 이상으로 자동 재배치
-   - 모바일: 세로 카드형으로 변경
+   - 헤더/값 모두 동일 칼럼 기준 가운데 정렬
+   - 상품 이미지는 첫 번째 공통 칼럼에 표시
+   - 마지막 관리 칼럼에 수정 요청/삭제 요청/판매 현황 유지
+   - 화면이 좁아지면 테이블 자체를 깨뜨리지 않고 가로 스크롤 제공
+   - 색상은 기존 공통 --biz-* 변수를 최대한 재사용한다.
    ========================================================= */
 
-/* 상품이 없을 때는 기존 카드형 안내만 유지한다. */
+/* 상품이 없을 때는 기존 안내 카드 스타일을 유지한다. */
 .business-wrap .product-list-frame .product-list-empty {
   display: block;
   min-height: 0;
 }
 
-/* =========================================================
-   상품 카드
-   ========================================================= */
-.business-wrap .product-list-frame .product-manage-item {
-  display: grid;
-  grid-template-columns: var(--biz-product-thumb-size) minmax(0, 1fr);
+/* 테이블이 화면보다 넓어질 경우 목록 영역 안에서만 가로 스크롤한다. */
+.business-wrap .product-manage-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-md);
+  background: var(--biz-surface-2);
+}
+
+.business-wrap .product-manage-table {
+  width: 100%;
+  min-width: var(--biz-product-table-min-width);
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--biz-surface-2);
+}
+
+/* 공통 칼럼 폭 */
+.business-wrap .product-manage-table .product-col-image {
+  width: 8%;
+}
+.business-wrap .product-manage-table .product-col-name {
+  width: 9%;
+}
+.business-wrap .product-manage-table .product-col-type {
+  width: 7%;
+}
+.business-wrap .product-manage-table .product-col-content {
+  width: 11%;
+}
+.business-wrap .product-manage-table .product-col-actor {
+  width: 10%;
+}
+.business-wrap .product-manage-table .product-col-stock {
+  width: 6%;
+}
+.business-wrap .product-manage-table .product-col-price {
+  width: 8%;
+}
+.business-wrap .product-manage-table .product-col-discount {
+  width: 7%;
+}
+.business-wrap .product-manage-table .product-col-status {
+  width: 8%;
+}
+.business-wrap .product-manage-table .product-col-date {
+  width: 11%;
+}
+.business-wrap .product-manage-table .product-col-actions {
+  width: 15%;
+}
+
+/* 공통 헤더 */
+.business-wrap .product-manage-table thead th {
+  height: var(--biz-product-table-head-height);
+  padding: 10px;
+  background: var(--biz-surface-1);
+  border-bottom: 1px solid var(--biz-border);
+  color: var(--biz-text-sub);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* 각 상품 행 */
+.business-wrap .product-manage-table tbody tr {
+  background: var(--biz-surface-2);
+  border-bottom: 1px solid var(--biz-border-soft);
+  transition: var(--biz-transition);
+}
+
+.business-wrap .product-manage-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.business-wrap .product-manage-table tbody tr:hover {
+  background: var(--biz-overlay-white-025);
+}
+
+/* 모든 값은 해당 칼럼 가운데 정렬 */
+.business-wrap .product-manage-table tbody td {
+  padding: var(--biz-product-table-cell-padding);
+  color: var(--biz-text-sub);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* 상품 이미지 */
+.business-wrap .product-table-thumb {
+  width: var(--biz-product-table-thumb-size);
+  height: var(--biz-product-table-thumb-size);
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
   align-items: center;
-  gap: var(--biz-product-card-gap);
-  min-height: 0;
-  padding: var(--biz-product-card-padding);
+  justify-content: center;
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+  background: var(--biz-surface-3);
+  color: var(--biz-text-dim);
+  font-size: 12px;
 }
 
-/* =========================================================
-   대표 이미지
-   기존 100px보다 조금 크게 표시해 상품 식별성을 높인다.
-   ========================================================= */
-.business-wrap .product-list-frame .product-manage-thumb {
-  width: var(--biz-product-thumb-size);
-  height: var(--biz-product-thumb-size);
-  flex: none;
-}
-
-.business-wrap .product-list-frame .product-manage-thumb img {
+.business-wrap .product-table-thumb img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
 }
 
-/* =========================================================
-   상품 전체 정보
-   PC에서는 각 항목을 독립된 Grid column으로 한 줄 배치한다.
-   ========================================================= */
-.business-wrap .product-list-frame .product-manage-info {
-  display: grid;
-  grid-template-columns:
-    minmax(105px, 1.15fr)
-    minmax(72px, 0.62fr)
-    minmax(115px, 1.08fr)
-    minmax(95px, 0.82fr)
-    minmax(54px, 0.45fr)
-    minmax(78px, 0.64fr)
-    minmax(58px, 0.5fr)
-    minmax(78px, 0.68fr)
-    minmax(126px, 0.95fr)
-    auto;
-  align-items: center;
-  gap: 0;
-  width: 100%;
-  min-width: 0;
-}
-
-/* =========================================================
-   개별 정보 칸
-   ========================================================= */
-.business-wrap .product-list-frame .product-info-cell {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  min-height: 62px;
-  gap: var(--biz-product-cell-gap);
-  padding: 0 12px;
-  border-right: 1px solid var(--biz-border-soft);
-}
-
-.business-wrap .product-list-frame .product-name-cell {
-  padding-left: 0;
-}
-
-.business-wrap .product-list-frame .product-info-label {
+/* 상품명 */
+.business-wrap .product-table-primary-text {
   display: block;
-  color: var(--biz-text-dim);
-  font-size: var(--biz-product-label-size);
-  font-weight: 500;
-  line-height: 1.3;
-  white-space: nowrap;
-}
-
-.business-wrap .product-list-frame .product-info-value {
-  color: var(--biz-text-sub);
-  font-size: var(--biz-product-value-size);
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-.business-wrap .product-list-frame .product-name {
-  display: block;
-  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--biz-text);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.4;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.business-wrap .product-list-frame .product-info-ellipsis {
+.business-wrap .product-table-text {
   display: block;
-  min-width: 0;
+  max-width: 100%;
+  color: var(--biz-text-sub);
+}
+
+.business-wrap .product-table-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 할인율은 목록에서 빠르게 구분할 수 있도록 포인트 색상을 사용한다. */
-.business-wrap .product-list-frame .product-discount-cell .product-info-value {
+/* 할인율은 기존 포인트 색상 사용 */
+.business-wrap .product-table-discount-cell .product-table-text {
   color: var(--biz-point);
   font-weight: 700;
 }
 
-.business-wrap .product-list-frame .product-status-value {
-  display: flex;
-  align-items: center;
-  min-height: 28px;
+/* 승인 상태 배지도 셀 중앙에 고정 */
+.business-wrap .product-table-status-cell > span {
+  margin: 0 auto;
 }
 
-/* =========================================================
-   등록일 / 수정일
-   두 날짜를 한 칸 안에 묶어 가로 공간을 절약한다.
-   ========================================================= */
-.business-wrap .product-list-frame .product-date-values {
-  display: flex;
+/* 등록일 / 수정일 */
+.business-wrap .product-table-date-values {
+  display: inline-flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-  color: var(--biz-text-sub);
-  font-size: 12px;
-  line-height: 1.4;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
   white-space: nowrap;
 }
 
-.business-wrap .product-list-frame .product-date-row {
+.business-wrap .product-table-date-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
-.business-wrap .product-list-frame .product-date-caption {
+.business-wrap .product-table-date-caption {
+  min-width: 24px;
   color: var(--biz-text-dim);
   font-size: 11px;
 }
 
-/* =========================================================
-   관리 버튼
-   기존 버튼 디자인/동작은 유지하고 위치만 마지막 열에 고정한다.
-   ========================================================= */
-.business-wrap .product-list-frame .product-manage-actions {
+/* 관리 버튼 3개를 기존 기능 그대로 한 줄 배치 */
+.business-wrap .product-table-actions-cell .product-manage-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: nowrap;
   gap: 8px;
-  margin-top: 0;
-  padding-left: 12px;
+  margin: 0;
+  padding: 0;
   white-space: nowrap;
 }
 
-.business-wrap .product-list-frame .product-manage-actions .product-action-btn {
+.business-wrap .product-table-actions-cell .product-action-btn {
   flex: 0 0 auto;
+  min-width: 0;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
-/* =========================================================
-   좁은 PC / 노트북
-   한 줄 배치를 유지하되 썸네일과 컬럼 간격을 줄인다.
-   ========================================================= */
-@media (max-width: 1400px) {
-  .business-wrap .product-list-frame .product-manage-item {
-    grid-template-columns: var(--biz-product-thumb-size-tablet) minmax(0, 1fr);
-    gap: 16px;
-    padding: 18px;
+/* 가로 스크롤바도 기존 다크/라이트 토큰을 사용한다. */
+.business-wrap .product-manage-table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.business-wrap .product-manage-table-scroll::-webkit-scrollbar-track {
+  background: var(--biz-surface-2);
+}
+
+.business-wrap .product-manage-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--biz-border);
+  border-radius: var(--biz-radius-pill);
+}
+
+/* 좁은 화면에서도 공통 칼럼 구조를 유지한다. */
+@media (max-width: 1180px) {
+  .business-wrap .product-manage-table {
+    min-width: 1320px;
   }
 
-  .business-wrap .product-list-frame .product-manage-thumb {
-    width: var(--biz-product-thumb-size-tablet);
-    height: var(--biz-product-thumb-size-tablet);
+  .business-wrap .product-manage-table thead th,
+  .business-wrap .product-manage-table tbody td {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .business-wrap .product-list-frame .product-manage-info {
-    grid-template-columns:
-      minmax(94px, 1.08fr)
-      minmax(66px, 0.6fr)
-      minmax(100px, 1fr)
-      minmax(82px, 0.78fr)
-      minmax(48px, 0.42fr)
-      minmax(70px, 0.62fr)
-      minmax(50px, 0.48fr)
-      minmax(72px, 0.66fr)
-      minmax(112px, 0.9fr)
-      auto;
+  .business-wrap .product-table-actions-cell .product-manage-actions {
+    gap: 6px;
   }
 
-  .business-wrap .product-list-frame .product-info-cell {
-    padding: 0 9px;
-  }
-
-  .business-wrap .product-list-frame .product-name-cell {
-    padding-left: 0;
-  }
-
-  .business-wrap .product-list-frame .product-info-label {
+  .business-wrap .product-table-actions-cell .product-action-btn {
+    padding: 7px 8px;
     font-size: 11px;
   }
-
-  .business-wrap .product-list-frame .product-info-value {
-    font-size: 13px;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions {
-    gap: 6px;
-    padding-left: 9px;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions .product-action-btn {
-    padding: 7px 8px;
-    font-size: 12px;
-  }
 }
 
-/* =========================================================
-   태블릿 / 작은 노트북
-   가로 한 줄을 억지로 압축하지 않고 정보 그룹을 자동 재배치한다.
-   ========================================================= */
-@media (max-width: 1180px) {
-  .business-wrap .product-list-frame .product-manage-item {
-    align-items: start;
-  }
-
-  .business-wrap .product-list-frame .product-manage-info {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 14px;
-  }
-
-  .business-wrap .product-list-frame .product-info-cell {
-    min-height: 52px;
-    padding: 0 12px;
-  }
-
-  .business-wrap .product-list-frame .product-name-cell {
-    grid-column: span 2;
-    padding-left: 0;
-  }
-
-  .business-wrap .product-list-frame .product-content-cell {
-    grid-column: span 2;
-  }
-
-  .business-wrap .product-list-frame .product-date-cell {
-    grid-column: span 2;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions {
-    grid-column: span 2;
-    justify-content: flex-end;
-    align-self: center;
-    padding-left: 12px;
-  }
-}
-
-/* =========================================================
-   모바일
-   카드형 세로 레이아웃으로 전환하고 긴 값도 안전하게 줄바꿈한다.
-   ========================================================= */
 @media (max-width: 768px) {
-  .business-wrap .product-list-frame {
-    gap: 12px;
+  .business-wrap .product-manage-table {
+    min-width: 1240px;
   }
 
-  .business-wrap .product-list-frame .product-manage-item {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    padding: 16px;
+  .business-wrap .product-table-thumb {
+    width: 64px;
+    height: 64px;
   }
 
-  .business-wrap .product-list-frame .product-manage-thumb {
-    width: 100%;
-    height: clamp(160px, 46vw, 220px);
-    max-width: none;
-  }
-
-  .business-wrap .product-list-frame .product-manage-info {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
-    width: 100%;
-  }
-
-  .business-wrap .product-list-frame .product-info-cell {
-    min-height: auto;
-    padding: 12px 10px;
-    border-right: none;
-    border-bottom: 1px solid var(--biz-border-soft);
-  }
-
-  .business-wrap .product-list-frame .product-name-cell,
-  .business-wrap .product-list-frame .product-content-cell,
-  .business-wrap .product-list-frame .product-actor-cell,
-  .business-wrap .product-list-frame .product-date-cell {
-    grid-column: 1 / -1;
-  }
-
-  .business-wrap .product-list-frame .product-name-cell {
-    padding-top: 0;
-  }
-
-  .business-wrap .product-list-frame .product-name {
-    font-size: 16px;
-  }
-
-  .business-wrap .product-list-frame .product-info-value,
-  .business-wrap .product-list-frame .product-info-ellipsis {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .business-wrap .product-list-frame .product-date-values {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding: 14px 0 0;
-    border: 0;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions .product-action-btn {
-    width: 100%;
-    min-width: 0;
-    padding: 10px 8px;
-  }
-}
-
-/* =========================================================
-   소형 모바일
-   2열도 좁아지는 화면에서는 각 값을 한 줄씩 배치한다.
-   ========================================================= */
-@media (max-width: 480px) {
-  .business-wrap .product-list-frame .product-manage-thumb {
-    height: clamp(145px, 48vw, 180px);
-  }
-
-  .business-wrap .product-list-frame .product-manage-info {
-    grid-template-columns: 1fr;
-  }
-
-  .business-wrap .product-list-frame .product-info-cell,
-  .business-wrap .product-list-frame .product-name-cell,
-  .business-wrap .product-list-frame .product-content-cell,
-  .business-wrap .product-list-frame .product-actor-cell,
-  .business-wrap .product-list-frame .product-date-cell {
-    grid-column: 1;
-  }
-
-  .business-wrap .product-list-frame .product-manage-actions {
-    grid-column: 1;
-    grid-template-columns: 1fr;
+  .business-wrap .product-manage-table thead th,
+  .business-wrap .product-manage-table tbody td {
+    font-size: 12px;
   }
 }

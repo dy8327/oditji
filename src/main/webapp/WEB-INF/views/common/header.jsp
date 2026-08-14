@@ -23,8 +23,20 @@
 <header class="header">
     <div class="header-container">
         <div class="header-left">
-            <a href="${pageContext.request.contextPath}/" class="logo">
-                <span class="logo-main">ODITJI</span>
+            <%-- [로고 이미지 적용] 기존 메인 이동 링크 로직은 그대로 유지하고,
+                 테마에 따라 글자색이 다른 투명 PNG 로고만 교체해서 보여줍니다.
+                 실제 테마 전환은 기존 theme-toggle.js의 html[data-theme] 값을 그대로 사용합니다. --%>
+            <a href="${pageContext.request.contextPath}/"
+               class="logo"
+               aria-label="ODITJI 메인 페이지로 이동">
+                <img src="${pageContext.request.contextPath}/images/oditji-logo-dark.png"
+                     class="logo-image logo-image--dark"
+                     alt=""
+                     aria-hidden="true">
+                <img src="${pageContext.request.contextPath}/images/oditji-logo-light.png"
+                     class="logo-image logo-image--light"
+                     alt=""
+                     aria-hidden="true">
             </a>
         </div>
 
@@ -79,7 +91,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         콘텐츠
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 글자와 화살표가 따로 노는 느낌을 줄이기 위해
+                             폰트 기호(⌄) 대신 크기/정렬을 일정하게 제어할 수 있는 SVG chevron을 사용합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">
@@ -98,7 +116,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         상품
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 콘텐츠 메뉴와 동일한 SVG chevron을 사용해
+                             세 메뉴의 화살표 크기와 기준선을 통일합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">
@@ -140,7 +164,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         이벤트
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 이벤트 메뉴도 동일한 SVG chevron을 사용해
+                             메뉴명과 화살표가 한 덩어리처럼 자연스럽게 보이도록 합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">

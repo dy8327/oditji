@@ -15,6 +15,11 @@
 
   --color-point: #5ea3ff;
 
+  /* [헤더 검색 아이콘 추가]
+   기본 색상은 기존 --color-gray를 그대로 사용하고,
+   hover 시에만 ODITJI 고유 보라색을 적용합니다. */
+  --header-search-icon-hover-color: #7c5cfc;
+
   /* [수정] --color-point(#5ea3ff)는 테두리·링크 등 용도로는 대비가 충분하지만,
      흰 글자를 얹는 "꽉 찬 배경"(버튼/active 상태)에서는 흰색 텍스트와의
      대비가 약 2.6:1로 WCAG 최소 기준(4.5:1)에 못 미친다.
@@ -22,7 +27,36 @@
   --color-point-strong: #2f6fe4;
   --color-point-strong-hover: #2559c4;
 
-  --header-height: 80px;
+  /* [헤더 수정] 기존 80px보다 살짝 여유 있게 키워
+     로고/검색/아이콘이 답답하지 않도록 합니다. */
+  --header-height: 88px;
+
+  /* [헤더 추가] 헤더 내부 요소의 크기를 한곳에서 관리합니다.
+     색상은 기존 공통 변수를 그대로 사용하고, 기존에 없던 크기 값만 추가합니다. */
+  --header-container-width: 1660px;
+
+  /* [로고 이미지 적용] 기존 텍스트 로고 대신 투명 PNG 로고를 사용합니다.
+     로고 크기와 hover 피드백은 전용 변수로 관리합니다. */
+  --header-logo-width: 150px;
+  --header-logo-width-mobile: 116px;
+  --header-logo-width-small: 110px;
+  --header-logo-width-compact: 104px;
+  --header-logo-hover-scale: 1.035;
+  --header-logo-hover-bg: rgba(126, 87, 255, 0.07);
+  --header-logo-hover-border: rgba(126, 87, 255, 0.28);
+  --header-logo-hover-shadow: rgba(126, 87, 255, 0.16);
+
+  --header-nav-font-size: 17px;
+  --header-nav-gap: 4px;
+  --header-nav-item-gap: 14px;
+  --header-search-width: 480px;
+  --header-search-height: 50px;
+  --header-search-font-size: 16px;
+  --header-icon-size: 46px;
+  --header-icon-font-size: 21px;
+  --header-icon-glyph-size: 22px;
+  --header-profile-avatar-size: 30px;
+  --header-profile-font-size: 15px;
 
   --radius: 14px;
 
@@ -181,7 +215,9 @@ body {
 ========================================================= */
 
 .header-container {
-  width: min(1600px, 95%);
+  /* [헤더 디자인 1 수정] 헤더 자체가 조금 커진 만큼 좌우 사용 폭도
+     아주 소폭 넓혀 전체 화면에서 요소들이 여유 있게 배치되도록 합니다. */
+  width: min(var(--header-container-width), 95%);
 
   height: 100%;
 
@@ -214,25 +250,52 @@ body {
 ========================================================= */
 
 .logo {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 2px;
+  /* [로고 이미지 적용] 링크 자체의 메인 이동 동작은 유지하고,
+     로고 주변에만 아주 약한 hover/focus 피드백을 줍니다.
+     이미지 색상 자체는 hover 시 변경하지 않습니다. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transform-origin: center;
+  transition:
+    transform 0.22s ease,
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
-.logo-main {
-  font-size: 28px;
-
-  font-weight: 800;
-
-  color: var(--color-white);
-
-  letter-spacing: 1px;
+.logo-image {
+  width: var(--header-logo-width);
+  height: auto;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
 }
 
-.logo:hover .logo-main {
-  color: var(--color-point);
+/* [로고 이미지 적용] 기본 테마는 다크 모드이므로 흰색 DITJI 버전을 표시합니다. */
+.logo-image--dark {
+  display: block;
+}
+
+.logo-image--light {
+  display: none;
+}
+
+.logo:hover,
+.logo:focus-visible {
+  transform: scale(var(--header-logo-hover-scale));
+  background: var(--header-logo-hover-bg);
+  border-color: var(--header-logo-hover-border);
+  box-shadow: 0 6px 18px var(--header-logo-hover-shadow);
+}
+
+.logo:focus-visible {
+  outline: none;
 }
 
 /* =========================================================
@@ -246,7 +309,9 @@ body {
 .header-nav-list {
   display: flex;
   align-items: center;
-  gap: 12px;
+  /* [헤더 디자인 1 수정] 메뉴 간격을 넓히되, 각 메뉴 내부의
+     글자-화살표 간격은 아래 .header-nav-link에서 더 촘촘하게 잡습니다. */
+  gap: var(--header-nav-item-gap);
 }
 
 .header-nav-item {
@@ -259,12 +324,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 14px;
+  /* [헤더 디자인 1 수정] 메뉴명과 chevron을 한 묶음처럼 보이게
+     글자-화살표 사이 간격을 기존 6px보다 좁힙니다. */
+  gap: var(--header-nav-gap);
+  padding: 0 12px;
   border-radius: 10px;
   color: var(--color-gray);
-  font-size: 16px;
-  font-weight: 600;
+  /* [헤더 디자인 1 수정] 헤더 높이에 맞춰 내비게이션 글자도 1px 키웁니다. */
+  font-size: var(--header-nav-font-size);
+  font-weight: 650;
   white-space: nowrap;
   transition:
     color 0.2s ease,
@@ -276,8 +344,8 @@ body {
 .header-nav-link::after {
   content: "";
   position: absolute;
-  left: 14px;
-  right: 14px;
+  left: 12px;
+  right: 12px;
   bottom: 3px;
   height: 2px;
   border-radius: 999px;
@@ -301,9 +369,28 @@ body {
 }
 
 .header-nav-arrow {
-  font-size: 14px;
-  line-height: 1;
+  /* [헤더 디자인 1 수정] 폰트 기호 대신 SVG chevron을 사용해
+     메뉴 글자와 기준선을 맞추고, 화살표가 지나치게 멀거나 커 보이지 않게 합니다. */
+  width: 11px;
+  height: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 11px;
+  margin-top: 1px;
+  color: currentColor;
   transition: transform 0.2s ease;
+}
+
+.header-nav-arrow svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .header-nav-dropdown.open .header-nav-arrow,
@@ -463,7 +550,7 @@ body {
 }
 
 .header-category-arrow {
-  font-size: 20px;
+  font-size: var(--header-icon-font-size);
   line-height: 1;
   transition: transform 0.2s ease;
 }
@@ -583,7 +670,9 @@ body {
   height: 2px;
   background: currentColor;
   border-radius: 999px;
-  transition: transform 0.25s ease, opacity 0.2s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
 }
 
 /* [추가] 메뉴가 열리면 삼선 아이콘이 X 모양으로 전환되어
@@ -616,9 +705,11 @@ body {
 }
 
 .header-search form {
-  width: 430px;
+  /* [헤더 디자인 1 수정] 검색 영역을 살짝 넓고 높게 조정해
+     커진 헤더 비율과 맞춥니다. */
+  width: var(--header-search-width);
 
-  height: 46px;
+  height: var(--header-search-height);
 
   display: flex;
 
@@ -658,7 +749,8 @@ body {
 
   color: var(--color-white);
 
-  font-size: 15px;
+  /* [헤더 디자인 1 수정] 검색창 높이에 맞춰 입력 글자도 1px 키웁니다. */
+  font-size: var(--header-search-font-size);
 }
 
 .header-search input::placeholder {
@@ -666,9 +758,9 @@ body {
 }
 
 .header-search button {
-  width: 54px;
+  width: 56px;
 
-  height: 46px;
+  height: var(--header-search-height);
 
   display: flex;
 
@@ -676,13 +768,20 @@ body {
 
   align-items: center;
 
+  /* [검색 아이콘 수정]
+     기본 상태에서는 기존 검색 아이콘 색상을 그대로 유지합니다. */
   color: var(--color-gray);
 
-  transition: var(--transition);
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+/* [검색 아이콘 수정]
+   마우스를 올렸을 때만 ODITJI 고유 보라색으로 변경합니다. */
 .header-search button:hover {
-  color: var(--color-point);
+  color: var(--header-search-icon-hover-color);
+  transform: scale(1.08);
 }
 
 /* =========================================================
@@ -702,7 +801,7 @@ body {
   left: 50%;
   transform: translateX(-50%) translateY(-6px);
 
-  width: 430px;
+  width: var(--header-search-width);
 
   max-height: 420px;
 
@@ -726,7 +825,10 @@ body {
 
   pointer-events: none;
 
-  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0.16s;
 }
 
 .header-search-dropdown.open {
@@ -808,7 +910,9 @@ body {
 
   font-size: 13px;
 
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .header-search-recent-chip:hover {
@@ -854,7 +958,9 @@ body {
 
   cursor: pointer;
 
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .header-search-recent-chip-remove:hover {
@@ -976,7 +1082,8 @@ body {
 
   align-items: center;
 
-  gap: 16px;
+  /* [헤더 디자인 1 수정] 우측 아이콘/프로필 사이 간격을 소폭 확대합니다. */
+  gap: 18px;
 
   /* [수정] 라이트/다크 모드 토글 버튼을 header-container의 직계 자식으로
      옮기면서(모바일에서 햄버거 버튼 옆에 두기 위해) header-right보다 소스
@@ -996,8 +1103,10 @@ body {
    아이콘들 사이 간격과 토글-알림 간격이 똑같아지도록. */
 .theme-toggle-btn {
   order: 5;
-  margin-left: 35px;
-  margin-right: 16px;
+  /* [헤더 디자인 1 수정] 커진 검색창과 우측 액션 영역 사이에
+     충분한 숨 쉴 공간을 두되, 아이콘끼리의 간격은 동일하게 유지합니다. */
+  margin-left: 40px;
+  margin-right: 18px;
 }
 
 /* =========================================================
@@ -1052,9 +1161,11 @@ body {
 ========================================================= */
 
 .icon-btn {
-  width: 42px;
+  /* [헤더 디자인 1 수정] 테마/알림/장바구니 아이콘의 터치 영역과
+     시각 크기를 함께 살짝 키웁니다. */
+  width: var(--header-icon-size);
 
-  height: 42px;
+  height: var(--header-icon-size);
 
   display: flex;
 
@@ -1071,6 +1182,20 @@ body {
   font-size: 20px;
 
   transition: var(--transition);
+}
+
+/* [헤더 디자인 1 수정] SVG/이미지 아이콘 자체도 버튼 크기에 맞춰
+   기존 20px보다 살짝 키워 시각적으로 균형을 맞춥니다. */
+.icon-btn > svg,
+.icon-btn > img {
+  width: var(--header-icon-glyph-size);
+  height: var(--header-icon-glyph-size);
+}
+
+/* [헤더 디자인 1 수정] 검색 아이콘도 높아진 검색창에 맞춰 소폭 확대합니다. */
+.header-search button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .icon-btn:hover {
@@ -1096,7 +1221,9 @@ body {
 
   gap: 10px;
 
-  padding: 8px 15px;
+  /* [헤더 디자인 1 수정] 프로필 영역도 아이콘 높이와 균형이 맞도록
+     가로/세로 여백을 아주 조금 확대합니다. */
+  padding: 8px 16px;
 
   border-radius: 999px;
 
@@ -1112,8 +1239,8 @@ body {
 }
 
 .profile-btn-avatar {
-  width: 26px;
-  height: 26px;
+  width: var(--header-profile-avatar-size);
+  height: var(--header-profile-avatar-size);
 
   border-radius: 50%;
 
@@ -1123,9 +1250,9 @@ body {
 }
 
 .profile-btn span {
-  font-size: 14px;
+  font-size: var(--header-profile-font-size);
 
-  font-weight: 600;
+  font-weight: 650;
 }
 
 /* =========================================================
@@ -1293,7 +1420,7 @@ body {
   }
 
   .header-search form {
-    width: 360px;
+    width: 400px;
   }
 }
 
@@ -1307,7 +1434,7 @@ body {
   }
 
   .header-search form {
-    width: 300px;
+    width: 320px;
   }
 }
 
@@ -1461,12 +1588,25 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* [헤더 디자인 1 수정] 데스크톱 헤더만 88px로 확대하고, 모바일은
+     기존 70px을 유지합니다. body의 padding-top도 같은 변수를 사용하므로
+     모바일에서 본문 시작 위치가 어긋나지 않습니다. */
+  :root {
+    --header-height: 70px;
+  }
+
   .header {
-    height: 70px;
+    height: var(--header-height);
   }
 
   .header-container {
     gap: 15px;
+  }
+
+  /* [로고 이미지 적용] 모바일에서는 헤더 중앙 공간에 맞춰 로고 폭을 줄이고
+     원본 비율은 height:auto로 그대로 유지합니다. */
+  .logo-image {
+    width: var(--header-logo-width-mobile);
   }
 
   /* [추가] 모바일 검색 input의 글자 크기가 16px 미만이면
@@ -1584,6 +1724,11 @@ body {
 }
 
 @media (max-width: 576px) {
+  :root {
+    /* [헤더 디자인 1 수정] 좁은 모바일에서는 기존 아이콘 밀도를 유지합니다. */
+    --header-icon-glyph-size: 20px;
+  }
+
   .icon-btn {
     width: 38px;
 
@@ -1592,8 +1737,10 @@ body {
     font-size: 18px;
   }
 
-  .logo-main {
-    font-size: 22px;
+  /* [로고 이미지 적용] 좁은 모바일에서는 로고가 우측 아이콘과
+     겹치지 않도록 한 단계 더 작게 표시합니다. */
+  .logo-image {
+    width: var(--header-logo-width-small);
   }
 
   /* [추가] 프로필 드롭다운도 알림 드롭다운과 동일하게 화면 폭 기준으로
@@ -1611,6 +1758,12 @@ body {
 /* [추가] 초소형 화면(400px 이하)에서 헤더 우측 아이콘들이
    서로 붙어 눌리는 문제를 막기 위한 추가 간격/크기 보정 */
 @media (max-width: 400px) {
+  /* [로고 이미지 적용] 초소형 화면에서는 중앙 로고 폭을 추가로 줄여
+     햄버거/우측 아이콘의 클릭 영역과 겹치지 않게 합니다. */
+  .logo-image {
+    width: var(--header-logo-width-compact);
+  }
+
   .header-right {
     gap: 4px;
 
@@ -2249,24 +2402,24 @@ html {
 }
 
 .footer-policy-links {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 
-    margin-top: 10px;
+  margin-top: 10px;
 
-    font-size: 13px;
-    color: var(--color-footer-text-strong);
+  font-size: 13px;
+  color: var(--color-footer-text-strong);
 }
 
 .footer-policy-links a {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
 
 .footer-policy-links a:hover,
 .footer-policy-links a:focus {
-    color: var(--color-pure-white);
-    text-decoration: underline;
+  color: var(--color-pure-white);
+  text-decoration: underline;
 }
