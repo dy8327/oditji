@@ -45,6 +45,28 @@ function initHeroCarousel() {
     }
 
     const dots = root.querySelectorAll('.hero-dot');
+    const ambientWrap = document.getElementById('heroAmbientWrap');
+
+    /* [QA 수정] 1920px 초과 화면에서 .hero 좌우로 남는 여백을 채우는
+       블러 배경(main.css의 .hero-ambient-wrap::before)에, 현재 활성
+       슬라이드와 같은 이미지를 넣어준다. 슬라이드에 배경 이미지가
+       없으면(브랜드 소개 슬라이드 등) 변수를 지워 빈 배경으로 되돌린다. */
+    function syncAmbientBackground(slide) {
+
+        if (!ambientWrap) {
+            return;
+        }
+
+        const bgEl = slide.querySelector('.hero-slide-bg:not(.hero-slide-bg-empty)');
+        const bgImage = bgEl ? bgEl.style.backgroundImage : '';
+
+        if (bgImage) {
+            ambientWrap.style.setProperty('--hero-ambient-bg', bgImage);
+        } else {
+            ambientWrap.style.removeProperty('--hero-ambient-bg');
+        }
+
+    }
 
     let currentIndex = 0;
     let timerId = null;
@@ -66,6 +88,10 @@ function initHeroCarousel() {
             slide.querySelectorAll('a, button').forEach(function (focusable) {
                 focusable.tabIndex = active ? 0 : -1;
             });
+
+            if (active) {
+                syncAmbientBackground(slide);
+            }
 
         });
 

@@ -50,6 +50,12 @@
         </c:otherwise>
     </c:choose>
 
+    <%-- [QA 수정] 1920px 초대형 모니터에서 .hero 좌우로 남는 여백을
+         블러 확장 배경으로 채우기 위한 래퍼. main.css의
+         .hero-ambient-wrap / main.js의 --hero-ambient-bg 갱신 로직과
+         함께 동작한다. --%>
+    <div class="hero-ambient-wrap" id="heroAmbientWrap">
+
     <section class="hero"
              id="mainHero"
              aria-roledescription="carousel"
@@ -363,6 +369,8 @@
         </c:if>
 
     </section>
+
+    </div>
 
     <%-- 실시간 인기 콘텐츠: 넷플릭스/웨이브 스타일의 랭킹 넘버 + 카드 가로 스크롤 --%>
     <section class="slider-section rank-slider-section" id="popularRankSection">

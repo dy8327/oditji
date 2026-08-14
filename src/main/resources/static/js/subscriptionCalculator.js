@@ -1,3 +1,65 @@
+/* [OTT 구독 조합 계산기 - 결과 카드 아코디언화]
+   플랫폼 카드 펼침/접힘 토글은 계산기 화면(subCalcSection)뿐 아니라
+   공유 결과 화면(subCalcResultSection, 서버 렌더링)에서도 동작해야 하므로
+   아래 메인 스크립트의 subCalcSection 존재 체크와 무관하게 별도로 둔다.
+
+   높이 애니메이션은 CSS grid-template-rows(0fr/1fr) 트릭 대신
+   실제 콘텐츠 높이(scrollHeight)를 측정해 max-height로 직접 지정하는
+   방식을 쓴다. grid-rows 트릭은 일부 브라우저에서 자동 계산 높이가
+   실제 콘텐츠보다 살짝 작게 나와 마지막 줄 텍스트가 잘리는 문제가 있었다. */
+(function () {
+  "use strict";
+
+  function expandBody(body) {
+    var inner = body.querySelector(".sub-calc-result-platform__body-inner");
+    body.style.maxHeight = (inner ? inner.scrollHeight : body.scrollHeight) + "px";
+    body.classList.add("is-expanded");
+    body.removeAttribute("inert");
+  }
+
+  function collapseBody(body) {
+    body.style.maxHeight = "0px";
+    body.classList.remove("is-expanded");
+    body.setAttribute("inert", "");
+  }
+
+  document.addEventListener("click", function (event) {
+    var toggleBtn = event.target.closest ? event.target.closest(".sub-calc-result-platform__toggle") : null;
+
+    if (!toggleBtn) {
+      return;
+    }
+
+    var expanded = toggleBtn.getAttribute("aria-expanded") === "true";
+    var bodyId = toggleBtn.getAttribute("aria-controls");
+    var body = bodyId ? document.getElementById(bodyId) : null;
+
+    toggleBtn.setAttribute("aria-expanded", String(!expanded));
+
+    if (body) {
+      if (expanded) {
+        collapseBody(body);
+      } else {
+        expandBody(body);
+      }
+    }
+  });
+
+  /* 화면 폭이 바뀌면(반응형 브레이크포인트로 그리드 열 수가 바뀌는 등)
+     펼쳐져 있던 카드의 실제 콘텐츠 높이도 달라지므로, 펼침 상태인
+     카드만 골라 max-height를 다시 계산한다. */
+  var resizeDebounceTimer = null;
+
+  window.addEventListener("resize", function () {
+    window.clearTimeout(resizeDebounceTimer);
+    resizeDebounceTimer = window.setTimeout(function () {
+      document.querySelectorAll(".sub-calc-result-platform__body.is-expanded").forEach(function (body) {
+        expandBody(body);
+      });
+    }, 150);
+  });
+})();
+
 (function () {
   "use strict";
 
@@ -409,7 +471,7 @@
     var savings = totalRegular - totalDiscounted;
 
     var platformsHtml = selected
-      .map(function (platform) {
+      .map(function (platform, index) {
         var hasDiscount = platform.discountSource && platform.bestPrice < platform.regularPrice;
 
         var priceLine =
@@ -454,20 +516,37 @@
             "</ul>";
         }
 
+        /* [OTT 구독 조합 계산기 - 결과 카드 아코디언화]
+           OTT 개수가 늘어나도 오른쪽 결과 영역이 한없이 길어지지 않도록
+           기본 상태는 플랫폼명 + 가격만 보이게 접어두고, 클릭하면
+           할인 출처와 포스터 그리드가 펼쳐지는 구조로 바꾼다. */
+        var bodyId = "subCalcPlatformBody-" + index;
+
         return (
           '<li class="sub-calc-result-platform">' +
-          '<div class="sub-calc-result-platform__head">' +
+          '<button type="button" class="sub-calc-result-platform__toggle" aria-expanded="false" aria-controls="' +
+          bodyId +
+          '">' +
+          '<span class="sub-calc-result-platform__head">' +
           '<span class="sub-calc-result-platform__name">' +
           escapeHtml(platform.platformName) +
           "</span>" +
           "<span>" +
           priceLine +
           "</span>" +
-          "</div>" +
+          "</span>" +
+          '<span class="sub-calc-result-platform__chevron" aria-hidden="true"></span>' +
+          "</button>" +
+          '<div class="sub-calc-result-platform__body" id="' +
+          bodyId +
+          '" inert>' +
+          '<div class="sub-calc-result-platform__body-inner">' +
           '<span class="sub-calc-result-platform__source">' +
           sourceLine +
           "</span>" +
           platformContentHtml +
+          "</div>" +
+          "</div>" +
           "</li>"
         );
       })
