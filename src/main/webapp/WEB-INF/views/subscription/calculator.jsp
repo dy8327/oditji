@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -22,6 +23,28 @@
          data-save-url="${pageContext.request.contextPath}/api/subscription/save"
          data-result-base-url="${pageContext.request.contextPath}/subscription/result/"
          data-image-base-url="https://image.tmdb.org/t/p/w92">
+
+    <%--
+        [콘텐츠 상세 -> 구독 조합 계산기 자동 담기 추가]
+        상세페이지의 CTA를 통해 들어온 경우에만 생성되는 초기 작품 전달 영역입니다.
+        화면에는 노출하지 않고 JavaScript가 읽어서 기존 wishlist 배열에 1건을 추가합니다.
+
+        사용자가 이벤트 메뉴에서 계산기를 직접 연 경우에는 tmdbId가 없으므로
+        이 블록 자체가 생성되지 않아 기존 빈 상태가 그대로 유지됩니다.
+    --%>
+    <c:if test="${not empty param.tmdbId and not empty param.contentType and not empty param.title}">
+        <div id="subCalcInitialItem" hidden
+             data-tmdb-id="${fn:escapeXml(param.tmdbId)}"
+             data-content-type="${fn:escapeXml(param.contentType)}"
+             data-title="${fn:escapeXml(param.title)}"
+             data-poster-path="${fn:escapeXml(param.posterPath)}">
+
+            <c:forEach var="platformName" items="${paramValues.platformName}">
+                <span data-platform-name="${fn:escapeXml(platformName)}"></span>
+            </c:forEach>
+
+        </div>
+    </c:if>
 
     <div class="sub-calc-hero">
         <p class="sub-calc-hero__eyebrow">ODITJI TOOL</p>
