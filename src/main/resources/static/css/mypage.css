@@ -1562,10 +1562,20 @@
 .mypage-dashboard .mypage-panel,
 .mypage-dashboard .mypage-hero {
   border-color: var(--mp-cinema-border);
-  background: radial-gradient(circle at 85% 12%, var(--mp-white-055), transparent 32%), linear-gradient(145deg, var(--mp-cinema-bg-1), var(--mp-cinema-bg-2));
   box-shadow:
     inset 0 1px 0 var(--mp-white-045),
     0 18px 42px var(--mp-black-34);
+}
+
+/* [수정] .mypage-hero는 이 background 선언에서 빼야 한다. 이 선택자가
+   .mypage-hero 단독 선택자보다 특이도가 높아서(클래스 2개), 뒤에 나오는
+   ".mypage-hero { background-image: url(mypage-left-bg.png) ... }"가 소스
+   순서상 나중이어도 이 라디얼/리니어 그러데이션에 밀려 무시되고 있었다.
+   그 결과 좌측 패널이 배경 사진 없이 이 패널 그러데이션만 깔린 채
+   렌더링되어, 라이트 모드에서는 흰 패널 위에 흰 글자가 남아 안 보이는
+   문제로 이어졌다. */
+.mypage-dashboard .mypage-panel {
+  background: radial-gradient(circle at 85% 12%, var(--mp-white-055), transparent 32%), linear-gradient(145deg, var(--mp-cinema-bg-1), var(--mp-cinema-bg-2));
 }
 
 .mypage-dashboard .mypage-panel::before {
