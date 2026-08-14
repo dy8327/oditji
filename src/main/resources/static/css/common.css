@@ -97,6 +97,26 @@
   --color-scrollbar-thumb: #50545b;
   --color-scrollbar-thumb-alt: #4b5058;
 
+  /* =========================================================
+     [모바일 헤더 메뉴 스크롤 추가]
+     모바일 내비게이션이 화면 높이를 넘어갈 경우
+     메뉴 자체를 세로 스크롤할 수 있도록 높이/스크롤 값을
+     변수로 관리합니다.
+
+     기존 --header-height를 기준으로 계산하므로
+     768px 이하에서 header-height가 70px로 변경되어도
+     자동으로 모바일 화면 높이에 맞춰집니다.
+  ========================================================= */
+  --header-mobile-menu-screen-gap: 16px;
+  --header-mobile-menu-max-height: calc(100dvh - var(--header-height) - var(--header-mobile-menu-screen-gap));
+
+  /* [모바일 헤더 메뉴 추가]
+     1차 상품 서브메뉴와 2차 카테고리 메뉴는
+     기존 360px / 220px 고정 높이 때문에 항목이 잘렸으므로,
+     실제 콘텐츠 높이보다 충분한 범위를 변수로 관리합니다. */
+  --header-mobile-submenu-max-height: 900px;
+  --header-mobile-category-max-height: 600px;
+
   --color-shadow-35: rgba(0, 0, 0, 0.35);
   --color-shadow-36: rgba(0, 0, 0, 0.36);
   --color-shadow-38: rgba(0, 0, 0, 0.38);
@@ -1477,14 +1497,63 @@ body {
     right: 2%;
     margin-left: 0;
     padding: 12px;
+
     background: var(--color-mobile-panel-bg);
     border: 1px solid var(--color-border);
     border-radius: 0 0 16px 16px;
     box-shadow: 0 18px 35px var(--color-shadow-36);
+
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
+
     transition: var(--transition);
+
+    /* =========================================================
+       [모바일 메뉴 스크롤 수정]
+       상품 → 카테고리별 상품처럼 하위 메뉴가 길게 펼쳐졌을 때
+       메뉴가 화면 아래에서 잘리지 않고 모바일 메뉴 자체를
+       세로 스크롤하여 모든 항목에 접근할 수 있도록 합니다.
+
+       높이는 :root의 --header-mobile-menu-max-height를 사용하여
+       기기 화면 높이에 자동 대응합니다.
+    ========================================================= */
+    max-height: var(--header-mobile-menu-max-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* 메뉴 끝에서 스크롤했을 때 뒤쪽 본문까지 같이 움직이는
+       scroll chaining 현상을 줄입니다. */
+    overscroll-behavior-y: contain;
+
+    /* 모바일에서 자연스러운 터치 스크롤을 유지합니다. */
+    -webkit-overflow-scrolling: touch;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar-thumb) transparent;
+  }
+
+  /* =========================================================
+     [모바일 메뉴 스크롤바 추가]
+     Chromium / Safari 계열에서 메뉴 내부 스크롤바가
+     기존 ODITJI 다크 테마와 자연스럽게 어울리도록 합니다.
+  ========================================================= */
+  .header-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .header-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .header-nav::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 999px;
+  }
+
+  .header-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-thumb-alt);
   }
 
   .header-nav.open {
@@ -1530,8 +1599,17 @@ body {
     transform: none;
   }
 
+  /* =========================================================
+     [모바일 1차 서브메뉴 높이 수정]
+     기존 max-height: 360px 제한 때문에
+     "카테고리별 상품"의 2차 메뉴가 펼쳐졌을 때
+     부모 메뉴 영역에서 다시 잘리는 문제가 있었습니다.
+
+     고정 숫자를 직접 사용하지 않고 :root에 선언한
+     모바일 서브메뉴 전용 변수를 사용합니다.
+  ========================================================= */
   .header-nav-dropdown.open .header-submenu {
-    max-height: 360px;
+    max-height: var(--header-mobile-submenu-max-height);
     padding: 8px;
   }
 
@@ -1560,15 +1638,25 @@ body {
       padding 0.25s ease;
   }
 
+  /* =========================================================
+     [모바일 상품 카테고리 높이 수정]
+     기존 max-height: 220px에서는
+     도서 / 의상 / 신발 / OST / 소품 이후 카테고리가
+     영역 밖으로 잘려 보이는 문제가 있었습니다.
+
+     hover/focus 상태와 모바일 클릭(.pinned) 상태 모두
+     같은 최대 높이 변수를 사용하여
+     전체 카테고리가 정상적으로 펼쳐지게 합니다.
+  ========================================================= */
   .header-category-menu:hover .header-category-submenu,
   .header-category-menu:focus-within .header-category-submenu {
-    max-height: 220px;
+    max-height: var(--header-mobile-category-max-height);
     padding: 8px;
     transform: none;
   }
 
   .header-category-menu.pinned .header-category-submenu {
-    max-height: 220px;
+    max-height: var(--header-mobile-category-max-height);
     padding: 8px;
   }
 
