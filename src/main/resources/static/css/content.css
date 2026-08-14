@@ -14,6 +14,11 @@
    ===================================================== */
 
 :root {
+  /* [OTT 구독 조합 계산기 연동 추가] 상세페이지 CTA 전용 포인트 색상 */
+  --content-subscription-cta-accent: #35e0a1;
+  --content-subscription-cta-accent-a12: rgba(53, 224, 161, 0.12);
+  --content-subscription-cta-accent-a32: rgba(53, 224, 161, 0.32);
+
   /* ---- 화이트 오버레이 알파 스케일 (호버/배경/보더 공용) ---- */
   --content-white-a015: rgba(255, 255, 255, 0.015);
   --content-white-a02: rgba(255, 255, 255, 0.02);
@@ -285,7 +290,9 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(100deg, var(--content-black-a32), var(--content-black-a0) 55%), linear-gradient(180deg, var(--content-hero-scrim-1) 0%, var(--content-hero-scrim-2) 65%, var(--content-surface-18) 100%);
+  background:
+    linear-gradient(100deg, var(--content-black-a32), var(--content-black-a0) 55%),
+    linear-gradient(180deg, var(--content-hero-scrim-1) 0%, var(--content-hero-scrim-2) 65%, var(--content-surface-18) 100%);
   pointer-events: none;
 }
 
@@ -1937,6 +1944,73 @@
   margin: 0;
   color: var(--content-text-77);
   font-size: 12px;
+}
+
+/* =========================================================
+   [OTT 구독 조합 계산기 연동 추가]
+   - 시청 가능한 OTT 바로 아래에 한 줄 CTA를 배치한다.
+   - 기존 상세 카드 폭을 늘리지 않고 정보 영역 안에서만 표시한다.
+========================================================= */
+.ott-subscription-calculator-form {
+  width: 100%;
+  max-width: 270px;
+  margin-top: 12px;
+}
+
+.ott-subscription-calculator-btn {
+  display: inline-flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 12px 9px 14px;
+  border: 1px solid var(--content-subscription-cta-accent-a32);
+  border-radius: 10px;
+  background: var(--content-white-a035);
+  color: var(--content-white);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ott-subscription-calculator-btn:hover {
+  border-color: var(--content-subscription-cta-accent);
+  background: var(--content-subscription-cta-accent-a12);
+  color: var(--content-white);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px var(--content-black-a4);
+}
+
+.ott-subscription-calculator-btn:focus-visible {
+  outline: 2px solid var(--content-subscription-cta-accent);
+  outline-offset: 2px;
+}
+
+.ott-subscription-calculator-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--content-white-a18);
+  border-radius: 7px;
+  color: var(--content-white);
+}
+
+.ott-subscription-calculator-icon svg {
+  display: block;
+  width: 19px;
+  height: 19px;
 }
 
 @media (max-width: 768px) {
