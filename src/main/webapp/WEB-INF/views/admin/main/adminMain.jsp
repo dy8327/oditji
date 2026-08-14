@@ -31,7 +31,7 @@
                 <a href="${pageContext.request.contextPath}/admin/member/list"
                    class="stat-card">
                     <span>전체 회원 수</span>
-                    <strong>${adminMain.memberCount}명</strong>
+                    <strong>${adminMain.memberCount-1}명</strong>
                 </a>
 
                 <a href="${pageContext.request.contextPath}/admin/review/list"
