@@ -1974,3 +1974,114 @@
     padding: 0 17px;
   }
 }
+
+
+/* =========================================================
+   회원가입 필수 약관 동의
+========================================================= */
+.agreement-section {
+  margin-top: 28px;
+  margin-bottom: 18px;
+}
+
+.agreement-box {
+  padding: 16px 18px;
+
+  background: var(--member-bg-panel);
+
+  border: 1px solid var(--member-line);
+  border-radius: 12px;
+}
+
+.agreement-box input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+
+  margin: 0;
+
+  accent-color: var(--member-point-blue);
+
+  cursor: pointer;
+}
+
+.agreement-all,
+.agreement-item label {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  cursor: pointer;
+}
+
+.agreement-all {
+  color: var(--member-white);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agreement-divider {
+  height: 1px;
+
+  margin: 14px 0;
+
+  background: var(--member-line);
+}
+
+.agreement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  min-height: 34px;
+}
+
+.agreement-item + .agreement-item {
+  margin-top: 8px;
+}
+
+.agreement-item label {
+  min-width: 0;
+
+  color: var(--member-text-secondary);
+
+  font-size: 13px;
+}
+
+.agreement-item label strong {
+  color: var(--member-required-mark);
+
+  font-weight: 600;
+}
+
+.agreement-item > a {
+  flex-shrink: 0;
+
+  color: var(--member-point-blue-light);
+
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.agreement-item > a:hover,
+.agreement-item > a:focus {
+  color: var(--member-white);
+}
+
+@media (max-width: 480px) {
+  .agreement-box {
+    padding: 14px;
+  }
+
+  .agreement-item {
+    align-items: flex-start;
+  }
+
+  .agreement-item label {
+    line-height: 1.45;
+  }
+}

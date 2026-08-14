@@ -534,6 +534,73 @@
 
             </div>
 
+
+            <!-- 필수 약관 동의 -->
+            <div class="agreement-section">
+
+                <div class="join-section-title">
+                    약관 동의
+                    <span class="required-mark">*</span>
+                </div>
+
+                <div class="agreement-box">
+
+                    <label class="agreement-all" for="agreeAll">
+                        <input type="checkbox"
+                               id="agreeAll">
+                        <span>전체 동의</span>
+                    </label>
+
+                    <div class="agreement-divider"></div>
+
+                    <div class="agreement-item">
+
+                        <label for="termsAgreed">
+                            <input type="checkbox"
+                                   name="termsAgreed"
+                                   id="termsAgreed"
+                                   value="Y">
+
+                            <span>
+                                <strong>[필수]</strong>
+                                이용약관에 동의합니다.
+                            </span>
+                        </label>
+
+                        <a href="${pageContext.request.contextPath}/terms"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            내용보기
+                        </a>
+
+                    </div>
+
+                    <div class="agreement-item">
+
+                        <label for="privacyAgreed">
+                            <input type="checkbox"
+                                   name="privacyAgreed"
+                                   id="privacyAgreed"
+                                   value="Y">
+
+                            <span>
+                                <strong>[필수]</strong>
+                                개인정보 수집·이용에 동의합니다.
+                            </span>
+                        </label>
+
+                        <a href="${pageContext.request.contextPath}/privacy"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            내용보기
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
             <!-- 에러 메시지 -->
             <c:if test="${not empty errorMessage}">
 
