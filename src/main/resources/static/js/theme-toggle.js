@@ -48,12 +48,22 @@
   function initThemeToggle() {
     syncToggleButtons(getCurrentTheme());
 
-    document.addEventListener("click", function (event) {
-      var btn = event.target.closest("#themeToggleBtn, .theme-toggle-btn");
-      if (btn) {
-        toggleTheme();
-      }
-    });
+    /* [수정] 프로필 드롭다운 안에 라이트/다크 전환 항목을 추가했는데,
+       common.js의 initProfileDropdown()이 .profile-dropdown 안 클릭을
+       전부 stopPropagation()으로 막아서(드롭다운이 안 닫히게 하려는
+       목적) document에 붙인 버블 단계 리스너까지 이벤트가 올라오지
+       못했다. 캡처 단계(true)로 등록하면 버블이 시작되기 전에 먼저
+       실행되므로 stopPropagation의 영향을 받지 않는다. */
+    document.addEventListener(
+      "click",
+      function (event) {
+        var btn = event.target.closest("#themeToggleBtn, .theme-toggle-btn");
+        if (btn) {
+          toggleTheme();
+        }
+      },
+      true
+    );
   }
 
   if (document.readyState === "loading") {
