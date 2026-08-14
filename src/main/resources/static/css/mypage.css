@@ -159,8 +159,8 @@
   --mp-ott-scrim-mono-2: rgba(9, 10, 12, 0.97);
   --mp-ott-scrim-mono-3: rgba(9, 10, 12, 0.7);
   --mp-ott-scrim-mono-4: rgba(9, 10, 12, 0.2);
-  --mp-chip-bg-mono: rgba(4, 4, 5, 0.78);
-  --mp-chip-bg-hover-mono: rgba(35, 36, 40, 0.9);
+  --mp-chip-bg-mono: rgba(4, 4, 5, 0.94);
+  --mp-chip-bg-hover-mono: rgba(35, 36, 40, 0.96);
   --mp-card-bg-mono-1: rgba(34, 36, 41, 0.92);
   --mp-card-bg-mono-2: rgba(11, 12, 15, 0.98);
   --mp-card-bg-hover-mono-1: rgba(48, 50, 56, 0.96);
@@ -626,6 +626,9 @@
   color: var(--mp-chip-text);
   font-size: 14px;
   font-weight: 600;
+  /* 칩 뒤로 배경 이미지가 비쳐 보이는 구간에서도 글자 대비가 유지되도록
+     은은한 그림자를 항상 깔아둔다 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   transition:
     border-color 0.2s ease,
     background 0.2s ease,
@@ -874,6 +877,60 @@
   color: var(--mp-white);
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.4;
+}
+
+/* [OTT 구독 조합 계산기 - 선택한 콘텐츠 표시 추가] 어떤 작품을 담아 계산했는지 요약 표시 */
+.mypage-subresult-item-content {
+  color: var(--mp-text-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin: -2px 0 0;
+}
+
+/* [OTT별 콘텐츠 그룹 표시 추가] 플랫폼별로 묶어서 "이 OTT에는 어떤 작품이 있는지" 보여준다 */
+.mypage-subresult-platform-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mypage-subresult-platform-group {
+  padding: 8px 10px;
+  border: 1px solid var(--mp-card-border);
+  border-radius: 10px;
+  background: var(--mp-white-04, rgba(255, 255, 255, 0.04));
+}
+
+.mypage-subresult-platform-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mypage-subresult-platform-group-name {
+  color: var(--mp-white);
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-subresult-platform-group-price {
+  color: var(--mp-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mypage-subresult-platform-group-content {
+  margin: 3px 0 0;
+  color: var(--mp-text-muted);
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -1690,6 +1747,12 @@
   background: linear-gradient(145deg, var(--mp-card-bg-mono-1), var(--mp-card-bg-mono-2));
 }
 
+/* [OTT별 콘텐츠 그룹 표시 추가] 플랫폼 그룹 카드도 흑백 테마 톤에 맞춘다 */
+.mypage-subresult-platform-group {
+  border-color: var(--mp-white-13);
+  background: var(--mp-white-04, rgba(255, 255, 255, 0.04));
+}
+
 .mypage-notification-item-desc {
   color: var(--mp-text-muted-mono);
 }
@@ -1991,6 +2054,13 @@
     min-height: 44px;
     padding: 0 8px;
     font-size: 13px;
+  }
+
+  /* [OTT별 콘텐츠 그룹 표시 추가] 좁은 화면에서는 플랫폼명/가격을 세로로 쌓는다 */
+  .mypage-subresult-platform-group-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 }
 

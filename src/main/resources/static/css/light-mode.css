@@ -2426,8 +2426,11 @@ html[data-theme="light"] .business-wrap .business-filter-search-btn {
    무관하게 하드코딩된 값(스크림 그러데이션 · 칩 배경 · 히어로 배지/반짝임/
    라인/카피 텍스트)만 아래에서 선택자로 밝은 값으로 교체한다.
 
-   재정의 없음: OTT 칩 7종(스크림/칩 배경은 아래에서 선택자로 밝게 교체하되
-   토큰 자체는 다크 모드용으로 유지 — 라이트 스코프에서만 선택자 예외),
+   재정의 없음: OTT 칩 나머지 6종(스크림/칩 배경은 아래에서 선택자로 밝게
+   교체하되 토큰 자체는 다크 모드용으로 유지 — 라이트 스코프에서만 선택자
+   예외). --mp-chip-text는 예외로 위 공통 텍스트 블록에서 함께 반전했다
+   (칩 글자가 라이트모드에서도 흰색으로 남는 버그가 있어, 기존 .mypage-ott-chip
+   선택자의 color:var(--mp-white) 예외에 더해 토큰 자체도 안전하게 반전).
    순수 검정 알파 9종, 활동 아이콘 브랜드색 5종, 아바타 링과 사진 테두리
    (원래도 밝은 값), --mp-neutral-light 와 --mp-detailbtn-text(원래도
    "밝은 버튼 + 어두운 글자"), --mp-submit-bg(초록 채움), --mp-toggle-checked
@@ -2450,6 +2453,7 @@ html[data-theme="light"] {
 
   /* ---- 패널 텍스트 · 아이콘 ---- */
   --mp-text-primary: #14181c;
+  --mp-chip-text: #14181c;
   --mp-heading-desc: #676e78;
   --mp-icon-blue: #1b5fd6;
   --mp-icon-mono: #4b525c;
@@ -2568,6 +2572,8 @@ html[data-theme="light"] .mypage-ott::after {
 html[data-theme="light"] .mypage-ott-chip {
   border-color: rgba(20, 24, 28, 0.14);
   background: rgba(255, 255, 255, 0.88);
+  color: var(--mp-white);
+  text-shadow: none;
 }
 
 html[data-theme="light"] .mypage-ott-chip:hover {

@@ -210,11 +210,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     header.appendChild(createdAt);
 
-    const platforms = document.createElement("p");
-    platforms.className = "mypage-subresult-item-platforms";
-    platforms.textContent = savedResult.platformNameList?.length
-      ? savedResult.platformNameList.join(", ")
-      : "선택한 플랫폼 정보 없음";
+    const platformGroupList = savedResult.platformGroupList;
+    const hasPlatformGroups = Array.isArray(platformGroupList) && platformGroupList.length > 0;
+
+    let platformSection;
+
+    if (hasPlatformGroups) {
+      platformSection = createSubResultPlatformGroupList(platformGroupList);
+    } else {
+      /* 구버전에 저장된 결과 등 OTT별 그룹 정보가 없는 경우, 기존 방식(플랫폼명 나열 + 콘텐츠 요약)으로 대체 표시한다 */
+      const platforms = document.createElement("p");
+      platforms.className = "mypage-subresult-item-platforms";
+      platforms.textContent = savedResult.platformNameList?.length ? savedResult.platformNameList.join(", ") : "선택한 플랫폼 정보 없음";
+
+      const content = document.createElement("p");
+      content.className = "mypage-subresult-item-content";
+      content.textContent = formatSubResultContentSummary(savedResult.contentList);
+
+      platformSection = document.createDocumentFragment();
+      platformSection.append(platforms, content);
+    }
 
     const priceRow = document.createElement("div");
     priceRow.className = "mypage-subresult-item-price-row";
@@ -258,9 +273,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
     actions.append(detailBtn, copyLinkBtn, deleteBtn);
 
-    item.append(header, platforms, priceRow, actions);
+    item.append(header, platformSection, priceRow, actions);
 
     return item;
+  }
+
+  /*
+   * [OTT별 콘텐츠 그룹 표시 추가]
+   * 선택된 플랫폼별로 "플랫폼명 (가격) - 담긴 작품"을 한 줄씩 묶어 보여준다.
+   * 한 작품이 여러 선택 플랫폼에서 모두 보인다면, 해당하는 모든 플랫폼 줄에 함께 표시된다.
+   */
+  function createSubResultPlatformGroupList(platformGroupList) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "mypage-subresult-platform-groups";
+
+    platformGroupList.forEach((platform) => {
+      const row = document.createElement("div");
+      row.className = "mypage-subresult-platform-group";
+
+      const head = document.createElement("div");
+      head.className = "mypage-subresult-platform-group-head";
+
+      const name = document.createElement("span");
+      name.className = "mypage-subresult-platform-group-name";
+      name.textContent = platform.platformName ?? "";
+
+      const price = document.createElement("span");
+      price.className = "mypage-subresult-platform-group-price";
+      price.textContent = `월 ${formatSubResultPrice(platform.bestPrice)}`;
+
+      head.append(name, price);
+
+      const contentSummary = document.createElement("p");
+      contentSummary.className = "mypage-subresult-platform-group-content";
+      contentSummary.textContent = formatSubResultContentSummary(platform.contentList);
+
+      row.append(head, contentSummary);
+      wrapper.appendChild(row);
+    });
+
+    return wrapper;
+  }
+
+  /*
+   * [OTT 구독 조합 계산기 - 선택한 콘텐츠 표시 추가]
+   * 담았던 작품이 많을 수 있으므로 카드 안에서는 앞 3편만 제목으로 보여주고
+   * 나머지는 "외 N편"으로 요약한다. 전체 목록은 "상세보기"(result.jsp)에서 확인한다.
+   */
+  const SUB_RESULT_CONTENT_PREVIEW_COUNT = 3;
+
+  function formatSubResultContentSummary(contentList) {
+    if (!contentList?.length) {
+      return "선택한 콘텐츠 정보 없음";
+    }
+
+    const titles = contentList.map((item) => item.title).filter(Boolean);
+
+    if (!titles.length) {
+      return "선택한 콘텐츠 정보 없음";
+    }
+
+    const preview = titles.slice(0, SUB_RESULT_CONTENT_PREVIEW_COUNT).join(", ");
+    const remaining = titles.length - SUB_RESULT_CONTENT_PREVIEW_COUNT;
+
+    return remaining > 0 ? `${preview} 외 ${remaining}편` : preview;
   }
 
   async function copySubResultLink(resultId, copyLinkBtn) {

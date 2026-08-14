@@ -22,6 +22,7 @@
          data-calculate-url="${pageContext.request.contextPath}/api/subscription/calculate"
          data-save-url="${pageContext.request.contextPath}/api/subscription/save"
          data-result-base-url="${pageContext.request.contextPath}/subscription/result/"
+         data-content-detail-url="${pageContext.request.contextPath}/content/prepare"
          data-image-base-url="https://image.tmdb.org/t/p/w92">
 
     <%--
@@ -39,8 +40,14 @@
              data-title="${fn:escapeXml(param.title)}"
              data-poster-path="${fn:escapeXml(param.posterPath)}">
 
-            <c:forEach var="platformName" items="${paramValues.platformName}">
-                <span data-platform-name="${fn:escapeXml(platformName)}"></span>
+            <%--
+                [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+                platformName과 platformLogo는 contentDetail.jsp에서 같은 순서로
+                내려주므로 forEach의 varStatus.index로 짝을 맞춘다.
+            --%>
+            <c:forEach var="platformName" items="${paramValues.platformName}" varStatus="platformStatus">
+                <span data-platform-name="${fn:escapeXml(platformName)}"
+                      data-platform-logo="${fn:escapeXml(paramValues.platformLogo[platformStatus.index])}"></span>
             </c:forEach>
 
         </div>

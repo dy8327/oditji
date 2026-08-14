@@ -380,11 +380,30 @@
 
 .sub-calc-wishlist__title {
   flex: 1;
+  min-width: 0;
   color: var(--sc-text-primary, #fff);
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* [OTT 구독 조합 계산기 - 담은 작품 OTT 로고 표시 추가]
+   담은 작품 제목 옆에 이 작품을 볼 수 있는 OTT 로고를 작게 나열한다. */
+.sub-calc-wishlist__platform-logos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sub-calc-wishlist__platform-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: var(--sc-media-bg, #2a2a40);
+  flex-shrink: 0;
 }
 
 .sub-calc-wishlist__remove {
@@ -516,6 +535,84 @@
 .sub-calc-result-platform__source {
   color: var(--sc-text-dim);
   font-size: 12px;
+}
+
+/* =========================
+   RESULT PLATFORM __ GROUPED CONTENT
+   (이 플랫폼에서 볼 수 있는 콘텐츠를 플랫폼 카드 안에 포스터 카드 형태로 묶어서 표시)
+========================= */
+
+.sub-calc-result-platform__content-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--sc-bg-card-border);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.sub-calc-result-platform__content-item {
+  min-width: 0;
+}
+
+.sub-calc-result-platform__content-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  background: var(--sc-input-bg);
+  border: 1px solid var(--sc-bg-card-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 4px 4px 6px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--sc-transition),
+    transform var(--sc-transition),
+    box-shadow var(--sc-transition);
+}
+
+a.sub-calc-result-platform__content-link {
+  cursor: pointer;
+}
+
+a.sub-calc-result-platform__content-link:hover,
+a.sub-calc-result-platform__content-link:focus-visible {
+  border-color: var(--sc-accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.sub-calc-result-platform__content-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--sc-media-bg, #2a2a40);
+}
+
+/* 포스터가 없는 콘텐츠는 카드 안에 포스터 자리 대신 플레이스홀더를 채워
+   그리드 정렬이 흐트러지지 않게 한다 */
+.sub-calc-result-platform__content-link:not(:has(.sub-calc-result-platform__content-poster))::before {
+  content: "";
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  background: var(--sc-media-bg, #2a2a40);
+}
+
+.sub-calc-result-platform__content-name {
+  min-width: 0;
+  color: var(--sc-text-primary, #fff);
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .sub-calc-result-total {
@@ -721,6 +818,17 @@ a.sub-calc-calculate-btn {
     font-size: 13px;
   }
 
+  /* 좁은 화면에서는 플랫폼 카드 안의 콘텐츠 그리드 열 폭을 줄여 한 줄에
+     더 촘촘하게 배치한다 */
+  .sub-calc-result-platform__content-list {
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 6px;
+  }
+
+  .sub-calc-result-platform__content-name {
+    font-size: 10px;
+  }
+
   .sub-calc-result-total strong {
     font-size: 19px;
   }
@@ -761,5 +869,19 @@ a.sub-calc-calculate-btn {
 
   .sub-calc-result-total strong {
     font-size: 17px;
+  }
+
+  /* 가장 좁은 화면에서는 플랫폼별 콘텐츠 카드를 3열로 촘촘하게 배치한다 */
+  .sub-calc-result-platform__content-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .sub-calc-result-platform__content-link {
+    padding: 5px 5px 6px;
+  }
+
+  .sub-calc-result-platform__content-name {
+    font-size: 10.5px;
   }
 }
