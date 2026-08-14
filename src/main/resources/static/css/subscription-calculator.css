@@ -180,7 +180,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
-  align-items: start;
+  /* =========================================================
+     [OTT 구독 조합 계산기 - 좌우 패널 높이 통일]
+     검색 영역과 결과 영역이 같은 높이로 표시되도록 한다.
+     ========================================================= */
+  align-items: stretch;
 }
 
 @media (max-width: 860px) {
@@ -196,6 +200,13 @@
   border-radius: var(--sc-radius);
   box-shadow: var(--sc-shadow-card);
   padding: 24px;
+  /* =========================================================
+     [OTT 구독 조합 계산기 - 좌우 패널 공통 높이]
+     PC 화면에서 검색 영역과 결과 영역의 기본 높이를
+     동일하게 유지한다.
+     ========================================================= */
+  min-height: 320px;
+  height: 100%;
 }
 
 /* =========================
@@ -418,7 +429,6 @@
 ========================= */
 
 .sub-calc-result-panel {
-  min-height: 320px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -604,7 +614,9 @@ a.sub-calc-calculate-btn {
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.35;
-  transition: background var(--sc-transition), color var(--sc-transition);
+  transition:
+    background var(--sc-transition),
+    color var(--sc-transition);
 }
 
 .sub-calc-save-btn:hover:not(:disabled) {
@@ -665,6 +677,9 @@ a.sub-calc-calculate-btn {
   .sub-calc-search-panel,
   .sub-calc-result-panel {
     padding: 20px;
+    /* 모바일에서는 각 영역의 콘텐츠 높이에 맞춰 표시 */
+    min-height: 0;
+    height: auto;
   }
 
   .sub-calc-hero {
