@@ -974,7 +974,26 @@
 
   gap: 16px;
 
+  /* [수정] 라이트/다크 모드 토글 버튼을 header-container의 직계 자식으로
+     옮기면서(모바일에서 햄버거 버튼 옆에 두기 위해) header-right보다 소스
+     순서상 뒤로 밀렸다. order로 다시 맨 뒤에 배치해 데스크톱 화면은
+     기존과 동일하게 유지한다. 검색창과의 간격(원래 margin-left: 35px)은
+     아래 theme-toggle-btn의 margin-left로 옮겼다 — 그대로 두면 토글
+     버튼과 알림 아이콘 사이에 붙어 토글만 유독 멀어 보인다. */
+  order: 6;
+}
+
+/* [수정] header-container 직계 자식으로 옮긴 라이트/다크 모드 토글 버튼.
+   데스크톱에서는 header-nav/header-search(둘 다 기본 order 0)보다 뒤,
+   header-right(order 6)보다는 앞에 오도록 해서 원래 header-right 맨 앞에
+   있던 위치와 동일하게 보이게 한다. margin-left는 검색창과의 구간 간격
+   (header-right가 쓰던 35px), margin-right는 알림 아이콘과의 간격을
+   header-right 내부 gap(16px)과 맞춘 값이다 — 프로필/장바구니/알림
+   아이콘들 사이 간격과 토글-알림 간격이 똑같아지도록. */
+.theme-toggle-btn {
+  order: 5;
   margin-left: 35px;
+  margin-right: 16px;
 }
 
 /* =========================================================
@@ -1151,7 +1170,8 @@
   animation: fadeUp 0.25s ease;
 }
 
-.profile-dropdown a {
+.profile-dropdown a,
+.profile-dropdown-theme-toggle {
   display: block;
 
   padding: 14px 20px;
@@ -1163,10 +1183,32 @@
   transition: var(--transition);
 }
 
-.profile-dropdown a:hover {
+.profile-dropdown a:hover,
+.profile-dropdown-theme-toggle:hover {
   background: var(--color-hover-surface);
 
   color: var(--color-pure-white);
+}
+
+/* [추가] 프로필 드롭다운 안의 라이트/다크 모드 전환 항목.
+   버튼 태그라 <a>들과 달리 기본 정렬/테두리가 없어 별도 지정하고,
+   width:100%로 다른 링크와 같은 폭을 갖게 한다. 데스크톱에는 이미
+   header-right 아이콘 토글이 있으므로 여기서는 숨기고, 992px 이하
+   모바일에서만 보이게 한다(아래 미디어쿼리).
+   margin/order는 0으로 리셋한다 — js/theme-toggle.js 위임 클릭을 위해
+   .theme-toggle-btn 클래스를 헤더 아이콘 버튼과 공유하는데, 그 클래스에
+   header-container 배치용 order/margin-left/-right가 걸려 있어 그대로
+   두면 드롭다운 안에서도 새어 들어와 폭이 어긋난다. */
+.profile-dropdown-theme-toggle {
+  display: none;
+  width: 100%;
+  margin: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  order: 0;
 }
 
 .profile-dropdown hr {
@@ -1276,6 +1318,21 @@
     order: -2;
     margin-left: 0;
     margin-right: 12px;
+  }
+
+  /* [수정] 라이트/다크 모드 전환은 모바일에서 프로필 드롭다운 안의
+     항목(.profile-dropdown-theme-toggle)으로 대체했으므로, 헤더 아이콘은
+     여기서 숨긴다. 드롭다운 쪽 항목도 클래스는 .theme-toggle-btn을
+     공유하지만(js/theme-toggle.js 위임 클릭용) id가 없는 별개 요소라
+     #themeToggleBtn만 콕 집어 숨기면 영향이 없다. */
+  #themeToggleBtn {
+    display: none;
+  }
+
+  /* [추가] 프로필 드롭다운의 라이트/다크 모드 전환 항목은 992px 이하
+     모바일에서만 노출한다. */
+  .profile-dropdown-theme-toggle {
+    display: block;
   }
 
   .header-left {

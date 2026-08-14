@@ -13,12 +13,61 @@
 
    기본값은 다크 모드이며(js/theme-toggle.js 참고), 사용자가 헤더의
    토글 버튼을 눌러야만 이 파일의 규칙이 적용됩니다.
+
+   ---------------------------------------------------------
+   작성 규칙 (여러 명이 이어서 작업하므로 반드시 지킬 것)
+   ---------------------------------------------------------
+   1. 원본이 변수로 칠하는 값이면 선택자를 복제하지 말고
+      `html[data-theme="light"] { --변수: 값; }`으로 변수만 재정의한다.
+      선택자 복제는 그 선택자를 쓰는 "모든 페이지"에 영향을 줘서,
+      실제로 body 배경이 본인인증 페이지 값으로 전 페이지에 새는
+      사고가 있었다(아래 1번과 3번, 25번 섹션 참고).
+   2. 주석 안에서 변수명을 나열할 때 별표 바로 뒤에 슬래시를 붙이지 말 것
+      (예: --foo-＊/--bar 처럼 쓰면 안 된다 — 여기서는 안전하도록 전각
+      별표로 적었다). 별표와 슬래시가 붙으면 주석 종료 기호가 되어 주석이
+      거기서 끝나고, 뒤따르는 변수 블록 전체가 잘못된 선택자로 간주돼
+      통째로 무시된다. 반드시 `--foo-* / --bar`처럼 사이에 공백을 넣는다.
+      실제로 이 사고로 3-1번과 29번, 30번 섹션의 변수 85개가 화면에
+      적용되지 않고 있었다.
+   3. 브랜드색·의미 고정색(OTT 로고색, 랭킹 금은동, 연령등급 배지,
+      위험/성공색), 순수 검정 그림자와 모달 딤, 이미지·포스터 위에
+      얹히는 스크림은 재정의하지 않고 다크 값을 그대로 상속한다.
+   4. 공용 라이트 톤(아래)과 같은 역할이면 값을 새로 만들지 말고 맞춘다.
+        페이지 배경 #f4f5f7 · 카드/표면 #ffffff · 은은한 패널 #f5f6f8
+        칩/버튼 배경 #eceef1 · hover #e3e6ea · 기본 보더 #dde1e6
+        본문 텍스트 #14181c · 보조 #454b53 · 흐린 텍스트 #6b7178
+        흰색 반투명 오버레이는 같은 알파의 rgba(20, 24, 28, α)로 반전
+
+   ---------------------------------------------------------
+   섹션 목차 (번호는 작업 순서라 파일 순서와 다름 — 이 목차 기준으로 찾을 것)
+   ---------------------------------------------------------
+   1) layout      2) common      3) oditji     3-1) oditji 잔여
+   4) order       5) chat-common 18) chat-common 나머지
+   6) admin/business  7) search   8) event      9) ott-discount
+   10) subscription-calculator   11) 테마 토글 버튼
+   13) chat-create-room / chat-room-list(검토만)  14) layout 나머지
+   15) pagination-common  12) 하드코딩 파일 안내  23) cart
+   16) release-calendar   17) error   19) component   20) chat-room
+   21) report   22) favorite   24) payment   25) verify
+   26) content-more   27) review   28) event 나머지
+   29) content-list-modern   30) main   31) content   32) member
+   33) order 나머지   34) goods   35) business 나머지   36) mypage
+
+   같은 원본 파일이 두 번호에 나뉘어 있는 경우가 있다(layout 1과 14,
+   chat-common 5와 18, event 8과 28, order 4와 33, oditji 3과 3-1,
+   admin/business 6과 35). 값을 고칠 때는 두 곳을 모두 확인할 것.
 ========================================================= */
 
 /* =========================================================
    1) layout.css 대응 - 전역 리셋/스크롤바/기본 배경
 ========================================================= */
 html[data-theme="light"] {
+  --layout-scrollbar-thumb: #c7ccd3;
+  --layout-scrollbar-track: #eef0f3;
+  --layout-scrollbar-thumb-hover: #aeb4bd;
+  --layout-body-bg: #f4f5f7;
+  --layout-body-text: #14181c;
+
   scrollbar-color: #c7ccd3 #eef0f3;
 }
 
@@ -35,10 +84,14 @@ html[data-theme="light"]::-webkit-scrollbar-thumb:hover {
   background: #aeb4bd;
 }
 
-html[data-theme="light"] body {
-  background: #f4f5f7;
-  color: #14181c;
-}
+/* [감사 수정] 예전에는 여기서 body 선택자를 그대로 복제해
+   background/color를 덮어썼는데, layout.css의 body는 이미
+   var(--layout-body-bg) / var(--layout-body-text)로 칠하고 있어
+   위 변수 재정의만으로 충분하다. 오히려 이 규칙이
+   html[data-theme="light"] body(명시도 0-1-2)로 각 페이지 전용 body
+   배경(oditji.css / verify.css / content-more.css / main.css, 전부
+   명시도 0-0-1)을 눌러버려서 페이지별 배경이 무시되고 있었다. 그래서
+   삭제하고 변수 재정의로 일원화했다. */
 
 /* =========================================================
    2) common.css 대응 - 헤더/내비게이션 공통 토큰
@@ -60,6 +113,59 @@ html[data-theme="light"] {
   --color-gray2: #6b7178;
 
   --color-point: #3f7ae0;
+
+  /* 33번 단계 추가분(26번 배치, common.css 나머지).
+     --color-point-strong/-hover, --color-point-a15/25/35, badge-hot/
+     -danger/-info, --color-danger-text/-hover-bg/-hover-text는 브랜드·
+     시맨틱 고정색이라 재정의 없음. --color-shadow-35/36/38/40은 순수
+     검정 그림자라 재정의 없음.
+     --color-pure-white도 --color-white와 마찬가지로 실제로는 "밝은
+     텍스트" 용도로 훨씬 많이 쓰이고 있어 다크로 반전합니다. 유일하게
+     진짜 흰 배경이 필요한 .skip-link만 아래에서 선택자로 예외 처리.
+     --color-period-tab-*은 favorite.css --fav-tab2-* / search.css
+     --search-tab-active-*와 동일한 "밝은 색 = 활성 상태" 패턴이라
+     같은 원리로 반전. */
+  --color-pure-white: #14181c;
+  --color-header-bg: rgba(255, 255, 255, 0.92);
+  /* [감사 수정] --color-overlay-bg(모달 딤)는 다크 값과 완전히 같은 값을
+     다시 선언하고 있었다. 규칙 2대로 순수 검정 오버레이는 재정의 대상이
+     아니므로 선언을 지우고 다크 값을 그대로 상속받는다. */
+  --color-dropdown-bg: #ffffff;
+  --color-nav-hover-bg: rgba(20, 24, 28, 0.06);
+  --color-hover-surface: #eceef1;
+  --color-profile-btn-hover-bg: #eceef1;
+  --color-link-soft: #3f7ae0;
+  --color-mobile-panel-bg: #ffffff;
+  --color-mobile-submenu-bg: #f4f5f7;
+  --color-mobile-category-submenu-bg: #eceef1;
+  --color-scrollbar-thumb: #c7ccd3;
+  --color-scrollbar-thumb-alt: #c2c7cf;
+  --color-notification-divider: rgba(20, 24, 28, 0.12);
+  --color-footer-bg: #f4f5f7;
+  --color-footer-border: #dde1e6;
+  --color-footer-text: #454b53;
+  --color-footer-text-strong: #26282c;
+  --color-footer-text-muted: #6b7178;
+  --color-footer-text-faint: #9aa0a8;
+  --color-period-tab-bg: rgba(20, 24, 28, 0.035);
+  --color-period-tab-border: rgba(20, 24, 28, 0.12);
+  --color-period-tab-text: #6b7178;
+  --color-period-tab-hover-bg: rgba(20, 24, 28, 0.07);
+  --color-period-tab-hover-border: rgba(20, 24, 28, 0.34);
+  --color-period-tab-active-border: rgba(20, 24, 28, 0.62);
+  --color-period-tab-active-grad-start: #2a2d33;
+  --color-period-tab-active-grad-end: #14181c;
+  --color-period-tab-active-text: #eaecee;
+  --color-period-tab-active-shadow: rgba(20, 24, 28, 0.08);
+  --color-period-tab-focus-ring: rgba(20, 24, 28, 0.6);
+}
+
+/* --color-pure-white을 다크로 반전해도 본문 바로가기(.skip-link)만은
+   "항상 밝은 배경 + 어두운 텍스트"인 고정 접근성 패턴을 유지해야 하므로
+   선택자로 예외 처리(규칙 3의 예외 조항). */
+html[data-theme="light"] .skip-link {
+  background: #ffffff;
+  color: #181818;
 }
 
 /* 헤더 배경(반투명 다크)을 반투명 화이트로 */
@@ -110,11 +216,17 @@ html[data-theme="light"] {
   --line-strong: rgba(20, 24, 28, 0.18);
 }
 
-html[data-theme="light"] body {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(20, 24, 28, 0.04), transparent 28%),
-    radial-gradient(circle at 85% 8%, rgba(20, 24, 28, 0.03), transparent 24%),
-    linear-gradient(180deg, #fbfcfd 0%, #f5f6f8 48%, #f2f3f5 100%);
+/* [감사 수정] oditji.css의 body는 --body-glow-1 과 -2, --body-grad-1 과 -2 와
+   -3 다섯 개 변수로 그러데이션을 만든다. 예전에는 여기서 body 선택자를
+   복제해 같은 그러데이션을 하드코딩했는데(값은 아래와 동일), 그러면
+   oditji.css를 안 쓰는 페이지의 body 배경까지 덮어쓴다. 변수 재정의로 바꿔
+   랭킹 페이지에만 적용되도록 범위를 좁혔다. */
+html[data-theme="light"] {
+  --body-glow-1: rgba(20, 24, 28, 0.04);
+  --body-glow-2: rgba(20, 24, 28, 0.03);
+  --body-grad-1: #fbfcfd;
+  --body-grad-2: #f5f6f8;
+  --body-grad-3: #f2f3f5;
 }
 
 /* --white를 텍스트 강조색으로 쓰는 자리들(버튼/배지 배경으로 쓰는
@@ -124,6 +236,16 @@ html[data-theme="light"] .more-link:hover,
 html[data-theme="light"] .side-menu a.active,
 html[data-theme="light"] .side-menu a:hover,
 html[data-theme="light"] .ranking-tab-button:hover {
+  color: var(--text);
+}
+
+/* [QA 수정] .ranking-tab-button.active는 hover와 별도 규칙이라 위 목록에서
+   빠져 있었다. --accent-blue-a16(옅은 파랑 틴트)은 다크 모드에서는 어두운
+   페이지 배경과 섞여 거의 검정에 가까워져 흰 글자가 잘 보이지만, 라이트
+   모드에서는 흰 페이지 배경과 섞여 거의 흰색에 가까워져 흰 글자(--white)가
+   그 위에서 사실상 안 보였다. 활성 랭킹 탭(티빙/웨이브 등)도 같은 이유로
+   다크 텍스트로 전환. */
+html[data-theme="light"] .ranking-tab-button.active {
   color: var(--text);
 }
 
@@ -152,13 +274,50 @@ html[data-theme="light"] .avatar {
 }
 
 /* =========================================================
+   3-1) oditji.css 잔여 대응 (2구간 묶음4)
+   --header-bg/--panel-translucent는 일반 UI 표면(상단 고정 헤더, 필터/결과/
+   상세 패널)이라 반전. --overlay-04~-1 8종은 아이콘버튼/피처카드/결과카드/
+   태그/워치카드/사이드메뉴/통계카드/테이블헤더/랭킹탭 등 일반 카드·호버
+   표면에 쓰이는 흰색 반투명이라, 기존 .side-menu/.ott-badge와 동일하게
+   rgba(20, 24, 28, 같은 알파)로 반전했다. --text-faint/-dim/-subtle은
+   다크 모드 명도 순서(밝을수록 눈에 띔)를 반전해 배치했다(제안값 — 화면
+   대비 확인 필요).
+   --hero-scrim-1~3(히어로 배경 이미지 위 스크림), --search-box-bg(히어로
+   이미지 위에 뜨는 검색창 글래스 표면), --rank-number-fill/-stroke(포스터
+   이미지 위에 걸치는 랭킹 숫자), --poster-frame-bg/--empty-border(포스터
+   자리표시자·빈 상태 테두리, 중립 배경으로 설계된 고정값), --platform-logo-bg
+   (OTT 로고 배경판), --accent-blue 계열(활성 탭 강조색, 고정 포인트 컬러),
+   --radius-* / --max-width(색상 아님), --shadow* / -a30/-a45/-a55(순수 검정),
+   --btn-primary-hover-bg(흰색 필 버튼 자체의 고정 호버색), --danger* / --star /
+   --rank-gold·silver·bronze* / --score-gold/--type-*-bg/--ott-*(브랜드·의미
+   고정색)는 재정의 없이 유지했다.
+========================================================= */
+html[data-theme="light"] {
+  --header-bg: rgba(247, 248, 250, 0.78);
+  --panel-translucent: rgba(255, 255, 255, 0.78);
+
+  --overlay-04: rgba(20, 24, 28, 0.04);
+  --overlay-045: rgba(20, 24, 28, 0.045);
+  --overlay-06: rgba(20, 24, 28, 0.06);
+  --overlay-07: rgba(20, 24, 28, 0.07);
+  --overlay-08: rgba(20, 24, 28, 0.08);
+  --overlay-1: rgba(20, 24, 28, 0.1);
+  --overlay-025: rgba(20, 24, 28, 0.025);
+  --overlay-035: rgba(20, 24, 28, 0.035);
+
+  --text-dim: #5a6069;
+  --text-faint: #70767f;
+  --text-subtle: #767c86;
+}
+
+/* =========================================================
    4) order.css 대응 - 주문/결제 페이지 토큰
 ========================================================= */
 html[data-theme="light"] {
   --oditji-bg: #f4f5f7;
   --oditji-surface: #ffffff;
   --oditji-surface-raised: #f2f3f5;
-  --oditji-border: #dee1e6;
+  --oditji-border: #dde1e6;
   --oditji-text: #14181c;
   --oditji-text-muted: #5a6069;
   --oditji-text-faint: #767c86;
@@ -187,6 +346,18 @@ html[data-theme="light"] {
 }
 
 /* =========================================================
+   18) chat-common.css 나머지 변수(--kakao-*) 검토
+   --kakao-yellow/-dark/-deep, --kakao-mine-bubble/-text(카카오톡
+   말풍선 브랜드 옐로우), --kakao-danger/--kakao-success(의미 고정
+   빨강/초록), --kakao-yellow-glow(옐로우 FAB 그림자), --kakao-overlay/
+   --kakao-sheet-shadow(순수 검정 오버레이·그림자)는 모두 브랜드색·
+   의미고정색·검정 그림자라 재정의하지 않습니다(규칙 2).
+   --panel-left/right-width, --dashboard-header-height, --kakao-font,
+   --kakao-radius-*는 색상이 아니므로 대상 제외.
+   → 색상 재정의 없이 검토 완료.
+========================================================= */
+
+/* =========================================================
    6) admin.css / business.css 대응
    (--color-* 토큰은 위 2)에서 이미 자동 적용됩니다. 여기서는
    자체 하드코딩된 값만 보정합니다.)
@@ -197,6 +368,17 @@ html[data-theme="light"] {
 
   --biz-surface-3: #eceef1;
   --biz-border-soft: rgba(20, 24, 28, 0.08);
+
+  /* admin.css 나머지: --adm-surface-1/-2, --adm-text/-sub/-dim, --adm-point,
+     --adm-monitor-panel/card-bg는 --color-*를 참조하므로 2)에서 이미 자동
+     반영됨. --adm-point-strong/-bg, success/warning/danger, grade-*,
+     monitor-member/visitor/order/sales 등은 브랜드·시맨틱 고정색이라
+     재정의 없음. --adm-shadow-sm/-modal, --adm-overlay-bg는 순수 검정
+     그림자·오버레이라 재정의 없음. 아래 모니터링 차트 3개만 카드 표면이
+     밝아지며 함께 반전 필요. */
+  --adm-monitor-grid: rgba(20, 24, 28, 0.07);
+  --adm-monitor-chart-point: #2f6fe4;
+  --adm-monitor-tooltip-bg: rgba(255, 255, 255, 0.97);
 }
 
 /* =========================================================
@@ -213,6 +395,52 @@ html[data-theme="light"] .search-page-container {
   --search-text: #14181c;
   --search-text-soft: #4b525c;
   --search-text-muted: #70767f;
+
+  /* 33번 단계 추가분(26번 배치). --search-yellow/-danger, glow-warm/
+     -cool(초저채도 장식 광원), yellow-glow-*(브랜드 옐로우 글로우),
+     shadow-soft/-tab/-modal, modal-backdrop(순수 검정 그림자·오버레이)는
+     재정의 없음.
+     --search-accent(하이라이트 버튼/텍스트 색)와 --search-ink(그 위
+     텍스트/배경 대응색)는 서로 반대 역할로 쓰이는 짝이라 통째로
+     맞바꿔 반전합니다 — accent를 dark, ink를 white로 바꾸면 버튼도
+     텍스트도 대비가 그대로 유지됩니다.
+     --search-tab-active-gradient-* / -text, --search-hero-gradient-mid,
+     --search-btn-hover-bg도 같은 "밝은 색 = 강조" 반전 원리로 재정의. */
+  --search-accent: #14181c;
+  --search-ink: #ffffff;
+  --search-panel-overlay: rgba(255, 255, 255, 0.97);
+  --search-dark-overlay: rgba(20, 24, 28, 0.035);
+  --search-white-a02: rgba(20, 24, 28, 0.02);
+  --search-white-a018: rgba(20, 24, 28, 0.018);
+  --search-white-a025: rgba(20, 24, 28, 0.025);
+  --search-white-a035: rgba(20, 24, 28, 0.035);
+  --search-white-a055: rgba(20, 24, 28, 0.055);
+  --search-white-a06: rgba(20, 24, 28, 0.06);
+  --search-white-a07: rgba(20, 24, 28, 0.07);
+  --search-white-a08: rgba(20, 24, 28, 0.08);
+  --search-white-a12: rgba(20, 24, 28, 0.12);
+  --search-white-a13: rgba(20, 24, 28, 0.13);
+  --search-white-a15: rgba(20, 24, 28, 0.15);
+  --search-white-a25: rgba(20, 24, 28, 0.25);
+  --search-white-a3: rgba(20, 24, 28, 0.3);
+  --search-white-a34: rgba(20, 24, 28, 0.34);
+  --search-white-a35: rgba(20, 24, 28, 0.35);
+  --search-white-a62: rgba(20, 24, 28, 0.62);
+  --search-white-a8: rgba(20, 24, 28, 0.8);
+  --search-btn-hover-bg: #2a2d33;
+  --search-hero-gradient-mid: #454b53;
+  --search-chip-text: #26282c;
+  --search-chip-close: #6b7178;
+  --search-more-btn-text: #6b7178;
+  --search-modal-bg: #ffffff;
+  --search-modal-close-icon: #6b7178;
+  --search-ott-option-bg: #f4f5f7;
+  --search-ott-option-text: #14181c;
+  --search-ott-option-hover-bg: #eceef1;
+  --search-tab-text: #6b7178;
+  --search-tab-active-gradient-start: #2a2d33;
+  --search-tab-active-gradient-end: #14181c;
+  --search-tab-active-text: #eaecee;
 }
 
 /* =========================================================
@@ -229,8 +457,13 @@ html[data-theme="light"] .event-detail {
 }
 
 /* =========================================================
-   9) ott-discount.css 대응
-   (.ott-discount-section 스코프 로컬 토큰)
+   9) ott-discount.css 대응 (.ott-discount-section 스코프 로컬 토큰)
+   --ott-accent* / --ott-badge-*(브랜드 레드·오렌지), --ott-platform-*
+   (플랫폼 로고색), --ott-accent-summary*(브랜드 민트), --ott-shadow-* /
+   --ott-tag-shadow/--ott-badge-shadow/--ott-modal-dim(순수 검정·
+   브랜드색 그림자)는 재정의 없음. --ott-white-90(로고 배경용 불투명
+   흰색)도 테마 무관하게 유지. 카드 표면이 밝아지며 함께 반전해야
+   하는 텍스트/오버레이/모달 표면만 재정의(25번 배치, 신규).
 ========================================================= */
 html[data-theme="light"] .ott-discount-section {
   --ott-bg-card: #ffffff;
@@ -240,6 +473,20 @@ html[data-theme="light"] .ott-discount-section {
   --ott-bg-hero-end: #ffffff;
   --ott-text-dim: #5a5f72;
   --ott-text-company: #6b7085;
+
+  --ott-text-white: #14181c;
+  --ott-white-05: rgba(20, 24, 28, 0.05);
+  --ott-white-06: rgba(20, 24, 28, 0.06);
+  --ott-white-10: rgba(20, 24, 28, 0.10);
+  --ott-white-12: rgba(20, 24, 28, 0.12);
+  --ott-white-14: rgba(20, 24, 28, 0.14);
+  --ott-white-16: rgba(20, 24, 28, 0.16);
+  --ott-white-28: rgba(20, 24, 28, 0.28);
+  --ott-card-alt-bg: #f4f5f9;
+  --ott-text-muted: #5a5f72;
+  --ott-overlay-72: rgba(255, 255, 255, 0.72);
+  --ott-input-bg: #f4f5f9;
+  --ott-modal-bg-gradient: linear-gradient(165deg, #ffffff 0%, #f4f5f9 100%);
 }
 
 /* =========================================================
@@ -253,6 +500,19 @@ html[data-theme="light"] .sub-calc-section {
   --sc-bg-hero-start: #eef0fb;
   --sc-bg-hero-end: #ffffff;
   --sc-text-dim: #5a5f72;
+
+  /* 33번 단계 추가분: --sc-accent/--sc-accent-hover/--sc-badge-text/
+     --sc-remove-hover는 브랜드(민트 그린/레드) 고정색이라 재정의 없음,
+     --sc-shadow-card는 순수 검정 그림자라 재정의 없음(규칙 2).
+     --sc-radius/--sc-radius-sm/--sc-transition은 색상이 아니라 대상 제외.
+     아래는 카드 배경이 밝아지면서 함께 반전이 필요한 표면/텍스트 계열
+     (제안값 — 스크린샷 QA 필요). */
+  --sc-text-primary: #14181c;
+  --sc-input-bg: #f4f5f9;
+  --sc-dropdown-overlay-alpha: #ffffffcc;
+  --sc-dropdown-overlay: #ffffff;
+  --sc-media-bg: #e7e9ee;
+  --sc-btn-disabled-bg: #d8dbe2;
 }
 
 /* =========================================================
@@ -273,6 +533,48 @@ html[data-theme="light"] .theme-toggle-btn .theme-toggle-icon-light {
   display: block;
 }
 
+/* [추가] 프로필 드롭다운 안의 라이트/다크 모드 전환 항목(모바일 전용)도
+   같은 방식으로 현재 테마와 반대되는 라벨만 보여준다. */
+.theme-toggle-dropdown-label-light {
+  display: none;
+}
+
+html[data-theme="light"] .theme-toggle-dropdown-label-dark {
+  display: none;
+}
+
+html[data-theme="light"] .theme-toggle-dropdown-label-light {
+  display: inline;
+}
+
+/* =========================================================
+   13) chat-create-room.css(--ccr-*) / chat-room-list.css(--crl-*) 검토
+   두 파일의 로컬 변수는 포커스 글로우, 공개방/공지방 배지 색처럼
+   의미가 고정된 브랜드 포인트 컬러라서 라이트/다크 공통으로 유지합니다.
+   (규칙 2: 브랜드 컬러는 재정의 불필요) → 별도 재정의 없이 검토 완료.
+========================================================= */
+
+/* =========================================================
+   14) layout.css 나머지 변수(--layout-*) 대응
+   → 1) 섹션의 스크롤바/바디 배경 리터럴 오버라이드를 변수 재정의로
+   전환하여 통합 완료 (값은 기존과 동일: #c7ccd3/#eef0f3/#aeb4bd/
+   #f4f5f7/#14181c).
+========================================================= */
+
+/* =========================================================
+   15) pagination-common.css 대응 (--page-*)
+========================================================= */
+html[data-theme="light"] {
+  --page-border: rgba(20, 24, 28, 0.12);
+  --page-bg: #ffffff;
+  --page-text: #6b7178;
+  --page-border-hover: rgba(20, 24, 28, 0.28);
+  --page-bg-hover: #eef0f3;
+  --page-active: #14181c;
+  --page-current-text: #ffffff;
+  --page-edge: #6b7178;
+}
+
 /* =========================================================
    12) 아래부터는 기존에 CSS 변수가 없던(하드코딩 색상) 파일들의
    자동 변환 결과입니다. 각 파일의 원본 선택자를 그대로 가져와
@@ -283,1613 +585,43 @@ html[data-theme="light"] .theme-toggle-btn .theme-toggle-icon-light {
 ========================================================= */
 
 /* =========================================================
-   cart.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   23) cart.css 대응 (--cart-*)
+   기존 자동 변환(선택자 기반) 값을 변수 재정의로 이동, 값은 동일
+   유지(규칙 1). --cart-discount/--cart-checkout-bg/-hover(브랜드
+   빨강·파랑)는 재정의 없음. --cart-muted/-desc/-business-text/
+   -original-price/-delete-btn-text/-option-text/-warning은 기존
+   결정값이 없어 이번에 새로 제안(제안값 — QA 필요).
 ========================================================= */
-
-html[data-theme="light"] .cart-header h1 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .continue-shopping-btn {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.035);
-  color: #5a5f68;
-}
-
-html[data-theme="light"] .continue-shopping-btn:hover {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: rgba(13, 13, 13, 0.07);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cart-toolbar {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .cart-select-all {
-  color: #222222;
-}
-
-html[data-theme="light"] .cart-select-all input,
-html[data-theme="light"] .cart-item-check {
-  accent-color: #0d0d0d;
-}
-
-html[data-theme="light"] .delete-selected-btn {
-  color: #666666;
-}
-
-html[data-theme="light"] .delete-selected-btn:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cart-item {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .cart-item.is-unavailable {
-  background: #e8e8e8;
-}
-
-html[data-theme="light"] .cart-item-image {
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .cart-no-image {
-  color: #999999;
-}
-
-html[data-theme="light"] .cart-item-name {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cart-sale-price strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cart-status-message.error {
-  color: #a31922;
-}
-
-html[data-theme="light"] .cart-quantity {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-}
-
-html[data-theme="light"] .quantity-btn {
-  background: #dbdbdb;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .quantity-btn:hover {
-  background: #cccccc;
-}
-
-html[data-theme="light"] .quantity-btn:disabled {
-  color: #999999;
-}
-
-html[data-theme="light"] .quantity-input {
-  border-right: 1px solid rgba(13, 13, 13, 0.08);
-  border-left: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e7e7e7;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .quantity-input:disabled {
-  color: #999999;
-}
-
-html[data-theme="light"] .cart-item-total strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cart-delete-btn:hover {
-  color: #a31922;
-}
-
-html[data-theme="light"] .summary-box {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .summary-box h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .summary-row {
-  color: #555555;
-}
-
-html[data-theme="light"] .summary-row strong {
-  color: #111111;
-}
-
-html[data-theme="light"] .summary-divider {
-  background: rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .summary-row.total span {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .summary-row.total strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .checkout-btn {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .checkout-btn:disabled {
-  background: #cccccc;
-  color: #636363;
-}
-
-html[data-theme="light"] .empty-cart {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .empty-cart h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .empty-cart-link {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .cart-item-option {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.06);
-  color: #363636;
-}
-
-html[data-theme="light"] .cart-item-option .option-label {
-  color: #0d0d0d;
-}
-
-@media (max-width: 760px) {
-  html[data-theme="light"] .cart-item-actions {
-    border-top: 1px solid rgba(13, 13, 13, 0.06);
-  }
-}
-
-
-/* =========================================================
-   component.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
-========================================================= */
-
-html[data-theme="light"] .result-count {
-  color: #5f5f5f;
-}
-
-html[data-theme="light"] .card-item {
-  background: #e1e1e1;
-}
-
-html[data-theme="light"] .no-img {
-  background: #f0f0f0;
-}
-
-html[data-theme="light"] .fav-btn {
-  background: rgba(245, 245, 245, 0.55);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .fav-btn:hover {
-  background: rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .page-btn {
-  background: #dddddd;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-item {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e1e1e1;
-}
-
-html[data-theme="light"] .review-meta {
-  color: #565656;
-}
-
-html[data-theme="light"] .review-meta .writer {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-meta .rating {
-  color: #b58b00;
-}
-
-html[data-theme="light"] .review-item .review-content {
-  color: #0d0d0d !important;
-  -webkit-text-fill-color: #0d0d0d;
-}
-
-html[data-theme="light"] .score-box {
-  color: #252525;
-}
-
-html[data-theme="light"] .score-box .score-tmdb {
-  color: #252525;
-}
-
-html[data-theme="light"] .score-box .score-divider {
-  color: #aaaaaa;
-}
-
-
-/* =========================================================
-   content.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
-========================================================= */
-
-html[data-theme="light"] .card-poster {
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .card-meta {
-  color: #656565;
-}
-
-html[data-theme="light"] .content-card__fav-btn {
-  background: rgba(245, 245, 245, 0.55);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-hero-scrim {
-  background: linear-gradient(100deg, rgba(245, 245, 245, 0.32), rgba(245, 245, 245, 0) 55%), linear-gradient(180deg, rgba(245, 245, 245, 0.3) 0%, rgba(243, 243, 243, 0.82) 65%, #e7e7e7 100%);
-}
-
-html[data-theme="light"] .content-detail-card {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: linear-gradient(135deg, rgba(13, 13, 13, 0.07), rgba(13, 13, 13, 0.015) 45%, rgba(235, 235, 235, 0.86));
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .content-detail-card .detail-poster {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(13, 13, 13, 0.02);
-}
-
-html[data-theme="light"] .info-box .title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-age-rating-badge {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-all {
-  background: #7ad0a5;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-age12 {
-  background: #e9b547;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-unknown {
-  background: #99a0aa;
-}
-
-html[data-theme="light"] .content-view-count {
-  color: #656565;
-}
-
-html[data-theme="light"] .info-box .meta {
-  color: #4f4f4f;
-}
-
-html[data-theme="light"] .meta-chip {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: rgba(13, 13, 13, 0.06);
-  color: #222222;
-}
-
-html[data-theme="light"] .meta-chip--date {
-  border-color: rgba(13, 13, 13, 0.08);
-  color: #656565;
-}
-
-html[data-theme="light"] .info-box .genre {
-  color: #484848;
-}
-
-html[data-theme="light"] .genre-label {
-  background: rgba(13, 13, 13, 0.08);
-  color: #121212;
-}
-
-html[data-theme="light"] .detail-desc,
-html[data-theme="light"] .overview {
-  color: #252525;
-}
-
-html[data-theme="light"] .score-badge {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: rgba(13, 13, 13, 0.045);
-}
-
-html[data-theme="light"] .score-badge--tmdb .score-badge-icon {
-  color: #b58b00;
-}
-
-html[data-theme="light"] .score-badge--user .score-badge-icon {
-  color: #14161a;
-}
-
-html[data-theme="light"] .score-badge-text em {
-  color: #636363;
-}
-
-html[data-theme="light"] .score-badge-text strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .score-badge--tmdb {
-  border-color: rgba(181, 139, 0, 0.3);
-  background: rgba(181, 139, 0, 0.09);
-}
-
-html[data-theme="light"] .score-badge--tmdb .score-badge-text strong {
-  color: #b58b00;
-}
-
-html[data-theme="light"] .score-badge--user {
-  border-color: rgba(13, 13, 13, 0.16);
-  background: rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .btn {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .btn:hover {
-  background: #c5c5c5;
-  border-color: rgba(13, 13, 13, 0.24);
-}
-
-html[data-theme="light"] .action-box .detail-favorite-btn {
-  border-color: rgba(13, 13, 13, 0.18);
-  background: rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .action-box .detail-favorite-btn.is-active {
-  border-color: rgba(163, 0, 18, 0.55);
-  background: linear-gradient(135deg, #a30012, #b8222f);
-  color: #0d0d0d;
-  box-shadow: 0 12px 26px rgba(184, 0, 16, 0.32);
-}
-
-html[data-theme="light"] .action-box #scrollReviewWriteBtn {
-  border-color: rgba(13, 13, 13, 0.22);
-  color: #151515;
-}
-
-html[data-theme="light"] .action-box #scrollReviewWriteBtn:hover {
-  background: rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .detail-section h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-section h2::before {
-  background: linear-gradient(180deg, #0d0d0d, rgba(13, 13, 13, 0.2));
-}
-
-html[data-theme="light"] .goods-card {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e1e1e1;
-}
-
-html[data-theme="light"] .goods-card:hover {
-  border-color: rgba(13, 13, 13, 0.2);
-}
-
-html[data-theme="light"] .goods-info .price {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .more-btn {
-  border: 1px solid rgba(13, 13, 13, 0.16);
-  color: #222222;
-}
-
-html[data-theme="light"] .more-btn:hover {
-  border-color: rgba(13, 13, 13, 0.4);
-  background: rgba(13, 13, 13, 0.06);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-item:hover {
-  border-color: rgba(13, 13, 13, 0.16);
-}
-
-html[data-theme="light"] .review-avatar {
-  background: linear-gradient(135deg, #c3c3c3, #e3e3e3);
-  color: #191919;
-}
-
-html[data-theme="light"] .review-form {
-  background: #e1e1e1;
-  border: 1px solid rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .review-form textarea {
-  background: #eeeeee;
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-form textarea:focus {
-  border-color: rgba(13, 13, 13, 0.35);
-}
-
-html[data-theme="light"] .rating-box {
-  color: #555555;
-}
-
-html[data-theme="light"] .rating-box input {
-  background: #eeeeee;
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .rating-box input:focus {
-  border-color: rgba(13, 13, 13, 0.35);
-}
-
-html[data-theme="light"] .people-group h3 {
-  color: #282828;
-}
-
-html[data-theme="light"] .person-card {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .person-card:hover {
-  border-color: rgba(13, 13, 13, 0.18);
-  background: #dbdbdb;
-}
-
-html[data-theme="light"] .person-profile {
-  background: #efefef;
-  box-shadow: 0 0 0 2px rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .person-card:hover .person-profile {
-  box-shadow: 0 0 0 2px rgba(13, 13, 13, 0.22);
-}
-
-html[data-theme="light"] .person-no-image,
-html[data-theme="light"] .person-hero-no-image,
-html[data-theme="light"] .filmography-no-image {
-  background: #efefef;
-}
-
-html[data-theme="light"] .person-info strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .person-hero {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: linear-gradient(135deg, rgba(13, 13, 13, 0.07), rgba(13, 13, 13, 0.015) 45%, rgba(235, 235, 235, 0.86));
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .person-hero-profile {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #efefef;
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(13, 13, 13, 0.02);
-}
-
-html[data-theme="light"] .person-role-badge {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .person-hero-info h1 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .person-basic-info {
-  color: #666666;
-}
-
-html[data-theme="light"] .person-biography {
-  color: #333333;
-}
-
-html[data-theme="light"] .filmography-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .filmography-header h2::before {
-  background: linear-gradient(180deg, #0d0d0d, rgba(13, 13, 13, 0.2));
-}
-
-html[data-theme="light"] .filmography-card {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e5e5e5;
-}
-
-html[data-theme="light"] .filmography-poster {
-  background: #efefef;
-}
-
-html[data-theme="light"] .filmography-type {
-  background: rgba(245, 245, 245, 0.72);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .filmography-info h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .filmography-participation {
-  color: #555555;
-}
-
-html[data-theme="light"] .back-btn {
-  color: #222222;
-}
-
-html[data-theme="light"] .filmography-tabs {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.09);
-}
-
-html[data-theme="light"] .filmography-tab-button {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.035);
-  color: #5a5f68;
-}
-
-html[data-theme="light"] .filmography-tab-button:hover {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: rgba(13, 13, 13, 0.07);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .filmography-tab-button:focus-visible {
-  outline: 2px solid rgba(13, 13, 13, 0.8);
-}
-
-html[data-theme="light"] .filmography-tab-button.is-active {
-  border-color: rgba(13, 13, 13, 0.62);
-  background: linear-gradient(180deg, #0e0e0f, #3a3c40);
-  color: #e9eaee;
-  box-shadow: 0 0 18px rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .filmography-tab-button.is-active:hover {
-  border-color: rgba(13, 13, 13, 0.8);
-  background: linear-gradient(180deg, #0d0d0d, #27282b);
-  color: #e9eaee;
-}
-
-html[data-theme="light"] .filmography-role-label {
-  background: rgba(13, 13, 13, 0.08);
-  color: #2b2b2b;
-}
-
-html[data-theme="light"] .filmography-role-value {
-  color: #4a4a4a;
-}
-
-html[data-theme="light"] .recommend-sidebar {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .recommend-sidebar-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .recommend-sidebar-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-carousel-button {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #dddddd;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-carousel-button:hover {
-  background: #cfcfcf;
-}
-
-html[data-theme="light"] .recommend-poster {
-  background: #efefef;
-}
-
-html[data-theme="light"] .recommend-no-image {
-  background: #efefef;
-}
-
-html[data-theme="light"] .recommend-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-meta {
-  color: #666666;
-}
-
-html[data-theme="light"] .ott-section h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-section h2::before {
-  background: linear-gradient(180deg, #0d0d0d, rgba(13, 13, 13, 0.2));
-}
-
-html[data-theme="light"] .ott-platform-item {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: rgba(13, 13, 13, 0.05);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-platform-item:hover {
-  border-color: rgba(13, 13, 13, 0.32);
-  background: #d8d8d8;
-}
-
-html[data-theme="light"] .ott-platform-item:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .ott-platform-logo-wrap {
-  background: #efefef;
-}
-
-html[data-theme="light"] .ott-platform-item:hover .ott-platform-link-icon {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .related-content-card {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e5e5e5;
-}
-
-html[data-theme="light"] .related-content-card:hover {
-  border-color: rgba(13, 13, 13, 0.28);
-}
-
-html[data-theme="light"] .related-content-poster {
-  background: #efefef;
-}
-
-html[data-theme="light"] .related-content-score-badge {
-  background: rgba(245, 245, 245, 0.72);
-  color: #b58b00;
-}
-
-html[data-theme="light"] .related-content-no-image {
-  background: #efefef;
-}
-
-html[data-theme="light"] .related-content-type {
-  background: rgba(245, 245, 245, 0.75);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .related-content-info h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .related-content-meta {
-  color: #555555;
-}
-
-html[data-theme="light"] .related-content-reason {
-  --reason-color: #646464;
-  --reason-background: rgba(100, 100, 100, 0.1);
-  border-top: 1px solid rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .related-content-reason.reason-director {
-  --reason-color: #1d0058;
-  --reason-background: rgba(29, 0, 88, 0.1);
-}
-
-html[data-theme="light"] .related-content-reason.reason-cast {
-  --reason-color: #854300;
-  --reason-background: rgba(133, 67, 0, 0.1);
-}
-
-html[data-theme="light"] .related-content-reason.reason-main-genre {
-  --reason-color: #22877c;
-  --reason-background: rgba(34, 135, 124, 0.1);
-}
-
-html[data-theme="light"] .related-content-reason.reason-genre {
-  --reason-color: #4a7a26;
-  --reason-background: rgba(74, 122, 38, 0.1);
-}
-
-html[data-theme="light"] .related-content-reason.reason-category {
-  --reason-color: #4a4e56;
-  --reason-background: rgba(74, 78, 86, 0.1);
-}
-
-html[data-theme="light"] .related-content-empty {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .content-provider-select-btn {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #dddddd;
-  color: #222222;
-}
-
-html[data-theme="light"] .content-provider-select-btn:hover {
-  border-color: rgba(13, 13, 13, 0.28);
-  background: #d4d4d4;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-provider-select-btn:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .content-provider-summary {
-  color: #666666;
-}
-
-html[data-theme="light"] .content-ott-modal-backdrop {
-  background: rgba(245, 245, 245, 0.82);
-}
-
-html[data-theme="light"] .content-ott-modal-dialog {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #e2e2e2;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(13, 13, 13, 0.03);
-}
-
-html[data-theme="light"] .content-ott-modal-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .content-ott-modal-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-close-btn {
-  color: #555555;
-}
-
-html[data-theme="light"] .content-ott-modal-close-btn:hover {
-  background: rgba(13, 13, 13, 0.08);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-all-option {
-  border-color: rgba(13, 13, 13, 0.15);
-  background: #dadada;
-}
-
-html[data-theme="light"] .content-ott-modal-option {
-  border: 1px solid rgba(13, 13, 13, 0.09);
-  background: #dfdfdf;
-  color: #333333;
-}
-
-html[data-theme="light"] .content-ott-modal-option:hover {
-  border-color: rgba(13, 13, 13, 0.2);
-  background: #d7d7d7;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-option:has(input:checked) {
-  border-color: rgba(13, 13, 13, 0.44);
-  background: #cfcfcf;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-option input[type="checkbox"] {
-  accent-color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-option-logo {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .content-ott-modal-footer {
-  border-top: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .content-ott-modal-cancel-btn {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #d6d6d6;
-  color: #222222;
-}
-
-html[data-theme="light"] .content-ott-modal-confirm-btn {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .spoiler-check-box {
-  color: #303030;
-}
-
-html[data-theme="light"] .spoiler-check-box input {
-  accent-color: #0d0d0d;
-}
-
-html[data-theme="light"] .spoiler-review {
-  background: #e8e8e8;
-}
-
-html[data-theme="light"] .spoiler-review-overlay {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: rgba(237, 237, 237, 0.74);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .spoiler-review-overlay span {
-  color: #555555;
-}
-
-html[data-theme="light"] .spoiler-confirm-modal {
-  background: rgba(245, 245, 245, 0.72);
-}
-
-html[data-theme="light"] .spoiler-confirm-dialog {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #dfdfdf;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .spoiler-confirm-dialog p {
-  color: #2f2f2f;
-}
-
-html[data-theme="light"] .review-edit-open-btn,
-html[data-theme="light"] .review-delete-btn {
-  border: 1px solid #cf8085;
-  color: #95262c;
-}
-
-html[data-theme="light"] .review-edit-open-btn:hover,
-html[data-theme="light"] .review-delete-btn:hover {
-  background: rgba(207, 128, 133, 0.18);
-}
-
-
-/* =========================================================
-   content-list-modern.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
-========================================================= */
-
-html[data-theme="light"] .content-list-left-sidebar {
-  scrollbar-color: rgba(13, 13, 13, 0.25) transparent;
-}
-
-html[data-theme="light"] .content-list-left-sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(13, 13, 13, 0.25);
-}
-
-html[data-theme="light"] .content-list-header h1 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-result-count {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .content-list-result-count strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-header p {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .content-list-toolbar {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e4e5e7;
-}
-
-html[data-theme="light"] .content-selected-filter-label {
-  color: #2d3138;
-}
-
-html[data-theme="light"] .content-selected-filter-chip {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #d5d7db;
-  color: #0c0d0f;
-}
-
-html[data-theme="light"] .content-selected-filter-chip:hover {
-  border-color: rgba(13, 13, 13, 0.28);
-  background: #cacdd2;
-}
-
-html[data-theme="light"] .content-selected-filter-chip span:last-child {
-  color: #505660;
-}
-
-html[data-theme="light"] .content-selected-filter-clear {
-  color: #616771;
-}
-
-html[data-theme="light"] .content-selected-filter-clear:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-sort-form label {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .content-list-sort-form select {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #d6d8dd;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-sort-form select:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-card {
-  border: 1px solid rgba(13, 13, 13, 0.075);
-  background: #e2e3e5;
-}
-
-html[data-theme="light"] .content-list-card:hover {
-  border-color: rgba(13, 13, 13, 0.21);
-}
-
-html[data-theme="light"] .content-list-card-poster {
-  background: #ecedef;
-}
-
-html[data-theme="light"] .content-list-card-poster::after {
-  background: linear-gradient(
-        to top,
-        rgba(245, 245, 245, 0.58),
-        rgba(245, 245, 245, 0)
-    );
-}
-
-html[data-theme="light"] .content-list-type-badge {
-  border: 1px solid rgba(13, 13, 13, 0.15);
-  background: rgba(232, 233, 236, 0.86);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-type-badge.is-movie {
-  background: rgba(167, 172, 182, 0.88);
-}
-
-html[data-theme="light"] .content-list-type-badge.is-drama {
-  background: rgba(144, 120, 190, 0.88);
-}
-
-html[data-theme="light"] .content-list-type-badge.is-animation {
-  background: rgba(143, 208, 218, 0.9);
-}
-
-html[data-theme="light"] .content-list-type-badge.is-variety {
-  background: rgba(216, 165, 122, 0.9);
-}
-
-html[data-theme="light"] .content-list-type-badge.is-documentary {
-  background: rgba(137, 166, 210, 0.9);
-}
-
-html[data-theme="light"] .age-rating-badge {
-  border: 1px solid rgba(13, 13, 13, 0.2);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .age-rating-badge.is-all {
-  background: #7ad0a5;
-}
-
-html[data-theme="light"] .age-rating-badge.is-age12 {
-  background: #e9b547;
-}
-
-html[data-theme="light"] .age-rating-badge.is-unknown {
-  background: #99a0aa;
-}
-
-html[data-theme="light"] .content-list-upcoming-badge {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: rgba(9, 80, 196, 0.94);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-score-badge {
-  border: 1px solid rgba(13, 13, 13, 0.11);
-  background: rgba(239, 240, 242, 0.84);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-score-badge span {
-  color: #a37800;
-}
-
-html[data-theme="light"] .content-list-card-info h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-card-meta {
-  color: #575e69;
-}
-
-html[data-theme="light"] .content-list-card-meta span + span::before {
-  color: #9aa0a9;
-}
-
-html[data-theme="light"] .content-list-platform-row img {
-  border: 1px solid rgba(13, 13, 13, 0.11);
-  background: #ebecee;
-}
-
-html[data-theme="light"] .content-list-platform-more {
-  background: #d4d6da;
-  color: #454b55;
-}
-
-html[data-theme="light"] .content-list-favorite-btn {
-  border: 1px solid rgba(13, 13, 13, 0.23);
-  background: rgba(242, 243, 245, 0.72);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-favorite-btn:hover {
-  border-color: rgba(13, 13, 13, 0.52);
-  background: rgba(222, 224, 228, 0.92);
-}
-
-html[data-theme="light"] .content-list-favorite-btn.is-active {
-  border-color: rgba(156, 0, 22, 0.64);
-  background: rgba(233, 163, 175, 0.92);
-  color: #9c0016;
-}
-
-html[data-theme="light"] .content-list-favorite-btn:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-empty-state {
-  border: 1px dashed rgba(13, 13, 13, 0.11);
-  background: #e5e6e8;
-}
-
-html[data-theme="light"] .content-list-empty-state strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-pagination .page-btn,
-html[data-theme="light"] .content-list-pagination .page-now {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .content-list-pagination .page-btn {
-  background: #d9dbdf;
-  color: #2d3138;
-}
-
-html[data-theme="light"] .content-list-pagination .page-btn:hover {
-  border-color: rgba(13, 13, 13, 0.22);
-  background: #cdd0d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-pagination .page-now {
-  border-color: #0d0d0d;
-  background: #0d0d0d;
-  color: #e9eaee;
-}
-
-html[data-theme="light"] .content-list-pagination .page-edge-btn {
-  color: #616771;
-}
-
-html[data-theme="light"] .content-filter-form {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e4e5e7;
-}
-
-html[data-theme="light"] .content-filter-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .content-filter-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-group {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.065);
-}
-
-html[data-theme="light"] .content-filter-group h2 {
-  color: #0b0c0e;
-}
-
-html[data-theme="light"] .content-filter-option {
-  color: #4b515b;
-}
-
-html[data-theme="light"] .content-filter-option:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-option input[type="checkbox"] {
-  accent-color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-option:has(input:checked) {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-secondary-btn,
-html[data-theme="light"] .content-provider-select-btn {
-  border: 1px solid rgba(13, 13, 13, 0.15);
-  background: #d6d8dd;
-  color: #393e47;
-}
-
-html[data-theme="light"] .content-filter-secondary-btn:hover,
-html[data-theme="light"] .content-provider-select-btn:hover {
-  border-color: rgba(13, 13, 13, 0.32);
-  background: #ced1d6;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-secondary-btn:focus-visible,
-html[data-theme="light"] .content-provider-select-btn:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-submit-btn {
-  border: 1px solid #0d0d0d;
-  background: #0d0d0d;
-  color: #e9eaee;
-}
-
-html[data-theme="light"] .content-filter-submit-btn:hover {
-  border-color: #15171b;
-  background: #15171b;
-}
-
-html[data-theme="light"] .content-filter-reset-btn {
-  border: 1px solid rgba(13, 13, 13, 0.15);
-  background: #d6d8dd;
-  color: #393e47;
-}
-
-html[data-theme="light"] .content-filter-reset-btn:hover {
-  border-color: rgba(13, 13, 13, 0.32);
-  background: #ced1d6;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-filter-submit-btn:focus-visible,
-html[data-theme="light"] .content-filter-reset-btn:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .content-recommend-section {
-  border-top: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .content-recommend-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-recommend-card {
-  border: 1px solid rgba(13, 13, 13, 0.075);
-  background: #e3e4e6;
-}
-
-html[data-theme="light"] .content-recommend-card:hover {
-  border-color: rgba(13, 13, 13, 0.2);
-}
-
-html[data-theme="light"] .content-recommend-poster {
-  background: #ecedef;
-}
-
-html[data-theme="light"] .content-recommend-type,
-html[data-theme="light"] .content-recommend-score {
-  border: 1px solid rgba(13, 13, 13, 0.13);
-  background: rgba(240, 241, 243, 0.8);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-recommend-type.is-movie {
-  background: rgba(167, 172, 182, 0.88);
-}
-
-html[data-theme="light"] .content-recommend-type.is-drama {
-  background: rgba(144, 120, 190, 0.88);
-}
-
-html[data-theme="light"] .content-recommend-type.is-animation {
-  background: rgba(143, 208, 218, 0.9);
-}
-
-html[data-theme="light"] .content-recommend-type.is-variety {
-  background: rgba(216, 165, 122, 0.9);
-}
-
-html[data-theme="light"] .content-recommend-type.is-documentary {
-  background: rgba(137, 166, 210, 0.9);
-}
-
-html[data-theme="light"] .content-recommend-score span {
-  color: #a37800;
-}
-
-html[data-theme="light"] .content-recommend-info strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-recommend-empty {
-  border: 1px dashed rgba(13, 13, 13, 0.1);
-}
-
-@media (max-width: 860px) {
-  html[data-theme="light"] .content-list-mobile-filter-toggle {
-    border: 1px solid rgba(13, 13, 13, 0.1);
-    background: #e3e3e3;
-    color: #0d0d0d;
-  }
-  html[data-theme="light"] .content-filter-group {
-    border-right: 1px solid rgba(13, 13, 13, 0.065);
-  }
-  html[data-theme="light"] .content-filter-actions {
-    border-top: 1px solid rgba(13, 13, 13, 0.065);
-  }
-}
-
-@media (max-width: 680px) {
-  html[data-theme="light"] .content-list-sort-form {
-    border-top: 1px solid rgba(13, 13, 13, 0.08);
-  }
-  html[data-theme="light"] .content-filter-group {
-    border-bottom: 1px solid rgba(13, 13, 13, 0.065);
-  }
-}
-
-
-/* =========================================================
-   content-more.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
-========================================================= */
-
-html[data-theme="light"] body {
-  background: #ebebeb;
-  color: #1a1a1a;
-}
-
-html[data-theme="light"] .content-more-hero {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .content-more-hero h1 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-more-description {
-  color: #5f5f5f;
-}
-
-html[data-theme="light"] .content-age-rating-badge {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-all {
-  background: #7ad0a5;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-age12 {
-  background: #e9b547;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-unknown {
-  background: #99a0aa;
-}
-
-html[data-theme="light"] .selected-platform-section {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .selected-platform-section h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .selected-platform-chip {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #dcdcdc;
-  color: #222222;
-}
-
-html[data-theme="light"] .selected-platform-chip img {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-guide {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .recommend-guide p {
-  color: #4f4f4f;
-}
-
-html[data-theme="light"] .recommend-guide a {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .content-more-card {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .content-more-card:hover {
-  border-color: rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .content-more-thumb {
-  background: #dadada;
-}
-
-html[data-theme="light"] .content-more-type {
-  background: rgba(245, 245, 245, 0.74);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-more-type.is-movie,
-html[data-theme="light"] .recommend-card-type.is-movie {
-  background: rgba(167, 172, 182, 0.88);
-}
-
-html[data-theme="light"] .content-more-type.is-drama,
-html[data-theme="light"] .recommend-card-type.is-drama {
-  background: rgba(144, 120, 190, 0.88);
-}
-
-html[data-theme="light"] .content-more-type.is-animation,
-html[data-theme="light"] .recommend-card-type.is-animation {
-  background: rgba(143, 208, 218, 0.9);
-}
-
-html[data-theme="light"] .content-more-type.is-variety,
-html[data-theme="light"] .recommend-card-type.is-variety {
-  background: rgba(216, 165, 122, 0.9);
-}
-
-html[data-theme="light"] .content-more-type.is-documentary,
-html[data-theme="light"] .recommend-card-type.is-documentary {
-  background: rgba(137, 166, 210, 0.9);
-}
-
-html[data-theme="light"] .content-more-info h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-more-score {
-  color: #a7820b;
-}
-
-html[data-theme="light"] .content-more-platforms img {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .content-more-platform-more {
-  background: #d6d6d6;
-  color: #434343;
-}
-
-html[data-theme="light"] .content-more-empty {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .recommend-section-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .platform-section-title > img {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-slider-btn {
-  background: #dddddd;
-  color: #555555;
-}
-
-html[data-theme="light"] .recommend-slider-btn:hover {
-  background: #cbcbcb;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-card {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .recommend-card:hover {
-  border-color: rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .recommend-card-thumb {
-  background: #dadada;
-}
-
-html[data-theme="light"] .recommend-card-type {
-  background: rgba(245, 245, 245, 0.74);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-card-info h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-card-score {
-  color: #a7820b;
-}
-
-html[data-theme="light"] .recommend-card-platforms img {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-card-platforms span {
-  background: #d6d6d6;
-  color: #434343;
-}
-
-html[data-theme="light"] .recommend-section-empty {
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .ott-recommendation-section {
-  border: 1px solid rgba(13, 13, 13, 0.09);
-  background: linear-gradient(
-            135deg,
-            rgba(13, 13, 13, 0.055),
-            rgba(13, 13, 13, 0.015)
-        ),
-        #e7e7e7;
-}
-
-html[data-theme="light"] .ott-recommendation-heading h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-interest-count {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: rgba(13, 13, 13, 0.035);
-  color: #555555;
-}
-
-html[data-theme="light"] .ott-interest-count strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-summary {
-  background: rgba(245, 245, 245, 0.22);
-}
-
-html[data-theme="light"] .ott-recommendation-badge {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .ott-recommendation-summary h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-reasons li {
-  color: #525252;
-}
-
-html[data-theme="light"] .ott-recommendation-reasons li::before {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-platform-card {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #dfdfdf;
-}
-
-html[data-theme="light"] .ott-recommendation-platform-rank {
-  color: rgba(13, 13, 13, 0.22);
-}
-
-html[data-theme="light"] .ott-recommendation-platform-logo {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-platform-logo span {
-  color: #dddddd;
-}
-
-html[data-theme="light"] .ott-recommendation-platform-info h4 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-score {
-  color: #555555;
-}
-
-html[data-theme="light"] .ott-recommendation-score strong {
-  color: #a7820b;
-}
-
-html[data-theme="light"] .ott-recommendation-stats dd {
-  color: #292929;
-}
-
-html[data-theme="light"] .ott-recommendation-empty {
-  background: rgba(245, 245, 245, 0.22);
-}
-
-html[data-theme="light"] .ott-recommendation-empty-icon {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-empty h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-recommendation-empty p {
-  color: #5b5b5b;
-}
-
-html[data-theme="light"] .ott-recommendation-empty span {
-  color: #979797;
-}
-
-html[data-theme="light"] .ott-recommendation-empty a {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .ott-recommendation-platform-caption {
-  color: #656565;
-}
-
-html[data-theme="light"] .ott-recommendation-content-summary {
-  border-top: 1px solid rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .ott-recommendation-content-row span {
-  color: #373737;
-}
-
-html[data-theme="light"] .ott-recommendation-content-row a {
-  color: #262626;
-}
-
-html[data-theme="light"] .ott-recommendation-content-row a:hover {
-  color: #0d0d0d;
+html[data-theme="light"] {
+  --cart-white: #0d0d0d;
+  --cart-muted: #6b7178;
+  --cart-desc: #7d838c;
+  --cart-btn-text: #5a5f68;
+  --cart-select-text: #222222;
+  --cart-delete-text: #666666;
+  --cart-panel-bg: #e7e7e7;
+  --cart-overlay-035: rgba(13, 13, 13, 0.035);
+  --cart-overlay-06: rgba(13, 13, 13, 0.06);
+  --cart-overlay-07: rgba(13, 13, 13, 0.07);
+  --cart-overlay-08: rgba(13, 13, 13, 0.08);
+  --cart-overlay-12: rgba(13, 13, 13, 0.12);
+  --cart-overlay-34: rgba(13, 13, 13, 0.34);
+  --cart-item-bg: #e4e4e4;
+  --cart-item-unavailable-bg: #e8e8e8;
+  --cart-image-bg: #eeeeee;
+  --cart-faint: #999999;
+  --cart-business-text: #6b7178;
+  --cart-original-price: #9aa0a8;
+  --cart-error: #a31922;
+  --cart-warning: #b8862f;
+  --cart-qty-bg: #dbdbdb;
+  --cart-qty-hover-bg: #cccccc;
+  --cart-delete-btn-text: #6b7178;
+  --cart-summary-text: #555555;
+  --cart-summary-strong: #111111;
+  --cart-checkout-disabled-text: #636363;
+  --cart-empty-link-text: #eeeeee;
+  --cart-option-text: #454b53;
 }
 
 
@@ -1906,2128 +638,180 @@ html[data-theme="light"] {
 
 
 /* =========================================================
-   error.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   16) release-calendar.css 대응 (--rc-*)
+   --rc-point-*(파란 포인트 틴트), --rc-holiday*(빨간 공휴일 강조),
+   --rc-shadow-sm/--rc-shadow-popover/--rc-backdrop(순수 검정 그림자·
+   오버레이)는 브랜드색·그림자라 두 테마 공통 유지, 재정의 없음.
+   --rc-sun/--rc-sat(일/토요일 텍스트 색)만 흰 배경 위 가독성을 위해
+   더 진한 톤으로 재정의(제안값 — 실제 스크린샷으로 대비 확인 필요).
+   --rc-today(오늘 날짜 셀 테두리 + 날짜 숫자 배지 배경)는 다크에서 밝은
+   노랑(#ffc93c)인데 흰 배경 위에서는 테두리가 거의 안 보여서 진한 앰버로
+   재정의한다. 배지 글자색 --rc-today-ink(#2a2205)는 이 앰버 위에서도
+   대비 약 5.9:1로 충분해 두 테마 공통으로 유지한다.
 ========================================================= */
-
-html[data-theme="light"] .error-page {
-  background: #e7e7e7;
+html[data-theme="light"] {
+  --rc-sun: #e04545;
+  --rc-sat: #3f7ae0;
+  --rc-today: #d99a06;
 }
-
-html[data-theme="light"] .error-card {
-  background: rgba(13, 13, 13, 0.04);
-  border: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .error-code {
-  color: #b20000;
-}
-
-html[data-theme="light"] .error-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .error-sub {
-  color: #555555;
-}
-
-html[data-theme="light"] .btn.primary {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .btn.ghost {
-  background: rgba(13, 13, 13, 0.06);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .btn.ghost:hover {
-  background: rgba(13, 13, 13, 0.12);
-}
-
 
 /* =========================================================
-   favorite.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   17) error.css 대응 (--error-*, --btn-primary-*, --btn-ghost-*)
+   기존 자동 변환 값(아래 참고)을 변수 재정의로 이동, 값은 동일 유지.
+   단, .btn.primary의 텍스트를 #0d0d0d로 반전하던 기존 규칙은 제거함:
+   --btn-primary-bg(#1e6ff5, 파란 브랜드색)는 반전하지 않고 유지하므로
+   그 위 텍스트도 --btn-primary-text(#fff, 다크값 그대로)를 유지해야
+   대비가 맞음 — 기존 규칙대로 두면 파란 배경에 거의 검정 텍스트가
+   올라가 가독성이 나빠짐. (버튼 배경/텍스트는 브랜드색 조합이라
+   재정의 불필요 — 규칙 2)
 ========================================================= */
-
-html[data-theme="light"] .favorite-header h1 {
-  color: #0d0d0d;
+html[data-theme="light"] {
+  --error-bg: #e7e7e7;
+  --error-card-bg: rgba(13, 13, 13, 0.04);
+  --error-card-border: rgba(13, 13, 13, 0.08);
+  --error-card-shadow: rgba(13, 13, 13, 0.12);
+  --error-code-color: #b20000;
+  --error-title-color: #0d0d0d;
+  --error-sub-color: #555555;
+  --btn-ghost-bg: rgba(13, 13, 13, 0.06);
+  --btn-ghost-text: #0d0d0d;
+  --btn-ghost-hover-bg: rgba(13, 13, 13, 0.12);
 }
-
-html[data-theme="light"] .fav-count-badge {
-  border: 1px solid rgba(13, 13, 13, 0.16);
-  background: rgba(13, 13, 13, 0.05);
-  color: #454b58;
-}
-
-html[data-theme="light"] .favorite-tab {
-  border: 1px solid rgba(13, 13, 13, 0.09);
-  background: #e4e6e8;
-}
-
-html[data-theme="light"] .tab-btn:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .tab-btn.active {
-  background: #0d0d0d;
-  color: #eaecee;
-}
-
-html[data-theme="light"] .tab-btn b {
-  background: rgba(13, 13, 13, 0.07);
-}
-
-html[data-theme="light"] .tab-btn.active b {
-  background: #e4e6e8;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-list-card .content-list-favorite-btn.active {
-  border-color: rgba(156, 0, 22, 0.64);
-  background: rgba(233, 163, 175, 0.92);
-  color: #9c0016;
-}
-
-html[data-theme="light"] .favorite-container .favorite-tab {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.09);
-}
-
-html[data-theme="light"] .favorite-container .favorite-tab .tab-btn {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.035);
-  color: #5a5f68;
-}
-
-html[data-theme="light"] .favorite-container .favorite-tab .tab-btn:hover {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: rgba(13, 13, 13, 0.07);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .favorite-container .favorite-tab .tab-btn.active {
-  border-color: rgba(13, 13, 13, 0.62);
-  background: linear-gradient(180deg, #0e0e0f, #3a3c40);
-  color: #e9eaee;
-  box-shadow: 0 0 18px rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .favorite-container .favorite-tab .tab-btn:focus-visible {
-  outline: 2px solid rgba(13, 13, 13, 0.8);
-}
-
 
 /* =========================================================
-   goods.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   19) component.css 대응 (--comp-*)
+   --comp-fav-bg/--comp-fav-color/--comp-fav-hover-bg는 포스터
+   이미지 위에 얹는 어두운 스크림(찜하기 버튼 배경)이라 테마와
+   무관하게 유지, --comp-review-rating/--comp-score-user(별점/금색
+   점수)는 브랜드·의미 고정색이라 유지. 나머지 표면/텍스트/보더는
+   반전.
 ========================================================= */
-
-html[data-theme="light"] .goods-list-result-count {
-  color: #5c6370;
+html[data-theme="light"] {
+  --comp-count-color: #6b7178;
+  --comp-card-bg: #ffffff;
+  --comp-card-shadow: rgba(20, 24, 28, 0.12);
+  --comp-noimg-color: #9aa0a8;
+  --comp-noimg-bg: #eceef1;
+  --comp-muted: #6b7178;
+  --comp-page-bg: #f4f5f7;
+  --comp-review-border: rgba(20, 24, 28, 0.10);
+  --comp-review-meta: #6b7178;
+  --comp-review-writer: #14181c;
+  --comp-review-date: #8a9099;
+  --comp-review-content: #26282c;
+  --comp-score-color: #454b53;
+  --comp-score-divider: #dde1e6;
 }
-
-html[data-theme="light"] .goods-list-result-count strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-list-header p {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .goods-list-toolbar {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e4e5e7;
-}
-
-html[data-theme="light"] .goods-selected-filter-label {
-  color: #2d3138;
-}
-
-html[data-theme="light"] .goods-selected-filter-chip {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #d5d7db;
-  color: #0c0d0f;
-}
-
-html[data-theme="light"] .goods-selected-filter-chip:hover {
-  border-color: rgba(13, 13, 13, 0.28);
-  background: #cacdd2;
-}
-
-html[data-theme="light"] .goods-selected-filter-chip span:last-child {
-  color: #505660;
-}
-
-html[data-theme="light"] .goods-selected-filter-clear {
-  color: #616771;
-}
-
-html[data-theme="light"] .goods-selected-filter-clear:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-list-sort-form label {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .goods-list-sort-form select {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #d6d8dd;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-list-sort-form select:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .card-poster {
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .card-poster .discount-badge,
-html[data-theme="light"] .badge-discount,
-html[data-theme="light"] .discount-tag {
-  background: #b80010 !important;
-  color: #0d0d0d !important;
-}
-
-html[data-theme="light"] .soldout-badge {
-  background: rgba(245, 245, 245, 0.55);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .price-final,
-html[data-theme="light"] .final-price,
-html[data-theme="light"] .sale-price {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .price-sale-row .rate,
-html[data-theme="light"] .price-meta .rate,
-html[data-theme="light"] .price-container .rate,
-html[data-theme="light"] .card-meta .rate,
-html[data-theme="light"] .discount-rate {
-  color: #a30012 !important;
-}
-
-html[data-theme="light"] .stock-warning,
-html[data-theme="light"] .stock-info {
-  color: #c18217;
-}
-
-html[data-theme="light"] .card-item .card-favorite-btn {
-  border: 1px solid rgba(13, 13, 13, 0.18);
-  background: rgba(245, 245, 245, 0.68);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .card-item .card-favorite-btn:hover {
-  border-color: rgba(13, 13, 13, 0.42);
-  background: rgba(220, 220, 220, 0.92);
-}
-
-html[data-theme="light"] .card-item .card-favorite-btn.active {
-  border-color: rgba(163, 0, 18, 0.6);
-  background: rgba(235, 173, 182, 0.9);
-  color: #a30012;
-}
-
-html[data-theme="light"] .card-item .card-favorite-btn:focus-visible {
-  outline: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .detail-info .action-box .fav-btn.detail-favorite-btn {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-info .action-box .fav-btn.detail-favorite-btn:hover {
-  background: #c5c5c5;
-}
-
-html[data-theme="light"] .detail-info .action-box .fav-btn.detail-favorite-btn.active {
-  border-color: rgba(163, 0, 18, 0.6);
-  background: rgba(235, 173, 182, 0.9);
-  color: #a30012;
-}
-
-html[data-theme="light"] .back-btn {
-  color: #4f4f4f;
-}
-
-html[data-theme="light"] .image-gallery img.is-active {
-  border-color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-brand {
-  color: #656565;
-}
-
-html[data-theme="light"] .detail-meta {
-  color: #4f4f4f;
-}
-
-html[data-theme="light"] .detail-meta .divider {
-  color: #bbbbbb;
-}
-
-html[data-theme="light"] .status-badge.on-sale {
-  color: #309034;
-}
-
-html[data-theme="light"] .status-badge.waiting {
-  background: rgba(13, 13, 13, 0.08);
-  color: #424242;
-}
-
-html[data-theme="light"] .price-box .rate {
-  color: #a30012 !important;
-}
-
-html[data-theme="light"] .detail-desc {
-  color: #252525;
-}
-
-html[data-theme="light"] .detail-info .action-box .btn {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-}
-
-html[data-theme="light"] .detail-info .action-box .cart-btn {
-  border-color: rgba(13, 13, 13, 0.18);
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-info .action-box .cart-btn:hover {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: #c5c5c5;
-}
-
-html[data-theme="light"] .detail-info .action-box .btn.btn-primary,
-html[data-theme="light"] .detail-info .action-box .buy-btn {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-side-card {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .detail-side-card-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .detail-side-card-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .side-content-item {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .side-content-item:hover {
-  background: #dbdbdb;
-  border-color: rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .side-content-poster {
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .side-content-poster .no-img {
-  background: #efefef;
-}
-
-html[data-theme="light"] .side-content-info strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .side-content-info span {
-  color: #666666;
-}
-
-html[data-theme="light"] .actor-card {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: #e4e4e4;
-}
-
-html[data-theme="light"] .actor-card:hover {
-  background: #dbdbdb;
-  border-color: rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .actor-card__photo {
-  background: #efefef;
-}
-
-html[data-theme="light"] .actor-card__no-image {
-  background: #efefef;
-}
-
-html[data-theme="light"] .actor-card__info strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .more-btn {
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .more-btn:hover {
-  background: #c5c5c5;
-}
-
-html[data-theme="light"] .goods-left-sidebar {
-  scrollbar-color: rgba(13, 13, 13, 0.25) transparent;
-}
-
-html[data-theme="light"] .goods-left-sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(13, 13, 13, 0.25);
-}
-
-html[data-theme="light"] .goods-filter-form {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .goods-filter-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .goods-filter-title-area h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-filter-group {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .goods-filter-group h2,
-html[data-theme="light"] .filter-group-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-filter-option,
-html[data-theme="light"] .filter-option {
-  color: #4c4c4c;
-}
-
-html[data-theme="light"] .goods-filter-option:hover,
-html[data-theme="light"] .filter-option:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-filter-option input[type="checkbox"],
-html[data-theme="light"] .filter-option input[type="checkbox"] {
-  accent-color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-filter-submit-btn,
-html[data-theme="light"] .filter-submit-btn {
-  background: #0d0d0d;
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .goods-filter-submit-btn:hover,
-html[data-theme="light"] .filter-submit-btn:hover {
-  background: #191919;
-}
-
-html[data-theme="light"] .goods-filter-reset-btn,
-html[data-theme="light"] .filter-reset-btn {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #dddddd;
-  color: #222222;
-}
-
-html[data-theme="light"] .goods-filter-reset-btn:hover,
-html[data-theme="light"] .filter-reset-btn:hover {
-  background: #d3d3d3;
-  border-color: rgba(13, 13, 13, 0.2);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-sidebar {
-  border: 1px solid rgba(13, 13, 13, 0.06);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .recommend-sidebar-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.06);
-}
-
-html[data-theme="light"] .recommend-sidebar-header h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-item {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.05);
-}
-
-html[data-theme="light"] .recommend-item:hover {
-  background: rgba(13, 13, 13, 0.05);
-}
-
-html[data-theme="light"] .recommend-poster {
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .recommend-no-image {
-  color: #999999;
-}
-
-html[data-theme="light"] .recommend-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-price {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .recommend-score {
-  color: #ab8c1b;
-}
-
-@media (max-width: 860px) {
-  html[data-theme="light"] .goods-mobile-filter-toggle {
-    border: 1px solid rgba(13, 13, 13, 0.1);
-    background: #e3e3e3;
-    color: #0d0d0d;
-  }
-}
-
-html[data-theme="light"] .goods-detail-card {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: linear-gradient(135deg, rgba(13, 13, 13, 0.025), rgba(13, 13, 13, 0)), #e7e7e7;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .goods-detail-card .detail-poster > img,
-html[data-theme="light"] .goods-detail-card .detail-poster > .no-img {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #efefef;
-}
-
-html[data-theme="light"] .goods-detail-card .detail-poster > .no-img {
-  color: #999999;
-}
-
-html[data-theme="light"] .goods-detail-card .image-gallery img {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .goods-detail-card .image-gallery img.is-active {
-  border-color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-brand-label {
-  border: 1px solid rgba(13, 13, 13, 0.1);
-  background: rgba(13, 13, 13, 0.05);
-  color: #565656;
-}
-
-html[data-theme="light"] .detail-brand-row .detail-brand {
-  color: #2a2a2a;
-}
-
-html[data-theme="light"] .goods-detail-card .detail-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-detail-card .detail-meta {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-meta-item {
-  border: 1px solid rgba(13, 13, 13, 0.075);
-  background: rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .detail-meta-item strong {
-  color: #111111;
-}
-
-html[data-theme="light"] .goods-detail-card .price-box {
-  border-top: 1px solid rgba(13, 13, 13, 0.08);
-  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .goods-detail-card .price-box .price-final {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-detail-card .price-box .rate {
-  color: #a30012 !important;
-}
-
-html[data-theme="light"] .detail-description-box {
-  border: 1px solid rgba(13, 13, 13, 0.065);
-  background: rgba(13, 13, 13, 0.022);
-}
-
-html[data-theme="light"] .detail-description-box .detail-desc {
-  color: #212121;
-}
-
-html[data-theme="light"] .detail-purchase-option {
-  border: 1px solid rgba(13, 13, 13, 0.075);
-  background: rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .detail-purchase-option-title strong {
-  color: #111111;
-}
-
-html[data-theme="light"] .detail-total-price strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-quantity-control {
-  border: 1px solid rgba(13, 13, 13, 0.13);
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .detail-quantity-button {
-  color: #111111;
-}
-
-html[data-theme="light"] .detail-quantity-button:hover:not(:disabled) {
-  background: rgba(13, 13, 13, 0.08);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-quantity-button:disabled {
-  color: #b6b6b6;
-}
-
-html[data-theme="light"] .detail-quantity-input {
-  border-left: 1px solid rgba(13, 13, 13, 0.1);
-  border-right: 1px solid rgba(13, 13, 13, 0.1);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-quantity-input:focus {
-  background: rgba(13, 13, 13, 0.035);
-}
-
-html[data-theme="light"] .detail-quantity-input:disabled {
-  color: #aaaaaa;
-}
-
-html[data-theme="light"] .sold-out-guide {
-  color: #932930;
-}
-
-html[data-theme="light"] .review-section-card {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #e7e7e7;
-}
-
-html[data-theme="light"] .review-section-header {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .review-section-title h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-score-star {
-  color: #b58b00;
-}
-
-html[data-theme="light"] .review-score-info strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-section-card .review-item {
-  border-color: rgba(13, 13, 13, 0.07);
-  background: rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .review-section-card .review-item:hover {
-  border-color: rgba(13, 13, 13, 0.13);
-  background: rgba(13, 13, 13, 0.04);
-}
-
-html[data-theme="light"] .product-review-empty {
-  border: 1px dashed rgba(13, 13, 13, 0.1);
-  background: rgba(13, 13, 13, 0.018);
-}
-
-html[data-theme="light"] .product-review-empty-icon {
-  border: 1px solid rgba(181, 139, 0, 0.22);
-  background: rgba(181, 139, 0, 0.06);
-  color: #ae9327;
-}
-
-html[data-theme="light"] .product-review-empty strong {
-  color: #111111;
-}
-
-html[data-theme="light"] .product-review-delete-btn {
-  border: 1px solid #cf8085;
-  color: #95262c;
-}
-
-html[data-theme="light"] .product-review-delete-btn:hover {
-  background: rgba(207, 128, 133, 0.18);
-}
-
-html[data-theme="light"] .goods-detail-container .detail-product-options {
-  border: 1px solid rgba(13, 13, 13, 0.075);
-  background: rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-field label {
-  color: #111111;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-select {
-  border: 1px solid rgba(13, 13, 13, 0.15);
-  background-color: #eeeeee;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-select:hover:not(:disabled) {
-  border-color: rgba(13, 13, 13, 0.28);
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-select:disabled {
-  border-color: rgba(13, 13, 13, 0.07);
-  background-color: #e8e8e8;
-  color: #9f9f9f;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-select option {
-  background-color: #e0e0e0;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .detail-option-status-row {
-  border: 1px solid rgba(13, 13, 13, 0.07);
-  background: rgba(245, 245, 245, 0.16);
-}
-
-html[data-theme="light"] .detail-option-status-label {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-stock {
-  color: #3f4651;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-stock.is-available {
-  color: #309034;
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-stock.is-soldout {
-  color: #8c1a1a;
-}
-
-html[data-theme="light"] .option-restock-area {
-  border: 1px solid rgba(140, 26, 26, 0.24);
-  background: rgba(140, 26, 26, 0.055);
-}
-
-html[data-theme="light"] .option-restock-icon {
-  border: 1px solid rgba(140, 26, 26, 0.3);
-  background: rgba(140, 26, 26, 0.08);
-  color: #8c1a1a;
-}
-
-html[data-theme="light"] .option-restock-title {
-  color: #0b0c0f;
-}
-
-html[data-theme="light"] .option-restock-description {
-  color: #5c6370;
-}
-
-html[data-theme="light"] .option-restock-area .restock-request-btn {
-  border: 1px solid rgba(13, 13, 13, 0.16);
-  background: rgba(13, 13, 13, 0.055);
-  color: #111111;
-}
-
-html[data-theme="light"] .option-restock-area .restock-request-btn:hover {
-  border-color: rgba(13, 13, 13, 0.3);
-  background: rgba(13, 13, 13, 0.1);
-}
-
-html[data-theme="light"] .option-restock-area .restock-request-btn.active {
-  border-color: rgba(49, 89, 164, 0.6);
-}
-
-html[data-theme="light"] .option-restock-area .restock-request-message {
-  color: #3f4651;
-}
-
-html[data-theme="light"] .goods-detail-card .detail-main-image-wrap {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #efefef;
-}
-
-html[data-theme="light"] .goods-detail-card .detail-main-image-wrap > .no-img {
-  color: #999999;
-}
-
-html[data-theme="light"] .detail-gallery-thumb {
-  border: 1px solid rgba(13, 13, 13, 0.08);
-  background: #eeeeee;
-}
-
-html[data-theme="light"] .detail-gallery-nav {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.04);
-  color: #0f0f0f;
-}
-
-html[data-theme="light"] .detail-gallery-nav:hover:not(:disabled) {
-  background: rgba(13, 13, 13, 0.08);
-  border-color: rgba(13, 13, 13, 0.24);
-}
-
-html[data-theme="light"] .restock-request-btn {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-}
-
-html[data-theme="light"] .restock-request-btn:hover,
-html[data-theme="light"] .restock-request-btn.active {
-  border-color: rgba(13, 13, 13, 0.48);
-  background: rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .goods-detail-container .detail-option-status-row {
-  border: 1px solid rgba(13, 13, 13, 0.07) !important;
-  background: rgba(245, 245, 245, 0.16) !important;
-}
-
-html[data-theme="light"] .goods-detail-container .option-restock-area {
-  border: 1px solid rgba(140, 26, 26, 0.28) !important;
-  background: rgba(140, 26, 26, 0.055) !important;
-}
-
-html[data-theme="light"] .goods-detail-container .option-restock-icon {
-  border: 1px solid rgba(140, 26, 26, 0.3) !important;
-  color: #8c1a1a !important;
-}
-
-html[data-theme="light"] .goods-detail-container .option-restock-title {
-  color: #0b0c0f !important;
-}
-
-html[data-theme="light"] .goods-detail-container .option-restock-description {
-  color: #5c6370 !important;
-}
-
 
 /* =========================================================
-   main.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   20) chat-room.css 대응 (--kakao-*)
+   --kakao-yellow-a*(노란 브랜드 틴트), --kakao-avatar-1~5/-text
+   (아바타 배경·이니셜 텍스트), --kakao-menu-shadow(검정 그림자),
+   --kakao-danger-a12/a50(빨강 틴트), --kakao-focus-ring(포커스
+   글로우)는 브랜드·의미 고정색이라 유지.
+   --kakao-white-a08/a12(다크 표면 위 hover 오버레이)와
+   --kakao-disabled-text(비활성 텍스트)는 표면이 밝아지면서 함께
+   반전해야 하는 값이라 재정의. --kakao-notice-gradient-start도
+   --kakao-bg-2가 이미 밝게 뒤집힌 상태와 그러데이션이 이어지도록
+   연한 옐로우 톤으로 재정의(제안값).
 ========================================================= */
-
-html[data-theme="light"] body {
-  background: #ebebeb;
-  color: #1a1a1a;
+html[data-theme="light"] {
+  --kakao-white-a08: rgba(20, 24, 28, 0.05);
+  --kakao-white-a12: rgba(20, 24, 28, 0.08);
+  --kakao-disabled-text: #9aa0a8;
+  --kakao-notice-gradient-start: #fdf3cf;
 }
-
-html[data-theme="light"] .content-age-rating-badge {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-all {
-  background: #7ad0a5;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-age12 {
-  background: #e9b547;
-}
-
-html[data-theme="light"] .content-age-rating-badge.is-unknown {
-  background: #99a0aa;
-}
-
-html[data-theme="light"] .hero {
-  background: #ebebeb;
-}
-
-html[data-theme="light"] .hero-intro-panel {
-  border: 1px solid rgba(0, 69, 161, 0.22);
-  background: radial-gradient(120% 90% at 100% 0%, rgba(0, 69, 161, 0.16), transparent 60%),
-        linear-gradient(165deg, rgba(217, 220, 227, 0.7), rgba(233, 235, 240, 0.55));
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(13, 13, 13, 0.04) inset,
-        0 1px 0 rgba(13, 13, 13, 0.1) inset;
-}
-
-html[data-theme="light"] .hero-intro-panel::before {
-  background: radial-gradient(circle, rgba(0, 69, 161, 0.35), transparent 70%);
-}
-
-html[data-theme="light"] .hero-intro-platforms-label {
-  color: #4d5765;
-}
-
-html[data-theme="light"] .hero-intro-platforms-label::before {
-  background: var(--color-point, #0045a1);
-  box-shadow: 0 0 10px rgba(0, 69, 161, 0.8);
-}
-
-html[data-theme="light"] .hero-intro-platform-logo {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] a.hero-intro-platform-logo:hover {
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 69, 161, 0.55);
-}
-
-html[data-theme="light"] .hero-intro-divider {
-  background: linear-gradient(90deg, rgba(0, 69, 161, 0.5), rgba(13, 13, 13, 0.08) 65%, transparent);
-}
-
-html[data-theme="light"] .hero-intro-stat-value {
-  background: linear-gradient(90deg, #0d0d0d, #001230);
-}
-
-html[data-theme="light"] .hero-intro-stat-label {
-  color: #424851;
-}
-
-html[data-theme="light"] .hero-slide-bg-empty {
-  background: radial-gradient(circle at 26% 40%, rgba(0, 69, 161, 0.24), transparent 55%),
-        radial-gradient(circle at 78% 72%, rgba(47, 111, 228, 0.20), transparent 55%),
-        #ebebeb;
-}
-
-html[data-theme="light"] .hero-slide-scrim {
-  background: linear-gradient(100deg, rgba(243, 243, 246, 0.86) 0%, rgba(243, 243, 246, 0.55) 38%, rgba(243, 243, 246, 0.08) 62%, rgba(243, 243, 246, 0.02) 100%),
-        linear-gradient(0deg, #ebebeb 0%, rgba(235, 235, 235, 0.15) 32%, rgba(235, 235, 235, 0) 55%);
-}
-
-html[data-theme="light"] .hero-eyebrow {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  background: rgba(13, 13, 13, 0.08);
-  color: #0f0f0f;
-}
-
-html[data-theme="light"] .hero-slide-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-meta-chip {
-  border: 1px solid rgba(13, 13, 13, 0.28);
-  color: #171717;
-}
-
-html[data-theme="light"] .hero-meta-score {
-  color: #a7820b;
-}
-
-html[data-theme="light"] .hero-meta-genre {
-  color: #424242;
-}
-
-html[data-theme="light"] .hero-slide-desc {
-  color: #292929;
-}
-
-html[data-theme="light"] .hero-btn-primary {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-btn-ghost {
-  border-color: rgba(13, 13, 13, 0.35);
-  background: rgba(235, 235, 235, 0.35);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-btn-ghost:hover {
-  border-color: rgba(13, 13, 13, 0.7);
-  background: rgba(13, 13, 13, 0.12);
-}
-
-html[data-theme="light"] .rank-number {
-  color: rgba(13, 13, 13, 0.12);
-  -webkit-text-stroke: 1.5px rgba(13, 13, 13, 0.7);
-}
-
-html[data-theme="light"] .rank-item:nth-child(1) .rank-number {
-  color: rgba(167, 130, 11, 0.18);
-  -webkit-text-stroke: 1.5px #a7820b;
-}
-
-html[data-theme="light"] .rank-item:nth-child(2) .rank-number {
-  color: rgba(37, 42, 48, 0.18);
-  -webkit-text-stroke: 1.5px #252a30;
-}
-
-html[data-theme="light"] .rank-item:nth-child(3) .rank-number {
-  color: rgba(156, 100, 45, 0.18);
-  -webkit-text-stroke: 1.5px #9c642d;
-}
-
-html[data-theme="light"] .hero-quick-link {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  background: rgba(235, 235, 235, 0.45);
-  color: #1a1a1a;
-}
-
-html[data-theme="light"] .hero-quick-link:hover {
-  border-color: rgba(13, 13, 13, 0.55);
-  background: rgba(13, 13, 13, 0.14);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-nav {
-  border: 1px solid rgba(13, 13, 13, 0.2);
-  background: rgba(245, 245, 245, 0.45);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-nav:hover {
-  background: rgba(245, 245, 245, 0.75);
-}
-
-html[data-theme="light"] .hero-dot {
-  background: rgba(13, 13, 13, 0.4);
-}
-
-html[data-theme="light"] .hero-dot.is-active {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .hero-btn:focus-visible,
-html[data-theme="light"] .hero-nav:focus-visible,
-html[data-theme="light"] .hero-dot:focus-visible,
-html[data-theme="light"] .slider-btn:focus-visible,
-html[data-theme="light"] .btn:focus-visible,
-html[data-theme="light"] .section-more:focus-visible,
-html[data-theme="light"] .box-item:focus-visible,
-html[data-theme="light"] .card:focus-visible {
-  outline: 2px solid var(--color-point, #0045a1);
-}
-
-html[data-theme="light"] .ranking-filter button {
-  border: 1px solid #c5c5c5;
-  background: #d5d5d5;
-  color: #555555;
-}
-
-html[data-theme="light"] .ranking-filter button:hover,
-html[data-theme="light"] .ranking-filter .active {
-  color: #0d0d0d;
-  background: #cacaca;
-}
-
-html[data-theme="light"] .ott-select {
-  border: 1px solid #cccccc;
-  background: #e3e3e3;
-  color: #222222;
-}
-
-html[data-theme="light"] .rank {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .name {
-  color: #444444;
-}
-
-html[data-theme="light"] .section-eyebrow--popular {
-  color: #c24d00;
-}
-
-html[data-theme="light"] .section-eyebrow--new {
-  color: #0045a1;
-}
-
-html[data-theme="light"] .section-more {
-  color: #606060;
-}
-
-html[data-theme="light"] .section-more:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .slider::before {
-  background: linear-gradient(90deg, #ebebeb, rgba(235, 235, 235, 0));
-}
-
-html[data-theme="light"] .slider::after {
-  background: linear-gradient(270deg, #ebebeb, rgba(235, 235, 235, 0));
-}
-
-html[data-theme="light"] .slider-btn {
-  background: #dddddd;
-  color: #555555;
-}
-
-html[data-theme="light"] .slider-btn:hover {
-  background: #cbcbcb;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .btn {
-  background: #dddddd;
-  color: #555555;
-}
-
-html[data-theme="light"] .btn:hover {
-  background: #cbcbcb;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .card {
-  background: #e3e3e3;
-}
-
-html[data-theme="light"] .thumb {
-  background: #d5d5d5;
-}
-
-html[data-theme="light"] .content-type-badge {
-  background: rgba(245, 245, 245, 0.72);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .content-type-badge.is-movie {
-  background: rgba(167, 172, 182, 0.88);
-}
-
-html[data-theme="light"] .content-type-badge.is-drama {
-  background: rgba(144, 120, 190, 0.88);
-}
-
-html[data-theme="light"] .content-type-badge.is-animation {
-  background: rgba(143, 208, 218, 0.9);
-}
-
-html[data-theme="light"] .content-type-badge.is-variety {
-  background: rgba(216, 165, 122, 0.9);
-}
-
-html[data-theme="light"] .content-type-badge.is-documentary {
-  background: rgba(137, 166, 210, 0.9);
-}
-
-html[data-theme="light"] .content-upcoming-badge {
-  background: rgba(9, 80, 196, 0.94);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .card-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .card-score {
-  color: #a7820b;
-}
-
-html[data-theme="light"] .card-platform-logo {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .card-platform-more {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: #d7d7d7;
-  color: #424242;
-}
-
-html[data-theme="light"] .slider-empty {
-  background: #e3e3e3;
-}
-
 
 /* =========================================================
-   member.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   21) report.css 대응 (--rpt-*)
+   신고 버튼 계열(--rpt-btn-border/-bg/-hover-*)과 위험 버튼
+   (--rpt-btn-danger-*), 포커스색(--rpt-focus-color), 배경 오버레이
+   (--rpt-overlay-bg, 순수 검정)는 브랜드·의미 고정색이라 유지.
+   모달 표면/텍스트/보더 계열만 반전.
 ========================================================= */
-
-html[data-theme="light"] .auth-container {
-  background: linear-gradient(180deg, #e7e7e7 0%, #e0e0e0 100%);
+html[data-theme="light"] {
+  --rpt-btn-text: #c23636;
+  --rpt-btn-reported-border: rgba(20, 24, 28, 0.10);
+  --rpt-btn-reported-bg: rgba(20, 24, 28, 0.04);
+  --rpt-btn-reported-text: #6b7178;
+  --rpt-modal-bg: #ffffff;
+  --rpt-modal-border: #dde1e6;
+  --rpt-text-primary: #14181c;
+  --rpt-label-text: #454b53;
+  --rpt-input-border: #dde1e6;
+  --rpt-input-bg: #f4f5f7;
+  --rpt-placeholder-text: #9aa0a8;
+  --rpt-btn-cancel-bg: #eceef1;
+  --rpt-btn-cancel-hover-bg: #dde1e6;
+  --rpt-btn-cancel-text: #14181c;
 }
-
-html[data-theme="light"] .auth-box {
-  background: #d5d5d5;
-  border: 1px solid #c0c0c0;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .auth-box h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .form-group label {
-  color: #303030;
-}
-
-html[data-theme="light"] .form-group input:not([type="checkbox"]) {
-  background: #cbcbcb;
-  border: 1px solid #b5b5b5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .form-group input:focus {
-  border-color: #0950c4;
-  box-shadow: 0 0 0 3px rgba(9, 80, 196, 0.15);
-}
-
-html[data-theme="light"] .row button {
-  background: #c5c5c5;
-  border: 1px solid #b5b5b5;
-  color: #121212;
-}
-
-html[data-theme="light"] .row button:hover {
-  background: #b5b5b5;
-}
-
-html[data-theme="light"] .ott-box {
-  background: #d9d9d9;
-  border: 1px solid #c5c5c5;
-}
-
-html[data-theme="light"] .ott-box label {
-  background: #cccccc;
-  color: #2e2e2e;
-}
-
-html[data-theme="light"] .ott-box label:hover {
-  background: #bbbbbb;
-}
-
-html[data-theme="light"] .ott-box label:has(input:checked) {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .ott-box label:has(input:checked):hover {
-  background: #f84d56;
-}
-
-html[data-theme="light"] .ott-box-logo {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-page {
-  background: radial-gradient(circle at 50% 0%, #d9d9d9 0%, #e7e7e7 65%);
-}
-
-html[data-theme="light"] .sns-ott-container {
-  background: #dcdcdc;
-  border: 1px solid #cbcbcb;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-logo {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-eyebrow {
-  color: #003a91;
-}
-
-html[data-theme="light"] .sns-ott-desc {
-  color: #474747;
-}
-
-html[data-theme="light"] .sns-ott-error {
-  background: rgba(175, 0, 0, 0.12);
-  border: 1px solid rgba(175, 0, 0, 0.4);
-  color: #640000;
-}
-
-html[data-theme="light"] .sns-ott-email-label {
-  color: #303030;
-}
-
-html[data-theme="light"] .sns-ott-email-input {
-  background: #d3d3d3;
-  border: 1px solid #bababa;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-email-input:focus {
-  border-color: #0950c4;
-  box-shadow: 0 0 0 3px rgba(9, 80, 196, 0.15);
-}
-
-html[data-theme="light"] .sns-ott-check-btn {
-  background: #cbcbcb;
-  border: 1px solid #b5b5b5;
-  color: #121212;
-}
-
-html[data-theme="light"] .sns-ott-check-btn:hover {
-  background: #bababa;
-}
-
-html[data-theme="light"] .sns-ott-section-label {
-  color: #303030;
-}
-
-html[data-theme="light"] .sns-ott-count {
-  color: #003a91;
-}
-
-html[data-theme="light"] .sns-ott-option-list {
-  background: #e1e1e1;
-  border: 1px solid #cbcbcb;
-}
-
-html[data-theme="light"] .sns-ott-option {
-  color: #2e2e2e;
-  background: #d4d4d4;
-  border: 1px solid #c5c5c5;
-}
-
-html[data-theme="light"] .sns-ott-option:hover {
-  background: #cccccc;
-  border-color: #b5b5b5;
-}
-
-html[data-theme="light"] .sns-ott-option:has(input:checked) {
-  background: rgba(9, 80, 196, 0.14);
-  border-color: #0950c4;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-logo-img {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-mark {
-  border: 1.5px solid #a5a5a5;
-}
-
-html[data-theme="light"] .sns-ott-mark::after {
-  border-left: 2px solid #0d0d0d;
-  border-bottom: 2px solid #0d0d0d;
-}
-
-html[data-theme="light"] .sns-ott-option:has(input:checked) .sns-ott-mark {
-  background: #0950c4;
-  border-color: #0950c4;
-}
-
-html[data-theme="light"] .sns-ott-submit-btn {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .sns-login-box {
-  border-top: 1px solid #c5c5c5;
-}
-
-html[data-theme="light"] .sns-title {
-  color: #656565;
-}
-
-html[data-theme="light"] .sns-icon {
-  border: 1px solid #b5b5b5;
-}
-
-html[data-theme="light"] .auth-links {
-  color: #474747;
-}
-
-html[data-theme="light"] .auth-links a {
-  color: #474747;
-}
-
-html[data-theme="light"] .auth-links a:hover {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .auth-links span {
-  color: #a5a5a5;
-}
-
-html[data-theme="light"] .auth-cta {
-  border-top: 1px solid #c5c5c5;
-}
-
-html[data-theme="light"] .cta-item {
-  color: #474747;
-}
-
-html[data-theme="light"] .cta-btn {
-  border: 1px solid #b5b5b5;
-  background: #d0d0d0;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .cta-btn:hover {
-  background: #c5c5c5;
-}
-
-html[data-theme="light"] .error-text {
-  color: #bb1010;
-}
-
-html[data-theme="light"] .file-box {
-  background: #cbcbcb;
-  border: 1px solid #b5b5b5;
-}
-
-html[data-theme="light"] .file-label {
-  background: #c5c5c5;
-  border: 1px solid #b5b5b5;
-  color: #121212;
-}
-
-html[data-theme="light"] .file-label:hover {
-  background: #b5b5b5;
-}
-
-html[data-theme="light"] .file-name {
-  color: #474747;
-}
-
-html[data-theme="light"] .join-tab-menu {
-  border-bottom: 2px solid rgba(13, 13, 13, 0.15);
-}
-
-html[data-theme="light"] .join-tab-btn {
-  color: rgba(13, 13, 13, 0.55);
-}
-
-html[data-theme="light"] .join-tab-btn:hover {
-  color: rgba(13, 13, 13, 0.85);
-}
-
-html[data-theme="light"] .join-section-title {
-  border-top: 1px solid rgba(13, 13, 13, 0.12);
-  color: rgba(13, 13, 13, 0.9);
-}
-
-html[data-theme="light"] .form-hint {
-  color: rgba(13, 13, 13, 0.5);
-}
-
-html[data-theme="light"] .oditji-modal-overlay {
-  background: rgba(245, 245, 245, 0.5);
-}
-
-html[data-theme="light"] .oditji-modal-box {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .oditji-modal-box p {
-  color: #aaaaaa;
-}
-
-html[data-theme="light"] .oditji-modal-box input[type="text"] {
-  border: 1px solid #333333;
-}
-
-html[data-theme="light"] .oditji-btn-cancel {
-  background: #111111;
-  color: #cccccc;
-}
-
-html[data-theme="light"] .oditji-btn-restore {
-  background: #303030;
-  color: #a8a8a8;
-}
-
-html[data-theme="light"] .oditji-btn-restore.enabled {
-  background: #cccccc;
-}
-
-html[data-theme="light"] .required-mark {
-  color: #940000;
-}
-
-html[data-theme="light"] .optional-mark {
-  color: #626262;
-}
-
-html[data-theme="light"] .password-toggle-btn {
-  color: #424242;
-}
-
-html[data-theme="light"] .password-toggle-btn:hover {
-  color: #0d0d0d;
-  background: rgba(13, 13, 13, 0.08);
-}
-
-html[data-theme="light"] .password-toggle-btn:focus-visible {
-  outline: 2px solid #0950c4;
-}
-
-html[data-theme="light"] .verification-notice {
-  background: #cad0db;
-  border: 1px solid #829ec9;
-}
-
-html[data-theme="light"] .verification-notice-icon {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .verification-notice-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .verification-notice-description {
-  color: #000d26;
-}
-
-html[data-theme="light"] .verification-notice-description strong {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .verification-notice-help {
-  color: #455265;
-}
-
-html[data-theme="light"] .success-text {
-  border: 1px solid rgba(9, 80, 196, 0.35);
-  color: #001130;
-}
-
-html[data-theme="light"] .find-id-result {
-  background: #cad0db;
-  border: 1px solid #829ec9;
-}
-
-html[data-theme="light"] .find-id-result-icon {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .find-id-result-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .find-id-result-description {
-  color: #000d26;
-}
-
-html[data-theme="light"] .find-id-result-id {
-  border: 1px solid rgba(9, 80, 196, 0.38);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .find-id-result-help {
-  color: #455265;
-}
-
 
 /* =========================================================
-   mypage.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   22) favorite.css 대응 (--fav-*)
+   기존 자동 변환(선택자 기반) 값을 변수 재정의로 이동, 값은 동일
+   유지(규칙 1). --fav-tab-active-shadow(순수 검정 그림자)는 재정의
+   없음. --fav-eyebrow-text/--fav-tab-text/--fav-heart-color는 기존
+   결정값이 없어 이번에 새로 제안(제안값 — QA 필요).
 ========================================================= */
-
-html[data-theme="light"] .mypage-container {
-  color: #00061a;
+html[data-theme="light"] {
+  --fav-eyebrow-text: #6b7178;
+  --fav-text-primary: #0d0d0d;
+  --fav-badge-border: rgba(13, 13, 13, 0.16);
+  --fav-badge-bg: rgba(13, 13, 13, 0.05);
+  --fav-badge-text: #454b58;
+  --fav-tab-border: rgba(13, 13, 13, 0.09);
+  --fav-surface-dark: #e4e6e8;
+  --fav-tab-text: #6b7178;
+  --fav-tab-active-bg: #0d0d0d;
+  --fav-tab-active-text: #eaecee;
+  --fav-tab-badge-bg: rgba(13, 13, 13, 0.07);
+  --fav-heart-border: rgba(156, 0, 22, 0.64);
+  --fav-heart-bg: rgba(233, 163, 175, 0.92);
+  --fav-heart-text: #9c0016;
+  --fav-tab2-border: rgba(13, 13, 13, 0.12);
+  --fav-tab2-bg: rgba(13, 13, 13, 0.035);
+  --fav-tab2-text: #5a5f68;
+  --fav-tab2-hover-border: rgba(13, 13, 13, 0.34);
+  --fav-tab2-hover-bg: rgba(13, 13, 13, 0.07);
+  --fav-tab2-active-border: rgba(13, 13, 13, 0.62);
+  --fav-tab2-active-grad-start: #0e0e0f;
+  --fav-tab2-active-grad-end: #3a3c40;
+  --fav-tab2-active-text: #e9eaee;
+  --fav-tab2-active-shadow: rgba(13, 13, 13, 0.08);
+  --fav-tab2-focus-outline: rgba(13, 13, 13, 0.8);
 }
-
-html[data-theme="light"] .mypage-panel,
-html[data-theme="light"] .mypage-hero,
-html[data-theme="light"] .mypage-withdraw {
-  border: 1px solid rgba(61, 85, 122, 0.2);
-  background: radial-gradient(circle at 92% 10%, rgba(28, 89, 191, 0.11), transparent 35%), linear-gradient(145deg, rgba(224, 232, 247, 0.98), rgba(231, 238, 250, 0.98));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.025),
-    0 16px 44px rgba(0, 0, 0, 0.24);
-}
-
-html[data-theme="light"] .mypage-panel-heading h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-heading-icon {
-  color: #004fb2;
-}
-
-html[data-theme="light"] .mypage-action-btn {
-  background: linear-gradient(180deg, rgba(183, 207, 243, 0.92), rgba(208, 223, 248, 0.96));
-  box-shadow: inset 0 0 18px rgba(30, 113, 255, 0.11),
-    0 0 0 1px rgba(0, 82, 204, 0.06);
-  color: #000b20;
-}
-
-html[data-theme="light"] .mypage-action-btn span {
-  color: #003260;
-}
-
-html[data-theme="light"] .mypage-action-btn:hover {
-  border-color: #004eb5;
-}
-
-html[data-theme="light"] .mypage-hero {
-  background-color: #ebf1fb;
-  background-image: linear-gradient(90deg, rgba(235, 241, 253, 0.1), rgba(235, 241, 253, 0)), url("/oditji/images/mypage-left-bg.png");
-}
-
-html[data-theme="light"] .mypage-hero::after {
-  background: linear-gradient(180deg, transparent 60%, rgba(237, 243, 253, 0.2));
-}
-
-html[data-theme="light"] .mypage-hero-badge {
-  color: #0061ca;
-}
-
-html[data-theme="light"] .mypage-hero-copy > p:first-child {
-  color: #101218;
-}
-
-html[data-theme="light"] .mypage-hero-copy h1 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-hero-spark {
-  background: radial-gradient(circle, rgba(27, 105, 255, 0.45), rgba(213, 226, 250, 0.8) 66%);
-  color: #001629;
-}
-
-html[data-theme="light"] .mypage-hero-line {
-  background: linear-gradient(90deg, transparent, #1476ff 38%, #003562 52%, transparent);
-}
-
-html[data-theme="light"] .mypage-hero-message {
-  color: #2a2f39;
-}
-
-html[data-theme="light"] .modal-box .modal-desc {
-  color: #4a5465;
-}
-
-html[data-theme="light"] .mypage-profile-image {
-  background: linear-gradient(135deg, #004b95, #1a63ff 57%, #001227);
-}
-
-html[data-theme="light"] .mypage-profile-image img {
-  border: 3px solid #000a1a;
-  background: #11141a;
-}
-
-html[data-theme="light"] .mypage-name-row h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-member-type {
-  background: rgba(176, 200, 240, 0.55);
-  color: #00337d;
-}
-
-html[data-theme="light"] .mypage-ott::after {
-  background-image: linear-gradient(90deg, rgba(224, 233, 248, 1) 0%, rgba(224, 233, 248, 0.97) 39%, rgba(224, 233, 248, 0.7) 61%, rgba(224, 233, 248, 0.18) 100%), url("/oditji/images/mypage-ott-bg.png");
-}
-
-html[data-theme="light"] .mypage-ott-chip {
-  border: 1px solid rgba(72, 97, 136, 0.2);
-  background: rgba(235, 240, 250, 0.74);
-  color: #060b14;
-}
-
-html[data-theme="light"] .mypage-ott-chip:hover {
-  border-color: rgba(0, 74, 203, 0.65);
-  background: rgba(195, 212, 243, 0.88);
-}
-
-html[data-theme="light"] .mypage-activity-card {
-  border: 1px solid rgba(65, 85, 118, 0.18);
-  background: linear-gradient(145deg, rgba(209, 219, 237, 0.96), rgba(226, 233, 246, 0.96));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .mypage-activity-card:hover {
-  border-color: rgba(0, 69, 194, 0.5);
-  background: linear-gradient(145deg, rgba(190, 205, 232, 0.98), rgba(221, 230, 246, 0.98));
-}
-
-html[data-theme="light"] .mypage-activity-icon {
-  background: radial-gradient(circle, rgba(13, 13, 13, 0.06), rgba(13, 13, 13, 0.01));
-  box-shadow: inset 0 0 18px rgba(13, 13, 13, 0.025),
-    0 0 22px rgba(0, 0, 0, 0.16);
-}
-
-html[data-theme="light"] .mypage-activity-count {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .activity-favorite .mypage-activity-icon {
-  color: #cc0014;
-}
-
-html[data-theme="light"] .activity-cart .mypage-activity-icon {
-  color: #005ab9;
-}
-
-html[data-theme="light"] .activity-review .mypage-activity-icon {
-  color: #b57900;
-}
-
-html[data-theme="light"] .activity-subscription .mypage-activity-icon {
-  color: #2e8578;
-}
-
-html[data-theme="light"] .mypage-notification-item {
-  border: 1px solid rgba(65, 85, 118, 0.18);
-  background: linear-gradient(145deg, rgba(209, 219, 237, 0.96), rgba(226, 233, 246, 0.96));
-}
-
-html[data-theme="light"] .mypage-notification-item-label {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-toggle-switch-track {
-  background: rgba(65, 85, 118, 0.28);
-}
-
-html[data-theme="light"] .mypage-toggle-switch-track::before {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
-  background: #0045c2;
-}
-
-html[data-theme="light"] .mypage-subresult-item {
-  border: 1px solid rgba(65, 85, 118, 0.18);
-  background: linear-gradient(145deg, rgba(209, 219, 237, 0.96), rgba(226, 233, 246, 0.96));
-}
-
-html[data-theme="light"] .mypage-subresult-item-platforms {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-subresult-item-final-price {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-subresult-detail-btn {
-  border: 1px solid rgba(13, 13, 13, 0.55);
-  background: #14161a;
-  color: #e5e7eb;
-}
-
-html[data-theme="light"] .mypage-subresult-detail-btn:hover {
-  background: #0d0d0d;
-  border-color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-subresult-copy-btn {
-  border: 1px solid rgba(13, 13, 13, 0.22);
-  color: #212328;
-}
-
-html[data-theme="light"] .mypage-subresult-copy-btn:hover {
-  border-color: rgba(13, 13, 13, 0.45);
-  background: rgba(13, 13, 13, 0.08);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-subresult-delete-btn {
-  border: 1px solid rgba(165, 35, 35, 0.45);
-  background: rgba(209, 133, 133, 0.35);
-  color: #620000;
-}
-
-html[data-theme="light"] .mypage-subresult-delete-btn:hover {
-  border-color: rgba(165, 35, 35, 0.75);
-  background: rgba(209, 133, 133, 0.55);
-  color: #3d0000;
-}
-
-html[data-theme="light"] .mypage-withdraw {
-  background: radial-gradient(circle at 82% 50%, rgba(255, 24, 46, 0.08), transparent 18%), linear-gradient(90deg, #e0eaf8 0%, #e7ebf6 58%, #f4ebf6 100%);
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.02),
-    0 10px 24px rgba(0, 0, 0, 0.22);
-}
-
-html[data-theme="light"] .mypage-withdraw::after {
-  background-image: radial-gradient(rgba(201, 0, 22, 0.9) 1px, transparent 1px);
-}
-
-html[data-theme="light"] .mypage-withdraw-copy h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn {
-  background: rgba(248, 232, 238, 0.32);
-  color: #d00018;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn:hover {
-  background: rgba(245, 218, 226, 0.5);
-}
-
-html[data-theme="light"] .modal-overlay {
-  background: rgba(245, 245, 245, 0.7);
-}
-
-html[data-theme="light"] .modal-box {
-  background: #e0e0e0;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-box label {
-  color: #444444;
-}
-
-html[data-theme="light"] .modal-box input[type="text"],
-html[data-theme="light"] .modal-box input[type="password"],
-html[data-theme="light"] .modal-box input[type="email"],
-html[data-theme="light"] .modal-box input[type="file"] {
-  border: 1px solid #cccccc;
-  background: #eeeeee;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-box .duplicate-check-btn {
-  border: 1px solid #bbbbbb;
-  background: #cccccc;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-box .duplicate-check-btn:hover {
-  background: #bbbbbb;
-  border-color: #aaaaaa;
-}
-
-html[data-theme="light"] .modal-box .input-message.valid {
-  color: #379a40;
-}
-
-html[data-theme="light"] .modal-box .input-message.invalid {
-  color: #840000;
-}
-
-html[data-theme="light"] .modal-box .password-toggle-btn {
-  border: 1px solid #bbbbbb;
-  background: #cccccc;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-box .password-toggle-btn:hover {
-  background: #bbbbbb;
-  border-color: #aaaaaa;
-}
-
-html[data-theme="light"] .danger-text {
-  color: #940000;
-}
-
-html[data-theme="light"] .modal-btns button[type="submit"] {
-  background: #7ac57d;
-}
-
-html[data-theme="light"] .modal-btns button[type="button"] {
-  background: #bbbbbb;
-}
-
-html[data-theme="light"] .mypage-dashboard .mypage-panel,
-html[data-theme="light"] .mypage-dashboard .mypage-hero {
-  border-color: rgba(13, 13, 13, 0.14);
-  background: radial-gradient(circle at 85% 12%, rgba(13, 13, 13, 0.055), transparent 32%), linear-gradient(145deg, rgba(236, 237, 240, 0.98), rgba(243, 244, 247, 0.99));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.045),
-    0 18px 42px rgba(0, 0, 0, 0.34);
-}
-
-html[data-theme="light"] .mypage-dashboard .mypage-panel::before {
-  background: linear-gradient(112deg, transparent 0 68%, rgba(13, 13, 13, 0.025));
-}
-
-html[data-theme="light"] .mypage-hero {
-  background-color: #f5f5f5;
-  background-image: linear-gradient(90deg, rgba(245, 245, 245, 0.18), rgba(245, 245, 245, 0.02)), url("/oditji/images/mypage-left-bg.png");
-}
-
-html[data-theme="light"] .mypage-hero-badge {
-  border-color: rgba(13, 13, 13, 0.5);
-  background: rgba(245, 245, 245, 0.32);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-hero-spark {
-  border-color: rgba(13, 13, 13, 0.48);
-  background: radial-gradient(circle, rgba(13, 13, 13, 0.24), rgba(245, 245, 245, 0.88) 68%);
-  box-shadow: 0 0 22px rgba(13, 13, 13, 0.2);
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-hero-line {
-  background: linear-gradient(90deg, transparent, #777 34%, #0d0d0d 52%, transparent);
-  box-shadow: 0 0 12px rgba(13, 13, 13, 0.38);
-}
-
-html[data-theme="light"] .mypage-heading-icon {
-  color: #1a1e26;
-}
-
-html[data-theme="light"] .mypage-panel-heading p,
-html[data-theme="light"] .mypage-profile-email,
-html[data-theme="light"] .mypage-created-at,
-html[data-theme="light"] .mypage-activity-title,
-html[data-theme="light"] .mypage-empty {
-  color: #626770;
-}
-
-html[data-theme="light"] .mypage-member-type {
-  border-color: rgba(13, 13, 13, 0.17);
-  background: rgba(13, 13, 13, 0.055);
-  color: #1d2128;
-}
-
-html[data-theme="light"] .mypage-profile-image {
-  background: linear-gradient(135deg, #0d0d0d, #777 58%, #0d0d0d);
-  box-shadow: 0 0 24px rgba(13, 13, 13, 0.16);
-}
-
-html[data-theme="light"] .mypage-action-btn {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: linear-gradient(180deg, rgba(206, 208, 213, 0.9), rgba(238, 239, 242, 0.96));
-  box-shadow: inset 0 0 18px rgba(13, 13, 13, 0.035);
-  color: #0b0c0e;
-}
-
-html[data-theme="light"] .mypage-action-btn span {
-  color: #1d2026;
-}
-
-html[data-theme="light"] .mypage-action-btn:hover {
-  border-color: rgba(13, 13, 13, 0.72);
-  box-shadow: inset 0 0 20px rgba(13, 13, 13, 0.075),
-    0 8px 24px rgba(0, 0, 0, 0.32);
-}
-
-html[data-theme="light"] .mypage-ott::after {
-  background-image: linear-gradient(90deg, rgba(243, 244, 246, 1) 0%, rgba(243, 244, 246, 0.97) 38%, rgba(243, 244, 246, 0.7) 61%, rgba(243, 244, 246, 0.2) 100%), url("/oditji/images/mypage-ott-bg.png");
-}
-
-html[data-theme="light"] .mypage-ott-chip {
-  border-color: rgba(13, 13, 13, 0.14);
-  background: rgba(244, 244, 246, 0.78);
-}
-
-html[data-theme="light"] .mypage-ott-chip:hover {
-  border-color: rgba(13, 13, 13, 0.48);
-  background: rgba(215, 216, 220, 0.9);
-}
-
-html[data-theme="light"] .mypage-activity-card {
-  border-color: rgba(13, 13, 13, 0.13);
-  background: linear-gradient(145deg, rgba(214, 216, 221, 0.92), rgba(240, 241, 244, 0.98));
-}
-
-html[data-theme="light"] .mypage-activity-card:hover {
-  border-color: rgba(13, 13, 13, 0.38);
-  background: linear-gradient(145deg, rgba(199, 201, 207, 0.96), rgba(237, 238, 241, 0.99));
-}
-
-html[data-theme="light"] .mypage-activity-icon,
-html[data-theme="light"] .activity-favorite .mypage-activity-icon,
-html[data-theme="light"] .activity-cart .mypage-activity-icon,
-html[data-theme="light"] .activity-order .mypage-activity-icon,
-html[data-theme="light"] .activity-review .mypage-activity-icon,
-html[data-theme="light"] .activity-subscription .mypage-activity-icon {
-  color: #14161a;
-}
-
-html[data-theme="light"] .mypage-notification-item,
-html[data-theme="light"] .mypage-subresult-item {
-  border-color: rgba(13, 13, 13, 0.13);
-  background: linear-gradient(145deg, rgba(214, 216, 221, 0.92), rgba(240, 241, 244, 0.98));
-}
-
-html[data-theme="light"] .mypage-notification-item-desc {
-  color: #626770;
-}
-
-html[data-theme="light"] .mypage-toggle-switch-track {
-  background: rgba(13, 13, 13, 0.22);
-}
-
-html[data-theme="light"] .mypage-toggle-switch input:checked + .mypage-toggle-switch-track {
-  background: #14161a;
-}
-
-html[data-theme="light"] .mypage-toggle-switch input:checked + .mypage-toggle-switch-track::before {
-  background: #f0f1f4;
-}
-
-html[data-theme="light"] .mypage-withdraw {
-  border-color: rgba(13, 13, 13, 0.16);
-  background: radial-gradient(circle at 86% 50%, rgba(189, 0, 16, 0.08), transparent 20%), linear-gradient(100deg, rgba(231, 232, 236, 0.98), rgba(243, 244, 247, 0.99));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.04),
-    0 16px 34px rgba(0, 0, 0, 0.3);
-}
-
-html[data-theme="light"] .mypage-withdraw::before {
-  background: linear-gradient(90deg, rgba(13, 13, 13, 0.018), transparent 45%);
-}
-
-html[data-theme="light"] .mypage-withdraw::after {
-  background-image: radial-gradient(rgba(13, 13, 13, 0.9) 1px, transparent 1px);
-}
-
-html[data-theme="light"] .mypage-withdraw-icon {
-  border-color: #323439;
-  color: #0c0c0d;
-  filter: drop-shadow(0 0 10px rgba(13, 13, 13, 0.1));
-}
-
-html[data-theme="light"] .mypage-withdraw-copy p {
-  color: #656971;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn {
-  border-color: rgba(177, 0, 17, 0.72);
-  background: rgba(243, 203, 210, 0.22);
-  color: #9b0010;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn:hover {
-  border-color: #94000f;
-  background: rgba(240, 185, 194, 0.42);
-  box-shadow: 0 0 18px rgba(206, 0, 22, 0.12);
-}
-
-html[data-theme="light"] .mypage-withdraw {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: radial-gradient(circle at 85% 12%, rgba(13, 13, 13, 0.045), transparent 32%), linear-gradient(145deg, rgba(236, 237, 240, 0.98), rgba(243, 244, 247, 0.99));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.04),
-    0 16px 34px rgba(0, 0, 0, 0.3);
-}
-
-html[data-theme="light"] .mypage-withdraw-copy h2 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-withdraw-copy p {
-  color: #656971;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn {
-  color: #a90012;
-}
-
-html[data-theme="light"] .mypage-withdraw-btn:hover,
-html[data-theme="light"] .mypage-withdraw-btn:focus-visible {
-  color: #0d0d0d;
-}
-
 
 /* =========================================================
-   pagination-common.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   24) payment.css 대응 (--pay-*)
+   [정리] 기존 자동 변환 블록 중 페이지 레벨 규칙(.box/.payment-box/
+   .container/.price/.status-paid/.action-link/.sub-link/버튼 등)은
+   전부 삭제했습니다 — payment.css가 그 사이에 --pay-page-bg(#f5f6f8),
+   --pay-card-bg(#fff), --pay-heading-text(#111) 등 처음부터 라이트
+   값으로 리팩터링되어 있어서, 예전 "다크로 강제 반전" 규칙을 그대로
+   두면 오히려 원래 의도(밝은 결제 페이지)를 다시 다크로 덮어써
+   버그가 됩니다. 즉 이 페이지 레벨 변수들은 다크/라이트 공통으로
+   이미 밝은 값이라 재정의가 필요 없습니다.
+   남겨야 하는 건 결제취소 모달(.payment-cancel-*)뿐이며, 이 모달만
+   아직 다크 스타일이라 변수로 재정의합니다.
 ========================================================= */
-
-html[data-theme="light"] .oditji-page-link,
-html[data-theme="light"] .oditji-page-current {
-  border: 1px solid rgba(13, 13, 13, 0.08);
+html[data-theme="light"] {
+  --pay-modal-border: #c3c5cb;
+  --pay-modal-bg: #dbdcdf;
+  --pay-modal-text-primary: #0d0d0d;
+  --pay-modal-desc-text: #3c4048;
+  --pay-modal-label-text: #212328;
+  --pay-input-border: #b0b3bb;
+  --pay-input-bg: #e5e6e8;
+  --pay-input-placeholder: #6b7178;
+  --pay-btn-outline-border: #aaadb4;
+  --pay-btn-outline-hover-border: #8e0707;
+  --pay-btn-outline-hover-bg: #c9cbcf;
 }
 
-html[data-theme="light"] .oditji-page-link {
-  background: #d9dbdf;
-  color: #2d3138;
-}
-
-html[data-theme="light"] .oditji-page-link:hover {
-  border-color: rgba(13, 13, 13, 0.22);
-  background: #cdd0d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .oditji-page-current {
-  border-color: #0d0d0d;
-  background: #0d0d0d;
-  color: #e9eaee;
-}
-
-html[data-theme="light"] .oditji-page-edge {
-  color: #616771;
-}
-
-
-/* =========================================================
-   payment.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
-========================================================= */
-
-html[data-theme="light"] body:has(> .box),
-html[data-theme="light"] body:has(> .payment-box),
-html[data-theme="light"] body:has(> .container) {
-  background: #0b0c0f;
-}
-
-html[data-theme="light"] .box h2,
-html[data-theme="light"] .payment-box h2,
-html[data-theme="light"] .container h2 {
-  color: #eeeeee;
-}
-
-html[data-theme="light"] .box p,
-html[data-theme="light"] .payment-box p,
-html[data-theme="light"] .container p {
-  color: #aaaaaa;
-}
-
-html[data-theme="light"] .box,
-html[data-theme="light"] .payment-box {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] body > .container {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] body > .container th,
-html[data-theme="light"] body > .container td {
-  border-bottom: 1px solid #111111;
-}
-
-html[data-theme="light"] body > .container th {
-  background: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-box .price,
-html[data-theme="light"] body > .container .price {
-  color: #dddddd;
-}
-
-html[data-theme="light"] .status-paid {
-  color: #82f5aa;
-}
-
-html[data-theme="light"] .box > a,
-html[data-theme="light"] .payment-box > a,
-html[data-theme="light"] body > .container > a,
-html[data-theme="light"] .action-link {
-  background: #eeeeee;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .box > a:hover,
-html[data-theme="light"] .payment-box > a:hover,
-html[data-theme="light"] body > .container > a:hover,
-html[data-theme="light"] .action-link:hover {
-  background: #cccccc;
-}
-
-html[data-theme="light"] .box > a.sub-link,
-html[data-theme="light"] .payment-box > a.sub-link,
-html[data-theme="light"] body > .container > a.sub-link,
-html[data-theme="light"] .sub-link {
-  background: #aaaaaa;
-}
-
-html[data-theme="light"] .box > a.sub-link:hover,
-html[data-theme="light"] .payment-box > a.sub-link:hover,
-html[data-theme="light"] body > .container > a.sub-link:hover,
-html[data-theme="light"] .sub-link:hover {
-  background: #949494;
-}
-
-html[data-theme="light"] .payment-box > button,
-html[data-theme="light"] .payment-box .payment-request-btn {
-  background: #eeeeee;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-box > button:hover,
-html[data-theme="light"] .payment-box .payment-request-btn:hover {
-  background: #cccccc;
-}
-
+/* .payment-cancel-btn(취소 버튼 자체)과 focus-outline은 위험색
+   계열이라 브랜드 고정 — 값만 명도 대비 확보를 위해 개별 지정 */
 html[data-theme="light"] .payment-cancel-btn {
-  border: 1px solid #bb1010;
+  border-color: #bb1010;
   color: #8e0707;
 }
 
@@ -4035,40 +819,14 @@ html[data-theme="light"] .payment-cancel-btn:hover {
   color: #0d0d0d;
 }
 
-html[data-theme="light"] .payment-cancel-btn:focus-visible {
-  outline: 2px solid #5a0303;
+html[data-theme="light"] .payment-cancel-btn:focus-visible,
+html[data-theme="light"] .payment-cancel-submit-btn:focus-visible,
+html[data-theme="light"] .payment-cancel-close-btn:focus-visible {
+  outline-color: #5a0303;
 }
 
 html[data-theme="light"] .payment-cancel-modal {
   background: rgba(245, 245, 245, 0.72);
-}
-
-html[data-theme="light"] .payment-cancel-modal-content {
-  border: 1px solid #c3c5cb;
-  background: #dbdcdf;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-cancel-modal-title {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-cancel-modal-desc {
-  color: #3c4048;
-}
-
-html[data-theme="light"] .payment-cancel-order-number {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-cancel-label {
-  color: #212328;
-}
-
-html[data-theme="light"] .payment-cancel-reason {
-  border: 1px solid #b0b3bb;
-  background: #e5e6e8;
-  color: #0d0d0d;
 }
 
 html[data-theme="light"] .payment-cancel-reason:focus {
@@ -4080,435 +838,1757 @@ html[data-theme="light"] .payment-cancel-error {
   color: #8e0707;
 }
 
-html[data-theme="light"] .payment-cancel-close-btn {
-  border: 1px solid #aaadb4;
-  color: #212328;
-}
-
 html[data-theme="light"] .payment-cancel-close-btn:hover {
-  background: #c9cbcf;
   color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-cancel-submit-btn {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .payment-cancel-submit-btn:focus-visible,
-html[data-theme="light"] .payment-cancel-close-btn:focus-visible {
-  outline: 2px solid #5a0303;
 }
 
 
 /* =========================================================
-   report.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   25) verify.css 대응 (--verify-*)
+   기존 자동 변환(선택자 기반) 값을 변수 재정의로 이동, 값은 동일
+   유지(규칙 1). --verify-accent* / --verify-glow / --verify-badge-border /
+   -bg/--verify-continue-shadow(브랜드 레드)는 재정의 없음.
+   [버그 수정] 기존 `html { background: #ebebeb; }`이 data-theme
+   스코프 없이 선언되어 있어 다크 모드에도 항상 적용되고 있었습니다
+   — `html[data-theme="light"]`로 스코프를 바로잡았습니다.
+   --verify-muted/-label/-back-text는 기존 결정값이 없어 이번에
+   새로 제안(제안값 — QA 필요).
 ========================================================= */
-
-html[data-theme="light"] .report-btn {
-  border: 1px solid rgba(150, 0, 0, 0.35);
-  background: rgba(175, 0, 0, 0.08);
-  color: #640000;
+html[data-theme="light"] {
+  --verify-bg: #ebebeb;
+  /* [감사 수정] --verify-glow는 바로 위 주석에 "재정의 없음"이라고 적혀
+     있는데도 다크와 똑같은 값으로 다시 선언돼 있었다. 주석대로 삭제. */
+  --verify-text: #1a1a1a;
+  --verify-white: #0d0d0d;
+  --verify-divider: #bfbfbf;
+  --verify-card-border: #c4c4c4;
+  --verify-card-bg: rgba(227, 227, 227, 0.96);
+  --verify-age-border: #cbcbcb;
+  --verify-age-ring: rgba(13, 13, 13, 0.9);
+  --verify-muted: #6b7178;
+  --verify-badge-text: #a20008;
+  --verify-desc: #464646;
+  --verify-notice-bg: #dbdbdb;
+  --verify-notice-text: #2f2f2f;
+  --verify-label: #6b7178;
+  --verify-input-border: #c2c2c2;
+  --verify-input-bg: #eeeeee;
+  --verify-input-text: #212121;
+  --verify-input-focus: #aaaaaa;
+  --verify-box-border: #c7c7c7;
+  --verify-box-bg: #dfdfdf;
+  --verify-list-text: #565656;
+  --verify-warn-border: #d7cdb9;
+  --verify-warn-bg: #e7e2d7;
+  --verify-warn-text: #725b26;
+  --verify-exit-bg: #b5b5b5;
+  --verify-exit-hover: #a7a7a7;
+  --verify-panel-bg: #e7e7e7;
+  --verify-btn-border: #bababa;
+  --verify-btn-bg: #d9d9d9;
+  --verify-btn-text: #111111;
+  --verify-btn-hover-bg: #cfcfcf;
+  --verify-back-text: #6b7178;
+  --verify-success-border: #90dbb8;
+  --verify-success-bg: #c7e7d8;
+  --verify-success-text: #1d814c;
+  --verify-fail-border: #be8788;
+  --verify-fail-bg: #dfc2c3;
+  --verify-fail-text: #640004;
 }
 
-html[data-theme="light"] button.report-btn:hover {
-  border-color: rgba(150, 0, 0, 0.65);
-  background: rgba(175, 0, 0, 0.16);
-}
-
-html[data-theme="light"] .report-btn.reported {
-  border-color: rgba(13, 13, 13, 0.1);
-  background: rgba(13, 13, 13, 0.04);
-}
-
-html[data-theme="light"] .modal-overlay {
-  background: rgba(245, 245, 245, 0.7);
-}
-
-html[data-theme="light"] .modal-box {
-  background: #dfdfdf;
-  color: #0d0d0d;
-  border: 1px solid #cccccc;
-}
-
-html[data-theme="light"] .modal-box h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-field label {
-  color: #2f2f2f;
-}
-
-html[data-theme="light"] .modal-field select {
-  border: 1px solid #bbbbbb;
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-field select:focus {
-  border-color: #003381;
-}
-
-html[data-theme="light"] .modal-field textarea {
-  border: 1px solid #bbbbbb;
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .modal-field textarea:focus {
-  border-color: #003381;
-}
-
-html[data-theme="light"] #reportCancelBtn {
-  background: #cccccc;
-  color: #222222;
-}
-
-html[data-theme="light"] #reportCancelBtn:hover {
-  background: #bbbbbb;
-}
-
+/* [감사 수정] 여기에도 body 선택자 복제가 있었다. verify.css의 body는
+   radial-gradient(... var(--verify-glow) ...), var(--verify-bg) 형태라
+   위에서 재정의한 두 변수만으로 같은 결과가 나온다. 게다가 이 규칙은
+   본인인증 페이지 전용 배경(붉은 비네트 + #ebebeb)인데도 선택자가 그냥
+   body라서 라이트 모드의 "모든 페이지" 배경을 이 값으로 덮고 있었다.
+   (파일에서 마지막에 선언된 body 규칙이라 앞의 두 개도 이겼다.) 삭제. */
 
 /* =========================================================
-   review.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   26) content-more.css 대응 (--cm-*) — 2구간 묶음3
+   --cm-badge-shadow/--cm-card-shadow(순수 검정 그림자), --cm-rating-*
+   (연령등급 배지, 의미 고정색), --cm-type-badge-bg/--cm-type-movie-bg/
+   -drama-bg/-animation-bg/-variety-bg/-documentary-bg(포스터 썸네일
+   위에 얹는 반투명 분류 배지 — 이미지 위 스크림이라 테마 무관 유지),
+   --cm-score-text(골드 점수, 의미 고정색)는 재정의 없음. [QA 수정] 단,
+   .content-more-score/.recommend-card-score/.ott-recommendation-score
+   strong처럼 흰 카드 표면 위에 바로 얹히는 자리는 대비가 무너지므로
+   아래에서 선택자로 어두운 골드로 예외 처리했다(카드 썸네일 위 배지인
+   --cl-score-icon과는 별개 — 그쪽은 어두운 배지 배경이라 원래도 안전).
+   --cm-dark-text는 --cm-white 배경 위 텍스트로만 쓰이는데, --cm-white
+   배경이 아래에서 흰색 그대로 유지되는 조합(로고 배경판/흰색 필 버튼)
+   이라 --cm-dark-text도 그대로 어두운 값 유지(재정의 없음).
+   --cm-white는 헤딩류 텍스트로 압도적으로 많이 쓰이지만 로고 이미지
+   배경판/흰색 필 버튼 배경으로도 쓰이므로, 변수는 반전(텍스트 기준)
+   하고 배경으로 쓰이는 자리와 색상 배지 위 흰 텍스트는 선택자로
+   예외 처리(규칙 3의 예외 조항).
 ========================================================= */
-
-html[data-theme="light"] .mypage-review-tabs {
-  border-bottom: 1px solid rgba(13, 13, 13, 0.09);
+html[data-theme="light"] {
+  --cm-bg: #f4f5f7;
+  --cm-text: #14181c;
+  --cm-white: #14181c;
+  --cm-white-a08: rgba(20, 24, 28, 0.08);
+  --cm-white-a07: rgba(20, 24, 28, 0.07);
+  --cm-white-a22: rgba(20, 24, 28, 0.22);
+  --cm-white-a06: rgba(20, 24, 28, 0.06);
+  --cm-white-a15: rgba(20, 24, 28, 0.15);
+  --cm-white-a12: rgba(20, 24, 28, 0.12);
+  --cm-white-a09: rgba(20, 24, 28, 0.09);
+  --cm-white-a055: rgba(20, 24, 28, 0.055);
+  --cm-white-a015: rgba(20, 24, 28, 0.015);
+  --cm-white-a035: rgba(20, 24, 28, 0.035);
+  --cm-white-a10: rgba(20, 24, 28, 0.10);
+  --cm-text-faint: #70767f;
+  --cm-desc-text: #4b525c;
+  --cm-count-text: #6b7178;
+  --cm-panel-bg: #ffffff;
+  --cm-chip-bg: #eceef1;
+  --cm-chip-text: #26282c;
+  --cm-guide-text: #6b7178;
+  --cm-thumb-bg: #eceef1;
+  --cm-muted-text: #6b7178;
+  --cm-meta-text: #6b7178;
+  --cm-platform-more-bg: #eceef1;
+  --cm-platform-more-text: #454b53;
+  --cm-empty-text: #70767f;
+  --cm-slider-btn-bg: #ffffff;
+  --cm-slider-btn-text: #6b7178;
+  --cm-slider-btn-hover-bg: #eceef1;
+  --cm-ott-section-bg: #f7f8fa;
+  --cm-ott-kicker-text: #6b7178;
+  --cm-black-a22: rgba(20, 24, 28, 0.045);
+  --cm-reasons-text: #4b525c;
+  --cm-platform-card-bg: #ffffff;
+  --cm-stats-dd-text: #26282c;
+  --cm-empty-p-text: #4b525c;
+  --cm-empty-span-text: #70767f;
+  --cm-caption-text: #6b7178;
+  --cm-content-row-span-text: #454b53;
+  --cm-content-row-link-text: #26282c;
 }
 
-html[data-theme="light"] .review-tab {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: rgba(13, 13, 13, 0.035);
-  color: #5a5f68;
+/* --cm-white을 배경으로 쓰는 로고 배경판/흰색 필 버튼 자리는 반전 없이
+   흰색 유지 (이미지 로고 배경판이거나 --cm-dark-text와 짝을 이루는
+   고정 버튼) */
+html[data-theme="light"] .selected-platform-chip img,
+html[data-theme="light"] .recommend-guide a,
+html[data-theme="light"] .content-more-platforms img,
+html[data-theme="light"] .platform-section-title > img,
+html[data-theme="light"] .recommend-card-platforms img,
+html[data-theme="light"] .ott-recommendation-badge,
+html[data-theme="light"] .ott-recommendation-platform-logo,
+html[data-theme="light"] .ott-recommendation-empty a {
+  background: #ffffff;
 }
 
-html[data-theme="light"] .review-tab:hover {
-  border-color: rgba(13, 13, 13, 0.34);
-  background: rgba(13, 13, 13, 0.07);
-  color: #0d0d0d;
+/* 연령등급/분류 배지 위 흰 텍스트는 배지 배경(--cm-rating- 과 --cm-type-*)이
+   반전 없이 그대로라 텍스트도 흰색 유지
+   ([감사 수정] .content-age-rating-badge는 아래 30번 섹션에도 같은 값으로
+   중복돼 있어 여기서는 뺐다. 배지 클래스가 여러 페이지 공용이라 포스터 위
+   배지를 모아둔 30번 섹션 한 곳에서만 관리한다.) */
+html[data-theme="light"] .content-more-type,
+html[data-theme="light"] .recommend-card-type {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .review-tab.active {
-  border-color: rgba(13, 13, 13, 0.62);
-  background: linear-gradient(180deg, #0e0e0f, #3a3c40);
-  color: #e9eaee;
-  box-shadow: 0 0 18px rgba(13, 13, 13, 0.08);
+/* [QA 수정] 흰 카드 표면 위 별점 텍스트도 --main-gold와 같은 이유로
+   같은 색상 계열의 어두운 값으로 교체(제안값). */
+html[data-theme="light"] .content-more-score,
+html[data-theme="light"] .recommend-card-score,
+html[data-theme="light"] .ott-recommendation-score strong {
+  color: #a1830f;
 }
 
-html[data-theme="light"] .mypage-review-filter-empty {
-  border: 1px dashed rgba(13, 13, 13, 0.16);
-  background: rgba(13, 13, 13, 0.025);
+/* =========================================================
+   27) review.css 대응 (--review-*) — 2구간 묶음3
+   --review-black-a7/-a6/-a84/-a28/-a24(순수 검정 오버레이·그림자)는
+   이미지 위 효과라 테마 무관 유지. --review-focus-color/
+   --review-submit-hover-bg(브랜드 블루), --review-submit-text(브랜드
+   버튼 위 고정 어두운 텍스트), --review-delete-*(위험색 계열),
+   --review-accent-strip-start/end(장식용 그러데이션 스트립)도 재정의
+   없음.
+   [QA 수정 — 재협의] 마이페이지 섹션 헤더(내가 작성한 리뷰 페이지 상단의
+   사진 배경 헤더)는 원래 --review-hero-scrim-0/38 · --review-header-grad-
+   1/2/3 · --review-white-a04/-a028 · --review-eyebrow-text ·
+   --review-header-desc-text 전부 이미지 위 효과라며 테마 무관 다크로
+   유지했었는데, mypage.css의 .mypage-hero/.mypage-ott와 같은 이유로
+   방침을 바꿔 밝게 반전한다. 이 토큰들은 헤더 전용이라 값 자체는 그대로
+   두고 아래에서 선택자로 밝은 값으로 교체했다(제안값 — 스크린샷 QA 필요).
+   --review-white-a14/-a34는 리뷰 탭/카드 테두리에도 같이 쓰이는데,
+   헤더가 밝아지면서 이제 두 자리 모두 같은 반전된(어두운 알파) 값을
+   원하게 되어 예전에 있던 이미지 헤더용 선택자 예외(밝은 테두리)는
+   삭제했다 — 변수 반전 하나로 양쪽 다 해결된다.
+   --review-white는 리뷰 모달/입력창/카드 제목 등 압도적으로 많이
+   쓰이는 텍스트 기준으로 반전하고, 이미지 헤더의 h2 텍스트만 예외
+   처리합니다.
+   .review-tab.active / .mypage-empty-box button은 "밝은 그러데이션
+   배경 + 어두운 텍스트 = 활성/강조" 패턴이라, search/cart/favorite와
+   동일한 원리로 그러데이션과 텍스트(--review-dark-text)를 함께
+   반전합니다.
+========================================================= */
+html[data-theme="light"] {
+  --review-border-soft: rgba(20, 24, 28, 0.09);
+  --review-white-a12: rgba(20, 24, 28, 0.12);
+  --review-white-a035: rgba(20, 24, 28, 0.035);
+  --review-tab-text: #6b7178;
+  --review-white-a34: rgba(20, 24, 28, 0.34);
+  --review-white-a07: rgba(20, 24, 28, 0.07);
+  --review-white: #14181c;
+  --review-white-a62: rgba(20, 24, 28, 0.62);
+  --review-tab-active-gradient-start: #2a2d33;
+  --review-light-gradient-end: #14181c;
+  --review-dark-text: #eaecee;
+  --review-white-a08: rgba(20, 24, 28, 0.08);
+  --review-white-a16: rgba(20, 24, 28, 0.16);
+  --review-white-a025: rgba(20, 24, 28, 0.025);
+  --review-heading-light: #14181c;
+  --review-text-muted: #70767f;
+  --review-modal-bg: #ffffff;
+  --review-gray-333: #dde1e6;
+  --review-gray-444: #c7ccd3;
+  --review-label-text: #26282c;
+  --review-input-bg: #f4f5f7;
+  --review-placeholder-text: #8a9099;
+  --review-white-a14: rgba(20, 24, 28, 0.14);
+  --review-white-a3: rgba(20, 24, 28, 0.3);
+  --review-more-bg: #eceef1;
+  --review-more-text: #14181c;
+  --review-white-a65: rgba(20, 24, 28, 0.65);
+  --review-more-hover-bg: #dde1e6;
+  --review-white-a13: rgba(20, 24, 28, 0.13);
+  --review-white-a045: rgba(20, 24, 28, 0.045);
+  --review-card-grad-1: #ffffff;
+  --review-card-grad-2: #f5f6f8;
+  --review-item-grad-1: #ffffff;
+  --review-item-grad-2: #f4f5f7;
+  --review-meta-text: #6b7178;
+  --review-score-text: #14181c;
+  --review-content-text: #454b53;
+  --review-white-a38: rgba(20, 24, 28, 0.38);
+  --review-empty-btn-grad-start: #2a2d33;
 }
 
-html[data-theme="light"] .mypage-filter-empty-title {
-  color: #0b0c0e;
-}
-
-html[data-theme="light"] .mypage-filter-empty-message {
-  color: #626770;
-}
-
-html[data-theme="light"] .review-modal {
-  background: rgba(245, 245, 245, 0.7);
-}
-
-html[data-theme="light"] .review-modal-content {
-  background: #dfdfdf;
-  color: #0d0d0d;
-  border: 1px solid #cccccc;
-}
-
-html[data-theme="light"] .review-modal-content label {
-  color: #222222;
-}
-
-html[data-theme="light"] .review-modal-content select {
-  border: 1px solid #bbbbbb;
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-modal-content select:focus {
-  border-color: #003381;
-}
-
-html[data-theme="light"] .review-modal-content textarea {
-  border: 1px solid #bbbbbb;
-  background: #d5d5d5;
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .review-modal-content textarea:focus {
-  border-color: #003381;
-}
-
-html[data-theme="light"] .review-modal-content button[type="submit"] {
-  background: #003381;
-  color: #e7e7e7;
-}
-
-html[data-theme="light"] .review-modal-content button[type="submit"]:hover {
-  background: #002a65;
-}
-
-html[data-theme="light"] #closeReviewModal {
-  background: #cccccc;
-  color: #222222;
-}
-
-html[data-theme="light"] #closeReviewModal:hover {
-  background: #bbbbbb;
-}
-
-html[data-theme="light"] .mypage-review-page::before {
-  background: linear-gradient(90deg, rgba(228, 228, 231, 0) 0%, rgba(228, 228, 231, 0.38) 35%, rgba(245, 245, 245, 0.84) 100%),
-    url("/oditji/images/mypage-ott-bg.png") center / cover no-repeat;
-}
-
+/* [QA 수정 — 재협의] 마이페이지 섹션 헤더(내가 작성한 리뷰 페이지 상단)도
+   .mypage-hero와 같은 방식으로 밝게 바꾼다. 사진 위에 흰 스크림을 짙게
+   얹고, 그 위 배지 · 제목 · 설명 텍스트를 밝은 배경에 맞는 값으로
+   바꾼다. 테두리는 위에서 --review-white-a14/-a34를 반전해 자동으로
+   해결되므로 별도 선택자가 필요 없다. */
 html[data-theme="light"] .mypage-section-header {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: linear-gradient(100deg, rgba(236, 237, 240, 0.99) 0%, rgba(242, 243, 245, 0.96) 49%, rgba(243, 244, 247, 0.76) 100%),
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 49%, rgba(255, 255, 255, 0.68) 100%),
     url("/oditji/images/mypage-ott-bg.png") right center / cover no-repeat;
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.04),
-    0 18px 38px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 20px rgba(20, 24, 28, 0.08);
+}
+
+/* [QA 수정] 헤더 오른쪽 위로 살짝 삐져나오게 배치한 장식용 사진 조각
+   (.mypage-review-page::before)이 다크 모드에서는 배경에 자연스럽게
+   묻혔지만, 라이트 모드에서는 흰 페이지 위에 검은 그림자 얼룩처럼 도드라져
+   보인다는 피드백을 받았다. 순수 장식 요소라 기능에 영향이 없으므로 라이트
+   모드에서는 아예 숨긴다. */
+html[data-theme="light"] .mypage-review-page::before {
+  opacity: 0;
 }
 
 html[data-theme="light"] .mypage-section-header::after {
-  background: linear-gradient(115deg, transparent 0 62%, rgba(13, 13, 13, 0.028));
-}
-
-html[data-theme="light"] .mypage-review-eyebrow {
-  border: 1px solid rgba(13, 13, 13, 0.34);
-  color: #1d2026;
+  background: linear-gradient(115deg, transparent 0 62%, rgba(20, 24, 28, 0.03));
 }
 
 html[data-theme="light"] .mypage-section-header h2 {
-  color: #0d0d0d;
+  color: #14181c;
 }
 
 html[data-theme="light"] .mypage-section-header p {
-  color: #5b6069;
+  color: #6c727c;
 }
 
-html[data-theme="light"] .mypage-more {
-  border: 1px solid rgba(13, 13, 13, 0.3);
-  background: rgba(240, 241, 244, 0.7);
-  color: #0b0c0e;
+html[data-theme="light"] .mypage-review-eyebrow {
+  color: #454b53;
 }
-
-html[data-theme="light"] .mypage-more:hover {
-  border-color: rgba(13, 13, 13, 0.65);
-  background: rgba(208, 210, 215, 0.8);
-}
-
-html[data-theme="light"] .mypage-review {
-  border: 1px solid rgba(13, 13, 13, 0.13);
-  background: radial-gradient(circle at 92% 0%, rgba(13, 13, 13, 0.045), transparent 28%), linear-gradient(145deg, rgba(235, 236, 239, 0.98), rgba(243, 244, 247, 0.99));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.035),
-    0 18px 38px rgba(0, 0, 0, 0.24);
-}
-
-html[data-theme="light"] .mypage-review-card {
-  border: 1px solid rgba(13, 13, 13, 0.12);
-  background: linear-gradient(135deg, rgba(216, 218, 223, 0.9), rgba(239, 240, 243, 0.98));
-  box-shadow: inset 0 1px 0 rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .mypage-review-card::before {
-  background: linear-gradient(180deg, #101010, #a2a4aa);
-}
-
-html[data-theme="light"] .mypage-review-card:hover {
-  border-color: rgba(13, 13, 13, 0.3);
-}
-
-html[data-theme="light"] .mypage-review-top h3 {
-  color: #0d0d0d;
-}
-
-html[data-theme="light"] .mypage-review-score {
-  border: 1px solid rgba(13, 13, 13, 0.14);
-  background: rgba(13, 13, 13, 0.045);
-  color: #0c0c0d;
-}
-
-html[data-theme="light"] .mypage-review-content {
-  color: #3f434a;
-}
-
-html[data-theme="light"] .mypage-review-delete-btn {
-  border: 1px solid rgba(168, 0, 15, 0.45);
-  background: rgba(239, 185, 193, 0.18);
-  color: #84000d;
-}
-
-html[data-theme="light"] .mypage-review-delete-btn:hover {
-  border-color: rgba(152, 0, 14, 0.82);
-  background: rgba(237, 165, 176, 0.34);
-}
-
-html[data-theme="light"] .mypage-empty-box {
-  border: 1px dashed rgba(13, 13, 13, 0.16);
-  background: rgba(13, 13, 13, 0.025);
-}
-
-html[data-theme="light"] .mypage-empty-box h3 {
-  color: #0b0c0e;
-}
-
-html[data-theme="light"] .mypage-empty-box p {
-  color: #626770;
-}
-
-html[data-theme="light"] .mypage-empty-box button {
-  border: 1px solid rgba(13, 13, 13, 0.38);
-  background: linear-gradient(180deg, #0f0f10, #3a3c40);
-  color: #e9eaee;
-}
-
 
 /* =========================================================
-   verify.css 대응 (자동 변환: 배경/텍스트 색상 명도 반전)
+   28) event.css 나머지 대응 (--event-*) — 2구간 묶음3
+   --event-accent/-red/-red-dark/-blue/-blue-dark/-gray/-gray-dark 및
+   -dim/-border/-shadow 계열, --event-pulse-glow(-fade)는 브랜드·상태
+   의미 고정색이라 재정의 없음.
+   --event-shadow-*(순수 검정 그림자), --event-scrim-*(히어로/카드
+   썸네일 이미지 위에 얹는 블러 배지·글래스 버튼 배경), --event-overlay-*
+   (같은 글래스 배지·버튼들의 테두리/림라이트)는 이미지 위에 얹히는
+   "글래스모피즘" 디자인 언어로 일관되게 쓰이고 있어 테마 무관 유지로
+   판단했습니다(제안값 — 화면별로 대비가 부족해 보이면 개별 재검토
+   필요).
+   --event-bg-noimg(썸네일 없을 때 대체 배경)와 그 위 텍스트
+   --event-text-noimg, --event-bg-media(히어로 슬라이드 이미지 배경판),
+   --event-white-fade(진행바 그러데이션 장식)는 이미지 자리를 대신하는
+   값이라 재정의 없음. --event-text-on-light/-on-light-strong은 원래
+   밝은 배경 위에 쓰도록 만들어진 고정 어두운 텍스트라 재정의 없음.
+   --event-white는 카드 제목/설명 등 일반 텍스트로 압도적으로 많이
+   쓰이므로 반전하고, 브랜드색 배지·히어로 글래스 요소 위 흰 텍스트/
+   흰 배경만 선택자로 예외 처리(규칙 3의 예외 조항).
 ========================================================= */
-
-html {
-  background: #ebebeb;
+html[data-theme="light"] .event-section,
+html[data-theme="light"] .event-detail {
+  --event-bg-period-links: #eceef1;
+  --event-tab-active-grad-start: #2a2d33;
+  --event-tab-active-grad-end: #14181c;
+  --event-text-strong: #14181c;
+  --event-text-body: #26282c;
+  --event-text-desc: #454b53;
+  --event-text-faint: #6b7178;
+  --event-text-faint-2: #70767f;
+  --event-text-secondary: #6b7178;
+  --event-text-tab-inactive: #6b7178;
+  --event-text-price-old: #6b7178;
+  --event-white: #14181c;
 }
 
-html[data-theme="light"] body {
-  background: radial-gradient(circle at 50% -20%, rgba(229, 9, 20, 0.14), transparent 34%), #ebebeb;
-  color: #1a1a1a;
+/* 브랜드 그러데이션/솔리드 배경 위 흰 텍스트 및 히어로 글래스 요소는
+   반전 없이 흰색 유지 */
+html[data-theme="light"] .event-badge,
+html[data-theme="light"] .event-dday-badge,
+html[data-theme="light"] .event-spotlight-link,
+html[data-theme="light"] .event-spotlight-eyebrow,
+html[data-theme="light"] .event-spotlight-nav,
+html[data-theme="light"] .event-spotlight-dot:focus-visible,
+html[data-theme="light"] .event-hero-badge,
+html[data-theme="light"] .event-hero-products-jump,
+html[data-theme="light"] .event-hero-products-jump:hover .event-hero-products-jump-arrow,
+html[data-theme="light"] .event-hero-products-jump-icon,
+html[data-theme="light"] .event-description-icon,
+html[data-theme="light"] .product-section-icon,
+html[data-theme="light"] .product-discount-badge {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .verify-header-divider {
-  background: #bfbfbf;
+/* 상세 히어로 배너(썸네일 이미지 + 어두운 스크림) 위에 얹히는 텍스트는
+   .event-detail의 기본 텍스트 색(반전됨)을 상속받으면 안 되므로 흰색으로
+   고정. .event-hero-content는 상속으로 제목(.event-hero-title)·D-day
+   배지(.event-hero-dday)까지 함께 커버하고, 자체 color를 선언한
+   기간 안내 캡슐(.event-hero .event-period)과 카운트다운 숫자는 별도로
+   지정한다. */
+html[data-theme="light"] .event-hero-content {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .verify-page-title {
-  color: #0d0d0d;
+html[data-theme="light"] .event-hero .event-period {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .verify-card {
-  border: 1px solid #c4c4c4;
-  background: rgba(227, 227, 227, 0.96);
+html[data-theme="light"] .event-countdown-unit strong {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .age-symbol-wrap {
-  border-right: 1px solid #cbcbcb;
+html[data-theme="light"] .event-countdown-unit em {
+  color: rgba(255, 255, 255, 0.65);
 }
 
-html[data-theme="light"] .age-symbol {
-  border: 5px solid rgba(13, 13, 13, 0.9);
-  color: #0d0d0d;
+/* 고정 흰색 필/점 배경 요소(스포트라이트 인디케이터, CTA 버튼,
+   상품 카드 오버레이 텍스트)도 반전 없이 흰색 유지 */
+html[data-theme="light"] .event-spotlight-dot,
+html[data-theme="light"] .event-spotlight-cta,
+html[data-theme="light"] .event-spotlight-dot.is-active,
+html[data-theme="light"] .product-card-overlay-text {
+  background: #ffffff;
 }
 
-html[data-theme="light"] .badge-19 {
-  color: #a20008;
+/* =========================================================
+   29) content-list-modern.css 대응 (--cl-*) — 2구간 묶음4
+   --cl-bg-* 중 툴바/칩/셀렉트/카드/빈상태/페이지버튼/추천카드/모바일토글/
+   버튼호버 배경은 일반 UI 표면이라 반전. --cl-bg-poster(포스터 자리표시자)
+   와 --cl-bg-platform-icon(OTT 로고 배경판)은 이미지 대체/로고 배경판이라
+   재정의 없음.
+   텍스트 계열(--cl-text-* / -eyebrow / -chip-* / -meta-* / -genre-text /
+   -filter-* / -btn-secondary-text / -no-image-text)은 다크 모드 명도 순서를 반전해
+   배치했다(제안값 — 화면 대비 확인 필요). --cl-page-now-text(이미 어두운
+   고정값)와 --cl-submit-hover(흰색 버튼 전용 고정 호버색)는 원래도 밝은
+   배경 위에서 쓰도록 설계돼 재정의 없음.
+   --cl-overlay-* 17종은 전부 카드/칩/토글/테이블/사이드바 스크롤바 등의
+   보더·호버로 쓰이는 흰색 반투명이라(이미지 위 요소 아님) rgba(20, 24, 28,
+   같은 알파)로 반전했다.
+   --cl-shadow-*(순수 검정), --cl-type-*-bg / --cl-recommend-badge-bg /
+   --cl-age-* / --cl-upcoming-bg/--cl-score-badge-bg/--cl-score-icon는
+   포스터 이미지 위에 얹는 배지라 재정의 없이 유지했다.
+   [QA 수정] --cl-fav-*(찜하기 버튼 배경)는 위 주석처럼 "포스터 이미지 위"
+   요소로 분류돼 있었지만 실제로는 .content-list-favorite-btn이
+   .content-list-card-bottom(포스터 밖, 흰 카드 하단 영역)에 있어 이미지
+   위가 아니다. 게다가 버튼 글자색(--cl-white)은 위에서 이미 반전되어
+   어두워졌는데 배경(--cl-fav-bg)만 원래의 짙은 검정 그대로 남아 있어서,
+   라이트 모드에서 어두운 글자가 어두운 배경 위에 놓이는 자체 대비 사고가
+   나 있었다. 아래에서 선택자로 밝은 배경으로 교체.
+   --cl-white는 헤딩/카운트 등 일반 텍스트로 압도적으로 많이 쓰여 반전하고,
+   흰색 필 버튼으로 쓰이는 페이지네이션 현재 페이지(.page-now)와 필터
+   적용 버튼(.content-filter-submit-btn)만 선택자로 예외 처리했다.
+========================================================= */
+html[data-theme="light"] {
+  --cl-bg-toolbar: #ffffff;
+  --cl-bg-chip: #eceef1;
+  --cl-bg-chip-hover: #e3e6ea;
+  --cl-bg-select: #ffffff;
+  --cl-bg-card: #ffffff;
+  --cl-bg-platform-more: #eceef1;
+  --cl-bg-empty: #f5f6f8;
+  --cl-bg-page-btn: #f5f6f8;
+  --cl-bg-page-btn-hover: #eceef1;
+  --cl-bg-recommend-card: #ffffff;
+  --cl-bg-mobile-toggle: #f5f6f8;
+  --cl-bg-btn-hover: #eceef1;
+
+  --cl-white: #14181c;
+  --cl-text-muted: #666c76;
+  --cl-eyebrow: #70767f;
+  --cl-text-secondary: #454b53;
+  --cl-chip-text: #1c2025;
+  --cl-chip-close: #545a64;
+  --cl-text-faint: #6b7178;
+  --cl-text-dim: #767c86;
+  --cl-text-dim2: #70767f;
+  --cl-meta-text: #6b7178;
+  --cl-meta-dot: #a4aab4;
+  --cl-genre-text: #767c86;
+  --cl-platform-more-text: #5c626c;
+  --cl-filter-desc: #767c86;
+  --cl-filter-option-text: #5c626c;
+  --cl-filter-group-title: #1c2025;
+  --cl-btn-secondary-text: #4b525c;
+  --cl-no-image-text: #6b7178;
+
+  --cl-overlay-065: rgba(20, 24, 28, 0.065);
+  --cl-overlay-07: rgba(20, 24, 28, 0.07);
+  --cl-overlay-075: rgba(20, 24, 28, 0.075);
+  --cl-overlay-08: rgba(20, 24, 28, 0.08);
+  --cl-overlay-10: rgba(20, 24, 28, 0.1);
+  --cl-overlay-11: rgba(20, 24, 28, 0.11);
+  --cl-overlay-12: rgba(20, 24, 28, 0.12);
+  --cl-overlay-13: rgba(20, 24, 28, 0.13);
+  --cl-overlay-14: rgba(20, 24, 28, 0.14);
+  --cl-overlay-15: rgba(20, 24, 28, 0.15);
+  --cl-overlay-20: rgba(20, 24, 28, 0.2);
+  --cl-overlay-21: rgba(20, 24, 28, 0.21);
+  --cl-overlay-22: rgba(20, 24, 28, 0.22);
+  --cl-overlay-23: rgba(20, 24, 28, 0.23);
+  --cl-overlay-25: rgba(20, 24, 28, 0.25);
+  --cl-overlay-28: rgba(20, 24, 28, 0.28);
+  --cl-overlay-32: rgba(20, 24, 28, 0.32);
+  --cl-overlay-52: rgba(20, 24, 28, 0.52);
 }
 
-html[data-theme="light"] .verify-content h2 {
-  color: #0d0d0d;
+/* 흰색 필 버튼(현재 페이지/필터 적용 버튼)은 반전 없이 흰 배경 + 어두운
+   글자 유지 */
+html[data-theme="light"] .content-list-pagination .page-now,
+html[data-theme="light"] .content-filter-submit-btn {
+  border-color: #ffffff;
+  background: #ffffff;
 }
 
-html[data-theme="light"] .desc {
-  color: #464646;
+/* [QA 수정] 찜하기 버튼은 흰 카드 하단 영역에 있는 일반 버튼이므로 배경도
+   밝게 뒤집는다(포커스 링은 --cl-white가 이미 반전돼 있어 별도 처리 불필요). */
+html[data-theme="light"] .content-list-favorite-btn {
+  border-color: rgba(20, 24, 28, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  color: #6b7178;
 }
 
-html[data-theme="light"] .verify-law-notice {
-  background: #dbdbdb;
+html[data-theme="light"] .content-list-favorite-btn:hover {
+  border-color: rgba(20, 24, 28, 0.32);
+  background: rgba(20, 24, 28, 0.06);
 }
 
-html[data-theme="light"] .notice-mark {
-  color: #0d0d0d;
+html[data-theme="light"] .content-list-favorite-btn.is-active {
+  border-color: rgba(255, 99, 121, 0.55);
+  background: rgba(255, 99, 121, 0.12);
+  color: #e0405a;
 }
 
-html[data-theme="light"] .verify-law-notice p {
-  color: #2f2f2f;
+/* [QA 수정] 포스터 이미지 위 배지들(콘텐츠 종류 · 연령등급 · 예정작 ·
+   평점 · 추천 카드의 종류/평점)은 배경(--cl-type-* / --cl-age-* /
+   --cl-upcoming-bg / --cl-score-badge-bg / --cl-recommend-badge-bg)이
+   전부 진하거나 채도 높은 고정색이라 재정의하지 않았는데, 글자색으로
+   쓰는 --cl-white는 위에서 이미 다크로 반전돼 있어 이 배지들 위에서
+   어두운 글자가 (특히 --cl-score-badge-bg / --cl-recommend-badge-bg
+   같은 진한 검정 배경 위에서는 어두운 글자끼리 겹쳐) 잘 안 보였다. 배지 배경은
+   테마 무관 고정값 그대로 두고, 그 위 글자만 흰색으로 예외 처리한다. */
+html[data-theme="light"] .content-list-type-badge,
+html[data-theme="light"] .age-rating-badge,
+html[data-theme="light"] .content-list-upcoming-badge,
+html[data-theme="light"] .content-list-score-badge,
+html[data-theme="light"] .content-recommend-type,
+html[data-theme="light"] .content-recommend-score {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .identity-input {
-  border: 1px solid #c2c2c2;
-  background: #eeeeee !important;
-  color: #212121 !important;
+/* =========================================================
+   30) main.css 대응 (--main-*) — 2구간 묶음4
+   --main-bg(페이지 배경)와 --main-bg-btn/-btn-hover/-muted/-filter-active/
+   -chip/-card는 일반 UI 표면(슬라이더 버튼, 랭킹 필터, 카드, 셀렉트,
+   플랫폼 more 칩 등)이라 반전. --main-filter-border/--main-select-border도
+   같은 이유로 반전.
+   텍스트 계열(--main-text-* / -eyebrow-text / -chip-text / -select-text /
+   -desc-text / -name-text)은 다크 모드 명도 순서를 반전해 배치했다(제안값 —
+   화면 대비 확인 필요).
+   --main-overlay-* 12종은 실제 쓰임을 확인한 결과 전부 히어로 배너
+   글래스 버튼/칩/인디케이터·연령등급 배지·플랫폼 로고 테두리 등 "이미지
+   위" 요소에서만 쓰이고 있어(content-list-modern.css의 --cl-overlay-*와
+   달리 일반 카드 표면에는 쓰이지 않음) 재정의 없이 유지했다. 같은 이유로
+   --main-scrim-* / --main-scrim2-* / --main-scrim3-* / --main-fade-0(히어로
+   스크림), --main-panel-grad-*(히어로 인트로 글래스 패널 그러데이션)도
+   재정의 없음.
+   --main-shadow-*(순수 검정), --main-gold/--main-eyebrow-today/-popular/
+   --main-rank-*(브랜드·랭킹 고정색), --main-age-* / --main-type-*-bg /
+   [QA 수정] 단, --main-gold(#f4cf58)는 히어로 배너·랭킹 숫자 테두리처럼
+   어두운 배경 위에서는 재정의 없이 그대로 두되, .card-score(카드 하단
+   흰 정보 영역 위 별점)만은 밝은 흰 카드 표면에서 대비가 무너지므로
+   같은 색상 계열의 어두운 값으로 아래에서 선택자 예외 처리했다.
+   --main-upcoming-bg(포스터 위 배지, 의미 고정색), --main-point-* /
+   --main-empty-blue-2(고정 포인트 블루 강조색), --main-danger-*(고정
+   위험색), --main-stat-grad-end(히어로 그러데이션 텍스트 전용)는 재정의
+   없이 유지했다.
+   --main-white는 카드 제목/랭킹 숫자/필터 텍스트 등 일반 텍스트로 널리
+   쓰여 반전하고, 히어로 배너(제목/버튼/화살표/인디케이터/로고판) 및 포스터
+   이미지 위 배지(연령등급·타입·공개예정)만 선택자로 예외 처리해 흰색을
+   유지했다.
+========================================================= */
+html[data-theme="light"] {
+  --main-bg: #f7f8fa;
+  --main-bg-card: #ffffff;
+  --main-bg-muted: #eceef1;
+  --main-bg-btn: #eceef1;
+  --main-bg-btn-hover: #e3e6ea;
+  --main-bg-chip: #eceef1;
+  --main-bg-filter-active: #14181c;
+
+  --main-filter-border: #dde1e6;
+  --main-select-border: #dde1e6;
+
+  --main-white: #14181c;
+  --main-text-body: #22252a;
+  --main-text-muted: #454b53;
+  --main-text-dim: #70767f;
+  --main-text-faint: #767c86;
+  --main-text-secondary: #5a6069;
+  --main-text-more: #676d77;
+  --main-text-label: #60666f;
+  --main-text-stat: #525862;
+  --main-text-empty: #6b7178;
+  --main-eyebrow-text: #14181c;
+  --main-chip-text: #1c1f24;
+  --main-select-text: #262930;
+  --main-desc-text: #2c2f36;
+  --main-name-text: #4b525c;
 }
 
-html[data-theme="light"] .identity-input:focus {
-  border-color: #aaaaaa;
+/* [QA 수정] 히어로 배너(section.hero)는 블러 처리한 포스터 이미지 위에
+   스크림을 깐 영역이라, 그 안의 텍스트 토큰이 반전되면 어두운 배너 위에
+   어두운 글자가 남는다. 처음에는 흰색으로 되돌릴 선택자를 하나씩
+   나열했는데 이유 배지 · 메타 칩 · 장르 · 설명 · 빠른 탐색 칩이 빠져
+   실제 화면에서 글자가 보이지 않았다. 배너 안 요소는 전부
+   section.hero 안에 있으므로(퀵링크 · 화살표 · 인디케이터 · 인트로 패널
+   포함), 열거 대신 이 스코프에서 텍스트 토큰만 다크 값으로 되돌린다.
+   이렇게 하면 배너에 새 요소가 추가돼도 자동으로 커버된다.
+   --main-bg는 일부러 제외했다. 배너 하단이 페이지 배경으로 페이드되는
+   그러데이션(.hero-slide-bg-empty 와 하단 fade)에 쓰여서, 밝아진 페이지
+   배경과 이어지려면 라이트 값이어야 한다.
+   --main-overlay-* 와 --main-scrim-* 계열(글래스 버튼 · 칩 배경 · 테두리)은
+   애초에 재정의하지 않았으므로 그대로 어둡게 유지된다. */
+html[data-theme="light"] .hero {
+  --main-white: #ffffff;
+  --main-eyebrow-text: #f0f0f0;
+  --main-chip-text: #e8e8e8;
+  --main-desc-text: #d6d6d6;
+  --main-text-body: #e5e5e5;
+  --main-text-muted: #bdbdbd;
+  --main-text-label: #9aa4b2;
+  --main-text-stat: #aeb4bd;
 }
 
-html[data-theme="light"] .standard-box {
-  border: 1px solid #c7c7c7;
-  background: #dfdfdf;
+/* 포스터 이미지 위 배지(연령등급/콘텐츠 타입/공개예정)도 흰색 텍스트 유지 */
+html[data-theme="light"] .content-age-rating-badge,
+html[data-theme="light"] .content-type-badge,
+html[data-theme="light"] .content-upcoming-badge {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .standard-title {
-  color: #0d0d0d;
+/* 카드 플랫폼 로고 배경판(배너 밖, 콘텐츠 카드 위)은 로고가 올라가는
+   자리라 흰색 유지. 배너 안의 로고 배경판(.hero-intro-platform-logo)과
+   슬라이드 인디케이터(.hero-dot.is-active), 통계 그러데이션 텍스트
+   (.hero-intro-stat-value)는 전부 var(--main-white)를 쓰므로 위 .hero
+   스코프 복원으로 함께 해결된다. */
+html[data-theme="light"] .card-platform-logo {
+  background: #ffffff;
 }
 
-html[data-theme="light"] .standard-list {
-  color: #565656;
+/* [QA 수정] 콘텐츠 카드 하단 정보 영역(흰 표면)의 별점(★ 8.5)이
+   --main-gold 원래 값(#f4cf58, 연한 골드) 그대로라 흰 배경 위에서
+   거의 안 보였다. --member-gold와 같은 방식으로 같은 색상 계열의
+   어두운 값으로 교체(제안값). */
+html[data-theme="light"] .card-score {
+  color: #a1830f;
 }
 
-html[data-theme="light"] .notice {
-  border: 1px solid #d7cdb9;
-  background: #e7e2d7;
-  color: #725b26;
+/* =========================================================
+   31) content.css 대응 (--content-*, --reason-*) — 3구간 단독
+   콘텐츠 목록/상세(히어로 글래스 카드) · 인물 상세 · 필모그래피 ·
+   추천 사이드바 · 관련 콘텐츠 · OTT 플랫폼 모달 · 스포일러 모달.
+
+   [히어로 구조에 대한 판단]
+   content.css의 상세 히어로는 "포스터를 blur(40px) brightness(0.5)로 확대한
+   백드롭 + 그 위에 뜨는 반투명 글래스 카드" 구조인데, 제목/장르/평점/
+   버튼/줄거리 등 상세 페이지의 주요 텍스트가 전부 이 글래스 카드
+   *안쪽*에 들어있다(main.css/event.css의 히어로 배너처럼 이미지 위에
+   직접 얹히는 구조가 아님). 그래서 --content-glass-card-bg(86% 불투명한
+   사실상 카드 표면)와 그 안의 텍스트/보더는 일반 UI 표면으로 보고 반전했다.
+   카드만 밝히면 주변이 검은 띠로 남으므로 --content-hero-scrim-1/-2도 밝은
+   스크림으로 반전하고, 백드롭 이미지의 brightness(0.5)만 선택자로 예외
+   처리해 밝게 올렸다. (제안값 — 스크린샷 QA 시 최우선 확인 대상)
+
+   --content-white-a015~a8(28종)은 전부 카드·칩·입력창·모달·탭의 보더와
+   hover 배경이라(이미지 위 요소 아님) rgba(20, 24, 28, 같은 알파)로 반전했다.
+   --content-black-a0~a82(13종)은 순수 검정 그림자·모달 backdrop·포스터 위
+   배지 배경이라 재정의 없음.
+   --content-surface-17~3a는 카드/모달/버튼 표면이라 다크 모드 명도 순서를
+   반전해 배치했다(원본에서 값이 클수록 hover·강조였으므로 라이트에서는
+   값이 클수록 어두워지도록 뒤집음). 반면 --content-surface-10은 포스터
+   자리표시자·인물 프로필 이미지 컨테이너·OTT 로고 배경판(흰색 로고가
+   올라감)이라 기존 파일들과 동일하게 재정의 없이 유지했고, 그 위에 얹히는
+   "이미지 없음" 텍스트만 선택자로 예외 처리했다.
+   텍스트 계열(--content-text-* 25종)은 다크 모드 상대적 밝기 순서를 반전해
+   배치했다(제안값 — 화면 대비 확인 필요).
+   --content-age-*(연령등급 배지), --content-gold*(TMDB 평점 골드),
+   --content-favorite-*(찜하기 활성 붉은 그러데이션),
+   --content-subscription-cta-accent*(구독 계산기 CTA 민트)는 브랜드·의미
+   고정색이라 재정의 없음. 다만 골드 숫자는 밝은 배지 위에서 대비가 부족해
+   .score-badge--tmdb 안의 값 텍스트만 어두운 앰버로 예외 처리했다.
+   --content-tab-active-*(필모그래피 활성 탭)는 review/search와 동일한
+   "밝은 색 = 활성" 패턴이라 그러데이션과 그 위 텍스트를 함께 반전했다.
+   --content-white는 헤딩/제목/버튼 텍스트 등 일반 텍스트로 압도적으로 많이
+   쓰여 반전하고, 포스터 이미지 위 요소(찜하기 버튼, 필모그래피/관련 콘텐츠
+   타입 배지)와 붉은 그러데이션 위 텍스트, OTT 로고 배경판만 선택자로 예외
+   처리해 흰색을 유지했다.
+   --reason-*(관련 콘텐츠 추천 이유 라벨)는 :root가 아니라
+   .related-content-reason 스코프 로컬 토큰이라 같은 선택자에 접두사를 붙여
+   재정의했다(다크용 파스텔톤이 흰 배경에서 대비가 부족 — 제안값).
+========================================================= */
+html[data-theme="light"] {
+  /* ---- 화이트 오버레이 알파 스케일 → 어두운 오버레이로 반전 ---- */
+  --content-white-a015: rgba(20, 24, 28, 0.015);
+  --content-white-a02: rgba(20, 24, 28, 0.02);
+  --content-white-a03: rgba(20, 24, 28, 0.03);
+  --content-white-a035: rgba(20, 24, 28, 0.035);
+  --content-white-a045: rgba(20, 24, 28, 0.045);
+  --content-white-a05: rgba(20, 24, 28, 0.05);
+  --content-white-a06: rgba(20, 24, 28, 0.06);
+  --content-white-a07: rgba(20, 24, 28, 0.07);
+  --content-white-a08: rgba(20, 24, 28, 0.08);
+  --content-white-a09: rgba(20, 24, 28, 0.09);
+  --content-white-a1: rgba(20, 24, 28, 0.1);
+  --content-white-a12: rgba(20, 24, 28, 0.12);
+  --content-white-a14: rgba(20, 24, 28, 0.14);
+  --content-white-a15: rgba(20, 24, 28, 0.15);
+  --content-white-a16: rgba(20, 24, 28, 0.16);
+  --content-white-a18: rgba(20, 24, 28, 0.18);
+  --content-white-a2: rgba(20, 24, 28, 0.2);
+  --content-white-a22: rgba(20, 24, 28, 0.22);
+  --content-white-a24: rgba(20, 24, 28, 0.24);
+  --content-white-a28: rgba(20, 24, 28, 0.28);
+  --content-white-a32: rgba(20, 24, 28, 0.32);
+  --content-white-a34: rgba(20, 24, 28, 0.34);
+  --content-white-a35: rgba(20, 24, 28, 0.35);
+  --content-white-a4: rgba(20, 24, 28, 0.4);
+  --content-white-a44: rgba(20, 24, 28, 0.44);
+  --content-white-a62: rgba(20, 24, 28, 0.62);
+  --content-white-a8: rgba(20, 24, 28, 0.8);
+
+  /* ---- 표면 스케일 (값이 클수록 어두워지도록 순서 반전) ---- */
+  --content-surface-17: #f7f8fa;
+  --content-surface-18: #f5f6f8;
+  --content-surface-1a: #ffffff;
+  --content-surface-1b: #ffffff;
+  --content-surface-1c: #eceef1;
+  --content-surface-1d: #ffffff;
+  --content-surface-1e: #ffffff;
+  --content-surface-20: #f5f6f8;
+  --content-surface-22: #f0f2f5;
+  --content-surface-24: #eceef1;
+  --content-surface-25: #eaedf0;
+  --content-surface-27: #e6e9ed;
+  --content-surface-28: #e4e7eb;
+  --content-surface-29: #e1e5ea;
+  --content-surface-2a: #dee2e7;
+  --content-surface-2b: #dbdfe5;
+  --content-surface-30: #d5dae0;
+  --content-surface-3a: #c9cfd6;
+
+  /* 입력창(리뷰 textarea/별점 input) 배경 겸, 밝은 필 버튼 위 글자색.
+     라이트에서는 흰 배경 + 어두워진 필 버튼 위 흰 글자 역할을 한다.
+     포스터 자리표시자(.card-poster)만 아래에서 예외 처리. */
+  --content-ink: #ffffff;
+
+  /* ---- 텍스트 회색조 (다크 모드 밝기 순서 반전 — 제안값) ---- */
+  --content-white: #14181c;
+  --content-text-77: #7b818a;
+  --content-text-7d: #767c86;
+  --content-text-7f: #747a84;
+  --content-text-81: #727881;
+  --content-text-85: #6e747e;
+  --content-text-88: #6b7178;
+  --content-text-8f: #676d75;
+  --content-text-99: #636971;
+  --content-text-9a: #61676f;
+  --content-text-9c: #5f656d;
+  --content-text-aa: #585e66;
+  --content-text-b0: #545a62;
+  --content-text-b5: #50565e;
+  --content-text-b7: #4e545c;
+  --content-text-cc: #43494f;
+  --content-text-cf: #40464c;
+  --content-text-d0: #3f4549;
+  --content-text-d4: #3b4045;
+  --content-text-d7: #383d42;
+  --content-text-da: #34393e;
+  --content-text-dd: #31363b;
+  --content-text-e6: #282c31;
+  --content-text-ea: #24282d;
+  --content-text-ed: #21252a;
+  --content-text-e5e7eb: #24282d;
+  --content-text-979ca5: #636971;
+
+  /* ---- 필모그래피 활성 탭 (밝은 색 = 활성 → 어두운 색 = 활성) ---- */
+  --content-tab-active-grad-start: #1a1e24;
+  --content-tab-active-grad-end: #40454d;
+  --content-tab-active-hover-end: #2f333a;
+  --content-tab-active-ink: #ffffff;
+
+  /* ---- 히어로 스크림 · 글래스 카드 (제안값 — QA 최우선) ---- */
+  --content-hero-scrim-1: rgba(247, 248, 250, 0.35);
+  --content-hero-scrim-2: rgba(247, 248, 250, 0.86);
+  --content-glass-card-bg: rgba(255, 255, 255, 0.88);
+
+  /* ---- 기타(리뷰 아바타 그러데이션 / 스포일러 가림막) ---- */
+  --content-avatar-grad-start: #d8dce1;
+  --content-spoiler-overlay-bg: rgba(255, 255, 255, 0.82);
+
+  /* ---- 리뷰 수정·삭제 버튼(위험색 계열) ----
+     붉은 계열은 유지하되, 흰 배경에서 대비를 확보하도록 명도만 조정
+     (제안값 — 스크린샷 QA 필요) */
+  --content-danger-border: #e0a7ab;
+  --content-danger-text: #b23a41;
+  --content-danger-hover-bg: rgba(178, 58, 65, 0.08);
 }
 
-html[data-theme="light"] .verify-action {
-  color: #0d0d0d;
+/* 히어로 백드롭은 포스터를 blur + brightness(0.5)로 어둡게 깐 이미지라
+   라이트 스크림과 겹치면 탁해진다. 밝기만 올려 밝은 파스텔 배경이 되게 한다.
+   (값이 변수가 아니라 선택자에 인라인이라 예외적으로 선택자로 오버라이드) */
+html[data-theme="light"] .content-hero-backdrop {
+  filter: blur(40px) saturate(120%) brightness(1.35);
+  opacity: 0.75;
 }
 
-html[data-theme="light"] .verify-action-exit {
-  background: #b5b5b5;
+/* 포스터 자리표시자는 --content-surface-10과 동일하게 어두운 판 유지
+   (이미지가 채워지는 자리라 테마와 무관) */
+html[data-theme="light"] .card-poster {
+  background: #111111;
 }
 
-html[data-theme="light"] .verify-action-exit:hover {
-  background: #a7a7a7;
+/* 위 어두운 자리표시자(--content-surface-10 / .card-poster) 위에 얹히는
+   "이미지 없음" 텍스트는 원래의 밝은 회색을 그대로 유지 */
+html[data-theme="light"] .person-no-image,
+html[data-theme="light"] .person-hero-no-image,
+html[data-theme="light"] .filmography-no-image,
+html[data-theme="light"] .recommend-no-image,
+html[data-theme="light"] .related-content-no-image {
+  color: #7d7d7d;
 }
 
-html[data-theme="light"] .method-panel {
-  border: 1px solid #c4c4c4;
-  background: #e7e7e7;
+html[data-theme="light"] .ott-platform-no-logo {
+  color: #777777;
 }
 
-html[data-theme="light"] .method-title {
-  color: #0d0d0d;
+/* 포스터 이미지 위 요소·브랜드 그러데이션 위 텍스트는 --content-white
+   반전과 무관하게 흰색 유지 */
+html[data-theme="light"] .content-card__fav-btn,
+html[data-theme="light"] .action-box .detail-favorite-btn.is-active,
+html[data-theme="light"] .filmography-type,
+html[data-theme="light"] .related-content-type {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .method-btn {
-  border: 1px solid #bababa;
-  background: #d9d9d9;
-  color: #111111;
+/* 연령등급 배지는 색상 고정 배지라 흰 테두리도 그대로 유지
+   (글자색 흰색 유지는 30) main.css 섹션에서 이미 처리) */
+html[data-theme="light"] .content-age-rating-badge {
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-html[data-theme="light"] .method-btn:hover:not(:disabled) {
+/* OTT 로고 배경판은 흰색 유지 (로고 이미지가 올라가는 자리) */
+html[data-theme="light"] .content-ott-modal-option-logo {
+  background: #ffffff;
+}
+
+/* TMDB 평점 배지의 골드 숫자는 밝아진 배지 배경 위에서 대비가 부족해
+   어두운 앰버로 교체 (아이콘 ⭐는 골드 유지 — 제안값) */
+html[data-theme="light"] .score-badge--tmdb .score-badge-text strong {
+  color: #a4750a;
+}
+
+/* content.css에 변수화되지 않고 남아있는 유일한 하드코딩 색상
+   (.related-content-reason 상단 구분선) */
+html[data-theme="light"] .related-content-reason {
+  border-top-color: rgba(20, 24, 28, 0.07);
+}
+
+/* 관련 콘텐츠 추천 이유 라벨(.related-content-reason 스코프 로컬 토큰).
+   다크용 파스텔톤을 흰 배경에서도 읽히도록 같은 색상 계열의 어두운 값으로
+   교체했다 (제안값 — 스크린샷 QA 필요) */
+html[data-theme="light"] .related-content-reason {
+  --reason-color: #6b7178;
+  --reason-background: rgba(107, 113, 120, 0.1);
+}
+
+html[data-theme="light"] .related-content-reason.reason-director {
+  --reason-color: #6d43c9;
+  --reason-background: rgba(109, 67, 201, 0.1);
+}
+
+html[data-theme="light"] .related-content-reason.reason-cast {
+  --reason-color: #b06a12;
+  --reason-background: rgba(176, 106, 18, 0.1);
+}
+
+html[data-theme="light"] .related-content-reason.reason-main-genre {
+  --reason-color: #17847a;
+  --reason-background: rgba(23, 132, 122, 0.1);
+}
+
+html[data-theme="light"] .related-content-reason.reason-genre {
+  --reason-color: #4c8129;
+  --reason-background: rgba(76, 129, 41, 0.1);
+}
+
+html[data-theme="light"] .related-content-reason.reason-category {
+  --reason-color: #676d77;
+  --reason-background: rgba(103, 109, 119, 0.1);
+}
+
+/* =========================================================
+   32) member.css 대응 (--member-*) — 3구간 단독
+   로그인/회원가입/아이디·비밀번호 찾기/SNS OTT 연동/회원정보 수정 모달.
+
+   [주의] 이 파일에는 처음부터 라이트로 설계된 영역이 하나 있다.
+   탈퇴 복구 확인 모달(.oditji-modal-box)은 다크 모드에서도 흰 배경
+   (--member-confirm-bg: #fff) + 어두운 글자(--member-confirm-text: #555 /
+   --member-confirm-restore-text) + 밝은 회색 버튼(--member-confirm-cancel-bg:
+   #eee)이라 payment.css와 동일하게 재정의 없이 유지했다. 다만
+   --member-gray-333(#333)과 --member-label-text(#cfcfcf)가 이 라이트 모달과
+   다크 UI 양쪽에 걸쳐 쓰여 값이 갈리므로 아래처럼 나눠 처리했다.
+   - --member-gray-333: 라이트 모달 쪽 용례(.oditji-btn-cancel 글자,
+     .oditji-btn-restore.enabled 배경)가 2곳으로 더 많아 변수는 유지하고,
+     다크 UI 쪽 1곳(.ott-box label 칩 배경)만 선택자로 예외 처리했다.
+   - --member-label-text: 폼 라벨 텍스트 3곳이 더 많아 변수는 반전하고,
+     라이트 모달의 비활성 복구 버튼 배경(.oditji-btn-restore)만 선택자로
+     예외 처리해 원래의 밝은 회색을 지켰다.
+
+   --member-overlay-04~90(19종)은 회원정보 수정 모달의 보더·inset 하이라이트
+   뿐 아니라 탭/힌트/placeholder 같은 **반투명 텍스트**로도 쓰이는데, 모달
+   자체가 이미지 위가 아니라 일반 패널이라 표면을 전부 반전했으므로 같은
+   알파의 rgba(20, 24, 28, α)로 일괄 반전했다(반투명 어두운 글자가 되어
+   위계가 그대로 유지됨).
+   --member-shadow-18~58(순수 검정 그림자·모달 backdrop)은 재정의 없음.
+   브랜드·의미 고정색인 --member-brand-red(-active)(OTT 레드),
+   --member-point-blue(-hover)(파란 CTA 채움), --member-focus-blue(+알파)
+   (포커스 링), --member-success-a* / -icon / --member-save-btn-*(초록 저장 버튼),
+   --member-error-text-alt(#ef4444, 흰 배경에서도 대비 확보)도 재정의 없다.
+   반대로 **밝은 표면에서 대비가 무너지는 색만** 같은 색상 계열의 어두운
+   값으로 교체했다: --member-gold(활성 탭 글자), --member-point-blue-light
+   (파란 eyebrow 텍스트), --member-error-text(연분홍 에러 배경 위 글자),
+   --member-required-mark(필수 표시). 전부 제안값 — 스크린샷 QA 필요.
+   --member-white는 제목/입력값/버튼 텍스트 등 일반 텍스트가 대부분이라
+   반전하고, OTT 로고 배경판 2곳과 파란/초록 채움 버튼·아이콘 위 흰 글자,
+   체크 표시만 선택자로 예외 처리했다.
+========================================================= */
+html[data-theme="light"] {
+  /* ---- 기본 배경 ---- */
+  --member-bg-deep: #f7f8fa;
+  --member-bg-deep-2: #f4f5f7;
+  --member-bg-panel: #eef0f3;
+  --member-bg-card: #ffffff;
+  --member-bg-card-alt: #ffffff;
+  --member-bg-input: #f5f6f8;
+  --member-bg-input-alt: #f5f6f8;
+  --member-bg-list: #f5f6f8;
+  --member-bg-option: #ffffff;
+  --member-option-hover-bg: #eceef1;
+  --member-chip-hover-bg: #e3e6ea;
+  --member-btn-cta-bg: #eceef1;
+
+  /* ---- 보더 (일부는 버튼 채움색으로도 쓰여 회색 계단으로 배치) ---- */
+  --member-card-border: #dde1e6;
+  --member-border-soft: #d3d8de;
+  --member-border-input-alt: #d7dbe1;
+  --member-line: #e1e4e9;
+
+  /* ---- 텍스트 (다크 모드 밝기 순서 반전 — 제안값) ---- */
+  --member-white: #14181c;
+  --member-card-text: #1c2025;
+  --member-label-text: #454b53;
+  --member-btn-text: #22252a;
+  --member-text-secondary: #3b4045;
+  --member-text-desc: #4e545c;
+  --member-toggle-text: #4b525c;
+  --member-optional-mark: #60666f;
+  --member-text-faint: #61676f;
+  --member-text-placeholder: #6b7178;
+  --member-text-placeholder-alt: #767c86;
+  --member-text-hint: #7b818a;
+  /* .sns-ott-mark 미선택 테두리 + .auth-links 구분자로만 쓰이는 흐린 값 */
+  --member-text-dim: #9aa0a8;
+
+  /* ---- 밝은 배경에서 대비가 부족해지는 강조색만 어둡게 (제안값) ---- */
+  --member-gold: #a1830f;
+  --member-point-blue-light: #1b5fd6;
+  --member-error-text: #c0392b;
+  --member-required-mark: #e03131;
+
+  /* ---- 안내(파란 톤) 패널: 어두운 남색 패널 → 연한 파란 패널 ---- */
+  --member-info-bg: #eef3fc;
+  --member-info-border: #c3d5f0;
+  --member-info-desc: #2c3a4f;
+  --member-info-help: #5c6779;
+  --member-success-text: #1b4a8a;
+
+  /* ---- 흰색 반투명 오버레이 → 어두운 반투명으로 반전 ---- */
+  --member-overlay-04: rgba(20, 24, 28, 0.04);
+  --member-overlay-045: rgba(20, 24, 28, 0.045);
+  --member-overlay-06: rgba(20, 24, 28, 0.06);
+  --member-overlay-08: rgba(20, 24, 28, 0.08);
+  --member-overlay-12: rgba(20, 24, 28, 0.12);
+  --member-overlay-15: rgba(20, 24, 28, 0.15);
+  --member-overlay-16: rgba(20, 24, 28, 0.16);
+  --member-overlay-18: rgba(20, 24, 28, 0.18);
+  --member-overlay-19: rgba(20, 24, 28, 0.19);
+  --member-overlay-20: rgba(20, 24, 28, 0.2);
+  --member-overlay-30: rgba(20, 24, 28, 0.3);
+  --member-overlay-34: rgba(20, 24, 28, 0.34);
+  --member-overlay-38: rgba(20, 24, 28, 0.38);
+  --member-overlay-50: rgba(20, 24, 28, 0.5);
+  --member-overlay-55: rgba(20, 24, 28, 0.55);
+  --member-overlay-72: rgba(20, 24, 28, 0.72);
+  --member-overlay-85: rgba(20, 24, 28, 0.85);
+  --member-overlay-88: rgba(20, 24, 28, 0.88);
+  --member-overlay-90: rgba(20, 24, 28, 0.9);
+
+  /* ---- 회원정보 수정 모달(#memberModal) 표면 ---- */
+  --member-modal-bg-grad-1: rgba(255, 255, 255, 0.99);
+  --member-modal-bg-grad-2: rgba(244, 245, 247, 0.99);
+  --member-modal-label: #1c2025;
+  --member-modal-icon-grad-1: rgba(238, 240, 243, 0.9);
+  --member-modal-icon-grad-2: rgba(222, 226, 231, 0.95);
+  --member-modal-icon-text: #22252a;
+  --member-input-bg-deep: rgba(255, 255, 255, 0.85);
+  --member-modal-input-text: #14181c;
+  --member-modal-input-focus-bg: rgba(255, 255, 255, 0.98);
+
+  /* ---- 모달 유리질감 버튼(중복확인/비밀번호 토글/파일선택) ---- */
+  --member-glass-btn-start: rgba(240, 242, 245, 0.94);
+  --member-glass-btn-end: rgba(226, 229, 234, 0.96);
+  --member-glass-btn-text: #22252a;
+  --member-glass-btn-hover-start: rgba(232, 235, 239, 0.96);
+  --member-glass-btn-hover-end: rgba(216, 220, 226, 0.98);
+
+  /* ---- 모달 취소 버튼 ---- */
+  --member-cancel-btn-start: rgba(238, 240, 244, 0.96);
+  --member-cancel-btn-end: rgba(224, 227, 232, 0.98);
+  --member-cancel-btn-text: #22252a;
+  --member-cancel-btn-hover-start: rgba(230, 233, 238, 0.98);
+  --member-cancel-btn-hover-end: rgba(213, 217, 223, 0.98);
+}
+
+/* --member-bg-input은 입력창·버튼 채움색으로 반전했지만, 두 곳에서는
+   컨테이너 테두리로 쓰여 밝은 표면 위에서 사라진다. 그 2곳만 보더 색으로
+   교체한다. */
+html[data-theme="light"] .sns-ott-container,
+html[data-theme="light"] .sns-ott-option-list {
+  border-color: #dde1e6;
+}
+
+/* 라이트로 설계된 탈퇴 복구 모달 쪽 값을 지키기 위한 예외 2건
+   (--member-gray-333는 유지 → 다크 UI 칩만 밝게,
+    --member-label-text는 반전 → 라이트 모달 버튼 배경만 원래 값으로) */
+html[data-theme="light"] .ott-box label {
+  background: #eceef1;
+}
+
+html[data-theme="light"] .oditji-btn-restore {
   background: #cfcfcf;
 }
 
-html[data-theme="light"] .method-btn-main {
-  color: #0d0d0d;
+/* OTT 로고 배경판은 흰색 유지 (로고 이미지가 올라가는 자리) */
+html[data-theme="light"] .ott-box-logo,
+html[data-theme="light"] .sns-ott-logo-img {
+  background: #ffffff;
 }
 
-html[data-theme="light"] .method-back:hover {
-  color: #0d0d0d;
+/* 파란/초록 채움 버튼·아이콘 위 텍스트와 체크 표시는 --member-white 반전과
+   무관하게 흰색 유지 */
+html[data-theme="light"] .sns-ott-logo,
+html[data-theme="light"] .sns-ott-submit-btn,
+html[data-theme="light"] .verification-notice-icon,
+html[data-theme="light"] .find-id-result-icon,
+html[data-theme="light"] #memberModal .member-update-buttons #memberUpdateBtn {
+  color: #ffffff;
 }
 
-html[data-theme="light"] .result-message.success {
-  border: 1px solid #90dbb8;
-  background: #c7e7d8;
-  color: #1d814c;
+html[data-theme="light"] .sns-ott-mark::after {
+  border-left-color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
-html[data-theme="light"] .result-message.fail {
-  border: 1px solid #be8788;
-  background: #dfc2c3;
-  color: #640004;
+/* =========================================================
+   33) order.css 나머지 대응 (--oditji-* 주문 전용 토큰) — 3구간 단독
+   위 4번 섹션에서 기본 7개(bg / surface / surface-raised / border / text /
+   text-muted / text-faint)는 이미 대응했고, 이번에 주문 목록·취소환불
+   내역·배송 상세 모달의 나머지 토큰을 채웠다.
+   ※ 접두사가 oditji.css(3번 섹션)와 헷갈리지만 실제로 겹치는 이름은 없다.
+
+   [이 파일의 특징 — 이미 라이트로 설계된 영역이 두 군데 있다]
+   --oditji-fixed-light-*(5종, 취소환불 조회 필터 박스)와
+   --oditji-panel-white / -ink / -border / -input-border / -cancel-solid /
+   -refund-solid / -solid-btn-text / -badge-cancel-bg / -badge-cancel-text /
+   -badge-refund-bg / -badge-refund-text(11종, 환불 검색 패널과 배지)는
+   다크 모드에서도 흰 배경 + 어두운 글자로 설계된 값이라 member.css의
+   탈퇴 복구 모달과 동일하게 재정의 없이 유지했다.
+
+   재정의한 것: 주문 목록 화면의 표면·보더·텍스트(--oditji-list-* 계열),
+   카드 안쪽 우물 배경(--oditji-well-bg), 캡슐 탭(--oditji-pill-* 계열).
+   캡슐 탭은 content.css 필모그래피 탭, review/search와 같은
+   "밝은 색 = 활성" 패턴이라 그러데이션과 그 위 텍스트를 함께 반전했고,
+   같은 톤을 쓰도록 값도 필모그래피 탭과 맞췄다.
+
+   재정의하지 않은 것: --oditji-accent 계열(초록 브랜드색)과
+   --oditji-on-accent 계열(초록 채움 위 어두운 글자), --oditji-cancel-btn-bg
+   (빨간 채움), --oditji-info-blue 계열(리뷰 버튼 파란 채움),
+   --oditji-info(배송 단계 파란 원), --oditji-list-tab-active-grad-*(초록
+   활성 탭), --oditji-list-cancel-outline-hover / -select-cancel-text /
+   -select-cancel-hover / -refund-solid(의미 고정 채움색),
+   --oditji-accent-soft / -danger-soft / -waiting-* 배경 / -notice-* 배경 /
+   -list-badge-* 배경 / -list-selected-refund-bg(전부 반투명 틴트라 밝은
+   표면에서도 그대로 작동), 순수 검정 그림자와 모달 딤(5종),
+   --oditji-radius-* 와 --font-*(색상 아님).
+
+   대신 **밝은 표면 위 글자로만 쓰여 대비가 무너지는 색**은 같은 색상
+   계열의 어두운 값으로 교체했다: --oditji-danger, --oditji-waiting-text,
+   --oditji-list-badge-cancel-text, --oditji-list-badge-refund-text,
+   --oditji-list-selected-refund-text, --oditji-notice-active-text,
+   --oditji-notice-expired-text. 초록 --oditji-accent와 파란
+   --oditji-info-blue는 채움색으로도 쓰여 변수는 유지하고, 글자로 쓰이는
+   자리만 아래에서 선택자로 예외 처리했다. 전부 제안값 — 스크린샷 QA 필요.
+   --oditji-pure-white는 색이 채워진 버튼 위 흰 글자라 유지하고, 배경이
+   밝게 반전되는 3곳만 선택자로 예외 처리했다.
+========================================================= */
+html[data-theme="light"] {
+  /* 카드 안쪽 우물(주문 상품 줄 / 정보 영역 / 표 감싸개) */
+  --oditji-well-bg: rgba(20, 24, 28, 0.04);
+
+  /* ---- 주문 목록 표면 · 보더 ---- */
+  --oditji-list-tabs-bg: #ffffff;
+  --oditji-list-tabs-border: #dde1e6;
+  --oditji-list-card-bg: #ffffff;
+  --oditji-list-card-border: #dde1e6;
+  --oditji-list-item-bg: #f7f8fa;
+  --oditji-list-item-border: #e3e6ea;
+  --oditji-list-item-bg-hover: #f0f2f5;
+  --oditji-list-item-border-hover: #d3d8de;
+  --oditji-list-info-section-bg: #f5f6f8;
+  --oditji-list-info-section-border: #e3e6ea;
+  --oditji-list-input-bg: #ffffff;
+  --oditji-list-input-border: #d3d8de;
+  --oditji-list-reset-btn-border: #d3d8de;
+  --oditji-list-reset-btn-hover-bg: #eceef1;
+  --oditji-list-quick-btn-border-hover: #aeb4bd;
+  --oditji-list-table-head-bg: #f2f3f5;
+  --oditji-list-table-head-border: #dde1e6;
+  --oditji-list-table-row-border: #e3e6ea;
+  --oditji-list-table-row-hover: #f5f6f8;
+
+  /* ---- 주문 목록 텍스트 (다크 모드 밝기 순서 반전 — 제안값) ---- */
+  --oditji-list-heading-text: #14181c;
+  --oditji-list-input-text: #14181c;
+  --oditji-list-table-text: #22252a;
+  --oditji-list-field-label: #4e545c;
+  --oditji-list-quick-btn-text: #454b53;
+  --oditji-list-muted-text: #5a6069;
+  --oditji-list-info-text: #5f656d;
+  --oditji-list-info-label: #6b7178;
+  --oditji-list-faint-text: #767c86;
+  --oditji-list-date-range-text: #7b818a;
+
+  /* ---- 캡슐 탭 (밝은 색 = 활성 → 어두운 색 = 활성) ----
+     값은 content.css 필모그래피 활성 탭과 동일한 톤으로 맞췄다. */
+  --oditji-pill-tabs-border: rgba(20, 24, 28, 0.09);
+  --oditji-pill-btn-border: rgba(20, 24, 28, 0.12);
+  --oditji-pill-btn-bg: rgba(20, 24, 28, 0.035);
+  --oditji-pill-btn-text: #636971;
+  --oditji-pill-btn-border-hover: rgba(20, 24, 28, 0.34);
+  --oditji-pill-btn-bg-hover: rgba(20, 24, 28, 0.07);
+  --oditji-pill-active-border: rgba(20, 24, 28, 0.62);
+  --oditji-pill-active-grad-start: #1a1e24;
+  --oditji-pill-active-grad-end: #40454d;
+  --oditji-pill-active-text: #ffffff;
+  --oditji-pill-active-glow: rgba(20, 24, 28, 0.08);
+  --oditji-pill-focus-outline: rgba(20, 24, 28, 0.8);
+  --oditji-pill-hover-grad-end: #2f333a;
+
+  /* ---- 밝은 표면 위 글자로만 쓰여 어둡게 조정한 색 (제안값) ---- */
+  --oditji-danger: #c8393f;
+  --oditji-waiting-text: #8a6d0a;
+  --oditji-list-badge-cancel-text: #a1591a;
+  --oditji-list-badge-refund-text: #3b5ba8;
+  --oditji-list-selected-refund-text: #3b5ba8;
+  --oditji-notice-active-text: #2f6d33;
+  --oditji-notice-expired-text: #5a6472;
 }
 
-@media (max-width: 860px) {
-  html[data-theme="light"] .age-symbol-wrap {
-    border-bottom: 1px solid #cbcbcb;
-  }
+/* --oditji-pure-white는 색 채움 버튼 위 흰 글자라 유지하지만, 아래 세 곳은
+   배경이 밝게 반전되어 흰 글자가 사라지므로 어두운 글자로 교체한다. */
+html[data-theme="light"] .order-list-container .order-tab-btn:hover,
+html[data-theme="light"] .order-list-container .history-reset-btn:hover {
+  color: #14181c;
 }
 
+/* 조회 버튼 hover는 "흰 캡슐" 그러데이션이라 활성 캡슐과 같은 방향으로 반전 */
+html[data-theme="light"] .order-list-container .history-search-btn:hover {
+  background: linear-gradient(180deg, #14181c, var(--oditji-pill-hover-grad-end));
+}
+
+/* 초록 브랜드색(--oditji-accent)은 채움·보더로도 쓰여 변수는 유지하고,
+   밝은 표면 위 "글자"로 쓰이는 자리만 더 진한 초록으로 교체 (제안값) */
+html[data-theme="light"] .order-status,
+html[data-theme="light"] .order-info-status,
+html[data-theme="light"] .order-summary .final span:last-child,
+html[data-theme="light"] .address-search-btn,
+html[data-theme="light"] .tracking-copy-btn:hover,
+html[data-theme="light"] .delivery-detail-modal-footer-close:hover,
+html[data-theme="light"] .order-item-actions .delivery-detail-btn:hover,
+html[data-theme="light"] .full-cancel-status-box.approved .full-cancel-status-title,
+html[data-theme="light"] .refund-badge.completed,
+html[data-theme="light"] .order-list-container .full-order-cancel-btn,
+html[data-theme="light"] .order-list-container .refund-quick-btn.active {
+  color: #2e7d32;
+}
+
+/* 사업자명 표기는 원본이 !important라 같은 강도로 덮어써야 한다 */
+html[data-theme="light"] .order-item-business {
+  color: #2e7d32 !important;
+}
+
+/* 파란 --oditji-info-blue도 리뷰 버튼 채움색으로 쓰여 변수는 유지하고,
+   연한 파란 틴트 위 글자인 승인 배지만 진한 파랑으로 교체 (제안값) */
+html[data-theme="light"] .refund-badge.approved {
+  color: #1b5fd6;
+}
+
+/* =========================================================
+   34) goods.css 대응 (--goods-*) — 3구간 단독
+   상품 목록(툴바·필터 사이드바·카드 그리드)과 상품 상세(정보 카드·
+   갤러리·옵션/수량·리뷰·추천 사이드바·재입고 알림).
+
+   content.css와 달리 이 파일에는 히어로 백드롭 이미지가 없고
+   .goods-detail-card도 --goods-surface-1 위에 얹힌 평범한 카드라,
+   표면·보더·텍스트를 그대로 반전하면 된다.
+
+   --goods-white-a0 ~ -a48(29종)은 전부 카드·칩·셀렉트·토글·사이드바의
+   보더와 hover 채움이라 rgba(20, 24, 28, 같은 알파)로 반전했다.
+   --goods-black-a2 ~ -a68(7종)은 순수 검정 그림자와 포스터 위 배지
+   (품절 배지·찜하기 버튼) 배경이라 재정의 없음.
+
+   [이미지 자리표시자는 어둡게 유지]
+   --goods-surface-inset(포스터·배우 사진·대표 이미지 컨테이너)과
+   --goods-surface-2(카드 포스터·추천 포스터·갤러리 썸네일)는 이미지가
+   채워지는 자리라 기존 파일들과 같은 기준으로 유지했고, 그 위에 얹히는
+   --goods-no-image-text 와 --goods-no-image-icon-text 도 함께 유지했다.
+   다만 --goods-surface-2는 수량 컨트롤과 옵션 셀렉트 배경으로도 쓰여
+   그 2곳만 선택자로 밝게 예외 처리했다.
+
+   재정의 없음: --goods-point 계열(파란 브랜드색), --goods-discount-tag-bg
+   와 --goods-heart 계열(포스터 위 할인 태그·찜 버튼), --goods-star-active
+   와 알파 2종(별점 골드), --goods-danger-bg 와 --goods-success-bg,
+   --goods-restock 알파 계열, --goods-restock-btn-active 계열(반투명 틴트),
+   --goods-danger-text(#e63946, 흰 배경에서도 대비 확보).
+
+   밝은 표면 위 글자로만 쓰여 어둡게 조정한 색(제안값): --goods-success-text,
+   --goods-stock-warning-text, --goods-restock-danger, --goods-recommend-score,
+   --goods-review-empty-icon, --goods-soldout-guide-text, 그리고
+   리뷰 삭제 버튼 3종(--goods-review-delete-border 와 -hover-bg 와 -text)은
+   content.css의 같은 버튼과 톤을 맞췄다.
+
+   --goods-white는 제목·가격·필터 라벨 등 일반 텍스트가 대부분이라 반전하고,
+   포스터 위 배지·찜하기 버튼과 파란 구매 버튼 위 흰 글자만 선택자로 예외
+   처리했다. 필터 적용 버튼은 원래 "흰 필 + 어두운 글자"였는데 필터 패널이
+   흰색으로 반전되면 사라지므로, 어두운 필 + 흰 글자로 뒤집었다.
+========================================================= */
+html[data-theme="light"] {
+  /* ---- 화이트 오버레이 알파 스케일 → 어두운 오버레이로 반전 ---- */
+  --goods-white-a0: rgba(20, 24, 28, 0);
+  --goods-white-a018: rgba(20, 24, 28, 0.018);
+  --goods-white-a022: rgba(20, 24, 28, 0.022);
+  --goods-white-a025: rgba(20, 24, 28, 0.025);
+  --goods-white-a035: rgba(20, 24, 28, 0.035);
+  --goods-white-a04: rgba(20, 24, 28, 0.04);
+  --goods-white-a05: rgba(20, 24, 28, 0.05);
+  --goods-white-a055: rgba(20, 24, 28, 0.055);
+  --goods-white-a06: rgba(20, 24, 28, 0.06);
+  --goods-white-a065: rgba(20, 24, 28, 0.065);
+  --goods-white-a07: rgba(20, 24, 28, 0.07);
+  --goods-white-a075: rgba(20, 24, 28, 0.075);
+  --goods-white-a08: rgba(20, 24, 28, 0.08);
+  --goods-white-a1: rgba(20, 24, 28, 0.1);
+  --goods-white-a12: rgba(20, 24, 28, 0.12);
+  --goods-white-a13: rgba(20, 24, 28, 0.13);
+  --goods-white-a14: rgba(20, 24, 28, 0.14);
+  --goods-white-a15: rgba(20, 24, 28, 0.15);
+  --goods-white-a16: rgba(20, 24, 28, 0.16);
+  --goods-white-a18: rgba(20, 24, 28, 0.18);
+  --goods-white-a2: rgba(20, 24, 28, 0.2);
+  --goods-white-a22: rgba(20, 24, 28, 0.22);
+  --goods-white-a24: rgba(20, 24, 28, 0.24);
+  --goods-white-a25: rgba(20, 24, 28, 0.25);
+  --goods-white-a28: rgba(20, 24, 28, 0.28);
+  --goods-white-a3: rgba(20, 24, 28, 0.3);
+  --goods-white-a34: rgba(20, 24, 28, 0.34);
+  --goods-white-a42: rgba(20, 24, 28, 0.42);
+  --goods-white-a48: rgba(20, 24, 28, 0.48);
+
+  /* ---- 표면 (값이 밝을수록 hover였던 순서를 뒤집어 배치) ---- */
+  --goods-surface-1: #ffffff;
+  --goods-toolbar-bg: #ffffff;
+  --goods-card-bg: #ffffff;
+  --goods-card-bg-hover: #f5f6f8;
+  --goods-mobile-toggle-bg: #ffffff;
+  --goods-select-bg: #ffffff;
+  --goods-option-bg: #f7f8fa;
+  --goods-chip-bg: #eceef1;
+  --goods-chip-bg-hover: #e3e6ea;
+  --goods-reset-btn-bg: #f0f2f5;
+  --goods-reset-btn-bg-hover: #e6e9ed;
+  --goods-select-disabled-bg: #f0f2f5;
+  --goods-btn-bg: #dee2e7;
+  --goods-btn-bg-hover: #c9cfd6;
+  --goods-submit-btn-hover-bg: #2f333a;
+
+  /* ---- 텍스트 (다크 모드 밝기 순서 반전 — 제안값) ---- */
+  --goods-white: #14181c;
+  --goods-select-option-text: #1a1e23;
+  --goods-chip-text: #1c2025;
+  --goods-restock-title-text: #1c2025;
+  --goods-strong-text: #1f2328;
+  --goods-gallery-nav-text: #1f2328;
+  --goods-description-text: #2f343a;
+  --goods-reset-btn-text: #31363b;
+  --goods-brand-row-text: #34393e;
+  --goods-detail-desc-text: #34393e;
+  --goods-filter-label-text: #414750;
+  --goods-filter-option-text: #4e545c;
+  --goods-status-waiting-text: #4b525c;
+  --goods-back-meta-text: #545a62;
+  --goods-stock-text: #545c66;
+  --goods-brand-label-text: #585e66;
+  --goods-chip-sub-text: #5f656d;
+  --goods-detail-brand-text: #61676f;
+  --goods-side-content-sub-text: #636971;
+  --goods-muted-text: #636a74;
+  --goods-filter-clear-text: #676e77;
+  --goods-description-title-text: #676d75;
+  --goods-brand-text: #6a7078;
+  --goods-actor-card-sub-text: #6b7178;
+  --goods-secondary-text: #6b7178;
+  --goods-eyebrow-text: #6e7684;
+  --goods-review-sub-text: #6e747e;
+  --goods-meta-label-text: #737980;
+  --goods-filter-empty-text: #767d88;
+  --goods-dim-text: #7b818a;
+  /* 비활성 텍스트는 라이트에서 반대로 "더 연하게" 가야 한다 */
+  --goods-select-disabled-text: #a4aab4;
+  --goods-qty-input-disabled-text: #aeb4bd;
+  --goods-qty-disabled-text: #b6bcc4;
+  --goods-divider-text: #b0b6bd;
+
+  /* ---- 밝은 표면 위 글자로만 쓰여 어둡게 조정한 색 (제안값) ---- */
+  --goods-success-text: #2e7d32;
+  --goods-stock-warning-text: #9a6f06;
+  --goods-restock-danger: #c0392b;
+  --goods-recommend-score: #a4750a;
+  --goods-review-empty-icon: #b8961f;
+  --goods-soldout-guide-text: #b23a41;
+
+  /* ---- 리뷰 삭제 버튼 (content.css의 같은 버튼과 톤 통일) ---- */
+  --goods-review-delete-border: #e0a7ab;
+  --goods-review-delete-text: #b23a41;
+  --goods-review-delete-hover-bg: rgba(178, 58, 65, 0.08);
+}
+
+/* --goods-surface-2는 포스터 자리표시자로 유지했지만, 수량 컨트롤과 옵션
+   셀렉트 배경으로도 쓰여 그 2곳만 밝은 표면으로 교체한다. */
+html[data-theme="light"] .detail-quantity-control {
+  background: #f0f2f5;
+}
+
+html[data-theme="light"] .goods-detail-container .detail-option-select {
+  background-color: #ffffff;
+}
+
+/* 포스터 이미지 위 배지·찜하기 버튼과 파란 구매 버튼 위 글자는 흰색 유지 */
+html[data-theme="light"] .soldout-badge,
+html[data-theme="light"] .card-item .card-favorite-btn,
+html[data-theme="light"] .detail-info .action-box .btn.btn-primary,
+html[data-theme="light"] .detail-info .action-box .buy-btn {
+  color: #ffffff;
+}
+
+html[data-theme="light"] .card-poster .discount-badge,
+html[data-theme="light"] .badge-discount,
+html[data-theme="light"] .discount-tag {
+  color: #ffffff !important;
+}
+
+/* 포스터 위 찜하기 버튼의 테두리와 포커스 링도 흰색으로 고정 */
+html[data-theme="light"] .card-item .card-favorite-btn {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+html[data-theme="light"] .card-item .card-favorite-btn:hover {
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+html[data-theme="light"] .card-item .card-favorite-btn:focus-visible {
+  outline-color: #ffffff;
+}
+
+/* 필터 적용 버튼: "흰 필 + 어두운 글자" → "어두운 필 + 흰 글자"로 반전
+   (배경은 --goods-white 반전으로 이미 어두워지므로 글자만 지정) */
+html[data-theme="light"] .goods-filter-submit-btn,
+html[data-theme="light"] .filter-submit-btn {
+  color: #ffffff;
+}
+
+/* =========================================================
+   35) business.css 나머지 대응 (--biz-*) — 3구간 단독
+   사업자 대시보드 · 상품 관리 · 배송 관리 · 정산 · 취소환불 승인 ·
+   계좌 관리 · 콘텐츠 검색 모달.
+
+   위 6번 섹션에서 --biz-surface-3 와 --biz-border-soft 는 이미 대응했고,
+   --biz-surface-1 과 -2, --biz-border, --biz-text, --biz-text-sub,
+   --biz-text-dim, --biz-point 는 common.css의 --color-* 를 fallback 형태로
+   참조하므로 2번 섹션에서 자동으로 함께 바뀐다(재정의 대상 아님).
+
+   재정의한 것: 패널·테이블·입력창·계좌/정산/배송/취소 카드 표면과 보더,
+   텍스트 계열 전체, 대시보드 차트의 트랙(--biz-progress-track,
+   --biz-circle-track, --biz-star-empty)과 어두운 카드 그러데이션
+   (--biz-card-grad-dark, --biz-views-card-grad-1, --biz-rating-card-grad-1,
+   --biz-delivery-card-grad-1 과 -2, --biz-dashboard-panel-grad-1 과 -2),
+   그리고 흰색 반투명 오버레이 8종(rgba(20, 24, 28, 같은 알파)로 반전).
+
+   재정의 없음: --biz-point-strong 계열과 --biz-account-accent 계열(파란
+   채움 버튼), --biz-mini-chart-grad 계열과 --biz-circle-accent,
+   --biz-summary-check 계열, --biz-dashboard-icon-accent(브랜드 그러데이션
+   과 아이콘 색), --biz-star-active(별점 골드), --biz-progress-fill 계열,
+   상태 배지의 반투명 틴트 배경과 테두리 전부, --biz-modal-scrim(순수 검정),
+   --biz-alert-success-icon-bg 와 --biz-alert-error-icon-bg(색 채운 원형
+   아이콘), --biz-order-complete-icon 계열과 --biz-order-cancel-icon 계열
+   (원래도 밝은 배경 + 어두운 글자), --biz-poster-placeholder-bg 와 -text
+   (처음부터 라이트로 설계된 포스터 자리표시자), --biz-radius 계열과
+   --biz-transition(색상 아님).
+
+   상태·강조 텍스트는 밝은 표면 위에서 대비가 무너지므로 같은 색상 계열의
+   어두운 값으로 교체했다(--biz-success, --biz-warning, --biz-danger,
+   --biz-status-ok-text, --biz-status-waiting-text, --biz-status-approved-text,
+   --biz-status-requested-text, --biz-status-rejected-text,
+   --biz-status-waiting2-text, --biz-alert-success-title 과 -message,
+   --biz-alert-error-title 과 -message, --biz-review-score-text,
+   --biz-required-mark). 전부 제안값 — 스크린샷 QA 필요.
+
+   --biz-white는 27곳 모두 color로만 쓰이는데, 그중 13곳이 파란 채움 버튼과
+   색 채운 원형 아이콘 위 글자라 그 선택자들만 예외 처리하고 나머지 제목·
+   입력값·표 값은 어두운 글자로 반전했다.
+========================================================= */
+html[data-theme="light"] {
+  /* ---- 흰색 반투명 오버레이 → 어두운 반투명으로 반전 ---- */
+  --biz-overlay-white-015: rgba(20, 24, 28, 0.015);
+  --biz-overlay-white-025: rgba(20, 24, 28, 0.025);
+  --biz-overlay-white-035: rgba(20, 24, 28, 0.035);
+  --biz-overlay-white-055: rgba(20, 24, 28, 0.055);
+  --biz-overlay-white-06: rgba(20, 24, 28, 0.06);
+  --biz-overlay-white-065: rgba(20, 24, 28, 0.065);
+  --biz-overlay-white-07: rgba(20, 24, 28, 0.07);
+  --biz-overlay-white-08: rgba(20, 24, 28, 0.08);
+
+  /* ---- 계좌 관리 ---- */
+  --biz-account-bg: #ffffff;
+  --biz-account-border: #dde1e6;
+  --biz-account-row-border: #e3e6ea;
+  --biz-account-text-dim: #636a74;
+  --biz-account-notice-bg: #f0f2f5;
+  --biz-account-notice-text: #414750;
+  --biz-account-input-border: #d3d8de;
+  --biz-account-actions-border: #e3e6ea;
+  --biz-account-actions-text: #656b75;
+  --biz-account-preview-bg: #f5f6f8;
+  --biz-account-preview-label: #6c727c;
+  --biz-badge-gray-text: #5a6069;
+
+  /* ---- 공통 패널 · 표 · 입력창 ---- */
+  --biz-border-strong: #d3d8de;
+  --biz-panel-bg-2: #f5f6f8;
+  --biz-table-bg: #ffffff;
+  --biz-table-border: #e3e6ea;
+  --biz-table-head-bg: #f2f3f5;
+  --biz-table-head-text: #414750;
+  --biz-table-text: #1c2025;
+  --biz-table-divider-light: #dde1e6;
+  --biz-text-muted: #5a6069;
+  --biz-label-text: #4e545c;
+  --biz-input-bg-dark: #ffffff;
+  --biz-input-border-dark: #d3d8de;
+  --biz-input-bg-darker: #ffffff;
+  --biz-input-border-darker: #d3d8de;
+  --biz-placeholder-gray: #7b818a;
+  --biz-placeholder-gray-2: #7b818a;
+  --biz-hint-gray: #7b818a;
+  --biz-empty-text: #676e78;
+  --biz-empty-title: #1c2025;
+  --biz-empty-desc: #676e78;
+  --biz-guide-text: #565c66;
+
+  /* ---- 배송 관리 카드 ---- */
+  --biz-delivery-card-grad-1: rgba(255, 255, 255, 0.98);
+  --biz-delivery-card-grad-2: rgba(248, 249, 251, 0.98);
+  --biz-delivery-card-border: #dde1e6;
+  --biz-delivery-card-head-border: #e3e6ea;
+  --biz-delivery-meta-text: #636a74;
+  --biz-delivery-avatar-bg: #c3c9d1;
+  --biz-info-rows-bg: rgba(20, 24, 28, 0.04);
+  --biz-info-rows-border: #e3e6ea;
+  --biz-info-row-label: #656b75;
+  --biz-info-row-value: #1c2025;
+
+  /* ---- 정산 ---- */
+  --biz-settlement-card-bg: #ffffff;
+  --biz-settlement-panel-bg: #f5f6f8;
+  --biz-settlement-count-text: #636a74;
+  --biz-settlement-table-border: #e3e6ea;
+  --biz-settlement-table-text: #22252a;
+  --biz-cycle-tabs-border: #dde1e6;
+  --biz-cycle-tabs-bg: #f2f3f5;
+  --biz-cycle-tab-text: #656d78;
+  --biz-cycle-tab-hover-text: #1c2025;
+  --biz-cycle-tab-hover-bg: #e6e9ed;
+
+  /* ---- 폼 ---- */
+  --biz-form-label: #383d44;
+  --biz-form-input-border: #d3d8de;
+  --biz-form-placeholder: #7b818a;
+  --biz-form-hint: #737a84;
+
+  /* ---- 취소환불 승인 ---- */
+  --biz-cancel-card-border: #b9c9dd;
+  --biz-reject-reason-border: #e3e6ea;
+  --biz-reject-reason-bg: #f5f6f8;
+  --biz-reject-reason-text: #22252a;
+  --biz-reject-input-border: #d3d8de;
+  --biz-reject-input-placeholder: #767d88;
+
+  /* ---- 대시보드 패널 · 차트 ---- */
+  --biz-dashboard-panel-grad-1: rgba(255, 255, 255, 0.98);
+  --biz-dashboard-panel-grad-2: rgba(248, 249, 251, 0.98);
+  --biz-review-icon-color: #5f6773;
+  --biz-list-item-bg: rgba(20, 24, 28, 0.035);
+  --biz-analysis-detail-bg: rgba(20, 24, 28, 0.035);
+  --biz-order-cancel-text: #3b4048;
+  --biz-order-cancel-border: rgba(20, 24, 28, 0.08);
+  --biz-star-empty: #c9ced6;
+  --biz-progress-track: #dfe3e8;
+  --biz-circle-track: #e3e6ea;
+  --biz-circle-inner-bg: #ffffff;
+  --biz-card-grad-dark: rgba(255, 255, 255, 0.86);
+  --biz-views-card-grad-1: rgba(91, 111, 235, 0.1);
+  --biz-rating-card-grad-1: rgba(197, 148, 61, 0.12);
+
+  /* ---- 밝은 표면 위 글자로만 쓰여 어둡게 조정한 색 (제안값) ---- */
+  --biz-success: #2e7d32;
+  --biz-warning: #9a6f06;
+  --biz-danger: #c8393f;
+  --biz-status-ok-text: #2e7d32;
+  --biz-status-waiting-text: #9a6f06;
+  --biz-status-approved-text: #2e7d32;
+  --biz-status-requested-text: #1b5fd6;
+  --biz-status-rejected-text: #c8393f;
+  --biz-status-waiting2-text: #9a6f06;
+  --biz-alert-success-title: #2e7d32;
+  --biz-alert-success-message: #2c4a2e;
+  --biz-alert-error-title: #c8393f;
+  --biz-alert-error-message: #6b3436;
+  --biz-review-score-text: #1b5fd6;
+  --biz-required-mark: #e03131;
+  /* 파란 강조 중 "글자·외곽선"으로 쓰이는 둘만 진한 파랑으로
+     (채움 버튼용 --biz-point-strong 과 --biz-account-accent-hover 는 유지) */
+  --biz-account-accent: #1b5fd6;
+  --biz-settlement-accent: #1b5fd6;
+
+  /* ---- 일반 텍스트 ---- */
+  --biz-white: #14181c;
+}
+
+/* --biz-white 27곳 중 파란 채움 버튼과 색 채운 원형 아이콘 위 글자는
+   반전과 무관하게 흰색 유지 */
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .btn-copy:hover,
+html[data-theme="light"] .tab-menu a.active,
+html[data-theme="light"] .cancel-alert-success .cancel-alert-icon,
+html[data-theme="light"] .cancel-alert-error .cancel-alert-icon,
+html[data-theme="light"] .settlement-alert-icon,
+html[data-theme="light"] .business-wrap .option-add-btn:hover,
+html[data-theme="light"] .business-wrap .option-add-btn:active,
+html[data-theme="light"] .business-wrap .detail-image-add-btn,
+html[data-theme="light"] .business-wrap #productUpdateModal .detail-image-add-btn,
+html[data-theme="light"] .business-wrap .settlement-cycle-tabs a.active,
+html[data-theme="light"] .business-wrap .business-filter-search-btn {
+  color: #ffffff;
+}
+
+/* =========================================================
+   36) mypage.css 대응 (--mp-*) — 3구간 단독
+   마이페이지 대시보드(프로필 · 내 OTT · 활동 · 알림 · 구독 결과 ·
+   회원탈퇴)와 회원정보 수정/탈퇴 모달.
+
+   [이 파일만의 구조 — 배경 이미지 패널 2개]
+   마이페이지는 "흑백 시네마" 테마라 두 곳이 배경 이미지 위에 얹혀 있다.
+   (1) .mypage-hero — 좌측 642px 패널. mypage-left-bg.png 위에 스크림을 깔고
+      배지 · 제목 · 반짝임 · 라인 · 메시지만 들어있다.
+   (2) .mypage-ott — 우측 OTT 카드. 의사요소 배경으로 mypage-ott-bg.png 를
+      깔고 가로 스크림으로 왼쪽을 덮은 뒤 그 위에 칩을 얹는다.
+   [QA 수정 — 재협의] 원래는 이 두 이미지 패널을 테마와 무관하게 다크로
+   유지하기로 했었으나(main.css/event.css 히어로 배너, review.css
+   마이페이지 섹션 헤더와 같은 기준), 실제 화면에서 흰 배경 패널들 사이에
+   검게 뜬 패널이 라이트 모드와 어울리지 않는다는 피드백을 받아 방침을
+   바꿨다. 이제 .mypage-hero와 .mypage-ott도 다른 패널처럼 밝게 반전하되,
+   배경 사진은 지우지 않고 흰 스크림을 짙게 얹어 옅은 워터마크처럼
+   유지한다(사진 자체가 거의 흑백 저채도라 밝게 씻어내도 구도는 남는다).
+   같은 이유로 review.css 마이페이지 섹션 헤더도 아래에서 함께 반전했다.
+   나머지(우측 패널 · 프로필 · 활동/알림/구독 카드 · 토글 · 회원탈퇴 박스 ·
+   모달)는 기존대로 반전.
+
+   [QA 수정 — 재협의] OTT 카드는 카드 안의 헤딩 텍스트 · 아이콘 · "OTT 변경"
+   버튼이 다른 패널과 같은 토큰을 쓰므로, 아래 공통 반전 값을 그대로
+   따라가면 된다(과거에는 카드를 다크로 남기려고 이 자리에서 같은
+   토큰들의 다크 값을 다시 선언해 되돌렸었지만, 카드 자체를 밝게 반전하기로
+   하면서 그 스코프 재선언 블록은 삭제했다). 대신 mypage.css에 테마와
+   무관하게 하드코딩된 값(스크림 그러데이션 · 칩 배경 · 히어로 배지/반짝임/
+   라인/카피 텍스트)만 아래에서 선택자로 밝은 값으로 교체한다.
+
+   재정의 없음: OTT 칩 7종(스크림/칩 배경은 아래에서 선택자로 밝게 교체하되
+   토큰 자체는 다크 모드용으로 유지 — 라이트 스코프에서만 선택자 예외),
+   순수 검정 알파 9종, 활동 아이콘 브랜드색 5종, 아바타 링과 사진 테두리
+   (원래도 밝은 값), --mp-neutral-light 와 --mp-detailbtn-text(원래도
+   "밝은 버튼 + 어두운 글자"), --mp-submit-bg(초록 채움), --mp-toggle-checked
+   와 --mp-btn-border 계열(파란 강조), 탈퇴 버튼의 붉은 테두리와 점.
+
+   --mp-white는 제목 · 카운트 · 입력값 등 일반 텍스트가 대부분이라 반전하고,
+   히어로 위 3곳과 붉은 채움 버튼 위 글자, 이미 밝은 상세 버튼의 hover만
+   선택자로 예외 처리했다. 텍스트 명도와 붉은 계열 조정값은 제안값이다.
+========================================================= */
+html[data-theme="light"] {
+  /* ---- 공통 패널 (파란 세트 + 흑백 시네마 세트) ---- */
+  --mp-panel-border: rgba(20, 24, 28, 0.12);
+  --mp-panel-glow: rgba(28, 89, 191, 0.06);
+  --mp-panel-bg-1: rgba(255, 255, 255, 0.98);
+  --mp-panel-bg-2: rgba(248, 249, 251, 0.98);
+  --mp-panel-sheen: rgba(22, 97, 255, 0.05);
+  --mp-cinema-border: rgba(20, 24, 28, 0.12);
+  --mp-cinema-bg-1: rgba(255, 255, 255, 0.98);
+  --mp-cinema-bg-2: rgba(247, 248, 250, 0.99);
+
+  /* ---- 패널 텍스트 · 아이콘 ---- */
+  --mp-text-primary: #14181c;
+  --mp-heading-desc: #676e78;
+  --mp-icon-blue: #1b5fd6;
+  --mp-icon-mono: #4b525c;
+  --mp-text-muted: #656c76;
+  --mp-text-muted-mono: #636971;
+  --mp-text-empty: #6e7682;
+  --mp-text-email: #6c737e;
+  --mp-text-created: #6e757f;
+
+  /* ---- 프로필 · 회원등급 배지 ---- */
+  --mp-badge-member-bg: rgba(226, 236, 253, 0.85);
+  --mp-badge-member-text: #1b5fd6;
+  --mp-badge-member-text-mono: #4b525c;
+
+  /* ---- 액션 버튼 (파란 세트 + 흑백 세트) ---- */
+  --mp-btn-bg-1: rgba(236, 243, 255, 0.92);
+  --mp-btn-bg-2: rgba(226, 236, 253, 0.96);
+  --mp-btn-text: #17324f;
+  --mp-btn-span: #2d6ea8;
+  --mp-btn-bg-mono-1: rgba(243, 244, 246, 0.94);
+  --mp-btn-bg-mono-2: rgba(231, 233, 237, 0.96);
+  --mp-btn-text-mono: #1c2025;
+  --mp-btn-span-mono: #4b525c;
+
+  /* ---- 활동 · 알림 · 구독 결과 카드 ---- */
+  --mp-card-border: rgba(20, 24, 28, 0.1);
+  --mp-card-bg-1: rgba(255, 255, 255, 0.96);
+  --mp-card-bg-2: rgba(247, 248, 250, 0.96);
+  --mp-card-bg-hover-1: rgba(242, 245, 250, 0.98);
+  --mp-card-bg-hover-2: rgba(236, 240, 246, 0.98);
+  --mp-card-bg-mono-1: rgba(255, 255, 255, 0.94);
+  --mp-card-bg-mono-2: rgba(246, 247, 249, 0.98);
+  --mp-card-bg-hover-mono-1: rgba(240, 242, 245, 0.96);
+  --mp-card-bg-hover-mono-2: rgba(232, 235, 239, 0.99);
+  --mp-icon-bg-1: rgba(20, 24, 28, 0.06);
+  --mp-icon-bg-2: rgba(20, 24, 28, 0.01);
+  --mp-copybtn-text: #4b525c;
+  --mp-toggle-track: rgba(20, 24, 28, 0.18);
+
+  /* ---- 구독 결과 삭제 버튼 (붉은 반투명 — 제안값) ---- */
+  --mp-delete-border: rgba(178, 58, 65, 0.35);
+  --mp-delete-bg: rgba(220, 90, 90, 0.1);
+  --mp-delete-text: #b23a41;
+  --mp-delete-border-hover: rgba(178, 58, 65, 0.6);
+  --mp-delete-bg-hover: rgba(220, 90, 90, 0.18);
+  --mp-delete-text-hover: #94282f;
+
+  /* ---- 회원탈퇴 박스 ---- */
+  --mp-withdraw-bg-1: #ffffff;
+  --mp-withdraw-bg-2: #fbfbfd;
+  --mp-withdraw-bg-3: #fff5f6;
+  --mp-withdraw-bg-mono-1: rgba(255, 255, 255, 0.98);
+  --mp-withdraw-bg-mono-2: rgba(247, 248, 250, 0.99);
+  --mp-withdraw-icon-border-mono: #9aa0a8;
+  --mp-withdraw-icon-color-mono: #22252a;
+  --mp-withdraw-desc-v1: #6c727c;
+  --mp-withdraw-desc-mono: #666c76;
+  --mp-withdraw-btn-bg-v1: rgba(239, 38, 63, 0.06);
+  --mp-withdraw-btn-text-v1: #d32f3f;
+  --mp-withdraw-btn-bg-hover-v1: rgba(239, 38, 63, 0.12);
+  --mp-withdraw-btn-bg-mono: rgba(255, 78, 95, 0.07);
+  --mp-withdraw-btn-text-mono: #c8393f;
+  --mp-withdraw-btn-bg-hover-mono: rgba(255, 78, 95, 0.14);
+  --mp-withdraw-btn-text-final: #c8393f;
+
+  /* ---- 모달 (회원정보 수정 · 탈퇴 확인) ---- */
+  --mp-modal-bg: #ffffff;
+  --mp-modal-text: #14181c;
+  --mp-modal-label: #454b53;
+  --mp-modal-desc: #656c76;
+  --mp-input-bg: #ffffff;
+  --mp-control-gray-dark: #dee2e7;
+  --mp-control-gray: #d3d8de;
+  --mp-control-gray-hover: #c9cfd6;
+  --mp-msg-valid: #2e7d32;
+  --mp-msg-invalid: #c8393f;
+  --mp-danger-text: #c8393f;
+
+  /* ---- 흰색 반투명 오버레이 → 어두운 반투명으로 반전
+     (이미지 패널 전용인 -20 과 -24 와 -48 과 -50 은 제외) ---- */
+  --mp-white-018: rgba(20, 24, 28, 0.018);
+  --mp-white-02: rgba(20, 24, 28, 0.02);
+  --mp-white-025: rgba(20, 24, 28, 0.025);
+  --mp-white-035: rgba(20, 24, 28, 0.035);
+  --mp-white-04: rgba(20, 24, 28, 0.04);
+  --mp-white-045: rgba(20, 24, 28, 0.045);
+  --mp-white-055: rgba(20, 24, 28, 0.055);
+  --mp-white-075: rgba(20, 24, 28, 0.075);
+  --mp-white-08: rgba(20, 24, 28, 0.08);
+  --mp-white-10: rgba(20, 24, 28, 0.1);
+  --mp-white-13: rgba(20, 24, 28, 0.13);
+  --mp-white-16: rgba(20, 24, 28, 0.16);
+  --mp-white-17: rgba(20, 24, 28, 0.17);
+  --mp-white-22: rgba(20, 24, 28, 0.22);
+  --mp-white-34: rgba(20, 24, 28, 0.34);
+  --mp-white-38: rgba(20, 24, 28, 0.38);
+  --mp-white-45: rgba(20, 24, 28, 0.45);
+  --mp-white-55: rgba(20, 24, 28, 0.55);
+  --mp-white-72: rgba(20, 24, 28, 0.72);
+  --mp-white-90: rgba(20, 24, 28, 0.9);
+
+  /* ---- 일반 텍스트 ---- */
+  --mp-white: #14181c;
+}
+
+/* [QA 수정 — 재협의] 내 OTT 카드도 이제 라이트 반전을 그대로 따라가므로
+   (헤딩 텍스트 · 아이콘 · 액션 버튼은 위 공통 토큰이 이미 밝은 값이라 손댈
+   게 없다), mypage.css에 테마 무관하게 하드코딩돼 있던 배경 사진 스크림과
+   칩 배경/테두리만 밝은 값으로 교체한다. 사진은 지우지 않고 흰 스크림을
+   짙게 얹어 옅게 남긴다. */
+html[data-theme="light"] .mypage-ott::after {
+  background-image: linear-gradient(90deg, rgba(247, 248, 250, 0.96) 0%, rgba(247, 248, 250, 0.9) 39%, rgba(247, 248, 250, 0.62) 61%, rgba(247, 248, 250, 0.16) 100%), url("/oditji/images/mypage-ott-bg.png");
+}
+
+html[data-theme="light"] .mypage-ott-chip {
+  border-color: rgba(20, 24, 28, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+html[data-theme="light"] .mypage-ott-chip:hover {
+  border-color: rgba(27, 95, 214, 0.4);
+  background: rgba(236, 243, 255, 0.95);
+}
+
+/* [QA 수정 — 재협의] 히어로 패널도 같은 방식으로 밝게 바꾼다. 사진 위에
+   흰 스크림을 짙게 얹고, 사진 위에서만 쓰던 배지 · 반짝임 · 라인 ·
+   본문 텍스트를 전부 밝은 배경에 맞는 값으로 선택자 예외 처리한다
+   (이 값들은 원래 --mp-hero-* / --mp-badge-* / --mp-spark-* / --mp-line-*
+   토큰이 공급했지만, 히어로 전용 토큰이라 여기서 선택자로 직접 교체해도
+   다른 곳에 영향이 없다 — 제안값, 스크린샷 QA 필요). */
+html[data-theme="light"] .mypage-hero {
+  background-color: #ffffff;
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.86)), url("/oditji/images/mypage-left-bg.png");
+}
+
+html[data-theme="light"] .mypage-hero::after {
+  background: linear-gradient(180deg, transparent 55%, rgba(255, 255, 255, 0.6));
+}
+
+html[data-theme="light"] .mypage-hero-badge {
+  border-color: rgba(20, 24, 28, 0.18);
+  background: rgba(20, 24, 28, 0.04);
+  color: #454b53;
+}
+
+html[data-theme="light"] .mypage-hero-copy > p:first-child {
+  color: #454b53;
+}
+
+html[data-theme="light"] .mypage-hero-copy h1 {
+  color: #14181c;
+}
+
+html[data-theme="light"] .mypage-hero-spark {
+  border-color: rgba(27, 95, 214, 0.35);
+  background: radial-gradient(circle, rgba(27, 95, 214, 0.16), rgba(226, 236, 253, 0.6) 68%);
+  box-shadow: 0 0 16px rgba(27, 95, 214, 0.18);
+  color: #1b5fd6;
+}
+
+html[data-theme="light"] .mypage-hero-line {
+  background: linear-gradient(90deg, transparent, #c3cad3 34%, #1b5fd6 52%, transparent);
+  box-shadow: 0 0 10px rgba(27, 95, 214, 0.25);
+}
+
+html[data-theme="light"] .mypage-hero-message {
+  color: #656c76;
+}
+
+/* 활동 아이콘의 글리프는 아이콘 배경이 밝아지므로 어두운 색으로
+   (--mp-neutral-light 자체는 밝은 버튼 배경으로도 쓰여 유지) */
+html[data-theme="light"] .mypage-activity-icon {
+  color: #22252a;
+}
+
+/* 원래도 "밝은 버튼 + 어두운 글자"인 상세보기 버튼은 hover도 더 밝게 유지 */
+html[data-theme="light"] .mypage-subresult-detail-btn:hover {
+  border-color: #ffffff;
+  background: #ffffff;
+}
+
+/* 붉은 채움 hover 위 글자는 흰색 유지 */
+html[data-theme="light"] .mypage-withdraw-btn:hover,
+html[data-theme="light"] .mypage-withdraw-btn:focus-visible {
+  color: #ffffff;
+}
