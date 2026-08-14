@@ -14,7 +14,7 @@
       href="${pageContext.request.contextPath}/css/member.css">
 
 <script defer
-        src="${pageContext.request.contextPath}/js/member.js?v=20260812-2">
+        src="${pageContext.request.contextPath}/js/member.js?v=20260814-1">
 </script>
 
 <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
@@ -63,7 +63,7 @@
             <input type="hidden"
                    name="joinType"
                    id="joinType"
-                   value="USER">
+                   value="${param.joinType eq 'BUSINESS' ? 'BUSINESS' : 'USER'}">
 
             <!-- 공통 기본 정보 -->
             <div class="join-section-title no-border required-info-title">
