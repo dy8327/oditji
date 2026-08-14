@@ -1220,11 +1220,14 @@ function switchJoinType(type) {
 
 // 유효성 검사 실패로 폼이 다시 렌더링된 경우, 이전에 선택했던 탭을 복원
 (function restoreJoinType() {
-  var previousJoinType = "${joinType}";
+  var joinTypeInput = document.getElementById("joinType");
 
-  if (previousJoinType === "BUSINESS") {
-    switchJoinType("BUSINESS");
+  if (!joinTypeInput) {
+    return;
   }
+
+  var previousJoinType = joinTypeInput.value || "USER";
+  switchJoinType(previousJoinType);
 })();
 
 /*
