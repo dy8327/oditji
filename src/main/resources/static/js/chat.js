@@ -7,9 +7,11 @@ import {
     deleteDoc,
     updateDoc,
     query,
+    where,
     orderBy,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    Timestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 /**
@@ -149,9 +151,19 @@ export async function deleteMessage(roomId, messageId) {
 }
 
 /**
- * 방의 전체 메시지를 시간순으로 실시간 수신합니다.
+ * 방의 메시지를 시간순으로 실시간 수신합니다.
+ *
+ * 자유방은 Oracle CHAT_ROOM_MEMBER.JOIN_DATE를 epoch millisecond로 전달받아
+ * Firestore 쿼리 자체를 참가 시각 이후로 제한합니다. 화면에서만 과거 메시지를
+ * 숨기는 방식이 아니므로 참가 전 메시지는 클라이언트로 조회하지 않습니다.
+ * 공지방처럼 시작 시각이 0 이하이면 기존과 동일하게 전체 메시지를 조회합니다.
+ *
+ * @param {string} roomId 채팅방 ID
+ * @param {Function} callback 메시지 목록 수신 콜백
+ * @param {number} startEpochMs 조회 시작 시각(epoch millisecond)
+ * @returns {Function} Firestore 실시간 구독 해제 함수
  */
-export function listenMessages(roomId, callback) {
+export function listenMessages(roomId, callback, startEpochMs = 0) {
 
     let unsubscribe = null;
     let cancelled = false;
@@ -163,10 +175,28 @@ export function listenMessages(roomId, callback) {
                 return;
             }
 
-            const messageQuery = query(
-                collection(db, "chatRooms", roomId, "messages"),
-                orderBy("sendTime", "asc")
+            const messageCollection = collection(
+                db,
+                "chatRooms",
+                roomId,
+                "messages"
             );
+            const normalizedStartEpochMs = Number(startEpochMs) || 0;
+
+            const messageQuery = normalizedStartEpochMs > 0
+                ? query(
+                    messageCollection,
+                    where(
+                        "sendTime",
+                        ">=",
+                        Timestamp.fromMillis(normalizedStartEpochMs)
+                    ),
+                    orderBy("sendTime", "asc")
+                )
+                : query(
+                    messageCollection,
+                    orderBy("sendTime", "asc")
+                );
 
             unsubscribe = onSnapshot(
                 messageQuery,

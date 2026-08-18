@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             /*
              * 나가기 성공 후 전달된 경우에만 roomId가 함께 온다.
-             * 새로고침 없이도 좌측 목록의 참가 상태를 다시 "참가/입장"으로 되돌려
+             * 새로고침 없이도 좌측 목록의 참가 상태를 다시 "참가"로 되돌려
              * 다음에 같은 방에 들어갈 때 참여 확인 문구가 다시 뜨도록 한다.
              */
             if (data.left && data.roomId) {
@@ -457,7 +457,7 @@ function markRoomAsLeft(roomId) {
     }
 
     button.dataset.joined = "false";
-    button.textContent = "참가/입장";
+    button.textContent = "참가";
 }
 
 /**
