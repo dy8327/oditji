@@ -1296,9 +1296,18 @@ html[data-theme="light"] {
   --cl-overlay-52: rgba(20, 24, 28, 0.52);
 }
 
-/* 흰색 필 버튼(현재 페이지/필터 적용 버튼)은 반전 없이 흰 배경 + 어두운
-   글자 유지 */
-html[data-theme="light"] .content-list-pagination .page-now,
+/* [QA 수정] 페이지네이션 현재 페이지(.page-now)는 다른 목록 화면
+   (이벤트/장바구니/주문/찜/상품/검색 등, --page-active·--search-accent
+   기반)과 동일하게 라이트 모드에서 명도를 반전시켜 어두운 배경 + 흰 글자
+   필로 통일한다(기존에는 흰 배경으로 고정돼 다른 화면과 어긋나 있었다).
+   필터 적용 버튼은 사이드바의 가장 중요한 동작이라 흰색 필 버튼으로
+   반전 없이 유지(원래 의도 그대로 유지). */
+html[data-theme="light"] .content-list-pagination .page-now {
+  border-color: #14181c;
+  background: #14181c;
+  color: #ffffff;
+}
+
 html[data-theme="light"] .content-filter-submit-btn {
   border-color: #ffffff;
   background: #ffffff;
@@ -2203,6 +2212,14 @@ html[data-theme="light"] .card-item .card-favorite-btn:hover {
 
 html[data-theme="light"] .card-item .card-favorite-btn:focus-visible {
   outline-color: #ffffff;
+}
+
+/* [QA 수정] 위 흰색 고정 규칙(border-color/color)이 "html[data-theme]" 타입
+   선택자 때문에 goods.css의 .active 규칙보다 우선순위가 높아져, 찜한 상태에서도
+   하트가 계속 흰색으로 보이던 문제. .active 상태만 다시 하트 색으로 되돌린다. */
+html[data-theme="light"] .card-item .card-favorite-btn.active {
+  border-color: var(--goods-heart-border);
+  color: var(--goods-heart);
 }
 
 /* 필터 적용 버튼: "흰 필 + 어두운 글자" → "어두운 필 + 흰 글자"로 반전

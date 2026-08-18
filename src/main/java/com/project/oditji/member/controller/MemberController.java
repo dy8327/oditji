@@ -383,10 +383,10 @@ public class MemberController {
         }
 
         private String getLoginDisplayName(MemberVO loginMember, BusinessVO business) {
-                String displayName = business == null ? loginMember.getMemberName() : business.getBusinessName();
+                String displayName = business == null ? loginMember.getNickname() : business.getBusinessName();
 
                 if ((displayName == null || displayName.isBlank()) && business == null) {
-                        displayName = loginMember.getNickname();
+                        displayName = loginMember.getMemberName();
                 }
 
                 return displayName == null || displayName.isBlank() ? "회원" : displayName;
@@ -667,9 +667,9 @@ public class MemberController {
                 session.setAttribute(SESSION_LOGIN_MEMBER, updated);
                 session.setAttribute("nickname", updated.getNickname());
 
-                String displayName = updated.getMemberName();
+                String displayName = updated.getNickname();
                 if (displayName == null || displayName.isBlank()) {
-                        displayName = updated.getNickname();
+                        displayName = updated.getMemberName();
                 }
                 if (displayName == null || displayName.isBlank()) {
                         displayName = "회원";

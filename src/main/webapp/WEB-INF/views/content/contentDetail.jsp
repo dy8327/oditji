@@ -1015,11 +1015,23 @@
 
                             <div class="review-meta">
 
-                                <span class="review-avatar" aria-hidden="true">
-                                    <c:if test="${not empty r.writer}">
-                                        ${fn:substring(r.writer, 0, 1)}
-                                    </c:if>
-                                </span>
+                                <c:choose>
+                                    <c:when test="${empty r.profileImage}">
+                                        <img class="review-writer-avatar"
+                                             src="${pageContext.request.contextPath}/images/profile_image.jpg"
+                                             alt="기본 프로필">
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(r.profileImage, 'http')}">
+                                        <img class="review-writer-avatar"
+                                             src="${r.profileImage}"
+                                             alt="프로필 이미지">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img class="review-writer-avatar"
+                                             src="${pageContext.request.contextPath}/uploads/profile/${r.profileImage}"
+                                             alt="프로필 이미지">
+                                    </c:otherwise>
+                                </c:choose>
 
                                 <span class="writer">
                                     ${r.writer}

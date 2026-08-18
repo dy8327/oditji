@@ -930,7 +930,6 @@
 
 /* .review-item / .review-meta / .review-content 기본 스타일은
    component.css 로 이동 (goodsDetail.jsp 와 통일).
-   [강화] 콘텐츠 상세페이지에서는 작성자 옆에 이니셜 아바타를 붙이고,
    카드에 은은한 호버 효과를 더해 리뷰 목록에 생동감을 준다. */
 
 .review-item {
@@ -943,21 +942,6 @@
 .review-item:hover {
   border-color: var(--content-white-a16);
   box-shadow: 0 10px 24px var(--content-black-a3);
-}
-
-.review-avatar {
-  display: inline-flex;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--content-avatar-grad-start), var(--content-surface-1c));
-  color: var(--content-text-e6);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 /* =========================
