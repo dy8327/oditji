@@ -2,6 +2,11 @@ package com.project.oditji.subscription.vo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,5 +58,21 @@ class PlatformPriceVOCoverageTest {
         vo.setRegularPrice(3000);
         vo.setBestPrice(2000);
         assertEquals(33, vo.getDiscountRate());
+    }
+
+    @Test
+    void contentListSetterShouldNormalizeNullAndKeepProvidedList() {
+        PlatformPriceVO vo = new PlatformPriceVO();
+
+        assertTrue(vo.getContentList().isEmpty());
+
+        vo.setContentList(null);
+        assertTrue(vo.getContentList().isEmpty());
+
+        List<ContentWishItemVO> contentList = new ArrayList<ContentWishItemVO>();
+        contentList.add(new ContentWishItemVO());
+        vo.setContentList(contentList);
+
+        assertSame(contentList, vo.getContentList());
     }
 }
