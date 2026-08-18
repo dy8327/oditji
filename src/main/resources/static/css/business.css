@@ -51,9 +51,9 @@
      색상은 기존 공통 --biz-* 변수를 재사용하고,
      테이블 레이아웃에 필요한 크기 값만 별도 변수로 관리한다.
      ===================================================== */
-  --biz-product-table-min-width: 1420px;
-  --biz-product-table-thumb-size: 72px;
-  --biz-product-table-cell-padding: 14px 10px;
+  --biz-product-table-min-width: 1180px;
+  --biz-product-table-thumb-size: 60px;
+  --biz-product-table-cell-padding: 12px 8px;
   --biz-product-table-head-height: 48px;
 
   /* =====================================================
@@ -1237,6 +1237,22 @@
     font-size: 21px;
   }
 
+  /*
+   * [모바일 반응형] hero-right/business-info의 min-width:300px가 좁은
+   * 화면(320~360px)에서는 business-hero의 남은 폭보다 커서 카드가 화면
+   * 밖으로 밀려나며 페이지 전체에 불필요한 가로 스크롤을 만들었다.
+   * business-hero가 column으로 바뀌는 이 breakpoint부터는 두 요소 모두
+   * min-width를 0으로 풀고 100% 폭을 채우게 한다.
+   */
+  .business-wrap .business-hero .hero-right {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .business-wrap .business-hero .business-info {
+    min-width: 0;
+  }
+
   .business-wrap .business-page-header {
     margin-bottom: 20px;
   }
@@ -2192,7 +2208,7 @@
 .product-search-table td {
   padding: 13px 12px;
   border-bottom: 1px solid var(--biz-table-border);
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
 }
 
@@ -2247,13 +2263,39 @@
     flex-direction: column;
   }
 
-  .product-search-table {
-    white-space: nowrap;
-  }
-
   .product-search-table th,
   .product-search-table td {
     padding: 10px;
+  }
+
+  .product-search-table td .btn {
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.3;
+  }
+
+  /*
+   * [모바일 반응형] 컬럼이 많아(최대 8개) 가로 스크롤이 생기던 표를
+   * eventList.jsp/orderList.jsp와 동일한 방식으로 정리한다. 상품명/선택만
+   * 남기고 나머지 컬럼은 .col-hide-mobile로 숨긴 뒤, 숨긴 정보는 각 행의
+   * "상세보기" 버튼(.mobile-only-el)이 여는 상세 모달에서 확인한다.
+   *
+   * 이 모달은 eventRegister.jsp에서는 .business-wrap 밖에 위치해
+   * ".business-wrap .col-hide-mobile" 규칙이 적용되지 않으므로,
+   * .product-search-modal을 기준으로 별도 규칙을 둔다.
+   */
+  .product-search-modal .col-hide-mobile {
+    display: none;
+  }
+
+  .product-search-result {
+    overflow-x: visible;
+  }
+
+  .product-search-table {
+    white-space: normal;
   }
 }
 
@@ -5742,9 +5784,15 @@
   .business-wrap .dashboard-order-item {
     grid-template-columns: 46px minmax(0, 1fr) auto;
 
-    gap: 10px;
+    column-gap: 12px;
+    /*
+     * [모바일 UI/UX 개선] 상품명(1행)과 수량 칩(2행)이 같은 gap 값(10px)을
+     * 그대로 써서 서로 남남처럼 떨어져 보이던 문제. 세로 간격만 좁혀
+     * 수량이 상품명에 붙은 보조 정보처럼 읽히게 한다.
+     */
+    row-gap: 4px;
 
-    padding: 10px 12px;
+    padding: 12px;
   }
 
   .business-wrap .dashboard-order-thumb {
@@ -5757,10 +5805,21 @@
     grid-row: 2;
 
     justify-self: start;
+    align-self: start;
 
     min-width: auto;
 
-    padding: 4px 8px;
+    /*
+     * [모바일 UI/UX 개선] 데스크톱과 동일한 진한 칩 스타일 대신, 상품명
+     * 아래에 붙는 보조 캡션으로 가볍게 표현한다.
+     */
+    background: none;
+    border: none;
+    padding: 0;
+
+    color: var(--biz-text-dim);
+    font-size: 12px;
+    font-weight: 500;
   }
 
   .business-wrap .dashboard-order-status {
@@ -6500,7 +6559,7 @@
   align-items: center;
   justify-content: center;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   white-space: nowrap;
@@ -6509,9 +6568,18 @@
 .business-wrap .product-table-actions-cell .product-action-btn {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 7px 9px;
   font-size: 12px;
   white-space: nowrap;
+}
+
+/*
+ * [간격 조정] 관리 버튼들이 표/컨테이너 오른쪽 끝에 바로 붙어 보이지
+ * 않도록, 마지막 컬럼(관리)에만 오른쪽 여백을 추가로 준다.
+ */
+.business-wrap .product-manage-table thead th.product-table-actions-cell,
+.business-wrap .product-manage-table tbody td.product-table-actions-cell {
+  padding-right: 20px;
 }
 
 /* 가로 스크롤바도 기존 다크/라이트 토큰을 사용한다. */
@@ -6531,7 +6599,7 @@
 /* 좁은 화면에서도 공통 칼럼 구조를 유지한다. */
 @media (max-width: 1180px) {
   .business-wrap .product-manage-table {
-    min-width: 1320px;
+    min-width: 1080px;
   }
 
   .business-wrap .product-manage-table thead th,
@@ -6551,18 +6619,141 @@
 }
 
 @media (max-width: 768px) {
+  /*
+   * [모바일 반응형] 상품 이미지/상품명/수량/가격/관리만 남기고 나머지는
+   * col-hide-mobile로 숨기므로(productList.jsp 참고), 더 이상 표를 넓게
+   * 강제할 필요가 없다. min-width를 없애고, 남은 5개 컬럼의 실제 셀에
+   * 폭을 다시 나눠서(table-layout: fixed 유지) 빈틈 없이 꽉 채운다.
+   * 가로 스크롤 컨테이너도 함께 해제한다.
+   */
+  .business-wrap .product-manage-table-scroll {
+    overflow-x: visible;
+  }
+
   .business-wrap .product-manage-table {
-    min-width: 1240px;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  /*
+   * [주의] <colgroup>의 <col>은 "몇 번째로 렌더링되는 셀이냐"가 아니라
+   * 원래 마크업 순서(종류/콘텐츠/배우 포함 11개) 그대로 존재한다. 숨긴
+   * 셀은 display:none으로 사라지지만 <col>은 그대로 11개가 남아 있어서,
+   * 화면에 보이는 5개 셀(이미지/상품명/수량/가격/관리)이 앞에서부터
+   * col[0]~col[4](이미지/상품명/종류/콘텐츠/배우 폭)에 순서대로
+   * 매핑돼 버린다. 그래서 <col>에 폭을 지정하는 대신 폭 지정을 모두
+   * 풀고, 실제로 화면에 보이는 th/td 요소에 직접 폭을 지정한다
+   * (fixed 레이아웃은 <col> 폭이 없으면 첫 행인 thead th의 폭을
+   * 따른다).
+   */
+  /*
+   * <col class="product-col-*">에 이미 8%/9%/7%...처럼 구체적인 폭이
+   * 지정돼 있어(business.css 앞부분), 이 셀렉터와 동일한 클래스 3개
+   * 조합으로 다시 적어야만(단순히 "col" 타입 셀렉터로는 우선순위가
+   * 낮아 덮어써지지 않는다) 모바일에서 폭 지정을 실제로 풀 수 있다.
+   */
+  .business-wrap .product-manage-table .product-col-image,
+  .business-wrap .product-manage-table .product-col-name,
+  .business-wrap .product-manage-table .product-col-type,
+  .business-wrap .product-manage-table .product-col-content,
+  .business-wrap .product-manage-table .product-col-actor,
+  .business-wrap .product-manage-table .product-col-stock,
+  .business-wrap .product-manage-table .product-col-price,
+  .business-wrap .product-manage-table .product-col-discount,
+  .business-wrap .product-manage-table .product-col-status,
+  .business-wrap .product-manage-table .product-col-date,
+  .business-wrap .product-manage-table .product-col-actions {
+    width: auto;
+  }
+
+  .business-wrap .product-manage-table th.product-table-image-cell,
+  .business-wrap .product-manage-table td.product-table-image-cell {
+    width: 18%;
+  }
+  .business-wrap .product-manage-table th.product-table-name-cell,
+  .business-wrap .product-manage-table td.product-table-name-cell {
+    width: 25%;
+  }
+  .business-wrap .product-manage-table th.product-table-stock-cell,
+  .business-wrap .product-manage-table td.product-table-stock-cell {
+    width: 14%;
+  }
+  .business-wrap .product-manage-table th.product-table-price-cell,
+  .business-wrap .product-manage-table td.product-table-price-cell {
+    width: 19%;
+  }
+  .business-wrap .product-manage-table th.product-table-actions-cell,
+  .business-wrap .product-manage-table td.product-table-actions-cell {
+    width: 24%;
+  }
+
+  /*
+   * [간격] 셀 안쪽 여백(12px 8px)과 썸네일(64px)이 좁은 화면 폭 대비
+   * 여전히 커서 칸끼리 딱 붙어 보이고 약간의 가로 스크롤도 남아 있었다.
+   * 모바일 전용으로 여백/썸네일을 더 줄인다. 관리 컬럼의 오른쪽 여백
+   * (20px, 데스크톱용)도 좁은 화면에서는 필요 없으므로 되돌린다.
+   */
+  .business-wrap .product-manage-table thead th,
+  .business-wrap .product-manage-table tbody td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .business-wrap .product-manage-table thead th.product-table-actions-cell,
+  .business-wrap .product-manage-table tbody td.product-table-actions-cell {
+    padding-right: 6px;
   }
 
   .business-wrap .product-table-thumb {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
   }
 
-  .business-wrap .product-manage-table thead th,
-  .business-wrap .product-manage-table tbody td {
-    font-size: 12px;
+  .business-wrap .product-table-actions-cell .product-action-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.3;
+  }
+
+  /*
+   * [모바일 반응형] .product-table-primary-text가 뒤에서 항상 color:
+   * var(--biz-text)를 지정하기 때문에(같은 클래스 2개 결합 - 동일
+   * 우선순위), 소스 순서상 먼저 나오는 .mobile-status-text.st-* 색상이
+   * 상품명 뱃지 색상 규칙에 가려진다. 클래스 3개 결합으로 우선순위를
+   * 높여 상태 색상이 항상 이기게 한다.
+   */
+  .business-wrap .product-table-primary-text.mobile-status-text.st-ok {
+    color: var(--biz-success);
+  }
+
+  .business-wrap .product-table-primary-text.mobile-status-text.st-waiting {
+    color: var(--biz-warning);
+  }
+
+  .business-wrap .product-table-primary-text.mobile-status-text.st-reject {
+    color: var(--biz-danger);
+  }
+
+  /*
+   * [모바일 반응형] 상품 상세보기 모달의 관리 버튼(수정 요청/삭제 요청/
+   * 판매 현황/닫기) 4개를 기존 .modal-footer .btn { flex: 1 }대로
+   * 한 줄에 욱여넣으면 버튼 하나 폭이 좁아져 "수정 요청" 같은 4글자도
+   * 줄바꿈된다. 이 모달 footer에서만 2열 x 2행 grid로 바꿔 버튼마다
+   * 한 줄에 들어갈 폭을 확보한다.
+   */
+  .business-wrap .product-detail-modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .business-wrap .product-detail-modal-footer .btn {
+    flex: unset;
+    padding: 9px 8px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 }
 

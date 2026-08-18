@@ -301,10 +301,13 @@ public class SearchContentPageCacheService {
                             content.getReleaseDate()
                     );
 
+            /*
+             * 4일 이후 예정작은 위 removeIf 단계에서 이미 제거되므로
+             * 남은 항목은 오늘 이후 여부만 확인하면 됩니다.
+             */
             content.setUpcoming(
                     releaseDate != null
                             && releaseDate.isAfter(today)
-                            && !releaseDate.isAfter(upcomingEndDate)
             );
         }
     }
@@ -509,11 +512,10 @@ public class SearchContentPageCacheService {
 
         for (SearchResultVO content : allContentList) {
 
+            /* searchAll은 null 콘텐츠를 결과 목록에 넣지 않습니다. */
             LocalDate releaseDate =
                     parseReleaseDate(
-                            content == null
-                                    ? null
-                                    : content.getReleaseDate()
+                            content.getReleaseDate()
                     );
 
             if (releaseDate != null
@@ -677,10 +679,7 @@ public class SearchContentPageCacheService {
 
         candidateList.removeIf(candidate -> {
 
-            if (candidate == null) {
-                return true;
-            }
-
+            /* searchAll에서 null 후보는 이미 제외됩니다. */
             boolean sameContent =
                     currentContent.getTmdbId() != null
                     && currentContent.getTmdbId().equals(
@@ -751,8 +750,8 @@ public class SearchContentPageCacheService {
 
             /*
              * 후보 목록 생성 단계에서 null을 제거하고 있지만,
-             * 외부 데이터나 이후 목록 가공 과정에서도 안전하도록
-             * 최종 반환 대상의 null 여부를 한 번 더 확인합니다.
+             * limitList는 일반 List를 복사하므로 정적 분석에서는 null 원소가 가능합니다.
+             * 추후 목록 가공 방식이 변경되더라도 NPE가 발생하지 않도록 방어합니다.
              */
             if (relatedContent == null) {
                 continue;
@@ -1025,10 +1024,9 @@ public class SearchContentPageCacheService {
 
         for (String candidateToken : candidateTokens) {
 
+            /* String.split 결과 원소는 null이 될 수 없습니다. */
             String originalValue =
-                    candidateToken == null
-                            ? ""
-                            : candidateToken.trim();
+                    candidateToken.trim();
 
             String normalizedValue =
                     normalizeRelatedValue(
@@ -1067,10 +1065,9 @@ public class SearchContentPageCacheService {
 
         for (String token : tokens) {
 
+            /* String.split 결과 원소는 null이 될 수 없습니다. */
             String originalValue =
-                    token == null
-                            ? ""
-                            : token.trim();
+                    token.trim();
 
             if (normalizeRelatedValue(
                     originalValue
@@ -1345,11 +1342,10 @@ public class SearchContentPageCacheService {
             filteredList.removeIf(
                     content -> {
 
+                        /* searchAll은 null 콘텐츠를 결과 목록에 넣지 않습니다. */
                         LocalDate releaseDate =
                                 parseReleaseDate(
-                                        content == null
-                                                ? null
-                                                : content.getReleaseDate()
+                                        content.getReleaseDate()
                                 );
 
                         return releaseDate == null
@@ -1395,8 +1391,8 @@ public class SearchContentPageCacheService {
         List<SearchResultVO> pageContentList =
                 new ArrayList<SearchResultVO>();
 
-        if (startIndex >= 0
-                && startIndex < totalResults) {
+        /* normalizedPage는 항상 1 이상이므로 startIndex도 음수가 될 수 없습니다. */
+        if (startIndex < totalResults) {
 
             pageContentList.addAll(
                     filteredList.subList(
@@ -1719,8 +1715,8 @@ public class SearchContentPageCacheService {
         List<SearchResultVO> pageResult =
                 new ArrayList<SearchResultVO>();
 
-        if (startIndex >= 0
-                && startIndex < totalResults) {
+        /* normalizedPage와 normalizedPageSize는 모두 1 이상입니다. */
+        if (startIndex < totalResults) {
 
             pageResult.addAll(
                     filtered.subList(
@@ -1771,8 +1767,8 @@ public class SearchContentPageCacheService {
         List<SearchResultVO> resultList =
                 pageVO.getResultList();
 
-        if (resultList == null
-                || resultList.isEmpty()) {
+        /* getContentPage는 항상 비-null 결과 목록을 설정합니다. */
+        if (resultList.isEmpty()) {
 
             return new ArrayList<SearchResultVO>();
         }
@@ -2090,23 +2086,10 @@ public class SearchContentPageCacheService {
                 return true;
             }
 
-            if ("ACTION".equals(genreCode)
-                    && genreText.contains(
-                            "액션·모험"
-                    )) {
-
-                return true;
-            }
-
-            if (("SCI_FI".equals(genreCode)
-                    || "FANTASY".equals(genreCode))
-                    && genreText.contains(
-                            "SF·판타지"
-                    )) {
-
-                return true;
-            }
-
+            /*
+             * ACTION의 "액션·모험"과 SCI_FI/FANTASY의 "SF·판타지"는
+             * 위 표준 장르명 contains 검사에서 이미 일치합니다.
+             */
             if ("ROMANCE".equals(genreCode)
                     && genreText.contains(
                             "연속극"
