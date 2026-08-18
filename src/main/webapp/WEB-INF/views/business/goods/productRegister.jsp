@@ -357,13 +357,22 @@ const savedTmdbActorId =
 
                     <div class="file-box product-image-file-box">
 
-                        <input type="file"
-                               id="productImage"
-                               name="productImage"
-                               accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
-                               required>
+                        <%-- [수정] 브라우저 기본 파일 선택 UI 대신 커스텀 파일 선택 버튼을 사용한다. --%>
+                        <label for="productImage"
+                            class="product-image-select-button">
+                            파일 선택
+                        </label>
 
-                        <span id="productImageFileName">
+                        <input type="file"
+                            id="productImage"
+                            name="productImage"
+                            class="product-image-hidden-input"
+                            accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                            required>
+
+                        <%-- [유지] 선택한 대표 이미지 파일명을 표시한다. --%>
+                        <span id="productImageFileName"
+                            class="product-image-file-name">
                             선택된 파일 없음
                         </span>
 
@@ -396,11 +405,18 @@ const savedTmdbActorId =
                     <div id="detailImageRows" class="detail-image-rows">
 
                         <div class="detail-image-row">
+
+                            <%-- [수정] 세부 이미지 파일 선택용 커스텀 버튼 --%>
+                            <label for="detailImage0"
+                                class="detail-image-select-button">
+                                파일 선택
+                            </label>
+
                             <input type="file"
-                                   id="detailImage0"
-                                   class="detail-image-input"
-                                   name="detailImages"
-                                   accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+                                id="detailImage0"
+                                class="detail-image-input detail-image-hidden-input"
+                                name="detailImages"
+                                accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
 
                             <span class="detail-image-file-name">
                                 선택된 파일 없음
