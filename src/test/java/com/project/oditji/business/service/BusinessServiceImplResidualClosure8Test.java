@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,12 +135,13 @@ class BusinessServiceImplResidualClosure8Test {
                 IllegalArgumentException.class,
                 () -> service.requestProductDelete(10L, 20L, null));
 
+        String overlongDeleteReason = "가".repeat(1001);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.requestProductDelete(
                         10L,
                         20L,
-                        "가".repeat(1001)));
+                        overlongDeleteReason));
 
         when(businessDAO.selectProductForUpdate(10L, 20L))
                 .thenReturn(null);
@@ -249,19 +251,20 @@ class BusinessServiceImplResidualClosure8Test {
                         extendedEndDate,
                         null));
 
+        String overlongExtendReason = "연".repeat(1001);
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.extendApprovedEvent(
                         1100L,
                         10L,
                         extendedEndDate,
-                        "연".repeat(1001)));
+                        overlongExtendReason));
     }
 
     @Test
     void imageSaveHelpersShouldCoverNullOriginalFilenames() {
-        MultipartFile eventImage = org.mockito.Mockito.mock(MultipartFile.class);
-        MultipartFile productImage = org.mockito.Mockito.mock(MultipartFile.class);
+        MultipartFile eventImage = mock(MultipartFile.class);
+        MultipartFile productImage = mock(MultipartFile.class);
 
         when(eventImage.getOriginalFilename()).thenReturn(null);
         when(productImage.getOriginalFilename()).thenReturn(null);
