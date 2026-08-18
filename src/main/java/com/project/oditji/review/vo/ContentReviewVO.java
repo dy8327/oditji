@@ -8,6 +8,7 @@ public class ContentReviewVO extends ReviewBaseVO {
 
     private int reviewNo;
     private String writer;
+    private String profileImage;
 
     public int getReviewNo() {
         return reviewNo;
@@ -23,5 +24,13 @@ public class ContentReviewVO extends ReviewBaseVO {
 
     public void setWriter(String writer) {
         this.writer = writer;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

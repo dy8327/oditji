@@ -671,7 +671,7 @@ class MemberControllerRemainingCoverageTest {
     }
 
     @Test
-    void updateMemberShouldCoverBlankPasswordEmptyImageAndMemberNameDisplay() {
+    void updateMemberShouldCoverBlankPasswordEmptyImageAndNicknameDisplay() {
         MemberVO loginMember = member(501L, "USER", "기존", "기존닉");
         MockHttpSession session = session(loginMember);
         MemberVO updated = member(501L, "USER", "새이름", "새닉");
@@ -694,7 +694,7 @@ class MemberControllerRemainingCoverageTest {
                         session,
                         new RedirectAttributesModelMap()));
         assertNull(input.getMemberPw());
-        assertEquals("새이름", session.getAttribute("loginDisplayName"));
+        assertEquals("새닉", session.getAttribute("loginDisplayName"));
         verify(memberService, never()).checkPassword(any(), anyString());
     }
 
