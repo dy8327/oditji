@@ -1237,6 +1237,22 @@
     font-size: 21px;
   }
 
+  /*
+   * [모바일 반응형] hero-right/business-info의 min-width:300px가 좁은
+   * 화면(320~360px)에서는 business-hero의 남은 폭보다 커서 카드가 화면
+   * 밖으로 밀려나며 페이지 전체에 불필요한 가로 스크롤을 만들었다.
+   * business-hero가 column으로 바뀌는 이 breakpoint부터는 두 요소 모두
+   * min-width를 0으로 풀고 100% 폭을 채우게 한다.
+   */
+  .business-wrap .business-hero .hero-right {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .business-wrap .business-hero .business-info {
+    min-width: 0;
+  }
+
   .business-wrap .business-page-header {
     margin-bottom: 20px;
   }
@@ -5768,9 +5784,15 @@
   .business-wrap .dashboard-order-item {
     grid-template-columns: 46px minmax(0, 1fr) auto;
 
-    gap: 10px;
+    column-gap: 12px;
+    /*
+     * [모바일 UI/UX 개선] 상품명(1행)과 수량 칩(2행)이 같은 gap 값(10px)을
+     * 그대로 써서 서로 남남처럼 떨어져 보이던 문제. 세로 간격만 좁혀
+     * 수량이 상품명에 붙은 보조 정보처럼 읽히게 한다.
+     */
+    row-gap: 4px;
 
-    padding: 10px 12px;
+    padding: 12px;
   }
 
   .business-wrap .dashboard-order-thumb {
@@ -5783,10 +5805,21 @@
     grid-row: 2;
 
     justify-self: start;
+    align-self: start;
 
     min-width: auto;
 
-    padding: 4px 8px;
+    /*
+     * [모바일 UI/UX 개선] 데스크톱과 동일한 진한 칩 스타일 대신, 상품명
+     * 아래에 붙는 보조 캡션으로 가볍게 표현한다.
+     */
+    background: none;
+    border: none;
+    padding: 0;
+
+    color: var(--biz-text-dim);
+    font-size: 12px;
+    font-weight: 500;
   }
 
   .business-wrap .dashboard-order-status {
