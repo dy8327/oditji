@@ -17,6 +17,10 @@ body.chat-create-page {
     overflow-x: hidden;
 }
 
+body.chat-create-page.embedded {
+    padding-top: 0;
+}
+
 .create-room-container,
 .create-room-container * {
     box-sizing: border-box;
