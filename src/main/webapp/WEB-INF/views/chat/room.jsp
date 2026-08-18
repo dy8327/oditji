@@ -173,10 +173,11 @@
 <div id="participantModal"
      class="participant-modal"
      hidden>
-    <div class="participant-modal-panel"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="participantModalTitle">
+    <%-- [SonarQube] ARIA dialog 역할 대신 네이티브 dialog 요소를 사용해 접근성을 보장합니다. --%>
+    <dialog class="participant-modal-panel"
+            open
+            aria-modal="true"
+            aria-labelledby="participantModalTitle">
 
         <div class="participant-modal-header">
             <div>
@@ -195,7 +196,7 @@
         <ul id="participantList"
             class="participant-list"
             aria-live="polite"></ul>
-    </div>
+    </dialog>
 </div>
 
 <script type="module"

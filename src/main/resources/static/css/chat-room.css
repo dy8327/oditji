@@ -593,6 +593,10 @@ body.chat-page.embedded .chat-container {
     width: min(360px, 100%);
     max-height: min(520px, 78vh);
     overflow: hidden;
+    /* [SonarQube] 네이티브 dialog의 기본 여백/배치를 기존 모달 패널과 동일하게 초기화합니다. */
+    position: static;
+    margin: 0;
+    padding: 0;
     border: 1px solid var(--kakao-border, #3a3a3a);
     border-radius: 14px;
     background: var(--kakao-bg-2, #222222);
