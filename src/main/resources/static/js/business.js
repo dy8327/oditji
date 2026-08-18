@@ -232,13 +232,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /*
-   * 이미지 파일명 출력
+   * [수정] 이벤트 이미지 파일명 출력
+   * 새 파일이 선택된 경우에만 X 버튼을 표시합니다.
    */
   if (eventImageInput) {
     eventImageInput.addEventListener("change", function () {
+      const removeButton = document.getElementById("removeEventImageSelection");
+
       if (eventImageInput.files.length === 0) {
         if (eventImageFileName) {
           eventImageFileName.textContent = "선택된 파일 없음";
+        }
+
+        if (removeButton) {
+          removeButton.hidden = true;
         }
 
         return;
@@ -247,6 +254,27 @@ document.addEventListener("DOMContentLoaded", function () {
       if (eventImageFileName) {
         eventImageFileName.textContent = eventImageInput.files[0].name;
       }
+
+      if (removeButton) {
+        removeButton.hidden = false;
+      }
+    });
+  }
+
+  /*
+   * [수정] 이벤트 수정 모달에서 선택한 새 이미지 초기화
+   */
+  const removeEventImageSelection = document.getElementById("removeEventImageSelection");
+
+  if (removeEventImageSelection && eventImageInput) {
+    removeEventImageSelection.addEventListener("click", function () {
+      eventImageInput.value = "";
+
+      if (eventImageFileName) {
+        eventImageFileName.textContent = "선택된 파일 없음";
+      }
+
+      removeEventImageSelection.hidden = true;
     });
   }
 
@@ -1486,7 +1514,8 @@ document.addEventListener("DOMContentLoaded", function () {
         <button type="button"
                 class="detail-image-remove-btn"
                 aria-label="선택한 세부 이미지 삭제"
-                title="선택한 세부 이미지 삭제">
+                title="선택한 세부 이미지 삭제"
+                hidden>
           &times;
         </button>
 
@@ -1499,13 +1528,32 @@ document.addEventListener("DOMContentLoaded", function () {
     if (fileInput) {
       fileInput.addEventListener("change", function () {
         updateDetailImageFileName(this);
+
+        /*
+         * [수정] 파일이 실제로 선택된 경우에만
+         * 오른쪽 X 삭제 버튼을 표시한다.
+         */
+        if (removeButton) {
+          removeButton.hidden = !(this.files && this.files.length > 0);
+        }
       });
     }
 
     if (removeButton) {
       removeButton.addEventListener("click", function () {
-        row.remove();
-        ensureUpdateDetailImageRow();
+        /*
+         * [수정] X 클릭 시 행 자체를 삭제하지 않고
+         * 선택한 파일만 초기화한다.
+         *
+         * 입력 행은 그대로 유지하고,
+         * 다시 "선택된 파일 없음" 상태로 되돌린다.
+         */
+        if (fileInput) {
+          fileInput.value = "";
+          updateDetailImageFileName(fileInput);
+        }
+
+        removeButton.hidden = true;
       });
     }
 
@@ -1884,6 +1932,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /*
+     * [수정] 수정 모달을 다시 열 때
+     * 이전 이미지 선택 상태와 X 버튼을 초기화합니다.
+     */
+    const removeEventImageSelectionButton = document.getElementById("removeEventImageSelection");
+
+    if (removeEventImageSelectionButton) {
+      removeEventImageSelectionButton.hidden = true;
+    }
+
+    /*
      * 새 이미지를 선택하지 않으면 서버가 기존 배너 이미지를 그대로
      * 유지하므로(BusinessServiceImpl.updateApprovedEvent), 화면에는
      * 기존 이미지 유지 여부만 안내한다.
@@ -1891,7 +1949,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const eventImageFileNameField = document.getElementById("eventImageFileName");
 
     if (eventImageFileNameField) {
-      eventImageFileNameField.textContent = button.dataset.bannerImage ? "기존 이미지 유지" : "선택된 파일 없음";
+      eventImageFileNameField.textContent = "선택된 파일 없음";
     }
 
     /*
