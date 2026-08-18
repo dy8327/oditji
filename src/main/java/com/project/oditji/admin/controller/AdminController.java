@@ -33,6 +33,8 @@ public class AdminController {
     private static final String ATTR_PAGINATION = "pagination";
     private static final String PARAM_SEARCH_TYPE = "searchType";
     private static final String PARAM_STATUS = "status";
+    // [SonarQube] 관리자 목록 필터에서 반복되는 기간 파라미터명을 한 곳에서 관리합니다.
+    private static final String PARAM_PERIOD = "period";
     private static final String REDIRECT_PREFIX = "redirect:";
     private static final String FLASH_MESSAGE = "message";
     private static final String PARAM_KEYWORD = "keyword";
@@ -537,7 +539,7 @@ public class AdminController {
             builder.queryParam("tab", tab);
         }
         if (period != null && !period.isBlank()) {
-            builder.queryParam("period", period);
+            builder.queryParam(PARAM_PERIOD, period);
         }
         if (keyword != null && !keyword.isBlank()) {
             builder.queryParam(PARAM_KEYWORD, keyword);
@@ -829,7 +831,7 @@ public class AdminController {
             builder.queryParam(PARAM_STATUS, status);
         }
         if (period != null && !period.isBlank()) {
-            builder.queryParam("period", period);
+            builder.queryParam(PARAM_PERIOD, period);
         }
         return builder.build().toUriString();
     }
@@ -867,7 +869,7 @@ public class AdminController {
         List<PopularClickVO> popularClicks = adminService.getPopularProductClicksByPeriod(normalizedPeriod);
 
         model.addAttribute("monitoringSummary", monitoringSummary);
-        model.addAttribute("period", normalizedPeriod);
+        model.addAttribute(PARAM_PERIOD, normalizedPeriod);
         model.addAttribute("visitorTrend", visitorTrend);
         model.addAttribute("popularClicks", popularClicks);
 

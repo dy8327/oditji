@@ -4200,26 +4200,119 @@
 
 /* =====================================================
    [상품 등록 이미지 입력 레이아웃 수정]
-   대표 이미지와 세부 이미지 입력 영역을 분리하고,
-   기존 사업자 등록 폼의 폭과 간격을 그대로 따른다.
+   - 상품 기본 이미지 / 세부 이미지 등록 영역 전용
+   - 브라우저 기본 file input은 숨김
+   - 커스텀 파일 선택 버튼 + 선택 파일명만 표시
+   - productUpdateModal 등 다른 화면에는 영향 없음
+   - 기존 --biz-* CSS 변수만 사용
    ===================================================== */
+
+/* =====================================================
+   기본 이미지 / 세부 이미지 영역 공통
+   ===================================================== */
+
 .business-wrap .product-image-file-box,
 .business-wrap .detail-image-row {
   width: 100%;
+  min-width: 0;
   min-height: 52px;
 }
 
-.business-wrap .product-image-file-box input[type="file"],
-.business-wrap .detail-image-row input[type="file"] {
-  flex: 0 0 auto;
-  max-width: 360px;
-  color: var(--biz-text-sub);
+/* =====================================================
+   [수정] 실제 브라우저 기본 file input 숨김
+
+   브라우저가 기본적으로 출력하는
+   "파일 선택 / 선택된 파일 없음"을 숨긴다.
+
+   커스텀 label의 for 속성과 input의 id가 연결되어 있으므로
+   label을 클릭하면 정상적으로 파일 선택창이 열린다.
+   ===================================================== */
+
+.business-wrap .product-image-file-box > .product-image-hidden-input,
+.business-wrap .detail-image-row > .detail-image-hidden-input {
+  display: none;
 }
+
+/* =====================================================
+   커스텀 파일 선택 버튼
+   상품 기본 이미지 / 세부 이미지 공통
+   ===================================================== */
+
+.business-wrap .product-image-file-box > .product-image-select-button,
+.business-wrap .detail-image-row > .detail-image-select-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  min-width: 88px;
+  height: 40px;
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+
+  background: var(--biz-surface-1);
+  color: var(--biz-text);
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: var(--biz-transition);
+}
+
+/* 마우스 사용 환경에서만 hover 효과 적용 */
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap .product-image-file-box > .product-image-select-button:hover,
+  .business-wrap .detail-image-row > .detail-image-select-button:hover {
+    border-color: var(--biz-point);
+    color: var(--biz-point);
+  }
+}
+
+/* 키보드 접근성 */
+.business-wrap .product-image-file-box > .product-image-select-button:focus-visible,
+.business-wrap .detail-image-row > .detail-image-select-button:focus-visible {
+  outline: 2px solid var(--biz-point);
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   선택된 파일명
+   ===================================================== */
+
+.business-wrap .product-image-file-box > .product-image-file-name,
+.business-wrap .product-image-file-box > #productImageFileName,
+.business-wrap .detail-image-row > .detail-image-file-name {
+  flex: 1;
+  min-width: 0;
+
+  color: var(--biz-text-sub);
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   세부 이미지 제목 + 추가 버튼
+   ===================================================== */
 
 .business-wrap .detail-image-label-row {
   display: flex;
   align-items: center;
   gap: 10px;
+
   margin-bottom: 10px;
 }
 
@@ -4227,27 +4320,36 @@
   margin-bottom: 0;
 }
 
+/* 세부 이미지 추가 + 버튼 */
 .business-wrap .detail-image-add-btn {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+
   width: 32px;
   height: 32px;
   padding: 0;
+
   border: 1px solid var(--biz-point-strong);
   border-radius: var(--biz-radius-sm);
+
   background: var(--biz-point-strong);
   color: var(--biz-white);
+
   font-size: 20px;
   font-weight: 700;
   line-height: 1;
+
   cursor: pointer;
+
   transition: var(--biz-transition);
 }
 
-.business-wrap .detail-image-add-btn:hover {
-  background: var(--biz-point-strong-hover);
-  border-color: var(--biz-point-strong-hover);
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap .detail-image-add-btn:hover {
+    background: var(--biz-point-strong-hover);
+    border-color: var(--biz-point-strong-hover);
+  }
 }
 
 .business-wrap .detail-image-add-btn:disabled {
@@ -4255,59 +4357,118 @@
   cursor: not-allowed;
 }
 
+/* =====================================================
+   세부 이미지 입력 목록
+   ===================================================== */
+
 .business-wrap .detail-image-rows {
   display: grid;
   gap: 10px;
 }
 
+/* 세부 이미지 한 행 */
 .business-wrap .detail-image-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+
+  gap: 12px;
+
   padding: 14px 16px;
+
+  box-sizing: border-box;
+
   background: var(--biz-surface-2);
+
   border: 1px solid var(--biz-border);
   border-radius: var(--biz-radius-sm);
 }
 
-.business-wrap .detail-image-file-name,
-.business-wrap #productImageFileName {
-  min-width: 0;
-  color: var(--biz-text-sub);
-  overflow-wrap: anywhere;
-}
+/* =====================================================
+   세부 이미지 삭제 버튼
+   ===================================================== */
 
-.business-wrap .detail-image-remove-btn {
+.business-wrap .detail-image-row > .detail-image-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   flex: 0 0 auto;
+
   margin-left: auto;
+
   padding: 8px 12px;
+
   border: 1px solid var(--biz-border);
   border-radius: var(--biz-radius-sm);
+
   background: transparent;
   color: var(--biz-text-sub);
+
+  font-size: 13px;
+
   cursor: pointer;
+
   transition: var(--biz-transition);
 }
 
-.business-wrap .detail-image-remove-btn:hover {
-  border-color: var(--biz-danger);
-  color: var(--biz-danger);
+/* 선택한 새 세부 이미지가 없을 때 X 버튼 숨김 */
+.business-wrap #productUpdateModal .detail-image-remove-btn[hidden] {
+  display: none;
 }
 
+/*
+ * 첫 번째 행처럼 hidden 속성이 붙은 삭제 버튼은
+ * 다른 display 규칙보다 우선해서 숨긴다.
+ */
+.business-wrap .detail-image-row > .detail-image-remove-btn[hidden] {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap .detail-image-row > .detail-image-remove-btn:hover {
+    border-color: var(--biz-danger);
+    color: var(--biz-danger);
+  }
+}
+
+/* =====================================================
+   모바일
+   ===================================================== */
+
 @media (max-width: 768px) {
+  /*
+   * 모바일에서는 버튼 + 파일명 + 삭제 버튼을
+   * 세로로 배치해 긴 파일명 때문에 화면이 밀리지 않도록 한다.
+   */
   .business-wrap .product-image-file-box,
   .business-wrap .detail-image-row {
     align-items: stretch;
     flex-direction: column;
+
+    gap: 10px;
   }
 
-  .business-wrap .product-image-file-box input[type="file"],
-  .business-wrap .detail-image-row input[type="file"] {
-    max-width: 100%;
+  /* 파일 선택 버튼 전체 너비 */
+  .business-wrap .product-image-file-box > .product-image-select-button,
+  .business-wrap .detail-image-row > .detail-image-select-button {
+    width: 100%;
   }
 
-  .business-wrap .detail-image-remove-btn {
+  /* 긴 파일명은 한 줄 말줄임표 처리 */
+  .business-wrap .product-image-file-box > .product-image-file-name,
+  .business-wrap .product-image-file-box > #productImageFileName,
+  .business-wrap .detail-image-row > .detail-image-file-name {
+    width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 삭제 버튼 */
+  .business-wrap .detail-image-row > .detail-image-remove-btn {
     align-self: flex-start;
+
     margin-left: 0;
   }
 }
@@ -6402,5 +6563,181 @@
   .business-wrap .product-manage-table thead th,
   .business-wrap .product-manage-table tbody td {
     font-size: 12px;
+  }
+}
+
+/* =====================================================
+   [이벤트 등록 이미지 파일 선택 영역]
+   - 브라우저 기본 file input은 숨기고
+   - 커스텀 파일 선택 버튼과 파일명만 표시
+===================================================== */
+
+.business-wrap .event-image-hidden-input {
+  display: none;
+}
+
+.business-wrap .event-image-select-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  padding: 8px 12px;
+
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+
+  background: var(--biz-surface-1);
+  color: var(--biz-text);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: var(--biz-transition);
+}
+
+.business-wrap .event-image-select-button:hover {
+  border-color: var(--biz-point);
+  color: var(--biz-point);
+}
+
+.business-wrap .event-image-file-name {
+  min-width: 0;
+
+  color: var(--biz-text-sub);
+
+  font-size: 13px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   [이벤트 수정 모달 이미지 파일 선택 영역]
+   - eventUpdateModal 내부에만 적용
+   - 브라우저 기본 file input 숨김
+   - 새 파일이 선택된 경우에만 X 버튼 표시
+   ===================================================== */
+
+.business-wrap #eventUpdateModal .event-update-image-file-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* 브라우저 기본 file input 숨김 */
+.business-wrap #eventUpdateModal .event-update-image-hidden-input {
+  display: none;
+}
+
+/* 커스텀 파일 선택 버튼 */
+.business-wrap #eventUpdateModal .event-update-image-select-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  min-width: 88px;
+  height: 42px;
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+
+  background: var(--biz-surface-1);
+  color: var(--biz-text);
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: var(--biz-transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap #eventUpdateModal .event-update-image-select-button:hover {
+    border-color: var(--biz-point);
+    color: var(--biz-point);
+  }
+}
+
+/* 선택된 파일명 */
+.business-wrap #eventUpdateModal .event-update-image-file-name {
+  flex: 1;
+  min-width: 0;
+
+  color: var(--biz-text-sub);
+
+  font-size: 13px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 선택 취소 X 버튼 */
+.business-wrap #eventUpdateModal .event-update-image-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  width: 34px;
+  height: 34px;
+  padding: 0;
+
+  border: 1px solid var(--biz-border);
+  border-radius: var(--biz-radius-sm);
+
+  background: transparent;
+  color: var(--biz-text-sub);
+
+  font-size: 18px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: var(--biz-transition);
+}
+
+/* 새 파일이 없으면 X 버튼 숨김 */
+.business-wrap #eventUpdateModal .event-update-image-remove-btn[hidden] {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .business-wrap #eventUpdateModal .event-update-image-remove-btn:hover {
+    border-color: var(--biz-danger);
+    color: var(--biz-danger);
+  }
+}
+
+/* 모바일 */
+@media (max-width: 600px) {
+  .business-wrap #eventUpdateModal .event-update-image-file-box {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .business-wrap #eventUpdateModal .event-update-image-select-button {
+    width: 100%;
+  }
+
+  .business-wrap #eventUpdateModal .event-update-image-remove-btn {
+    align-self: flex-end;
   }
 }

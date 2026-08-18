@@ -91,16 +91,9 @@ public class SubscriptionCalculatorServiceImpl
          * 그대로 결과에 담아둔다. 마이페이지 모달과 결과 공유 화면에서
          * "어떤 콘텐츠를 골라 계산했는지" 보여줄 때 사용한다.
          */
+        // [SonarQube] null 제거 반복문을 분리해 계산 메서드의 인지 복잡도를 낮춥니다.
         List<ContentWishItemVO> contentList =
-                new ArrayList<ContentWishItemVO>();
-
-        for (ContentWishItemVO item : wishItemList) {
-
-            if (item != null) {
-
-                contentList.add(item);
-            }
-        }
+                copyNonNullWishItems(wishItemList);
 
         result.setContentList(contentList);
 
@@ -196,6 +189,24 @@ public class SubscriptionCalculatorServiceImpl
         return result;
     }
 
+    /** 계산 대상 위시리스트에서 null 항목만 제외해 원래 순서를 유지한 복사본을 만든다. */
+    private List<ContentWishItemVO> copyNonNullWishItems(
+            List<ContentWishItemVO> wishItemList) {
+
+        List<ContentWishItemVO> contentList =
+                new ArrayList<ContentWishItemVO>();
+
+        for (ContentWishItemVO item : wishItemList) {
+
+            if (item != null) {
+
+                contentList.add(item);
+            }
+        }
+
+        return contentList;
+    }
+
     /**
      * 선택된 플랫폼별로, 그 플랫폼에서 볼 수 있는 콘텐츠 목록을 채워 넣는다.
      * 한 콘텐츠가 선택된 플랫폼 여러 곳에서 모두 볼 수 있으면 해당하는 모든 플랫폼에 표시한다.
@@ -220,33 +231,53 @@ public class SubscriptionCalculatorServiceImpl
                 continue;
             }
 
-            List<ContentWishItemVO> matchedList =
-                    new ArrayList<ContentWishItemVO>();
-
-            for (ContentWishItemVO item : contentList) {
-
-                if (item == null) {
-
-                    continue;
-                }
-
-                for (String platformName : item.getPlatformNameList()) {
-
-                    String code =
-                            OttPlatformCodeUtil
-                                    .fromContentPlatformName(
-                                            platformName);
-
-                    if (platform.getPlatformCode().equals(code)) {
-
-                        matchedList.add(item);
-                        break;
-                    }
-                }
-            }
-
-            platform.setContentList(matchedList);
+            // [SonarQube] 중첩된 콘텐츠/플랫폼 탐색을 보조 메서드로 분리합니다.
+            platform.setContentList(
+                    findMatchedContentList(
+                            platform.getPlatformCode(),
+                            contentList));
         }
+    }
+
+    /** 특정 플랫폼에서 시청 가능한 콘텐츠만 원래 순서대로 반환한다. */
+    private List<ContentWishItemVO> findMatchedContentList(
+            String platformCode,
+            List<ContentWishItemVO> contentList) {
+
+        List<ContentWishItemVO> matchedList =
+                new ArrayList<ContentWishItemVO>();
+
+        for (ContentWishItemVO item : contentList) {
+
+            if (item != null
+                    && isAvailableOnPlatform(item, platformCode)) {
+
+                matchedList.add(item);
+            }
+        }
+
+        return matchedList;
+    }
+
+    /** 콘텐츠 제공 플랫폼명 목록에 지정 플랫폼 코드가 포함되는지 확인한다. */
+    private boolean isAvailableOnPlatform(
+            ContentWishItemVO item,
+            String platformCode) {
+
+        for (String platformName : item.getPlatformNameList()) {
+
+            String code =
+                    OttPlatformCodeUtil
+                            .fromContentPlatformName(
+                                    platformName);
+
+            if (platformCode.equals(code)) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** 화면에서 넘어온 빈 문자열/공백을 필터 미선택(null)으로 취급한다. */
@@ -784,78 +815,125 @@ public class SubscriptionCalculatorServiceImpl
 
         JSONObject root = new JSONObject();
 
+        // [SonarQube] 각 JSON 배열 직렬화를 분리해 이 메서드의 인지 복잡도를 낮춥니다.
+        root.put(
+                JSON_KEY_SELECTED_PLATFORM_LIST,
+                toPlatformJsonArray(result.getSelectedPlatformList()));
+        root.put(
+                "unresolvedTitleList",
+                toUnresolvedTitleJsonArray(result.getUnresolvedItemList()));
+        root.put(
+                "allPlatformMonthlyPrice",
+                result.getAllPlatformMonthlyPrice());
+        root.put(
+                JSON_KEY_CONTENT_LIST,
+                toContentJsonArray(result.getContentList()));
+
+        return root.toString();
+    }
+
+    /** 선택 플랫폼 목록을 저장용 JSON 배열로 변환한다. */
+    private JSONArray toPlatformJsonArray(
+            List<PlatformPriceVO> selectedPlatformList) {
+
         JSONArray platformArray = new JSONArray();
 
-        for (PlatformPriceVO platform : result.getSelectedPlatformList()) {
+        for (PlatformPriceVO platform : selectedPlatformList) {
 
-            JSONObject platformJson = new JSONObject();
-
-            platformJson.put("platformCode", platform.getPlatformCode());
-            platformJson.put(JSON_KEY_PLATFORM_NAME, platform.getPlatformName());
-            platformJson.put("regularPrice", platform.getRegularPrice());
-            platformJson.put("bestPrice", platform.getBestPrice());
-            platformJson.put(JSON_KEY_DISCOUNT_SOURCE,
-                    platform.getDiscountSource() == null
-                            ? JSONObject.NULL
-                            : platform.getDiscountSource());
-            platformJson.put(JSON_KEY_DISCOUNT_TITLE,
-                    platform.getDiscountTitle() == null
-                            ? JSONObject.NULL
-                            : platform.getDiscountTitle());
-
-            platformArray.put(platformJson);
+            platformArray.put(toPlatformJson(platform));
         }
 
-        root.put(JSON_KEY_SELECTED_PLATFORM_LIST, platformArray);
+        return platformArray;
+    }
+
+    /** 플랫폼 가격/할인 정보를 저장용 JSON 객체로 변환한다. */
+    private JSONObject toPlatformJson(PlatformPriceVO platform) {
+
+        JSONObject platformJson = new JSONObject();
+
+        platformJson.put("platformCode", platform.getPlatformCode());
+        platformJson.put(JSON_KEY_PLATFORM_NAME, platform.getPlatformName());
+        platformJson.put("regularPrice", platform.getRegularPrice());
+        platformJson.put("bestPrice", platform.getBestPrice());
+        platformJson.put(
+                JSON_KEY_DISCOUNT_SOURCE,
+                platform.getDiscountSource() == null
+                        ? JSONObject.NULL
+                        : platform.getDiscountSource());
+        platformJson.put(
+                JSON_KEY_DISCOUNT_TITLE,
+                platform.getDiscountTitle() == null
+                        ? JSONObject.NULL
+                        : platform.getDiscountTitle());
+
+        return platformJson;
+    }
+
+    /** 미해결 콘텐츠 제목 목록을 저장용 JSON 배열로 변환한다. */
+    private JSONArray toUnresolvedTitleJsonArray(
+            List<ContentWishItemVO> unresolvedItemList) {
 
         JSONArray unresolvedTitleArray = new JSONArray();
 
-        for (ContentWishItemVO item : result.getUnresolvedItemList()) {
+        for (ContentWishItemVO item : unresolvedItemList) {
 
-            if (item != null && item.getTitle() != null) {
+            if (item != null
+                    && item.getTitle() != null) {
 
                 unresolvedTitleArray.put(item.getTitle());
             }
         }
 
-        root.put("unresolvedTitleList", unresolvedTitleArray);
-        root.put("allPlatformMonthlyPrice",
-                result.getAllPlatformMonthlyPrice());
+        return unresolvedTitleArray;
+    }
+
+    /** 계산 대상 콘텐츠 목록을 저장용 JSON 배열로 변환한다. */
+    private JSONArray toContentJsonArray(
+            List<ContentWishItemVO> contentList) {
 
         JSONArray contentArray = new JSONArray();
 
-        for (ContentWishItemVO item : result.getContentList()) {
+        for (ContentWishItemVO item : contentList) {
 
             if (item != null) {
 
-                JSONObject contentJson = new JSONObject();
-
-                contentJson.put(JSON_KEY_TMDB_ID,
-                        item.getTmdbId() == null
-                                ? JSONObject.NULL
-                                : item.getTmdbId());
-                contentJson.put(JSON_KEY_CONTENT_TYPE,
-                        item.getContentType() == null
-                                ? JSONObject.NULL
-                                : item.getContentType());
-                contentJson.put(JSON_KEY_TITLE,
-                        item.getTitle() == null
-                                ? JSONObject.NULL
-                                : item.getTitle());
-                contentJson.put(JSON_KEY_POSTER_PATH,
-                        item.getPosterPath() == null
-                                ? JSONObject.NULL
-                                : item.getPosterPath());
-                contentJson.put(JSON_KEY_PLATFORM_NAME_LIST,
-                        new JSONArray(item.getPlatformNameList()));
-
-                contentArray.put(contentJson);
+                contentArray.put(toContentJson(item));
             }
         }
 
-        root.put(JSON_KEY_CONTENT_LIST, contentArray);
+        return contentArray;
+    }
 
-        return root.toString();
+    /** 콘텐츠 식별/표시 정보를 저장용 JSON 객체로 변환한다. */
+    private JSONObject toContentJson(ContentWishItemVO item) {
+
+        JSONObject contentJson = new JSONObject();
+
+        contentJson.put(
+                JSON_KEY_TMDB_ID,
+                item.getTmdbId() == null
+                        ? JSONObject.NULL
+                        : item.getTmdbId());
+        contentJson.put(
+                JSON_KEY_CONTENT_TYPE,
+                item.getContentType() == null
+                        ? JSONObject.NULL
+                        : item.getContentType());
+        contentJson.put(
+                JSON_KEY_TITLE,
+                item.getTitle() == null
+                        ? JSONObject.NULL
+                        : item.getTitle());
+        contentJson.put(
+                JSON_KEY_POSTER_PATH,
+                item.getPosterPath() == null
+                        ? JSONObject.NULL
+                        : item.getPosterPath());
+        contentJson.put(
+                JSON_KEY_PLATFORM_NAME_LIST,
+                new JSONArray(item.getPlatformNameList()));
+
+        return contentJson;
     }
 
     /**

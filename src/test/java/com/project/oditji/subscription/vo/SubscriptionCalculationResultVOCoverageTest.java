@@ -18,6 +18,7 @@ class SubscriptionCalculationResultVOCoverageTest {
 
         assertTrue(vo.getSelectedPlatformList().isEmpty());
         assertTrue(vo.getUnresolvedItemList().isEmpty());
+        assertTrue(vo.getContentList().isEmpty());
         assertEquals(0, vo.getTotalMonthlyPrice());
         assertEquals(0, vo.getTotalRegularMonthlyPrice());
         assertEquals(0, vo.getAllPlatformMonthlyPrice());
@@ -37,17 +38,22 @@ class SubscriptionCalculationResultVOCoverageTest {
                 new SubscriptionCalculationResultVO();
         List<PlatformPriceVO> selected = List.of(new PlatformPriceVO());
         List<ContentWishItemVO> unresolved = List.of(new ContentWishItemVO());
+        List<ContentWishItemVO> contentList = List.of(new ContentWishItemVO());
 
         vo.setSelectedPlatformList(selected);
         vo.setUnresolvedItemList(unresolved);
+        vo.setContentList(contentList);
 
         assertSame(selected, vo.getSelectedPlatformList());
         assertSame(unresolved, vo.getUnresolvedItemList());
+        assertSame(contentList, vo.getContentList());
 
         vo.setSelectedPlatformList(null);
         vo.setUnresolvedItemList(null);
+        vo.setContentList(null);
 
         assertTrue(vo.getSelectedPlatformList().isEmpty());
         assertTrue(vo.getUnresolvedItemList().isEmpty());
+        assertTrue(vo.getContentList().isEmpty());
     }
 }

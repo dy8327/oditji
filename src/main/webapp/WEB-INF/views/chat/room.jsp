@@ -19,7 +19,7 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room.css?v=4">
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=5">
 
 <%-- head-assets.jsp(CSS/공통 스크립트/CSRF meta/viewport)는 header.jsp가 body 안에서
      include하는 대신, embed 여부와 무관하게 항상 head 레벨에서 로드합니다.
@@ -83,6 +83,13 @@
              이 버튼은 CSS(body.chat-page.embedded #roomListBtn)에서 숨긴다.
              모바일 전체화면 진입 시에는 그대로 노출되어 뒤로 가기 역할을 한다. --%>
         <div class="top-btn-area">
+            <button type="button"
+                    id="participantListBtn"
+                    aria-haspopup="dialog"
+                    aria-controls="participantModal">
+                참여자 목록 <span id="participantCountText"></span>
+            </button>
+
             <button type="button"
                     id="roomListBtn">
                 목록으로
@@ -159,8 +166,41 @@
 
 </div>
 
+<%--
+    현재 채팅방의 참여자 목록입니다.
+    자유방은 CHAT_ROOM_MEMBER 현재 참가자, 공지방은 서버에서 반환하는 논리적 참여자 목록을 사용합니다.
+--%>
+<div id="participantModal"
+     class="participant-modal"
+     hidden>
+    <%-- [SonarQube] ARIA dialog 역할 대신 네이티브 dialog 요소를 사용해 접근성을 보장합니다. --%>
+    <dialog class="participant-modal-panel"
+            open
+            aria-modal="true"
+            aria-labelledby="participantModalTitle">
+
+        <div class="participant-modal-header">
+            <div>
+                <h3 id="participantModalTitle">참여자 목록</h3>
+                <p id="participantSummary">참여자 정보를 불러오는 중입니다.</p>
+            </div>
+
+            <button type="button"
+                    id="participantModalClose"
+                    class="participant-modal-close"
+                    aria-label="참여자 목록 닫기">
+                ×
+            </button>
+        </div>
+
+        <ul id="participantList"
+            class="participant-list"
+            aria-live="polite"></ul>
+    </dialog>
+</div>
+
 <script type="module"
-        src="${pageContext.request.contextPath}/js/room.js?v=7"></script>
+        src="${pageContext.request.contextPath}/js/room.js?v=8"></script>
 
 </body>
 </html>

@@ -973,16 +973,35 @@
                             이벤트 이미지
                         </label>
 
-                        <div class="file-box">
+                        <div class="file-box event-update-image-file-box">
+
+                            <%-- [수정] 이벤트 수정 이미지 커스텀 파일 선택 버튼 --%>
+                            <label for="eventImage"
+                                class="event-update-image-select-button">
+                                파일 선택
+                            </label>
 
                             <input type="file"
-                                   id="eventImage"
-                                   name="eventImage"
-                                   accept=".jpg,.jpeg,.png,.gif,.webp">
+                                id="eventImage"
+                                name="eventImage"
+                                class="event-update-image-hidden-input"
+                                accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
 
-                            <span id="eventImageFileName">
+                            <%-- [수정] 선택한 파일명 표시 --%>
+                            <span id="eventImageFileName"
+                                class="event-update-image-file-name">
                                 선택된 파일 없음
                             </span>
+
+                            <%-- [수정] 새 파일을 선택한 경우에만 표시 --%>
+                            <button type="button"
+                                    id="removeEventImageSelection"
+                                    class="event-update-image-remove-btn"
+                                    aria-label="선택한 이벤트 이미지 삭제"
+                                    title="선택한 이벤트 이미지 삭제"
+                                    hidden>
+                                &times;
+                            </button>
 
                         </div>
 
