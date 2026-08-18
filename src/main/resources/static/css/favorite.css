@@ -18,6 +18,41 @@
    [마이페이지 영역 크기 통일]
    마이페이지와 동일한 최대 너비와 좌우 여백을 사용한다.
 ========================================================= */
+
+:root {
+  --fav-eyebrow-text: #838b9a;
+  --fav-text-primary: #ffffff;
+
+  --fav-badge-border: rgba(255, 255, 255, 0.16);
+  --fav-badge-bg: rgba(255, 255, 255, 0.05);
+  --fav-badge-text: #a7adba;
+
+  --fav-tab-border: rgba(255, 255, 255, 0.09);
+  --fav-surface-dark: #17191b;
+  --fav-tab-text: #7d848c;
+  --fav-tab-active-bg: #ffffff;
+  --fav-tab-active-text: #111315;
+  --fav-tab-active-shadow: rgba(0, 0, 0, 0.28);
+  --fav-tab-badge-bg: rgba(255, 255, 255, 0.07);
+
+  --fav-heart-color: #e63946;
+  --fav-heart-border: rgba(255, 99, 121, 0.64);
+  --fav-heart-bg: rgba(92, 22, 34, 0.92);
+  --fav-heart-text: #ff6379;
+
+  --fav-tab2-border: rgba(255, 255, 255, 0.12);
+  --fav-tab2-bg: rgba(255, 255, 255, 0.035);
+  --fav-tab2-text: #979ca5;
+  --fav-tab2-hover-border: rgba(255, 255, 255, 0.34);
+  --fav-tab2-hover-bg: rgba(255, 255, 255, 0.07);
+  --fav-tab2-active-border: rgba(255, 255, 255, 0.62);
+  --fav-tab2-active-grad-start: #f0f0f1;
+  --fav-tab2-active-grad-end: #bfc1c5;
+  --fav-tab2-active-text: #111216;
+  --fav-tab2-active-shadow: rgba(255, 255, 255, 0.08);
+  --fav-tab2-focus-outline: rgba(255, 255, 255, 0.8);
+}
+
 .favorite-container {
   width: min(1480px, calc(100% - 64px));
   max-width: none;
@@ -42,7 +77,7 @@
   display: block;
   margin-bottom: 10px;
 
-  color: #838b9a;
+  color: var(--fav-eyebrow-text, #838b9a);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -56,7 +91,7 @@
 
   margin: 0;
 
-  color: #ffffff;
+  color: var(--fav-text-primary, #ffffff);
   font-size: clamp(24px, 2.4vw, 32px);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -70,11 +105,11 @@
   align-items: center;
 
   padding: 4px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--fav-badge-border, rgba(255, 255, 255, 0.16));
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fav-badge-bg, rgba(255, 255, 255, 0.05));
 
-  color: #a7adba;
+  color: var(--fav-badge-text, #a7adba);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -103,9 +138,9 @@
   margin: 32px 0 34px;
   padding: 6px;
 
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--fav-tab-border, rgba(255, 255, 255, 0.09));
   border-radius: 14px;
-  background: #17191b;
+  background: var(--fav-surface-dark, #17191b);
 }
 
 .tab-btn {
@@ -121,7 +156,7 @@
   border-radius: 9px;
 
   background: transparent;
-  color: #7d848c;
+  color: var(--fav-tab-text, #7d848c);
 
   font-size: 14px;
   font-weight: 700;
@@ -134,13 +169,13 @@
 
 .tab-btn:hover {
   background: transparent;
-  color: #ffffff;
+  color: var(--fav-text-primary, #ffffff);
 }
 
 .tab-btn.active {
-  background: #ffffff;
-  color: #111315;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  background: var(--fav-tab-active-bg, #ffffff);
+  color: var(--fav-tab-active-text, #111315);
+  box-shadow: 0 8px 20px var(--fav-tab-active-shadow, rgba(0, 0, 0, 0.28));
 }
 
 .tab-btn b {
@@ -152,7 +187,7 @@
 
   padding: 0 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--fav-tab-badge-bg, rgba(255, 255, 255, 0.07));
 
   color: inherit;
   font-size: 11px;
@@ -160,8 +195,8 @@
 }
 
 .tab-btn.active b {
-  background: #17191b;
-  color: #ffffff;
+  background: var(--fav-surface-dark, #17191b);
+  color: var(--fav-text-primary, #ffffff);
 }
 
 /* =========================================================
@@ -191,7 +226,7 @@
 ========================================================= */
 
 .fav-btn.active {
-  color: #e63946;
+  color: var(--fav-heart-color, #e63946);
 }
 
 /* [2026-08 업데이트] 콘텐츠 탭 카드의 찜 버튼을 콘텐츠리스트/검색결과와
@@ -201,9 +236,9 @@
    .fav-btn 처리(favorite.js)를 그대로 사용하고, 여기서는 찜된 상태의
    색상만 콘텐츠리스트의 .is-active와 동일하게 맞춰줍니다. */
 .content-list-card .content-list-favorite-btn.active {
-  border-color: rgba(255, 99, 121, 0.64);
-  background: rgba(92, 22, 34, 0.92);
-  color: #ff6379;
+  border-color: var(--fav-heart-border, rgba(255, 99, 121, 0.64));
+  background: var(--fav-heart-bg, rgba(92, 22, 34, 0.92));
+  color: var(--fav-heart-text, #ff6379);
 }
 
 /* 찜 목록 카드에는 OTT 플랫폼 목록이 없어 하단 바에 찜 버튼만 남으므로,
@@ -266,7 +301,7 @@
   padding: 0 0 20px;
 
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid var(--fav-tab-border, rgba(255, 255, 255, 0.09));
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -284,11 +319,11 @@
 
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--fav-tab2-border, rgba(255, 255, 255, 0.12));
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--fav-tab2-bg, rgba(255, 255, 255, 0.035));
 
-  color: #979ca5;
+  color: var(--fav-tab2-text, #979ca5);
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
@@ -303,18 +338,18 @@
 }
 
 .favorite-container .favorite-tab .tab-btn:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  border-color: var(--fav-tab2-hover-border, rgba(255, 255, 255, 0.34));
+  background: var(--fav-tab2-hover-bg, rgba(255, 255, 255, 0.07));
+  color: var(--fav-text-primary, #ffffff);
 }
 
 .favorite-container .favorite-tab .tab-btn.active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: var(--fav-tab2-active-border, rgba(255, 255, 255, 0.62));
+  background: linear-gradient(180deg, var(--fav-tab2-active-grad-start, #f0f0f1), var(--fav-tab2-active-grad-end, #bfc1c5));
 
-  color: #111216;
+  color: var(--fav-tab2-active-text, #111216);
 
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 18px var(--fav-tab2-active-shadow, rgba(255, 255, 255, 0.08));
 }
 
 /* [수정] 기존 원형 개수 배지를 제거하고 리뷰 탭처럼 괄호로 표시합니다. */
@@ -349,7 +384,7 @@
 
 /* [수정] 키보드 이용 시 현재 포커스 위치가 보이도록 처리합니다. */
 .favorite-container .favorite-tab .tab-btn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--fav-tab2-focus-outline, rgba(255, 255, 255, 0.8));
   outline-offset: 3px;
 }
 

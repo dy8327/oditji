@@ -23,8 +23,20 @@
 <header class="header">
     <div class="header-container">
         <div class="header-left">
-            <a href="${pageContext.request.contextPath}/" class="logo">
-                <span class="logo-main">ODITJI</span>
+            <%-- [로고 이미지 적용] 기존 메인 이동 링크 로직은 그대로 유지하고,
+                 테마에 따라 글자색이 다른 투명 PNG 로고만 교체해서 보여줍니다.
+                 실제 테마 전환은 기존 theme-toggle.js의 html[data-theme] 값을 그대로 사용합니다. --%>
+            <a href="${pageContext.request.contextPath}/"
+               class="logo"
+               aria-label="ODITJI 메인 페이지로 이동">
+                <img src="${pageContext.request.contextPath}/images/oditji-logo-dark.png"
+                     class="logo-image logo-image--dark"
+                     alt=""
+                     aria-hidden="true">
+                <img src="${pageContext.request.contextPath}/images/oditji-logo-light.png"
+                     class="logo-image logo-image--light"
+                     alt=""
+                     aria-hidden="true">
             </a>
         </div>
 
@@ -39,6 +51,39 @@
             <span></span>
         </button>
 
+        <%--
+            라이트/다크 모드 토글 버튼.
+            기본은 다크 모드이며, 클릭 시 js/theme-toggle.js가
+            <html data-theme="..."> 값을 바꾸고 localStorage에 저장합니다.
+            버튼 안에는 달/해 아이콘을 모두 넣어두고 light-mode.css가
+            현재 테마에 맞는 아이콘만 보여줍니다.
+            [수정] header-container의 직계 자식으로 옮겨, 모바일 반응형에서
+            header-nav-toggle(햄버거 메뉴 버튼) 옆에 order로 붙일 수 있게 했다.
+            데스크톱(992px 초과)에서는 기존처럼 header-right 옆(오른쪽 끝)에
+            그대로 보이도록 common.css에서 order를 맞춘다.
+        --%>
+        <button type="button"
+                class="icon-btn theme-toggle-btn"
+                id="themeToggleBtn"
+                aria-pressed="false"
+                aria-label="라이트 모드로 전환"
+                title="라이트 모드로 전환">
+            <svg class="theme-toggle-icon theme-toggle-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </svg>
+            <svg class="theme-toggle-icon theme-toggle-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"/>
+            </svg>
+        </button>
+
         <nav class="header-nav" id="headerNav" aria-label="주요 메뉴">
             <ul class="header-nav-list">
                 <li class="header-nav-item header-nav-dropdown" data-nav-dropdown>
@@ -46,7 +91,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         콘텐츠
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 글자와 화살표가 따로 노는 느낌을 줄이기 위해
+                             폰트 기호(⌄) 대신 크기/정렬을 일정하게 제어할 수 있는 SVG chevron을 사용합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">
@@ -65,7 +116,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         상품
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 콘텐츠 메뉴와 동일한 SVG chevron을 사용해
+                             세 메뉴의 화살표 크기와 기준선을 통일합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">
@@ -107,7 +164,13 @@
                             class="header-nav-link header-nav-trigger"
                             aria-expanded="false">
                         이벤트
-                        <span class="header-nav-arrow" aria-hidden="true">⌄</span>
+                        <%-- [헤더 수정] 이벤트 메뉴도 동일한 SVG chevron을 사용해
+                             메뉴명과 화살표가 한 덩어리처럼 자연스럽게 보이도록 합니다. --%>
+                        <span class="header-nav-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 12 8" focusable="false">
+                                <path d="M1 1.5 6 6.5 11 1.5" />
+                            </svg>
+                        </span>
                     </button>
 
                     <div class="header-submenu" role="menu">
@@ -394,6 +457,22 @@
                                     <a href="${pageContext.request.contextPath}/review/myReviewList">내 리뷰</a>
                                 </c:otherwise>
                             </c:choose>
+
+                            <%--
+                                [추가] 모바일 반응형 전용 라이트/다크 모드 전환 항목.
+                                관리자/사업자/일반 회원 메뉴 분기 밖으로 빼서 세 역할 모두에
+                                공통으로 노출한다. header-right 안의 아이콘 버튼(#themeToggleBtn)과
+                                같은 js/theme-toggle.js가 .theme-toggle-btn 클래스를 가진 모든
+                                요소를 위임 클릭으로 처리하므로, id 없이 클래스만 추가하면
+                                별도 JS 없이 동작한다(중복 id 방지). 데스크톱에서는 이미
+                                헤더에 아이콘 토글이 있으므로 992px 이하에서만 보인다.
+                            --%>
+                            <button type="button"
+                                    class="theme-toggle-btn profile-dropdown-theme-toggle"
+                                    aria-pressed="false">
+                                <span class="theme-toggle-dropdown-label theme-toggle-dropdown-label-dark">라이트 모드로 전환</span>
+                                <span class="theme-toggle-dropdown-label theme-toggle-dropdown-label-light">다크 모드로 전환</span>
+                            </button>
 
                             <hr>
                             <a href="${pageContext.request.contextPath}/member/logout" class="logout-link">로그아웃</a>

@@ -468,6 +468,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const businessNumber = document.getElementById("businessNumber");
   const ottCheckboxes = document.querySelectorAll("input[name='ottList']");
   const noOttCheckbox = document.getElementById("noOtt");
+  const agreeAll = document.getElementById("agreeAll");
+  const termsAgreed = document.getElementById("termsAgreed");
+  const privacyAgreed = document.getElementById("privacyAgreed");
 
   /*
    * 수정:
@@ -512,6 +515,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  /*
+   * =========================================================
+   * 회원가입 필수 약관 동의
+   *
+   * 전체 동의 체크박스는 이용약관/개인정보 수집·이용 동의를
+   * 한 번에 선택하며, 개별 체크 상태가 바뀌면 전체 동의 상태도
+   * 자동으로 동기화한다.
+   * =========================================================
+   */
+  const requiredAgreements = [termsAgreed, privacyAgreed].filter(Boolean);
+
+  if (agreeAll && requiredAgreements.length > 0) {
+    agreeAll.addEventListener("change", () => {
+      requiredAgreements.forEach((checkbox) => {
+        checkbox.checked = agreeAll.checked;
+      });
+    });
+
+    requiredAgreements.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        agreeAll.checked = requiredAgreements.every((item) => item.checked);
+      });
+    });
+  }
 
   /*
    * =========================================================
@@ -845,10 +872,29 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ---------- 유형별 분기 검증 ---------- */
 
     if (isBusinessJoin) {
-      return await validateBusinessFields();
+      if (!(await validateBusinessFields())) {
+        return false;
+      }
+    } else if (!(await validateUserFields())) {
+      return false;
     }
 
-    return await validateUserFields();
+    return await validateAgreements();
+  }
+
+  /* 필수 약관 동의 검증 */
+  async function validateAgreements() {
+    if (!termsAgreed || !termsAgreed.checked) {
+      await showJoinValidationAlert("이용약관에 동의해주세요.", "termsAgreed");
+      return false;
+    }
+
+    if (!privacyAgreed || !privacyAgreed.checked) {
+      await showJoinValidationAlert("개인정보 수집·이용에 동의해주세요.", "privacyAgreed");
+      return false;
+    }
+
+    return true;
   }
 
   /* 일반회원 전용 - OTT 선택 검증 */
@@ -1174,11 +1220,14 @@ function switchJoinType(type) {
 
 // 유효성 검사 실패로 폼이 다시 렌더링된 경우, 이전에 선택했던 탭을 복원
 (function restoreJoinType() {
-  var previousJoinType = "${joinType}";
+  var joinTypeInput = document.getElementById("joinType");
 
-  if (previousJoinType === "BUSINESS") {
-    switchJoinType("BUSINESS");
+  if (!joinTypeInput) {
+    return;
   }
+
+  var previousJoinType = joinTypeInput.value || "USER";
+  switchJoinType(previousJoinType);
 })();
 
 /*

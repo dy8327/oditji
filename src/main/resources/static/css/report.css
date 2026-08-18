@@ -5,6 +5,34 @@
      상위 스코프를 걸지 않고 .report-btn 자체를 전역으로 스타일링한다.
 ========================= */
 
+:root {
+    --rpt-btn-border: rgba(255, 105, 105, 0.35);
+    --rpt-btn-bg: rgba(255, 80, 80, 0.08);
+    --rpt-btn-text: #ff9b9b;
+    --rpt-btn-hover-border: rgba(255, 105, 105, 0.65);
+    --rpt-btn-hover-bg: rgba(255, 80, 80, 0.16);
+    --rpt-btn-reported-border: rgba(255, 255, 255, 0.1);
+    --rpt-btn-reported-bg: rgba(255, 255, 255, 0.04);
+    --rpt-btn-reported-text: #777777;
+
+    --rpt-overlay-bg: rgba(0, 0, 0, 0.7);
+    --rpt-modal-bg: #202020;
+    --rpt-modal-border: #333;
+    --rpt-modal-shadow: rgba(0,0,0,0.6);
+    --rpt-text-primary: #ffffff;
+    --rpt-label-text: #d0d0d0;
+    --rpt-input-border: #444;
+    --rpt-input-bg: #2a2a2a;
+    --rpt-placeholder-text: #888;
+    --rpt-focus-color: #7EB1FF;
+
+    --rpt-btn-cancel-bg: #333;
+    --rpt-btn-cancel-hover-bg: #444;
+    --rpt-btn-cancel-text: #ddd;
+    --rpt-btn-danger-bg: #e50914;
+    --rpt-btn-danger-hover-bg: #f40612;
+}
+
 .report-btn {
 
     display: inline-flex;
@@ -19,11 +47,11 @@
 
     padding: 5px 10px;
 
-    border: 1px solid rgba(255, 105, 105, 0.35);
+    border: 1px solid var(--rpt-btn-border, rgba(255, 105, 105, 0.35));
     border-radius: 7px;
 
-    background: rgba(255, 80, 80, 0.08);
-    color: #ff9b9b;
+    background: var(--rpt-btn-bg, rgba(255, 80, 80, 0.08));
+    color: var(--rpt-btn-text, #ff9b9b);
 
     font-family: inherit;
     font-size: 11px;
@@ -49,17 +77,17 @@
 
 button.report-btn:hover {
 
-    border-color: rgba(255, 105, 105, 0.65);
-    background: rgba(255, 80, 80, 0.16);
+    border-color: var(--rpt-btn-hover-border, rgba(255, 105, 105, 0.65));
+    background: var(--rpt-btn-hover-bg, rgba(255, 80, 80, 0.16));
 
 }
 
 .report-btn.reported {
 
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--rpt-btn-reported-border, rgba(255, 255, 255, 0.1));
+    background: var(--rpt-btn-reported-bg, rgba(255, 255, 255, 0.04));
 
-    color: #777777;
+    color: var(--rpt-btn-reported-text, #777777);
 
     cursor: default;
 
@@ -79,7 +107,7 @@ button.report-btn:hover {
     width: 100%;
     height: 100%;
 
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--rpt-overlay-bg, rgba(0, 0, 0, 0.7));
 
     display: flex;
 
@@ -105,18 +133,18 @@ button.report-btn:hover {
 
     width: 460px;
 
-    background: #202020;
+    background: var(--rpt-modal-bg, #202020);
 
-    color: #ffffff;
+    color: var(--rpt-text-primary, #ffffff);
 
     border-radius: 16px;
 
     padding: 32px;
 
-    border: 1px solid #333;
+    border: 1px solid var(--rpt-modal-border, #333);
 
     box-shadow:
-        0 20px 50px rgba(0,0,0,0.6);
+        0 20px 50px var(--rpt-modal-shadow, rgba(0,0,0,0.6));
 
 }
 
@@ -131,7 +159,7 @@ button.report-btn:hover {
 
     font-weight: 700;
 
-    color: #ffffff;
+    color: var(--rpt-text-primary, #ffffff);
 
 }
 
@@ -151,7 +179,7 @@ button.report-btn:hover {
 
     margin-bottom:10px;
 
-    color:#d0d0d0;
+    color: var(--rpt-label-text, #d0d0d0);
 
     font-size:14px;
 
@@ -172,11 +200,11 @@ button.report-btn:hover {
 
     border-radius:8px;
 
-    border:1px solid #444;
+    border: 1px solid var(--rpt-input-border, #444);
 
-    background:#2a2a2a;
+    background: var(--rpt-input-bg, #2a2a2a);
 
-    color:#ffffff;
+    color: var(--rpt-text-primary, #ffffff);
 
     font-size:14px;
 
@@ -189,7 +217,7 @@ button.report-btn:hover {
 
 .modal-field select:focus {
 
-    border-color:#7EB1FF;
+    border-color: var(--rpt-focus-color, #7EB1FF);
 
 }
 
@@ -210,11 +238,11 @@ button.report-btn:hover {
 
     border-radius:8px;
 
-    border:1px solid #444;
+    border: 1px solid var(--rpt-input-border, #444);
 
-    background:#2a2a2a;
+    background: var(--rpt-input-bg, #2a2a2a);
 
-    color:#ffffff;
+    color: var(--rpt-text-primary, #ffffff);
 
     font-size:14px;
 
@@ -227,14 +255,14 @@ button.report-btn:hover {
 
 .modal-field textarea::placeholder {
 
-    color:#888;
+    color: var(--rpt-placeholder-text, #888);
 
 }
 
 
 .modal-field textarea:focus {
 
-    border-color:#7EB1FF;
+    border-color: var(--rpt-focus-color, #7EB1FF);
 
 }
 
@@ -281,16 +309,16 @@ button.report-btn:hover {
 
 #reportCancelBtn {
 
-    background:#333;
+    background: var(--rpt-btn-cancel-bg, #333);
 
-    color:#ddd;
+    color: var(--rpt-btn-cancel-text, #ddd);
 
 }
 
 
 #reportCancelBtn:hover {
 
-    background:#444;
+    background: var(--rpt-btn-cancel-hover-bg, #444);
 
 }
 
@@ -299,7 +327,7 @@ button.report-btn:hover {
 
 .btn-danger {
 
-    background:#e50914;
+    background: var(--rpt-btn-danger-bg, #e50914);
 
     color:white;
 
@@ -308,7 +336,7 @@ button.report-btn:hover {
 
 .btn-danger:hover {
 
-    background:#f40612;
+    background: var(--rpt-btn-danger-hover-bg, #f40612);
 
 }
 

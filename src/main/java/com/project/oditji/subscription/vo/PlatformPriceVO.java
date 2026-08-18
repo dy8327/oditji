@@ -1,5 +1,8 @@
 package com.project.oditji.subscription.vo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * OTT_DISCOUNT_INFO 기준으로 산출한 플랫폼별 현재 최저 구독 가격입니다.
  *
@@ -25,6 +28,12 @@ public class PlatformPriceVO {
 
     /** 할인이 적용됐을 때의 혜택 제목(OTT_DISCOUNT_INFO.TITLE). 정가가 그대로 적용된 경우 null */
     private String discountTitle;
+
+    /**
+     * 선택된 조합 중 이 플랫폼에서 볼 수 있는 콘텐츠 목록입니다.
+     * (마이페이지 모달/공유 결과 화면에서 "이 OTT에는 어떤 작품이 있는지" 묶어서 보여줄 때 사용)
+     */
+    private List<ContentWishItemVO> contentList = new ArrayList<ContentWishItemVO>();
 
     public String getPlatformCode() {
         return platformCode;
@@ -82,5 +91,16 @@ public class PlatformPriceVO {
             return (int) Math.round(rate);
         }
         return null;
+    }
+
+    public List<ContentWishItemVO> getContentList() {
+        return contentList;
+    }
+
+    public void setContentList(List<ContentWishItemVO> contentList) {
+        this.contentList =
+                contentList == null
+                        ? new ArrayList<ContentWishItemVO>()
+                        : contentList;
     }
 }

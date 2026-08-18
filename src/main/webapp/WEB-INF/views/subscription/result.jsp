@@ -43,30 +43,74 @@
                 <p class="sub-calc-result__eyebrow">최저가 구독 조합 결과</p>
 
                 <ul class="sub-calc-result-platform-list">
-                    <c:forEach var="platform" items="${result.selectedPlatformList}">
+                    <c:forEach var="platform" items="${result.selectedPlatformList}" varStatus="platformStatus">
                         <li class="sub-calc-result-platform">
-                            <div class="sub-calc-result-platform__head">
-                                <span class="sub-calc-result-platform__name">${platform.platformName}</span>
-                                <span>
-                                    <c:if test="${platform.discountSource != null && platform.bestPrice < platform.regularPrice}">
-                                        <span class="sub-calc-result-platform__regular">
-                                            <fmt:formatNumber value="${platform.regularPrice}" type="number"/>원
+                            <button type="button" class="sub-calc-result-platform__toggle"
+                                    aria-expanded="false"
+                                    aria-controls="resultPlatformBody-${platformStatus.index}">
+                                <span class="sub-calc-result-platform__head">
+                                    <span class="sub-calc-result-platform__name">${platform.platformName}</span>
+                                    <span>
+                                        <c:if test="${platform.discountSource != null && platform.bestPrice < platform.regularPrice}">
+                                            <span class="sub-calc-result-platform__regular">
+                                                <fmt:formatNumber value="${platform.regularPrice}" type="number"/>원
+                                            </span>
+                                        </c:if>
+                                        <span class="sub-calc-result-platform__price">
+                                            <fmt:formatNumber value="${platform.bestPrice}" type="number"/>원
                                         </span>
-                                    </c:if>
-                                    <span class="sub-calc-result-platform__price">
-                                        <fmt:formatNumber value="${platform.bestPrice}" type="number"/>원
+                                        <c:if test="${platform.discountSource != null && platform.discountRate != null}">
+                                            <span class="sub-calc-result-platform__rate">(${platform.discountRate}% 할인)</span>
+                                        </c:if>
                                     </span>
-                                    <c:if test="${platform.discountSource != null && platform.discountRate != null}">
-                                        <span class="sub-calc-result-platform__rate">(${platform.discountRate}% 할인)</span>
-                                    </c:if>
                                 </span>
+                                <span class="sub-calc-result-platform__chevron" aria-hidden="true"></span>
+                            </button>
+                            <div class="sub-calc-result-platform__body" id="resultPlatformBody-${platformStatus.index}" inert>
+                            <div class="sub-calc-result-platform__body-inner">
+                                <span class="sub-calc-result-platform__source">
+                                    <c:choose>
+                                        <c:when test="${platform.discountSource != null}">${platform.discountSource} 적용 시</c:when>
+                                        <c:otherwise>(기본 정가 적용)</c:otherwise>
+                                    </c:choose>
+                                </span>
+
+                                <c:if test="${not empty platform.contentList}">
+                                    <ul class="sub-calc-result-platform__content-list">
+                                        <c:forEach var="content" items="${platform.contentList}">
+                                            <li class="sub-calc-result-platform__content-item">
+                                                <c:choose>
+                                                    <c:when test="${not empty content.tmdbId && not empty content.contentType}">
+                                                        <c:url var="platformContentDetailUrl" value="/content/prepare">
+                                                            <c:param name="tmdbId" value="${content.tmdbId}"/>
+                                                            <c:param name="contentType" value="${content.contentType}"/>
+                                                        </c:url>
+                                                        <a class="sub-calc-result-platform__content-link" href="${platformContentDetailUrl}">
+                                                            <c:if test="${not empty content.posterPath}">
+                                                                <img class="sub-calc-result-platform__content-poster"
+                                                                     src="https://image.tmdb.org/t/p/w92${content.posterPath}"
+                                                                     alt="" loading="lazy">
+                                                            </c:if>
+                                                            <span class="sub-calc-result-platform__content-name">${content.title}</span>
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="sub-calc-result-platform__content-link">
+                                                            <c:if test="${not empty content.posterPath}">
+                                                                <img class="sub-calc-result-platform__content-poster"
+                                                                     src="https://image.tmdb.org/t/p/w92${content.posterPath}"
+                                                                     alt="" loading="lazy">
+                                                            </c:if>
+                                                            <span class="sub-calc-result-platform__content-name">${content.title}</span>
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </li>
+                                        </c:forEach>
+                                    </ul>
+                                </c:if>
                             </div>
-                            <span class="sub-calc-result-platform__source">
-                                <c:choose>
-                                    <c:when test="${platform.discountSource != null}">${platform.discountSource} 적용 시</c:when>
-                                    <c:otherwise>(기본 정가 적용)</c:otherwise>
-                                </c:choose>
-                            </span>
+                            </div>
                         </li>
                     </c:forEach>
                 </ul>

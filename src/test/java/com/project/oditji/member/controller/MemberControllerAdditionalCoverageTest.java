@@ -180,7 +180,7 @@ class MemberControllerAdditionalCoverageTest {
                         new RedirectAttributesModelMap()));
         assertEquals(user, successSession.getAttribute("loginMember"));
         assertEquals(4L, successSession.getAttribute("memberNo"));
-        assertEquals("홍길동", successSession.getAttribute("loginDisplayName"));
+        assertEquals("길동닉", successSession.getAttribute("loginDisplayName"));
         assertNull(successSession.getAttribute("redirectAfterLogin"));
     }
 

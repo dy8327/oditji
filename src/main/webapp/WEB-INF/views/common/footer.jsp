@@ -10,7 +10,18 @@
             <div class="footer-left">
                 <div class="footer-logo">ODITJI</div>
                 <div class="footer-contact">
-                    고객센터 <a href="tel:000-0000-0000" class="footer-contact-number">000-0000-0000</a>
+                    고객센터 <a href="admin@oditji.duckdns.org" class="footer-contact-number">admin@oditji.duckdns.org</a>
+                </div>
+                <div class="footer-policy-links">
+                    <a href="${pageContext.request.contextPath}/terms">
+                        이용약관
+                    </a>
+
+                    <span aria-hidden="true">|</span>
+
+                    <a href="${pageContext.request.contextPath}/privacy">
+                        개인정보 처리방침
+                    </a>
                 </div>
             </div>
 

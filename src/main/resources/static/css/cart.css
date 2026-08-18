@@ -2,6 +2,43 @@
    CART PAGE
 ========================================================= */
 
+:root {
+  --cart-white: #ffffff;
+  --cart-muted: #777777;
+  --cart-desc: #909090;
+  --cart-btn-text: #979ca5;
+  --cart-select-text: #dddddd;
+  --cart-delete-text: #999999;
+  --cart-panel-bg: #181818;
+  --cart-overlay-035: rgba(255, 255, 255, 0.035);
+  --cart-overlay-06: rgba(255, 255, 255, 0.06);
+  --cart-overlay-07: rgba(255, 255, 255, 0.07);
+  --cart-overlay-08: rgba(255, 255, 255, 0.08);
+  --cart-overlay-12: rgba(255, 255, 255, 0.12);
+  --cart-overlay-34: rgba(255, 255, 255, 0.34);
+  --cart-item-bg: #1b1b1b;
+  --cart-item-unavailable-bg: #171717;
+  --cart-image-bg: #111111;
+  --cart-faint: #666666;
+  --cart-business-text: #858585;
+  --cart-original-price: #707070;
+  --cart-discount: #e63946;
+  --cart-error: #e65c65;
+  --cart-warning: #dca548;
+  --cart-qty-bg: #242424;
+  --cart-qty-hover-bg: #333333;
+  --cart-delete-btn-text: #888888;
+  --cart-summary-text: #aaaaaa;
+  --cart-summary-strong: #eeeeee;
+  --cart-checkout-bg: #2f6fe4;
+  --cart-checkout-hover: #2559c4;
+  --cart-checkout-disabled-text: #9c9c9c;
+  --cart-empty-link-text: #111111;
+  --cart-option-text: #c9c9c9;
+  --cart-info-label: #8f8f8f;
+  --cart-info-value: #e8e8e8;
+}
+
 /* =========================================================
    [마이페이지 영역 크기 통일]
    장바구니 바깥 영역을 마이페이지와 동일한 너비로 맞춘다.
@@ -28,7 +65,7 @@
 
 .cart-header-label {
   margin: 0 0 6px;
-  color: #777777;
+  color: var(--cart-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -36,14 +73,14 @@
 
 .cart-header h1 {
   margin: 0;
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 28px;
   font-weight: 800;
 }
 
 .cart-header-description {
   margin: 8px 0 0;
-  color: #909090;
+  color: var(--cart-desc);
   font-size: 13px;
 }
 
@@ -61,11 +98,11 @@
   min-height: 42px;
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--cart-overlay-12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--cart-overlay-035);
 
-  color: #979ca5;
+  color: var(--cart-btn-text);
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
@@ -79,9 +116,9 @@
 }
 
 .continue-shopping-btn:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  border-color: var(--cart-overlay-34);
+  background: var(--cart-overlay-07);
+  color: var(--cart-white);
 }
 
 /* =========================================================
@@ -96,16 +133,16 @@
   box-sizing: border-box;
   margin-bottom: 14px;
   padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--cart-overlay-07);
   border-radius: 12px;
-  background: #181818;
+  background: var(--cart-panel-bg);
 }
 
 .cart-select-all {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #dddddd;
+  color: var(--cart-select-text);
   font-size: 13px;
   cursor: pointer;
 }
@@ -115,21 +152,21 @@
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: #ffffff;
+  accent-color: var(--cart-white);
   cursor: pointer;
 }
 
 .delete-selected-btn {
   border: 0;
   background: transparent;
-  color: #999999;
+  color: var(--cart-delete-text);
   font-family: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 
 .delete-selected-btn:hover {
-  color: #ffffff;
+  color: var(--cart-white);
 }
 
 .delete-selected-btn:disabled {
@@ -170,13 +207,13 @@
   align-items: center;
   box-sizing: border-box;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--cart-overlay-07);
   border-radius: 14px;
-  background: #1b1b1b;
+  background: var(--cart-item-bg);
 }
 
 .cart-item.is-unavailable {
-  background: #171717;
+  background: var(--cart-item-unavailable-bg);
 }
 
 .cart-item-checkbox {
@@ -200,7 +237,7 @@
   height: 110px;
   overflow: hidden;
   border-radius: 10px;
-  background: #111111;
+  background: var(--cart-image-bg);
 }
 
 .cart-item-image img {
@@ -216,7 +253,7 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: #666666;
+  color: var(--cart-faint);
   font-size: 10px;
 }
 
@@ -230,14 +267,14 @@
 
 .cart-item-business {
   margin: 0 0 6px;
-  color: #858585;
+  color: var(--cart-business-text);
   font-size: 11px;
 }
 
 .cart-item-name {
   display: block;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
@@ -251,13 +288,13 @@
 
 .cart-item-type {
   margin: 6px 0 12px;
-  color: #777777;
+  color: var(--cart-muted);
   font-size: 11px;
 }
 
 .cart-original-price {
   margin-bottom: 3px;
-  color: #707070;
+  color: var(--cart-original-price);
   font-size: 11px;
   text-decoration: line-through;
 }
@@ -269,12 +306,12 @@
 }
 
 .cart-sale-price strong {
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 15px;
 }
 
 .cart-discount-rate {
-  color: #e63946;
+  color: var(--cart-discount);
   font-size: 13px;
   font-weight: 800;
 }
@@ -285,11 +322,11 @@
 }
 
 .cart-status-message.error {
-  color: #e65c65;
+  color: var(--cart-error);
 }
 
 .cart-status-message.warning {
-  color: #dca548;
+  color: var(--cart-warning);
 }
 
 /* =========================================================
@@ -309,25 +346,25 @@
   grid-template-columns: 34px 54px 34px;
   height: 36px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--cart-overlay-12);
   border-radius: 8px;
 }
 
 .quantity-btn {
   border: 0;
-  background: #242424;
-  color: #ffffff;
+  background: var(--cart-qty-bg);
+  color: var(--cart-white);
   font-family: inherit;
   font-size: 16px;
   cursor: pointer;
 }
 
 .quantity-btn:hover {
-  background: #333333;
+  background: var(--cart-qty-hover-bg);
 }
 
 .quantity-btn:disabled {
-  color: #666666;
+  color: var(--cart-faint);
   cursor: not-allowed;
 }
 
@@ -335,11 +372,11 @@
   width: 100%;
   box-sizing: border-box;
   border: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--cart-overlay-08);
+  border-left: 1px solid var(--cart-overlay-08);
   outline: none;
-  background: #181818;
-  color: #ffffff;
+  background: var(--cart-panel-bg);
+  color: var(--cart-white);
   font-family: inherit;
   text-align: center;
 }
@@ -351,7 +388,7 @@
 }
 
 .quantity-input:disabled {
-  color: #666666;
+  color: var(--cart-faint);
 }
 
 .cart-item-total {
@@ -361,12 +398,12 @@
 }
 
 .cart-item-total span {
-  color: #777777;
+  color: var(--cart-muted);
   font-size: 11px;
 }
 
 .cart-item-total strong {
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 16px;
 }
 
@@ -374,14 +411,14 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #888888;
+  color: var(--cart-delete-btn-text);
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
 }
 
 .cart-delete-btn:hover {
-  color: #e65c65;
+  color: var(--cart-error);
 }
 
 .cart-delete-btn:disabled {
@@ -400,14 +437,14 @@
 
 .summary-box {
   padding: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--cart-overlay-08);
   border-radius: 14px;
-  background: #1b1b1b;
+  background: var(--cart-item-bg);
 }
 
 .summary-box h2 {
   margin: 0 0 22px;
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 17px;
   font-weight: 700;
 }
@@ -417,19 +454,19 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
-  color: #aaaaaa;
+  color: var(--cart-summary-text);
   font-size: 13px;
 }
 
 .summary-row strong {
-  color: #eeeeee;
+  color: var(--cart-summary-strong);
   font-size: 13px;
 }
 
 .summary-divider {
   height: 1px;
   margin: 20px 0;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--cart-overlay-08);
 }
 
 .summary-row.total {
@@ -437,20 +474,20 @@
 }
 
 .summary-row.total span {
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 14px;
   font-weight: 700;
 }
 
 .summary-row.total strong {
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 21px;
   font-weight: 800;
 }
 
 .summary-notice {
   margin: 20px 0;
-  color: #777777;
+  color: var(--cart-muted);
   font-size: 10px;
   line-height: 1.6;
 }
@@ -458,10 +495,10 @@
 .checkout-btn {
   width: 100%;
   min-height: 46px;
-  border: 1px solid #2f6fe4;
+  border: 1px solid var(--cart-checkout-bg);
   border-radius: 8px;
-  background: #2f6fe4;
-  color: #ffffff;
+  background: var(--cart-checkout-bg);
+  color: var(--cart-white);
   font-family: inherit;
   font-size: 13px;
   font-weight: 800;
@@ -472,14 +509,14 @@
 }
 
 .checkout-btn:hover {
-  border-color: #2559c4;
-  background: #2559c4;
+  border-color: var(--cart-checkout-hover);
+  background: var(--cart-checkout-hover);
 }
 
 .checkout-btn:disabled {
-  background: #333333;
+  background: var(--cart-qty-hover-bg);
   /* [수정] #777777 on #333333는 대비 약 2.82:1로 부족해 더 밝게 교체 */
-  color: #9c9c9c;
+  color: var(--cart-checkout-disabled-text);
   cursor: not-allowed;
 }
 
@@ -495,9 +532,9 @@
   justify-content: center;
   box-sizing: border-box;
   padding: 50px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--cart-overlay-07);
   border-radius: 14px;
-  background: #181818;
+  background: var(--cart-panel-bg);
   text-align: center;
 }
 
@@ -508,13 +545,13 @@
 
 .empty-cart h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--cart-white);
   font-size: 19px;
 }
 
 .empty-cart p {
   margin: 10px 0 24px;
-  color: #858585;
+  color: var(--cart-business-text);
   font-size: 13px;
 }
 
@@ -525,8 +562,8 @@
   justify-content: center;
   padding: 0 18px;
   border-radius: 8px;
-  background: #ffffff;
-  color: #111111;
+  background: var(--cart-white);
+  color: var(--cart-empty-link-text);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -549,17 +586,17 @@
 
   width: fit-content;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--cart-overlay-12);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--cart-overlay-06);
 
-  color: #c9c9c9;
+  color: var(--cart-option-text);
   font-size: 12px;
   line-height: 1.4;
 }
 
 .cart-item-option .option-label {
-  color: #ffffff;
+  color: var(--cart-white);
   font-weight: 600;
 }
 
@@ -618,7 +655,7 @@
     grid-column: 2 / -1;
     align-items: stretch;
     padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--cart-overlay-06);
   }
 
   .cart-quantity {
@@ -651,5 +688,199 @@
 
   .cart-item-name {
     font-size: 14px;
+  }
+}
+
+/* =========================================================
+   [장바구니 상품 정보 표시 개선 - 라벨/값 구조]
+   기존 장바구니 디자인 톤은 유지하면서 상품 정보를
+   "라벨 - 값" 구조로 정리한다.
+
+   기존에 선언된 색상 변수는 그대로 재사용하고,
+   기존 변수만으로 의미가 명확하지 않은 라벨 색상만
+   별도 변수로 추가하여 사용한다.
+========================================================= */
+
+.cart-item {
+  grid-template-columns:
+    28px
+    130px
+    minmax(280px, 1fr)
+    220px;
+  gap: 20px;
+  padding: 20px;
+}
+
+.cart-item-image {
+  width: 130px;
+  height: 130px;
+}
+
+.cart-item-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cart-info-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.cart-info-label,
+.cart-action-label {
+  color: var(--cart-info-label);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.cart-info-value {
+  min-width: 0;
+  color: var(--cart-info-value);
+}
+
+.cart-item-business {
+  margin: 0;
+  color: var(--cart-info-value);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cart-item-name {
+  font-size: 15px;
+}
+
+.cart-item-type {
+  margin: 0;
+  color: var(--cart-info-value);
+  font-size: 13px;
+}
+
+.cart-original-price {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cart-original-price.is-current-price {
+  color: var(--cart-info-value);
+  text-decoration: none;
+}
+
+.cart-sale-price {
+  min-width: 0;
+}
+
+.cart-sale-price strong {
+  font-size: 15px;
+}
+
+.cart-info-row-option {
+  align-items: start;
+}
+
+.cart-item-option {
+  margin: 0;
+}
+
+.cart-stock-value {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cart-stock-value.warning {
+  color: var(--cart-warning);
+}
+
+.cart-stock-value.error {
+  color: var(--cart-error);
+}
+
+.cart-status-message {
+  margin: 2px 0 0 82px;
+}
+
+.cart-quantity-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* =========================================================
+   [장바구니 상품 정보 표시 개선 - 반응형]
+   화면 폭이 줄어도 라벨과 값이 겹치지 않도록 기존
+   반응형 레이아웃을 보완한다.
+========================================================= */
+@media (max-width: 1050px) {
+  .cart-item {
+    grid-template-columns:
+      28px
+      118px
+      minmax(250px, 1fr)
+      190px;
+  }
+
+  .cart-item-image {
+    width: 118px;
+    height: 118px;
+  }
+}
+
+@media (max-width: 760px) {
+  .cart-item {
+    grid-template-columns: 26px 96px minmax(0, 1fr);
+  }
+
+  .cart-item-image {
+    width: 96px;
+    height: 96px;
+  }
+
+  .cart-info-row {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .cart-status-message {
+    margin-left: 74px;
+  }
+
+  .cart-quantity-group {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-item {
+    grid-template-columns: 24px 78px minmax(0, 1fr);
+  }
+
+  .cart-item-image {
+    width: 78px;
+    height: 78px;
+  }
+
+  .cart-info-row {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .cart-info-label,
+  .cart-action-label {
+    font-size: 11px;
+  }
+
+  .cart-item-business,
+  .cart-item-type {
+    font-size: 12px;
+  }
+
+  .cart-status-message {
+    margin-left: 65px;
   }
 }

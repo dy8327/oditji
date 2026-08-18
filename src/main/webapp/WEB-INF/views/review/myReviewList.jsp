@@ -4,6 +4,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 <%@ taglib prefix="dt" uri="http://oditji.com/functions/datetime" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions"%>
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -126,56 +127,99 @@
 								</c:otherwise>
 							</c:choose>
 
+							<%-- =========================================================
+							     [내가 작성한 리뷰 화면 디자인 수정]
+							     콘텐츠 리뷰는 파란색, 상품 리뷰는 초록색으로 구분하고
+							     썸네일 / 항목명 / 작성일 / 리뷰 내용을 한 행에서 명확하게 표시합니다.
+							     상세 페이지 이동 URL과 삭제 기능은 기존 로직을 그대로 유지합니다.
+							========================================================= --%>
 							<div class="mypage-review-card"
 								data-type="${review.reviewType}">
+
+								<div class="mypage-review-type-panel" aria-hidden="true">
+									<c:choose>
+										<c:when test="${review.reviewType == 'PRODUCT'}">
+											<svg class="mypage-review-type-icon" viewBox="0 0 48 48" role="img" aria-label="상품 리뷰">
+												<path d="M13 17h22l2 24H11l2-24Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+												<path d="M18 18v-4a6 6 0 0 1 12 0v4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+											</svg>
+											<strong>상품 리뷰</strong>
+										</c:when>
+
+										<c:otherwise>
+											<svg class="mypage-review-type-icon" viewBox="0 0 48 48" role="img" aria-label="콘텐츠 리뷰">
+												<rect x="8" y="15" width="32" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2.6"/>
+												<path d="M8 21h32M12 15l5-7m4 7 5-7m4 7 5-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+											</svg>
+											<strong>콘텐츠 리뷰</strong>
+										</c:otherwise>
+									</c:choose>
+								</div>
+
 								<%--
 									상세 페이지 이동은 탐색 기능이므로 클릭 이벤트를 가진 div 대신
 									기본 키보드 탐색과 링크 의미를 제공하는 a 요소를 사용한다.
 								--%>
 								<a class="mypage-review-clickable"
-								   href="${reviewLinkUrl}"
-								   style="display:block;color:inherit;text-decoration:none;">
+								   href="${reviewLinkUrl}">
 
-									<div class="mypage-review-top">
-
-										<div>
-
-											<span class="mypage-member-type">
-
+									<div class="mypage-review-thumbnail">
+										<c:choose>
+											<c:when test="${not empty review.thumbnail}">
 												<c:choose>
-
 													<c:when test="${review.reviewType == 'PRODUCT'}">
-														상품 리뷰
+														<c:choose>
+															<c:when test="${fn:startsWith(review.thumbnail, 'http://') or fn:startsWith(review.thumbnail, 'https://')}">
+																<img src="${review.thumbnail}" alt="${review.title} 상품 이미지">
+															</c:when>
+															<c:otherwise>
+																<img src="${pageContext.request.contextPath}${review.thumbnail}" alt="${review.title} 상품 이미지">
+															</c:otherwise>
+														</c:choose>
 													</c:when>
 
 													<c:otherwise>
-														콘텐츠 리뷰
+														<img src="https://image.tmdb.org/t/p/w342${review.thumbnail}" alt="${review.title} 포스터">
 													</c:otherwise>
-
 												</c:choose>
+											</c:when>
 
+											<c:otherwise>
+												<span>이미지 없음</span>
+											</c:otherwise>
+										</c:choose>
+									</div>
+
+									<div class="mypage-review-info">
+
+										<div class="mypage-review-detail-row mypage-review-title-row">
+											<span class="mypage-review-detail-label">
+												<c:choose>
+													<c:when test="${review.reviewType == 'PRODUCT'}">상품명</c:when>
+													<c:otherwise>콘텐츠명</c:otherwise>
+												</c:choose>
 											</span>
-
-											<h3><c:out value="${review.title}"/></h3>
-
-											<span>
-
-												${dt:format(review.createdAt, 'yyyy.MM.dd')}
-
-											</span>
-
+											<strong class="mypage-review-detail-value mypage-review-title">
+												<c:out value="${review.title}"/>
+											</strong>
 										</div>
 
-										<div class="mypage-review-score">
+										<div class="mypage-review-detail-row">
+											<span class="mypage-review-detail-label">작성일</span>
+											<span class="mypage-review-detail-value">${dt:format(review.createdAt, 'yyyy.MM.dd')}</span>
+										</div>
 
-											⭐ ${review.rating}
-
+										<div class="mypage-review-detail-row mypage-review-content-row">
+											<span class="mypage-review-detail-label">리뷰 내용</span>
+											<%-- [수정] JSP 들여쓰기와 줄바꿈이 리뷰 내용의 빈 줄로 출력되지 않도록 한 줄로 작성 --%>
+											<p class="mypage-review-content mypage-review-detail-value"><c:out value="${review.content}"/></p>
 										</div>
 
 									</div>
 
-									<%-- [수정] JSP 들여쓰기와 줄바꿈이 리뷰 내용의 빈 줄로 출력되지 않도록 한 줄로 작성 --%>
-									<p class="mypage-review-content"><c:out value="${review.content}"/></p>
+									<div class="mypage-review-score">
+										<span aria-hidden="true">★</span> ${review.rating}
+									</div>
 
 								</a>
 
@@ -236,6 +280,11 @@
 						</c:forEach>
 
 					</div>
+
+					<%-- [추가] 현재 선택한 탭 기준 전체 리뷰 건수를 하단에 표시합니다. --%>
+					<p class="mypage-review-total-count">
+						총 ${pageVO.totalCount}개의 리뷰가 있습니다.
+					</p>
 
 					<nav class="oditji-pagination"
 						 data-pagination

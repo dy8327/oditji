@@ -29,6 +29,7 @@ import com.project.oditji.admin.vo.EventStatVO;
 import com.project.oditji.admin.vo.MemberManageVO;
 import com.project.oditji.admin.vo.MemberStatVO;
 import com.project.oditji.admin.vo.MonitoringVO;
+import com.project.oditji.admin.vo.MonitoringSummaryVO;
 import com.project.oditji.admin.vo.BusinessStatVO;
 import com.project.oditji.admin.vo.OrderManageVO;
 import com.project.oditji.admin.vo.OrderStatVO;
@@ -234,6 +235,7 @@ public class AdminServiceImpl implements AdminService {
 
         deleteMemberInternal(memberNo);
     }
+
     private void deleteMemberInternal(Long memberNo) {
 
         // 회원 삭제 전 FK 참조 데이터 제거
@@ -995,109 +997,109 @@ public class AdminServiceImpl implements AdminService {
 
     // 정산 관리
 
-@Override
-public List<SettlementRequestVO> getSettlementList(String keyword, String status, String period, int page,
-        int pageSize) {
-    Map<String, Object> param = keywordParam(keyword);
-    param.put(PARAM_STATUS, status);
-    param.put(PARAM_PERIOD, period);
-    withPaging(param, page, pageSize);
-    return adminDAO.selectSettlementRequestList(param);
-}
-
-@Override
-public int getSettlementListCount(String keyword, String status, String period) {
-    Map<String, Object> param = keywordParam(keyword);
-    param.put(PARAM_STATUS, status);
-    param.put(PARAM_PERIOD, period);
-    return adminDAO.selectSettlementRequestListCount(param);
-}
-
-@Override
-public SettlementStatVO getSettlementStats() {
-    return adminDAO.selectSettlementStats();
-}
-
-/* 정산 요청 지급 완료 처리 */
-@Override
-@Transactional
-public void confirmSettlement(Long requestNo) {
-    if (requestNo == null || requestNo <= 0) {
-        throw new IllegalArgumentException("올바르지 않은 정산 요청 번호입니다.");
+    @Override
+    public List<SettlementRequestVO> getSettlementList(String keyword, String status, String period, int page,
+            int pageSize) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put(PARAM_STATUS, status);
+        param.put(PARAM_PERIOD, period);
+        withPaging(param, page, pageSize);
+        return adminDAO.selectSettlementRequestList(param);
     }
 
-    SettlementRequestVO settlementRequest = adminDAO.selectSettlementRequest(requestNo);
-    if (settlementRequest == null) {
-        throw new IllegalStateException("정산 요청 내역을 찾을 수 없습니다.");
+    @Override
+    public int getSettlementListCount(String keyword, String status, String period) {
+        Map<String, Object> param = keywordParam(keyword);
+        param.put(PARAM_STATUS, status);
+        param.put(PARAM_PERIOD, period);
+        return adminDAO.selectSettlementRequestListCount(param);
     }
 
-    if (!"REQUESTED".equals(settlementRequest.getStatus())) {
-        throw new IllegalStateException("처리 가능한 정산 요청이 아닙니다.");
+    @Override
+    public SettlementStatVO getSettlementStats() {
+        return adminDAO.selectSettlementStats();
     }
 
-    int updatedCount = adminDAO.updateSettlementRequestStatus(requestNo, "DONE", null);
-    if (updatedCount != 1) {
-        throw new IllegalStateException("정산 지급 완료 처리에 실패했습니다.");
+    /* 정산 요청 지급 완료 처리 */
+    @Override
+    @Transactional
+    public void confirmSettlement(Long requestNo) {
+        if (requestNo == null || requestNo <= 0) {
+            throw new IllegalArgumentException("올바르지 않은 정산 요청 번호입니다.");
+        }
+
+        SettlementRequestVO settlementRequest = adminDAO.selectSettlementRequest(requestNo);
+        if (settlementRequest == null) {
+            throw new IllegalStateException("정산 요청 내역을 찾을 수 없습니다.");
+        }
+
+        if (!"REQUESTED".equals(settlementRequest.getStatus())) {
+            throw new IllegalStateException("처리 가능한 정산 요청이 아닙니다.");
+        }
+
+        int updatedCount = adminDAO.updateSettlementRequestStatus(requestNo, "DONE", null);
+        if (updatedCount != 1) {
+            throw new IllegalStateException("정산 지급 완료 처리에 실패했습니다.");
+        }
+
+        int completedCount = adminDAO.completeSettlementItems(requestNo);
+        if (completedCount <= 0) {
+            throw new IllegalStateException("지급 완료 처리할 정산 원장이 없습니다.");
+        }
+
+        notificationService.createForBusiness(
+                settlementRequest.getBusinessNo(),
+                "SETTLEMENT_APPROVED",
+                "정산 지급 완료",
+                settlementRequest.getSettlementMonth() + " 정산금 지급이 완료되었습니다.",
+                "/business/settlement/complete",
+                "SETTLEMENT_REQUEST",
+                requestNo);
     }
 
-    int completedCount = adminDAO.completeSettlementItems(requestNo);
-    if (completedCount <= 0) {
-        throw new IllegalStateException("지급 완료 처리할 정산 원장이 없습니다.");
+    /* 정산 요청 반려 처리 */
+    @Override
+    @Transactional
+    public void rejectSettlement(Long requestNo, String rejectReason) {
+        if (requestNo == null || requestNo <= 0) {
+            throw new IllegalArgumentException("올바르지 않은 정산 요청 번호입니다.");
+        }
+
+        String normalizedReason = rejectReason == null ? "" : rejectReason.trim();
+        if (normalizedReason.isEmpty()) {
+            throw new IllegalArgumentException("반려 사유를 입력해주세요.");
+        }
+
+        SettlementRequestVO settlementRequest = adminDAO.selectSettlementRequest(requestNo);
+        if (settlementRequest == null) {
+            throw new IllegalStateException("정산 요청 내역을 찾을 수 없습니다.");
+        }
+
+        if (!"REQUESTED".equals(settlementRequest.getStatus())) {
+            throw new IllegalStateException("처리 가능한 정산 요청이 아닙니다.");
+        }
+
+        int updatedCount = adminDAO.updateSettlementRequestStatus(
+                requestNo, STATUS_REJECTED, normalizedReason);
+
+        if (updatedCount != 1) {
+            throw new IllegalStateException("정산 반려 처리에 실패했습니다.");
+        }
+
+        int releasedCount = adminDAO.releaseRejectedSettlementItems(requestNo);
+        if (releasedCount <= 0) {
+            throw new IllegalStateException("연결을 해제할 정산 원장이 없습니다.");
+        }
+
+        notificationService.createForBusiness(
+                settlementRequest.getBusinessNo(),
+                "SETTLEMENT_REJECTED",
+                "정산 요청 반려",
+                settlementRequest.getSettlementMonth() + " 정산 요청이 반려되었습니다. 사유: " + normalizedReason,
+                "/business/settlement/complete",
+                "SETTLEMENT_REQUEST",
+                requestNo);
     }
-
-    notificationService.createForBusiness(
-            settlementRequest.getBusinessNo(),
-            "SETTLEMENT_APPROVED",
-            "정산 지급 완료",
-            settlementRequest.getSettlementMonth() + " 정산금 지급이 완료되었습니다.",
-            "/business/settlement/complete",
-            "SETTLEMENT_REQUEST",
-            requestNo);
-}
-
-/* 정산 요청 반려 처리 */
-@Override
-@Transactional
-public void rejectSettlement(Long requestNo, String rejectReason) {
-    if (requestNo == null || requestNo <= 0) {
-        throw new IllegalArgumentException("올바르지 않은 정산 요청 번호입니다.");
-    }
-
-    String normalizedReason = rejectReason == null ? "" : rejectReason.trim();
-    if (normalizedReason.isEmpty()) {
-        throw new IllegalArgumentException("반려 사유를 입력해주세요.");
-    }
-
-    SettlementRequestVO settlementRequest = adminDAO.selectSettlementRequest(requestNo);
-    if (settlementRequest == null) {
-        throw new IllegalStateException("정산 요청 내역을 찾을 수 없습니다.");
-    }
-
-    if (!"REQUESTED".equals(settlementRequest.getStatus())) {
-        throw new IllegalStateException("처리 가능한 정산 요청이 아닙니다.");
-    }
-
-    int updatedCount = adminDAO.updateSettlementRequestStatus(
-            requestNo, STATUS_REJECTED, normalizedReason);
-
-    if (updatedCount != 1) {
-        throw new IllegalStateException("정산 반려 처리에 실패했습니다.");
-    }
-
-    int releasedCount = adminDAO.releaseRejectedSettlementItems(requestNo);
-    if (releasedCount <= 0) {
-        throw new IllegalStateException("연결을 해제할 정산 원장이 없습니다.");
-    }
-
-    notificationService.createForBusiness(
-            settlementRequest.getBusinessNo(),
-            "SETTLEMENT_REJECTED",
-            "정산 요청 반려",
-            settlementRequest.getSettlementMonth() + " 정산 요청이 반려되었습니다. 사유: " + normalizedReason,
-            "/business/settlement/complete",
-            "SETTLEMENT_REQUEST",
-            requestNo);
-}
 
     // 모니터링
 
@@ -1106,14 +1108,53 @@ public void rejectSettlement(Long requestNo, String rejectReason) {
         return adminDAO.selectMonitoringList();
     }
 
+    /* [모니터링 화면 개편] 상단 회원/방문/주문/매출 요약 통계 */
+    @Override
+    public MonitoringSummaryVO getMonitoringSummary() {
+        return adminDAO.selectMonitoringSummary();
+    }
+
+    /*
+     * [모니터링 방문 수 기간 연동]
+     * 현재 선택한 조회 기간의 순 방문자 수를 반환한다.
+     */
+    @Override
+    public long getUniqueVisitorCountByPeriod(String period) {
+        return adminDAO.selectUniqueVisitorCountByPeriod(period);
+    }
+
     @Override
     public List<VisitorTrendVO> getVisitorTrend() {
         return adminDAO.selectVisitorTrend();
     }
 
+    /* [모니터링 화면 개편] 선택 기간에 맞는 방문자 추이 */
+    @Override
+    public List<VisitorTrendVO> getVisitorTrendByPeriod(String period) {
+        return adminDAO.selectVisitorTrendByPeriod(period);
+    }
+
     @Override
     public List<PopularClickVO> getPopularProductClicks() {
         return adminDAO.selectPopularProductClicks();
+    }
+
+    /*
+     * [모니터링 공통 조회 기간]
+     * 선택 기간에 맞는 요약 통계를 조회한다.
+     */
+    @Override
+    public MonitoringSummaryVO getMonitoringSummaryByPeriod(String period) {
+        return adminDAO.selectMonitoringSummaryByPeriod(period);
+    }
+
+    /*
+     * [모니터링 공통 조회 기간]
+     * 선택 기간에 맞는 상품 클릭 TOP 5를 조회한다.
+     */
+    @Override
+    public List<PopularClickVO> getPopularProductClicksByPeriod(String period) {
+        return adminDAO.selectPopularProductClicksByPeriod(period);
     }
 
     // 콘텐츠 관리

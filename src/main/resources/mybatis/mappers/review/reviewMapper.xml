@@ -280,6 +280,7 @@
             R.REVIEW_NO      AS reviewNo,
             R.MEMBER_NO      AS memberNo,
             M.NICKNAME       AS writer,
+            M.PROFILE_IMAGE  AS profileImage,
             R.RATING         AS rating,
             R.REVIEW_TEXT    AS reviewText,
             R.SPOILER_YN     AS spoilerYn,

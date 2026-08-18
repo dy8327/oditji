@@ -2,6 +2,156 @@
    list-header, card-*, detail-*, pagination, empty-state 등 공용 카드/리스트 스타일을
    css/component.css 로 통합 이동했습니다. (내용 변경 없음, 위치만 이동) */
 
+/* =====================================================
+   CONTENT 디자인 토큰 (2026-08-13)
+   Light/Dark 리팩터링: 하드코딩된 색상 276곳을 아래 --content-* 변수로 치환.
+   이 파일은 기존 --reason-* 변수(관련 콘텐츠 추천 이유 라벨) 외에는
+   변수 패턴이 없어 새로 :root 블록을 생성함.
+   대비 설명용 주석 속 hex 표기, 그리고 .related-content-reason에 이미
+   지역 변수(--reason-color / --reason-background)로 되어 있는 부분은
+   원문 그대로 유지함.
+   light-mode.css는 33번 단계에서 일괄 정리 예정
+   ===================================================== */
+
+:root {
+  /* [OTT 구독 조합 계산기 연동 추가] 상세페이지 CTA 전용 포인트 색상 */
+  --content-subscription-cta-accent: #35e0a1;
+  --content-subscription-cta-accent-a12: rgba(53, 224, 161, 0.12);
+  --content-subscription-cta-accent-a32: rgba(53, 224, 161, 0.32);
+
+  /* ---- 화이트 오버레이 알파 스케일 (호버/배경/보더 공용) ---- */
+  --content-white-a015: rgba(255, 255, 255, 0.015);
+  --content-white-a02: rgba(255, 255, 255, 0.02);
+  --content-white-a03: rgba(255, 255, 255, 0.03);
+  --content-white-a035: rgba(255, 255, 255, 0.035);
+  --content-white-a045: rgba(255, 255, 255, 0.045);
+  --content-white-a05: rgba(255, 255, 255, 0.05);
+  --content-white-a06: rgba(255, 255, 255, 0.06);
+  --content-white-a07: rgba(255, 255, 255, 0.07);
+  --content-white-a08: rgba(255, 255, 255, 0.08);
+  --content-white-a09: rgba(255, 255, 255, 0.09);
+  --content-white-a1: rgba(255, 255, 255, 0.1);
+  --content-white-a12: rgba(255, 255, 255, 0.12);
+  --content-white-a14: rgba(255, 255, 255, 0.14);
+  --content-white-a15: rgba(255, 255, 255, 0.15);
+  --content-white-a16: rgba(255, 255, 255, 0.16);
+  --content-white-a18: rgba(255, 255, 255, 0.18);
+  --content-white-a2: rgba(255, 255, 255, 0.2);
+  --content-white-a22: rgba(255, 255, 255, 0.22);
+  --content-white-a24: rgba(255, 255, 255, 0.24);
+  --content-white-a28: rgba(255, 255, 255, 0.28);
+  --content-white-a32: rgba(255, 255, 255, 0.32);
+  --content-white-a34: rgba(255, 255, 255, 0.34);
+  --content-white-a35: rgba(255, 255, 255, 0.35);
+  --content-white-a4: rgba(255, 255, 255, 0.4);
+  --content-white-a44: rgba(255, 255, 255, 0.44);
+  --content-white-a62: rgba(255, 255, 255, 0.62);
+  --content-white-a8: rgba(255, 255, 255, 0.8);
+
+  /* ---- 블랙 오버레이 알파 스케일 (스크림/그림자/모달 배경 공용) ---- */
+  --content-black-a0: rgba(0, 0, 0, 0);
+  --content-black-a2: rgba(0, 0, 0, 0.2);
+  --content-black-a3: rgba(0, 0, 0, 0.3);
+  --content-black-a32: rgba(0, 0, 0, 0.32);
+  --content-black-a35: rgba(0, 0, 0, 0.35);
+  --content-black-a4: rgba(0, 0, 0, 0.4);
+  --content-black-a42: rgba(0, 0, 0, 0.42);
+  --content-black-a45: rgba(0, 0, 0, 0.45);
+  --content-black-a5: rgba(0, 0, 0, 0.5);
+  --content-black-a55: rgba(0, 0, 0, 0.55);
+  --content-black-a72: rgba(0, 0, 0, 0.72);
+  --content-black-a75: rgba(0, 0, 0, 0.75);
+  --content-black-a82: rgba(0, 0, 0, 0.82);
+
+  /* ---- 표면(surface) 다크 배경 스케일 ---- */
+  --content-surface-10: #101010;
+  --content-surface-17: #171717;
+  --content-surface-18: #181818;
+  --content-surface-1a: #1a1a1a;
+  --content-surface-1b: #1b1b1b;
+  --content-surface-1c: #1c1c1c;
+  --content-surface-1d: #1d1d1d;
+  --content-surface-1e: #1e1e1e;
+  --content-surface-20: #202020;
+  --content-surface-22: #222222;
+  --content-surface-24: #242424;
+  --content-surface-25: #252525;
+  --content-surface-27: #272727;
+  --content-surface-28: #282828;
+  --content-surface-29: #292929;
+  --content-surface-2a: #2a2a2a;
+  --content-surface-2b: #2b2b2b;
+  --content-surface-30: #303030;
+  --content-surface-3a: #3a3a3a;
+  --content-ink: #111111;
+
+  /* ---- 텍스트 회색조 스케일 ---- */
+  --content-white: #ffffff;
+  --content-text-77: #777777;
+  --content-text-7d: #7d7d7d;
+  --content-text-7f: #7f7f7f;
+  --content-text-81: #818181;
+  --content-text-85: #858585;
+  --content-text-88: #888888;
+  --content-text-8f: #8f8f8f;
+  --content-text-9a: #9a9a9a;
+  --content-text-9c: #9c9c9c;
+  --content-text-99: #999999;
+  --content-text-aa: #aaaaaa;
+  --content-text-b0: #b0b0b0;
+  --content-text-b5: #b5b5b5;
+  --content-text-b7: #b7b7b7;
+  --content-text-cc: #cccccc;
+  --content-text-cf: #cfcfcf;
+  --content-text-d0: #d0d0d0;
+  --content-text-d4: #d4d4d4;
+  --content-text-d7: #d7d7d7;
+  --content-text-da: #dadada;
+  --content-text-dd: #dddddd;
+  --content-text-e6: #e6e6e6;
+  --content-text-ea: #eaeaea;
+  --content-text-ed: #ededed;
+  --content-text-e5e7eb: #e5e7eb;
+  --content-text-979ca5: #979ca5;
+
+  /* ---- 연령등급 뱃지 색상 ---- */
+  --content-age-all: #2f855a;
+  --content-age-7: #3478b9;
+  --content-age-12: #b88416;
+  --content-age-15: #ce6428;
+  --content-age-adult: #c53f45;
+  --content-age-unknown: #555c66;
+
+  /* ---- 평점 뱃지 골드 (TMDB 점수) ---- */
+  --content-gold: #ffd54a;
+  --content-gold-a09: rgba(255, 213, 74, 0.09);
+  --content-gold-a3: rgba(255, 213, 74, 0.3);
+
+  /* ---- 찜하기 활성 버튼 (그라디언트/보더/그림자) ---- */
+  --content-favorite-active-start: #ff5c6e;
+  --content-favorite-active-end: #b8222f;
+  --content-favorite-border: rgba(255, 92, 110, 0.55);
+  --content-favorite-shadow: rgba(255, 71, 87, 0.32);
+
+  /* ---- 필모그래피 활성 탭 (그라디언트/텍스트) ---- */
+  --content-tab-active-grad-start: #f0f0f1;
+  --content-tab-active-grad-end: #bfc1c5;
+  --content-tab-active-hover-end: #d4d5d8;
+  --content-tab-active-ink: #111216;
+
+  /* ---- 히어로 백드롭 스크림 · 글래스 카드 배경 ---- */
+  --content-hero-scrim-1: rgba(10, 10, 10, 0.3);
+  --content-hero-scrim-2: rgba(12, 12, 12, 0.82);
+  --content-glass-card-bg: rgba(20, 20, 20, 0.86);
+
+  /* ---- 기타(아바타 그라디언트/스포일러 모달/리뷰 수정·삭제 버튼) ---- */
+  --content-avatar-grad-start: #3c3c3c;
+  --content-spoiler-overlay-bg: rgba(18, 18, 18, 0.74);
+  --content-danger-border: #7f3035;
+  --content-danger-text: #d96a70;
+  --content-danger-hover-bg: rgba(127, 48, 53, 0.18);
+}
+
 /* =========================================================
    CONTENT COMMON WRAPPER
 ========================================================= */
@@ -41,7 +191,7 @@
 .card-poster {
   width: 100%;
   height: 240px;
-  background: #111;
+  background: var(--content-ink);
 
   overflow: hidden;
 }
@@ -79,7 +229,7 @@
   justify-content: space-between;
 
   font-size: 12px;
-  color: #9a9a9a;
+  color: var(--content-text-9a);
 }
 
 /* =========================================================
@@ -97,8 +247,8 @@
   height: 36px;
 
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: var(--content-black-a55);
+  color: var(--content-white);
 
   display: flex;
   align-items: center;
@@ -140,7 +290,9 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(100deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 55%), linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, rgba(12, 12, 12, 0.82) 65%, #181818 100%);
+  background:
+    linear-gradient(100deg, var(--content-black-a32), var(--content-black-a0) 55%),
+    linear-gradient(180deg, var(--content-hero-scrim-1) 0%, var(--content-hero-scrim-2) 65%, var(--content-surface-18) 100%);
   pointer-events: none;
 }
 
@@ -165,25 +317,25 @@
 
 .content-detail-card {
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--content-white-a1);
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 45%, rgba(20, 20, 20, 0.86));
+  background: linear-gradient(135deg, var(--content-white-a07), var(--content-white-a015) 45%, var(--content-glass-card-bg));
   backdrop-filter: blur(20px) saturate(120%);
   -webkit-backdrop-filter: blur(20px) saturate(120%);
   box-shadow:
-    0 26px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 26px 60px var(--content-black-a5),
+    inset 0 1px 0 var(--content-white-a06);
 }
 
 .content-detail-card .detail-poster {
   position: relative;
   width: 300px;
   aspect-ratio: 2 / 3;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 16px;
   box-shadow:
-    0 22px 46px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.02);
+    0 22px 46px var(--content-black-a55),
+    0 0 0 1px var(--content-white-a02);
 }
 
 .content-detail-card .detail-poster img {
@@ -209,13 +361,13 @@
 
 .info-box .title {
   margin: 0;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: clamp(26px, 3vw, 34px);
   font-weight: 800;
   line-height: 1.3;
   letter-spacing: -0.5px;
   word-break: keep-all;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 20px var(--content-black-a35);
 }
 
 /* 연령등급 뱃지 (콘텐츠 카드와 동일한 컴포넌트 - main.css/content-more.css와 동일 스타일) */
@@ -226,42 +378,42 @@
   height: 26px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--content-white-a22);
   border-radius: 50%;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 7px var(--content-black-a2);
 }
 
 .content-age-rating-badge.is-all {
   width: 32px;
   border-radius: 999px;
-  background: #2f855a;
+  background: var(--content-age-all);
   font-size: 8.5px;
 }
 
 .content-age-rating-badge.is-age7 {
-  background: #3478b9;
+  background: var(--content-age-7);
 }
 
 .content-age-rating-badge.is-age12 {
-  background: #b88416;
+  background: var(--content-age-12);
 }
 
 .content-age-rating-badge.is-age15 {
-  background: #ce6428;
+  background: var(--content-age-15);
 }
 
 .content-age-rating-badge.is-adult {
-  background: #c53f45;
+  background: var(--content-age-adult);
 }
 
 .content-age-rating-badge.is-unknown {
   width: 32px;
   border-radius: 999px;
-  background: #555c66;
+  background: var(--content-age-unknown);
   font-size: 8.5px;
 }
 
@@ -273,7 +425,7 @@
   align-items: center;
   gap: 4px;
   /* [수정] #9a9a9a on 글래스 카드 배경(약 #2a2a2a)은 대비 약 6.4:1로 충분 */
-  color: #9a9a9a;
+  color: var(--content-text-9a);
   font-size: 13px;
   font-weight: 600;
 }
@@ -290,7 +442,7 @@
 /* meta - 콘텐츠 유형 / 길이 / 공개일을 알약(pill) 형태 칩으로 표시 */
 .info-box .meta {
   margin: 0;
-  color: #b0b0b0;
+  color: var(--content-text-b0);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -307,10 +459,10 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--content-white-a14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #dddddd;
+  background: var(--content-white-a06);
+  color: var(--content-text-dd);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1px;
@@ -318,9 +470,9 @@
 }
 
 .meta-chip--date {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--content-white-a08);
   background: transparent;
-  color: #9a9a9a;
+  color: var(--content-text-9a);
   font-weight: 500;
 }
 
@@ -330,7 +482,7 @@
   align-items: center;
   gap: 8px;
   margin: 20px 0 0;
-  color: #b7b7b7;
+  color: var(--content-text-b7);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -340,8 +492,8 @@
   flex-shrink: 0;
   padding: 3px 9px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #ededed;
+  background: var(--content-white-a08);
+  color: var(--content-text-ed);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -352,7 +504,7 @@
 .overview {
   max-width: 900px;
   margin: 0;
-  color: #dadada;
+  color: var(--content-text-da);
   font-size: 14.5px;
   line-height: 1.85;
 }
@@ -378,9 +530,9 @@
   align-items: center;
   gap: 9px;
   padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--content-white-a1);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--content-white-a045);
 }
 
 .score-badge-icon {
@@ -389,11 +541,11 @@
 }
 
 .score-badge--tmdb .score-badge-icon {
-  color: #ffd54a;
+  color: var(--content-gold);
 }
 
 .score-badge--user .score-badge-icon {
-  color: #e5e7eb;
+  color: var(--content-text-e5e7eb);
 }
 
 .score-badge-text {
@@ -403,7 +555,7 @@
 }
 
 .score-badge-text em {
-  color: #9c9c9c;
+  color: var(--content-text-9c);
   font-size: 10px;
   font-weight: 600;
   font-style: normal;
@@ -411,7 +563,7 @@
 }
 
 .score-badge-text strong {
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 15px;
   font-weight: 800;
 }
@@ -427,23 +579,23 @@
 }
 
 .score-badge-text small {
-  color: #8f8f8f;
+  color: var(--content-text-8f);
   font-size: 11px;
   font-weight: 500;
 }
 
 .score-badge--tmdb {
-  border-color: rgba(255, 213, 74, 0.3);
-  background: rgba(255, 213, 74, 0.09);
+  border-color: var(--content-gold-a3);
+  background: var(--content-gold-a09);
 }
 
 .score-badge--tmdb .score-badge-text strong {
-  color: #ffd54a;
+  color: var(--content-gold);
 }
 
 .score-badge--user {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--content-white-a16);
+  background: var(--content-white-a07);
 }
 
 /* =========================================================
@@ -463,10 +615,10 @@
 
 .btn {
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--content-white-a14);
   border-radius: 8px;
-  background: #2a2a2a;
-  color: #fff;
+  background: var(--content-surface-2a);
+  color: var(--content-white);
 
   font-size: 13px;
   font-weight: 600;
@@ -481,8 +633,8 @@
 }
 
 .btn:hover {
-  background: #3a3a3a;
-  border-color: rgba(255, 255, 255, 0.24);
+  background: var(--content-surface-3a);
+  border-color: var(--content-white-a24);
 }
 
 /* 헤더 카드 안의 찜/리뷰 버튼은 살짝 더 크고 굵게, 알약 형태로 */
@@ -498,25 +650,25 @@
 }
 
 .action-box .detail-favorite-btn {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--content-white-a18);
+  background: var(--content-white-a08);
 }
 
 .action-box .detail-favorite-btn.is-active {
-  border-color: rgba(255, 92, 110, 0.55);
-  background: linear-gradient(135deg, #ff5c6e, #b8222f);
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(255, 71, 87, 0.32);
+  border-color: var(--content-favorite-border);
+  background: linear-gradient(135deg, var(--content-favorite-active-start), var(--content-favorite-active-end));
+  color: var(--content-white);
+  box-shadow: 0 12px 26px var(--content-favorite-shadow);
 }
 
 .action-box #scrollReviewWriteBtn {
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.22);
-  color: #eaeaea;
+  border-color: var(--content-white-a22);
+  color: var(--content-text-ea);
 }
 
 .action-box #scrollReviewWriteBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--content-white-a08);
 }
 
 /* =========================================================
@@ -538,7 +690,7 @@
   align-items: center;
   gap: 10px;
   margin: 0 0 18px;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.3px;
@@ -551,7 +703,7 @@
   height: 18px;
   flex-shrink: 0;
   border-radius: 3px;
-  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.2));
+  background: linear-gradient(180deg, var(--content-white), var(--content-white-a2));
 }
 
 /* =========================================================
@@ -570,8 +722,8 @@
 }
 
 .goods-card {
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: #1e1e1e;
+  border: 1px solid var(--content-white-a07);
+  background: var(--content-surface-1e);
   border-radius: 12px;
   overflow: hidden;
 
@@ -582,9 +734,9 @@
 }
 
 .goods-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--content-white-a2);
   transform: translateY(-5px);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 14px 30px var(--content-black-a4);
 }
 
 .goods-card img {
@@ -606,7 +758,7 @@
 
 .goods-info .price {
   margin-top: 4px;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 13px;
   font-weight: 700;
 }
@@ -620,9 +772,9 @@
   justify-content: center;
   margin-top: 16px;
   padding: 10px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--content-white-a16);
   border-radius: 999px;
-  color: #dddddd;
+  color: var(--content-text-dd);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -633,9 +785,9 @@
 }
 
 .more-btn:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  border-color: var(--content-white-a4);
+  background: var(--content-white-a06);
+  color: var(--content-white);
 }
 
 /* =========================================================
@@ -778,7 +930,6 @@
 
 /* .review-item / .review-meta / .review-content 기본 스타일은
    component.css 로 이동 (goodsDetail.jsp 와 통일).
-   [강화] 콘텐츠 상세페이지에서는 작성자 옆에 이니셜 아바타를 붙이고,
    카드에 은은한 호버 효과를 더해 리뷰 목록에 생동감을 준다. */
 
 .review-item {
@@ -789,23 +940,8 @@
 }
 
 .review-item:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
-}
-
-.review-avatar {
-  display: inline-flex;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3c3c3c, #1c1c1c);
-  color: #e6e6e6;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
+  border-color: var(--content-white-a16);
+  box-shadow: 0 10px 24px var(--content-black-a3);
 }
 
 /* =========================
@@ -813,8 +949,8 @@
 ========================= */
 
 .review-form {
-  background: #1e1e1e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--content-surface-1e);
+  border: 1px solid var(--content-white-a07);
   padding: 18px;
   border-radius: 14px;
   margin-top: 20px;
@@ -827,17 +963,17 @@
   margin-top: 10px;
   padding: 10px;
 
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--content-ink);
+  border: 1px solid var(--content-white-a1);
   border-radius: 8px;
 
-  color: #fff;
+  color: var(--content-white);
   resize: none;
   transition: border-color 0.2s ease;
 }
 
 .review-form textarea:focus {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--content-white-a35);
   outline: none;
 }
 
@@ -855,21 +991,21 @@
   gap: 10px;
 
   font-size: 13px;
-  color: #aaa;
+  color: var(--content-text-aa);
 }
 
 .rating-box input {
   width: 80px;
   padding: 6px;
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--content-ink);
+  border: 1px solid var(--content-white-a1);
+  color: var(--content-white);
   border-radius: 6px;
   transition: border-color 0.2s ease;
 }
 
 .rating-box input:focus {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--content-white-a35);
   outline: none;
 }
 
@@ -885,7 +1021,7 @@
 
 .people-group h3 {
   margin: 0 0 16px;
-  color: #d7d7d7;
+  color: var(--content-text-d7);
   font-size: 15px;
 }
 
@@ -901,9 +1037,9 @@
   align-items: center;
   gap: 12px;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--content-white-a07);
   border-radius: 12px;
-  background: #1b1b1b;
+  background: var(--content-surface-1b);
   color: inherit;
   text-decoration: none;
   transition:
@@ -914,10 +1050,10 @@
 }
 
 .person-card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: #242424;
+  border-color: var(--content-white-a18);
+  background: var(--content-surface-24);
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 26px var(--content-black-a4);
 }
 
 .person-profile {
@@ -926,13 +1062,13 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
-  background: #101010;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+  background: var(--content-surface-10);
+  box-shadow: 0 0 0 2px var(--content-white-a06);
   transition: box-shadow 0.2s ease;
 }
 
 .person-card:hover .person-profile {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 0 2px var(--content-white-a22);
 }
 
 .person-profile img {
@@ -951,8 +1087,8 @@
   align-items: center;
   justify-content: center;
   /* [수정] #666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
-  color: #7d7d7d;
-  background: #101010;
+  color: var(--content-text-7d);
+  background: var(--content-surface-10);
   font-size: 10px;
 }
 
@@ -969,18 +1105,18 @@
 }
 
 .person-info strong {
-  color: #fff;
+  color: var(--content-white);
   font-size: 13px;
 }
 
 .person-info span {
   margin-top: 5px;
-  color: #888;
+  color: var(--content-text-88);
   font-size: 11px;
 }
 
 .people-empty {
-  color: #777;
+  color: var(--content-text-77);
   font-size: 13px;
 }
 
@@ -992,14 +1128,14 @@
   display: flex;
   gap: 36px;
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--content-white-a1);
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 45%, rgba(20, 20, 20, 0.86));
+  background: linear-gradient(135deg, var(--content-white-a07), var(--content-white-a015) 45%, var(--content-glass-card-bg));
   backdrop-filter: blur(20px) saturate(120%);
   -webkit-backdrop-filter: blur(20px) saturate(120%);
   box-shadow:
-    0 26px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 26px 60px var(--content-black-a5),
+    inset 0 1px 0 var(--content-white-a06);
 }
 
 .person-hero-profile {
@@ -1008,12 +1144,12 @@
   height: 300px;
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 14px;
-  background: #101010;
+  background: var(--content-surface-10);
   box-shadow:
-    0 22px 46px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.02);
+    0 22px 46px var(--content-black-a55),
+    0 0 0 1px var(--content-white-a02);
 }
 
 .person-hero-profile img {
@@ -1037,31 +1173,31 @@
   display: inline-flex;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #fff;
-  color: #111;
+  background: var(--content-white);
+  color: var(--content-ink);
   font-size: 11px;
   font-weight: 700;
 }
 
 .person-hero-info h1 {
   margin: 14px 0 12px;
-  color: #fff;
+  color: var(--content-white);
   font-size: 32px;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 2px 18px var(--content-black-a45);
 }
 
 .person-basic-info {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  color: #999;
+  color: var(--content-text-99);
   font-size: 13px;
 }
 
 .person-biography {
   max-width: 900px;
   margin-top: 24px;
-  color: #ccc;
+  color: var(--content-text-cc);
   line-height: 1.75;
   white-space: pre-line;
 }
@@ -1082,7 +1218,7 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  color: #fff;
+  color: var(--content-white);
   font-size: 24px;
   font-weight: 800;
 }
@@ -1094,11 +1230,11 @@
   height: 18px;
   flex-shrink: 0;
   border-radius: 3px;
-  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.2));
+  background: linear-gradient(180deg, var(--content-white), var(--content-white-a2));
 }
 
 .filmography-header span {
-  color: #888;
+  color: var(--content-text-88);
   font-size: 13px;
 }
 
@@ -1110,9 +1246,9 @@
 
 .filmography-card {
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--content-white-a06);
   border-radius: 14px;
-  background: #1a1a1a;
+  background: var(--content-surface-1a);
   color: inherit;
   text-decoration: none;
   transition:
@@ -1122,14 +1258,14 @@
 
 .filmography-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 28px var(--content-black-a35);
 }
 
 .filmography-poster {
   position: relative;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #101010;
+  background: var(--content-surface-10);
 }
 
 .filmography-poster img {
@@ -1145,8 +1281,8 @@
   left: 10px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.72);
-  color: #fff;
+  background: var(--content-black-a72);
+  color: var(--content-white);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1158,7 +1294,7 @@
 .filmography-info h3 {
   overflow: hidden;
   margin: 0;
-  color: #fff;
+  color: var(--content-white);
   font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1169,14 +1305,14 @@
   justify-content: space-between;
   gap: 8px;
   margin-top: 8px;
-  color: #888;
+  color: var(--content-text-88);
   font-size: 11px;
 }
 
 .filmography-participation {
   overflow: hidden;
   margin: 8px 0 0;
-  color: #aaa;
+  color: var(--content-text-aa);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1185,7 +1321,7 @@
 .back-btn {
   border: 0;
   background: transparent;
-  color: #ddd;
+  color: var(--content-text-dd);
   cursor: pointer;
 }
 
@@ -1230,7 +1366,7 @@
 
 .filmography-summary {
   margin: 8px 0 0;
-  color: #858585;
+  color: var(--content-text-85);
   font-size: 13px;
 }
 
@@ -1253,7 +1389,7 @@
   margin-bottom: 24px;
   padding-bottom: 20px;
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid var(--content-white-a09);
 }
 
 .filmography-tab-button {
@@ -1267,11 +1403,11 @@
   min-height: 42px;
   padding: 0 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--content-white-a035);
 
-  color: #979ca5;
+  color: var(--content-text-979ca5);
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -1312,27 +1448,27 @@
 }
 
 .filmography-tab-button:hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--content-white-a34);
+  background: var(--content-white-a07);
 
-  color: #ffffff;
+  color: var(--content-white);
 
   transform: none;
 }
 
 .filmography-tab-button:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--content-white-a8);
   outline-offset: 3px;
 }
 
 /* [수정] 활성 탭을 리뷰 페이지와 같은 밝은 회색 계열로 표시 */
 .filmography-tab-button.is-active {
-  border-color: rgba(255, 255, 255, 0.62);
-  background: linear-gradient(180deg, #f0f0f1, #bfc1c5);
+  border-color: var(--content-white-a62);
+  background: linear-gradient(180deg, var(--content-tab-active-grad-start), var(--content-tab-active-grad-end));
 
-  color: #111216;
+  color: var(--content-tab-active-ink);
 
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 18px var(--content-white-a08);
 }
 
 .filmography-tab-button.is-active span {
@@ -1342,10 +1478,10 @@
 
 /* [수정] 활성 탭에 마우스를 올려도 동일 계열 유지 */
 .filmography-tab-button.is-active:hover {
-  border-color: rgba(255, 255, 255, 0.8);
-  background: linear-gradient(180deg, #ffffff, #d4d5d8);
+  border-color: var(--content-white-a8);
+  background: linear-gradient(180deg, var(--content-white), var(--content-tab-active-hover-end));
 
-  color: #111216;
+  color: var(--content-tab-active-ink);
 }
 
 .filmography-tab-panel[hidden] {
@@ -1368,22 +1504,22 @@
   flex-shrink: 0;
   padding: 4px 7px;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #d4d4d4;
+  background: var(--content-white-a08);
+  color: var(--content-text-d4);
   font-size: 10px;
   font-weight: 700;
 }
 
 .filmography-role-value {
   overflow: hidden;
-  color: #b5b5b5;
+  color: var(--content-text-b5);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .person-biography-empty {
-  color: #777777;
+  color: var(--content-text-77);
 }
 
 @keyframes filmographyPanelFadeIn {
@@ -1520,9 +1656,9 @@
 .recommend-sidebar {
   width: 100%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--content-white-a07);
   border-radius: 14px;
-  background: #181818;
+  background: var(--content-surface-18);
 }
 
 .recommend-sidebar-header {
@@ -1532,12 +1668,12 @@
   justify-content: space-between;
   gap: 10px;
   padding: 14px 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid var(--content-white-a07);
 }
 
 .recommend-sidebar-header h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 15px;
 }
 
@@ -1553,10 +1689,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 50%;
-  background: #222222;
-  color: #ffffff;
+  background: var(--content-surface-22);
+  color: var(--content-white);
   font-family: inherit;
   font-size: 21px;
   line-height: 1;
@@ -1564,7 +1700,7 @@
 }
 
 .recommend-carousel-button:hover {
-  background: #303030;
+  background: var(--content-surface-30);
 }
 
 .recommend-carousel-viewport {
@@ -1604,7 +1740,7 @@
   width: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #101010;
+  background: var(--content-surface-10);
 }
 
 .recommend-poster img {
@@ -1626,8 +1762,8 @@
   align-items: center;
   justify-content: center;
   /* [수정] #666666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
-  color: #7d7d7d;
-  background: #101010;
+  color: var(--content-text-7d);
+  background: var(--content-surface-10);
   font-size: 11px;
 }
 
@@ -1638,7 +1774,7 @@
 .recommend-title {
   display: block;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1650,7 +1786,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: 8px;
-  color: #999999;
+  color: var(--content-text-99);
   font-size: 11px;
 }
 
@@ -1659,13 +1795,13 @@
   justify-content: center;
   gap: 5px;
   padding: 0 14px 13px;
-  color: #888888;
+  color: var(--content-text-88);
   font-size: 11px;
 }
 
 .recommend-empty {
   padding: 28px 16px;
-  color: #777777;
+  color: var(--content-text-77);
   font-size: 12px;
   text-align: center;
 }
@@ -1692,7 +1828,7 @@
   align-items: center;
   gap: 8px;
   margin: 0 0 12px;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 15px;
   font-weight: 700;
 }
@@ -1704,7 +1840,7 @@
   height: 14px;
   flex-shrink: 0;
   border-radius: 2px;
-  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.2));
+  background: linear-gradient(180deg, var(--content-white), var(--content-white-a2));
 }
 
 .ott-platform-list {
@@ -1720,10 +1856,10 @@
   align-items: center;
   gap: 10px;
   padding: 7px 14px 7px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--content-white-a1);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: var(--content-white-a05);
+  color: var(--content-white);
   text-decoration: none;
   transition:
     transform 0.2s ease,
@@ -1733,14 +1869,14 @@
 }
 
 .ott-platform-item:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-  background: #272727;
+  border-color: var(--content-white-a32);
+  background: var(--content-surface-27);
   transform: translateY(-2px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 26px var(--content-black-a4);
 }
 
 .ott-platform-item:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--content-white);
   outline-offset: 2px;
 }
 
@@ -1753,7 +1889,7 @@
   justify-content: center;
   overflow: hidden;
   border-radius: 8px;
-  background: #101010;
+  background: var(--content-surface-10);
 }
 
 .ott-platform-logo {
@@ -1764,7 +1900,7 @@
 }
 
 .ott-platform-no-logo {
-  color: #777777;
+  color: var(--content-text-77);
   font-size: 8px;
   font-weight: 700;
 }
@@ -1780,18 +1916,85 @@
 
 .ott-platform-link-icon {
   flex-shrink: 0;
-  color: #777777;
+  color: var(--content-text-77);
   font-size: 10px;
 }
 
 .ott-platform-item:hover .ott-platform-link-icon {
-  color: #ffffff;
+  color: var(--content-white);
 }
 
 .ott-platform-empty {
   margin: 0;
-  color: #777777;
+  color: var(--content-text-77);
   font-size: 12px;
+}
+
+/* =========================================================
+   [OTT 구독 조합 계산기 연동 추가]
+   - 시청 가능한 OTT 바로 아래에 한 줄 CTA를 배치한다.
+   - 기존 상세 카드 폭을 늘리지 않고 정보 영역 안에서만 표시한다.
+========================================================= */
+.ott-subscription-calculator-form {
+  width: 100%;
+  max-width: 270px;
+  margin-top: 12px;
+}
+
+.ott-subscription-calculator-btn {
+  display: inline-flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 12px 9px 14px;
+  border: 1px solid var(--content-subscription-cta-accent-a32);
+  border-radius: 10px;
+  background: var(--content-white-a035);
+  color: var(--content-white);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ott-subscription-calculator-btn:hover {
+  border-color: var(--content-subscription-cta-accent);
+  background: var(--content-subscription-cta-accent-a12);
+  color: var(--content-white);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px var(--content-black-a4);
+}
+
+.ott-subscription-calculator-btn:focus-visible {
+  outline: 2px solid var(--content-subscription-cta-accent);
+  outline-offset: 2px;
+}
+
+.ott-subscription-calculator-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--content-white-a18);
+  border-radius: 7px;
+  color: var(--content-white);
+}
+
+.ott-subscription-calculator-icon svg {
+  display: block;
+  width: 19px;
+  height: 19px;
 }
 
 @media (max-width: 768px) {
@@ -1822,7 +2025,7 @@
 
 .related-content-header p {
   margin: 8px 0 0;
-  color: #858585;
+  color: var(--content-text-85);
   font-size: 12px;
 }
 
@@ -1838,9 +2041,9 @@
   align-items: start;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--content-white-a07);
   border-radius: 14px;
-  background: #1a1a1a;
+  background: var(--content-surface-1a);
   color: inherit;
   text-decoration: none;
   transition:
@@ -1850,16 +2053,16 @@
 }
 
 .related-content-card:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: var(--content-white-a28);
   transform: translateY(-4px);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 16px 34px var(--content-black-a42);
 }
 
 .related-content-poster {
   position: relative;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #101010;
+  background: var(--content-surface-10);
 }
 
 .related-content-poster img {
@@ -1883,9 +2086,9 @@
   gap: 3px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--content-black-a72);
   /* [수정] #ffd54a on rgba(0,0,0,0.72)는 대비 약 10.8:1로 충분 */
-  color: #ffd54a;
+  color: var(--content-gold);
   font-size: 11px;
   font-weight: 700;
 }
@@ -1897,8 +2100,8 @@
   align-items: center;
   justify-content: center;
   /* [수정] #666666 on #101010은 대비 약 3.3:1로 부족해 더 밝게 교체 */
-  color: #7d7d7d;
-  background: #101010;
+  color: var(--content-text-7d);
+  background: var(--content-surface-10);
   font-size: 10px;
 }
 
@@ -1908,8 +2111,8 @@
   left: 9px;
   padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #ffffff;
+  background: var(--content-black-a75);
+  color: var(--content-white);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1925,7 +2128,7 @@
 .related-content-info h3 {
   overflow: hidden;
   margin: 0;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 16px;
   line-height: 1.4;
   text-overflow: ellipsis;
@@ -1938,7 +2141,7 @@
   justify-content: space-between;
   gap: 8px;
   margin-top: 12px;
-  color: #aaaaaa;
+  color: var(--content-text-aa);
   font-size: 11px;
 }
 
@@ -1946,7 +2149,7 @@
   display: -webkit-box;
   overflow: hidden;
   margin: 13px 0 0;
-  color: #7f7f7f;
+  color: var(--content-text-7f);
   font-size: 11px;
   line-height: 1.55;
   -webkit-box-orient: vertical;
@@ -2025,11 +2228,11 @@
 
 .related-content-empty {
   padding: 38px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--content-white-a07);
   border-radius: 14px;
-  background: #181818;
+  background: var(--content-surface-18);
   /* [수정] #777777 on #181818은 대비 약 4.0:1로 부족해 더 밝게 교체 */
-  color: #818181;
+  color: var(--content-text-81);
   font-size: 13px;
   text-align: center;
 }
@@ -2073,10 +2276,10 @@
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--content-white-a14);
   border-radius: 8px;
-  background: #222222;
-  color: #dddddd;
+  background: var(--content-surface-22);
+  color: var(--content-text-dd);
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -2088,20 +2291,20 @@
 }
 
 .content-provider-select-btn:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: #2b2b2b;
-  color: #ffffff;
+  border-color: var(--content-white-a28);
+  background: var(--content-surface-2b);
+  color: var(--content-white);
 }
 
 .content-provider-select-btn:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--content-white);
   outline-offset: 2px;
 }
 
 .content-provider-summary {
   overflow: hidden;
   margin: 10px 0 0;
-  color: #999999;
+  color: var(--content-text-99);
   font-size: 11px;
   line-height: 1.4;
   text-overflow: ellipsis;
@@ -2148,7 +2351,7 @@ body.content-ott-modal-open .content-filter-form {
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.82);
+  background: var(--content-black-a82);
   backdrop-filter: blur(4px);
 }
 
@@ -2158,12 +2361,12 @@ body.content-ott-modal-open .content-filter-form {
   width: min(440px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 16px;
-  background: #1d1d1d;
+  background: var(--content-surface-1d);
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
+    0 24px 70px var(--content-black-a75),
+    0 0 0 1px var(--content-white-a03);
   animation: contentOttModalOpen 0.18s ease;
 }
 
@@ -2185,12 +2388,12 @@ body.content-ott-modal-open .content-filter-form {
   justify-content: space-between;
   gap: 16px;
   padding: 0 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--content-white-a08);
 }
 
 .content-ott-modal-header h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--content-white);
   font-size: 18px;
   font-weight: 700;
 }
@@ -2205,7 +2408,7 @@ body.content-ott-modal-open .content-filter-form {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #aaaaaa;
+  color: var(--content-text-aa);
   font-family: inherit;
   font-size: 25px;
   line-height: 1;
@@ -2213,8 +2416,8 @@ body.content-ott-modal-open .content-filter-form {
 }
 
 .content-ott-modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background: var(--content-white-a08);
+  color: var(--content-white);
 }
 
 .content-ott-modal-body {
@@ -2225,8 +2428,8 @@ body.content-ott-modal-open .content-filter-form {
 
 .content-ott-modal-all-option {
   margin-bottom: 14px;
-  border-color: rgba(255, 255, 255, 0.15);
-  background: #252525;
+  border-color: var(--content-white-a15);
+  background: var(--content-surface-25);
 }
 
 .content-ott-modal-option-grid {
@@ -2241,10 +2444,10 @@ body.content-ott-modal-open .content-filter-form {
   align-items: center;
   gap: 11px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--content-white-a09);
   border-radius: 10px;
-  background: #202020;
-  color: #cccccc;
+  background: var(--content-surface-20);
+  color: var(--content-text-cc);
   cursor: pointer;
   transition:
     border-color 0.2s ease,
@@ -2253,15 +2456,15 @@ body.content-ott-modal-open .content-filter-form {
 }
 
 .content-ott-modal-option:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: #282828;
-  color: #ffffff;
+  border-color: var(--content-white-a2);
+  background: var(--content-surface-28);
+  color: var(--content-white);
 }
 
 .content-ott-modal-option:has(input:checked) {
-  border-color: rgba(255, 255, 255, 0.44);
-  background: #303030;
-  color: #ffffff;
+  border-color: var(--content-white-a44);
+  background: var(--content-surface-30);
+  color: var(--content-white);
 }
 
 .content-ott-modal-option input[type="checkbox"] {
@@ -2269,7 +2472,7 @@ body.content-ott-modal-open .content-filter-form {
   height: 17px;
   flex-shrink: 0;
   margin: 0;
-  accent-color: #ffffff;
+  accent-color: var(--content-white);
   cursor: pointer;
 }
 
@@ -2284,9 +2487,9 @@ body.content-ott-modal-open .content-filter-form {
   flex: 0 0 24px;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--content-white-a14);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--content-white);
   object-fit: cover;
   object-position: center;
 }
@@ -2301,7 +2504,7 @@ body.content-ott-modal-open .content-filter-form {
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--content-white-a08);
 }
 
 .content-ott-modal-cancel-btn,
@@ -2317,15 +2520,15 @@ body.content-ott-modal-open .content-filter-form {
 }
 
 .content-ott-modal-cancel-btn {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #292929;
-  color: #dddddd;
+  border: 1px solid var(--content-white-a14);
+  background: var(--content-surface-29);
+  color: var(--content-text-dd);
 }
 
 .content-ott-modal-confirm-btn {
   border: 0;
-  background: #ffffff;
-  color: #111111;
+  background: var(--content-white);
+  color: var(--content-ink);
 }
 
 @media (max-width: 600px) {
@@ -2356,7 +2559,7 @@ body.content-ott-modal-open .content-filter-form {
   align-items: center;
   gap: 8px;
   margin-top: 12px;
-  color: #cfcfcf;
+  color: var(--content-text-cf);
   font-size: 13px;
   cursor: pointer;
 }
@@ -2364,7 +2567,7 @@ body.content-ott-modal-open .content-filter-form {
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: #fff;
+  accent-color: var(--content-white);
 }
 .spoiler-review {
   position: relative;
@@ -2372,7 +2575,7 @@ body.content-ott-modal-open .content-filter-form {
   margin-top: 12px;
   overflow: hidden;
   border-radius: 10px;
-  background: #171717;
+  background: var(--content-surface-17);
 }
 .spoiler-review-content {
   min-height: 68px;
@@ -2392,15 +2595,15 @@ body.content-ott-modal-open .content-filter-form {
   justify-content: center;
   gap: 6px;
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--content-white-a1);
   border-radius: 10px;
-  background: rgba(18, 18, 18, 0.74);
-  color: #fff;
+  background: var(--content-spoiler-overlay-bg);
+  color: var(--content-white);
   font-family: inherit;
   cursor: pointer;
 }
 .spoiler-review-overlay span {
-  color: #aaa;
+  color: var(--content-text-aa);
   font-size: 12px;
 }
 .spoiler-review.revealed .spoiler-review-content {
@@ -2437,7 +2640,7 @@ body.spoiler-modal-open {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--content-black-a72);
   z-index: 3000;
 }
 .spoiler-confirm-dialog {
@@ -2446,10 +2649,10 @@ body.spoiler-modal-open {
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   padding: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--content-white-a12);
   border-radius: 14px;
-  background: #202020;
-  color: #fff;
+  background: var(--content-surface-20);
+  color: var(--content-white);
   text-align: center;
   box-sizing: border-box;
 }
@@ -2458,7 +2661,7 @@ body.spoiler-modal-open {
 }
 .spoiler-confirm-dialog p {
   margin: 0;
-  color: #d0d0d0;
+  color: var(--content-text-d0);
   line-height: 1.7;
 }
 .spoiler-confirm-actions {
@@ -2511,10 +2714,10 @@ body.spoiler-modal-open {
 .review-edit-open-btn,
 .review-delete-btn {
   padding: 7px 12px;
-  border: 1px solid #7f3035;
+  border: 1px solid var(--content-danger-border);
   border-radius: 7px;
   background: transparent;
-  color: #d96a70;
+  color: var(--content-danger-text);
   font-size: 13px;
   cursor: pointer;
 }
@@ -2522,5 +2725,5 @@ body.spoiler-modal-open {
 /* [추가] 수정·삭제 버튼 마우스 오버 효과 */
 .review-edit-open-btn:hover,
 .review-delete-btn:hover {
-  background: rgba(127, 48, 53, 0.18);
+  background: var(--content-danger-hover-bg);
 }

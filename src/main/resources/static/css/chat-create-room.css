@@ -5,6 +5,11 @@
  * 모바일에서는 FAB(+) 탭 시 뜨는 모달 시트 안에 iframe 으로 삽입된다.
  */
 
+:root {
+    --ccr-focus-glow: rgba(242, 201, 76, 0.15);
+    --ccr-help-bg: rgba(254, 229, 0, 0.08);
+}
+
 body.chat-create-page {
     margin: 0;
     background: var(--kakao-bg-2, #222222);
@@ -88,7 +93,7 @@ body.chat-create-page {
 .form-group textarea:focus,
 .form-group select:focus {
     border-color: var(--kakao-yellow-dark, #F2C94C);
-    box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.15);
+    box-shadow: 0 0 0 3px var(--ccr-focus-glow);
 }
 
 .form-group textarea {
@@ -100,7 +105,7 @@ body.chat-create-page {
     margin: 0;
     padding: 10px 12px;
     border-radius: var(--kakao-radius-sm, 8px);
-    background: rgba(254, 229, 0, 0.08);
+    background: var(--ccr-help-bg);
     color: var(--kakao-text-secondary, #ababab);
     font-size: 12px;
     line-height: 1.55;
@@ -126,7 +131,7 @@ body.chat-create-page {
 
 .submit-btn {
     background: var(--kakao-yellow, #FEE500);
-    color: #201d00;
+    color: var(--kakao-mine-text, #201d00);
 }
 
 .submit-btn:hover {

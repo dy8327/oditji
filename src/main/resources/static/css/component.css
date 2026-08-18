@@ -4,6 +4,28 @@
  * (리팩터링 시 자동 추출 - 기존 스타일 값 변경 없음)
  */
 
+:root {
+    --comp-count-color: #A0A0A0;
+    --comp-card-bg: #1E1E1E;
+    --comp-card-shadow: rgba(0,0,0,0.45);
+    --comp-noimg-color: #7b7b7b;
+    --comp-noimg-bg: #0F0F0F;
+    --comp-muted: #777;
+    --comp-fav-bg: rgba(0,0,0,0.55);
+    --comp-fav-color: #fff;
+    --comp-fav-hover-bg: rgba(255,255,255,0.15);
+    --comp-page-bg: #222;
+    --comp-review-border: rgba(255, 255, 255, 0.08);
+    --comp-review-meta: #a9a9a9;
+    --comp-review-writer: #ffffff;
+    --comp-review-rating: #ffd54a;
+    --comp-review-date: #8f8f8f;
+    --comp-review-content: #f2f2f2;
+    --comp-score-color: #DADADA;
+    --comp-score-user: #FFD700;
+    --comp-score-divider: #555555;
+}
+
 .list-header {    display:flex;
     justify-content:space-between;
     align-items:flex-end;
@@ -13,7 +35,7 @@
     font-weight:700;}
 
 .result-count {    font-size:14px;
-    color:#A0A0A0;}
+    color:var(--comp-count-color);}
 
 .card-list {    display:grid;
     grid-template-columns:repeat(5, 1fr);
@@ -21,14 +43,14 @@
     margin-top:30px;}
 
 .card-item {    position:relative;
-    background:#1E1E1E;
+    background:var(--comp-card-bg);
     border-radius:14px;
     overflow:hidden;
 
     transition:transform .25s ease, box-shadow .25s ease;}
 
 .card-item:hover {    transform:translateY(-6px);
-    box-shadow:0 12px 28px rgba(0,0,0,0.45);}
+    box-shadow:0 12px 28px var(--comp-card-shadow);}
 
 .card-link {    display:block;
     color:inherit;}
@@ -41,14 +63,14 @@
 
     font-size:12px;
     /* [수정] #666 on #0F0F0F는 대비 약 3.3:1로 부족해 더 밝게 교체 */
-    color:#7b7b7b;
-    background:#0F0F0F;}
+    color:var(--comp-noimg-color);
+    background:var(--comp-noimg-bg);}
 
 .card-info {    padding:12px 14px;}
 
 .card-sub {    margin-top:6px;
     font-size:12px;
-    color:#777;}
+    color:var(--comp-muted);}
 
 .fav-btn {
     position:absolute;
@@ -57,15 +79,15 @@
     width:36px;
     height:36px;
     border-radius:50%;
-    background:rgba(0,0,0,0.55);
-    color:#fff;
+    background:var(--comp-fav-bg);
+    color:var(--comp-fav-color);
     display:flex;
     align-items:center;
     justify-content:center;
     transition:all .2s ease;
 }
 
-.fav-btn:hover {    background:rgba(255,255,255,0.15);
+.fav-btn:hover {    background:var(--comp-fav-hover-bg);
     transform:scale(1.05);}
 
 .detail-header {    display:flex;
@@ -88,16 +110,16 @@
     margin-top:30px;}
 
 .page-btn {    padding:6px 12px;
-    background:#222;
+    background:var(--comp-page-bg);
     border-radius:6px;
-    color:#fff;}
+    color:var(--comp-fav-color);}
 
 .page-now {    padding:6px 12px;
     font-weight:600;}
 
 .empty-state {    padding:80px 0;
     text-align:center;
-    color:#777;
+    color:var(--comp-muted);
     font-size:14px;}
 
 .review-list {    display: flex;
@@ -105,7 +127,7 @@
     gap: 14px;
     margin-top: 20px;}
 
-.price-original {    color:#777;
+.price-original {    color:var(--comp-muted);
     font-size:12px;
     text-decoration:line-through;}
 
@@ -117,9 +139,9 @@
 
 .review-item {
     padding: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--comp-review-border);
     border-radius: 12px;
-    background: #1e1e1e;
+    background: var(--comp-card-bg);
 }
 
 .review-meta {
@@ -128,35 +150,43 @@
     align-items: center;
     gap: 8px 12px;
     margin-bottom: 12px;
-    color: #a9a9a9;
+    color: var(--comp-review-meta);
     font-size: 12px;
 }
 
+.review-writer-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
 .review-meta .writer {
-    color: #ffffff;
+    color: var(--comp-review-writer);
     font-weight: 700;
 }
 
 .review-meta .rating {
-    color: #ffd54a;
+    color: var(--comp-review-rating);
     font-weight: 700;
 }
 
 .review-meta .date {
-    color: #8f8f8f;
+    color: var(--comp-review-date);
 }
 
 .review-item .review-content {
     display: block;
     margin: 0;
-    color: #f2f2f2 !important;
+    color: var(--comp-review-content) !important;
     font-size: 14px;
     line-height: 1.7;
     opacity: 1 !important;
     visibility: visible !important;
     white-space: pre-wrap;
     word-break: break-word;
-    -webkit-text-fill-color: #f2f2f2;
+    -webkit-text-fill-color: var(--comp-review-content);
 }
 
 /* =========================
@@ -173,20 +203,20 @@
     gap: 10px;
     margin-bottom: 16px;
     font-size: 14px;
-    color: #DADADA;
+    color: var(--comp-score-color);
 }
 
 .score-box .score-tmdb {
-    color: #DADADA;
+    color: var(--comp-score-color);
 }
 
 .score-box .score-user {
-    color: #FFD700;
+    color: var(--comp-score-user);
     font-weight: 600;
 }
 
 .score-box .score-divider {
-    color: #555555;
+    color: var(--comp-score-divider);
 }
 
 @media (max-width:1024px) {

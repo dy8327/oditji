@@ -14,7 +14,7 @@
       href="${pageContext.request.contextPath}/css/member.css">
 
 <script defer
-        src="${pageContext.request.contextPath}/js/member.js?v=20260812-2">
+        src="${pageContext.request.contextPath}/js/member.js?v=20260814-1">
 </script>
 
 <jsp:include page="/WEB-INF/views/common/head-assets.jsp"/>
@@ -63,7 +63,7 @@
             <input type="hidden"
                    name="joinType"
                    id="joinType"
-                   value="USER">
+                   value="${param.joinType eq 'BUSINESS' ? 'BUSINESS' : 'USER'}">
 
             <!-- 공통 기본 정보 -->
             <div class="join-section-title no-border required-info-title">
@@ -530,6 +530,73 @@
 
                 <div class="form-hint">
                     사업자 회원가입은 관리자 승인 후 사업자 페이지 이용이 가능합니다.
+                </div>
+
+            </div>
+
+
+            <!-- 필수 약관 동의 -->
+            <div class="agreement-section">
+
+                <div class="join-section-title">
+                    약관 동의
+                    <span class="required-mark">*</span>
+                </div>
+
+                <div class="agreement-box">
+
+                    <label class="agreement-all" for="agreeAll">
+                        <input type="checkbox"
+                               id="agreeAll">
+                        <span>전체 동의</span>
+                    </label>
+
+                    <div class="agreement-divider"></div>
+
+                    <div class="agreement-item">
+
+                        <label for="termsAgreed">
+                            <input type="checkbox"
+                                   name="termsAgreed"
+                                   id="termsAgreed"
+                                   value="Y">
+
+                            <span>
+                                <strong>[필수]</strong>
+                                이용약관에 동의합니다.
+                            </span>
+                        </label>
+
+                        <a href="${pageContext.request.contextPath}/terms"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            내용보기
+                        </a>
+
+                    </div>
+
+                    <div class="agreement-item">
+
+                        <label for="privacyAgreed">
+                            <input type="checkbox"
+                                   name="privacyAgreed"
+                                   id="privacyAgreed"
+                                   value="Y">
+
+                            <span>
+                                <strong>[필수]</strong>
+                                개인정보 수집·이용에 동의합니다.
+                            </span>
+                        </label>
+
+                        <a href="${pageContext.request.contextPath}/privacy"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            내용보기
+                        </a>
+
+                    </div>
+
                 </div>
 
             </div>

@@ -4,14 +4,137 @@
     box-sizing: border-box;
 }
 
+/* =========================
+   TOKENS
+========================= */
+
+:root {
+    /* base neutrals */
+    --main-white: #ffffff;
+    --main-black: #000;
+    --main-bg: #141414;
+    --main-bg-card: #1c1c1c;
+    --main-bg-muted: #2a2a2a;
+    --main-bg-btn: #222222;
+    --main-bg-btn-hover: #343434;
+    --main-bg-chip: #282828;
+    --main-bg-filter-active: #353535;
+
+    /* text */
+    --main-text-body: #e5e5e5;
+    --main-text-muted: #bdbdbd;
+    --main-text-dim: #8f8f8f;
+    --main-text-faint: #777777;
+    --main-text-secondary: #aaaaaa;
+    --main-text-more: #9f9f9f;
+    --main-text-label: #9aa4b2;
+    --main-text-stat: #aeb4bd;
+    --main-text-empty: #858585;
+    --main-eyebrow-text: #f0f0f0;
+    --main-chip-text: #e8e8e8;
+    --main-select-text: #dddddd;
+    --main-desc-text: #d6d6d6;
+    --main-name-text: #bbbbbb;
+
+    /* accent / brand */
+    --main-gold: #f4cf58;
+    --main-stat-grad-end: #cfe1ff;
+    --main-eyebrow-today: #2dd4bf;
+    --main-eyebrow-popular: #ff8a3d;
+
+    /* rank medal colors (실시간 인기 TOP 10) */
+    --main-rank-silver: #cfd4da;
+    --main-rank-bronze: #d29a63;
+    --main-rank-gold-tint: rgba(244, 207, 88, 0.18);
+    --main-rank-silver-tint: rgba(207, 212, 218, 0.18);
+    --main-rank-bronze-tint: rgba(210, 154, 99, 0.18);
+
+    /* borders */
+    --main-filter-border: #3a3a3a;
+    --main-select-border: #333333;
+
+    /* 연령등급 배지 */
+    --main-age-all: #2f855a;
+    --main-age7: #3478b9;
+    --main-age12: #b88416;
+    --main-age15: #ce6428;
+    --main-age-adult: #c53f45;
+    --main-age-unknown: #555c66;
+
+    /* 콘텐츠 타입 배지 (content-list-modern.css와 동일 기준) */
+    --main-type-movie: rgba(73, 78, 88, 0.88);
+    --main-type-drama: rgba(89, 65, 135, 0.88);
+    --main-type-animation: rgba(37, 102, 112, 0.9);
+    --main-type-variety: rgba(133, 82, 39, 0.9);
+    --main-type-documentary: rgba(45, 74, 118, 0.9);
+    --main-upcoming-bg: rgba(59, 130, 246, 0.94);
+
+    /* white overlay alpha steps */
+    --main-overlay-04: rgba(255, 255, 255, 0.04);
+    --main-overlay-08: rgba(255, 255, 255, 0.08);
+    --main-overlay-10: rgba(255, 255, 255, 0.1);
+    --main-overlay-12: rgba(255, 255, 255, 0.12);
+    --main-overlay-14: rgba(255, 255, 255, 0.14);
+    --main-overlay-20: rgba(255, 255, 255, 0.2);
+    --main-overlay-22: rgba(255, 255, 255, 0.22);
+    --main-overlay-28: rgba(255, 255, 255, 0.28);
+    --main-overlay-35: rgba(255, 255, 255, 0.35);
+    --main-overlay-40: rgba(255, 255, 255, 0.4);
+    --main-overlay-55: rgba(255, 255, 255, 0.55);
+    --main-overlay-70: rgba(255, 255, 255, 0.7);
+
+    /* black shadow alpha steps */
+    --main-shadow-20: rgba(0, 0, 0, 0.2);
+    --main-shadow-28: rgba(0, 0, 0, 0.28);
+    --main-shadow-35: rgba(0, 0, 0, 0.35);
+    --main-shadow-38: rgba(0, 0, 0, 0.38);
+    --main-shadow-40: rgba(0, 0, 0, 0.4);
+    --main-shadow-45: rgba(0, 0, 0, 0.45);
+    --main-shadow-50: rgba(0, 0, 0, 0.5);
+    --main-shadow-55: rgba(0, 0, 0, 0.55);
+    --main-shadow-72: rgba(0, 0, 0, 0.72);
+
+    /* 어두운 스크림 (히어로 내비/빠른탐색 칩 등) */
+    --main-scrim-45: rgba(10, 10, 10, 0.45);
+    --main-scrim-75: rgba(10, 10, 10, 0.75);
+    --main-scrim2-15: rgba(20, 20, 20, 0.15);
+    --main-scrim2-35: rgba(20, 20, 20, 0.35);
+    --main-scrim2-45: rgba(20, 20, 20, 0.45);
+    --main-fade-0: rgba(20, 20, 20, 0);
+
+    /* 히어로 스크림 그라디언트(6,6,8 계열) */
+    --main-scrim3-02: rgba(6, 6, 8, 0.02);
+    --main-scrim3-08: rgba(6, 6, 8, 0.08);
+    --main-scrim3-55: rgba(6, 6, 8, 0.55);
+    --main-scrim3-86: rgba(6, 6, 8, 0.86);
+
+    /* 인트로 패널 배경 그라디언트 */
+    --main-panel-grad-start: rgba(28, 31, 38, 0.7);
+    --main-panel-grad-end: rgba(15, 17, 22, 0.55);
+
+    /* 포인트 블루(#5ea3ff) 알파 단계 — 인트로 패널 글로우/보더 등 */
+    --main-point-16: rgba(94, 163, 255, 0.16);
+    --main-point-22: rgba(94, 163, 255, 0.22);
+    --main-point-24: rgba(94, 163, 255, 0.24);
+    --main-point-35: rgba(94, 163, 255, 0.35);
+    --main-point-50: rgba(94, 163, 255, 0.5);
+    --main-point-55: rgba(94, 163, 255, 0.55);
+    --main-point-80: rgba(94, 163, 255, 0.8);
+    --main-empty-blue-2: rgba(47, 111, 228, 0.2);
+
+    /* 위험/랭킹 강조 레드(--danger와 동일 색 계열) 알파 단계 */
+    --main-danger-0: rgba(255, 59, 79, 0);
+    --main-danger-55: rgba(255, 59, 79, 0.55);
+}
+
 /* 전역 스크롤바 스타일은 layout.css(html::-webkit-scrollbar 등)에서
    모든 화면 공통으로 적용됩니다. */
 
 body {
     margin: 0;
     overflow-x: hidden;
-    background: #141414;
-    color: #e5e5e5;
+    background: var(--main-bg);
+    color: var(--main-text-body);
     font-family:
         Arial,
         "Noto Sans KR",
@@ -35,42 +158,42 @@ a {
     height: 22px;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--main-overlay-22);
     border-radius: 50%;
-    color: #ffffff;
+    color: var(--main-white);
     font-size: 8.5px;
     font-weight: 900;
     line-height: 1;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 7px var(--main-shadow-20);
 }
 
 .content-age-rating-badge.is-all {
     width: 28px;
     border-radius: 999px;
-    background: #2f855a;
+    background: var(--main-age-all);
     font-size: 7px;
 }
 
 .content-age-rating-badge.is-age7 {
-    background: #3478b9;
+    background: var(--main-age7);
 }
 
 .content-age-rating-badge.is-age12 {
-    background: #b88416;
+    background: var(--main-age12);
 }
 
 .content-age-rating-badge.is-age15 {
-    background: #ce6428;
+    background: var(--main-age15);
 }
 
 .content-age-rating-badge.is-adult {
-    background: #c53f45;
+    background: var(--main-age-adult);
 }
 
 .content-age-rating-badge.is-unknown {
     width: 28px;
     border-radius: 999px;
-    background: #555c66;
+    background: var(--main-age-unknown);
     font-size: 7px;
 }
 
@@ -87,7 +210,7 @@ a {
     margin-right: calc(50% - 50vw);
     margin-bottom: 56px;
     overflow: hidden;
-    background: #141414;
+    background: var(--main-bg);
 }
 
 /* 초대형/울트라와이드 모니터에서는 배너 렌더링 폭을 제한한다.
@@ -102,6 +225,61 @@ a {
         margin-right: calc(50% - 960px);
     }
 
+}
+
+/* [QA 수정] 세로 포스터 마스크(.hero-slide-poster-img)처럼, 배너
+   전체(.hero)의 상하좌우 가장자리도 부드럽게 페이드해 뒤쪽 블러
+   배경(.hero-ambient-wrap)과 하드 엣지 없이 자연스럽게 이어지도록
+   한다. 4방향 그라디언트를 intersect(교집합)로 겹쳐 네 변을 동시에
+   페이드한다. 페이드 폭(18px)은 .hero-slide-body의 최소
+   margin-left(20px)보다 작게 잡아 텍스트/배지/버튼이 페이드 구간에
+   걸치지 않게 했다. 모바일 가로 스크롤 레이아웃(900px 이하)에서는
+   배너 구조 자체가 달라지므로 제외한다. */
+@media (min-width: 901px) {
+
+    .hero {
+        -webkit-mask-image:
+            linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%),
+            linear-gradient(to bottom, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+            linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%),
+            linear-gradient(to bottom, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);
+        mask-composite: intersect;
+    }
+
+}
+
+/* [QA 수정] 1920px 제한으로 생기는 좌우 여백을 넷플릭스처럼 같은
+   슬라이드 이미지를 블러 확장한 배경으로 채운다.
+   .hero 자신에 overflow:hidden이 걸려있어 그 안에 넣으면 1920px
+   박스 밖은 그대로 잘리므로, .hero를 감싸는 .hero-ambient-wrap에
+   ::before로 얹어 .hero보다 아래 레이어(뷰포트 전체 폭)로 깐다.
+   폭은 부모 폭이 아니라 뷰포트 자체를 기준으로 채워야 하므로,
+   부모 폭에 좌우되는 margin 트릭 대신 left:50% + translateX(-50%)
+   방식을 쓴다(이 방식은 .hero가 100vw든 1920px 고정이든 항상 실제
+   화면 전체 폭을 덮는다). 실제 배경 이미지는 JS(main.js의
+   syncActiveIndex)가 현재 활성 슬라이드에 맞춰 --hero-ambient-bg
+   변수를 갱신해 슬라이드 전환과 함께 자연스럽게 같이 바뀐다. */
+.hero-ambient-wrap {
+    position: relative;
+}
+
+.hero-ambient-wrap::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    height: 100%;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%) scale(1.15);
+    background-image: var(--hero-ambient-bg, none);
+    background-position: center 30%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(60px) saturate(1.15) brightness(0.55);
+    transition: background-image 0.6s ease;
+    pointer-events: none;
 }
 
 .hero-slides {
@@ -168,6 +346,11 @@ a {
      블러 배경과 하나로 이어지도록 하고
    - 배너 상하 전체 높이를 채워 '옆에 붙인 썸네일'이 아니라
      배경 아트워크의 연장처럼 보이게 한다. */
+/* [QA 수정] 왼쪽 가장자리만 페이드하던 마스크에 상/하 가장자리 페이드를
+   추가한다. 위아래는 하드 컷이라 블러 배경과 맞닿는 부분이 사각형
+   테두리처럼 도드라져 보였다. 두 개의 그라디언트 마스크를
+   intersect(교집합)로 겹쳐서, 왼쪽은 크게(배경과 이어지도록) · 위아래는
+   가장자리만 살짝(그림 대부분은 그대로 유지) 페이드한다. */
 .hero-slide-poster-img {
     position: absolute;
     top: 0;
@@ -177,8 +360,14 @@ a {
     aspect-ratio: 2 / 3;
     object-fit: contain;
     object-position: top center;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.5) 18%, #000 45%);
-    mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.5) 18%, #000 45%);
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%),
+        linear-gradient(to bottom, transparent 0%, var(--main-black) 6%, var(--main-black) 94%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0%, var(--main-shadow-50) 18%, var(--main-black) 45%),
+        linear-gradient(to bottom, transparent 0%, var(--main-black) 6%, var(--main-black) 94%, transparent 100%);
+    mask-composite: intersect;
 }
 
 @media (max-width: 900px) {
@@ -205,17 +394,17 @@ a {
     width: clamp(300px, 26vw, 380px);
     padding: clamp(32px, 2.8vw, 42px) clamp(34px, 3vw, 44px);
     overflow: hidden;
-    border: 1px solid rgba(94, 163, 255, 0.22);
+    border: 1px solid var(--main-point-22);
     border-radius: 24px;
     background:
-        radial-gradient(120% 90% at 100% 0%, rgba(94, 163, 255, 0.16), transparent 60%),
-        linear-gradient(165deg, rgba(28, 31, 38, 0.7), rgba(15, 17, 22, 0.55));
+        radial-gradient(120% 90% at 100% 0%, var(--main-point-16), transparent 60%),
+        linear-gradient(165deg, var(--main-panel-grad-start), var(--main-panel-grad-end));
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow:
-        0 28px 60px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-        0 1px 0 rgba(255, 255, 255, 0.1) inset;
+        0 28px 60px var(--main-shadow-50),
+        0 0 0 1px var(--main-overlay-04) inset,
+        0 1px 0 var(--main-overlay-10) inset;
     transform: translateY(-50%);
 }
 
@@ -229,7 +418,7 @@ a {
     width: 160px;
     height: 160px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(94, 163, 255, 0.35), transparent 70%);
+    background: radial-gradient(circle, var(--main-point-35), transparent 70%);
     pointer-events: none;
 }
 
@@ -250,7 +439,7 @@ a {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #9aa4b2;
+    color: var(--main-text-label);
 }
 
 .hero-intro-platforms-label::before {
@@ -259,7 +448,7 @@ a {
     height: 6px;
     border-radius: 50%;
     background: var(--color-point, #5ea3ff);
-    box-shadow: 0 0 10px rgba(94, 163, 255, 0.8);
+    box-shadow: 0 0 10px var(--main-point-80);
 }
 
 .hero-intro-platform-logos {
@@ -276,8 +465,8 @@ a {
     width: 46px;
     height: 46px;
     border-radius: 13px;
-    background: #ffffff;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    background: var(--main-white);
+    box-shadow: 0 8px 18px var(--main-shadow-35);
     overflow: hidden;
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
@@ -285,7 +474,7 @@ a {
 /* [추가] 로고가 <a> 링크가 되면서, 눌러서 이동 가능하다는 걸
    호버 시 살짝 떠오르는 느낌으로 알려준다. */
 a.hero-intro-platform-logo:hover {
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(94, 163, 255, 0.55);
+    box-shadow: 0 12px 26px var(--main-shadow-45), 0 0 0 2px var(--main-point-55);
     transform: translateY(-3px);
 }
 
@@ -299,7 +488,7 @@ a.hero-intro-platform-logo:hover {
     position: relative;
     width: 100%;
     height: 1px;
-    background: linear-gradient(90deg, rgba(94, 163, 255, 0.5), rgba(255, 255, 255, 0.08) 65%, transparent);
+    background: linear-gradient(90deg, var(--main-point-50), var(--main-overlay-08) 65%, transparent);
 }
 
 .hero-intro-stat {
@@ -314,7 +503,7 @@ a.hero-intro-platform-logo:hover {
     font-size: clamp(28px, 2.6vw, 34px);
     font-weight: 800;
     line-height: 1;
-    background: linear-gradient(90deg, #ffffff, #cfe1ff);
+    background: linear-gradient(90deg, var(--main-white), var(--main-stat-grad-end));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -324,7 +513,7 @@ a.hero-intro-platform-logo:hover {
 .hero-intro-stat-label {
     font-size: 14px;
     letter-spacing: 0.01em;
-    color: #aeb4bd;
+    color: var(--main-text-stat);
     white-space: nowrap;
 }
 
@@ -340,17 +529,17 @@ a.hero-intro-platform-logo:hover {
 
 .hero-slide-bg-empty {
     background:
-        radial-gradient(circle at 26% 40%, rgba(94, 163, 255, 0.24), transparent 55%),
-        radial-gradient(circle at 78% 72%, rgba(47, 111, 228, 0.20), transparent 55%),
-        #141414;
+        radial-gradient(circle at 26% 40%, var(--main-point-24), transparent 55%),
+        radial-gradient(circle at 78% 72%, var(--main-empty-blue-2), transparent 55%),
+        var(--main-bg);
 }
 
 .hero-slide-scrim {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(100deg, rgba(6, 6, 8, 0.86) 0%, rgba(6, 6, 8, 0.55) 38%, rgba(6, 6, 8, 0.08) 62%, rgba(6, 6, 8, 0.02) 100%),
-        linear-gradient(0deg, #141414 0%, rgba(20, 20, 20, 0.15) 32%, rgba(20, 20, 20, 0) 55%);
+        linear-gradient(100deg, var(--main-scrim3-86) 0%, var(--main-scrim3-55) 38%, var(--main-scrim3-08) 62%, var(--main-scrim3-02) 100%),
+        linear-gradient(0deg, var(--main-bg) 0%, var(--main-scrim2-15) 32%, var(--main-fade-0) 55%);
 }
 
 .hero-slide-body {
@@ -375,10 +564,10 @@ a.hero-intro-platform-logo:hover {
     align-items: center;
     margin-bottom: 14px;
     padding: 5px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--main-overlay-22);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #f0f0f0;
+    background: var(--main-overlay-08);
+    color: var(--main-eyebrow-text);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.2px;
@@ -388,11 +577,11 @@ a.hero-intro-platform-logo:hover {
     overflow: hidden;
     display: -webkit-box;
     margin: 0 0 16px;
-    color: #ffffff;
+    color: var(--main-white);
     font-size: clamp(28px, 4vw, 46px);
     font-weight: 800;
     line-height: 1.25;
-    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    text-shadow: 0 4px 18px var(--main-shadow-45);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -409,21 +598,21 @@ a.hero-intro-platform-logo:hover {
 
 .hero-meta-chip {
     padding: 3px 9px;
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    border: 1px solid var(--main-overlay-28);
     border-radius: 5px;
-    color: #e8e8e8;
+    color: var(--main-chip-text);
     font-weight: 600;
 }
 
 .hero-meta-score {
-    color: #f4cf58;
+    color: var(--main-gold);
     font-weight: 700;
 }
 
 .hero-meta-genre {
     overflow: hidden;
     max-width: 260px;
-    color: #bdbdbd;
+    color: var(--main-text-muted);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -433,10 +622,10 @@ a.hero-intro-platform-logo:hover {
     display: -webkit-box;
     max-width: 540px;
     margin: 0 0 28px;
-    color: #d6d6d6;
+    color: var(--main-desc-text);
     font-size: 14px;
     line-height: 1.7;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 10px var(--main-shadow-40);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -469,7 +658,7 @@ a.hero-intro-platform-logo:hover {
 
 .hero-btn-primary {
     background: var(--color-point-strong, #2f6fe4);
-    color: #ffffff;
+    color: var(--main-white);
 }
 
 .hero-btn-primary:hover {
@@ -477,15 +666,15 @@ a.hero-intro-platform-logo:hover {
 }
 
 .hero-btn-ghost {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: rgba(20, 20, 20, 0.35);
-    color: #ffffff;
+    border-color: var(--main-overlay-35);
+    background: var(--main-scrim2-35);
+    color: var(--main-white);
     backdrop-filter: blur(6px);
 }
 
 .hero-btn-ghost:hover {
-    border-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--main-overlay-70);
+    background: var(--main-overlay-12);
 }
 
 .hero-slide-fallback .hero-slide-desc {
@@ -515,13 +704,13 @@ a.hero-intro-platform-logo:hover {
     top: 182px; /* 172px(desktop 카드 너비) × 1.5 - 76px */
     bottom: auto;
     z-index: 2;
-    color: rgba(255, 255, 255, 0.12);
+    color: var(--main-overlay-12);
     font-size: 76px;
     font-weight: 900;
     line-height: 1;
     letter-spacing: -2px;
-    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.7);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+    -webkit-text-stroke: 1.5px var(--main-overlay-70);
+    text-shadow: 0 2px 10px var(--main-shadow-55);
     font-style: italic;
     white-space: nowrap;
     pointer-events: none;
@@ -529,18 +718,18 @@ a.hero-intro-platform-logo:hover {
 }
 
 .rank-item:nth-child(1) .rank-number {
-    color: rgba(244, 207, 88, 0.18);
-    -webkit-text-stroke: 1.5px #f4cf58;
+    color: var(--main-rank-gold-tint);
+    -webkit-text-stroke: 1.5px var(--main-gold);
 }
 
 .rank-item:nth-child(2) .rank-number {
-    color: rgba(207, 212, 218, 0.18);
-    -webkit-text-stroke: 1.5px #cfd4da;
+    color: var(--main-rank-silver-tint);
+    -webkit-text-stroke: 1.5px var(--main-rank-silver);
 }
 
 .rank-item:nth-child(3) .rank-number {
-    color: rgba(210, 154, 99, 0.18);
-    -webkit-text-stroke: 1.5px #d29a63;
+    color: var(--main-rank-bronze-tint);
+    -webkit-text-stroke: 1.5px var(--main-rank-bronze);
 }
 
 .rank-item .card {
@@ -565,11 +754,11 @@ a.hero-intro-platform-logo:hover {
     display: inline-flex;
     align-items: center;
     padding: 7px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--main-overlay-22);
     border-radius: 999px;
-    background: rgba(20, 20, 20, 0.45);
+    background: var(--main-scrim2-45);
     backdrop-filter: blur(8px);
-    color: #e5e5e5;
+    color: var(--main-text-body);
     font-size: 12.5px;
     font-weight: 600;
     white-space: nowrap;
@@ -580,9 +769,9 @@ a.hero-intro-platform-logo:hover {
 }
 
 .hero-quick-link:hover {
-    border-color: rgba(255, 255, 255, 0.55);
-    background: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
+    border-color: var(--main-overlay-55);
+    background: var(--main-overlay-14);
+    color: var(--main-white);
     transform: translateY(-2px);
 }
 
@@ -594,10 +783,10 @@ a.hero-intro-platform-logo:hover {
     z-index: 4;
     width: 44px;
     height: 44px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--main-overlay-20);
     border-radius: 50%;
-    background: rgba(10, 10, 10, 0.45);
-    color: #ffffff;
+    background: var(--main-scrim-45);
+    color: var(--main-white);
     font-size: 22px;
     cursor: pointer;
     transform: translateY(-50%);
@@ -615,7 +804,7 @@ a.hero-intro-platform-logo:hover {
 }
 
 .hero-nav:hover {
-    background: rgba(10, 10, 10, 0.75);
+    background: var(--main-scrim-75);
 }
 
 .hero-dots {
@@ -634,7 +823,7 @@ a.hero-intro-platform-logo:hover {
     padding: 0;
     border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.4);
+    background: var(--main-overlay-40);
     cursor: pointer;
     transition:
         background-color 0.2s ease,
@@ -643,7 +832,7 @@ a.hero-intro-platform-logo:hover {
 
 .hero-dot.is-active {
     width: 22px;
-    background: #ffffff;
+    background: var(--main-white);
 }
 
 .hero-btn:focus-visible,
@@ -669,24 +858,24 @@ a.hero-intro-platform-logo:hover {
 
 .ranking-filter button {
     padding: 4px 8px;
-    border: 1px solid #3a3a3a;
-    background: #2a2a2a;
-    color: #aaaaaa;
+    border: 1px solid var(--main-filter-border);
+    background: var(--main-bg-muted);
+    color: var(--main-text-secondary);
     font-size: 11px;
     cursor: pointer;
 }
 
 .ranking-filter button:hover,
 .ranking-filter .active {
-    color: #ffffff;
-    background: #353535;
+    color: var(--main-white);
+    background: var(--main-bg-filter-active);
 }
 
 .ott-select {
     padding: 4px 8px;
-    border: 1px solid #333333;
-    background: #1c1c1c;
-    color: #dddddd;
+    border: 1px solid var(--main-select-border);
+    background: var(--main-bg-card);
+    color: var(--main-select-text);
     font-size: 11px;
 }
 
@@ -705,13 +894,13 @@ a.hero-intro-platform-logo:hover {
 .rank {
     width: 20px;
     flex-shrink: 0;
-    color: #ffffff;
+    color: var(--main-white);
 }
 
 .name {
     overflow: hidden;
     flex: 1;
-    color: #bbbbbb;
+    color: var(--main-name-text);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -778,26 +967,26 @@ a.hero-intro-platform-logo:hover {
 
 @keyframes sectionRankPulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 59, 79, 0.55);
+        box-shadow: 0 0 0 0 var(--main-danger-55);
     }
     70% {
-        box-shadow: 0 0 0 8px rgba(255, 59, 79, 0);
+        box-shadow: 0 0 0 8px var(--main-danger-0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 59, 79, 0);
+        box-shadow: 0 0 0 0 var(--main-danger-0);
     }
 }
 
 .section-eyebrow--today {
-    color: #2dd4bf;
+    color: var(--main-eyebrow-today);
 }
 
 .section-eyebrow--popular {
-    color: #ff8a3d;
+    color: var(--main-eyebrow-popular);
 }
 
 .section-eyebrow--new {
-    color: #5ea3ff;
+    color: var(--color-point, #5ea3ff);
 }
 
 .section-eyebrow--recommend {
@@ -806,19 +995,19 @@ a.hero-intro-platform-logo:hover {
 
 .section-description {
     margin: 6px 0 0;
-    color: #8f8f8f;
+    color: var(--main-text-dim);
     font-size: 12px;
 }
 
 .section-more {
     flex-shrink: 0;
-    color: #9f9f9f;
+    color: var(--main-text-more);
     font-size: 13px;
     transition: color 0.2s ease;
 }
 
 .section-more:hover {
-    color: #ffffff;
+    color: var(--main-white);
 }
 
 /* ================= SLIDER ================= */
@@ -845,12 +1034,12 @@ a.hero-intro-platform-logo:hover {
 
 .slider::before {
     left: 50px;
-    background: linear-gradient(90deg, #141414, rgba(20, 20, 20, 0));
+    background: linear-gradient(90deg, var(--main-bg), var(--main-fade-0));
 }
 
 .slider::after {
     right: 50px;
-    background: linear-gradient(270deg, #141414, rgba(20, 20, 20, 0));
+    background: linear-gradient(270deg, var(--main-bg), var(--main-fade-0));
 }
 
 .slider.at-start::before,
@@ -878,8 +1067,8 @@ a.hero-intro-platform-logo:hover {
     flex-shrink: 0;
     border: 0;
     border-radius: 8px;
-    background: #222222;
-    color: #aaaaaa;
+    background: var(--main-bg-btn);
+    color: var(--main-text-secondary);
     font-size: 28px;
     cursor: pointer;
     transition:
@@ -889,8 +1078,8 @@ a.hero-intro-platform-logo:hover {
 }
 
 .slider-btn:hover {
-    background: #343434;
-    color: #ffffff;
+    background: var(--main-bg-btn-hover);
+    color: var(--main-white);
 }
 
 .slider.at-start .slider-btn:first-child,
@@ -905,8 +1094,8 @@ a.hero-intro-platform-logo:hover {
     flex-shrink: 0;
     border: 0;
     border-radius: 8px;
-    background: #222222;
-    color: #aaaaaa;
+    background: var(--main-bg-btn);
+    color: var(--main-text-secondary);
     font-size: 28px;
     cursor: pointer;
     transition:
@@ -915,8 +1104,8 @@ a.hero-intro-platform-logo:hover {
 }
 
 .btn:hover {
-    background: #343434;
-    color: #ffffff;
+    background: var(--main-bg-btn-hover);
+    color: var(--main-white);
 }
 
 /* ================= CARD ================= */
@@ -928,7 +1117,7 @@ a.hero-intro-platform-logo:hover {
     flex-shrink: 0;
     overflow: hidden;
     border-radius: 10px;
-    background: #1c1c1c;
+    background: var(--main-bg-card);
     transition:
         transform 0.25s ease,
         box-shadow 0.25s ease;
@@ -936,7 +1125,7 @@ a.hero-intro-platform-logo:hover {
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.38);
+    box-shadow: 0 12px 26px var(--main-shadow-38);
 }
 
 .thumb {
@@ -944,7 +1133,7 @@ a.hero-intro-platform-logo:hover {
     width: 100%;
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    background: #2a2a2a;
+    background: var(--main-bg-muted);
 }
 
 .thumb img {
@@ -965,7 +1154,7 @@ a.hero-intro-platform-logo:hover {
     height: 100%;
     align-items: center;
     justify-content: center;
-    color: #777777;
+    color: var(--main-text-faint);
     font-size: 12px;
 }
 
@@ -975,8 +1164,8 @@ a.hero-intro-platform-logo:hover {
     left: 8px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: rgba(0, 0, 0, 0.72);
-    color: #ffffff;
+    background: var(--main-shadow-72);
+    color: var(--main-white);
     font-size: 11px;
     font-weight: 700;
 }
@@ -984,23 +1173,23 @@ a.hero-intro-platform-logo:hover {
 /* [리팩터링] 콘텐츠 리스트(content-list-modern.css .content-list-type-badge)와
    동일한 종류별 색상을 사용해서 메인화면 카드도 같은 기준으로 구분되게 한다. */
 .content-type-badge.is-movie {
-    background: rgba(73, 78, 88, 0.88);
+    background: var(--main-type-movie);
 }
 
 .content-type-badge.is-drama {
-    background: rgba(89, 65, 135, 0.88);
+    background: var(--main-type-drama);
 }
 
 .content-type-badge.is-animation {
-    background: rgba(37, 102, 112, 0.9);
+    background: var(--main-type-animation);
 }
 
 .content-type-badge.is-variety {
-    background: rgba(133, 82, 39, 0.9);
+    background: var(--main-type-variety);
 }
 
 .content-type-badge.is-documentary {
-    background: rgba(45, 74, 118, 0.9);
+    background: var(--main-type-documentary);
 }
 
 .content-age-rating {
@@ -1018,12 +1207,12 @@ a.hero-intro-platform-logo:hover {
     z-index: 2;
     padding: 4px 8px;
     border-radius: 999px;
-    background: rgba(59, 130, 246, 0.94);
-    color: #ffffff;
+    background: var(--main-upcoming-bg);
+    color: var(--main-white);
     font-size: 11px;
     font-weight: 800;
     line-height: 1;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 3px 10px var(--main-shadow-28);
 }
 
 .card-info {
@@ -1034,7 +1223,7 @@ a.hero-intro-platform-logo:hover {
 .card-title {
     overflow: hidden;
     margin: 0;
-    color: #ffffff;
+    color: var(--main-white);
     font-size: 14px;
     font-weight: 700;
     text-overflow: ellipsis;
@@ -1048,13 +1237,13 @@ a.hero-intro-platform-logo:hover {
     justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
-    color: #8f8f8f;
+    color: var(--main-text-dim);
     font-size: 11px;
 }
 
 .card-score {
     flex-shrink: 0;
-    color: #f4cf58;
+    color: var(--main-gold);
 }
 
 /* ================= CARD OTT PLATFORM ================= */
@@ -1084,10 +1273,10 @@ a.hero-intro-platform-logo:hover {
     margin: 0 !important;
     padding: 0 !important;
 
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--main-overlay-14);
     border-radius: 4px;
 
-    background: #ffffff;
+    background: var(--main-white);
 
     object-fit: cover !important;
     object-position: center;
@@ -1100,10 +1289,10 @@ a.hero-intro-platform-logo:hover {
     align-items: center;
     justify-content: center;
     padding: 0 4px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--main-overlay-12);
     border-radius: 4px;
-    background: #282828;
-    color: #bdbdbd;
+    background: var(--main-bg-chip);
+    color: var(--main-text-muted);
     font-size: 9px;
     font-weight: 700;
     line-height: 1;
@@ -1116,9 +1305,9 @@ a.hero-intro-platform-logo:hover {
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background: #1c1c1c;
+    background: var(--main-bg-card);
     /* [수정] #777777 on #1c1c1c는 대비 약 3.8:1로 부족해 더 밝게 교체 */
-    color: #858585;
+    color: var(--main-text-empty);
     font-size: 14px;
 }
 
