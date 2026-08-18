@@ -19,7 +19,7 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/chat-common.css?v=1">
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/chat-room.css?v=5">
+      href="${pageContext.request.contextPath}/css/chat-room.css?v=6">
 
 <%-- head-assets.jsp(CSS/공통 스크립트/CSRF meta/viewport)는 header.jsp가 body 안에서
      include하는 대신, embed 여부와 무관하게 항상 head 레벨에서 로드합니다.
@@ -117,16 +117,16 @@
         </div>
     </div>
 
+    <%--
+        자유방(PUBLIC)은 사업자 메시지 입력 영역을 항상 출력합니다.
+        공지방(NOTICE)은 관리자에게만 입력 영역을 제공하고, 사업자는 읽기 전용입니다.
+        자유방 입력창이 공지방 조건 분기에 함께 묶여 사라지는 일을 막기 위해
+        자유방 조건을 가장 먼저 명시적으로 분리합니다.
+    --%>
     <c:choose>
 
-        <c:when test="${isNoticeRoom and not isAdmin}">
-            <div class="readonly-footer">
-                관리자만 공지 메시지를 작성할 수 있습니다.
-            </div>
-        </c:when>
-
-        <c:otherwise>
-            <div class="input-area">
+        <c:when test="${not isNoticeRoom}">
+            <div class="input-area chat-input-area">
 
                 <label for="messageInput"
                        style="position:absolute;
@@ -138,12 +138,12 @@
                               clip:rect(0, 0, 0, 0);
                               white-space:nowrap;
                               border:0;">
-                    채팅 메시지 또는 공지 내용 입력
+                    채팅 메시지 입력
                 </label>
 
                 <textarea id="messageInput"
                           maxlength="2000"
-                          placeholder="${isNoticeRoom ? '공지 내용을 입력하세요.' : '메시지를 입력하세요.'}"></textarea>
+                          placeholder="메시지를 입력하세요."></textarea>
 
                 <button type="button"
                         class="send-btn"
@@ -151,14 +151,47 @@
                     전송
                 </button>
 
-                <c:if test="${not isNoticeRoom}">
-                    <button type="button"
-                            class="leave-btn"
-                            id="leaveBtn">
-                        나가기
-                    </button>
-                </c:if>
+                <button type="button"
+                        class="leave-btn"
+                        id="leaveBtn">
+                    나가기
+                </button>
 
+            </div>
+        </c:when>
+
+        <c:when test="${isAdmin}">
+            <div class="input-area chat-input-area">
+
+                <label for="messageInput"
+                       style="position:absolute;
+                              width:1px;
+                              height:1px;
+                              padding:0;
+                              margin:-1px;
+                              overflow:hidden;
+                              clip:rect(0, 0, 0, 0);
+                              white-space:nowrap;
+                              border:0;">
+                    공지 내용 입력
+                </label>
+
+                <textarea id="messageInput"
+                          maxlength="2000"
+                          placeholder="공지 내용을 입력하세요."></textarea>
+
+                <button type="button"
+                        class="send-btn"
+                        id="sendBtn">
+                    전송
+                </button>
+
+            </div>
+        </c:when>
+
+        <c:otherwise>
+            <div class="readonly-footer">
+                관리자만 공지 메시지를 작성할 수 있습니다.
             </div>
         </c:otherwise>
 
@@ -173,11 +206,10 @@
 <div id="participantModal"
      class="participant-modal"
      hidden>
-    <%-- [SonarQube] ARIA dialog 역할 대신 네이티브 dialog 요소를 사용해 접근성을 보장합니다. --%>
-    <dialog class="participant-modal-panel"
-            open
-            aria-modal="true"
-            aria-labelledby="participantModalTitle">
+    <div class="participant-modal-panel"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="participantModalTitle">
 
         <div class="participant-modal-header">
             <div>
@@ -196,7 +228,7 @@
         <ul id="participantList"
             class="participant-list"
             aria-live="polite"></ul>
-    </dialog>
+    </div>
 </div>
 
 <script type="module"
