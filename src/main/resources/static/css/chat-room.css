@@ -74,7 +74,12 @@ body.chat-page {
     overflow: hidden;
 }
 
-/* iframe 임베드 모드: 전역 헤더가 없고 iframe 자체가 뷰포트이므로 100vh를 그대로 쓴다 */
+/* iframe 임베드 모드에서는 전역 header가 없으므로
+   common.css의 body padding-top을 제거한다. */
+body.chat-page.embedded {
+    padding-top: 0;
+}
+
 body.chat-page.embedded .chat-container {
     height: 100vh;
 }
