@@ -79,6 +79,12 @@
   --goods-restock-a28: rgba(229, 115, 115, 0.28);
   --goods-restock-a055: rgba(229, 115, 115, 0.055);
 
+  /* ---- 재입고 알림 신청 완료 그린 계열 (--goods-success-* 와 동일 RGB) ---- */
+  --goods-restock-success-a3: rgba(76, 175, 80, 0.3);
+  --goods-restock-success-a08: rgba(76, 175, 80, 0.08);
+  --goods-restock-success-a28: rgba(76, 175, 80, 0.28);
+  --goods-restock-success-a055: rgba(76, 175, 80, 0.055);
+
   /* ---- 리뷰 삭제 버튼 ---- */
   --goods-review-delete-border: #7f3035;
   --goods-review-delete-hover-bg: rgba(127, 48, 53, 0.18);
@@ -2520,6 +2526,70 @@
   opacity: 0.78;
 }
 
+/* [UX 강화] 재입고 알림 신청 처리 결과 메시지
+   기존에는 회색 텍스트만 노출돼 신청 성공 여부가 눈에 잘 띄지 않았다.
+   상품 판매 상태 배지(.status-badge)와 같은 성공/실패 색상 규칙을 적용해
+   체크/느낌표 아이콘이 붙은 배지 형태로 강조하고, 등장 시 살짝 떠오르는
+   애니메이션을 더해 신청이 처리됐다는 것을 바로 알아볼 수 있게 한다. */
+.restock-request-message:empty {
+  display: none;
+}
+
+.restock-request-message.is-success,
+.restock-request-message.is-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  max-width: 100%;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  opacity: 1;
+  transform: translateY(0);
+  animation: restockMessageIn 0.22s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+/* [UX 강화] 신청 완료(success) 안내는 확인한 뒤 화면에 계속 남아있을
+   필요가 없어 잠시 후 JS가 이 클래스를 붙여 부드럽게 사라지게 한다. */
+.restock-request-message.is-fading {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+.restock-request-message.is-success {
+  background: var(--goods-success-bg);
+  color: var(--goods-success-text);
+}
+
+.restock-request-message.is-error {
+  background: var(--goods-danger-bg);
+  color: var(--goods-danger-text);
+}
+
+.restock-request-message.is-success::before {
+  content: "\2713";
+}
+
+.restock-request-message.is-error::before {
+  content: "!";
+}
+
+@keyframes restockMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* =========================================================
    [최종 수정] 옵션별 재입고 UI 강제 정렬
    기존 옵션 grid / 중복 CSS 충돌 방지
@@ -2713,6 +2783,25 @@
   width: 100% !important;
 
   font-size: 11px !important;
+}
+
+/* [UX 강화] 재입고 알림 신청 완료 상태
+   품절(빨강) 박스 전체를 신청 완료(초록) 톤으로 전환해, 배지 하나가 아니라
+   박스 전체에서 "신청이 처리됐다"는 상태를 바로 알아볼 수 있게 한다.
+   신청을 취소하면 JS가 이 클래스를 제거해 원래의 품절(빨강) 상태로 되돌아간다. */
+.goods-detail-container .option-restock-area.is-requested {
+  border-color: var(--goods-restock-success-a28) !important;
+  background: var(--goods-restock-success-a055) !important;
+}
+
+.goods-detail-container .option-restock-area.is-requested .option-restock-icon {
+  border-color: var(--goods-restock-success-a3) !important;
+  background: var(--goods-restock-success-a08) !important;
+  color: var(--goods-success-text) !important;
+}
+
+.goods-detail-container .option-restock-area.is-requested .option-restock-title {
+  color: var(--goods-success-text) !important;
 }
 
 /* 모바일 */

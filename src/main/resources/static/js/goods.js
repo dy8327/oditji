@@ -20,6 +20,50 @@ document.addEventListener("DOMContentLoaded", function () {
     return headers;
   }
 
+  /**
+   * [UX 강화] 재입고 알림 신청 결과 메시지 컨트롤러
+   * 성공(success) 메시지는 확인 후 화면에 계속 남아있을 필요가 없으므로
+   * 잠시 후 페이드아웃되며 자동으로 사라지고, 실패(error) 메시지는
+   * 사용자가 원인을 놓치지 않도록 다음 조작이 있을 때까지 유지한다.
+   */
+  function createRestockMessageController(message) {
+    let hideTimer = null;
+
+    function clearHideTimer() {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+    }
+
+    return function showMessage(text, type) {
+      if (!message) {
+        return;
+      }
+
+      clearHideTimer();
+      message.classList.remove("is-fading");
+      message.textContent = text || "";
+      message.classList.remove("is-success", "is-error");
+
+      if (!text || !type) {
+        return;
+      }
+
+      message.classList.add(type === "error" ? "is-error" : "is-success");
+
+      if (type === "success") {
+        hideTimer = setTimeout(function () {
+          message.classList.add("is-fading");
+          hideTimer = setTimeout(function () {
+            message.textContent = "";
+            message.classList.remove("is-success", "is-fading");
+          }, 250);
+        }, 3200);
+      }
+    };
+  }
+
   initializeGoodsFilter();
   initializeGoodsSort();
   initializeGoodsSelectedFilterChips();
@@ -461,15 +505,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateButton(requested) {
       button.dataset.requested = requested ? "true" : "false";
       button.setAttribute("aria-pressed", requested ? "true" : "false");
-      button.textContent = requested ? "상품 재입고 알림 신청 취소" : "상품 재입고 알림 신청";
+      button.textContent = requested ? "상품 재입고 알림 취소" : "상품 재입고 알림 신청";
       button.classList.toggle("active", requested);
     }
 
-    function showMessage(text) {
-      if (message) {
-        message.textContent = text || "";
-      }
-    }
+    const showMessage = createRestockMessageController(message);
 
     /*
      * [재입고 알림 신청 상태 조회]
@@ -535,9 +575,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         updateButton(Boolean(data.requested));
-        showMessage(data.message || "처리되었습니다.");
+        showMessage(data.message || "처리되었습니다.", "success");
       } catch (error) {
-        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.");
+        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.", "error");
       } finally {
         button.disabled = false;
       }
@@ -561,6 +601,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const message = document.getElementById("optionRestockRequestMessage");
 
     /*
+     * [UX 강화] 신청 완료 여부에 따라 품절 안내 박스 전체를
+     * 빨간(품절) ↔ 초록(신청 완료) 톤으로 전환하기 위한 요소 참조.
+     */
+    const area = document.getElementById("optionRestockArea");
+    const icon = document.getElementById("optionRestockIcon");
+    const title = document.getElementById("optionRestockTitle");
+    const description = document.getElementById("optionRestockDescription");
+
+    /*
      * 옵션이 없는 상품 상세페이지에는
      * 버튼 자체가 존재하지 않으므로 종료합니다.
      */
@@ -582,19 +631,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
       button.setAttribute("aria-pressed", requested ? "true" : "false");
 
-      button.textContent = requested ? "상품 선택 옵션 재입고 알림 신청 취소" : "상품 선택 옵션 재입고 알림 신청";
+      /*
+       * [UX 강화] "신청" -> "신청 취소"로 글자 수가 늘어나면 버튼 너비가
+       * 상태마다 달라져 옆의 처리 메시지와의 줄바꿈/간격이 흔들렸다.
+       * "신청" -> "취소"로 같은 글자 수만 바꿔 버튼 너비를 상태와 무관하게
+       * 일정하게 유지한다.
+       */
+      button.textContent = requested ? "상품 선택 옵션 재입고 알림 취소" : "상품 선택 옵션 재입고 알림 신청";
 
       button.classList.toggle("active", requested);
+
+      if (area) {
+        area.classList.toggle("is-requested", requested);
+      }
+
+      if (icon) {
+        icon.textContent = requested ? "✓" : "!";
+      }
+
+      if (title) {
+        title.textContent = requested ? "재입고 알림 신청이 완료되었습니다." : "선택한 옵션이 품절되었습니다.";
+      }
+
+      if (description) {
+        description.textContent = requested
+          ? "재고가 다시 들어오면 알림으로 알려드릴게요."
+          : "재입고 알림을 신청하면 입고 소식을 가장 먼저 알려드려요.";
+      }
     }
 
     /**
      * 처리 결과 메시지를 표시합니다.
      */
-    function showMessage(text) {
-      if (message) {
-        message.textContent = text || "";
-      }
-    }
+    const showMessage = createRestockMessageController(message);
 
     /**
      * =========================================================
@@ -664,7 +733,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const optionNo = Number(button.dataset.optionNo);
 
       if (!Number.isInteger(optionNo) || optionNo <= 0) {
-        showMessage("재입고 알림을 신청할 옵션을 선택해주세요.");
+        showMessage("재입고 알림을 신청할 옵션을 선택해주세요.", "error");
 
         return;
       }
@@ -710,9 +779,9 @@ document.addEventListener("DOMContentLoaded", function () {
          */
         updateButton(Boolean(data.requested));
 
-        showMessage(data.message || "처리되었습니다.");
+        showMessage(data.message || "처리되었습니다.", "success");
       } catch (error) {
-        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.");
+        showMessage(error.message || "재입고 알림 신청 처리 중 오류가 발생했습니다.", "error");
       } finally {
         button.disabled = false;
       }

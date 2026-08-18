@@ -566,7 +566,8 @@
                     class="option-restock-area"
                     style="display: none;">
 
-                    <div class="option-restock-icon"
+                    <div id="optionRestockIcon"
+                        class="option-restock-icon"
                         aria-hidden="true">
                         !
                     </div>
@@ -578,8 +579,9 @@
                             선택한 옵션이 품절되었습니다.
                         </strong>
 
-                        <span class="option-restock-description">
-                            재고가 다시 들어오면 알림으로 알려드릴게요.
+                        <span id="optionRestockDescription"
+                              class="option-restock-description">
+                            재입고 알림을 신청하면 입고 소식을 가장 먼저 알려드려요.
                         </span>
 
                     </div>
