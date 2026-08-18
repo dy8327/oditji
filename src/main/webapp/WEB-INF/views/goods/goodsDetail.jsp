@@ -868,6 +868,24 @@
 
                         <div class="review-meta">
 
+                            <c:choose>
+                                <c:when test="${empty r.profileImage}">
+                                    <img class="review-writer-avatar"
+                                         src="${pageContext.request.contextPath}/images/profile_image.jpg"
+                                         alt="기본 프로필">
+                                </c:when>
+                                <c:when test="${fn:startsWith(r.profileImage, 'http')}">
+                                    <img class="review-writer-avatar"
+                                         src="${r.profileImage}"
+                                         alt="프로필 이미지">
+                                </c:when>
+                                <c:otherwise>
+                                    <img class="review-writer-avatar"
+                                         src="${pageContext.request.contextPath}/uploads/profile/${r.profileImage}"
+                                         alt="프로필 이미지">
+                                </c:otherwise>
+                            </c:choose>
+
                             <span class="writer">
                                 <c:out value="${r.writer}"/>
                             </span>

@@ -220,7 +220,7 @@ ul {
   gap: 12px;
 }
 
-.icon-btn {
+.odi-nav-actions .icon-btn {
   width: 40px;
   height: 40px;
   display: inline-grid;
@@ -232,7 +232,7 @@ ul {
   cursor: pointer;
 }
 
-.icon-btn:hover {
+.odi-nav-actions .icon-btn:hover {
   background: var(--overlay-08);
 }
 
