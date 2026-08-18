@@ -225,17 +225,40 @@ function initializeDetailImageInputs() {
       return;
     }
 
+    /* =========================================================
+      [수정] 세부 이미지 입력 행 추가
+      - 최초 JSP에 있는 세부 이미지 입력 행과 동일한 구조로 생성
+      - 브라우저 기본 file input은 숨기고 커스텀 파일 선택 버튼 사용
+      - 각 input마다 고유 id를 생성하여 label과 연결
+    ========================================================= */
+
+    const rowCount = rows.querySelectorAll(".detail-image-row").length;
+    const inputId = "detailImage" + rowCount;
+
     const row = document.createElement("div");
     row.className = "detail-image-row";
+
     row.innerHTML = `
+      <label for="${inputId}"
+            class="detail-image-select-button">
+        파일 선택
+      </label>
+
       <input type="file"
-             class="detail-image-input"
-             name="detailImages"
-             accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
-      <span class="detail-image-file-name">선택된 파일 없음</span>
+            id="${inputId}"
+            class="detail-image-input detail-image-hidden-input"
+            name="detailImages"
+            accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+
+      <span class="detail-image-file-name">
+        선택된 파일 없음
+      </span>
+
       <button type="button"
               class="detail-image-remove-btn"
-              aria-label="세부 이미지 입력 삭제">삭제</button>`;
+              aria-label="세부 이미지 입력 삭제">
+        삭제
+      </button>`;
 
     rows.appendChild(row);
     bindRow(row);
