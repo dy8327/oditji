@@ -206,10 +206,10 @@
 <div id="participantModal"
      class="participant-modal"
      hidden>
-    <div class="participant-modal-panel"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="participantModalTitle">
+    <dialog class="participant-modal-panel"
+        open
+        aria-modal="true"
+        aria-labelledby="participantModalTitle">
 
         <div class="participant-modal-header">
             <div>
@@ -228,7 +228,7 @@
         <ul id="participantList"
             class="participant-list"
             aria-live="polite"></ul>
-    </div>
+    </dialog>
 </div>
 
 <script type="module"
