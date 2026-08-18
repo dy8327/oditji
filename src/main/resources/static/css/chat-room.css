@@ -147,7 +147,12 @@ body.chat-page.embedded .chat-container {
 }
 
 .message-area {
-    flex: 1;
+    /*
+     * flex column 안에서 메시지가 많아져도 이 영역만 줄어들고 스크롤되어야
+     * 하단 자유방 입력창이 컨테이너 밖으로 밀려 잘리지 않습니다.
+     */
+    flex: 1 1 0;
+    min-height: 0;
     padding: 18px 16px;
     overflow-y: auto;
     background: var(--kakao-bg-1, #191919);
@@ -474,16 +479,28 @@ body.chat-page.embedded .chat-container {
 }
 
 .input-area {
+    /*
+     * 자유방 메시지 입력 영역은 메시지 스크롤 영역과 별도의 고정 flex item으로
+     * 유지합니다. iframe 안에서도 높이 계산에 밀려 사라지지 않도록 너비와
+     * 축소 금지 조건을 명시합니다.
+     */
+    width: 100%;
+    min-height: 72px;
     padding: 12px 14px;
     border-top: 1px solid var(--kakao-border, #3a3a3a);
     display: flex;
+    align-items: stretch;
     gap: 10px;
     background: var(--kakao-bg-2, #222222);
     flex: 0 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .input-area textarea {
-    flex: 1;
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 48px;
     resize: none;
     padding: 10px 12px;
@@ -593,10 +610,6 @@ body.chat-page.embedded .chat-container {
     width: min(360px, 100%);
     max-height: min(520px, 78vh);
     overflow: hidden;
-    /* [SonarQube] 네이티브 dialog의 기본 여백/배치를 기존 모달 패널과 동일하게 초기화합니다. */
-    position: static;
-    margin: 0;
-    padding: 0;
     border: 1px solid var(--kakao-border, #3a3a3a);
     border-radius: 14px;
     background: var(--kakao-bg-2, #222222);
