@@ -188,7 +188,7 @@
                                                         data-joined="${room.joined}">
                                                     <c:choose>
                                                         <c:when test="${room.joined}">입장</c:when>
-                                                        <c:otherwise>참가/입장</c:otherwise>
+                                                        <c:otherwise>참가</c:otherwise>
                                                     </c:choose>
                                                 </button>
                                             </div>
@@ -320,7 +320,7 @@
        value="${pageContext.request.contextPath}">
 
 <script type="module"
-        src="${pageContext.request.contextPath}/js/roomList.js?v=7"></script>
+        src="${pageContext.request.contextPath}/js/roomList.js?v=8"></script>
 
 </body>
 </html>

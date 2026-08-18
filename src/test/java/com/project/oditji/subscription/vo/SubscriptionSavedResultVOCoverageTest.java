@@ -21,6 +21,8 @@ class SubscriptionSavedResultVOCoverageTest {
 
         assertNotNull(vo.getPlatformNameList());
         assertTrue(vo.getPlatformNameList().isEmpty());
+        assertTrue(vo.getContentList().isEmpty());
+        assertTrue(vo.getPlatformGroupList().isEmpty());
         assertEquals(0, vo.getTotalPrice());
         assertEquals(0, vo.getDiscountPrice());
         assertEquals(0, vo.getFinalPrice());
@@ -41,18 +43,32 @@ class SubscriptionSavedResultVOCoverageTest {
     }
 
     @Test
-    void platformNameListSetterShouldKeepProvidedListAndNormalizeNull() {
+    void listSettersShouldKeepProvidedListsAndNormalizeNull() {
         SubscriptionSavedResultVO vo = new SubscriptionSavedResultVO();
         List<String> platformNames =
                 new ArrayList<String>(List.of("Netflix", "TVING"));
+        List<ContentWishItemVO> contentList =
+                new ArrayList<ContentWishItemVO>(List.of(new ContentWishItemVO()));
+        List<PlatformPriceVO> platformGroupList =
+                new ArrayList<PlatformPriceVO>(List.of(new PlatformPriceVO()));
 
         vo.setPlatformNameList(platformNames);
+        vo.setContentList(contentList);
+        vo.setPlatformGroupList(platformGroupList);
 
         assertSame(platformNames, vo.getPlatformNameList());
+        assertSame(contentList, vo.getContentList());
+        assertSame(platformGroupList, vo.getPlatformGroupList());
 
         vo.setPlatformNameList(null);
+        vo.setContentList(null);
+        vo.setPlatformGroupList(null);
 
         assertNotNull(vo.getPlatformNameList());
+        assertNotNull(vo.getContentList());
+        assertNotNull(vo.getPlatformGroupList());
         assertTrue(vo.getPlatformNameList().isEmpty());
+        assertTrue(vo.getContentList().isEmpty());
+        assertTrue(vo.getPlatformGroupList().isEmpty());
     }
 }

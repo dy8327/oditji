@@ -6,7 +6,7 @@ import {
     formatTime,
     formatDate,
     getTimestampMillis
-} from "./chat.js?v=5";
+} from "./chat.js?v=6";
 
 /**
  * 채팅방 상세 화면의 서버 전달값과 DOM 요소를 초기화합니다.
@@ -50,6 +50,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const sendBtn = document.getElementById("sendBtn");
     const leaveBtn = document.getElementById("leaveBtn");
     const roomListBtn = document.getElementById("roomListBtn");
+    const participantListBtn = document.getElementById("participantListBtn");
+    const participantCountText = document.getElementById("participantCountText");
+    const participantModal = document.getElementById("participantModal");
+    const participantModalClose = document.getElementById("participantModalClose");
+    const participantSummary = document.getElementById("participantSummary");
+    const participantList = document.getElementById("participantList");
 
     const READER_REFRESH_INTERVAL_MS = 4000;
 
@@ -209,6 +215,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let lastSavedReadKey = "";
     let readStateRequestInFlight = false;
     let readerRefreshTimer = null;
+    let unsubscribeMessages = null;
+    let publicRoomJoinEpochMs = 0;
 
     /*
      * 안읽음 인원수 배지가 나중에 추가/제거되면서 메시지 영역 높이가
@@ -745,6 +753,155 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     /**
+     * 현재 로그인 사용자가 자유방에 참가한 시각을 참여자 목록에서 찾습니다.
+     * 신규 데이터는 memberNo를 우선 사용하고, 호환을 위해 businessNo도 fallback으로 비교합니다.
+     *
+     * @returns {number} 참가 시각 epoch millisecond. 확인할 수 없으면 0
+     */
+    function getCurrentPublicRoomJoinEpochMs() {
+
+        if (roomType !== "PUBLIC") {
+            return 0;
+        }
+
+        const currentMemberNo = toPositiveNumber(memberNo);
+        const currentBusinessNo = toPositiveNumber(businessNo);
+
+        const currentParticipant = participantReadList.find(function(participant) {
+
+            if (!participant) {
+                return false;
+            }
+
+            const participantMemberNo = toPositiveNumber(participant.memberNo);
+
+            if (currentMemberNo !== null && participantMemberNo !== null) {
+                return currentMemberNo === participantMemberNo;
+            }
+
+            const participantBusinessNo = toPositiveNumber(
+                participant.businessNo
+            );
+
+            return currentBusinessNo !== null
+                && participantBusinessNo !== null
+                && currentBusinessNo === participantBusinessNo;
+        });
+
+        return currentParticipant
+            ? Number(currentParticipant.joinedAtEpochMs) || 0
+            : 0;
+    }
+
+    /**
+     * 참여자 목록 모달과 상단 버튼의 인원수를 현재 조회 결과로 갱신합니다.
+     */
+    function renderParticipantList() {
+
+        const participants = Array.isArray(participantReadList)
+            ? participantReadList
+            : [];
+        const participantCount = participants.length;
+
+        if (participantCountText) {
+            participantCountText.textContent = "(" + participantCount + ")";
+        }
+
+        if (participantSummary) {
+            participantSummary.textContent = participantCount > 0
+                ? "현재 참여자 " + participantCount + "명"
+                : "현재 표시할 참여자가 없습니다.";
+        }
+
+        if (!participantList) {
+            return;
+        }
+
+        participantList.innerHTML = "";
+
+        if (participantCount === 0) {
+            const emptyItem = document.createElement("li");
+            emptyItem.className = "participant-empty";
+            emptyItem.textContent = "참여자가 없습니다.";
+            participantList.appendChild(emptyItem);
+            return;
+        }
+
+        participants.forEach(function(participant) {
+
+            const item = document.createElement("li");
+            item.className = "participant-item";
+
+            const avatar = document.createElement("span");
+            avatar.className = "participant-avatar";
+
+            const displayName = String(
+                participant.displayName || "참여자"
+            ).trim();
+
+            avatar.textContent = displayName
+                ? displayName.charAt(0).toUpperCase()
+                : "?";
+
+            const name = document.createElement("span");
+            name.className = "participant-name";
+            name.textContent = displayName || "참여자";
+
+            item.appendChild(avatar);
+            item.appendChild(name);
+
+            const participantMemberNo = toPositiveNumber(participant.memberNo);
+            const participantBusinessNo = toPositiveNumber(participant.businessNo);
+            const mineByMember = participantMemberNo !== null
+                && participantMemberNo === toPositiveNumber(memberNo);
+            const mineByBusiness = participantBusinessNo !== null
+                && participantBusinessNo === toPositiveNumber(businessNo);
+
+            if (mineByMember || mineByBusiness) {
+                const meBadge = document.createElement("span");
+                meBadge.className = "participant-me-badge";
+                meBadge.textContent = "나";
+                item.appendChild(meBadge);
+            }
+
+            participantList.appendChild(item);
+        });
+    }
+
+    /**
+     * 참여자 목록을 최신 상태로 갱신한 뒤 모달을 엽니다.
+     */
+    async function openParticipantModal() {
+
+        if (!participantModal) {
+            return;
+        }
+
+        await refreshParticipantReadList();
+        participantModal.hidden = false;
+
+        if (participantModalClose) {
+            participantModalClose.focus();
+        }
+    }
+
+    /**
+     * 참여자 목록 모달을 닫습니다.
+     */
+    function closeParticipantModal() {
+
+        if (!participantModal || participantModal.hidden) {
+            return;
+        }
+
+        participantModal.hidden = true;
+
+        if (participantListBtn) {
+            participantListBtn.focus();
+        }
+    }
+
+    /**
      * 메시지별 미열람 인원 계산을 위해 참여자별 마지막 읽음 위치를 조회합니다.
      */
     async function refreshParticipantReadList() {
@@ -776,9 +933,14 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = await response.json();
             participantReadList = Array.isArray(data) ? data : [];
             updateUnreadParticipantIndicators();
+            renderParticipantList();
+
+            return participantReadList;
 
         } catch (error) {
             console.error("참여자 읽음 정보 조회 실패:", error);
+            renderParticipantList();
+            return participantReadList;
         }
     }
 
@@ -1256,8 +1418,25 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (event.key === "Escape") {
             closeMessageMenus();
+            closeParticipantModal();
         }
     });
+
+    if (participantListBtn) {
+        participantListBtn.addEventListener("click", openParticipantModal);
+    }
+
+    if (participantModalClose) {
+        participantModalClose.addEventListener("click", closeParticipantModal);
+    }
+
+    if (participantModal) {
+        participantModal.addEventListener("click", function(event) {
+            if (event.target === participantModal) {
+                closeParticipantModal();
+            }
+        });
+    }
 
     if (roomListBtn) {
         roomListBtn.addEventListener("click", function() {
@@ -1271,7 +1450,7 @@ document.addEventListener("DOMContentLoaded", function() {
      * 이동시키지 않고 부모 대시보드(roomList)에 위임하여 좌측 목록 화면으로 돌아갑니다.
      *
      * @param {Object} [extraData] close-room 메시지에 함께 실어 보낼 추가 데이터.
-     *        나가기(leaveRoom) 성공 시 roomList.js가 좌측 목록의 참가 상태(참가/입장 ↔ 입장)를
+     *        나가기(leaveRoom) 성공 시 roomList.js가 좌측 목록의 참가 상태(참가 ↔ 입장)를
      *        새로고침 없이 즉시 되돌릴 수 있도록 { left: true, roomId } 형태로 전달합니다.
      */
     function goToRoomList(extraData) {
@@ -1312,24 +1491,50 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
     }
 
-    const unsubscribeMessages = listenMessages(
-        roomId,
-        async function(messageList) {
-            latestMessageList = Array.isArray(messageList)
-                ? messageList
-                : [];
-            renderMessages(latestMessageList);
-            await saveLatestReadState();
-            await refreshParticipantReadList();
+    /**
+     * 참여자 정보를 먼저 조회한 뒤 메시지 구독을 시작합니다.
+     * 자유방은 현재 사용자의 JOIN_DATE를 확인하지 못한 상태에서 전체 메시지를
+     * 구독하지 않도록 하여 참가 전 채팅이 잠깐이라도 노출되는 것을 막습니다.
+     */
+    async function initializeMessageSubscription() {
+
+        await refreshParticipantReadList();
+
+        if (roomType === "PUBLIC") {
+            publicRoomJoinEpochMs = getCurrentPublicRoomJoinEpochMs();
+
+            if (publicRoomJoinEpochMs <= 0) {
+                console.error("자유방 참가 시각을 확인할 수 없습니다.");
+
+                if (emptyMessage) {
+                    emptyMessage.textContent =
+                        "채팅방 참가 시각을 확인할 수 없어 메시지를 불러오지 않았습니다.";
+                }
+
+                return;
+            }
         }
-    );
 
-    refreshParticipantReadList();
+        unsubscribeMessages = listenMessages(
+            roomId,
+            async function(messageList) {
+                latestMessageList = Array.isArray(messageList)
+                    ? messageList
+                    : [];
+                renderMessages(latestMessageList);
+                await saveLatestReadState();
+                await refreshParticipantReadList();
+            },
+            publicRoomJoinEpochMs
+        );
 
-    readerRefreshTimer = window.setInterval(
-        refreshParticipantReadList,
-        READER_REFRESH_INTERVAL_MS
-    );
+        readerRefreshTimer = window.setInterval(
+            refreshParticipantReadList,
+            READER_REFRESH_INTERVAL_MS
+        );
+    }
+
+    initializeMessageSubscription();
 
     document.addEventListener("visibilitychange", function() {
         if (document.visibilityState === "visible") {
