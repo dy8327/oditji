@@ -4,6 +4,7 @@
 
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:set var="activeMenu" value="event"/>
 
@@ -323,12 +324,12 @@
                         <thead>
                             <tr>
                                 <th>상품명</th>
-                                <th>작품</th>
-                                <th>배우</th>
-                                <th>종류</th>
+                                <th class="col-hide-mobile">작품</th>
+                                <th class="col-hide-mobile">배우</th>
+                                <th class="col-hide-mobile">종류</th>
                                 <th>가격</th>
                                 <th>재고</th>
-                                <th>상태</th>
+                                <th class="col-hide-mobile">상태</th>
                                 <th>선택</th>
                             </tr>
                         </thead>
@@ -344,6 +345,18 @@
                                 -->
                                 <c:if test="${product.status ne 'DELETE_REQUESTED'}">
 
+                                    <%--
+                                        [모바일 반응형] 상태 뱃지 컬럼을 숨기는 대신, eventList.jsp와
+                                        동일하게 상품명 텍스트 색상으로 상태를 표시한다.
+                                    --%>
+                                    <c:set var="productStatusClass">
+                                        <c:choose>
+                                            <c:when test="${product.status eq 'APPROVED'}">st-ok</c:when>
+                                            <c:when test="${product.status eq 'WAITING'}">st-waiting</c:when>
+                                            <c:otherwise>st-reject</c:otherwise>
+                                        </c:choose>
+                                    </c:set>
+
                                     <tr class="product-search-row"
                                         data-product-name="<c:out value='${product.productName}'/>"
                                         data-content-title="<c:out value='${product.contentTitle}'/>"
@@ -353,14 +366,14 @@
                                         <!-- 상품명 -->
                                         <td>
 
-                                            <span class="product-search-name">
+                                            <span class="product-search-name mobile-status-text ${fn:trim(productStatusClass)}">
                                                 <c:out value="${product.productName}"/>
                                             </span>
 
                                         </td>
 
                                         <!-- 작품명 -->
-                                        <td>
+                                        <td class="col-hide-mobile">
 
                                             <c:choose>
 
@@ -377,7 +390,7 @@
                                         </td>
 
                                         <!-- 배우명 -->
-                                        <td>
+                                        <td class="col-hide-mobile">
 
                                             <c:choose>
 
@@ -394,7 +407,7 @@
                                         </td>
 
                                         <!-- 상품 종류 -->
-                                        <td>
+                                        <td class="col-hide-mobile">
                                             <c:out value="${product.productType}"/>
                                         </td>
 
@@ -411,7 +424,7 @@
                                         </td>
 
                                         <!-- 상태 -->
-                                        <td>
+                                        <td class="col-hide-mobile">
 
                                             <c:choose>
 
@@ -454,6 +467,16 @@
                                                 선택
                                             </button>
 
+                                            <%--
+                                                [모바일 반응형] 숨겨진 컬럼(작품/배우/종류/가격/재고/상태)은
+                                                가로 스크롤 대신 상세보기 모달에서 확인한다.
+                                            --%>
+                                            <button class="btn btn-dark mobile-only-el"
+                                                    type="button"
+                                                    onclick="openModal('productSearchDetailModal_${product.productNo}')">
+                                                상세보기
+                                            </button>
+
                                         </td>
 
                                     </tr>
@@ -481,6 +504,103 @@
     </div>
 
 </dialog>
+
+<%--
+    [모바일 반응형] 상품 검색 결과 행의 상세보기 모달.
+    <table> 안에는 <div>를 둘 수 없어 <tbody> 밖, 별도의
+    forEach로 상품마다 하나씩 렌더링한다(eventDetailModal과 동일한 방식).
+--%>
+<c:forEach var="product" items="${productList}">
+
+    <c:if test="${product.status ne 'DELETE_REQUESTED'}">
+
+        <div class="modal-overlay" id="productSearchDetailModal_${product.productNo}">
+
+            <div class="modal-box">
+
+                <div class="modal-header">
+                    <h3>상품 상세 정보</h3>
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeModal('productSearchDetailModal_${product.productNo}')"
+                            aria-label="닫기">
+                        &times;
+                    </button>
+                </div>
+
+                <div class="detail-grid">
+
+                    <div>
+                        <span class="detail-label">상품명</span>
+                        <p><c:out value="${product.productName}"/></p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">작품</span>
+                        <p>
+                            <c:choose>
+                                <c:when test="${not empty product.contentTitle}"><c:out value="${product.contentTitle}"/></c:when>
+                                <c:otherwise>-</c:otherwise>
+                            </c:choose>
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">배우</span>
+                        <p>
+                            <c:choose>
+                                <c:when test="${not empty product.actorName}"><c:out value="${product.actorName}"/></c:when>
+                                <c:otherwise>-</c:otherwise>
+                            </c:choose>
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">종류</span>
+                        <p><c:out value="${product.productType}"/></p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">가격</span>
+                        <p><fmt:formatNumber value="${product.price}" pattern="#,###"/>원</p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">재고</span>
+                        <p><fmt:formatNumber value="${product.stock}" pattern="#,###"/>개</p>
+                    </div>
+
+                    <div>
+                        <span class="detail-label">상태</span>
+                        <p>
+                            <c:choose>
+                                <c:when test="${product.status eq 'WAITING'}">승인 대기</c:when>
+                                <c:when test="${product.status eq 'APPROVED'}">승인 완료</c:when>
+                                <c:when test="${product.status eq 'REJECTED'}">승인 반려</c:when>
+                                <c:when test="${product.status eq 'SOLD_OUT'}">품절</c:when>
+                                <c:when test="${product.status eq 'STOPPED'}">판매 중지</c:when>
+                                <c:otherwise><c:out value="${product.status}"/></c:otherwise>
+                            </c:choose>
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-dark"
+                            onclick="closeModal('productSearchDetailModal_${product.productNo}')">
+                        닫기
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </c:if>
+
+</c:forEach>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp"/>
 
