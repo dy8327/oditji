@@ -347,11 +347,11 @@ http://localhost:8080/oditji
 
 ## CI/CD 파이프라인
 
-`develop` 브랜치에 변경사항이 반영되면 GitHub Actions의 `Deploy ODITJI` 워크플로가 실행됩니다.
+`main` 브랜치에 변경사항이 반영되면 GitHub Actions의 `Deploy ODITJI` 워크플로가 실행됩니다.
 
 ```mermaid
 flowchart LR
-    PUSH[develop Push / Merge]
+    PUSH[main Push / Merge]
     CHECKOUT[Source Checkout]
     BUILD[Java 21 + Maven WAR Build]
     VERIFY[WAR Content Check]
@@ -405,8 +405,8 @@ main
 
 | 브랜치 | 용도 |
 | --- | --- |
-| `main` | 최종 제출·발표용 안정 버전 |
-| `develop` | 기능 통합 및 운영 자동 배포 기준 |
+| `main` | 최종 제출·발표용 안정 버전 및 운영 자동 배포 기준 |
+| `develop` | 기능 통합 |
 | `feature/*` | 팀원별 기능 개발 |
 
 ### 협업 규칙
